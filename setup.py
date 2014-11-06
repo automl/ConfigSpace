@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 import os
 
 import HPOlibConfigSpace
@@ -8,31 +8,6 @@ desc = 'Package to describe configuration spaces for automated algorithm ' \
        'configuration and hyperparameter tuning'
 keywords = 'algorithm configuration hyperparameter optimization empirical ' \
            'evaluation black box'
-
-
-data_files = []
-scripts = ['scripts/HPOlib-convert']
-
-package_dir = {'HPOlibConfigSpace': 'HPOlibConfigSpace',
-               'HPOlibConfigSpace.nx': 'HPOlibConfigSpace/nx',
-               'HPOlibConfigSpace.nx.algorithms':
-                   'HPOlibConfigSpace/nx/algorithms',
-               'HPOlibConfigSpace.nx.classes': 'HPOlibConfigSpace/nx/classes',
-               'HPOlibConfigSpace.nx.external': 'HPOlibConfigSpace/nx/external',
-               'HPOlibConfigSpace.nx.utils': 'HPOlibConfigSpace/nx/utils',
-               'HPOlibConfigSpace.converters': 'HPOlibConfigSpace/converters'}
-
-
-def get_find_packages():
-    packages = ['HPOlibConfigSpace',
-                'HPOlibConfigSpace.nx',
-                'HPOlibConfigSpace.nx.algorithms',
-                'HPOlibConfigSpace.nx.classes',
-                'HPOlibConfigSpace.nx.external',
-                'HPOlibConfigSpace.nx.utils',
-                'HPOlibConfigSpace.converters']
-    return packages
-
 
 def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
@@ -54,10 +29,8 @@ setup(
     description=desc,
     long_description=read("README.md"),
     keywords=keywords,
-    packages=get_find_packages(),
-    package_dir=package_dir,
-    data_files=data_files,
-    scripts=scripts,
+    packages=find_packages(),
+    scripts=['scripts/HPOlib-convert'],
     classifiers=[
         'Programming Language :: Python :: 2.7',
         'Development Status :: 3 - Alpha',
