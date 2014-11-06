@@ -1,0 +1,53 @@
+# This is not translated 100% correctly, the original one would be a continuous value
+# but SMAC is not capable of this
+depth {0, 1, 2, 3, 4, 5} [2]
+
+num_units_1 [1, 20] [10]i 
+num_units_1 | depth in {1, 2, 3, 4, 5}
+num_units_2 [1, 20] [10]i 
+num_units_2| depth in {2, 3, 4, 5}
+num_units_3 [1, 20] [10]i 
+num_units_3| depth in {3, 4, 5}
+num_units_4 [1, 20] [10]i 
+num_units_4| depth in {4, 5}
+num_units_5 [1, 20] [10]i 
+num_units_5 | depth in {5}
+
+log_base_epsilon_0 [-11.512925464970229, 0] [-5.756462732] 
+log_base_epsilon_0 | depth in {0, 1, 2, 3, 4, 5}
+log_base_epsilon_1 [-11.512925464970229, 0] [-5.756462732] 
+log_base_epsilon_1 | depth in {1, 2, 3, 4, 5}
+log_base_epsilon_2 [-11.512925464970229, 0] [-5.756462732]
+log_base_epsilon_2 | depth in {2, 3, 4, 5}
+log_base_epsilon_3 [-11.512925464970229, 0] [-5.756462732] 
+log_base_epsilon_3 | depth in {3, 4, 5}
+log_base_epsilon_4 [-11.512925464970229, 0] [-5.756462732]
+log_base_epsilon_4 | depth in {4, 5}
+log_base_epsilon_5 [-11.512925464970229, 0] [-5.756462732] 
+log_base_epsilon_5 | depth in {5}
+
+weight_norm_0 [0.25, 8] [4.125] 
+weight_norm_0 | depth in {0, 1, 2, 3, 4, 5}
+weight_norm_1 [0.25, 8] [4.125] 
+weight_norm_1 | depth in {1, 2, 3, 4, 5}
+weight_norm_2 [0.25, 8] [4.125] 
+weight_norm_2 | depth in {2, 3, 4, 5}
+weight_norm_3 [0.25, 8] [4.125]
+weight_norm_3 | depth in {3, 4, 5}
+weight_norm_4 [0.25, 8] [4.125]
+weight_norm_4 | depth in {4, 5}
+weight_norm_5 [0.25, 8] [4.125] 
+weight_norm_5| depth in {5}
+
+dropout_0 [0, 0.8] [0.4] 
+dropout_0 | depth in {0, 1, 2, 3, 4, 5}
+dropout_1 [0, 0.8] [0.4] 
+dropout_1 | depth in {1, 2, 3, 4, 5}
+dropout_2 [0, 0.8] [0.4] 
+dropout_2 | depth in {2, 3, 4, 5}
+dropout_3 [0, 0.8] [0.4] 
+dropout_3 | depth in {3, 4, 5}
+dropout_4 [0, 0.8] [0.4] 
+dropout_4 | depth in {4, 5}
+dropout_5 [0, 0.8] [0.4] 
+dropout_5 | depth in {5}

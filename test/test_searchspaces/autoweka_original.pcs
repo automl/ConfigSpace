@@ -1,0 +1,1744 @@
+_0__wcbbn_00_D {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_0__wcbbn_01_Q {weka.classifiers.bayes.net.search.local.K2, weka.classifiers.bayes.net.search.local.HillClimber, weka.classifiers.bayes.net.search.local.LAGDHillClimber, weka.classifiers.bayes.net.search.local.SimulatedAnnealing, weka.classifiers.bayes.net.search.local.TabuSearch, weka.classifiers.bayes.net.search.local.TAN} [weka.classifiers.bayes.net.search.local.K2]
+_0__wcbnb_00_K {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_0__wcbnb_01_D {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_0__wcfl_00_R [1.0E-12, 10.0] [1.0E-7]l
+_0__wcfmp_00_L [0.1, 1.0] [0.3]
+_0__wcfmp_01_M [0.1, 1.0] [0.2]
+_0__wcfmp_02_B {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_0__wcfmp_03_H {a, i, o, t} [a]
+_0__wcfmp_04_C {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_0__wcfmp_05_R {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_0__wcfmp_06_D {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_0__wcfmp_07_S {1} [1]
+_0__wcfsgd_00_F {0, 1, 2} [0]
+_0__wcfsgd_01_L [1.0E-5, 0.1] [0.01]l
+_0__wcfsgd_02_R [1.0E-12, 10.0] [1.0E-4]l
+_0__wcfsgd_03_N {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_0__wcfsgd_04_M {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_0__wcfsl_00_S {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_0__wcfsl_01_W_HIDDEN {0, 1} [0]
+_0__wcfsl_02_1_W {0} [0]
+_0__wcfsl_03_2_W [0.0, 1.0] [0.0]
+_0__wcfsl_04_A {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_0__wcfsmo_00_0_C [0.5, 1.5] [1.0]
+_0__wcfsmo_01_1_N {0, 1, 2} [0]
+_0__wcfsmo_02_2_M {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_0__wcfsmo_03_3_REG_IGNORE_QUOTE_START_K {weka.classifiers.functions.supportVector.NormalizedPolyKernel, weka.classifiers.functions.supportVector.PolyKernel, weka.classifiers.functions.supportVector.Puk, weka.classifiers.functions.supportVector.RBFKernel} [weka.classifiers.functions.supportVector.NormalizedPolyKernel]
+_0__wcfsmo_04_4_npoly_E [0.2, 5.0] [1.0]
+_0__wcfsmo_05_4_npoly_L {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_0__wcfsmo_06_4_poly_E [0.2, 5.0] [1.0]
+_0__wcfsmo_07_4_poly_L {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_0__wcfsmo_08_4_puk_S [0.1, 10.0] [1.0]
+_0__wcfsmo_09_4_puk_O [0.1, 1.0] [1.0]
+_0__wcfsmo_10_4_rbf_G [1.0E-4, 1.0] [0.01]l
+_0__wcfsmo_11_5_QUOTE_END {REMOVED} [REMOVED]
+_0__wcfvp_00_INT_I [1, 10] [1]i
+_0__wcfvp_01_INT_M [5000, 50000] [10000]il
+_0__wcfvp_02_E [0.2, 5.0] [1.0]
+_0__wclib_00_E {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_0__wclib_01_INT_K [1, 64] [1]il
+_0__wclib_02_X {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_0__wclib_03_F {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_0__wclib_04_I {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_0__wclks_00_INT_B [1, 100] [20]i
+_0__wclks_01_E {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_0__wclks_02_M {a, d, m, n} [a]
+_0__wcllwl_00_K {-1, 10, 30, 60, 90, 120} [-1]
+_0__wcllwl_01_U {0, 1, 2, 3, 4} [0]
+_0__wcllwl_02_A {weka.core.neighboursearch.LinearNNSearch} [weka.core.neighboursearch.LinearNNSearch]
+_0__wcmabm_00_p_HIDDEN {0, 1} [0]
+_0__wcmabm_01_1_P {100} [100]
+_0__wcmabm_02_2_INT_P [50, 100] [100]i
+_0__wcmabm_03_INT_I [2, 128] [10]il
+_0__wcmabm_04_Q {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_0__wcmabm_05_S {1} [1]
+_0__wcmasc_00_S {weka.attributeSelection.BestFirst, weka.attributeSelection.GreedyStepwise, weka.attributeSelection.Ranker} [weka.attributeSelection.BestFirst]
+_0__wcmasc_01_E {weka.attributeSelection.CfsSubsetEval, weka.attributeSelection.WrapperSubsetEval, weka.attributeSelection.OneRAttributeEval, weka.attributeSelection.InfoGainAttributeEval, weka.attributeSelection.HoldOutSubsetEvaluator, weka.attributeSelection.GainRatioAttributeEval} [weka.attributeSelection.CfsSubsetEval]
+_0__wcmb_00_INT_P [10, 200] [100]i
+_0__wcmb_01_INT_I [2, 128] [10]il
+_0__wcmb_02_S {1} [1]
+_0__wcmb_03_O {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_0__wcmlb_00_INT_I [2, 128] [10]il
+_0__wcmlb_01_h_HIDDEN {0, 1} [0]
+_0__wcmlb_02_1_H {1} [1]
+_0__wcmlb_03_2_H [0.0, 1.0] [1.0]
+_0__wcmlb_04_INT_R [1, 5] [1]i
+_0__wcmlb_05_f_HIDDEN {0, 1} [0]
+_0__wcmlb_06_1_F {0} [0]
+_0__wcmlb_07_2_INT_F [1, 5] [1]i
+_0__wcmlb_08_Q {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_0__wcmlb_09_p_HIDDEN {0, 1} [0]
+_0__wcmlb_10_1_P {100} [100]
+_0__wcmlb_11_2_INT_P [50, 100] [100]i
+_0__wcmlb_12_L {1e50} [1e50]
+_0__wcmlb_13_S {1} [1]
+_0__wcmmcc_00_M {0, 1, 2, 3} [0]
+_0__wcmmcc_01_R [0.5, 4.0] [2.0]
+_0__wcmmcc_02_P {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_0__wcmmcc_03_S {1} [1]
+_0__wcmrc_00_INT_I [2, 64] [10]il
+_0__wcmrc_01_S {1} [1]
+_0__wcmrss_00_INT_I [2, 64] [10]il
+_0__wcmrss_01_P [0.1, 1.0] [0.5]
+_0__wcmrss_02_S {1} [1]
+_0__wcms_00_X {10} [10]
+_0__wcms_01_S {1} [1]
+_0__wcmv_00_R {AVG, PROD, MAJ, MIN, MAX} [AVG]
+_0__wcmv_01_S {1} [1]
+_0__wcrdt_00_E {acc, rmse, mae, auc} [acc]
+_0__wcrdt_01_I {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_0__wcrdt_02_S {weka.attributeSelection.BestFirst, weka.attributeSelection.GreedyStepwise, weka.attributeSelection.Ranker} [weka.attributeSelection.BestFirst]
+_0__wcrdt_03_X {1, 2, 3, 4} [1]
+_0__wcrjr_00_N [1.0, 5.0] [2.0]
+_0__wcrjr_01_E {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_0__wcrjr_02_P {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_0__wcrjr_03_INT_O [1, 5] [2]i
+_0__wcror_00_INT_B [1, 32] [6]il
+_0__wcrpart_00_INT_N [2, 5] [3]i
+_0__wcrpart_01_INT_M [1, 64] [2]il
+_0__wcrpart_02_R {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_0__wcrpart_03_B {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_0__wctj_00_O {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_0__wctj_01_U {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_0__wctj_02_B {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_0__wctj_03_J {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_0__wctj_04_A {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_0__wctj_05_S {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_0__wctj_06_INT_M [1, 64] [2]il
+_0__wctj_07_C [0.0, 1.0] [0.25]
+_0__wctlmt_00_B {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_0__wctlmt_01_R {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_0__wctlmt_02_C {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_0__wctlmt_03_P {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_0__wctlmt_04_INT_M [1, 64] [15]il
+_0__wctlmt_05_W_HIDDEN {0, 1} [0]
+_0__wctlmt_06_1_W {0} [0]
+_0__wctlmt_07_2_W [0.0, 1.0] [0.0]
+_0__wctlmt_08_A {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_0__wctrept_00_INT_M [1, 64] [2]il
+_0__wctrept_01_V [1.0E-5, 0.1] [0.001]l
+_0__wctrept_02_depth_HIDDEN {0, 1} [0]
+_0__wctrept_03_1_INT_L {-1} [-1]
+_0__wctrept_04_2_INT_L [2, 20] [2]i
+_0__wctrept_05_P {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_0__wctrf_00_INT_I [2, 256] [10]il
+_0__wctrf_01_features_HIDDEN {0, 1} [0]
+_0__wctrf_02_1_INT_K {1} [1]
+_0__wctrf_03_2_INT_K [2, 32] [2]il
+_0__wctrf_04_depth_HIDDEN {0, 1} [0]
+_0__wctrf_05_1_INT_depth {1} [1]
+_0__wctrf_06_2_INT_depth [2, 20] [2]i
+_0__wctrt_00_INT_M [1, 64] [1]il
+_0__wctrt_01_features_HIDDEN {0, 1} [0]
+_0__wctrt_02_1_INT_K {0} [0]
+_0__wctrt_03_2_INT_K [2, 32] [2]il
+_0__wctrt_04_depth_HIDDEN {0, 1} [0]
+_0__wctrt_05_1_INT_depth {0} [0]
+_0__wctrt_06_2_INT_depth [2, 20] [2]i
+_0__wctrt_07_back_HIDDEN {0, 1} [0]
+_0__wctrt_08_1_INT_N {0} [0]
+_0__wctrt_09_2_INT_N [2, 5] [3]i
+_0__wctrt_10_U {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_00_0_QUOTE_START_B {weka.classifiers.bayes.BayesNet, weka.classifiers.bayes.NaiveBayes, weka.classifiers.bayes.NaiveBayesMultinomial, weka.classifiers.functions.Logistic, weka.classifiers.functions.MultilayerPerceptron, weka.classifiers.functions.SGD, weka.classifiers.functions.SMO, weka.classifiers.functions.SimpleLogistic, weka.classifiers.functions.VotedPerceptron, weka.classifiers.lazy.IBk, weka.classifiers.lazy.KStar, weka.classifiers.rules.DecisionTable, weka.classifiers.rules.JRip, weka.classifiers.rules.OneR, weka.classifiers.rules.PART, weka.classifiers.rules.ZeroR, weka.classifiers.trees.DecisionStump, weka.classifiers.trees.J48, weka.classifiers.trees.LMT, weka.classifiers.trees.REPTree, weka.classifiers.trees.RandomForest, weka.classifiers.trees.RandomTree} [weka.classifiers.bayes.BayesNet]
+_1_00_1__wcbbn_00_D {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_00_1__wcbbn_01_Q {weka.classifiers.bayes.net.search.local.K2, weka.classifiers.bayes.net.search.local.HillClimber, weka.classifiers.bayes.net.search.local.LAGDHillClimber, weka.classifiers.bayes.net.search.local.SimulatedAnnealing, weka.classifiers.bayes.net.search.local.TabuSearch, weka.classifiers.bayes.net.search.local.TAN} [weka.classifiers.bayes.net.search.local.K2]
+_1_00_1__wcbnb_00_K {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_00_1__wcbnb_01_D {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_00_1__wcfl_00_R [1.0E-12, 10.0] [1.0E-7]l
+_1_00_1__wcfmp_00_L [0.1, 1.0] [0.3]
+_1_00_1__wcfmp_01_M [0.1, 1.0] [0.2]
+_1_00_1__wcfmp_02_B {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_00_1__wcfmp_03_H {a, i, o, t} [a]
+_1_00_1__wcfmp_04_C {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_00_1__wcfmp_05_R {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_00_1__wcfmp_06_D {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_00_1__wcfmp_07_S {1} [1]
+_1_00_1__wcfsgd_00_F {0, 1, 2} [0]
+_1_00_1__wcfsgd_01_L [1.0E-5, 0.1] [0.01]l
+_1_00_1__wcfsgd_02_R [1.0E-12, 10.0] [1.0E-4]l
+_1_00_1__wcfsgd_03_N {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_00_1__wcfsgd_04_M {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_00_1__wcfsl_00_S {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_00_1__wcfsl_01_W_HIDDEN {0, 1} [0]
+_1_00_1__wcfsl_02_1_W {0} [0]
+_1_00_1__wcfsl_03_2_W [0.0, 1.0] [0.0]
+_1_00_1__wcfsl_04_A {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_00_1__wcfsmo_00_0_C [0.5, 1.5] [1.0]
+_1_00_1__wcfsmo_01_1_N {0, 1, 2} [0]
+_1_00_1__wcfsmo_02_2_M {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_00_1__wcfsmo_03_3_REG_IGNORE_QUOTE_START_K {weka.classifiers.functions.supportVector.NormalizedPolyKernel, weka.classifiers.functions.supportVector.PolyKernel, weka.classifiers.functions.supportVector.Puk, weka.classifiers.functions.supportVector.RBFKernel} [weka.classifiers.functions.supportVector.NormalizedPolyKernel]
+_1_00_1__wcfsmo_04_4_npoly_E [0.2, 5.0] [1.0]
+_1_00_1__wcfsmo_05_4_npoly_L {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_00_1__wcfsmo_06_4_poly_E [0.2, 5.0] [1.0]
+_1_00_1__wcfsmo_07_4_poly_L {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_00_1__wcfsmo_08_4_puk_S [0.1, 10.0] [1.0]
+_1_00_1__wcfsmo_09_4_puk_O [0.1, 1.0] [1.0]
+_1_00_1__wcfsmo_10_4_rbf_G [1.0E-4, 1.0] [0.01]l
+_1_00_1__wcfsmo_11_5_QUOTE_END {REMOVED} [REMOVED]
+_1_00_1__wcfvp_00_INT_I [1, 10] [1]i
+_1_00_1__wcfvp_01_INT_M [5000, 50000] [10000]il
+_1_00_1__wcfvp_02_E [0.2, 5.0] [1.0]
+_1_00_1__wclib_00_E {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_00_1__wclib_01_INT_K [1, 64] [1]il
+_1_00_1__wclib_02_X {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_00_1__wclib_03_F {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_00_1__wclib_04_I {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_00_1__wclks_00_INT_B [1, 100] [20]i
+_1_00_1__wclks_01_E {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_00_1__wclks_02_M {a, d, m, n} [a]
+_1_00_1__wcrdt_00_E {acc, rmse, mae, auc} [acc]
+_1_00_1__wcrdt_01_I {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_00_1__wcrdt_02_S {weka.attributeSelection.BestFirst, weka.attributeSelection.GreedyStepwise, weka.attributeSelection.Ranker} [weka.attributeSelection.BestFirst]
+_1_00_1__wcrdt_03_X {1, 2, 3, 4} [1]
+_1_00_1__wcrjr_00_N [1.0, 5.0] [2.0]
+_1_00_1__wcrjr_01_E {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_00_1__wcrjr_02_P {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_00_1__wcrjr_03_INT_O [1, 5] [2]i
+_1_00_1__wcror_00_INT_B [1, 32] [6]il
+_1_00_1__wcrpart_00_INT_N [2, 5] [3]i
+_1_00_1__wcrpart_01_INT_M [1, 64] [2]il
+_1_00_1__wcrpart_02_R {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_00_1__wcrpart_03_B {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_00_1__wctj_00_O {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_00_1__wctj_01_U {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_00_1__wctj_02_B {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_00_1__wctj_03_J {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_00_1__wctj_04_A {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_00_1__wctj_05_S {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_00_1__wctj_06_INT_M [1, 64] [2]il
+_1_00_1__wctj_07_C [0.0, 1.0] [0.25]
+_1_00_1__wctlmt_00_B {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_00_1__wctlmt_01_R {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_00_1__wctlmt_02_C {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_00_1__wctlmt_03_P {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_00_1__wctlmt_04_INT_M [1, 64] [15]il
+_1_00_1__wctlmt_05_W_HIDDEN {0, 1} [0]
+_1_00_1__wctlmt_06_1_W {0} [0]
+_1_00_1__wctlmt_07_2_W [0.0, 1.0] [0.0]
+_1_00_1__wctlmt_08_A {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_00_1__wctrept_00_INT_M [1, 64] [2]il
+_1_00_1__wctrept_01_V [1.0E-5, 0.1] [0.001]l
+_1_00_1__wctrept_02_depth_HIDDEN {0, 1} [0]
+_1_00_1__wctrept_03_1_INT_L {-1} [-1]
+_1_00_1__wctrept_04_2_INT_L [2, 20] [2]i
+_1_00_1__wctrept_05_P {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_00_1__wctrf_00_INT_I [2, 256] [10]il
+_1_00_1__wctrf_01_features_HIDDEN {0, 1} [0]
+_1_00_1__wctrf_02_1_INT_K {1} [1]
+_1_00_1__wctrf_03_2_INT_K [2, 32] [2]il
+_1_00_1__wctrf_04_depth_HIDDEN {0, 1} [0]
+_1_00_1__wctrf_05_1_INT_depth {1} [1]
+_1_00_1__wctrf_06_2_INT_depth [2, 20] [2]i
+_1_00_1__wctrt_00_INT_M [1, 64] [1]il
+_1_00_1__wctrt_01_features_HIDDEN {0, 1} [0]
+_1_00_1__wctrt_02_1_INT_K {0} [0]
+_1_00_1__wctrt_03_2_INT_K [2, 32] [2]il
+_1_00_1__wctrt_04_depth_HIDDEN {0, 1} [0]
+_1_00_1__wctrt_05_1_INT_depth {0} [0]
+_1_00_1__wctrt_06_2_INT_depth [2, 20] [2]i
+_1_00_1__wctrt_07_back_HIDDEN {0, 1} [0]
+_1_00_1__wctrt_08_1_INT_N {0} [0]
+_1_00_1__wctrt_09_2_INT_N [2, 5] [3]i
+_1_00_1__wctrt_10_U {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_00_2_QUOTE_END {REMOVED} [REMOVED]
+_1_01_0_QUOTE_START_B {weka.classifiers.bayes.BayesNet, weka.classifiers.bayes.NaiveBayes, weka.classifiers.bayes.NaiveBayesMultinomial, weka.classifiers.functions.Logistic, weka.classifiers.functions.MultilayerPerceptron, weka.classifiers.functions.SGD, weka.classifiers.functions.SMO, weka.classifiers.functions.SimpleLogistic, weka.classifiers.functions.VotedPerceptron, weka.classifiers.lazy.IBk, weka.classifiers.lazy.KStar, weka.classifiers.rules.DecisionTable, weka.classifiers.rules.JRip, weka.classifiers.rules.OneR, weka.classifiers.rules.PART, weka.classifiers.rules.ZeroR, weka.classifiers.trees.DecisionStump, weka.classifiers.trees.J48, weka.classifiers.trees.LMT, weka.classifiers.trees.REPTree, weka.classifiers.trees.RandomForest, weka.classifiers.trees.RandomTree} [weka.classifiers.bayes.BayesNet]
+_1_01_1__wcbbn_00_D {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_01_1__wcbbn_01_Q {weka.classifiers.bayes.net.search.local.K2, weka.classifiers.bayes.net.search.local.HillClimber, weka.classifiers.bayes.net.search.local.LAGDHillClimber, weka.classifiers.bayes.net.search.local.SimulatedAnnealing, weka.classifiers.bayes.net.search.local.TabuSearch, weka.classifiers.bayes.net.search.local.TAN} [weka.classifiers.bayes.net.search.local.K2]
+_1_01_1__wcbnb_00_K {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_01_1__wcbnb_01_D {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_01_1__wcfl_00_R [1.0E-12, 10.0] [1.0E-7]l
+_1_01_1__wcfmp_00_L [0.1, 1.0] [0.3]
+_1_01_1__wcfmp_01_M [0.1, 1.0] [0.2]
+_1_01_1__wcfmp_02_B {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_01_1__wcfmp_03_H {a, i, o, t} [a]
+_1_01_1__wcfmp_04_C {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_01_1__wcfmp_05_R {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_01_1__wcfmp_06_D {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_01_1__wcfmp_07_S {1} [1]
+_1_01_1__wcfsgd_00_F {0, 1, 2} [0]
+_1_01_1__wcfsgd_01_L [1.0E-5, 0.1] [0.01]l
+_1_01_1__wcfsgd_02_R [1.0E-12, 10.0] [1.0E-4]l
+_1_01_1__wcfsgd_03_N {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_01_1__wcfsgd_04_M {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_01_1__wcfsl_00_S {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_01_1__wcfsl_01_W_HIDDEN {0, 1} [0]
+_1_01_1__wcfsl_02_1_W {0} [0]
+_1_01_1__wcfsl_03_2_W [0.0, 1.0] [0.0]
+_1_01_1__wcfsl_04_A {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_01_1__wcfsmo_00_0_C [0.5, 1.5] [1.0]
+_1_01_1__wcfsmo_01_1_N {0, 1, 2} [0]
+_1_01_1__wcfsmo_02_2_M {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_01_1__wcfsmo_03_3_REG_IGNORE_QUOTE_START_K {weka.classifiers.functions.supportVector.NormalizedPolyKernel, weka.classifiers.functions.supportVector.PolyKernel, weka.classifiers.functions.supportVector.Puk, weka.classifiers.functions.supportVector.RBFKernel} [weka.classifiers.functions.supportVector.NormalizedPolyKernel]
+_1_01_1__wcfsmo_04_4_npoly_E [0.2, 5.0] [1.0]
+_1_01_1__wcfsmo_05_4_npoly_L {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_01_1__wcfsmo_06_4_poly_E [0.2, 5.0] [1.0]
+_1_01_1__wcfsmo_07_4_poly_L {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_01_1__wcfsmo_08_4_puk_S [0.1, 10.0] [1.0]
+_1_01_1__wcfsmo_09_4_puk_O [0.1, 1.0] [1.0]
+_1_01_1__wcfsmo_10_4_rbf_G [1.0E-4, 1.0] [0.01]l
+_1_01_1__wcfsmo_11_5_QUOTE_END {REMOVED} [REMOVED]
+_1_01_1__wcfvp_00_INT_I [1, 10] [1]i
+_1_01_1__wcfvp_01_INT_M [5000, 50000] [10000]il
+_1_01_1__wcfvp_02_E [0.2, 5.0] [1.0]
+_1_01_1__wclib_00_E {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_01_1__wclib_01_INT_K [1, 64] [1]il
+_1_01_1__wclib_02_X {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_01_1__wclib_03_F {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_01_1__wclib_04_I {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_01_1__wclks_00_INT_B [1, 100] [20]i
+_1_01_1__wclks_01_E {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_01_1__wclks_02_M {a, d, m, n} [a]
+_1_01_1__wcrdt_00_E {acc, rmse, mae, auc} [acc]
+_1_01_1__wcrdt_01_I {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_01_1__wcrdt_02_S {weka.attributeSelection.BestFirst, weka.attributeSelection.GreedyStepwise, weka.attributeSelection.Ranker} [weka.attributeSelection.BestFirst]
+_1_01_1__wcrdt_03_X {1, 2, 3, 4} [1]
+_1_01_1__wcrjr_00_N [1.0, 5.0] [2.0]
+_1_01_1__wcrjr_01_E {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_01_1__wcrjr_02_P {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_01_1__wcrjr_03_INT_O [1, 5] [2]i
+_1_01_1__wcror_00_INT_B [1, 32] [6]il
+_1_01_1__wcrpart_00_INT_N [2, 5] [3]i
+_1_01_1__wcrpart_01_INT_M [1, 64] [2]il
+_1_01_1__wcrpart_02_R {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_01_1__wcrpart_03_B {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_01_1__wctj_00_O {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_01_1__wctj_01_U {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_01_1__wctj_02_B {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_01_1__wctj_03_J {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_01_1__wctj_04_A {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_01_1__wctj_05_S {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_01_1__wctj_06_INT_M [1, 64] [2]il
+_1_01_1__wctj_07_C [0.0, 1.0] [0.25]
+_1_01_1__wctlmt_00_B {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_01_1__wctlmt_01_R {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_01_1__wctlmt_02_C {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_01_1__wctlmt_03_P {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_01_1__wctlmt_04_INT_M [1, 64] [15]il
+_1_01_1__wctlmt_05_W_HIDDEN {0, 1} [0]
+_1_01_1__wctlmt_06_1_W {0} [0]
+_1_01_1__wctlmt_07_2_W [0.0, 1.0] [0.0]
+_1_01_1__wctlmt_08_A {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_01_1__wctrept_00_INT_M [1, 64] [2]il
+_1_01_1__wctrept_01_V [1.0E-5, 0.1] [0.001]l
+_1_01_1__wctrept_02_depth_HIDDEN {0, 1} [0]
+_1_01_1__wctrept_03_1_INT_L {-1} [-1]
+_1_01_1__wctrept_04_2_INT_L [2, 20] [2]i
+_1_01_1__wctrept_05_P {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_01_1__wctrf_00_INT_I [2, 256] [10]il
+_1_01_1__wctrf_01_features_HIDDEN {0, 1} [0]
+_1_01_1__wctrf_02_1_INT_K {1} [1]
+_1_01_1__wctrf_03_2_INT_K [2, 32] [2]il
+_1_01_1__wctrf_04_depth_HIDDEN {0, 1} [0]
+_1_01_1__wctrf_05_1_INT_depth {1} [1]
+_1_01_1__wctrf_06_2_INT_depth [2, 20] [2]i
+_1_01_1__wctrt_00_INT_M [1, 64] [1]il
+_1_01_1__wctrt_01_features_HIDDEN {0, 1} [0]
+_1_01_1__wctrt_02_1_INT_K {0} [0]
+_1_01_1__wctrt_03_2_INT_K [2, 32] [2]il
+_1_01_1__wctrt_04_depth_HIDDEN {0, 1} [0]
+_1_01_1__wctrt_05_1_INT_depth {0} [0]
+_1_01_1__wctrt_06_2_INT_depth [2, 20] [2]i
+_1_01_1__wctrt_07_back_HIDDEN {0, 1} [0]
+_1_01_1__wctrt_08_1_INT_N {0} [0]
+_1_01_1__wctrt_09_2_INT_N [2, 5] [3]i
+_1_01_1__wctrt_10_U {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_01_2_QUOTE_END {REMOVED} [REMOVED]
+_1_02_0_QUOTE_START_B {weka.classifiers.bayes.BayesNet, weka.classifiers.bayes.NaiveBayes, weka.classifiers.bayes.NaiveBayesMultinomial, weka.classifiers.functions.Logistic, weka.classifiers.functions.MultilayerPerceptron, weka.classifiers.functions.SGD, weka.classifiers.functions.SMO, weka.classifiers.functions.SimpleLogistic, weka.classifiers.functions.VotedPerceptron, weka.classifiers.lazy.IBk, weka.classifiers.lazy.KStar, weka.classifiers.rules.DecisionTable, weka.classifiers.rules.JRip, weka.classifiers.rules.OneR, weka.classifiers.rules.PART, weka.classifiers.rules.ZeroR, weka.classifiers.trees.DecisionStump, weka.classifiers.trees.J48, weka.classifiers.trees.LMT, weka.classifiers.trees.REPTree, weka.classifiers.trees.RandomForest, weka.classifiers.trees.RandomTree} [weka.classifiers.bayes.BayesNet]
+_1_02_1__wcbbn_00_D {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_02_1__wcbbn_01_Q {weka.classifiers.bayes.net.search.local.K2, weka.classifiers.bayes.net.search.local.HillClimber, weka.classifiers.bayes.net.search.local.LAGDHillClimber, weka.classifiers.bayes.net.search.local.SimulatedAnnealing, weka.classifiers.bayes.net.search.local.TabuSearch, weka.classifiers.bayes.net.search.local.TAN} [weka.classifiers.bayes.net.search.local.K2]
+_1_02_1__wcbnb_00_K {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_02_1__wcbnb_01_D {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_02_1__wcfl_00_R [1.0E-12, 10.0] [1.0E-7]l
+_1_02_1__wcfmp_00_L [0.1, 1.0] [0.3]
+_1_02_1__wcfmp_01_M [0.1, 1.0] [0.2]
+_1_02_1__wcfmp_02_B {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_02_1__wcfmp_03_H {a, i, o, t} [a]
+_1_02_1__wcfmp_04_C {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_02_1__wcfmp_05_R {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_02_1__wcfmp_06_D {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_02_1__wcfmp_07_S {1} [1]
+_1_02_1__wcfsgd_00_F {0, 1, 2} [0]
+_1_02_1__wcfsgd_01_L [1.0E-5, 0.1] [0.01]l
+_1_02_1__wcfsgd_02_R [1.0E-12, 10.0] [1.0E-4]l
+_1_02_1__wcfsgd_03_N {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_02_1__wcfsgd_04_M {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_02_1__wcfsl_00_S {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_02_1__wcfsl_01_W_HIDDEN {0, 1} [0]
+_1_02_1__wcfsl_02_1_W {0} [0]
+_1_02_1__wcfsl_03_2_W [0.0, 1.0] [0.0]
+_1_02_1__wcfsl_04_A {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_02_1__wcfsmo_00_0_C [0.5, 1.5] [1.0]
+_1_02_1__wcfsmo_01_1_N {0, 1, 2} [0]
+_1_02_1__wcfsmo_02_2_M {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_02_1__wcfsmo_03_3_REG_IGNORE_QUOTE_START_K {weka.classifiers.functions.supportVector.NormalizedPolyKernel, weka.classifiers.functions.supportVector.PolyKernel, weka.classifiers.functions.supportVector.Puk, weka.classifiers.functions.supportVector.RBFKernel} [weka.classifiers.functions.supportVector.NormalizedPolyKernel]
+_1_02_1__wcfsmo_04_4_npoly_E [0.2, 5.0] [1.0]
+_1_02_1__wcfsmo_05_4_npoly_L {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_02_1__wcfsmo_06_4_poly_E [0.2, 5.0] [1.0]
+_1_02_1__wcfsmo_07_4_poly_L {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_02_1__wcfsmo_08_4_puk_S [0.1, 10.0] [1.0]
+_1_02_1__wcfsmo_09_4_puk_O [0.1, 1.0] [1.0]
+_1_02_1__wcfsmo_10_4_rbf_G [1.0E-4, 1.0] [0.01]l
+_1_02_1__wcfsmo_11_5_QUOTE_END {REMOVED} [REMOVED]
+_1_02_1__wcfvp_00_INT_I [1, 10] [1]i
+_1_02_1__wcfvp_01_INT_M [5000, 50000] [10000]il
+_1_02_1__wcfvp_02_E [0.2, 5.0] [1.0]
+_1_02_1__wclib_00_E {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_02_1__wclib_01_INT_K [1, 64] [1]il
+_1_02_1__wclib_02_X {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_02_1__wclib_03_F {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_02_1__wclib_04_I {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_02_1__wclks_00_INT_B [1, 100] [20]i
+_1_02_1__wclks_01_E {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_02_1__wclks_02_M {a, d, m, n} [a]
+_1_02_1__wcrdt_00_E {acc, rmse, mae, auc} [acc]
+_1_02_1__wcrdt_01_I {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_02_1__wcrdt_02_S {weka.attributeSelection.BestFirst, weka.attributeSelection.GreedyStepwise, weka.attributeSelection.Ranker} [weka.attributeSelection.BestFirst]
+_1_02_1__wcrdt_03_X {1, 2, 3, 4} [1]
+_1_02_1__wcrjr_00_N [1.0, 5.0] [2.0]
+_1_02_1__wcrjr_01_E {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_02_1__wcrjr_02_P {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_02_1__wcrjr_03_INT_O [1, 5] [2]i
+_1_02_1__wcror_00_INT_B [1, 32] [6]il
+_1_02_1__wcrpart_00_INT_N [2, 5] [3]i
+_1_02_1__wcrpart_01_INT_M [1, 64] [2]il
+_1_02_1__wcrpart_02_R {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_02_1__wcrpart_03_B {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_02_1__wctj_00_O {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_02_1__wctj_01_U {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_02_1__wctj_02_B {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_02_1__wctj_03_J {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_02_1__wctj_04_A {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_02_1__wctj_05_S {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_02_1__wctj_06_INT_M [1, 64] [2]il
+_1_02_1__wctj_07_C [0.0, 1.0] [0.25]
+_1_02_1__wctlmt_00_B {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_02_1__wctlmt_01_R {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_02_1__wctlmt_02_C {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_02_1__wctlmt_03_P {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_02_1__wctlmt_04_INT_M [1, 64] [15]il
+_1_02_1__wctlmt_05_W_HIDDEN {0, 1} [0]
+_1_02_1__wctlmt_06_1_W {0} [0]
+_1_02_1__wctlmt_07_2_W [0.0, 1.0] [0.0]
+_1_02_1__wctlmt_08_A {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_02_1__wctrept_00_INT_M [1, 64] [2]il
+_1_02_1__wctrept_01_V [1.0E-5, 0.1] [0.001]l
+_1_02_1__wctrept_02_depth_HIDDEN {0, 1} [0]
+_1_02_1__wctrept_03_1_INT_L {-1} [-1]
+_1_02_1__wctrept_04_2_INT_L [2, 20] [2]i
+_1_02_1__wctrept_05_P {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_02_1__wctrf_00_INT_I [2, 256] [10]il
+_1_02_1__wctrf_01_features_HIDDEN {0, 1} [0]
+_1_02_1__wctrf_02_1_INT_K {1} [1]
+_1_02_1__wctrf_03_2_INT_K [2, 32] [2]il
+_1_02_1__wctrf_04_depth_HIDDEN {0, 1} [0]
+_1_02_1__wctrf_05_1_INT_depth {1} [1]
+_1_02_1__wctrf_06_2_INT_depth [2, 20] [2]i
+_1_02_1__wctrt_00_INT_M [1, 64] [1]il
+_1_02_1__wctrt_01_features_HIDDEN {0, 1} [0]
+_1_02_1__wctrt_02_1_INT_K {0} [0]
+_1_02_1__wctrt_03_2_INT_K [2, 32] [2]il
+_1_02_1__wctrt_04_depth_HIDDEN {0, 1} [0]
+_1_02_1__wctrt_05_1_INT_depth {0} [0]
+_1_02_1__wctrt_06_2_INT_depth [2, 20] [2]i
+_1_02_1__wctrt_07_back_HIDDEN {0, 1} [0]
+_1_02_1__wctrt_08_1_INT_N {0} [0]
+_1_02_1__wctrt_09_2_INT_N [2, 5] [3]i
+_1_02_1__wctrt_10_U {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_02_2_QUOTE_END {REMOVED} [REMOVED]
+_1_03_0_QUOTE_START_B {weka.classifiers.bayes.BayesNet, weka.classifiers.bayes.NaiveBayes, weka.classifiers.bayes.NaiveBayesMultinomial, weka.classifiers.functions.Logistic, weka.classifiers.functions.MultilayerPerceptron, weka.classifiers.functions.SGD, weka.classifiers.functions.SMO, weka.classifiers.functions.SimpleLogistic, weka.classifiers.functions.VotedPerceptron, weka.classifiers.lazy.IBk, weka.classifiers.lazy.KStar, weka.classifiers.rules.DecisionTable, weka.classifiers.rules.JRip, weka.classifiers.rules.OneR, weka.classifiers.rules.PART, weka.classifiers.rules.ZeroR, weka.classifiers.trees.DecisionStump, weka.classifiers.trees.J48, weka.classifiers.trees.LMT, weka.classifiers.trees.REPTree, weka.classifiers.trees.RandomForest, weka.classifiers.trees.RandomTree} [weka.classifiers.bayes.BayesNet]
+_1_03_1__wcbbn_00_D {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_03_1__wcbbn_01_Q {weka.classifiers.bayes.net.search.local.K2, weka.classifiers.bayes.net.search.local.HillClimber, weka.classifiers.bayes.net.search.local.LAGDHillClimber, weka.classifiers.bayes.net.search.local.SimulatedAnnealing, weka.classifiers.bayes.net.search.local.TabuSearch, weka.classifiers.bayes.net.search.local.TAN} [weka.classifiers.bayes.net.search.local.K2]
+_1_03_1__wcbnb_00_K {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_03_1__wcbnb_01_D {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_03_1__wcfl_00_R [1.0E-12, 10.0] [1.0E-7]l
+_1_03_1__wcfmp_00_L [0.1, 1.0] [0.3]
+_1_03_1__wcfmp_01_M [0.1, 1.0] [0.2]
+_1_03_1__wcfmp_02_B {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_03_1__wcfmp_03_H {a, i, o, t} [a]
+_1_03_1__wcfmp_04_C {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_03_1__wcfmp_05_R {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_03_1__wcfmp_06_D {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_03_1__wcfmp_07_S {1} [1]
+_1_03_1__wcfsgd_00_F {0, 1, 2} [0]
+_1_03_1__wcfsgd_01_L [1.0E-5, 0.1] [0.01]l
+_1_03_1__wcfsgd_02_R [1.0E-12, 10.0] [1.0E-4]l
+_1_03_1__wcfsgd_03_N {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_03_1__wcfsgd_04_M {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_03_1__wcfsl_00_S {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_03_1__wcfsl_01_W_HIDDEN {0, 1} [0]
+_1_03_1__wcfsl_02_1_W {0} [0]
+_1_03_1__wcfsl_03_2_W [0.0, 1.0] [0.0]
+_1_03_1__wcfsl_04_A {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_03_1__wcfsmo_00_0_C [0.5, 1.5] [1.0]
+_1_03_1__wcfsmo_01_1_N {0, 1, 2} [0]
+_1_03_1__wcfsmo_02_2_M {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_03_1__wcfsmo_03_3_REG_IGNORE_QUOTE_START_K {weka.classifiers.functions.supportVector.NormalizedPolyKernel, weka.classifiers.functions.supportVector.PolyKernel, weka.classifiers.functions.supportVector.Puk, weka.classifiers.functions.supportVector.RBFKernel} [weka.classifiers.functions.supportVector.NormalizedPolyKernel]
+_1_03_1__wcfsmo_04_4_npoly_E [0.2, 5.0] [1.0]
+_1_03_1__wcfsmo_05_4_npoly_L {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_03_1__wcfsmo_06_4_poly_E [0.2, 5.0] [1.0]
+_1_03_1__wcfsmo_07_4_poly_L {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_03_1__wcfsmo_08_4_puk_S [0.1, 10.0] [1.0]
+_1_03_1__wcfsmo_09_4_puk_O [0.1, 1.0] [1.0]
+_1_03_1__wcfsmo_10_4_rbf_G [1.0E-4, 1.0] [0.01]l
+_1_03_1__wcfsmo_11_5_QUOTE_END {REMOVED} [REMOVED]
+_1_03_1__wcfvp_00_INT_I [1, 10] [1]i
+_1_03_1__wcfvp_01_INT_M [5000, 50000] [10000]il
+_1_03_1__wcfvp_02_E [0.2, 5.0] [1.0]
+_1_03_1__wclib_00_E {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_03_1__wclib_01_INT_K [1, 64] [1]il
+_1_03_1__wclib_02_X {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_03_1__wclib_03_F {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_03_1__wclib_04_I {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_03_1__wclks_00_INT_B [1, 100] [20]i
+_1_03_1__wclks_01_E {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_03_1__wclks_02_M {a, d, m, n} [a]
+_1_03_1__wcrdt_00_E {acc, rmse, mae, auc} [acc]
+_1_03_1__wcrdt_01_I {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_03_1__wcrdt_02_S {weka.attributeSelection.BestFirst, weka.attributeSelection.GreedyStepwise, weka.attributeSelection.Ranker} [weka.attributeSelection.BestFirst]
+_1_03_1__wcrdt_03_X {1, 2, 3, 4} [1]
+_1_03_1__wcrjr_00_N [1.0, 5.0] [2.0]
+_1_03_1__wcrjr_01_E {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_03_1__wcrjr_02_P {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_03_1__wcrjr_03_INT_O [1, 5] [2]i
+_1_03_1__wcror_00_INT_B [1, 32] [6]il
+_1_03_1__wcrpart_00_INT_N [2, 5] [3]i
+_1_03_1__wcrpart_01_INT_M [1, 64] [2]il
+_1_03_1__wcrpart_02_R {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_03_1__wcrpart_03_B {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_03_1__wctj_00_O {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_03_1__wctj_01_U {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_03_1__wctj_02_B {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_03_1__wctj_03_J {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_03_1__wctj_04_A {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_03_1__wctj_05_S {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_03_1__wctj_06_INT_M [1, 64] [2]il
+_1_03_1__wctj_07_C [0.0, 1.0] [0.25]
+_1_03_1__wctlmt_00_B {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_03_1__wctlmt_01_R {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_03_1__wctlmt_02_C {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_03_1__wctlmt_03_P {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_03_1__wctlmt_04_INT_M [1, 64] [15]il
+_1_03_1__wctlmt_05_W_HIDDEN {0, 1} [0]
+_1_03_1__wctlmt_06_1_W {0} [0]
+_1_03_1__wctlmt_07_2_W [0.0, 1.0] [0.0]
+_1_03_1__wctlmt_08_A {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_03_1__wctrept_00_INT_M [1, 64] [2]il
+_1_03_1__wctrept_01_V [1.0E-5, 0.1] [0.001]l
+_1_03_1__wctrept_02_depth_HIDDEN {0, 1} [0]
+_1_03_1__wctrept_03_1_INT_L {-1} [-1]
+_1_03_1__wctrept_04_2_INT_L [2, 20] [2]i
+_1_03_1__wctrept_05_P {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_03_1__wctrf_00_INT_I [2, 256] [10]il
+_1_03_1__wctrf_01_features_HIDDEN {0, 1} [0]
+_1_03_1__wctrf_02_1_INT_K {1} [1]
+_1_03_1__wctrf_03_2_INT_K [2, 32] [2]il
+_1_03_1__wctrf_04_depth_HIDDEN {0, 1} [0]
+_1_03_1__wctrf_05_1_INT_depth {1} [1]
+_1_03_1__wctrf_06_2_INT_depth [2, 20] [2]i
+_1_03_1__wctrt_00_INT_M [1, 64] [1]il
+_1_03_1__wctrt_01_features_HIDDEN {0, 1} [0]
+_1_03_1__wctrt_02_1_INT_K {0} [0]
+_1_03_1__wctrt_03_2_INT_K [2, 32] [2]il
+_1_03_1__wctrt_04_depth_HIDDEN {0, 1} [0]
+_1_03_1__wctrt_05_1_INT_depth {0} [0]
+_1_03_1__wctrt_06_2_INT_depth [2, 20] [2]i
+_1_03_1__wctrt_07_back_HIDDEN {0, 1} [0]
+_1_03_1__wctrt_08_1_INT_N {0} [0]
+_1_03_1__wctrt_09_2_INT_N [2, 5] [3]i
+_1_03_1__wctrt_10_U {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_03_2_QUOTE_END {REMOVED} [REMOVED]
+_1_04_0_QUOTE_START_B {weka.classifiers.bayes.BayesNet, weka.classifiers.bayes.NaiveBayes, weka.classifiers.bayes.NaiveBayesMultinomial, weka.classifiers.functions.Logistic, weka.classifiers.functions.MultilayerPerceptron, weka.classifiers.functions.SGD, weka.classifiers.functions.SMO, weka.classifiers.functions.SimpleLogistic, weka.classifiers.functions.VotedPerceptron, weka.classifiers.lazy.IBk, weka.classifiers.lazy.KStar, weka.classifiers.rules.DecisionTable, weka.classifiers.rules.JRip, weka.classifiers.rules.OneR, weka.classifiers.rules.PART, weka.classifiers.rules.ZeroR, weka.classifiers.trees.DecisionStump, weka.classifiers.trees.J48, weka.classifiers.trees.LMT, weka.classifiers.trees.REPTree, weka.classifiers.trees.RandomForest, weka.classifiers.trees.RandomTree} [weka.classifiers.bayes.BayesNet]
+_1_04_1__wcbbn_00_D {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_04_1__wcbbn_01_Q {weka.classifiers.bayes.net.search.local.K2, weka.classifiers.bayes.net.search.local.HillClimber, weka.classifiers.bayes.net.search.local.LAGDHillClimber, weka.classifiers.bayes.net.search.local.SimulatedAnnealing, weka.classifiers.bayes.net.search.local.TabuSearch, weka.classifiers.bayes.net.search.local.TAN} [weka.classifiers.bayes.net.search.local.K2]
+_1_04_1__wcbnb_00_K {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_04_1__wcbnb_01_D {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_04_1__wcfl_00_R [1.0E-12, 10.0] [1.0E-7]l
+_1_04_1__wcfmp_00_L [0.1, 1.0] [0.3]
+_1_04_1__wcfmp_01_M [0.1, 1.0] [0.2]
+_1_04_1__wcfmp_02_B {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_04_1__wcfmp_03_H {a, i, o, t} [a]
+_1_04_1__wcfmp_04_C {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_04_1__wcfmp_05_R {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_04_1__wcfmp_06_D {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_04_1__wcfmp_07_S {1} [1]
+_1_04_1__wcfsgd_00_F {0, 1, 2} [0]
+_1_04_1__wcfsgd_01_L [1.0E-5, 0.1] [0.01]l
+_1_04_1__wcfsgd_02_R [1.0E-12, 10.0] [1.0E-4]l
+_1_04_1__wcfsgd_03_N {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_04_1__wcfsgd_04_M {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_04_1__wcfsl_00_S {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_04_1__wcfsl_01_W_HIDDEN {0, 1} [0]
+_1_04_1__wcfsl_02_1_W {0} [0]
+_1_04_1__wcfsl_03_2_W [0.0, 1.0] [0.0]
+_1_04_1__wcfsl_04_A {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_04_1__wcfsmo_00_0_C [0.5, 1.5] [1.0]
+_1_04_1__wcfsmo_01_1_N {0, 1, 2} [0]
+_1_04_1__wcfsmo_02_2_M {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_04_1__wcfsmo_03_3_REG_IGNORE_QUOTE_START_K {weka.classifiers.functions.supportVector.NormalizedPolyKernel, weka.classifiers.functions.supportVector.PolyKernel, weka.classifiers.functions.supportVector.Puk, weka.classifiers.functions.supportVector.RBFKernel} [weka.classifiers.functions.supportVector.NormalizedPolyKernel]
+_1_04_1__wcfsmo_04_4_npoly_E [0.2, 5.0] [1.0]
+_1_04_1__wcfsmo_05_4_npoly_L {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_04_1__wcfsmo_06_4_poly_E [0.2, 5.0] [1.0]
+_1_04_1__wcfsmo_07_4_poly_L {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_04_1__wcfsmo_08_4_puk_S [0.1, 10.0] [1.0]
+_1_04_1__wcfsmo_09_4_puk_O [0.1, 1.0] [1.0]
+_1_04_1__wcfsmo_10_4_rbf_G [1.0E-4, 1.0] [0.01]l
+_1_04_1__wcfsmo_11_5_QUOTE_END {REMOVED} [REMOVED]
+_1_04_1__wcfvp_00_INT_I [1, 10] [1]i
+_1_04_1__wcfvp_01_INT_M [5000, 50000] [10000]il
+_1_04_1__wcfvp_02_E [0.2, 5.0] [1.0]
+_1_04_1__wclib_00_E {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_04_1__wclib_01_INT_K [1, 64] [1]il
+_1_04_1__wclib_02_X {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_04_1__wclib_03_F {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_04_1__wclib_04_I {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_04_1__wclks_00_INT_B [1, 100] [20]i
+_1_04_1__wclks_01_E {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_04_1__wclks_02_M {a, d, m, n} [a]
+_1_04_1__wcrdt_00_E {acc, rmse, mae, auc} [acc]
+_1_04_1__wcrdt_01_I {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_04_1__wcrdt_02_S {weka.attributeSelection.BestFirst, weka.attributeSelection.GreedyStepwise, weka.attributeSelection.Ranker} [weka.attributeSelection.BestFirst]
+_1_04_1__wcrdt_03_X {1, 2, 3, 4} [1]
+_1_04_1__wcrjr_00_N [1.0, 5.0] [2.0]
+_1_04_1__wcrjr_01_E {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_04_1__wcrjr_02_P {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_04_1__wcrjr_03_INT_O [1, 5] [2]i
+_1_04_1__wcror_00_INT_B [1, 32] [6]il
+_1_04_1__wcrpart_00_INT_N [2, 5] [3]i
+_1_04_1__wcrpart_01_INT_M [1, 64] [2]il
+_1_04_1__wcrpart_02_R {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_04_1__wcrpart_03_B {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_04_1__wctj_00_O {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_04_1__wctj_01_U {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_04_1__wctj_02_B {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_04_1__wctj_03_J {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_04_1__wctj_04_A {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_04_1__wctj_05_S {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_04_1__wctj_06_INT_M [1, 64] [2]il
+_1_04_1__wctj_07_C [0.0, 1.0] [0.25]
+_1_04_1__wctlmt_00_B {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_04_1__wctlmt_01_R {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_04_1__wctlmt_02_C {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_04_1__wctlmt_03_P {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_04_1__wctlmt_04_INT_M [1, 64] [15]il
+_1_04_1__wctlmt_05_W_HIDDEN {0, 1} [0]
+_1_04_1__wctlmt_06_1_W {0} [0]
+_1_04_1__wctlmt_07_2_W [0.0, 1.0] [0.0]
+_1_04_1__wctlmt_08_A {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_04_1__wctrept_00_INT_M [1, 64] [2]il
+_1_04_1__wctrept_01_V [1.0E-5, 0.1] [0.001]l
+_1_04_1__wctrept_02_depth_HIDDEN {0, 1} [0]
+_1_04_1__wctrept_03_1_INT_L {-1} [-1]
+_1_04_1__wctrept_04_2_INT_L [2, 20] [2]i
+_1_04_1__wctrept_05_P {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_04_1__wctrf_00_INT_I [2, 256] [10]il
+_1_04_1__wctrf_01_features_HIDDEN {0, 1} [0]
+_1_04_1__wctrf_02_1_INT_K {1} [1]
+_1_04_1__wctrf_03_2_INT_K [2, 32] [2]il
+_1_04_1__wctrf_04_depth_HIDDEN {0, 1} [0]
+_1_04_1__wctrf_05_1_INT_depth {1} [1]
+_1_04_1__wctrf_06_2_INT_depth [2, 20] [2]i
+_1_04_1__wctrt_00_INT_M [1, 64] [1]il
+_1_04_1__wctrt_01_features_HIDDEN {0, 1} [0]
+_1_04_1__wctrt_02_1_INT_K {0} [0]
+_1_04_1__wctrt_03_2_INT_K [2, 32] [2]il
+_1_04_1__wctrt_04_depth_HIDDEN {0, 1} [0]
+_1_04_1__wctrt_05_1_INT_depth {0} [0]
+_1_04_1__wctrt_06_2_INT_depth [2, 20] [2]i
+_1_04_1__wctrt_07_back_HIDDEN {0, 1} [0]
+_1_04_1__wctrt_08_1_INT_N {0} [0]
+_1_04_1__wctrt_09_2_INT_N [2, 5] [3]i
+_1_04_1__wctrt_10_U {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_04_2_QUOTE_END {REMOVED} [REMOVED]
+_1_W {weka.classifiers.bayes.BayesNet, weka.classifiers.bayes.NaiveBayes, weka.classifiers.bayes.NaiveBayesMultinomial, weka.classifiers.functions.Logistic, weka.classifiers.functions.MultilayerPerceptron, weka.classifiers.functions.SGD, weka.classifiers.functions.SMO, weka.classifiers.functions.SimpleLogistic, weka.classifiers.functions.VotedPerceptron, weka.classifiers.lazy.IBk, weka.classifiers.lazy.KStar, weka.classifiers.rules.DecisionTable, weka.classifiers.rules.JRip, weka.classifiers.rules.OneR, weka.classifiers.rules.PART, weka.classifiers.rules.ZeroR, weka.classifiers.trees.DecisionStump, weka.classifiers.trees.J48, weka.classifiers.trees.LMT, weka.classifiers.trees.REPTree, weka.classifiers.trees.RandomForest, weka.classifiers.trees.RandomTree} [weka.classifiers.bayes.BayesNet]
+_1_W_0_DASHDASH {REMOVED} [REMOVED]
+_1_W_1__wcbbn_00_D {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_W_1__wcbbn_01_Q {weka.classifiers.bayes.net.search.local.K2, weka.classifiers.bayes.net.search.local.HillClimber, weka.classifiers.bayes.net.search.local.LAGDHillClimber, weka.classifiers.bayes.net.search.local.SimulatedAnnealing, weka.classifiers.bayes.net.search.local.TabuSearch, weka.classifiers.bayes.net.search.local.TAN} [weka.classifiers.bayes.net.search.local.K2]
+_1_W_1__wcbnb_00_K {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_W_1__wcbnb_01_D {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_W_1__wcfl_00_R [1.0E-12, 10.0] [1.0E-7]l
+_1_W_1__wcfmp_00_L [0.1, 1.0] [0.3]
+_1_W_1__wcfmp_01_M [0.1, 1.0] [0.2]
+_1_W_1__wcfmp_02_B {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_W_1__wcfmp_03_H {a, i, o, t} [a]
+_1_W_1__wcfmp_04_C {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_W_1__wcfmp_05_R {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_W_1__wcfmp_06_D {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_W_1__wcfmp_07_S {1} [1]
+_1_W_1__wcfsgd_00_F {0, 1, 2} [0]
+_1_W_1__wcfsgd_01_L [1.0E-5, 0.1] [0.01]l
+_1_W_1__wcfsgd_02_R [1.0E-12, 10.0] [1.0E-4]l
+_1_W_1__wcfsgd_03_N {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_W_1__wcfsgd_04_M {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_W_1__wcfsl_00_S {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_W_1__wcfsl_01_W_HIDDEN {0, 1} [0]
+_1_W_1__wcfsl_02_1_W {0} [0]
+_1_W_1__wcfsl_03_2_W [0.0, 1.0] [0.0]
+_1_W_1__wcfsl_04_A {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_W_1__wcfsmo_00_0_C [0.5, 1.5] [1.0]
+_1_W_1__wcfsmo_01_1_N {0, 1, 2} [0]
+_1_W_1__wcfsmo_02_2_M {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_W_1__wcfsmo_03_3_REG_IGNORE_QUOTE_START_K {weka.classifiers.functions.supportVector.NormalizedPolyKernel, weka.classifiers.functions.supportVector.PolyKernel, weka.classifiers.functions.supportVector.Puk, weka.classifiers.functions.supportVector.RBFKernel} [weka.classifiers.functions.supportVector.NormalizedPolyKernel]
+_1_W_1__wcfsmo_04_4_npoly_E [0.2, 5.0] [1.0]
+_1_W_1__wcfsmo_05_4_npoly_L {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_W_1__wcfsmo_06_4_poly_E [0.2, 5.0] [1.0]
+_1_W_1__wcfsmo_07_4_poly_L {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_W_1__wcfsmo_08_4_puk_S [0.1, 10.0] [1.0]
+_1_W_1__wcfsmo_09_4_puk_O [0.1, 1.0] [1.0]
+_1_W_1__wcfsmo_10_4_rbf_G [1.0E-4, 1.0] [0.01]l
+_1_W_1__wcfsmo_11_5_QUOTE_END {REMOVED} [REMOVED]
+_1_W_1__wcfvp_00_INT_I [1, 10] [1]i
+_1_W_1__wcfvp_01_INT_M [5000, 50000] [10000]il
+_1_W_1__wcfvp_02_E [0.2, 5.0] [1.0]
+_1_W_1__wclib_00_E {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_W_1__wclib_01_INT_K [1, 64] [1]il
+_1_W_1__wclib_02_X {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_W_1__wclib_03_F {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_W_1__wclib_04_I {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_W_1__wclks_00_INT_B [1, 100] [20]i
+_1_W_1__wclks_01_E {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_W_1__wclks_02_M {a, d, m, n} [a]
+_1_W_1__wcrdt_00_E {acc, rmse, mae, auc} [acc]
+_1_W_1__wcrdt_01_I {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_W_1__wcrdt_02_S {weka.attributeSelection.BestFirst, weka.attributeSelection.GreedyStepwise, weka.attributeSelection.Ranker} [weka.attributeSelection.BestFirst]
+_1_W_1__wcrdt_03_X {1, 2, 3, 4} [1]
+_1_W_1__wcrjr_00_N [1.0, 5.0] [2.0]
+_1_W_1__wcrjr_01_E {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_W_1__wcrjr_02_P {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_W_1__wcrjr_03_INT_O [1, 5] [2]i
+_1_W_1__wcror_00_INT_B [1, 32] [6]il
+_1_W_1__wcrpart_00_INT_N [2, 5] [3]i
+_1_W_1__wcrpart_01_INT_M [1, 64] [2]il
+_1_W_1__wcrpart_02_R {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_W_1__wcrpart_03_B {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_W_1__wctj_00_O {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_W_1__wctj_01_U {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_W_1__wctj_02_B {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_W_1__wctj_03_J {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_W_1__wctj_04_A {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_W_1__wctj_05_S {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_W_1__wctj_06_INT_M [1, 64] [2]il
+_1_W_1__wctj_07_C [0.0, 1.0] [0.25]
+_1_W_1__wctlmt_00_B {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_W_1__wctlmt_01_R {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_W_1__wctlmt_02_C {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_W_1__wctlmt_03_P {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_W_1__wctlmt_04_INT_M [1, 64] [15]il
+_1_W_1__wctlmt_05_W_HIDDEN {0, 1} [0]
+_1_W_1__wctlmt_06_1_W {0} [0]
+_1_W_1__wctlmt_07_2_W [0.0, 1.0] [0.0]
+_1_W_1__wctlmt_08_A {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_W_1__wctrept_00_INT_M [1, 64] [2]il
+_1_W_1__wctrept_01_V [1.0E-5, 0.1] [0.001]l
+_1_W_1__wctrept_02_depth_HIDDEN {0, 1} [0]
+_1_W_1__wctrept_03_1_INT_L {-1} [-1]
+_1_W_1__wctrept_04_2_INT_L [2, 20] [2]i
+_1_W_1__wctrept_05_P {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_1_W_1__wctrf_00_INT_I [2, 256] [10]il
+_1_W_1__wctrf_01_features_HIDDEN {0, 1} [0]
+_1_W_1__wctrf_02_1_INT_K {1} [1]
+_1_W_1__wctrf_03_2_INT_K [2, 32] [2]il
+_1_W_1__wctrf_04_depth_HIDDEN {0, 1} [0]
+_1_W_1__wctrf_05_1_INT_depth {1} [1]
+_1_W_1__wctrf_06_2_INT_depth [2, 20] [2]i
+_1_W_1__wctrt_00_INT_M [1, 64] [1]il
+_1_W_1__wctrt_01_features_HIDDEN {0, 1} [0]
+_1_W_1__wctrt_02_1_INT_K {0} [0]
+_1_W_1__wctrt_03_2_INT_K [2, 32] [2]il
+_1_W_1__wctrt_04_depth_HIDDEN {0, 1} [0]
+_1_W_1__wctrt_05_1_INT_depth {0} [0]
+_1_W_1__wctrt_06_2_INT_depth [2, 20] [2]i
+_1_W_1__wctrt_07_back_HIDDEN {0, 1} [0]
+_1_W_1__wctrt_08_1_INT_N {0} [0]
+_1_W_1__wctrt_09_2_INT_N [2, 5] [3]i
+_1_W_1__wctrt_10_U {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+_HIDDEN_ensemble_depth {0, 1, 2, 3, 4} [0]
+aseval__wascse_00_0_M {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+aseval__wascse_01_1_L {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+aseval__wasigae_00_0_M {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+aseval__wasigae_01_1_B {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+aseval__wasorae_00_0_S {0} [0]
+aseval__wasorae_01_1_F [2, 15] [10]i
+aseval__wasorae_02_2_D {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+aseval__wasorae_03_3_INT_B [1, 64] [6]il
+aseval__waspc_00_num_HIDDEN {0, 1} [0]
+aseval__waspc_01_1_INT_A {-1} [-1]
+aseval__waspc_02_2_INT_A [1, 1024] [32]il
+aseval__waspc_03_1_C {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+aseval__waspc_04_2_R [0.5, 1.0] [0.95]
+aseval__waspc_05_3_O {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+aseval__wasrfae_00_0_INT_K [2, 64] [10]il
+aseval__wasrfae_01_1_W {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+aseval__wasrfae_02_2_INT_A [1, 8] [2]il
+aseval__wassuae_00_0_M {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+assearch__wasbf_00_0_D {0, 1, 2} [1]
+assearch__wasbf_01_1_INT_N [2, 10] [5]i
+assearch__wasbf_02_2_S {0} [0]
+assearch__wasgs_00_0_C {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+assearch__wasgs_01_1_B {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+assearch__wasgs_02_2_R {REMOVED, REMOVE_PREV} [REMOVE_PREV]
+assearch__wasgs_03_3_T [0.0, 20.0] [1.0]
+assearch__wasgs_04_4_INT_N [10, 1000] [30]il
+assearch__wasr_00_0_T [0.2, 10.0] [1.0]
+attributeeval {weka.attributeSelection.CfsSubsetEval, weka.attributeSelection.CorrelationAttributeEval, weka.attributeSelection.GainRatioAttributeEval, weka.attributeSelection.InfoGainAttributeEval, weka.attributeSelection.OneRAttributeEval, weka.attributeSelection.PrincipalComponents, weka.attributeSelection.ReliefFAttributeEval, weka.attributeSelection.SymmetricalUncertAttributeEval} [weka.attributeSelection.CfsSubsetEval]
+attributesearch {NONE, weka.attributeSelection.BestFirst, weka.attributeSelection.GreedyStepwise, weka.attributeSelection.Ranker} [NONE]
+attributetime {900.0} [900.0]
+targetclass {weka.classifiers.bayes.BayesNet, weka.classifiers.bayes.NaiveBayes, weka.classifiers.bayes.NaiveBayesMultinomial, weka.classifiers.functions.Logistic, weka.classifiers.functions.MultilayerPerceptron, weka.classifiers.functions.SGD, weka.classifiers.functions.SMO, weka.classifiers.functions.SimpleLogistic, weka.classifiers.functions.VotedPerceptron, weka.classifiers.lazy.IBk, weka.classifiers.lazy.KStar, weka.classifiers.rules.DecisionTable, weka.classifiers.rules.JRip, weka.classifiers.rules.OneR, weka.classifiers.rules.PART, weka.classifiers.rules.ZeroR, weka.classifiers.trees.DecisionStump, weka.classifiers.trees.J48, weka.classifiers.trees.LMT, weka.classifiers.trees.REPTree, weka.classifiers.trees.RandomForest, weka.classifiers.trees.RandomTree, weka.classifiers.lazy.LWL, weka.classifiers.meta.AdaBoostM1, weka.classifiers.meta.AttributeSelectedClassifier, weka.classifiers.meta.Bagging, weka.classifiers.meta.ClassificationViaRegression, weka.classifiers.meta.LogitBoost, weka.classifiers.meta.MultiClassClassifier, weka.classifiers.meta.RandomCommittee, weka.classifiers.meta.RandomSubSpace, weka.classifiers.meta.Stacking, weka.classifiers.meta.Vote} [weka.classifiers.bayes.BayesNet]
+Conditionals:
+_0__wcbbn_00_D | targetclass in {weka.classifiers.bayes.BayesNet}
+_0__wcbbn_01_Q | targetclass in {weka.classifiers.bayes.BayesNet}
+_0__wcbnb_00_K | targetclass in {weka.classifiers.bayes.NaiveBayes}
+_0__wcbnb_01_D | targetclass in {weka.classifiers.bayes.NaiveBayes}
+_0__wcfl_00_R | targetclass in {weka.classifiers.functions.Logistic}
+_0__wcfmp_00_L | targetclass in {weka.classifiers.functions.MultilayerPerceptron}
+_0__wcfmp_01_M | targetclass in {weka.classifiers.functions.MultilayerPerceptron}
+_0__wcfmp_02_B | targetclass in {weka.classifiers.functions.MultilayerPerceptron}
+_0__wcfmp_03_H | targetclass in {weka.classifiers.functions.MultilayerPerceptron}
+_0__wcfmp_04_C | targetclass in {weka.classifiers.functions.MultilayerPerceptron}
+_0__wcfmp_05_R | targetclass in {weka.classifiers.functions.MultilayerPerceptron}
+_0__wcfmp_06_D | targetclass in {weka.classifiers.functions.MultilayerPerceptron}
+_0__wcfmp_07_S | targetclass in {weka.classifiers.functions.MultilayerPerceptron}
+_0__wcfsgd_00_F | targetclass in {weka.classifiers.functions.SGD}
+_0__wcfsgd_01_L | targetclass in {weka.classifiers.functions.SGD}
+_0__wcfsgd_02_R | targetclass in {weka.classifiers.functions.SGD}
+_0__wcfsgd_03_N | targetclass in {weka.classifiers.functions.SGD}
+_0__wcfsgd_04_M | targetclass in {weka.classifiers.functions.SGD}
+_0__wcfsl_00_S | targetclass in {weka.classifiers.functions.SimpleLogistic}
+_0__wcfsl_01_W_HIDDEN | targetclass in {weka.classifiers.functions.SimpleLogistic}
+_0__wcfsl_02_1_W | _0__wcfsl_01_W_HIDDEN in {0}
+_0__wcfsl_02_1_W | targetclass in {weka.classifiers.functions.SimpleLogistic}
+_0__wcfsl_03_2_W | _0__wcfsl_01_W_HIDDEN in {1}
+_0__wcfsl_03_2_W | targetclass in {weka.classifiers.functions.SimpleLogistic}
+_0__wcfsl_04_A | targetclass in {weka.classifiers.functions.SimpleLogistic}
+_0__wcfsmo_00_0_C | targetclass in {weka.classifiers.functions.SMO}
+_0__wcfsmo_01_1_N | targetclass in {weka.classifiers.functions.SMO}
+_0__wcfsmo_02_2_M | targetclass in {weka.classifiers.functions.SMO}
+_0__wcfsmo_03_3_REG_IGNORE_QUOTE_START_K | targetclass in {weka.classifiers.functions.SMO}
+_0__wcfsmo_04_4_npoly_E | _0__wcfsmo_03_3_REG_IGNORE_QUOTE_START_K in {weka.classifiers.functions.supportVector.NormalizedPolyKernel}
+_0__wcfsmo_04_4_npoly_E | targetclass in {weka.classifiers.functions.SMO}
+_0__wcfsmo_05_4_npoly_L | _0__wcfsmo_03_3_REG_IGNORE_QUOTE_START_K in {weka.classifiers.functions.supportVector.NormalizedPolyKernel}
+_0__wcfsmo_05_4_npoly_L | targetclass in {weka.classifiers.functions.SMO}
+_0__wcfsmo_06_4_poly_E | _0__wcfsmo_03_3_REG_IGNORE_QUOTE_START_K in {weka.classifiers.functions.supportVector.PolyKernel}
+_0__wcfsmo_06_4_poly_E | targetclass in {weka.classifiers.functions.SMO}
+_0__wcfsmo_07_4_poly_L | _0__wcfsmo_03_3_REG_IGNORE_QUOTE_START_K in {weka.classifiers.functions.supportVector.PolyKernel}
+_0__wcfsmo_07_4_poly_L | targetclass in {weka.classifiers.functions.SMO}
+_0__wcfsmo_08_4_puk_S | _0__wcfsmo_03_3_REG_IGNORE_QUOTE_START_K in {weka.classifiers.functions.supportVector.Puk}
+_0__wcfsmo_08_4_puk_S | targetclass in {weka.classifiers.functions.SMO}
+_0__wcfsmo_09_4_puk_O | _0__wcfsmo_03_3_REG_IGNORE_QUOTE_START_K in {weka.classifiers.functions.supportVector.Puk}
+_0__wcfsmo_09_4_puk_O | targetclass in {weka.classifiers.functions.SMO}
+_0__wcfsmo_10_4_rbf_G | _0__wcfsmo_03_3_REG_IGNORE_QUOTE_START_K in {weka.classifiers.functions.supportVector.RBFKernel}
+_0__wcfsmo_10_4_rbf_G | targetclass in {weka.classifiers.functions.SMO}
+_0__wcfsmo_11_5_QUOTE_END | targetclass in {weka.classifiers.functions.SMO}
+_0__wcfvp_00_INT_I | targetclass in {weka.classifiers.functions.VotedPerceptron}
+_0__wcfvp_01_INT_M | targetclass in {weka.classifiers.functions.VotedPerceptron}
+_0__wcfvp_02_E | targetclass in {weka.classifiers.functions.VotedPerceptron}
+_0__wclib_00_E | targetclass in {weka.classifiers.lazy.IBk}
+_0__wclib_01_INT_K | targetclass in {weka.classifiers.lazy.IBk}
+_0__wclib_02_X | targetclass in {weka.classifiers.lazy.IBk}
+_0__wclib_03_F | targetclass in {weka.classifiers.lazy.IBk}
+_0__wclib_04_I | targetclass in {weka.classifiers.lazy.IBk}
+_0__wclks_00_INT_B | targetclass in {weka.classifiers.lazy.KStar}
+_0__wclks_01_E | targetclass in {weka.classifiers.lazy.KStar}
+_0__wclks_02_M | targetclass in {weka.classifiers.lazy.KStar}
+_0__wcllwl_00_K | targetclass in {weka.classifiers.lazy.LWL}
+_0__wcllwl_01_U | targetclass in {weka.classifiers.lazy.LWL}
+_0__wcllwl_02_A | targetclass in {weka.classifiers.lazy.LWL}
+_0__wcmabm_00_p_HIDDEN | targetclass in {weka.classifiers.meta.AdaBoostM1}
+_0__wcmabm_01_1_P | _0__wcmabm_00_p_HIDDEN in {0}
+_0__wcmabm_01_1_P | targetclass in {weka.classifiers.meta.AdaBoostM1}
+_0__wcmabm_02_2_INT_P | _0__wcmabm_00_p_HIDDEN in {1}
+_0__wcmabm_02_2_INT_P | targetclass in {weka.classifiers.meta.AdaBoostM1}
+_0__wcmabm_03_INT_I | targetclass in {weka.classifiers.meta.AdaBoostM1}
+_0__wcmabm_04_Q | targetclass in {weka.classifiers.meta.AdaBoostM1}
+_0__wcmabm_05_S | targetclass in {weka.classifiers.meta.AdaBoostM1}
+_0__wcmasc_00_S | targetclass in {weka.classifiers.meta.AttributeSelectedClassifier}
+_0__wcmasc_01_E | targetclass in {weka.classifiers.meta.AttributeSelectedClassifier}
+_0__wcmb_00_INT_P | targetclass in {weka.classifiers.meta.Bagging}
+_0__wcmb_01_INT_I | targetclass in {weka.classifiers.meta.Bagging}
+_0__wcmb_02_S | targetclass in {weka.classifiers.meta.Bagging}
+_0__wcmb_03_O | targetclass in {weka.classifiers.meta.Bagging}
+_0__wcmlb_00_INT_I | targetclass in {weka.classifiers.meta.LogitBoost}
+_0__wcmlb_01_h_HIDDEN | targetclass in {weka.classifiers.meta.LogitBoost}
+_0__wcmlb_02_1_H | _0__wcmlb_01_h_HIDDEN in {0}
+_0__wcmlb_02_1_H | targetclass in {weka.classifiers.meta.LogitBoost}
+_0__wcmlb_03_2_H | _0__wcmlb_01_h_HIDDEN in {1}
+_0__wcmlb_03_2_H | targetclass in {weka.classifiers.meta.LogitBoost}
+_0__wcmlb_04_INT_R | targetclass in {weka.classifiers.meta.LogitBoost}
+_0__wcmlb_05_f_HIDDEN | targetclass in {weka.classifiers.meta.LogitBoost}
+_0__wcmlb_06_1_F | _0__wcmlb_05_f_HIDDEN in {0}
+_0__wcmlb_06_1_F | targetclass in {weka.classifiers.meta.LogitBoost}
+_0__wcmlb_07_2_INT_F | _0__wcmlb_05_f_HIDDEN in {1}
+_0__wcmlb_07_2_INT_F | targetclass in {weka.classifiers.meta.LogitBoost}
+_0__wcmlb_08_Q | targetclass in {weka.classifiers.meta.LogitBoost}
+_0__wcmlb_09_p_HIDDEN | targetclass in {weka.classifiers.meta.LogitBoost}
+_0__wcmlb_10_1_P | _0__wcmlb_09_p_HIDDEN in {0}
+_0__wcmlb_10_1_P | targetclass in {weka.classifiers.meta.LogitBoost}
+_0__wcmlb_11_2_INT_P | _0__wcmlb_09_p_HIDDEN in {1}
+_0__wcmlb_11_2_INT_P | targetclass in {weka.classifiers.meta.LogitBoost}
+_0__wcmlb_12_L | targetclass in {weka.classifiers.meta.LogitBoost}
+_0__wcmlb_13_S | targetclass in {weka.classifiers.meta.LogitBoost}
+_0__wcmmcc_00_M | targetclass in {weka.classifiers.meta.MultiClassClassifier}
+_0__wcmmcc_01_R | targetclass in {weka.classifiers.meta.MultiClassClassifier}
+_0__wcmmcc_02_P | targetclass in {weka.classifiers.meta.MultiClassClassifier}
+_0__wcmmcc_03_S | targetclass in {weka.classifiers.meta.MultiClassClassifier}
+_0__wcmrc_00_INT_I | targetclass in {weka.classifiers.meta.RandomCommittee}
+_0__wcmrc_01_S | targetclass in {weka.classifiers.meta.RandomCommittee}
+_0__wcmrss_00_INT_I | targetclass in {weka.classifiers.meta.RandomSubSpace}
+_0__wcmrss_01_P | targetclass in {weka.classifiers.meta.RandomSubSpace}
+_0__wcmrss_02_S | targetclass in {weka.classifiers.meta.RandomSubSpace}
+_0__wcms_00_X | targetclass in {weka.classifiers.meta.Stacking}
+_0__wcms_01_S | targetclass in {weka.classifiers.meta.Stacking}
+_0__wcmv_00_R | targetclass in {weka.classifiers.meta.Vote}
+_0__wcmv_01_S | targetclass in {weka.classifiers.meta.Vote}
+_0__wcrdt_00_E | targetclass in {weka.classifiers.rules.DecisionTable}
+_0__wcrdt_01_I | targetclass in {weka.classifiers.rules.DecisionTable}
+_0__wcrdt_02_S | targetclass in {weka.classifiers.rules.DecisionTable}
+_0__wcrdt_03_X | targetclass in {weka.classifiers.rules.DecisionTable}
+_0__wcrjr_00_N | targetclass in {weka.classifiers.rules.JRip}
+_0__wcrjr_01_E | targetclass in {weka.classifiers.rules.JRip}
+_0__wcrjr_02_P | targetclass in {weka.classifiers.rules.JRip}
+_0__wcrjr_03_INT_O | targetclass in {weka.classifiers.rules.JRip}
+_0__wcror_00_INT_B | targetclass in {weka.classifiers.rules.OneR}
+_0__wcrpart_00_INT_N | targetclass in {weka.classifiers.rules.PART}
+_0__wcrpart_01_INT_M | targetclass in {weka.classifiers.rules.PART}
+_0__wcrpart_02_R | targetclass in {weka.classifiers.rules.PART}
+_0__wcrpart_03_B | targetclass in {weka.classifiers.rules.PART}
+_0__wctj_00_O | targetclass in {weka.classifiers.trees.J48}
+_0__wctj_01_U | targetclass in {weka.classifiers.trees.J48}
+_0__wctj_02_B | targetclass in {weka.classifiers.trees.J48}
+_0__wctj_03_J | targetclass in {weka.classifiers.trees.J48}
+_0__wctj_04_A | targetclass in {weka.classifiers.trees.J48}
+_0__wctj_05_S | targetclass in {weka.classifiers.trees.J48}
+_0__wctj_06_INT_M | targetclass in {weka.classifiers.trees.J48}
+_0__wctj_07_C | targetclass in {weka.classifiers.trees.J48}
+_0__wctlmt_00_B | targetclass in {weka.classifiers.trees.LMT}
+_0__wctlmt_01_R | targetclass in {weka.classifiers.trees.LMT}
+_0__wctlmt_02_C | targetclass in {weka.classifiers.trees.LMT}
+_0__wctlmt_03_P | targetclass in {weka.classifiers.trees.LMT}
+_0__wctlmt_04_INT_M | targetclass in {weka.classifiers.trees.LMT}
+_0__wctlmt_05_W_HIDDEN | targetclass in {weka.classifiers.trees.LMT}
+_0__wctlmt_06_1_W | _0__wctlmt_05_W_HIDDEN in {0}
+_0__wctlmt_06_1_W | targetclass in {weka.classifiers.trees.LMT}
+_0__wctlmt_07_2_W | _0__wctlmt_05_W_HIDDEN in {1}
+_0__wctlmt_07_2_W | targetclass in {weka.classifiers.trees.LMT}
+_0__wctlmt_08_A | targetclass in {weka.classifiers.trees.LMT}
+_0__wctrept_00_INT_M | targetclass in {weka.classifiers.trees.REPTree}
+_0__wctrept_01_V | targetclass in {weka.classifiers.trees.REPTree}
+_0__wctrept_02_depth_HIDDEN | targetclass in {weka.classifiers.trees.REPTree}
+_0__wctrept_03_1_INT_L | _0__wctrept_02_depth_HIDDEN in {0}
+_0__wctrept_03_1_INT_L | targetclass in {weka.classifiers.trees.REPTree}
+_0__wctrept_04_2_INT_L | _0__wctrept_02_depth_HIDDEN in {1}
+_0__wctrept_04_2_INT_L | targetclass in {weka.classifiers.trees.REPTree}
+_0__wctrept_05_P | targetclass in {weka.classifiers.trees.REPTree}
+_0__wctrf_00_INT_I | targetclass in {weka.classifiers.trees.RandomForest}
+_0__wctrf_01_features_HIDDEN | targetclass in {weka.classifiers.trees.RandomForest}
+_0__wctrf_02_1_INT_K | _0__wctrf_01_features_HIDDEN in {0}
+_0__wctrf_02_1_INT_K | targetclass in {weka.classifiers.trees.RandomForest}
+_0__wctrf_03_2_INT_K | _0__wctrf_01_features_HIDDEN in {1}
+_0__wctrf_03_2_INT_K | targetclass in {weka.classifiers.trees.RandomForest}
+_0__wctrf_04_depth_HIDDEN | targetclass in {weka.classifiers.trees.RandomForest}
+_0__wctrf_05_1_INT_depth | _0__wctrf_04_depth_HIDDEN in {0}
+_0__wctrf_05_1_INT_depth | targetclass in {weka.classifiers.trees.RandomForest}
+_0__wctrf_06_2_INT_depth | _0__wctrf_04_depth_HIDDEN in {1}
+_0__wctrf_06_2_INT_depth | targetclass in {weka.classifiers.trees.RandomForest}
+_0__wctrt_00_INT_M | targetclass in {weka.classifiers.trees.RandomTree}
+_0__wctrt_01_features_HIDDEN | targetclass in {weka.classifiers.trees.RandomTree}
+_0__wctrt_02_1_INT_K | _0__wctrt_01_features_HIDDEN in {0}
+_0__wctrt_02_1_INT_K | targetclass in {weka.classifiers.trees.RandomTree}
+_0__wctrt_03_2_INT_K | _0__wctrt_01_features_HIDDEN in {1}
+_0__wctrt_03_2_INT_K | targetclass in {weka.classifiers.trees.RandomTree}
+_0__wctrt_04_depth_HIDDEN | targetclass in {weka.classifiers.trees.RandomTree}
+_0__wctrt_05_1_INT_depth | _0__wctrt_04_depth_HIDDEN in {0}
+_0__wctrt_05_1_INT_depth | targetclass in {weka.classifiers.trees.RandomTree}
+_0__wctrt_06_2_INT_depth | _0__wctrt_04_depth_HIDDEN in {1}
+_0__wctrt_06_2_INT_depth | targetclass in {weka.classifiers.trees.RandomTree}
+_0__wctrt_07_back_HIDDEN | targetclass in {weka.classifiers.trees.RandomTree}
+_0__wctrt_08_1_INT_N | _0__wctrt_07_back_HIDDEN in {0}
+_0__wctrt_08_1_INT_N | targetclass in {weka.classifiers.trees.RandomTree}
+_0__wctrt_09_2_INT_N | _0__wctrt_07_back_HIDDEN in {1}
+_0__wctrt_09_2_INT_N | targetclass in {weka.classifiers.trees.RandomTree}
+_0__wctrt_10_U | targetclass in {weka.classifiers.trees.RandomTree}
+_1_00_0_QUOTE_START_B | _HIDDEN_ensemble_depth in {0, 1, 2, 3, 4}
+_1_00_1__wcbbn_00_D | _1_00_0_QUOTE_START_B in {weka.classifiers.bayes.BayesNet}
+_1_00_1__wcbbn_01_Q | _1_00_0_QUOTE_START_B in {weka.classifiers.bayes.BayesNet}
+_1_00_1__wcbnb_00_K | _1_00_0_QUOTE_START_B in {weka.classifiers.bayes.NaiveBayes}
+_1_00_1__wcbnb_01_D | _1_00_0_QUOTE_START_B in {weka.classifiers.bayes.NaiveBayes}
+_1_00_1__wcfl_00_R | _1_00_0_QUOTE_START_B in {weka.classifiers.functions.Logistic}
+_1_00_1__wcfmp_00_L | _1_00_0_QUOTE_START_B in {weka.classifiers.functions.MultilayerPerceptron}
+_1_00_1__wcfmp_01_M | _1_00_0_QUOTE_START_B in {weka.classifiers.functions.MultilayerPerceptron}
+_1_00_1__wcfmp_02_B | _1_00_0_QUOTE_START_B in {weka.classifiers.functions.MultilayerPerceptron}
+_1_00_1__wcfmp_03_H | _1_00_0_QUOTE_START_B in {weka.classifiers.functions.MultilayerPerceptron}
+_1_00_1__wcfmp_04_C | _1_00_0_QUOTE_START_B in {weka.classifiers.functions.MultilayerPerceptron}
+_1_00_1__wcfmp_05_R | _1_00_0_QUOTE_START_B in {weka.classifiers.functions.MultilayerPerceptron}
+_1_00_1__wcfmp_06_D | _1_00_0_QUOTE_START_B in {weka.classifiers.functions.MultilayerPerceptron}
+_1_00_1__wcfmp_07_S | _1_00_0_QUOTE_START_B in {weka.classifiers.functions.MultilayerPerceptron}
+_1_00_1__wcfsgd_00_F | _1_00_0_QUOTE_START_B in {weka.classifiers.functions.SGD}
+_1_00_1__wcfsgd_01_L | _1_00_0_QUOTE_START_B in {weka.classifiers.functions.SGD}
+_1_00_1__wcfsgd_02_R | _1_00_0_QUOTE_START_B in {weka.classifiers.functions.SGD}
+_1_00_1__wcfsgd_03_N | _1_00_0_QUOTE_START_B in {weka.classifiers.functions.SGD}
+_1_00_1__wcfsgd_04_M | _1_00_0_QUOTE_START_B in {weka.classifiers.functions.SGD}
+_1_00_1__wcfsl_00_S | _1_00_0_QUOTE_START_B in {weka.classifiers.functions.SimpleLogistic}
+_1_00_1__wcfsl_01_W_HIDDEN | _1_00_0_QUOTE_START_B in {weka.classifiers.functions.SimpleLogistic}
+_1_00_1__wcfsl_02_1_W | _1_00_0_QUOTE_START_B in {weka.classifiers.functions.SimpleLogistic}
+_1_00_1__wcfsl_02_1_W | _1_00_1__wcfsl_01_W_HIDDEN in {0}
+_1_00_1__wcfsl_03_2_W | _1_00_0_QUOTE_START_B in {weka.classifiers.functions.SimpleLogistic}
+_1_00_1__wcfsl_03_2_W | _1_00_1__wcfsl_01_W_HIDDEN in {1}
+_1_00_1__wcfsl_04_A | _1_00_0_QUOTE_START_B in {weka.classifiers.functions.SimpleLogistic}
+_1_00_1__wcfsmo_00_0_C | _1_00_0_QUOTE_START_B in {weka.classifiers.functions.SMO}
+_1_00_1__wcfsmo_01_1_N | _1_00_0_QUOTE_START_B in {weka.classifiers.functions.SMO}
+_1_00_1__wcfsmo_02_2_M | _1_00_0_QUOTE_START_B in {weka.classifiers.functions.SMO}
+_1_00_1__wcfsmo_03_3_REG_IGNORE_QUOTE_START_K | _1_00_0_QUOTE_START_B in {weka.classifiers.functions.SMO}
+_1_00_1__wcfsmo_04_4_npoly_E | _1_00_0_QUOTE_START_B in {weka.classifiers.functions.SMO}
+_1_00_1__wcfsmo_04_4_npoly_E | _1_00_1__wcfsmo_03_3_REG_IGNORE_QUOTE_START_K in {weka.classifiers.functions.supportVector.NormalizedPolyKernel}
+_1_00_1__wcfsmo_05_4_npoly_L | _1_00_0_QUOTE_START_B in {weka.classifiers.functions.SMO}
+_1_00_1__wcfsmo_05_4_npoly_L | _1_00_1__wcfsmo_03_3_REG_IGNORE_QUOTE_START_K in {weka.classifiers.functions.supportVector.NormalizedPolyKernel}
+_1_00_1__wcfsmo_06_4_poly_E | _1_00_0_QUOTE_START_B in {weka.classifiers.functions.SMO}
+_1_00_1__wcfsmo_06_4_poly_E | _1_00_1__wcfsmo_03_3_REG_IGNORE_QUOTE_START_K in {weka.classifiers.functions.supportVector.PolyKernel}
+_1_00_1__wcfsmo_07_4_poly_L | _1_00_0_QUOTE_START_B in {weka.classifiers.functions.SMO}
+_1_00_1__wcfsmo_07_4_poly_L | _1_00_1__wcfsmo_03_3_REG_IGNORE_QUOTE_START_K in {weka.classifiers.functions.supportVector.PolyKernel}
+_1_00_1__wcfsmo_08_4_puk_S | _1_00_0_QUOTE_START_B in {weka.classifiers.functions.SMO}
+_1_00_1__wcfsmo_08_4_puk_S | _1_00_1__wcfsmo_03_3_REG_IGNORE_QUOTE_START_K in {weka.classifiers.functions.supportVector.Puk}
+_1_00_1__wcfsmo_09_4_puk_O | _1_00_0_QUOTE_START_B in {weka.classifiers.functions.SMO}
+_1_00_1__wcfsmo_09_4_puk_O | _1_00_1__wcfsmo_03_3_REG_IGNORE_QUOTE_START_K in {weka.classifiers.functions.supportVector.Puk}
+_1_00_1__wcfsmo_10_4_rbf_G | _1_00_0_QUOTE_START_B in {weka.classifiers.functions.SMO}
+_1_00_1__wcfsmo_10_4_rbf_G | _1_00_1__wcfsmo_03_3_REG_IGNORE_QUOTE_START_K in {weka.classifiers.functions.supportVector.RBFKernel}
+_1_00_1__wcfsmo_11_5_QUOTE_END | _1_00_0_QUOTE_START_B in {weka.classifiers.functions.SMO}
+_1_00_1__wcfvp_00_INT_I | _1_00_0_QUOTE_START_B in {weka.classifiers.functions.VotedPerceptron}
+_1_00_1__wcfvp_01_INT_M | _1_00_0_QUOTE_START_B in {weka.classifiers.functions.VotedPerceptron}
+_1_00_1__wcfvp_02_E | _1_00_0_QUOTE_START_B in {weka.classifiers.functions.VotedPerceptron}
+_1_00_1__wclib_00_E | _1_00_0_QUOTE_START_B in {weka.classifiers.lazy.IBk}
+_1_00_1__wclib_01_INT_K | _1_00_0_QUOTE_START_B in {weka.classifiers.lazy.IBk}
+_1_00_1__wclib_02_X | _1_00_0_QUOTE_START_B in {weka.classifiers.lazy.IBk}
+_1_00_1__wclib_03_F | _1_00_0_QUOTE_START_B in {weka.classifiers.lazy.IBk}
+_1_00_1__wclib_04_I | _1_00_0_QUOTE_START_B in {weka.classifiers.lazy.IBk}
+_1_00_1__wclks_00_INT_B | _1_00_0_QUOTE_START_B in {weka.classifiers.lazy.KStar}
+_1_00_1__wclks_01_E | _1_00_0_QUOTE_START_B in {weka.classifiers.lazy.KStar}
+_1_00_1__wclks_02_M | _1_00_0_QUOTE_START_B in {weka.classifiers.lazy.KStar}
+_1_00_1__wcrdt_00_E | _1_00_0_QUOTE_START_B in {weka.classifiers.rules.DecisionTable}
+_1_00_1__wcrdt_01_I | _1_00_0_QUOTE_START_B in {weka.classifiers.rules.DecisionTable}
+_1_00_1__wcrdt_02_S | _1_00_0_QUOTE_START_B in {weka.classifiers.rules.DecisionTable}
+_1_00_1__wcrdt_03_X | _1_00_0_QUOTE_START_B in {weka.classifiers.rules.DecisionTable}
+_1_00_1__wcrjr_00_N | _1_00_0_QUOTE_START_B in {weka.classifiers.rules.JRip}
+_1_00_1__wcrjr_01_E | _1_00_0_QUOTE_START_B in {weka.classifiers.rules.JRip}
+_1_00_1__wcrjr_02_P | _1_00_0_QUOTE_START_B in {weka.classifiers.rules.JRip}
+_1_00_1__wcrjr_03_INT_O | _1_00_0_QUOTE_START_B in {weka.classifiers.rules.JRip}
+_1_00_1__wcror_00_INT_B | _1_00_0_QUOTE_START_B in {weka.classifiers.rules.OneR}
+_1_00_1__wcrpart_00_INT_N | _1_00_0_QUOTE_START_B in {weka.classifiers.rules.PART}
+_1_00_1__wcrpart_01_INT_M | _1_00_0_QUOTE_START_B in {weka.classifiers.rules.PART}
+_1_00_1__wcrpart_02_R | _1_00_0_QUOTE_START_B in {weka.classifiers.rules.PART}
+_1_00_1__wcrpart_03_B | _1_00_0_QUOTE_START_B in {weka.classifiers.rules.PART}
+_1_00_1__wctj_00_O | _1_00_0_QUOTE_START_B in {weka.classifiers.trees.J48}
+_1_00_1__wctj_01_U | _1_00_0_QUOTE_START_B in {weka.classifiers.trees.J48}
+_1_00_1__wctj_02_B | _1_00_0_QUOTE_START_B in {weka.classifiers.trees.J48}
+_1_00_1__wctj_03_J | _1_00_0_QUOTE_START_B in {weka.classifiers.trees.J48}
+_1_00_1__wctj_04_A | _1_00_0_QUOTE_START_B in {weka.classifiers.trees.J48}
+_1_00_1__wctj_05_S | _1_00_0_QUOTE_START_B in {weka.classifiers.trees.J48}
+_1_00_1__wctj_06_INT_M | _1_00_0_QUOTE_START_B in {weka.classifiers.trees.J48}
+_1_00_1__wctj_07_C | _1_00_0_QUOTE_START_B in {weka.classifiers.trees.J48}
+_1_00_1__wctlmt_00_B | _1_00_0_QUOTE_START_B in {weka.classifiers.trees.LMT}
+_1_00_1__wctlmt_01_R | _1_00_0_QUOTE_START_B in {weka.classifiers.trees.LMT}
+_1_00_1__wctlmt_02_C | _1_00_0_QUOTE_START_B in {weka.classifiers.trees.LMT}
+_1_00_1__wctlmt_03_P | _1_00_0_QUOTE_START_B in {weka.classifiers.trees.LMT}
+_1_00_1__wctlmt_04_INT_M | _1_00_0_QUOTE_START_B in {weka.classifiers.trees.LMT}
+_1_00_1__wctlmt_05_W_HIDDEN | _1_00_0_QUOTE_START_B in {weka.classifiers.trees.LMT}
+_1_00_1__wctlmt_06_1_W | _1_00_0_QUOTE_START_B in {weka.classifiers.trees.LMT}
+_1_00_1__wctlmt_06_1_W | _1_00_1__wctlmt_05_W_HIDDEN in {0}
+_1_00_1__wctlmt_07_2_W | _1_00_0_QUOTE_START_B in {weka.classifiers.trees.LMT}
+_1_00_1__wctlmt_07_2_W | _1_00_1__wctlmt_05_W_HIDDEN in {1}
+_1_00_1__wctlmt_08_A | _1_00_0_QUOTE_START_B in {weka.classifiers.trees.LMT}
+_1_00_1__wctrept_00_INT_M | _1_00_0_QUOTE_START_B in {weka.classifiers.trees.REPTree}
+_1_00_1__wctrept_01_V | _1_00_0_QUOTE_START_B in {weka.classifiers.trees.REPTree}
+_1_00_1__wctrept_02_depth_HIDDEN | _1_00_0_QUOTE_START_B in {weka.classifiers.trees.REPTree}
+_1_00_1__wctrept_03_1_INT_L | _1_00_0_QUOTE_START_B in {weka.classifiers.trees.REPTree}
+_1_00_1__wctrept_03_1_INT_L | _1_00_1__wctrept_02_depth_HIDDEN in {0}
+_1_00_1__wctrept_04_2_INT_L | _1_00_0_QUOTE_START_B in {weka.classifiers.trees.REPTree}
+_1_00_1__wctrept_04_2_INT_L | _1_00_1__wctrept_02_depth_HIDDEN in {1}
+_1_00_1__wctrept_05_P | _1_00_0_QUOTE_START_B in {weka.classifiers.trees.REPTree}
+_1_00_1__wctrf_00_INT_I | _1_00_0_QUOTE_START_B in {weka.classifiers.trees.RandomForest}
+_1_00_1__wctrf_01_features_HIDDEN | _1_00_0_QUOTE_START_B in {weka.classifiers.trees.RandomForest}
+_1_00_1__wctrf_02_1_INT_K | _1_00_0_QUOTE_START_B in {weka.classifiers.trees.RandomForest}
+_1_00_1__wctrf_02_1_INT_K | _1_00_1__wctrf_01_features_HIDDEN in {0}
+_1_00_1__wctrf_03_2_INT_K | _1_00_0_QUOTE_START_B in {weka.classifiers.trees.RandomForest}
+_1_00_1__wctrf_03_2_INT_K | _1_00_1__wctrf_01_features_HIDDEN in {1}
+_1_00_1__wctrf_04_depth_HIDDEN | _1_00_0_QUOTE_START_B in {weka.classifiers.trees.RandomForest}
+_1_00_1__wctrf_05_1_INT_depth | _1_00_0_QUOTE_START_B in {weka.classifiers.trees.RandomForest}
+_1_00_1__wctrf_05_1_INT_depth | _1_00_1__wctrf_04_depth_HIDDEN in {0}
+_1_00_1__wctrf_06_2_INT_depth | _1_00_0_QUOTE_START_B in {weka.classifiers.trees.RandomForest}
+_1_00_1__wctrf_06_2_INT_depth | _1_00_1__wctrf_04_depth_HIDDEN in {1}
+_1_00_1__wctrt_00_INT_M | _1_00_0_QUOTE_START_B in {weka.classifiers.trees.RandomTree}
+_1_00_1__wctrt_01_features_HIDDEN | _1_00_0_QUOTE_START_B in {weka.classifiers.trees.RandomTree}
+_1_00_1__wctrt_02_1_INT_K | _1_00_0_QUOTE_START_B in {weka.classifiers.trees.RandomTree}
+_1_00_1__wctrt_02_1_INT_K | _1_00_1__wctrt_01_features_HIDDEN in {0}
+_1_00_1__wctrt_03_2_INT_K | _1_00_0_QUOTE_START_B in {weka.classifiers.trees.RandomTree}
+_1_00_1__wctrt_03_2_INT_K | _1_00_1__wctrt_01_features_HIDDEN in {1}
+_1_00_1__wctrt_04_depth_HIDDEN | _1_00_0_QUOTE_START_B in {weka.classifiers.trees.RandomTree}
+_1_00_1__wctrt_05_1_INT_depth | _1_00_0_QUOTE_START_B in {weka.classifiers.trees.RandomTree}
+_1_00_1__wctrt_05_1_INT_depth | _1_00_1__wctrt_04_depth_HIDDEN in {0}
+_1_00_1__wctrt_06_2_INT_depth | _1_00_0_QUOTE_START_B in {weka.classifiers.trees.RandomTree}
+_1_00_1__wctrt_06_2_INT_depth | _1_00_1__wctrt_04_depth_HIDDEN in {1}
+_1_00_1__wctrt_07_back_HIDDEN | _1_00_0_QUOTE_START_B in {weka.classifiers.trees.RandomTree}
+_1_00_1__wctrt_08_1_INT_N | _1_00_0_QUOTE_START_B in {weka.classifiers.trees.RandomTree}
+_1_00_1__wctrt_08_1_INT_N | _1_00_1__wctrt_07_back_HIDDEN in {0}
+_1_00_1__wctrt_09_2_INT_N | _1_00_0_QUOTE_START_B in {weka.classifiers.trees.RandomTree}
+_1_00_1__wctrt_09_2_INT_N | _1_00_1__wctrt_07_back_HIDDEN in {1}
+_1_00_1__wctrt_10_U | _1_00_0_QUOTE_START_B in {weka.classifiers.trees.RandomTree}
+_1_00_2_QUOTE_END | _HIDDEN_ensemble_depth in {0, 1, 2, 3, 4}
+_1_01_0_QUOTE_START_B | _HIDDEN_ensemble_depth in {1, 2, 3, 4}
+_1_01_1__wcbbn_00_D | _1_01_0_QUOTE_START_B in {weka.classifiers.bayes.BayesNet}
+_1_01_1__wcbbn_01_Q | _1_01_0_QUOTE_START_B in {weka.classifiers.bayes.BayesNet}
+_1_01_1__wcbnb_00_K | _1_01_0_QUOTE_START_B in {weka.classifiers.bayes.NaiveBayes}
+_1_01_1__wcbnb_01_D | _1_01_0_QUOTE_START_B in {weka.classifiers.bayes.NaiveBayes}
+_1_01_1__wcfl_00_R | _1_01_0_QUOTE_START_B in {weka.classifiers.functions.Logistic}
+_1_01_1__wcfmp_00_L | _1_01_0_QUOTE_START_B in {weka.classifiers.functions.MultilayerPerceptron}
+_1_01_1__wcfmp_01_M | _1_01_0_QUOTE_START_B in {weka.classifiers.functions.MultilayerPerceptron}
+_1_01_1__wcfmp_02_B | _1_01_0_QUOTE_START_B in {weka.classifiers.functions.MultilayerPerceptron}
+_1_01_1__wcfmp_03_H | _1_01_0_QUOTE_START_B in {weka.classifiers.functions.MultilayerPerceptron}
+_1_01_1__wcfmp_04_C | _1_01_0_QUOTE_START_B in {weka.classifiers.functions.MultilayerPerceptron}
+_1_01_1__wcfmp_05_R | _1_01_0_QUOTE_START_B in {weka.classifiers.functions.MultilayerPerceptron}
+_1_01_1__wcfmp_06_D | _1_01_0_QUOTE_START_B in {weka.classifiers.functions.MultilayerPerceptron}
+_1_01_1__wcfmp_07_S | _1_01_0_QUOTE_START_B in {weka.classifiers.functions.MultilayerPerceptron}
+_1_01_1__wcfsgd_00_F | _1_01_0_QUOTE_START_B in {weka.classifiers.functions.SGD}
+_1_01_1__wcfsgd_01_L | _1_01_0_QUOTE_START_B in {weka.classifiers.functions.SGD}
+_1_01_1__wcfsgd_02_R | _1_01_0_QUOTE_START_B in {weka.classifiers.functions.SGD}
+_1_01_1__wcfsgd_03_N | _1_01_0_QUOTE_START_B in {weka.classifiers.functions.SGD}
+_1_01_1__wcfsgd_04_M | _1_01_0_QUOTE_START_B in {weka.classifiers.functions.SGD}
+_1_01_1__wcfsl_00_S | _1_01_0_QUOTE_START_B in {weka.classifiers.functions.SimpleLogistic}
+_1_01_1__wcfsl_01_W_HIDDEN | _1_01_0_QUOTE_START_B in {weka.classifiers.functions.SimpleLogistic}
+_1_01_1__wcfsl_02_1_W | _1_01_0_QUOTE_START_B in {weka.classifiers.functions.SimpleLogistic}
+_1_01_1__wcfsl_02_1_W | _1_01_1__wcfsl_01_W_HIDDEN in {0}
+_1_01_1__wcfsl_03_2_W | _1_01_0_QUOTE_START_B in {weka.classifiers.functions.SimpleLogistic}
+_1_01_1__wcfsl_03_2_W | _1_01_1__wcfsl_01_W_HIDDEN in {1}
+_1_01_1__wcfsl_04_A | _1_01_0_QUOTE_START_B in {weka.classifiers.functions.SimpleLogistic}
+_1_01_1__wcfsmo_00_0_C | _1_01_0_QUOTE_START_B in {weka.classifiers.functions.SMO}
+_1_01_1__wcfsmo_01_1_N | _1_01_0_QUOTE_START_B in {weka.classifiers.functions.SMO}
+_1_01_1__wcfsmo_02_2_M | _1_01_0_QUOTE_START_B in {weka.classifiers.functions.SMO}
+_1_01_1__wcfsmo_03_3_REG_IGNORE_QUOTE_START_K | _1_01_0_QUOTE_START_B in {weka.classifiers.functions.SMO}
+_1_01_1__wcfsmo_04_4_npoly_E | _1_01_0_QUOTE_START_B in {weka.classifiers.functions.SMO}
+_1_01_1__wcfsmo_04_4_npoly_E | _1_01_1__wcfsmo_03_3_REG_IGNORE_QUOTE_START_K in {weka.classifiers.functions.supportVector.NormalizedPolyKernel}
+_1_01_1__wcfsmo_05_4_npoly_L | _1_01_0_QUOTE_START_B in {weka.classifiers.functions.SMO}
+_1_01_1__wcfsmo_05_4_npoly_L | _1_01_1__wcfsmo_03_3_REG_IGNORE_QUOTE_START_K in {weka.classifiers.functions.supportVector.NormalizedPolyKernel}
+_1_01_1__wcfsmo_06_4_poly_E | _1_01_0_QUOTE_START_B in {weka.classifiers.functions.SMO}
+_1_01_1__wcfsmo_06_4_poly_E | _1_01_1__wcfsmo_03_3_REG_IGNORE_QUOTE_START_K in {weka.classifiers.functions.supportVector.PolyKernel}
+_1_01_1__wcfsmo_07_4_poly_L | _1_01_0_QUOTE_START_B in {weka.classifiers.functions.SMO}
+_1_01_1__wcfsmo_07_4_poly_L | _1_01_1__wcfsmo_03_3_REG_IGNORE_QUOTE_START_K in {weka.classifiers.functions.supportVector.PolyKernel}
+_1_01_1__wcfsmo_08_4_puk_S | _1_01_0_QUOTE_START_B in {weka.classifiers.functions.SMO}
+_1_01_1__wcfsmo_08_4_puk_S | _1_01_1__wcfsmo_03_3_REG_IGNORE_QUOTE_START_K in {weka.classifiers.functions.supportVector.Puk}
+_1_01_1__wcfsmo_09_4_puk_O | _1_01_0_QUOTE_START_B in {weka.classifiers.functions.SMO}
+_1_01_1__wcfsmo_09_4_puk_O | _1_01_1__wcfsmo_03_3_REG_IGNORE_QUOTE_START_K in {weka.classifiers.functions.supportVector.Puk}
+_1_01_1__wcfsmo_10_4_rbf_G | _1_01_0_QUOTE_START_B in {weka.classifiers.functions.SMO}
+_1_01_1__wcfsmo_10_4_rbf_G | _1_01_1__wcfsmo_03_3_REG_IGNORE_QUOTE_START_K in {weka.classifiers.functions.supportVector.RBFKernel}
+_1_01_1__wcfsmo_11_5_QUOTE_END | _1_01_0_QUOTE_START_B in {weka.classifiers.functions.SMO}
+_1_01_1__wcfvp_00_INT_I | _1_01_0_QUOTE_START_B in {weka.classifiers.functions.VotedPerceptron}
+_1_01_1__wcfvp_01_INT_M | _1_01_0_QUOTE_START_B in {weka.classifiers.functions.VotedPerceptron}
+_1_01_1__wcfvp_02_E | _1_01_0_QUOTE_START_B in {weka.classifiers.functions.VotedPerceptron}
+_1_01_1__wclib_00_E | _1_01_0_QUOTE_START_B in {weka.classifiers.lazy.IBk}
+_1_01_1__wclib_01_INT_K | _1_01_0_QUOTE_START_B in {weka.classifiers.lazy.IBk}
+_1_01_1__wclib_02_X | _1_01_0_QUOTE_START_B in {weka.classifiers.lazy.IBk}
+_1_01_1__wclib_03_F | _1_01_0_QUOTE_START_B in {weka.classifiers.lazy.IBk}
+_1_01_1__wclib_04_I | _1_01_0_QUOTE_START_B in {weka.classifiers.lazy.IBk}
+_1_01_1__wclks_00_INT_B | _1_01_0_QUOTE_START_B in {weka.classifiers.lazy.KStar}
+_1_01_1__wclks_01_E | _1_01_0_QUOTE_START_B in {weka.classifiers.lazy.KStar}
+_1_01_1__wclks_02_M | _1_01_0_QUOTE_START_B in {weka.classifiers.lazy.KStar}
+_1_01_1__wcrdt_00_E | _1_01_0_QUOTE_START_B in {weka.classifiers.rules.DecisionTable}
+_1_01_1__wcrdt_01_I | _1_01_0_QUOTE_START_B in {weka.classifiers.rules.DecisionTable}
+_1_01_1__wcrdt_02_S | _1_01_0_QUOTE_START_B in {weka.classifiers.rules.DecisionTable}
+_1_01_1__wcrdt_03_X | _1_01_0_QUOTE_START_B in {weka.classifiers.rules.DecisionTable}
+_1_01_1__wcrjr_00_N | _1_01_0_QUOTE_START_B in {weka.classifiers.rules.JRip}
+_1_01_1__wcrjr_01_E | _1_01_0_QUOTE_START_B in {weka.classifiers.rules.JRip}
+_1_01_1__wcrjr_02_P | _1_01_0_QUOTE_START_B in {weka.classifiers.rules.JRip}
+_1_01_1__wcrjr_03_INT_O | _1_01_0_QUOTE_START_B in {weka.classifiers.rules.JRip}
+_1_01_1__wcror_00_INT_B | _1_01_0_QUOTE_START_B in {weka.classifiers.rules.OneR}
+_1_01_1__wcrpart_00_INT_N | _1_01_0_QUOTE_START_B in {weka.classifiers.rules.PART}
+_1_01_1__wcrpart_01_INT_M | _1_01_0_QUOTE_START_B in {weka.classifiers.rules.PART}
+_1_01_1__wcrpart_02_R | _1_01_0_QUOTE_START_B in {weka.classifiers.rules.PART}
+_1_01_1__wcrpart_03_B | _1_01_0_QUOTE_START_B in {weka.classifiers.rules.PART}
+_1_01_1__wctj_00_O | _1_01_0_QUOTE_START_B in {weka.classifiers.trees.J48}
+_1_01_1__wctj_01_U | _1_01_0_QUOTE_START_B in {weka.classifiers.trees.J48}
+_1_01_1__wctj_02_B | _1_01_0_QUOTE_START_B in {weka.classifiers.trees.J48}
+_1_01_1__wctj_03_J | _1_01_0_QUOTE_START_B in {weka.classifiers.trees.J48}
+_1_01_1__wctj_04_A | _1_01_0_QUOTE_START_B in {weka.classifiers.trees.J48}
+_1_01_1__wctj_05_S | _1_01_0_QUOTE_START_B in {weka.classifiers.trees.J48}
+_1_01_1__wctj_06_INT_M | _1_01_0_QUOTE_START_B in {weka.classifiers.trees.J48}
+_1_01_1__wctj_07_C | _1_01_0_QUOTE_START_B in {weka.classifiers.trees.J48}
+_1_01_1__wctlmt_00_B | _1_01_0_QUOTE_START_B in {weka.classifiers.trees.LMT}
+_1_01_1__wctlmt_01_R | _1_01_0_QUOTE_START_B in {weka.classifiers.trees.LMT}
+_1_01_1__wctlmt_02_C | _1_01_0_QUOTE_START_B in {weka.classifiers.trees.LMT}
+_1_01_1__wctlmt_03_P | _1_01_0_QUOTE_START_B in {weka.classifiers.trees.LMT}
+_1_01_1__wctlmt_04_INT_M | _1_01_0_QUOTE_START_B in {weka.classifiers.trees.LMT}
+_1_01_1__wctlmt_05_W_HIDDEN | _1_01_0_QUOTE_START_B in {weka.classifiers.trees.LMT}
+_1_01_1__wctlmt_06_1_W | _1_01_0_QUOTE_START_B in {weka.classifiers.trees.LMT}
+_1_01_1__wctlmt_06_1_W | _1_01_1__wctlmt_05_W_HIDDEN in {0}
+_1_01_1__wctlmt_07_2_W | _1_01_0_QUOTE_START_B in {weka.classifiers.trees.LMT}
+_1_01_1__wctlmt_07_2_W | _1_01_1__wctlmt_05_W_HIDDEN in {1}
+_1_01_1__wctlmt_08_A | _1_01_0_QUOTE_START_B in {weka.classifiers.trees.LMT}
+_1_01_1__wctrept_00_INT_M | _1_01_0_QUOTE_START_B in {weka.classifiers.trees.REPTree}
+_1_01_1__wctrept_01_V | _1_01_0_QUOTE_START_B in {weka.classifiers.trees.REPTree}
+_1_01_1__wctrept_02_depth_HIDDEN | _1_01_0_QUOTE_START_B in {weka.classifiers.trees.REPTree}
+_1_01_1__wctrept_03_1_INT_L | _1_01_0_QUOTE_START_B in {weka.classifiers.trees.REPTree}
+_1_01_1__wctrept_03_1_INT_L | _1_01_1__wctrept_02_depth_HIDDEN in {0}
+_1_01_1__wctrept_04_2_INT_L | _1_01_0_QUOTE_START_B in {weka.classifiers.trees.REPTree}
+_1_01_1__wctrept_04_2_INT_L | _1_01_1__wctrept_02_depth_HIDDEN in {1}
+_1_01_1__wctrept_05_P | _1_01_0_QUOTE_START_B in {weka.classifiers.trees.REPTree}
+_1_01_1__wctrf_00_INT_I | _1_01_0_QUOTE_START_B in {weka.classifiers.trees.RandomForest}
+_1_01_1__wctrf_01_features_HIDDEN | _1_01_0_QUOTE_START_B in {weka.classifiers.trees.RandomForest}
+_1_01_1__wctrf_02_1_INT_K | _1_01_0_QUOTE_START_B in {weka.classifiers.trees.RandomForest}
+_1_01_1__wctrf_02_1_INT_K | _1_01_1__wctrf_01_features_HIDDEN in {0}
+_1_01_1__wctrf_03_2_INT_K | _1_01_0_QUOTE_START_B in {weka.classifiers.trees.RandomForest}
+_1_01_1__wctrf_03_2_INT_K | _1_01_1__wctrf_01_features_HIDDEN in {1}
+_1_01_1__wctrf_04_depth_HIDDEN | _1_01_0_QUOTE_START_B in {weka.classifiers.trees.RandomForest}
+_1_01_1__wctrf_05_1_INT_depth | _1_01_0_QUOTE_START_B in {weka.classifiers.trees.RandomForest}
+_1_01_1__wctrf_05_1_INT_depth | _1_01_1__wctrf_04_depth_HIDDEN in {0}
+_1_01_1__wctrf_06_2_INT_depth | _1_01_0_QUOTE_START_B in {weka.classifiers.trees.RandomForest}
+_1_01_1__wctrf_06_2_INT_depth | _1_01_1__wctrf_04_depth_HIDDEN in {1}
+_1_01_1__wctrt_00_INT_M | _1_01_0_QUOTE_START_B in {weka.classifiers.trees.RandomTree}
+_1_01_1__wctrt_01_features_HIDDEN | _1_01_0_QUOTE_START_B in {weka.classifiers.trees.RandomTree}
+_1_01_1__wctrt_02_1_INT_K | _1_01_0_QUOTE_START_B in {weka.classifiers.trees.RandomTree}
+_1_01_1__wctrt_02_1_INT_K | _1_01_1__wctrt_01_features_HIDDEN in {0}
+_1_01_1__wctrt_03_2_INT_K | _1_01_0_QUOTE_START_B in {weka.classifiers.trees.RandomTree}
+_1_01_1__wctrt_03_2_INT_K | _1_01_1__wctrt_01_features_HIDDEN in {1}
+_1_01_1__wctrt_04_depth_HIDDEN | _1_01_0_QUOTE_START_B in {weka.classifiers.trees.RandomTree}
+_1_01_1__wctrt_05_1_INT_depth | _1_01_0_QUOTE_START_B in {weka.classifiers.trees.RandomTree}
+_1_01_1__wctrt_05_1_INT_depth | _1_01_1__wctrt_04_depth_HIDDEN in {0}
+_1_01_1__wctrt_06_2_INT_depth | _1_01_0_QUOTE_START_B in {weka.classifiers.trees.RandomTree}
+_1_01_1__wctrt_06_2_INT_depth | _1_01_1__wctrt_04_depth_HIDDEN in {1}
+_1_01_1__wctrt_07_back_HIDDEN | _1_01_0_QUOTE_START_B in {weka.classifiers.trees.RandomTree}
+_1_01_1__wctrt_08_1_INT_N | _1_01_0_QUOTE_START_B in {weka.classifiers.trees.RandomTree}
+_1_01_1__wctrt_08_1_INT_N | _1_01_1__wctrt_07_back_HIDDEN in {0}
+_1_01_1__wctrt_09_2_INT_N | _1_01_0_QUOTE_START_B in {weka.classifiers.trees.RandomTree}
+_1_01_1__wctrt_09_2_INT_N | _1_01_1__wctrt_07_back_HIDDEN in {1}
+_1_01_1__wctrt_10_U | _1_01_0_QUOTE_START_B in {weka.classifiers.trees.RandomTree}
+_1_01_2_QUOTE_END | _HIDDEN_ensemble_depth in {1, 2, 3, 4}
+_1_02_0_QUOTE_START_B | _HIDDEN_ensemble_depth in {2, 3, 4}
+_1_02_1__wcbbn_00_D | _1_02_0_QUOTE_START_B in {weka.classifiers.bayes.BayesNet}
+_1_02_1__wcbbn_01_Q | _1_02_0_QUOTE_START_B in {weka.classifiers.bayes.BayesNet}
+_1_02_1__wcbnb_00_K | _1_02_0_QUOTE_START_B in {weka.classifiers.bayes.NaiveBayes}
+_1_02_1__wcbnb_01_D | _1_02_0_QUOTE_START_B in {weka.classifiers.bayes.NaiveBayes}
+_1_02_1__wcfl_00_R | _1_02_0_QUOTE_START_B in {weka.classifiers.functions.Logistic}
+_1_02_1__wcfmp_00_L | _1_02_0_QUOTE_START_B in {weka.classifiers.functions.MultilayerPerceptron}
+_1_02_1__wcfmp_01_M | _1_02_0_QUOTE_START_B in {weka.classifiers.functions.MultilayerPerceptron}
+_1_02_1__wcfmp_02_B | _1_02_0_QUOTE_START_B in {weka.classifiers.functions.MultilayerPerceptron}
+_1_02_1__wcfmp_03_H | _1_02_0_QUOTE_START_B in {weka.classifiers.functions.MultilayerPerceptron}
+_1_02_1__wcfmp_04_C | _1_02_0_QUOTE_START_B in {weka.classifiers.functions.MultilayerPerceptron}
+_1_02_1__wcfmp_05_R | _1_02_0_QUOTE_START_B in {weka.classifiers.functions.MultilayerPerceptron}
+_1_02_1__wcfmp_06_D | _1_02_0_QUOTE_START_B in {weka.classifiers.functions.MultilayerPerceptron}
+_1_02_1__wcfmp_07_S | _1_02_0_QUOTE_START_B in {weka.classifiers.functions.MultilayerPerceptron}
+_1_02_1__wcfsgd_00_F | _1_02_0_QUOTE_START_B in {weka.classifiers.functions.SGD}
+_1_02_1__wcfsgd_01_L | _1_02_0_QUOTE_START_B in {weka.classifiers.functions.SGD}
+_1_02_1__wcfsgd_02_R | _1_02_0_QUOTE_START_B in {weka.classifiers.functions.SGD}
+_1_02_1__wcfsgd_03_N | _1_02_0_QUOTE_START_B in {weka.classifiers.functions.SGD}
+_1_02_1__wcfsgd_04_M | _1_02_0_QUOTE_START_B in {weka.classifiers.functions.SGD}
+_1_02_1__wcfsl_00_S | _1_02_0_QUOTE_START_B in {weka.classifiers.functions.SimpleLogistic}
+_1_02_1__wcfsl_01_W_HIDDEN | _1_02_0_QUOTE_START_B in {weka.classifiers.functions.SimpleLogistic}
+_1_02_1__wcfsl_02_1_W | _1_02_0_QUOTE_START_B in {weka.classifiers.functions.SimpleLogistic}
+_1_02_1__wcfsl_02_1_W | _1_02_1__wcfsl_01_W_HIDDEN in {0}
+_1_02_1__wcfsl_03_2_W | _1_02_0_QUOTE_START_B in {weka.classifiers.functions.SimpleLogistic}
+_1_02_1__wcfsl_03_2_W | _1_02_1__wcfsl_01_W_HIDDEN in {1}
+_1_02_1__wcfsl_04_A | _1_02_0_QUOTE_START_B in {weka.classifiers.functions.SimpleLogistic}
+_1_02_1__wcfsmo_00_0_C | _1_02_0_QUOTE_START_B in {weka.classifiers.functions.SMO}
+_1_02_1__wcfsmo_01_1_N | _1_02_0_QUOTE_START_B in {weka.classifiers.functions.SMO}
+_1_02_1__wcfsmo_02_2_M | _1_02_0_QUOTE_START_B in {weka.classifiers.functions.SMO}
+_1_02_1__wcfsmo_03_3_REG_IGNORE_QUOTE_START_K | _1_02_0_QUOTE_START_B in {weka.classifiers.functions.SMO}
+_1_02_1__wcfsmo_04_4_npoly_E | _1_02_0_QUOTE_START_B in {weka.classifiers.functions.SMO}
+_1_02_1__wcfsmo_04_4_npoly_E | _1_02_1__wcfsmo_03_3_REG_IGNORE_QUOTE_START_K in {weka.classifiers.functions.supportVector.NormalizedPolyKernel}
+_1_02_1__wcfsmo_05_4_npoly_L | _1_02_0_QUOTE_START_B in {weka.classifiers.functions.SMO}
+_1_02_1__wcfsmo_05_4_npoly_L | _1_02_1__wcfsmo_03_3_REG_IGNORE_QUOTE_START_K in {weka.classifiers.functions.supportVector.NormalizedPolyKernel}
+_1_02_1__wcfsmo_06_4_poly_E | _1_02_0_QUOTE_START_B in {weka.classifiers.functions.SMO}
+_1_02_1__wcfsmo_06_4_poly_E | _1_02_1__wcfsmo_03_3_REG_IGNORE_QUOTE_START_K in {weka.classifiers.functions.supportVector.PolyKernel}
+_1_02_1__wcfsmo_07_4_poly_L | _1_02_0_QUOTE_START_B in {weka.classifiers.functions.SMO}
+_1_02_1__wcfsmo_07_4_poly_L | _1_02_1__wcfsmo_03_3_REG_IGNORE_QUOTE_START_K in {weka.classifiers.functions.supportVector.PolyKernel}
+_1_02_1__wcfsmo_08_4_puk_S | _1_02_0_QUOTE_START_B in {weka.classifiers.functions.SMO}
+_1_02_1__wcfsmo_08_4_puk_S | _1_02_1__wcfsmo_03_3_REG_IGNORE_QUOTE_START_K in {weka.classifiers.functions.supportVector.Puk}
+_1_02_1__wcfsmo_09_4_puk_O | _1_02_0_QUOTE_START_B in {weka.classifiers.functions.SMO}
+_1_02_1__wcfsmo_09_4_puk_O | _1_02_1__wcfsmo_03_3_REG_IGNORE_QUOTE_START_K in {weka.classifiers.functions.supportVector.Puk}
+_1_02_1__wcfsmo_10_4_rbf_G | _1_02_0_QUOTE_START_B in {weka.classifiers.functions.SMO}
+_1_02_1__wcfsmo_10_4_rbf_G | _1_02_1__wcfsmo_03_3_REG_IGNORE_QUOTE_START_K in {weka.classifiers.functions.supportVector.RBFKernel}
+_1_02_1__wcfsmo_11_5_QUOTE_END | _1_02_0_QUOTE_START_B in {weka.classifiers.functions.SMO}
+_1_02_1__wcfvp_00_INT_I | _1_02_0_QUOTE_START_B in {weka.classifiers.functions.VotedPerceptron}
+_1_02_1__wcfvp_01_INT_M | _1_02_0_QUOTE_START_B in {weka.classifiers.functions.VotedPerceptron}
+_1_02_1__wcfvp_02_E | _1_02_0_QUOTE_START_B in {weka.classifiers.functions.VotedPerceptron}
+_1_02_1__wclib_00_E | _1_02_0_QUOTE_START_B in {weka.classifiers.lazy.IBk}
+_1_02_1__wclib_01_INT_K | _1_02_0_QUOTE_START_B in {weka.classifiers.lazy.IBk}
+_1_02_1__wclib_02_X | _1_02_0_QUOTE_START_B in {weka.classifiers.lazy.IBk}
+_1_02_1__wclib_03_F | _1_02_0_QUOTE_START_B in {weka.classifiers.lazy.IBk}
+_1_02_1__wclib_04_I | _1_02_0_QUOTE_START_B in {weka.classifiers.lazy.IBk}
+_1_02_1__wclks_00_INT_B | _1_02_0_QUOTE_START_B in {weka.classifiers.lazy.KStar}
+_1_02_1__wclks_01_E | _1_02_0_QUOTE_START_B in {weka.classifiers.lazy.KStar}
+_1_02_1__wclks_02_M | _1_02_0_QUOTE_START_B in {weka.classifiers.lazy.KStar}
+_1_02_1__wcrdt_00_E | _1_02_0_QUOTE_START_B in {weka.classifiers.rules.DecisionTable}
+_1_02_1__wcrdt_01_I | _1_02_0_QUOTE_START_B in {weka.classifiers.rules.DecisionTable}
+_1_02_1__wcrdt_02_S | _1_02_0_QUOTE_START_B in {weka.classifiers.rules.DecisionTable}
+_1_02_1__wcrdt_03_X | _1_02_0_QUOTE_START_B in {weka.classifiers.rules.DecisionTable}
+_1_02_1__wcrjr_00_N | _1_02_0_QUOTE_START_B in {weka.classifiers.rules.JRip}
+_1_02_1__wcrjr_01_E | _1_02_0_QUOTE_START_B in {weka.classifiers.rules.JRip}
+_1_02_1__wcrjr_02_P | _1_02_0_QUOTE_START_B in {weka.classifiers.rules.JRip}
+_1_02_1__wcrjr_03_INT_O | _1_02_0_QUOTE_START_B in {weka.classifiers.rules.JRip}
+_1_02_1__wcror_00_INT_B | _1_02_0_QUOTE_START_B in {weka.classifiers.rules.OneR}
+_1_02_1__wcrpart_00_INT_N | _1_02_0_QUOTE_START_B in {weka.classifiers.rules.PART}
+_1_02_1__wcrpart_01_INT_M | _1_02_0_QUOTE_START_B in {weka.classifiers.rules.PART}
+_1_02_1__wcrpart_02_R | _1_02_0_QUOTE_START_B in {weka.classifiers.rules.PART}
+_1_02_1__wcrpart_03_B | _1_02_0_QUOTE_START_B in {weka.classifiers.rules.PART}
+_1_02_1__wctj_00_O | _1_02_0_QUOTE_START_B in {weka.classifiers.trees.J48}
+_1_02_1__wctj_01_U | _1_02_0_QUOTE_START_B in {weka.classifiers.trees.J48}
+_1_02_1__wctj_02_B | _1_02_0_QUOTE_START_B in {weka.classifiers.trees.J48}
+_1_02_1__wctj_03_J | _1_02_0_QUOTE_START_B in {weka.classifiers.trees.J48}
+_1_02_1__wctj_04_A | _1_02_0_QUOTE_START_B in {weka.classifiers.trees.J48}
+_1_02_1__wctj_05_S | _1_02_0_QUOTE_START_B in {weka.classifiers.trees.J48}
+_1_02_1__wctj_06_INT_M | _1_02_0_QUOTE_START_B in {weka.classifiers.trees.J48}
+_1_02_1__wctj_07_C | _1_02_0_QUOTE_START_B in {weka.classifiers.trees.J48}
+_1_02_1__wctlmt_00_B | _1_02_0_QUOTE_START_B in {weka.classifiers.trees.LMT}
+_1_02_1__wctlmt_01_R | _1_02_0_QUOTE_START_B in {weka.classifiers.trees.LMT}
+_1_02_1__wctlmt_02_C | _1_02_0_QUOTE_START_B in {weka.classifiers.trees.LMT}
+_1_02_1__wctlmt_03_P | _1_02_0_QUOTE_START_B in {weka.classifiers.trees.LMT}
+_1_02_1__wctlmt_04_INT_M | _1_02_0_QUOTE_START_B in {weka.classifiers.trees.LMT}
+_1_02_1__wctlmt_05_W_HIDDEN | _1_02_0_QUOTE_START_B in {weka.classifiers.trees.LMT}
+_1_02_1__wctlmt_06_1_W | _1_02_0_QUOTE_START_B in {weka.classifiers.trees.LMT}
+_1_02_1__wctlmt_06_1_W | _1_02_1__wctlmt_05_W_HIDDEN in {0}
+_1_02_1__wctlmt_07_2_W | _1_02_0_QUOTE_START_B in {weka.classifiers.trees.LMT}
+_1_02_1__wctlmt_07_2_W | _1_02_1__wctlmt_05_W_HIDDEN in {1}
+_1_02_1__wctlmt_08_A | _1_02_0_QUOTE_START_B in {weka.classifiers.trees.LMT}
+_1_02_1__wctrept_00_INT_M | _1_02_0_QUOTE_START_B in {weka.classifiers.trees.REPTree}
+_1_02_1__wctrept_01_V | _1_02_0_QUOTE_START_B in {weka.classifiers.trees.REPTree}
+_1_02_1__wctrept_02_depth_HIDDEN | _1_02_0_QUOTE_START_B in {weka.classifiers.trees.REPTree}
+_1_02_1__wctrept_03_1_INT_L | _1_02_0_QUOTE_START_B in {weka.classifiers.trees.REPTree}
+_1_02_1__wctrept_03_1_INT_L | _1_02_1__wctrept_02_depth_HIDDEN in {0}
+_1_02_1__wctrept_04_2_INT_L | _1_02_0_QUOTE_START_B in {weka.classifiers.trees.REPTree}
+_1_02_1__wctrept_04_2_INT_L | _1_02_1__wctrept_02_depth_HIDDEN in {1}
+_1_02_1__wctrept_05_P | _1_02_0_QUOTE_START_B in {weka.classifiers.trees.REPTree}
+_1_02_1__wctrf_00_INT_I | _1_02_0_QUOTE_START_B in {weka.classifiers.trees.RandomForest}
+_1_02_1__wctrf_01_features_HIDDEN | _1_02_0_QUOTE_START_B in {weka.classifiers.trees.RandomForest}
+_1_02_1__wctrf_02_1_INT_K | _1_02_0_QUOTE_START_B in {weka.classifiers.trees.RandomForest}
+_1_02_1__wctrf_02_1_INT_K | _1_02_1__wctrf_01_features_HIDDEN in {0}
+_1_02_1__wctrf_03_2_INT_K | _1_02_0_QUOTE_START_B in {weka.classifiers.trees.RandomForest}
+_1_02_1__wctrf_03_2_INT_K | _1_02_1__wctrf_01_features_HIDDEN in {1}
+_1_02_1__wctrf_04_depth_HIDDEN | _1_02_0_QUOTE_START_B in {weka.classifiers.trees.RandomForest}
+_1_02_1__wctrf_05_1_INT_depth | _1_02_0_QUOTE_START_B in {weka.classifiers.trees.RandomForest}
+_1_02_1__wctrf_05_1_INT_depth | _1_02_1__wctrf_04_depth_HIDDEN in {0}
+_1_02_1__wctrf_06_2_INT_depth | _1_02_0_QUOTE_START_B in {weka.classifiers.trees.RandomForest}
+_1_02_1__wctrf_06_2_INT_depth | _1_02_1__wctrf_04_depth_HIDDEN in {1}
+_1_02_1__wctrt_00_INT_M | _1_02_0_QUOTE_START_B in {weka.classifiers.trees.RandomTree}
+_1_02_1__wctrt_01_features_HIDDEN | _1_02_0_QUOTE_START_B in {weka.classifiers.trees.RandomTree}
+_1_02_1__wctrt_02_1_INT_K | _1_02_0_QUOTE_START_B in {weka.classifiers.trees.RandomTree}
+_1_02_1__wctrt_02_1_INT_K | _1_02_1__wctrt_01_features_HIDDEN in {0}
+_1_02_1__wctrt_03_2_INT_K | _1_02_0_QUOTE_START_B in {weka.classifiers.trees.RandomTree}
+_1_02_1__wctrt_03_2_INT_K | _1_02_1__wctrt_01_features_HIDDEN in {1}
+_1_02_1__wctrt_04_depth_HIDDEN | _1_02_0_QUOTE_START_B in {weka.classifiers.trees.RandomTree}
+_1_02_1__wctrt_05_1_INT_depth | _1_02_0_QUOTE_START_B in {weka.classifiers.trees.RandomTree}
+_1_02_1__wctrt_05_1_INT_depth | _1_02_1__wctrt_04_depth_HIDDEN in {0}
+_1_02_1__wctrt_06_2_INT_depth | _1_02_0_QUOTE_START_B in {weka.classifiers.trees.RandomTree}
+_1_02_1__wctrt_06_2_INT_depth | _1_02_1__wctrt_04_depth_HIDDEN in {1}
+_1_02_1__wctrt_07_back_HIDDEN | _1_02_0_QUOTE_START_B in {weka.classifiers.trees.RandomTree}
+_1_02_1__wctrt_08_1_INT_N | _1_02_0_QUOTE_START_B in {weka.classifiers.trees.RandomTree}
+_1_02_1__wctrt_08_1_INT_N | _1_02_1__wctrt_07_back_HIDDEN in {0}
+_1_02_1__wctrt_09_2_INT_N | _1_02_0_QUOTE_START_B in {weka.classifiers.trees.RandomTree}
+_1_02_1__wctrt_09_2_INT_N | _1_02_1__wctrt_07_back_HIDDEN in {1}
+_1_02_1__wctrt_10_U | _1_02_0_QUOTE_START_B in {weka.classifiers.trees.RandomTree}
+_1_02_2_QUOTE_END | _HIDDEN_ensemble_depth in {2, 3, 4}
+_1_03_0_QUOTE_START_B | _HIDDEN_ensemble_depth in {3, 4}
+_1_03_1__wcbbn_00_D | _1_03_0_QUOTE_START_B in {weka.classifiers.bayes.BayesNet}
+_1_03_1__wcbbn_01_Q | _1_03_0_QUOTE_START_B in {weka.classifiers.bayes.BayesNet}
+_1_03_1__wcbnb_00_K | _1_03_0_QUOTE_START_B in {weka.classifiers.bayes.NaiveBayes}
+_1_03_1__wcbnb_01_D | _1_03_0_QUOTE_START_B in {weka.classifiers.bayes.NaiveBayes}
+_1_03_1__wcfl_00_R | _1_03_0_QUOTE_START_B in {weka.classifiers.functions.Logistic}
+_1_03_1__wcfmp_00_L | _1_03_0_QUOTE_START_B in {weka.classifiers.functions.MultilayerPerceptron}
+_1_03_1__wcfmp_01_M | _1_03_0_QUOTE_START_B in {weka.classifiers.functions.MultilayerPerceptron}
+_1_03_1__wcfmp_02_B | _1_03_0_QUOTE_START_B in {weka.classifiers.functions.MultilayerPerceptron}
+_1_03_1__wcfmp_03_H | _1_03_0_QUOTE_START_B in {weka.classifiers.functions.MultilayerPerceptron}
+_1_03_1__wcfmp_04_C | _1_03_0_QUOTE_START_B in {weka.classifiers.functions.MultilayerPerceptron}
+_1_03_1__wcfmp_05_R | _1_03_0_QUOTE_START_B in {weka.classifiers.functions.MultilayerPerceptron}
+_1_03_1__wcfmp_06_D | _1_03_0_QUOTE_START_B in {weka.classifiers.functions.MultilayerPerceptron}
+_1_03_1__wcfmp_07_S | _1_03_0_QUOTE_START_B in {weka.classifiers.functions.MultilayerPerceptron}
+_1_03_1__wcfsgd_00_F | _1_03_0_QUOTE_START_B in {weka.classifiers.functions.SGD}
+_1_03_1__wcfsgd_01_L | _1_03_0_QUOTE_START_B in {weka.classifiers.functions.SGD}
+_1_03_1__wcfsgd_02_R | _1_03_0_QUOTE_START_B in {weka.classifiers.functions.SGD}
+_1_03_1__wcfsgd_03_N | _1_03_0_QUOTE_START_B in {weka.classifiers.functions.SGD}
+_1_03_1__wcfsgd_04_M | _1_03_0_QUOTE_START_B in {weka.classifiers.functions.SGD}
+_1_03_1__wcfsl_00_S | _1_03_0_QUOTE_START_B in {weka.classifiers.functions.SimpleLogistic}
+_1_03_1__wcfsl_01_W_HIDDEN | _1_03_0_QUOTE_START_B in {weka.classifiers.functions.SimpleLogistic}
+_1_03_1__wcfsl_02_1_W | _1_03_0_QUOTE_START_B in {weka.classifiers.functions.SimpleLogistic}
+_1_03_1__wcfsl_02_1_W | _1_03_1__wcfsl_01_W_HIDDEN in {0}
+_1_03_1__wcfsl_03_2_W | _1_03_0_QUOTE_START_B in {weka.classifiers.functions.SimpleLogistic}
+_1_03_1__wcfsl_03_2_W | _1_03_1__wcfsl_01_W_HIDDEN in {1}
+_1_03_1__wcfsl_04_A | _1_03_0_QUOTE_START_B in {weka.classifiers.functions.SimpleLogistic}
+_1_03_1__wcfsmo_00_0_C | _1_03_0_QUOTE_START_B in {weka.classifiers.functions.SMO}
+_1_03_1__wcfsmo_01_1_N | _1_03_0_QUOTE_START_B in {weka.classifiers.functions.SMO}
+_1_03_1__wcfsmo_02_2_M | _1_03_0_QUOTE_START_B in {weka.classifiers.functions.SMO}
+_1_03_1__wcfsmo_03_3_REG_IGNORE_QUOTE_START_K | _1_03_0_QUOTE_START_B in {weka.classifiers.functions.SMO}
+_1_03_1__wcfsmo_04_4_npoly_E | _1_03_0_QUOTE_START_B in {weka.classifiers.functions.SMO}
+_1_03_1__wcfsmo_04_4_npoly_E | _1_03_1__wcfsmo_03_3_REG_IGNORE_QUOTE_START_K in {weka.classifiers.functions.supportVector.NormalizedPolyKernel}
+_1_03_1__wcfsmo_05_4_npoly_L | _1_03_0_QUOTE_START_B in {weka.classifiers.functions.SMO}
+_1_03_1__wcfsmo_05_4_npoly_L | _1_03_1__wcfsmo_03_3_REG_IGNORE_QUOTE_START_K in {weka.classifiers.functions.supportVector.NormalizedPolyKernel}
+_1_03_1__wcfsmo_06_4_poly_E | _1_03_0_QUOTE_START_B in {weka.classifiers.functions.SMO}
+_1_03_1__wcfsmo_06_4_poly_E | _1_03_1__wcfsmo_03_3_REG_IGNORE_QUOTE_START_K in {weka.classifiers.functions.supportVector.PolyKernel}
+_1_03_1__wcfsmo_07_4_poly_L | _1_03_0_QUOTE_START_B in {weka.classifiers.functions.SMO}
+_1_03_1__wcfsmo_07_4_poly_L | _1_03_1__wcfsmo_03_3_REG_IGNORE_QUOTE_START_K in {weka.classifiers.functions.supportVector.PolyKernel}
+_1_03_1__wcfsmo_08_4_puk_S | _1_03_0_QUOTE_START_B in {weka.classifiers.functions.SMO}
+_1_03_1__wcfsmo_08_4_puk_S | _1_03_1__wcfsmo_03_3_REG_IGNORE_QUOTE_START_K in {weka.classifiers.functions.supportVector.Puk}
+_1_03_1__wcfsmo_09_4_puk_O | _1_03_0_QUOTE_START_B in {weka.classifiers.functions.SMO}
+_1_03_1__wcfsmo_09_4_puk_O | _1_03_1__wcfsmo_03_3_REG_IGNORE_QUOTE_START_K in {weka.classifiers.functions.supportVector.Puk}
+_1_03_1__wcfsmo_10_4_rbf_G | _1_03_0_QUOTE_START_B in {weka.classifiers.functions.SMO}
+_1_03_1__wcfsmo_10_4_rbf_G | _1_03_1__wcfsmo_03_3_REG_IGNORE_QUOTE_START_K in {weka.classifiers.functions.supportVector.RBFKernel}
+_1_03_1__wcfsmo_11_5_QUOTE_END | _1_03_0_QUOTE_START_B in {weka.classifiers.functions.SMO}
+_1_03_1__wcfvp_00_INT_I | _1_03_0_QUOTE_START_B in {weka.classifiers.functions.VotedPerceptron}
+_1_03_1__wcfvp_01_INT_M | _1_03_0_QUOTE_START_B in {weka.classifiers.functions.VotedPerceptron}
+_1_03_1__wcfvp_02_E | _1_03_0_QUOTE_START_B in {weka.classifiers.functions.VotedPerceptron}
+_1_03_1__wclib_00_E | _1_03_0_QUOTE_START_B in {weka.classifiers.lazy.IBk}
+_1_03_1__wclib_01_INT_K | _1_03_0_QUOTE_START_B in {weka.classifiers.lazy.IBk}
+_1_03_1__wclib_02_X | _1_03_0_QUOTE_START_B in {weka.classifiers.lazy.IBk}
+_1_03_1__wclib_03_F | _1_03_0_QUOTE_START_B in {weka.classifiers.lazy.IBk}
+_1_03_1__wclib_04_I | _1_03_0_QUOTE_START_B in {weka.classifiers.lazy.IBk}
+_1_03_1__wclks_00_INT_B | _1_03_0_QUOTE_START_B in {weka.classifiers.lazy.KStar}
+_1_03_1__wclks_01_E | _1_03_0_QUOTE_START_B in {weka.classifiers.lazy.KStar}
+_1_03_1__wclks_02_M | _1_03_0_QUOTE_START_B in {weka.classifiers.lazy.KStar}
+_1_03_1__wcrdt_00_E | _1_03_0_QUOTE_START_B in {weka.classifiers.rules.DecisionTable}
+_1_03_1__wcrdt_01_I | _1_03_0_QUOTE_START_B in {weka.classifiers.rules.DecisionTable}
+_1_03_1__wcrdt_02_S | _1_03_0_QUOTE_START_B in {weka.classifiers.rules.DecisionTable}
+_1_03_1__wcrdt_03_X | _1_03_0_QUOTE_START_B in {weka.classifiers.rules.DecisionTable}
+_1_03_1__wcrjr_00_N | _1_03_0_QUOTE_START_B in {weka.classifiers.rules.JRip}
+_1_03_1__wcrjr_01_E | _1_03_0_QUOTE_START_B in {weka.classifiers.rules.JRip}
+_1_03_1__wcrjr_02_P | _1_03_0_QUOTE_START_B in {weka.classifiers.rules.JRip}
+_1_03_1__wcrjr_03_INT_O | _1_03_0_QUOTE_START_B in {weka.classifiers.rules.JRip}
+_1_03_1__wcror_00_INT_B | _1_03_0_QUOTE_START_B in {weka.classifiers.rules.OneR}
+_1_03_1__wcrpart_00_INT_N | _1_03_0_QUOTE_START_B in {weka.classifiers.rules.PART}
+_1_03_1__wcrpart_01_INT_M | _1_03_0_QUOTE_START_B in {weka.classifiers.rules.PART}
+_1_03_1__wcrpart_02_R | _1_03_0_QUOTE_START_B in {weka.classifiers.rules.PART}
+_1_03_1__wcrpart_03_B | _1_03_0_QUOTE_START_B in {weka.classifiers.rules.PART}
+_1_03_1__wctj_00_O | _1_03_0_QUOTE_START_B in {weka.classifiers.trees.J48}
+_1_03_1__wctj_01_U | _1_03_0_QUOTE_START_B in {weka.classifiers.trees.J48}
+_1_03_1__wctj_02_B | _1_03_0_QUOTE_START_B in {weka.classifiers.trees.J48}
+_1_03_1__wctj_03_J | _1_03_0_QUOTE_START_B in {weka.classifiers.trees.J48}
+_1_03_1__wctj_04_A | _1_03_0_QUOTE_START_B in {weka.classifiers.trees.J48}
+_1_03_1__wctj_05_S | _1_03_0_QUOTE_START_B in {weka.classifiers.trees.J48}
+_1_03_1__wctj_06_INT_M | _1_03_0_QUOTE_START_B in {weka.classifiers.trees.J48}
+_1_03_1__wctj_07_C | _1_03_0_QUOTE_START_B in {weka.classifiers.trees.J48}
+_1_03_1__wctlmt_00_B | _1_03_0_QUOTE_START_B in {weka.classifiers.trees.LMT}
+_1_03_1__wctlmt_01_R | _1_03_0_QUOTE_START_B in {weka.classifiers.trees.LMT}
+_1_03_1__wctlmt_02_C | _1_03_0_QUOTE_START_B in {weka.classifiers.trees.LMT}
+_1_03_1__wctlmt_03_P | _1_03_0_QUOTE_START_B in {weka.classifiers.trees.LMT}
+_1_03_1__wctlmt_04_INT_M | _1_03_0_QUOTE_START_B in {weka.classifiers.trees.LMT}
+_1_03_1__wctlmt_05_W_HIDDEN | _1_03_0_QUOTE_START_B in {weka.classifiers.trees.LMT}
+_1_03_1__wctlmt_06_1_W | _1_03_0_QUOTE_START_B in {weka.classifiers.trees.LMT}
+_1_03_1__wctlmt_06_1_W | _1_03_1__wctlmt_05_W_HIDDEN in {0}
+_1_03_1__wctlmt_07_2_W | _1_03_0_QUOTE_START_B in {weka.classifiers.trees.LMT}
+_1_03_1__wctlmt_07_2_W | _1_03_1__wctlmt_05_W_HIDDEN in {1}
+_1_03_1__wctlmt_08_A | _1_03_0_QUOTE_START_B in {weka.classifiers.trees.LMT}
+_1_03_1__wctrept_00_INT_M | _1_03_0_QUOTE_START_B in {weka.classifiers.trees.REPTree}
+_1_03_1__wctrept_01_V | _1_03_0_QUOTE_START_B in {weka.classifiers.trees.REPTree}
+_1_03_1__wctrept_02_depth_HIDDEN | _1_03_0_QUOTE_START_B in {weka.classifiers.trees.REPTree}
+_1_03_1__wctrept_03_1_INT_L | _1_03_0_QUOTE_START_B in {weka.classifiers.trees.REPTree}
+_1_03_1__wctrept_03_1_INT_L | _1_03_1__wctrept_02_depth_HIDDEN in {0}
+_1_03_1__wctrept_04_2_INT_L | _1_03_0_QUOTE_START_B in {weka.classifiers.trees.REPTree}
+_1_03_1__wctrept_04_2_INT_L | _1_03_1__wctrept_02_depth_HIDDEN in {1}
+_1_03_1__wctrept_05_P | _1_03_0_QUOTE_START_B in {weka.classifiers.trees.REPTree}
+_1_03_1__wctrf_00_INT_I | _1_03_0_QUOTE_START_B in {weka.classifiers.trees.RandomForest}
+_1_03_1__wctrf_01_features_HIDDEN | _1_03_0_QUOTE_START_B in {weka.classifiers.trees.RandomForest}
+_1_03_1__wctrf_02_1_INT_K | _1_03_0_QUOTE_START_B in {weka.classifiers.trees.RandomForest}
+_1_03_1__wctrf_02_1_INT_K | _1_03_1__wctrf_01_features_HIDDEN in {0}
+_1_03_1__wctrf_03_2_INT_K | _1_03_0_QUOTE_START_B in {weka.classifiers.trees.RandomForest}
+_1_03_1__wctrf_03_2_INT_K | _1_03_1__wctrf_01_features_HIDDEN in {1}
+_1_03_1__wctrf_04_depth_HIDDEN | _1_03_0_QUOTE_START_B in {weka.classifiers.trees.RandomForest}
+_1_03_1__wctrf_05_1_INT_depth | _1_03_0_QUOTE_START_B in {weka.classifiers.trees.RandomForest}
+_1_03_1__wctrf_05_1_INT_depth | _1_03_1__wctrf_04_depth_HIDDEN in {0}
+_1_03_1__wctrf_06_2_INT_depth | _1_03_0_QUOTE_START_B in {weka.classifiers.trees.RandomForest}
+_1_03_1__wctrf_06_2_INT_depth | _1_03_1__wctrf_04_depth_HIDDEN in {1}
+_1_03_1__wctrt_00_INT_M | _1_03_0_QUOTE_START_B in {weka.classifiers.trees.RandomTree}
+_1_03_1__wctrt_01_features_HIDDEN | _1_03_0_QUOTE_START_B in {weka.classifiers.trees.RandomTree}
+_1_03_1__wctrt_02_1_INT_K | _1_03_0_QUOTE_START_B in {weka.classifiers.trees.RandomTree}
+_1_03_1__wctrt_02_1_INT_K | _1_03_1__wctrt_01_features_HIDDEN in {0}
+_1_03_1__wctrt_03_2_INT_K | _1_03_0_QUOTE_START_B in {weka.classifiers.trees.RandomTree}
+_1_03_1__wctrt_03_2_INT_K | _1_03_1__wctrt_01_features_HIDDEN in {1}
+_1_03_1__wctrt_04_depth_HIDDEN | _1_03_0_QUOTE_START_B in {weka.classifiers.trees.RandomTree}
+_1_03_1__wctrt_05_1_INT_depth | _1_03_0_QUOTE_START_B in {weka.classifiers.trees.RandomTree}
+_1_03_1__wctrt_05_1_INT_depth | _1_03_1__wctrt_04_depth_HIDDEN in {0}
+_1_03_1__wctrt_06_2_INT_depth | _1_03_0_QUOTE_START_B in {weka.classifiers.trees.RandomTree}
+_1_03_1__wctrt_06_2_INT_depth | _1_03_1__wctrt_04_depth_HIDDEN in {1}
+_1_03_1__wctrt_07_back_HIDDEN | _1_03_0_QUOTE_START_B in {weka.classifiers.trees.RandomTree}
+_1_03_1__wctrt_08_1_INT_N | _1_03_0_QUOTE_START_B in {weka.classifiers.trees.RandomTree}
+_1_03_1__wctrt_08_1_INT_N | _1_03_1__wctrt_07_back_HIDDEN in {0}
+_1_03_1__wctrt_09_2_INT_N | _1_03_0_QUOTE_START_B in {weka.classifiers.trees.RandomTree}
+_1_03_1__wctrt_09_2_INT_N | _1_03_1__wctrt_07_back_HIDDEN in {1}
+_1_03_1__wctrt_10_U | _1_03_0_QUOTE_START_B in {weka.classifiers.trees.RandomTree}
+_1_03_2_QUOTE_END | _HIDDEN_ensemble_depth in {3, 4}
+_1_04_0_QUOTE_START_B | _HIDDEN_ensemble_depth in {4}
+_1_04_1__wcbbn_00_D | _1_04_0_QUOTE_START_B in {weka.classifiers.bayes.BayesNet}
+_1_04_1__wcbbn_01_Q | _1_04_0_QUOTE_START_B in {weka.classifiers.bayes.BayesNet}
+_1_04_1__wcbnb_00_K | _1_04_0_QUOTE_START_B in {weka.classifiers.bayes.NaiveBayes}
+_1_04_1__wcbnb_01_D | _1_04_0_QUOTE_START_B in {weka.classifiers.bayes.NaiveBayes}
+_1_04_1__wcfl_00_R | _1_04_0_QUOTE_START_B in {weka.classifiers.functions.Logistic}
+_1_04_1__wcfmp_00_L | _1_04_0_QUOTE_START_B in {weka.classifiers.functions.MultilayerPerceptron}
+_1_04_1__wcfmp_01_M | _1_04_0_QUOTE_START_B in {weka.classifiers.functions.MultilayerPerceptron}
+_1_04_1__wcfmp_02_B | _1_04_0_QUOTE_START_B in {weka.classifiers.functions.MultilayerPerceptron}
+_1_04_1__wcfmp_03_H | _1_04_0_QUOTE_START_B in {weka.classifiers.functions.MultilayerPerceptron}
+_1_04_1__wcfmp_04_C | _1_04_0_QUOTE_START_B in {weka.classifiers.functions.MultilayerPerceptron}
+_1_04_1__wcfmp_05_R | _1_04_0_QUOTE_START_B in {weka.classifiers.functions.MultilayerPerceptron}
+_1_04_1__wcfmp_06_D | _1_04_0_QUOTE_START_B in {weka.classifiers.functions.MultilayerPerceptron}
+_1_04_1__wcfmp_07_S | _1_04_0_QUOTE_START_B in {weka.classifiers.functions.MultilayerPerceptron}
+_1_04_1__wcfsgd_00_F | _1_04_0_QUOTE_START_B in {weka.classifiers.functions.SGD}
+_1_04_1__wcfsgd_01_L | _1_04_0_QUOTE_START_B in {weka.classifiers.functions.SGD}
+_1_04_1__wcfsgd_02_R | _1_04_0_QUOTE_START_B in {weka.classifiers.functions.SGD}
+_1_04_1__wcfsgd_03_N | _1_04_0_QUOTE_START_B in {weka.classifiers.functions.SGD}
+_1_04_1__wcfsgd_04_M | _1_04_0_QUOTE_START_B in {weka.classifiers.functions.SGD}
+_1_04_1__wcfsl_00_S | _1_04_0_QUOTE_START_B in {weka.classifiers.functions.SimpleLogistic}
+_1_04_1__wcfsl_01_W_HIDDEN | _1_04_0_QUOTE_START_B in {weka.classifiers.functions.SimpleLogistic}
+_1_04_1__wcfsl_02_1_W | _1_04_0_QUOTE_START_B in {weka.classifiers.functions.SimpleLogistic}
+_1_04_1__wcfsl_02_1_W | _1_04_1__wcfsl_01_W_HIDDEN in {0}
+_1_04_1__wcfsl_03_2_W | _1_04_0_QUOTE_START_B in {weka.classifiers.functions.SimpleLogistic}
+_1_04_1__wcfsl_03_2_W | _1_04_1__wcfsl_01_W_HIDDEN in {1}
+_1_04_1__wcfsl_04_A | _1_04_0_QUOTE_START_B in {weka.classifiers.functions.SimpleLogistic}
+_1_04_1__wcfsmo_00_0_C | _1_04_0_QUOTE_START_B in {weka.classifiers.functions.SMO}
+_1_04_1__wcfsmo_01_1_N | _1_04_0_QUOTE_START_B in {weka.classifiers.functions.SMO}
+_1_04_1__wcfsmo_02_2_M | _1_04_0_QUOTE_START_B in {weka.classifiers.functions.SMO}
+_1_04_1__wcfsmo_03_3_REG_IGNORE_QUOTE_START_K | _1_04_0_QUOTE_START_B in {weka.classifiers.functions.SMO}
+_1_04_1__wcfsmo_04_4_npoly_E | _1_04_0_QUOTE_START_B in {weka.classifiers.functions.SMO}
+_1_04_1__wcfsmo_04_4_npoly_E | _1_04_1__wcfsmo_03_3_REG_IGNORE_QUOTE_START_K in {weka.classifiers.functions.supportVector.NormalizedPolyKernel}
+_1_04_1__wcfsmo_05_4_npoly_L | _1_04_0_QUOTE_START_B in {weka.classifiers.functions.SMO}
+_1_04_1__wcfsmo_05_4_npoly_L | _1_04_1__wcfsmo_03_3_REG_IGNORE_QUOTE_START_K in {weka.classifiers.functions.supportVector.NormalizedPolyKernel}
+_1_04_1__wcfsmo_06_4_poly_E | _1_04_0_QUOTE_START_B in {weka.classifiers.functions.SMO}
+_1_04_1__wcfsmo_06_4_poly_E | _1_04_1__wcfsmo_03_3_REG_IGNORE_QUOTE_START_K in {weka.classifiers.functions.supportVector.PolyKernel}
+_1_04_1__wcfsmo_07_4_poly_L | _1_04_0_QUOTE_START_B in {weka.classifiers.functions.SMO}
+_1_04_1__wcfsmo_07_4_poly_L | _1_04_1__wcfsmo_03_3_REG_IGNORE_QUOTE_START_K in {weka.classifiers.functions.supportVector.PolyKernel}
+_1_04_1__wcfsmo_08_4_puk_S | _1_04_0_QUOTE_START_B in {weka.classifiers.functions.SMO}
+_1_04_1__wcfsmo_08_4_puk_S | _1_04_1__wcfsmo_03_3_REG_IGNORE_QUOTE_START_K in {weka.classifiers.functions.supportVector.Puk}
+_1_04_1__wcfsmo_09_4_puk_O | _1_04_0_QUOTE_START_B in {weka.classifiers.functions.SMO}
+_1_04_1__wcfsmo_09_4_puk_O | _1_04_1__wcfsmo_03_3_REG_IGNORE_QUOTE_START_K in {weka.classifiers.functions.supportVector.Puk}
+_1_04_1__wcfsmo_10_4_rbf_G | _1_04_0_QUOTE_START_B in {weka.classifiers.functions.SMO}
+_1_04_1__wcfsmo_10_4_rbf_G | _1_04_1__wcfsmo_03_3_REG_IGNORE_QUOTE_START_K in {weka.classifiers.functions.supportVector.RBFKernel}
+_1_04_1__wcfsmo_11_5_QUOTE_END | _1_04_0_QUOTE_START_B in {weka.classifiers.functions.SMO}
+_1_04_1__wcfvp_00_INT_I | _1_04_0_QUOTE_START_B in {weka.classifiers.functions.VotedPerceptron}
+_1_04_1__wcfvp_01_INT_M | _1_04_0_QUOTE_START_B in {weka.classifiers.functions.VotedPerceptron}
+_1_04_1__wcfvp_02_E | _1_04_0_QUOTE_START_B in {weka.classifiers.functions.VotedPerceptron}
+_1_04_1__wclib_00_E | _1_04_0_QUOTE_START_B in {weka.classifiers.lazy.IBk}
+_1_04_1__wclib_01_INT_K | _1_04_0_QUOTE_START_B in {weka.classifiers.lazy.IBk}
+_1_04_1__wclib_02_X | _1_04_0_QUOTE_START_B in {weka.classifiers.lazy.IBk}
+_1_04_1__wclib_03_F | _1_04_0_QUOTE_START_B in {weka.classifiers.lazy.IBk}
+_1_04_1__wclib_04_I | _1_04_0_QUOTE_START_B in {weka.classifiers.lazy.IBk}
+_1_04_1__wclks_00_INT_B | _1_04_0_QUOTE_START_B in {weka.classifiers.lazy.KStar}
+_1_04_1__wclks_01_E | _1_04_0_QUOTE_START_B in {weka.classifiers.lazy.KStar}
+_1_04_1__wclks_02_M | _1_04_0_QUOTE_START_B in {weka.classifiers.lazy.KStar}
+_1_04_1__wcrdt_00_E | _1_04_0_QUOTE_START_B in {weka.classifiers.rules.DecisionTable}
+_1_04_1__wcrdt_01_I | _1_04_0_QUOTE_START_B in {weka.classifiers.rules.DecisionTable}
+_1_04_1__wcrdt_02_S | _1_04_0_QUOTE_START_B in {weka.classifiers.rules.DecisionTable}
+_1_04_1__wcrdt_03_X | _1_04_0_QUOTE_START_B in {weka.classifiers.rules.DecisionTable}
+_1_04_1__wcrjr_00_N | _1_04_0_QUOTE_START_B in {weka.classifiers.rules.JRip}
+_1_04_1__wcrjr_01_E | _1_04_0_QUOTE_START_B in {weka.classifiers.rules.JRip}
+_1_04_1__wcrjr_02_P | _1_04_0_QUOTE_START_B in {weka.classifiers.rules.JRip}
+_1_04_1__wcrjr_03_INT_O | _1_04_0_QUOTE_START_B in {weka.classifiers.rules.JRip}
+_1_04_1__wcror_00_INT_B | _1_04_0_QUOTE_START_B in {weka.classifiers.rules.OneR}
+_1_04_1__wcrpart_00_INT_N | _1_04_0_QUOTE_START_B in {weka.classifiers.rules.PART}
+_1_04_1__wcrpart_01_INT_M | _1_04_0_QUOTE_START_B in {weka.classifiers.rules.PART}
+_1_04_1__wcrpart_02_R | _1_04_0_QUOTE_START_B in {weka.classifiers.rules.PART}
+_1_04_1__wcrpart_03_B | _1_04_0_QUOTE_START_B in {weka.classifiers.rules.PART}
+_1_04_1__wctj_00_O | _1_04_0_QUOTE_START_B in {weka.classifiers.trees.J48}
+_1_04_1__wctj_01_U | _1_04_0_QUOTE_START_B in {weka.classifiers.trees.J48}
+_1_04_1__wctj_02_B | _1_04_0_QUOTE_START_B in {weka.classifiers.trees.J48}
+_1_04_1__wctj_03_J | _1_04_0_QUOTE_START_B in {weka.classifiers.trees.J48}
+_1_04_1__wctj_04_A | _1_04_0_QUOTE_START_B in {weka.classifiers.trees.J48}
+_1_04_1__wctj_05_S | _1_04_0_QUOTE_START_B in {weka.classifiers.trees.J48}
+_1_04_1__wctj_06_INT_M | _1_04_0_QUOTE_START_B in {weka.classifiers.trees.J48}
+_1_04_1__wctj_07_C | _1_04_0_QUOTE_START_B in {weka.classifiers.trees.J48}
+_1_04_1__wctlmt_00_B | _1_04_0_QUOTE_START_B in {weka.classifiers.trees.LMT}
+_1_04_1__wctlmt_01_R | _1_04_0_QUOTE_START_B in {weka.classifiers.trees.LMT}
+_1_04_1__wctlmt_02_C | _1_04_0_QUOTE_START_B in {weka.classifiers.trees.LMT}
+_1_04_1__wctlmt_03_P | _1_04_0_QUOTE_START_B in {weka.classifiers.trees.LMT}
+_1_04_1__wctlmt_04_INT_M | _1_04_0_QUOTE_START_B in {weka.classifiers.trees.LMT}
+_1_04_1__wctlmt_05_W_HIDDEN | _1_04_0_QUOTE_START_B in {weka.classifiers.trees.LMT}
+_1_04_1__wctlmt_06_1_W | _1_04_0_QUOTE_START_B in {weka.classifiers.trees.LMT}
+_1_04_1__wctlmt_06_1_W | _1_04_1__wctlmt_05_W_HIDDEN in {0}
+_1_04_1__wctlmt_07_2_W | _1_04_0_QUOTE_START_B in {weka.classifiers.trees.LMT}
+_1_04_1__wctlmt_07_2_W | _1_04_1__wctlmt_05_W_HIDDEN in {1}
+_1_04_1__wctlmt_08_A | _1_04_0_QUOTE_START_B in {weka.classifiers.trees.LMT}
+_1_04_1__wctrept_00_INT_M | _1_04_0_QUOTE_START_B in {weka.classifiers.trees.REPTree}
+_1_04_1__wctrept_01_V | _1_04_0_QUOTE_START_B in {weka.classifiers.trees.REPTree}
+_1_04_1__wctrept_02_depth_HIDDEN | _1_04_0_QUOTE_START_B in {weka.classifiers.trees.REPTree}
+_1_04_1__wctrept_03_1_INT_L | _1_04_0_QUOTE_START_B in {weka.classifiers.trees.REPTree}
+_1_04_1__wctrept_03_1_INT_L | _1_04_1__wctrept_02_depth_HIDDEN in {0}
+_1_04_1__wctrept_04_2_INT_L | _1_04_0_QUOTE_START_B in {weka.classifiers.trees.REPTree}
+_1_04_1__wctrept_04_2_INT_L | _1_04_1__wctrept_02_depth_HIDDEN in {1}
+_1_04_1__wctrept_05_P | _1_04_0_QUOTE_START_B in {weka.classifiers.trees.REPTree}
+_1_04_1__wctrf_00_INT_I | _1_04_0_QUOTE_START_B in {weka.classifiers.trees.RandomForest}
+_1_04_1__wctrf_01_features_HIDDEN | _1_04_0_QUOTE_START_B in {weka.classifiers.trees.RandomForest}
+_1_04_1__wctrf_02_1_INT_K | _1_04_0_QUOTE_START_B in {weka.classifiers.trees.RandomForest}
+_1_04_1__wctrf_02_1_INT_K | _1_04_1__wctrf_01_features_HIDDEN in {0}
+_1_04_1__wctrf_03_2_INT_K | _1_04_0_QUOTE_START_B in {weka.classifiers.trees.RandomForest}
+_1_04_1__wctrf_03_2_INT_K | _1_04_1__wctrf_01_features_HIDDEN in {1}
+_1_04_1__wctrf_04_depth_HIDDEN | _1_04_0_QUOTE_START_B in {weka.classifiers.trees.RandomForest}
+_1_04_1__wctrf_05_1_INT_depth | _1_04_0_QUOTE_START_B in {weka.classifiers.trees.RandomForest}
+_1_04_1__wctrf_05_1_INT_depth | _1_04_1__wctrf_04_depth_HIDDEN in {0}
+_1_04_1__wctrf_06_2_INT_depth | _1_04_0_QUOTE_START_B in {weka.classifiers.trees.RandomForest}
+_1_04_1__wctrf_06_2_INT_depth | _1_04_1__wctrf_04_depth_HIDDEN in {1}
+_1_04_1__wctrt_00_INT_M | _1_04_0_QUOTE_START_B in {weka.classifiers.trees.RandomTree}
+_1_04_1__wctrt_01_features_HIDDEN | _1_04_0_QUOTE_START_B in {weka.classifiers.trees.RandomTree}
+_1_04_1__wctrt_02_1_INT_K | _1_04_0_QUOTE_START_B in {weka.classifiers.trees.RandomTree}
+_1_04_1__wctrt_02_1_INT_K | _1_04_1__wctrt_01_features_HIDDEN in {0}
+_1_04_1__wctrt_03_2_INT_K | _1_04_0_QUOTE_START_B in {weka.classifiers.trees.RandomTree}
+_1_04_1__wctrt_03_2_INT_K | _1_04_1__wctrt_01_features_HIDDEN in {1}
+_1_04_1__wctrt_04_depth_HIDDEN | _1_04_0_QUOTE_START_B in {weka.classifiers.trees.RandomTree}
+_1_04_1__wctrt_05_1_INT_depth | _1_04_0_QUOTE_START_B in {weka.classifiers.trees.RandomTree}
+_1_04_1__wctrt_05_1_INT_depth | _1_04_1__wctrt_04_depth_HIDDEN in {0}
+_1_04_1__wctrt_06_2_INT_depth | _1_04_0_QUOTE_START_B in {weka.classifiers.trees.RandomTree}
+_1_04_1__wctrt_06_2_INT_depth | _1_04_1__wctrt_04_depth_HIDDEN in {1}
+_1_04_1__wctrt_07_back_HIDDEN | _1_04_0_QUOTE_START_B in {weka.classifiers.trees.RandomTree}
+_1_04_1__wctrt_08_1_INT_N | _1_04_0_QUOTE_START_B in {weka.classifiers.trees.RandomTree}
+_1_04_1__wctrt_08_1_INT_N | _1_04_1__wctrt_07_back_HIDDEN in {0}
+_1_04_1__wctrt_09_2_INT_N | _1_04_0_QUOTE_START_B in {weka.classifiers.trees.RandomTree}
+_1_04_1__wctrt_09_2_INT_N | _1_04_1__wctrt_07_back_HIDDEN in {1}
+_1_04_1__wctrt_10_U | _1_04_0_QUOTE_START_B in {weka.classifiers.trees.RandomTree}
+_1_04_2_QUOTE_END | _HIDDEN_ensemble_depth in {4}
+_1_W | targetclass in {weka.classifiers.lazy.LWL, weka.classifiers.meta.AdaBoostM1, weka.classifiers.meta.AttributeSelectedClassifier, weka.classifiers.meta.Bagging, weka.classifiers.meta.ClassificationViaRegression, weka.classifiers.meta.LogitBoost, weka.classifiers.meta.MultiClassClassifier, weka.classifiers.meta.RandomCommittee, weka.classifiers.meta.RandomSubSpace}
+_1_W_0_DASHDASH | targetclass in {weka.classifiers.lazy.LWL, weka.classifiers.meta.AdaBoostM1, weka.classifiers.meta.AttributeSelectedClassifier, weka.classifiers.meta.Bagging, weka.classifiers.meta.ClassificationViaRegression, weka.classifiers.meta.LogitBoost, weka.classifiers.meta.MultiClassClassifier, weka.classifiers.meta.RandomCommittee, weka.classifiers.meta.RandomSubSpace}
+_1_W_1__wcbbn_00_D | _1_W in {weka.classifiers.bayes.BayesNet}
+_1_W_1__wcbbn_01_Q | _1_W in {weka.classifiers.bayes.BayesNet}
+_1_W_1__wcbnb_00_K | _1_W in {weka.classifiers.bayes.NaiveBayes}
+_1_W_1__wcbnb_01_D | _1_W in {weka.classifiers.bayes.NaiveBayes}
+_1_W_1__wcfl_00_R | _1_W in {weka.classifiers.functions.Logistic}
+_1_W_1__wcfmp_00_L | _1_W in {weka.classifiers.functions.MultilayerPerceptron}
+_1_W_1__wcfmp_01_M | _1_W in {weka.classifiers.functions.MultilayerPerceptron}
+_1_W_1__wcfmp_02_B | _1_W in {weka.classifiers.functions.MultilayerPerceptron}
+_1_W_1__wcfmp_03_H | _1_W in {weka.classifiers.functions.MultilayerPerceptron}
+_1_W_1__wcfmp_04_C | _1_W in {weka.classifiers.functions.MultilayerPerceptron}
+_1_W_1__wcfmp_05_R | _1_W in {weka.classifiers.functions.MultilayerPerceptron}
+_1_W_1__wcfmp_06_D | _1_W in {weka.classifiers.functions.MultilayerPerceptron}
+_1_W_1__wcfmp_07_S | _1_W in {weka.classifiers.functions.MultilayerPerceptron}
+_1_W_1__wcfsgd_00_F | _1_W in {weka.classifiers.functions.SGD}
+_1_W_1__wcfsgd_01_L | _1_W in {weka.classifiers.functions.SGD}
+_1_W_1__wcfsgd_02_R | _1_W in {weka.classifiers.functions.SGD}
+_1_W_1__wcfsgd_03_N | _1_W in {weka.classifiers.functions.SGD}
+_1_W_1__wcfsgd_04_M | _1_W in {weka.classifiers.functions.SGD}
+_1_W_1__wcfsl_00_S | _1_W in {weka.classifiers.functions.SimpleLogistic}
+_1_W_1__wcfsl_01_W_HIDDEN | _1_W in {weka.classifiers.functions.SimpleLogistic}
+_1_W_1__wcfsl_02_1_W | _1_W in {weka.classifiers.functions.SimpleLogistic}
+_1_W_1__wcfsl_02_1_W | _1_W_1__wcfsl_01_W_HIDDEN in {0}
+_1_W_1__wcfsl_03_2_W | _1_W in {weka.classifiers.functions.SimpleLogistic}
+_1_W_1__wcfsl_03_2_W | _1_W_1__wcfsl_01_W_HIDDEN in {1}
+_1_W_1__wcfsl_04_A | _1_W in {weka.classifiers.functions.SimpleLogistic}
+_1_W_1__wcfsmo_00_0_C | _1_W in {weka.classifiers.functions.SMO}
+_1_W_1__wcfsmo_01_1_N | _1_W in {weka.classifiers.functions.SMO}
+_1_W_1__wcfsmo_02_2_M | _1_W in {weka.classifiers.functions.SMO}
+_1_W_1__wcfsmo_03_3_REG_IGNORE_QUOTE_START_K | _1_W in {weka.classifiers.functions.SMO}
+_1_W_1__wcfsmo_04_4_npoly_E | _1_W in {weka.classifiers.functions.SMO}
+_1_W_1__wcfsmo_04_4_npoly_E | _1_W_1__wcfsmo_03_3_REG_IGNORE_QUOTE_START_K in {weka.classifiers.functions.supportVector.NormalizedPolyKernel}
+_1_W_1__wcfsmo_05_4_npoly_L | _1_W in {weka.classifiers.functions.SMO}
+_1_W_1__wcfsmo_05_4_npoly_L | _1_W_1__wcfsmo_03_3_REG_IGNORE_QUOTE_START_K in {weka.classifiers.functions.supportVector.NormalizedPolyKernel}
+_1_W_1__wcfsmo_06_4_poly_E | _1_W in {weka.classifiers.functions.SMO}
+_1_W_1__wcfsmo_06_4_poly_E | _1_W_1__wcfsmo_03_3_REG_IGNORE_QUOTE_START_K in {weka.classifiers.functions.supportVector.PolyKernel}
+_1_W_1__wcfsmo_07_4_poly_L | _1_W in {weka.classifiers.functions.SMO}
+_1_W_1__wcfsmo_07_4_poly_L | _1_W_1__wcfsmo_03_3_REG_IGNORE_QUOTE_START_K in {weka.classifiers.functions.supportVector.PolyKernel}
+_1_W_1__wcfsmo_08_4_puk_S | _1_W in {weka.classifiers.functions.SMO}
+_1_W_1__wcfsmo_08_4_puk_S | _1_W_1__wcfsmo_03_3_REG_IGNORE_QUOTE_START_K in {weka.classifiers.functions.supportVector.Puk}
+_1_W_1__wcfsmo_09_4_puk_O | _1_W in {weka.classifiers.functions.SMO}
+_1_W_1__wcfsmo_09_4_puk_O | _1_W_1__wcfsmo_03_3_REG_IGNORE_QUOTE_START_K in {weka.classifiers.functions.supportVector.Puk}
+_1_W_1__wcfsmo_10_4_rbf_G | _1_W in {weka.classifiers.functions.SMO}
+_1_W_1__wcfsmo_10_4_rbf_G | _1_W_1__wcfsmo_03_3_REG_IGNORE_QUOTE_START_K in {weka.classifiers.functions.supportVector.RBFKernel}
+_1_W_1__wcfsmo_11_5_QUOTE_END | _1_W in {weka.classifiers.functions.SMO}
+_1_W_1__wcfvp_00_INT_I | _1_W in {weka.classifiers.functions.VotedPerceptron}
+_1_W_1__wcfvp_01_INT_M | _1_W in {weka.classifiers.functions.VotedPerceptron}
+_1_W_1__wcfvp_02_E | _1_W in {weka.classifiers.functions.VotedPerceptron}
+_1_W_1__wclib_00_E | _1_W in {weka.classifiers.lazy.IBk}
+_1_W_1__wclib_01_INT_K | _1_W in {weka.classifiers.lazy.IBk}
+_1_W_1__wclib_02_X | _1_W in {weka.classifiers.lazy.IBk}
+_1_W_1__wclib_03_F | _1_W in {weka.classifiers.lazy.IBk}
+_1_W_1__wclib_04_I | _1_W in {weka.classifiers.lazy.IBk}
+_1_W_1__wclks_00_INT_B | _1_W in {weka.classifiers.lazy.KStar}
+_1_W_1__wclks_01_E | _1_W in {weka.classifiers.lazy.KStar}
+_1_W_1__wclks_02_M | _1_W in {weka.classifiers.lazy.KStar}
+_1_W_1__wcrdt_00_E | _1_W in {weka.classifiers.rules.DecisionTable}
+_1_W_1__wcrdt_01_I | _1_W in {weka.classifiers.rules.DecisionTable}
+_1_W_1__wcrdt_02_S | _1_W in {weka.classifiers.rules.DecisionTable}
+_1_W_1__wcrdt_03_X | _1_W in {weka.classifiers.rules.DecisionTable}
+_1_W_1__wcrjr_00_N | _1_W in {weka.classifiers.rules.JRip}
+_1_W_1__wcrjr_01_E | _1_W in {weka.classifiers.rules.JRip}
+_1_W_1__wcrjr_02_P | _1_W in {weka.classifiers.rules.JRip}
+_1_W_1__wcrjr_03_INT_O | _1_W in {weka.classifiers.rules.JRip}
+_1_W_1__wcror_00_INT_B | _1_W in {weka.classifiers.rules.OneR}
+_1_W_1__wcrpart_00_INT_N | _1_W in {weka.classifiers.rules.PART}
+_1_W_1__wcrpart_01_INT_M | _1_W in {weka.classifiers.rules.PART}
+_1_W_1__wcrpart_02_R | _1_W in {weka.classifiers.rules.PART}
+_1_W_1__wcrpart_03_B | _1_W in {weka.classifiers.rules.PART}
+_1_W_1__wctj_00_O | _1_W in {weka.classifiers.trees.J48}
+_1_W_1__wctj_01_U | _1_W in {weka.classifiers.trees.J48}
+_1_W_1__wctj_02_B | _1_W in {weka.classifiers.trees.J48}
+_1_W_1__wctj_03_J | _1_W in {weka.classifiers.trees.J48}
+_1_W_1__wctj_04_A | _1_W in {weka.classifiers.trees.J48}
+_1_W_1__wctj_05_S | _1_W in {weka.classifiers.trees.J48}
+_1_W_1__wctj_06_INT_M | _1_W in {weka.classifiers.trees.J48}
+_1_W_1__wctj_07_C | _1_W in {weka.classifiers.trees.J48}
+_1_W_1__wctlmt_00_B | _1_W in {weka.classifiers.trees.LMT}
+_1_W_1__wctlmt_01_R | _1_W in {weka.classifiers.trees.LMT}
+_1_W_1__wctlmt_02_C | _1_W in {weka.classifiers.trees.LMT}
+_1_W_1__wctlmt_03_P | _1_W in {weka.classifiers.trees.LMT}
+_1_W_1__wctlmt_04_INT_M | _1_W in {weka.classifiers.trees.LMT}
+_1_W_1__wctlmt_05_W_HIDDEN | _1_W in {weka.classifiers.trees.LMT}
+_1_W_1__wctlmt_06_1_W | _1_W in {weka.classifiers.trees.LMT}
+_1_W_1__wctlmt_06_1_W | _1_W_1__wctlmt_05_W_HIDDEN in {0}
+_1_W_1__wctlmt_07_2_W | _1_W in {weka.classifiers.trees.LMT}
+_1_W_1__wctlmt_07_2_W | _1_W_1__wctlmt_05_W_HIDDEN in {1}
+_1_W_1__wctlmt_08_A | _1_W in {weka.classifiers.trees.LMT}
+_1_W_1__wctrept_00_INT_M | _1_W in {weka.classifiers.trees.REPTree}
+_1_W_1__wctrept_01_V | _1_W in {weka.classifiers.trees.REPTree}
+_1_W_1__wctrept_02_depth_HIDDEN | _1_W in {weka.classifiers.trees.REPTree}
+_1_W_1__wctrept_03_1_INT_L | _1_W in {weka.classifiers.trees.REPTree}
+_1_W_1__wctrept_03_1_INT_L | _1_W_1__wctrept_02_depth_HIDDEN in {0}
+_1_W_1__wctrept_04_2_INT_L | _1_W in {weka.classifiers.trees.REPTree}
+_1_W_1__wctrept_04_2_INT_L | _1_W_1__wctrept_02_depth_HIDDEN in {1}
+_1_W_1__wctrept_05_P | _1_W in {weka.classifiers.trees.REPTree}
+_1_W_1__wctrf_00_INT_I | _1_W in {weka.classifiers.trees.RandomForest}
+_1_W_1__wctrf_01_features_HIDDEN | _1_W in {weka.classifiers.trees.RandomForest}
+_1_W_1__wctrf_02_1_INT_K | _1_W in {weka.classifiers.trees.RandomForest}
+_1_W_1__wctrf_02_1_INT_K | _1_W_1__wctrf_01_features_HIDDEN in {0}
+_1_W_1__wctrf_03_2_INT_K | _1_W in {weka.classifiers.trees.RandomForest}
+_1_W_1__wctrf_03_2_INT_K | _1_W_1__wctrf_01_features_HIDDEN in {1}
+_1_W_1__wctrf_04_depth_HIDDEN | _1_W in {weka.classifiers.trees.RandomForest}
+_1_W_1__wctrf_05_1_INT_depth | _1_W in {weka.classifiers.trees.RandomForest}
+_1_W_1__wctrf_05_1_INT_depth | _1_W_1__wctrf_04_depth_HIDDEN in {0}
+_1_W_1__wctrf_06_2_INT_depth | _1_W in {weka.classifiers.trees.RandomForest}
+_1_W_1__wctrf_06_2_INT_depth | _1_W_1__wctrf_04_depth_HIDDEN in {1}
+_1_W_1__wctrt_00_INT_M | _1_W in {weka.classifiers.trees.RandomTree}
+_1_W_1__wctrt_01_features_HIDDEN | _1_W in {weka.classifiers.trees.RandomTree}
+_1_W_1__wctrt_02_1_INT_K | _1_W in {weka.classifiers.trees.RandomTree}
+_1_W_1__wctrt_02_1_INT_K | _1_W_1__wctrt_01_features_HIDDEN in {0}
+_1_W_1__wctrt_03_2_INT_K | _1_W in {weka.classifiers.trees.RandomTree}
+_1_W_1__wctrt_03_2_INT_K | _1_W_1__wctrt_01_features_HIDDEN in {1}
+_1_W_1__wctrt_04_depth_HIDDEN | _1_W in {weka.classifiers.trees.RandomTree}
+_1_W_1__wctrt_05_1_INT_depth | _1_W in {weka.classifiers.trees.RandomTree}
+_1_W_1__wctrt_05_1_INT_depth | _1_W_1__wctrt_04_depth_HIDDEN in {0}
+_1_W_1__wctrt_06_2_INT_depth | _1_W in {weka.classifiers.trees.RandomTree}
+_1_W_1__wctrt_06_2_INT_depth | _1_W_1__wctrt_04_depth_HIDDEN in {1}
+_1_W_1__wctrt_07_back_HIDDEN | _1_W in {weka.classifiers.trees.RandomTree}
+_1_W_1__wctrt_08_1_INT_N | _1_W in {weka.classifiers.trees.RandomTree}
+_1_W_1__wctrt_08_1_INT_N | _1_W_1__wctrt_07_back_HIDDEN in {0}
+_1_W_1__wctrt_09_2_INT_N | _1_W in {weka.classifiers.trees.RandomTree}
+_1_W_1__wctrt_09_2_INT_N | _1_W_1__wctrt_07_back_HIDDEN in {1}
+_1_W_1__wctrt_10_U | _1_W in {weka.classifiers.trees.RandomTree}
+_HIDDEN_ensemble_depth | targetclass in {weka.classifiers.meta.Stacking, weka.classifiers.meta.Vote}
+aseval__wascse_00_0_M | attributeeval in {weka.attributeSelection.CfsSubsetEval}
+aseval__wascse_01_1_L | attributeeval in {weka.attributeSelection.CfsSubsetEval}
+aseval__wasigae_00_0_M | attributeeval in {weka.attributeSelection.InfoGainAttributeEval}
+aseval__wasigae_01_1_B | attributeeval in {weka.attributeSelection.InfoGainAttributeEval}
+aseval__wasorae_00_0_S | attributeeval in {weka.attributeSelection.OneRAttributeEval}
+aseval__wasorae_01_1_F | attributeeval in {weka.attributeSelection.OneRAttributeEval}
+aseval__wasorae_02_2_D | attributeeval in {weka.attributeSelection.OneRAttributeEval}
+aseval__wasorae_03_3_INT_B | attributeeval in {weka.attributeSelection.OneRAttributeEval}
+aseval__waspc_00_num_HIDDEN | attributeeval in {weka.attributeSelection.PrincipalComponents}
+aseval__waspc_01_1_INT_A | aseval__waspc_00_num_HIDDEN in {0}
+aseval__waspc_01_1_INT_A | attributeeval in {weka.attributeSelection.PrincipalComponents}
+aseval__waspc_02_2_INT_A | aseval__waspc_00_num_HIDDEN in {1}
+aseval__waspc_02_2_INT_A | attributeeval in {weka.attributeSelection.PrincipalComponents}
+aseval__waspc_03_1_C | attributeeval in {weka.attributeSelection.PrincipalComponents}
+aseval__waspc_04_2_R | attributeeval in {weka.attributeSelection.PrincipalComponents}
+aseval__waspc_05_3_O | attributeeval in {weka.attributeSelection.PrincipalComponents}
+aseval__wasrfae_00_0_INT_K | attributeeval in {weka.attributeSelection.ReliefFAttributeEval}
+aseval__wasrfae_01_1_W | attributeeval in {weka.attributeSelection.ReliefFAttributeEval}
+aseval__wasrfae_02_2_INT_A | aseval__wasrfae_01_1_W in {REMOVED}
+aseval__wasrfae_02_2_INT_A | attributeeval in {weka.attributeSelection.ReliefFAttributeEval}
+aseval__wassuae_00_0_M | attributeeval in {weka.attributeSelection.SymmetricalUncertAttributeEval}
+assearch__wasbf_00_0_D | attributesearch in {weka.attributeSelection.BestFirst}
+assearch__wasbf_01_1_INT_N | attributesearch in {weka.attributeSelection.BestFirst}
+assearch__wasbf_02_2_S | attributesearch in {weka.attributeSelection.BestFirst}
+assearch__wasgs_00_0_C | attributesearch in {weka.attributeSelection.GreedyStepwise}
+assearch__wasgs_01_1_B | attributesearch in {weka.attributeSelection.GreedyStepwise}
+assearch__wasgs_02_2_R | attributesearch in {weka.attributeSelection.GreedyStepwise}
+assearch__wasgs_03_3_T | assearch__wasgs_02_2_R in {REMOVED}
+assearch__wasgs_03_3_T | attributesearch in {weka.attributeSelection.GreedyStepwise}
+assearch__wasgs_04_4_INT_N | assearch__wasgs_02_2_R in {REMOVE_PREV}
+assearch__wasgs_04_4_INT_N | attributesearch in {weka.attributeSelection.GreedyStepwise}
+assearch__wasr_00_0_T | attributesearch in {weka.attributeSelection.Ranker}
+attributeeval | attributesearch in {weka.attributeSelection.BestFirst, weka.attributeSelection.GreedyStepwise, weka.attributeSelection.Ranker}
