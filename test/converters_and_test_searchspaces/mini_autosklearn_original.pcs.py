@@ -3,6 +3,7 @@ import unittest
 
 import HPOlibConfigSpace
 import HPOlibConfigSpace.converters.pcs_parser as pcs_parser
+from HPOlibConfigSpace.random_sampler import RandomSampler
 
 
 class TestPCSConverterOnMiniAutoSklearn(unittest.TestCase):
@@ -35,10 +36,16 @@ class TestPCSConverterOnMiniAutoSklearn(unittest.TestCase):
                         replace("3] [1]i", "3] [-6]i").\
                         replace("10] [10]i", "10] [5]i").\
                         replace("[0, 4] [1]i", "[0, 4] [2]i").\
-                        replace("[random_forest]", "[libsvm_svc]")
+                        replace("[random_forest]", "[libsvm_svc]").\
+                        replace("{l1, l2} [l2]", "{l1, l2} [l1]")
 
             if line:
                 num_asserts += 1
                 self.assertIn(line, pcs)
 
-        self.assertEqual(20, num_asserts)
+        self.assertEqual(21, num_asserts)
+
+        # Sample a little bit
+        rs = RandomSampler(cs, 1)
+        for i in range(1000):
+            c = rs.sample_configuration()

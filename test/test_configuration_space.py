@@ -7,6 +7,7 @@ from HPOlibConfigSpace.hyperparameters import CategoricalHyperparameter, \
     UniformIntegerHyperparameter, Constant
 from HPOlibConfigSpace.conditions import EqualsCondition, NotEqualsCondition,\
     InCondition, AndConjunction, OrConjunction
+from HPOlibConfigSpace.forbidden import ForbiddenEqualsClause
 
 
 class TestConfigurationSpace(unittest.TestCase):
@@ -123,6 +124,20 @@ class TestConfigurationSpace(unittest.TestCase):
                                 "therefore forbidden. Add a conjunction "
                                 "instead!",
                                 cs.add_condition, cond2)
+
+    def test_add_forbidden_clause(self):
+        cs = ConfigurationSpace()
+        hp1 = CategoricalHyperparameter("input1", [0, 1])
+        cs.add_hyperparameter(hp1)
+        forb = ForbiddenEqualsClause(hp1, 1)
+        # TODO add checking whether a forbidden clause makes sense at all
+        cs.add_forbidden_clause(forb)
+        # TODO add something to properly retrieve the forbidden clauses
+        self.assertEqual(str(cs), "Configuration space object:\n  "
+                                  "Hyperparameters:\n    input1, "
+                                  "Type: Categorical, Choices: {0, 1}\n"
+                                  "  Forbidden Clauses:\n"
+                                  "    Forbidden: input1 == 1\n")
 
     def test_get_hyperparameters(self):
         cs = ConfigurationSpace()

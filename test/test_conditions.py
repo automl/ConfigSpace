@@ -8,7 +8,7 @@ from HPOlibConfigSpace.hyperparameters import Constant, \
 from HPOlibConfigSpace.conditions import EqualsCondition, NotEqualsCondition,\
     InCondition, AndConjunction, OrConjunction
 
-class TestHyperparameters(unittest.TestCase):
+class TestConditions(unittest.TestCase):
     # TODO: return only copies of the objects!
     def test_equals_condition(self):
         hp1 = CategoricalHyperparameter("parent", [0, 1])

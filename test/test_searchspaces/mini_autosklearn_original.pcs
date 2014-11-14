@@ -2,7 +2,7 @@ pca:keep_variance [0, 1] [0]i   # will be transformed to [0.8, 0.9]
 pca:keep_variance | preprocessing in {pca}
 
 liblinear:penalty {l1, l2} [l1]
-liblinear:loss {l2} [l2]
+liblinear:loss {l1, l2} [l2]
 liblinear:LOG2_C [-5, 15] [1]i
 libsvm_svc:LOG2_C [-5, 15] [1]i
 libsvm_svc:LOG2_gamma [-15, 3] [1]i
@@ -13,6 +13,7 @@ random_forest:min_samples_split [0, 4] [1]i # will transformed to [1, 2, 4, 7, 1
 liblinear:LOG2_C | classifier in {liblinear}
 liblinear:penalty | classifier in {liblinear}
 liblinear:loss | classifier in {liblinear}
+{liblinear:penalty=l1, liblinear:loss=l1}
 libsvm_svc:LOG2_C | classifier in {libsvm_svc}
 libsvm_svc:LOG2_gamma | classifier in {libsvm_svc}
 random_forest:max_features | classifier in {random_forest}

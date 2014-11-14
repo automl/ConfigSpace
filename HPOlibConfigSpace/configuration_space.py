@@ -29,16 +29,21 @@ from HPOlibConfigSpace.hyperparameters import Hyperparameter, \
     InstantiatedHyperparameter, InactiveHyperparameter
 from HPOlibConfigSpace.conditions import ConditionComponent, \
     AbstractCondition, AbstractConjunction
+from HPOlibConfigSpace.forbidden import AbstractForbiddenComponent
 
 
 class ConfigurationSpace(object):
     # TODO add comments to both the configuration space and single
     # hyperparameters!
+
+    # TODO add a method to add whole configuration spaces as a child "tree"
+
     """Represent a configuration space.
     """
     def __init__(self):
         self._dg = HPOlibConfigSpace.nx.DiGraph()
         self._dg.add_node('__HPOlib_configuration_space_root__')
+        self.forbidden_clauses = []
 
     def add_hyperparameter(self, hyperparameter):
         """Add a hyperparameter to the configuration space.
@@ -56,7 +61,7 @@ class ConfigurationSpace(object):
         # Check if adding the hyperparameter is legal:
         # * Its name must not already exist
         if hyperparameter.name in self._dg.node:
-            raise ValueError("Hyperparameter '%s' is already in the"
+            raise ValueError("Hyperparameter '%s' is already in the "
                              "configuration space." % hyperparameter.name)
 
         self._dg.add_node(hyperparameter.name, hyperparameter=hyperparameter)
@@ -154,7 +159,6 @@ class ConfigurationSpace(object):
         else:
             raise Exception("This should never happen!")
 
-
     def _add_edge(self, parent_node, child_node, condition):
         self._check_edge(parent_node, child_node, condition)
         try:
@@ -192,6 +196,13 @@ class ConfigurationSpace(object):
                                  "hyperparameter is ambigouos and "
                                  "therefore forbidden. Add a conjunction "
                                  "instead!")
+
+    def add_forbidden_clause(self, clause):
+        if not isinstance(clause, AbstractForbiddenComponent):
+            raise TypeError("The method add_forbidden_clause must be called "
+                            "with an instance of "
+                            "HPOlibConfigSpace.forbidden.AbstractForbiddenComponent.")
+        self.forbidden_clauses.append(clause)
 
     def print_configuration_space(self):
         HPOlibConfigSpace.nx.write_dot(self._dg, "hyperparameters.dot")
@@ -322,6 +333,12 @@ class ConfigurationSpace(object):
                                  "specified, but is: '%s'." %
                                  (ihp.hyperparameter.name, ihp))
 
+        # Check if all forbidden clauses are satisfied
+        for clause in self.forbidden_clauses:
+            if clause.is_forbidden(configuration):
+                raise ValueError("%s violates forbidden clause %s" % (
+                    str(configuration), str(clause)))
+
     def __eq__(self, other):
         if type(self) != type(other):
             return False
@@ -338,20 +355,30 @@ class ConfigurationSpace(object):
 
     def __repr__(self):
         retval = StringIO.StringIO()
-        retval.write("Configuration space object:\n  hyperparameters:\n")
+        retval.write("Configuration space object:\n  Hyperparameters:\n")
+
         hyperparameters = self.get_hyperparameters()
         if hyperparameters:
             retval.write("    ")
             retval.write("\n    ".join(
                 [str(hyperparameter) for hyperparameter in hyperparameters]))
             retval.write("\n")
-        retval.write("  conditions:\n")
+
         conditions = self.get_conditions()
         if conditions:
+            retval.write("  Conditions:\n")
             retval.write("    ")
             retval.write("\n    ".join(
                 [str(condition) for condition in conditions]))
             retval.write("\n")
+
+        if self.forbidden_clauses:
+            retval.write("  Forbidden Clauses:\n")
+            retval.write("    ")
+            retval.write("\n    ".join(
+                [str(clause) for clause in self.forbidden_clauses]))
+            retval.write("\n")
+
         retval.seek(0)
         return retval.getvalue()
 
@@ -405,5 +432,7 @@ class Configuration(object):
 
         return repr.getvalue()
 
+    def __iter__(self):
+        return iter(self.values.values())
 
 

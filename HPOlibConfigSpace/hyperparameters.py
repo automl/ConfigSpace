@@ -1,6 +1,3 @@
-__author__ = 'feurerm'
-
-
 from abc import ABCMeta, abstractmethod
 import StringIO
 import types
@@ -73,10 +70,14 @@ class Constant(Hyperparameter):
     def instantiate(self, value):
         if value != self.value:
             raise ValueError("Cannot instantiate a constant with a new value!")
-        return InstantiatedConstant("True", self)
+        return InstantiatedConstant(self.value, self)
 
     def is_legal(self, value):
         return value == self.value
+
+
+class UnParametrizedHyperparameter(Constant):
+    pass
 
 
 class NumericalHyperparameter(Hyperparameter):
@@ -350,8 +351,8 @@ class InstantiatedHyperparameter(object):
 
     def __init__(self, value, hyperparameter):
         if not isinstance(hyperparameter, Hyperparameter):
-            raise TypeError("Argument 'hyperparameter' is not of type %s." %
-                            Hyperparameter)
+            raise TypeError("Argument 'hyperparameter' is not of type %s, "
+                            "but %s" % (Hyperparameter, type(hyperparameter)))
         if not hyperparameter.is_legal(value):
             raise ValueError("Value %s for instantiation of hyperparameter %s "
                              "is not a legal value." %
@@ -361,7 +362,7 @@ class InstantiatedHyperparameter(object):
         self.hyperparameter = hyperparameter
 
     def __eq__(self, other):
-        if type(self) == type(other):
+        if type(self) != type(other):
             return False
         elif self.value != other.value:
             return False

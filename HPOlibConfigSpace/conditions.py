@@ -21,6 +21,10 @@ class ConditionComponent(object):
     def __repr__(self):
         pass
 
+    @abstractmethod
+    def __eq__(self, other):
+        pass
+
     def __ne__(self, other):
         return not self.__eq__(other)
 
@@ -53,10 +57,6 @@ class AbstractCondition(ConditionComponent):
                              "different hyperparameters.")
         self.child = child
         self.parent = parent
-
-    @abstractmethod
-    def __eq__(self, other):
-        pass
 
     def get_children(self):
         return [self.child]

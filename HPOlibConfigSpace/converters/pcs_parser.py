@@ -21,7 +21,6 @@
 __authors__ = ["Katharina Eggensperger", "Matthias Feurer"]
 __contact__ = "automl.org"
 
-from collections import OrderedDict
 import StringIO
 import sys
 
@@ -32,9 +31,11 @@ from HPOlibConfigSpace.configuration_space import ConfigurationSpace
 from HPOlibConfigSpace.hyperparameters import CategoricalHyperparameter, \
     UniformIntegerHyperparameter, UniformFloatHyperparameter, \
     NumericalHyperparameter, Constant, IntegerHyperparameter, \
-    FloatHyperparameter, NormalIntegerHyperparameter, NormalFloatHyperparameter
+    NormalIntegerHyperparameter, NormalFloatHyperparameter
 from HPOlibConfigSpace.conditions import EqualsCondition, NotEqualsCondition,\
     InCondition, AndConjunction, OrConjunction, ConditionComponent
+from HPOlibConfigSpace.forbidden import ForbiddenEqualsClause, \
+    ForbiddenAndConjunction, ForbiddenInClause, AbstractForbiddenComponent
 
 
 # Build pyparsing expressions for params
@@ -129,9 +130,34 @@ def build_condition(condition):
                                      condition.value)
 
 
+def build_forbidden(clause):
+    if not isinstance(clause, AbstractForbiddenComponent):
+        raise TypeError("build_forbidden must be called with an instance of "
+                        "'%s', got '%s'" %
+                        (AbstractForbiddenComponent, type(clause)))
+
+    if not isinstance(clause, (ForbiddenEqualsClause, ForbiddenAndConjunction)):
+        raise NotImplementedError("SMAC cannot handle '%s' of type %s" %
+                                  str(clause), (type(clause)))
+
+    retval = StringIO.StringIO()
+    retval.write("{")
+    # Really simple because everything is an AND-conjunction of equals
+    # conditions
+    dlcs = clause.get_descendant_literal_clauses()
+    for dlc in dlcs:
+        if retval.tell() > 1:
+            retval.write(", ")
+        retval.write("%s=%s" % (dlc.hyperparameter.name, dlc.value))
+    retval.write("}")
+    retval.seek(0)
+    return retval.getvalue()
+
+
 def read(pcs_string, debug=False):
     configuration_space = ConfigurationSpace()
     conditions = []
+    forbidden = []
 
     # some statistics
     ct = 0
@@ -141,9 +167,7 @@ def read(pcs_string, debug=False):
 
     for line in pcs_string:
         line_ct += 1
-        if str.startswith(line, '#'):
-            # It's a comment
-            continue
+
         if "#" in line:
             # It contains a comment
             pos = line.find("#")
@@ -163,6 +187,9 @@ def read(pcs_string, debug=False):
             continue
         if "}" not in line and "]" not in line:
             print "Skipping: %s" % line
+            continue
+        if line.startswith("{") and line.endswith("}"):
+            forbidden.append(line)
             continue
         if len(line.strip()) == 0:
             continue
@@ -201,18 +228,33 @@ def read(pcs_string, debug=False):
         except pyparsing.ParseException:
             pass
 
-        try:
-            # noinspection PyUnusedLocal
-            param_list = pp_forbidden_clause.parseString(line)
-            raise NotImplementedError("We cannot handle forbidden clauses: %s" % line)
-        except pyparsing.ParseException:
-            pass
-
         if param is None:
             raise NotImplementedError("Could not parse: %s" % line)
 
         configuration_space.add_hyperparameter(param)
 
+    for clause in forbidden:
+        # TODO test this properly!
+        # noinspection PyUnusedLocal
+        param_list = pp_forbidden_clause.parseString(clause)
+        tmp_list = []
+        clause_list = []
+        for value in param_list[1:]:
+            if len(tmp_list) < 3:
+                tmp_list.append(value)
+            else:
+                # So far, only equals is supported by SMAC
+                if tmp_list[1] == '=':
+                    # TODO maybe add a check if the hyperparameter is
+                    # actually in the configuration space
+                    clause_list.append(ForbiddenEqualsClause(
+                        configuration_space.get_hyperparameter(tmp_list[0]),
+                        tmp_list[2]))
+                else:
+                    raise NotImplementedError()
+                tmp_list = []
+        configuration_space.add_forbidden_clause(ForbiddenAndConjunction(
+            *clause_list))
 
     #Now handle conditions
     for condition in conditions:
@@ -254,6 +296,7 @@ def write(configuration_space):
 
     param_lines = StringIO.StringIO()
     condition_lines = StringIO.StringIO()
+    forbidden_lines = StringIO.StringIO()
     for hyperparameter in configuration_space.get_hyperparameters():
         # First build params
         if param_lines.tell() > 0:
@@ -273,11 +316,23 @@ def write(configuration_space):
             condition_lines.write("\n")
         condition_lines.write(build_condition(condition))
 
+    for forbidden_clause in configuration_space.forbidden_clauses:
+        if forbidden_lines.tell() > 0:
+            forbidden_lines.write("\n")
+        forbidden_lines.write(build_forbidden(forbidden_clause))
+
     if condition_lines.tell() > 0:
         condition_lines.seek(0)
         param_lines.write("\n\n")
         for line in condition_lines:
             param_lines.write(line)
+
+    if forbidden_lines.tell() > 0:
+        forbidden_lines.seek(0)
+        param_lines.write("\n\n")
+        for line in forbidden_lines:
+            param_lines.write(line)
+
     param_lines.seek(0)
     return param_lines.getvalue()
 
