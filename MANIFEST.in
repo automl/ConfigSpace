@@ -1,0 +1,3 @@
+include *.md
+exclude runsolver/src/runsolver
+include runsolver/src/dummy.txt
