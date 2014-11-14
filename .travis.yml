@@ -13,7 +13,7 @@ install:
 
 # command to run tests, e.g. python setup.py test
 script:
-  - nosetest --with-coverage
+  - nosetests --with-coverage
 
 after_success::
   - coveralls
