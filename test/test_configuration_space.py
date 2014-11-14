@@ -30,7 +30,7 @@ class TestConfigurationSpace(unittest.TestCase):
         hp = UniformIntegerHyperparameter("name", 0, 10)
         cs.add_hyperparameter(hp)
         self.assertRaisesRegexp(ValueError,
-                                "Hyperparameter 'name' is already in the"
+                                "Hyperparameter 'name' is already in the "
                                 "configuration space.",
                                 cs.add_hyperparameter, hp)
 
@@ -364,20 +364,20 @@ class TestConfigurationSpace(unittest.TestCase):
     def test_repr(self):
         cs1 = ConfigurationSpace()
         retval = cs1.__str__()
-        self.assertEqual("Configuration space object:\n  hyperparameters:\n"
-                         "  conditions:\n", retval)
+        self.assertEqual("Configuration space object:\n  Hyperparameters:\n",
+                         retval)
 
         hp1 = CategoricalHyperparameter("parent", [0, 1])
         cs1.add_hyperparameter(hp1)
         retval = cs1.__str__()
-        self.assertEqual("Configuration space object:\n  hyperparameters:\n"
-                         "    %s\n  conditions:\n" % str(hp1), retval)
+        self.assertEqual("Configuration space object:\n  Hyperparameters:\n"
+                         "    %s\n" % str(hp1), retval)
 
         hp2 = UniformIntegerHyperparameter("child", 0, 10)
         cond1 = EqualsCondition(hp2, hp1, 0)
         cs1.add_hyperparameter(hp2)
         cs1.add_condition(cond1)
         retval = cs1.__str__()
-        self.assertEqual("Configuration space object:\n  hyperparameters:\n"
-                         "    %s\n    %s\n  conditions:\n    %s\n" %
+        self.assertEqual("Configuration space object:\n  Hyperparameters:\n"
+                         "    %s\n    %s\n  Conditions:\n    %s\n" %
                          (str(hp1), str(hp2), str(cond1)), retval)
