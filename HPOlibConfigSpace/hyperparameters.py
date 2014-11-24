@@ -81,48 +81,104 @@ class UnParametrizedHyperparameter(Constant):
 
 
 class NumericalHyperparameter(Hyperparameter):
-    def __init__(self, name):
+    def __init__(self, name, default):
         super(NumericalHyperparameter, self).__init__(name)
+        self.default = default
 
 
 class FloatHyperparameter(NumericalHyperparameter):
-    pass
+    def is_legal(self, value):
+        return isinstance(value, float) or isinstance(value, int)
+
+    def check_default(self, default):
+        return default
 
 
 class IntegerHyperparameter(NumericalHyperparameter):
+    def is_legal(self, value):
+        return isinstance(value, int)
+
     def check_int(self, parameter, name):
-        if abs(np.round(parameter, 5) - parameter) > 0.00001 and \
+        if abs(np.round(parameter, 0) - parameter) > 0.00000001 and \
                         type(parameter) is not int:
             raise ValueError("For the Integer parameter %s, the value must be "
                              "an Integer, too. Right now it is a %s with value"
                              " %s" % (name, type(parameter), str(parameter)))
-        return int(parameter)
+        return int(np.round(parameter, 0))
+
+    def check_default(self, default):
+        return int(np.round(default, 0))
 
 
-class UniformMixin():
+class UniformMixin(object):
     def is_legal(self, value):
-        if self.upper >= value >= self.lower:
+        if not super(UniformMixin, self).is_legal(value):
+            return False
+        # Strange numerical issues!
+        elif self.upper >= value >= (self.lower - 0.0000000001):
             return True
         else:
             return False
 
+    def check_default(self, default):
+        if default is None:
+            if self.log:
+                default = np.exp((np.log(self.lower) + np.log(self.upper)) / 2)
+            else:
+                default = (self.lower + self.upper) / 2
+        default = super(UniformMixin, self).check_default(default)
+        if self.is_legal(default):
+            return default
+        else:
+            raise ValueError("Illegal default value %s" % str(default))
 
-class NormalMixin():
-    pass
+
+class NormalMixin(object):
+    def check_default(self, default):
+        if default is None:
+            return self.mu
+        elif self.is_legal(default):
+            return default
+        else:
+            raise ValueError("Illegal default value %s" % str(default))
 
 
 class UniformFloatHyperparameter(UniformMixin, FloatHyperparameter):
-    def __init__(self, name, lower, upper, q=None, log=False):
-        super(UniformFloatHyperparameter, self).__init__(name)
+    def __init__(self, name, lower, upper, default=None, q=None, log=False):
         self.lower = float(lower)
         self.upper = float(upper)
         self.q = float(q) if q is not None else None
         self.log = bool(log)
 
+        if self.lower >= self.upper:
+            raise ValueError("Upper bound %f must be larger than lower bound "
+                             "%f for hyperparameter %s" %
+                             (self.lower, self.upper, name))
+        elif log and self.lower <= 0:
+            raise ValueError("Negative lower bound (%f) for log-scale "
+                             "hyperparameter %s is forbidden." %
+                             (self.lower, name))
+        elif self.q is not None and \
+                (abs(int(self.lower / self.q) - (self.lower / self.q)) >
+                    0.00001):
+            raise ValueError("If q is active, the lower bound %f "
+                             "must be a multiple of q %f!" % (self.lower,
+                                                              self.q))
+        elif self.q is not None and \
+                (abs(int(self.upper / self.q) - (self.upper / self.q)) >
+                    0.00001):
+            raise ValueError("If q is active, the upper bound %f "
+                             "must be a multiple of q %f!" % (self.upper,
+                                                              self.q))
+
+        super(UniformFloatHyperparameter, self).\
+            __init__(name, self.check_default(default))
+
     def __repr__(self):
         repr_str = StringIO.StringIO()
-        repr_str.write("%s, Type: UniformFloat, Range: [%s, %s]" %
-                       (self.name, str(self.lower), str(self.upper)))
+        repr_str.write("%s, Type: UniformFloat, Range: [%s, %s], Default: %s" %
+                       (self.name, str(self.lower), str(self.upper),
+                       str(self.default)))
         if self.log:
             repr_str.write(", on log-scale")
         if self.q is not None:
@@ -143,25 +199,28 @@ class UniformFloatHyperparameter(UniformMixin, FloatHyperparameter):
             return False
 
     def to_integer(self):
+        # TODO check if conversion makes sense at all (at least two integer
+        # values possible!)
         return UniformIntegerHyperparameter(self.name, self.lower,
-                                            self.upper, self.q, self.log)
+            self.upper, int(np.round(self.default)), self.q, self.log)
 
     def instantiate(self, value):
         return InstantiatedUniformFloatHyperparameter(value, self)
 
 
 class NormalFloatHyperparameter(NormalMixin, FloatHyperparameter):
-    def __init__(self, name, mu, sigma, q=None, log=False):
-        super(NormalFloatHyperparameter, self).__init__(name)
+    def __init__(self, name, mu, sigma, default=None, q=None, log=False):
         self.mu = float(mu)
         self.sigma = float(sigma)
         self.q = float(q) if q is not None else None
         self.log = bool(log)
+        super(NormalFloatHyperparameter, self).\
+            __init__(name, self.check_default(default))
 
     def __repr__(self):
         repr_str = StringIO.StringIO()
-        repr_str.write("%s, Type: NormalFloat, Mu: %s Sigma %s" %
-                       (self.name, str(self.mu), str(self.sigma)))
+        repr_str.write("%s, Type: NormalFloat, Mu: %s Sigma: %s, Default: %s" %
+                       (self.name, str(self.mu), str(self.sigma), str(self.default)))
         if self.log:
             repr_str.write(", on log-scale")
         if self.q is not None:
@@ -183,13 +242,12 @@ class NormalFloatHyperparameter(NormalMixin, FloatHyperparameter):
 
     def to_uniform(self, z=3):
         return UniformFloatHyperparameter(self.name,
-                                          self.mu - (z * self.sigma),
-                                          self.mu + (z * self.sigma),
-                                          q=self.q, log=self.log)
+            self.mu - (z * self.sigma), self.mu + (z * self.sigma),
+            default=int(np.round(self.default, 0)), q=self.q, log=self.log)
 
     def to_integer(self):
         return NormalIntegerHyperparameter(self.name, self.mu, self.sigma,
-                                           q=self.q, log=self.log)
+            default=int(np.round(self.default, 0)), q=self.q, log=self.log)
 
     def is_legal(self, value):
         if isinstance(value, (float, int)):
@@ -202,16 +260,14 @@ class NormalFloatHyperparameter(NormalMixin, FloatHyperparameter):
 
 
 class UniformIntegerHyperparameter(UniformMixin, IntegerHyperparameter):
-    def __init__(self, name, lower, upper, q=None, log=False):
-        super(UniformIntegerHyperparameter, self).__init__(name)
+    def __init__(self, name, lower, upper, default=None, q=None, log=False):
         self.lower = self.check_int(lower, "lower")
         self.upper = self.check_int(upper, "upper")
         if q is not None:
-            q = self.check_int(q, "q")
             if q < 1:
                 warnings.warn("Setting quantization < 1 for Integer "
                               "Hyperparameter '%s' has no effect." %
-                              self.name)
+                              name)
                 self.q = None
             else:
                 self.q = self.check_int(q, "q")
@@ -219,11 +275,37 @@ class UniformIntegerHyperparameter(UniformMixin, IntegerHyperparameter):
             self.q = None
         self.log = bool(log)
 
+        if self.lower >= self.upper:
+            raise ValueError("Upper bound %d must be larger than lower bound "
+                             "%d for hyperparameter %s" %
+                             (self.lower, self.upper, name))
+        elif log and self.lower <= 0:
+            raise ValueError("Negative lower bound (%d) for log-scale "
+                             "hyperparameter %s is forbidden." %
+                             (self.lower, name))
+        elif self.q is not None and \
+                (abs(int(float(self.lower) / self.q) -
+                    (float(self.lower) / self.q)) > 0.00001):
+            raise ValueError("If q is active, the lower bound %d "
+                             "must be a multiple of q %d!" % (self.lower,
+                                                              self.q))
+        elif self.q is not None and \
+                (abs(int(float(self.upper) / self.q) -
+                    (float(self.upper) / self.q)) > 0.00001):
+            raise ValueError("If q is active, the upper bound %d "
+                             "must be a multiple of q %d!" % (self.upper,
+                                                              self.q))
+
+        super(UniformIntegerHyperparameter, self).\
+            __init__(name, self.check_default(default))
+
+
+
     def __repr__(self):
         repr_str = StringIO.StringIO()
-        repr_str.write("%s, Type: UniformInteger, Range: [%s, %s]" %
-                       (self.name, str(np.int(self.lower)),
-                        str(np.int(self.upper))))
+        repr_str.write("%s, Type: UniformInteger, Range: [%s, %s], Default: %s"
+                       % (self.name, str(self.lower),
+                          str(self.upper), str(self.default)))
         if self.log:
             repr_str.write(", on log-scale")
         if self.q is not None:
@@ -248,27 +330,28 @@ class UniformIntegerHyperparameter(UniformMixin, IntegerHyperparameter):
 
 
 class NormalIntegerHyperparameter(NormalMixin, IntegerHyperparameter):
-    def __init__(self, name, mu, sigma, q=None, log=False):
-        super(NormalIntegerHyperparameter, self).__init__(name)
+    def __init__(self, name, mu, sigma, default=None, q=None, log=False):
         self.mu = mu
         self.sigma = sigma
         if q is not None:
-            q = self.check_int(q, "q")
             if q < 1:
                 warnings.warn("Setting quantization < 1 for Integer "
                               "Hyperparameter '%s' has no effect." %
-                              self.name)
+                              name)
                 self.q = None
             else:
                 self.q = self.check_int(q, "q")
         else:
             self.q = None
         self.log = bool(log)
+        super(NormalIntegerHyperparameter, self).\
+            __init__(name, self.check_default(default))
 
     def __repr__(self):
         repr_str = StringIO.StringIO()
-        repr_str.write("%s, Type: NormalInteger, Mu: %s Sigma %s" %
-                       (self.name, str(self.mu), str(self.sigma)))
+        repr_str.write("%s, Type: NormalInteger, Mu: %s Sigma: %s, Default: "
+                       "%s" % (self.name, str(self.mu),
+                               str(self.sigma), str(self.default)))
         if self.log:
             repr_str.write(", on log-scale")
         if self.q is not None:
@@ -292,6 +375,7 @@ class NormalIntegerHyperparameter(NormalMixin, IntegerHyperparameter):
         return UniformIntegerHyperparameter(self.name,
                                             self.mu - (z * self.sigma),
                                             self.mu + (z * self.sigma),
+                                            default=self.default,
                                             q=self.q, log=self.log)
 
     def is_legal(self, value):
@@ -306,10 +390,11 @@ class NormalIntegerHyperparameter(NormalMixin, IntegerHyperparameter):
 
 class CategoricalHyperparameter(Hyperparameter):
     # TODO add more magic for automated type recognition
-    def __init__(self, name, choices):
+    def __init__(self, name, choices, default=None):
         super(CategoricalHyperparameter, self).__init__(name)
         # TODO check that there is no bullshit in the choices!
         self.choices = choices
+        self.default = self.check_default(default)
 
     def __repr__(self):
         repr_str = StringIO.StringIO()
@@ -319,6 +404,8 @@ class CategoricalHyperparameter(Hyperparameter):
             if idx < len(self.choices) - 1:
                 repr_str.write(", ")
         repr_str.write("}")
+        repr_str.write(", Default: ")
+        repr_str.write(str(self.default))
         repr_str.seek(0)
         return repr_str.getvalue()
 
@@ -341,6 +428,14 @@ class CategoricalHyperparameter(Hyperparameter):
             return True
         else:
             return False
+
+    def check_default(self, default):
+        if default is None:
+            return self.choices[0]
+        elif self.is_legal(default):
+            return default
+        else:
+            raise ValueError("Illegal default value %s" % str(default))
 
     def instantiate(self, value):
         return InstantiatedCategoricalHyperparameter(value, self)

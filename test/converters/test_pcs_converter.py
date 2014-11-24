@@ -63,7 +63,7 @@ conditional_space.add_condition(lr_condition)
 float_a = UniformFloatHyperparameter("float_a", -1.23, 6.45)
 e_float_a = UniformFloatHyperparameter("e_float_a", .5E-2, 4.3e+6)
 int_a = UniformIntegerHyperparameter("int_a", -1, 6)
-log_a = UniformFloatHyperparameter("log_a", -1.23, 6.45, log=True)
+log_a = UniformFloatHyperparameter("log_a", 1.23, 6.45, log=True)
 int_log_a = UniformIntegerHyperparameter("int_log_a", 1, 6, log=True)
 cat_a = CategoricalHyperparameter("cat_a", ["a", "b", "c", "d"])
 crazy = CategoricalHyperparameter("@.:;/\?!$%&_-<>*+1234567890", ["const"])
@@ -96,7 +96,7 @@ class TestPCSConverter(unittest.TestCase):
         expected.write('float_a [-1.23, 6.45] [2.61] # bla\n')
         expected.write('e_float_a [.5E-2, 4.3e+6] [2.61]\n')
         expected.write('int_a [-1, 6] [4]i\n')
-        expected.write('log_a [-1.23, 6.45] [2.61]l\n')
+        expected.write('log_a [1.23, 6.45] [2.61]l\n')
         expected.write('int_log_a [1, 6] [3]il\n')
         expected.write('cat_a {a,"b",c,d} [a]\n')
         expected.write('@.:;/\?!$%&_-<>*+1234567890 {"const"} ["const"]\n')
@@ -154,10 +154,10 @@ class TestPCSConverter(unittest.TestCase):
         self.assertEqual(expected, value)
 
     def test_write_q_float(self):
-        expected = "Q16_float_a [16.1, 1024.1] [520.1]"
+        expected = "Q16_float_a [16.0, 1024.0] [520.0]"
         cs = ConfigurationSpace()
         cs.add_hyperparameter(
-            UniformFloatHyperparameter("float_a", 16.10, 1024.10, q=16))
+            UniformFloatHyperparameter("float_a", 16, 1024, q=16))
         value = pcs_parser.write(cs)
         self.assertEqual(expected, value)
 

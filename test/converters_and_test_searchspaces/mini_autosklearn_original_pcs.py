@@ -20,7 +20,7 @@ class TestPCSConverterOnMiniAutoSklearn(unittest.TestCase):
         with open(configuration_space_path) as fh:
             cs = pcs_parser.read(fh)
 
-        pcs =  pcs_parser.write(cs)
+        pcs = pcs_parser.write(cs)
 
         with open(configuration_space_path) as fh:
             lines = fh.readlines()
@@ -30,14 +30,6 @@ class TestPCSConverterOnMiniAutoSklearn(unittest.TestCase):
             line = line.replace("\n", "")
             line = line.split("#")[0]       # Remove comments
             line = line.strip()
-
-            # Some things which are now defaults, but were different befor
-            line = line.replace("15] [1]i", "15] [5]i").\
-                        replace("3] [1]i", "3] [-6]i").\
-                        replace("10] [10]i", "10] [5]i").\
-                        replace("[0, 4] [1]i", "[0, 4] [2]i").\
-                        replace("[random_forest]", "[libsvm_svc]").\
-                        replace("{l1, l2} [l2]", "{l1, l2} [l1]")
 
             if line:
                 num_asserts += 1

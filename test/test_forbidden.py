@@ -23,8 +23,9 @@ class TestForbidden(unittest.TestCase):
         self.assertRaisesRegexp(ValueError,
                                 "Forbidden clause must be instantiated with a "
                                 "legal hyperparameter value for "
-                                "'parent, Type: Categorical, Choices: {0, 1}', "
-                                "but got '2'", ForbiddenEqualsClause, hp1, 2)
+                                "'parent, Type: Categorical, Choices: \{0, "
+                                "1\}, Default: 0', but got '2'",
+                                ForbiddenEqualsClause, hp1, 2)
 
         forb1 = ForbiddenEqualsClause(hp1, 1)
         forb1_ = ForbiddenEqualsClause(hp1, 1)
@@ -69,8 +70,9 @@ class TestForbidden(unittest.TestCase):
         self.assertRaisesRegexp(ValueError,
                                 "Forbidden clause must be instantiated with a "
                                 "legal hyperparameter value for "
-                                "'parent, Type: Categorical, Choices: {0, 1}', "
-                                "but got '2'", ForbiddenInClause, hp1, [2])
+                                "'parent, Type: Categorical, Choices: {0, 1}, "
+                                "Default: 0', but got '2'",
+                                ForbiddenInClause, hp1, [2])
 
         forb1 = ForbiddenInClause(hp2, [5, 6, 7, 8, 9])
         forb1_ = ForbiddenInClause(hp2, [9, 8, 7, 6, 5])

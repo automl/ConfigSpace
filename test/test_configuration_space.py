@@ -7,7 +7,8 @@ from HPOlibConfigSpace.hyperparameters import CategoricalHyperparameter, \
     UniformIntegerHyperparameter, Constant
 from HPOlibConfigSpace.conditions import EqualsCondition, NotEqualsCondition,\
     InCondition, AndConjunction, OrConjunction
-from HPOlibConfigSpace.forbidden import ForbiddenEqualsClause
+from HPOlibConfigSpace.forbidden import ForbiddenEqualsClause, \
+    ForbiddenAndConjunction
 
 
 class TestConfigurationSpace(unittest.TestCase):
@@ -33,6 +34,21 @@ class TestConfigurationSpace(unittest.TestCase):
                                 "Hyperparameter 'name' is already in the "
                                 "configuration space.",
                                 cs.add_hyperparameter, hp)
+
+    def test_illegal_default_configuration(self):
+        cs = ConfigurationSpace()
+        hp1 = CategoricalHyperparameter("loss", ["l1", "l2"])
+        hp2 = CategoricalHyperparameter("penalty", ["l1", "l2"])
+        cs.add_hyperparameter(hp1)
+        cs.add_hyperparameter(hp2)
+        forb1 = ForbiddenEqualsClause(hp1, "l1")
+        forb2 = ForbiddenEqualsClause(hp2, "l1")
+        forb3 = ForbiddenAndConjunction(forb1, forb2)
+        #cs.add_forbidden_clause(forb3)
+        self.assertRaisesRegexp(ValueError, "Configuration:\n"
+            "  loss, Value: l1\n  penalty, Value: l1\n"
+            "violates forbidden clause \(Forbidden: loss == l1 && Forbidden: "
+            "penalty == l1\)", cs.add_forbidden_clause, forb3)
 
     def test_add_non_condition(self):
         cs = ConfigurationSpace()
@@ -135,7 +151,8 @@ class TestConfigurationSpace(unittest.TestCase):
         # TODO add something to properly retrieve the forbidden clauses
         self.assertEqual(str(cs), "Configuration space object:\n  "
                                   "Hyperparameters:\n    input1, "
-                                  "Type: Categorical, Choices: {0, 1}\n"
+                                  "Type: Categorical, Choices: {0, 1}, "
+                                  "Default: 0\n"
                                   "  Forbidden Clauses:\n"
                                   "    Forbidden: input1 == 1\n")
 
