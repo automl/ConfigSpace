@@ -449,9 +449,9 @@ class InstantiatedHyperparameter(object):
             raise TypeError("Argument 'hyperparameter' is not of type %s, "
                             "but %s" % (Hyperparameter, type(hyperparameter)))
         if not hyperparameter.is_legal(value):
-            raise ValueError("Value %s for instantiation of hyperparameter %s "
-                             "is not a legal value." %
-                             (str(value), hyperparameter.name))
+            raise ValueError("Value '%s' for instantiation of hyperparameter "
+                             "'%s' is not a legal value." %
+                             (str(value), hyperparameter))
 
         self.value = value
         self.hyperparameter = hyperparameter

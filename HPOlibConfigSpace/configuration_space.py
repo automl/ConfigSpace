@@ -242,19 +242,47 @@ class ConfigurationSpace(object):
             hyperparameters.append(self._dg.node[target_node_name]['hyperparameter'])
         return hyperparameters
 
+    def get_default_configuration(self):
+        return self._check_default_configuration()
+
     def _check_default_configuration(self):
         # Check if adding that hyperparameter leads to an illegal default
         # configuration:
         instantiated_hyperparameters = {}
-        for hp in self.get_hyperparameters():
-            if isinstance(hp, Constant):
+        for hp in self.get_hyperparameters(order='topological'):
+            conditions = self.get_parents_of(hp.name)
+            active = True
+            for condition in conditions:
+                parent_names = [c.parent.name for c in
+                                condition.get_descendant_literal_conditions()]
+
+                parents = [instantiated_hyperparameters[parent_name] for
+                           parent_name in parent_names]
+
+                if len(parents) == 1:
+                    parents = parents[0]
+                if not condition.evaluate(parents):
+                    # TODO find out why a configuration is illegal!
+                    active = False
+
+            if active == False:
+                if isinstance(hp, Constant):
+                    instantiated_hyperparameters[hp.name] = \
+                        InactiveHyperparameter(hp.value, hp)
+                else:
+                    instantiated_hyperparameters[hp.name] = \
+                        InactiveHyperparameter(hp.default, hp)
+            elif isinstance(hp, Constant):
                 instantiated_hyperparameters[hp.name] = hp.instantiate(hp.value)
             else:
-                instantiated_hyperparameters[hp.name] = hp.instantiate(
-                    hp.default)
+                instantiated_hyperparameters[hp.name] = hp.instantiate(hp.default)
+
+            # TODO copy paste from check configuration
+
+
         # TODO get an extra Exception type for the case that the default
         # configuration is forbidden!
-        Configuration(self, **instantiated_hyperparameters)
+        return Configuration(self, **instantiated_hyperparameters)
 
     def check_configuration(self, configuration):
         # TODO: This should be a method of configuration, as it already knows
@@ -268,7 +296,9 @@ class ConfigurationSpace(object):
         for hyperparameter in hyperparameters:
             ihp = configuration[hyperparameter.name]
 
-            if not isinstance(ihp, InactiveHyperparameter) and not ihp.is_legal():
+            # TODO test that a hyperparameter is missing in a configuration
+            if ihp is not None and not isinstance(ihp, InactiveHyperparameter) \
+                    and not ihp.is_legal():
                 raise ValueError("Hyperparameter instantiation '%s' is "
                                  "illegal" % ihp)
 
@@ -282,14 +312,19 @@ class ConfigurationSpace(object):
 
                 parents = [configuration[parent_name] for
                            parent_name in parent_names]
-
                 if len(parents) == 1:
                     parents = parents[0]
                 if not condition.evaluate(parents):
                     # TODO find out why a configuration is illegal!
                     active = False
 
-            if not active and not isinstance(ihp, InactiveHyperparameter):
+            if active and not isinstance(ihp, InstantiatedHyperparameter):
+                # TODO test this!
+                raise ValueError("Hyperparameter '%s' not specified!" %
+                                 hyperparameter.name)
+
+            if not active and ihp is not None and \
+                    not isinstance(ihp, InactiveHyperparameter):
                 raise ValueError("Inactive hyperparameter '%s' must not be "
                                  "specified, but is: '%s'." %
                                  (ihp.hyperparameter.name, ihp))
@@ -357,10 +392,12 @@ class Configuration(object):
                             (ConfigurationSpace, type(configuration_space)))
 
         values = dict()
+        if hyperparameters is None:
+            hyperparameters = kwargs
 
-        for key in kwargs:
+        for key in hyperparameters:
             hyperparameter = configuration_space.get_hyperparameter(key)
-            value = kwargs[key]
+            value = hyperparameters[key]
             if isinstance(value, InstantiatedHyperparameter):
                 instance = value
             else:

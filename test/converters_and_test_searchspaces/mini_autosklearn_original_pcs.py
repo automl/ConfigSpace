@@ -39,5 +39,6 @@ class TestPCSConverterOnMiniAutoSklearn(unittest.TestCase):
 
         # Sample a little bit
         rs = RandomSampler(cs, 1)
+        print cs
         for i in range(1000):
             c = rs.sample_configuration()
