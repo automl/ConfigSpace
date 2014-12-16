@@ -251,7 +251,18 @@ class TestConfigurationSpace(unittest.TestCase):
         cs.add_condition(cond1)
 
         self.assertEqual([cond1], cs.get_parents_of(hp2.name))
+        self.assertEqual([cond1], cs.get_parents_of(hp2))
         self.assertEqual([cond1], cs.get_children_of(hp1.name))
+        self.assertEqual([cond1], cs.get_children_of(hp1))
+
+        self.assertRaisesRegexp(KeyError,
+                                "Hyperparameter 'Foo' does not exist in this "
+                                "configuration space.", cs.get_parents_of,
+                                "Foo")
+        self.assertRaisesRegexp(KeyError,
+                                "Hyperparameter 'Foo' does not exist in this "
+                                "configuration space.", cs.get_children_of,
+                                "Foo")
 
     def test_check_configuration_input_checking(self):
         cs = ConfigurationSpace()
