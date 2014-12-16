@@ -26,7 +26,7 @@ import StringIO
 
 import HPOlibConfigSpace.nx
 from HPOlibConfigSpace.hyperparameters import Hyperparameter, \
-    InstantiatedHyperparameter, InactiveHyperparameter
+    InstantiatedHyperparameter, InactiveHyperparameter, Constant
 from HPOlibConfigSpace.conditions import ConditionComponent, \
     AbstractCondition, AbstractConjunction
 from HPOlibConfigSpace.forbidden import AbstractForbiddenComponent
@@ -68,6 +68,8 @@ class ConfigurationSpace(object):
         self._dg.add_edge('__HPOlib_configuration_space_root__',
                           hyperparameter.name)
 
+        self._check_default_configuration()
+
     def add_condition(self, condition):
         # Check if adding the condition is legal:
         # * The parent in a condition statement must exist
@@ -99,62 +101,6 @@ class ConfigurationSpace(object):
                 self._add_edge(dlc.parent.name,
                                dlc.child.name,
                                condition=condition)
-
-
-
-            """
-            This code tries to work with extra nodes for every possible
-            Conjunction, this seems to be a more proper, but also more
-            complicated way!
-
-            max_iter = 1000000          # To prevent infinite loops
-            num_iter = 0                # The accompanying counter
-            conjunction = condition     # Just rename it for readability
-            to_visit = deque()
-            to_visit.append(conjunction)
-
-            added = set()
-
-            while len(to_visit) > 0:
-                num_iter += 1
-                if num_iter >= max_iter:
-                    raise Exception("Reached the maximum number of iterations "
-                                    "when parsing conjunctions.")
-
-                component = to_visit.popleft()
-                # check if all subcomponents (conjunctions and/or conditions)
-                # of this component either:
-                # * were already added to the graph
-                # * or are literals (conditions), then we can add a
-                #   pseudo-node and readily add these conditions
-
-                added_or_literal = []
-                for idx, child_component in enumerate(component.components):
-                    if isinstance(child_component, AbstractCondition):
-                        added_or_literal.append(True)
-                    elif child_component in added:
-                        added_or_literal.append(True)
-                    else:
-                        added_or_literal.append(False)
-                        if child_component not in to_visit:
-                            to_visit.append(child_component)
-
-                # In the case that either all child components are literals
-                # or all child components are already in the graph, we can
-                # add the current component to the graph
-                if all(added_or_literal):
-                    # 1. Add a new 'pseudo-node'
-                    # 2. Add conjunctions between the source node and the
-                    #    pseudo-node
-                    pseudo_node_name = "__HPOlib_configuration_space_%s-%s__" \
-                                       % (type(component), id(component))
-                    self._dg.add_node(pseudo_node_name, type=type(conjunction))
-                    # TODO: there is no validation here!
-                    for idx, child_component in enumerate(component.components):
-                        self._dg.add_edge(child_component.parent.name,
-                                          pseudo_node_name,
-                                          condition=condition)
-            """
 
         else:
             raise Exception("This should never happen!")
@@ -203,6 +149,7 @@ class ConfigurationSpace(object):
                             "with an instance of "
                             "HPOlibConfigSpace.forbidden.AbstractForbiddenComponent.")
         self.forbidden_clauses.append(clause)
+        self._check_default_configuration()
 
     def print_configuration_space(self):
         HPOlibConfigSpace.nx.write_dot(self._dg, "hyperparameters.dot")
@@ -295,6 +242,48 @@ class ConfigurationSpace(object):
             hyperparameters.append(self._dg.node[target_node_name]['hyperparameter'])
         return hyperparameters
 
+    def get_default_configuration(self):
+        return self._check_default_configuration()
+
+    def _check_default_configuration(self):
+        # Check if adding that hyperparameter leads to an illegal default
+        # configuration:
+        instantiated_hyperparameters = {}
+        for hp in self.get_hyperparameters(order='topological'):
+            conditions = self.get_parents_of(hp.name)
+            active = True
+            for condition in conditions:
+                parent_names = [c.parent.name for c in
+                                condition.get_descendant_literal_conditions()]
+
+                parents = [instantiated_hyperparameters[parent_name] for
+                           parent_name in parent_names]
+
+                if len(parents) == 1:
+                    parents = parents[0]
+                if not condition.evaluate(parents):
+                    # TODO find out why a configuration is illegal!
+                    active = False
+
+            if active == False:
+                if isinstance(hp, Constant):
+                    instantiated_hyperparameters[hp.name] = \
+                        InactiveHyperparameter(hp.value, hp)
+                else:
+                    instantiated_hyperparameters[hp.name] = \
+                        InactiveHyperparameter(hp.default, hp)
+            elif isinstance(hp, Constant):
+                instantiated_hyperparameters[hp.name] = hp.instantiate(hp.value)
+            else:
+                instantiated_hyperparameters[hp.name] = hp.instantiate(hp.default)
+
+            # TODO copy paste from check configuration
+
+
+        # TODO get an extra Exception type for the case that the default
+        # configuration is forbidden!
+        return Configuration(self, **instantiated_hyperparameters)
+
     def check_configuration(self, configuration):
         # TODO: This should be a method of configuration, as it already knows
         #  the configuration space!
@@ -307,7 +296,9 @@ class ConfigurationSpace(object):
         for hyperparameter in hyperparameters:
             ihp = configuration[hyperparameter.name]
 
-            if not isinstance(ihp, InactiveHyperparameter) and not ihp.is_legal():
+            # TODO test that a hyperparameter is missing in a configuration
+            if ihp is not None and not isinstance(ihp, InactiveHyperparameter) \
+                    and not ihp.is_legal():
                 raise ValueError("Hyperparameter instantiation '%s' is "
                                  "illegal" % ihp)
 
@@ -321,22 +312,28 @@ class ConfigurationSpace(object):
 
                 parents = [configuration[parent_name] for
                            parent_name in parent_names]
-
                 if len(parents) == 1:
                     parents = parents[0]
                 if not condition.evaluate(parents):
                     # TODO find out why a configuration is illegal!
                     active = False
 
-            if not active and not isinstance(ihp, InactiveHyperparameter):
+            if active and not isinstance(ihp, InstantiatedHyperparameter):
+                # TODO test this!
+                raise ValueError("Hyperparameter '%s' not specified!" %
+                                 hyperparameter.name)
+
+            if not active and ihp is not None and \
+                    not isinstance(ihp, InactiveHyperparameter):
                 raise ValueError("Inactive hyperparameter '%s' must not be "
                                  "specified, but is: '%s'." %
                                  (ihp.hyperparameter.name, ihp))
 
         # Check if all forbidden clauses are satisfied
+        # TODO check if AutoSklearn default would be a legal!
         for clause in self.forbidden_clauses:
             if clause.is_forbidden(configuration):
-                raise ValueError("%s violates forbidden clause %s" % (
+                raise ValueError("%sviolates forbidden clause %s" % (
                     str(configuration), str(clause)))
 
     def __eq__(self, other):
@@ -395,10 +392,12 @@ class Configuration(object):
                             (ConfigurationSpace, type(configuration_space)))
 
         values = dict()
+        if hyperparameters is None:
+            hyperparameters = kwargs
 
-        for key in kwargs:
+        for key in hyperparameters:
             hyperparameter = configuration_space.get_hyperparameter(key)
-            value = kwargs[key]
+            value = hyperparameters[key]
             if isinstance(value, InstantiatedHyperparameter):
                 instance = value
             else:

@@ -62,7 +62,7 @@ pp_forbidden_clause = "{" + pp_param_name + "=" + pp_numberorname + \
 
 def build_categorical(param):
     cat_template = "%s {%s} [%s]"
-    return cat_template % (param.name, ", ".join(param.choices), param.choices[0])
+    return cat_template % (param.name, ", ".join(param.choices), param.default)
 
 
 def build_constant(param):
@@ -80,19 +80,13 @@ def build_continuous(param):
     if param.log:
         float_template += "l"
         int_template += "l"
-        default = np.power(10, (np.log10(param.upper) +
-                                np.log10(param.lower))/2)
-
-    else:
-        default = (param.upper + param.lower)/2
 
     if param.q is not None:
         q_prefix = "Q%d_" % (int(param.q),)
     else:
         q_prefix = ""
+    default = param.default
 
-    if param.upper < default or  param.lower > default:
-        raise NotImplementedError("Cannot find mean for %s" % param.name)
     if isinstance(param, IntegerHyperparameter):
         default = int(default)
         return int_template % (q_prefix, param.name, param.lower,
@@ -213,8 +207,9 @@ def read(pcs_string, debug=False):
             upper = float(param_list[4])
             paramtype = "int" if "i" in il else "float"
             log = True if "l" in il else False
+            default = float(param_list[7])
             param = create[paramtype](name=name, lower=lower, upper=upper,
-                                      q=None, log=log)
+                                      q=None, log=log, default=default)
             cont_ct += 1
         except pyparsing.ParseException:
             pass
@@ -223,7 +218,9 @@ def read(pcs_string, debug=False):
             param_list = pp_cat_param.parseString(line)
             name = param_list[0]
             choices = [c for c in param_list[2:-4:2]]
-            param = create["categorical"](name=name, choices=choices)
+            default = param_list[-2]
+            param = create["categorical"](name=name, choices=choices,
+                                          default=default)
             cat_ct += 1
         except pyparsing.ParseException:
             pass
@@ -235,6 +232,7 @@ def read(pcs_string, debug=False):
 
     for clause in forbidden:
         # TODO test this properly!
+        # TODO Add a try/catch here!
         # noinspection PyUnusedLocal
         param_list = pp_forbidden_clause.parseString(clause)
         tmp_list = []
@@ -298,6 +296,13 @@ def write(configuration_space):
     condition_lines = StringIO.StringIO()
     forbidden_lines = StringIO.StringIO()
     for hyperparameter in configuration_space.get_hyperparameters():
+        # Check if the hyperparameter names are valid SMAC names!
+        try:
+            pp_param_name.parseString(hyperparameter.name)
+        except pyparsing.ParseException:
+            raise ValueError(
+                "Illegal hyperparameter name for SMAC: %s" % hyperparameter.name)
+
         # First build params
         if param_lines.tell() > 0:
             param_lines.write("\n")
@@ -332,6 +337,9 @@ def write(configuration_space):
         param_lines.write("\n\n")
         for line in forbidden_lines:
             param_lines.write(line)
+
+    # Check if the default configuration is a valid configuration!
+
 
     param_lines.seek(0)
     return param_lines.getvalue()

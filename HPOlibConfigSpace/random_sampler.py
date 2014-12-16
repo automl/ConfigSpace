@@ -70,18 +70,29 @@ class RandomSampler(object):
                     raise ValueError("Cannot sample valid configuration for "
                                      "%s" % self.configuration_space)
 
-
-
     def _sample_UniformFloatHyperparameter(self, ufhp):
         if ufhp.log:
-            lower = np.log(ufhp.lower)
-            upper = np.log(ufhp.upper)
+            if ufhp.q is not None:
+                lower = ufhp.lower - (np.float64(ufhp.q) / 2 - 0.0001)
+                upper = ufhp.upper + (np.float64(ufhp.q) / 2 - 0.0001)
+            else:
+                lower = ufhp.lower
+                upper = ufhp.upper
+            lower = np.log(lower)
+            upper = np.log(upper)
         else:
-            lower = ufhp.lower
-            upper = ufhp.upper
+            if ufhp.q is not None:
+                lower = ufhp.lower - (ufhp.q / 2 - 0.0001)
+                upper = ufhp.upper + (ufhp.q / 2 - 0.0001)
+            else:
+                lower = ufhp.lower
+                upper = ufhp.upper
+
         value = self.random.uniform(lower, upper)
         if ufhp.log:
             value = np.exp(value)
+        if ufhp.q is not None:
+            value = int(np.round(value / ufhp.q, 0)) * ufhp.q
         return ufhp.instantiate(value)
 
     def _sample_NormalFloatHyperparameter(self, nfhp):
@@ -90,27 +101,28 @@ class RandomSampler(object):
         gauss = self.random.gauss(mu, sigma)
         if nfhp.log:
             gauss = np.exp(gauss)
+        if nfhp.q is not None:
+            gauss = int(np.round(gauss / nfhp.q, 0)) * nfhp.q
         return nfhp.instantiate(gauss)
 
     def _sample_UniformIntegerHyperparameter(self, uihp):
-        if uihp.log:
-            lower = np.log(uihp.lower)
-            upper = np.log(uihp.upper)
-        else:
-            lower = uihp.lower
-            upper = uihp.upper
-        value = self.random.randint(lower, upper)
-        if uihp.log:
-            value = np.exp(value)
-        return uihp.instantiate(value)
+        ufhp = UniformFloatHyperparameter(uihp.name,
+                                          uihp.lower - 0.4999,
+                                          uihp.upper + 0.4999,
+                                          log=uihp.log, q=uihp.q,
+                                          default=uihp.default)
+        ihp = self._sample_UniformFloatHyperparameter(ufhp)
+        return uihp.instantiate(int(np.round(ihp.value, 0)))
 
     def _sample_NormalIntegerHyperparameter(self, nihp):
-        mu = nihp.mu
-        sigma = nihp.sigma
-        value = self.random.gauss(mu, sigma)
-        if nihp.log:
-            gauss = np.exp(value)
-        return nihp.instantiate(int(round(value)))
+        nfhp = NormalFloatHyperparameter(nihp.name,
+                                          nihp.mu,
+                                          nihp.sigma,
+                                          log=nihp.log,
+                                          q=nihp.q,
+                                          default=nihp.default)
+        ihp = self._sample_NormalFloatHyperparameter(nfhp)
+        return nihp.instantiate(int(np.round(ihp.value, 0)))
 
     def _sample_CategoricalHyperparameter(self, chp):
         choice = self.random.choice(chp.choices)
