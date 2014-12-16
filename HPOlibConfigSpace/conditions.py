@@ -264,7 +264,7 @@ class AndConjunction(AbstractConjunction):
 class OrConjunction(AbstractConjunction):
     def __init__(self, *args):
         if len(args) < 2:
-            raise ValueError("AndConjunction must at least have two "
+            raise ValueError("OrConjunction must at least have two "
                              "Conditions.")
         super(OrConjunction, self).__init__(*args)
 

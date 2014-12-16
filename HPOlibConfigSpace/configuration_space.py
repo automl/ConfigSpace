@@ -141,7 +141,8 @@ class ConfigurationSpace(object):
                 raise ValueError("Adding a second condition (different) for a "
                                  "hyperparameter is ambigouos and "
                                  "therefore forbidden. Add a conjunction "
-                                 "instead!")
+                                 "instead!\nAlready inserted: %s\nNew one: "
+                                 "%s" % (str(other_condition), str(condition)))
 
     def add_forbidden_clause(self, clause):
         if not isinstance(clause, AbstractForbiddenComponent):
