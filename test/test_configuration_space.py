@@ -360,6 +360,28 @@ class TestConfigurationSpace(unittest.TestCase):
                               AND = cs.get_hyperparameter(
                                     "AND").instantiate("True"))
 
+    def test_check_configuration2(self):
+        # Test that hyperparameters which are not active must not be set and
+        # that evaluating forbidden clauses does not choke on missing
+        # hyperparameters
+        cs = ConfigurationSpace()
+        classifier = CategoricalHyperparameter("classifier",
+            ["k_nearest_neighbors", "extra_trees"])
+        metric = CategoricalHyperparameter("metric", ["minkowski", "other"])
+        p = CategoricalHyperparameter("k_nearest_neighbors:p", [1, 2])
+        metric_depends_on_classifier = EqualsCondition(metric, classifier,
+                                                       "k_nearest_neighbors")
+        p_depends_on_metric = EqualsCondition(p, metric, "minkowski")
+        cs.add_hyperparameter(classifier)
+        cs.add_hyperparameter(metric)
+        cs.add_hyperparameter(p)
+        cs.add_condition(metric_depends_on_classifier)
+        cs.add_condition(p_depends_on_metric)
+
+        #forbidden = ForbiddenEqualsClause(metric, "other")
+        #cs.add_forbidden_clause(forbidden)
+
+        configuration = Configuration(cs, classifier="extra_trees")
 
     def test_eq(self):
         # Compare empty configuration spaces

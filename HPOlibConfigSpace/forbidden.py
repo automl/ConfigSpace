@@ -87,7 +87,6 @@ class SingleValueForbiddenClause(AbstractForbiddenClause):
         pass
 
 
-
 class MultipleValueForbiddenClause(AbstractForbiddenClause):
     def __init__(self, hyperparameter, values):
         super(MultipleValueForbiddenClause, self).__init__()

@@ -325,11 +325,18 @@ class ConfigurationSpace(object):
 
                 parents = [configuration[parent_name] for
                            parent_name in parent_names]
-                if len(parents) == 1:
-                    parents = parents[0]
-                if not condition.evaluate(parents):
-                    # TODO find out why a configuration is illegal!
+
+                # if one of the parents is None, the hyperparameter cannot be
+                # active! Else we have to check this
+                if any([parent is None for parent in parents]):
                     active = False
+
+                else:
+                    if len(parents) == 1:
+                        parents = parents[0]
+                    if not condition.evaluate(parents):
+                        # TODO find out why a configuration is illegal!
+                        active = False
 
             if active and not isinstance(ihp, InstantiatedHyperparameter):
                 # TODO test this!
