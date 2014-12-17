@@ -436,6 +436,7 @@ class Configuration(object):
 
         hyperparameters = self.configuration_space.get_hyperparameters(
             order='topologic')
+        hyperparameters.sort(key=lambda t: t.name)
         for hyperparameter in hyperparameters:
             if hyperparameter.name in self.values:
                 repr.write("  ")
