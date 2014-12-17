@@ -452,9 +452,9 @@ class InstantiatedHyperparameter(object):
             raise TypeError("Argument 'hyperparameter' is not of type %s, "
                             "but %s" % (Hyperparameter, type(hyperparameter)))
         if not hyperparameter.is_legal(value):
-            raise ValueError("Value '%s' for instantiation of hyperparameter "
-                             "'%s' is not a legal value." %
-                             (str(value), hyperparameter))
+            raise ValueError("Value %s, %s for instantiation of "
+                             "hyperparameter '%s' is not a legal value." %
+                             (str(value), str(type(value)), hyperparameter))
 
         self.value = value
         self.hyperparameter = hyperparameter
@@ -508,6 +508,10 @@ class InstantiatedFloatHyperparameter(InstantiatedNumericalHyperparameter):
 
 class InstantiatedIntegerHyperparameter(InstantiatedNumericalHyperparameter):
     __metaclass__ = ABCMeta
+
+    def __init__(self, value, hyperparameter):
+        value = hyperparameter.check_int(value, hyperparameter.name)
+        super(InstantiatedIntegerHyperparameter, self).__init__(value, hyperparameter)
 
     def __repr__(self):
         return "%s, Value: %d" % (self.hyperparameter.name, self.value)
