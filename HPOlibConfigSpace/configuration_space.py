@@ -141,7 +141,8 @@ class ConfigurationSpace(object):
                 raise ValueError("Adding a second condition (different) for a "
                                  "hyperparameter is ambigouos and "
                                  "therefore forbidden. Add a conjunction "
-                                 "instead!")
+                                 "instead!\nAlready inserted: %s\nNew one: "
+                                 "%s" % (str(other_condition), str(condition)))
 
     def add_forbidden_clause(self, clause):
         if not isinstance(clause, AbstractForbiddenComponent):
@@ -217,6 +218,12 @@ class ConfigurationSpace(object):
         return edges
 
     def get_children_of(self, name):
+        if isinstance(name, Hyperparameter):
+            name = name.name
+
+        # This raises an exception if the hyperparameter does not exist
+        self.get_hyperparameter(name)
+
         edges = []
         for target_node_name in self._dg.edge[name]:
             edges.append(self._dg[name][target_node_name][
@@ -224,6 +231,12 @@ class ConfigurationSpace(object):
         return edges
 
     def get_parents_of(self, name):
+        if isinstance(name, Hyperparameter):
+            name = name.name
+
+        # This raises an exception if the hyperparameter does not exist
+        self.get_hyperparameter(name)
+
         edges = []
         # Nodes is a list of nodes
         for source_node in self.get_hyperparameters():

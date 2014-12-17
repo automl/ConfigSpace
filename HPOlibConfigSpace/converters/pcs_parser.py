@@ -117,7 +117,7 @@ def build_condition(condition):
     elif isinstance(condition, InCondition):
         return condition_template % (condition.child.name,
                                      condition.parent.name,
-                                     ".".join(condition.values))
+                                     ", ".join(condition.values))
     elif isinstance(condition, EqualsCondition):
         return condition_template % (condition.child.name,
                                      condition.parent.name,

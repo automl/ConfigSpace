@@ -103,7 +103,7 @@ class IntegerHyperparameter(NumericalHyperparameter):
                         type(parameter) is not int:
             raise ValueError("For the Integer parameter %s, the value must be "
                              "an Integer, too. Right now it is a %s with value"
-                             " %s" % (name, type(parameter), str(parameter)))
+                             " %s." % (name, type(parameter), str(parameter)))
         return int(np.round(parameter, 0))
 
     def check_default(self, default):
@@ -263,6 +263,8 @@ class UniformIntegerHyperparameter(UniformMixin, IntegerHyperparameter):
     def __init__(self, name, lower, upper, default=None, q=None, log=False):
         self.lower = self.check_int(lower, "lower")
         self.upper = self.check_int(upper, "upper")
+        if default is not None:
+            default = self.check_int(default, name)
         if q is not None:
             if q < 1:
                 warnings.warn("Setting quantization < 1 for Integer "
@@ -300,7 +302,6 @@ class UniformIntegerHyperparameter(UniformMixin, IntegerHyperparameter):
             __init__(name, self.check_default(default))
 
 
-
     def __repr__(self):
         repr_str = StringIO.StringIO()
         repr_str.write("%s, Type: UniformInteger, Range: [%s, %s], Default: %s"
@@ -333,6 +334,8 @@ class NormalIntegerHyperparameter(NormalMixin, IntegerHyperparameter):
     def __init__(self, name, mu, sigma, default=None, q=None, log=False):
         self.mu = mu
         self.sigma = sigma
+        if default is not None:
+            default = self.check_int(default, name)
         if q is not None:
             if q < 1:
                 warnings.warn("Setting quantization < 1 for Integer "

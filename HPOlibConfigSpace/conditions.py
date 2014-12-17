@@ -174,7 +174,11 @@ class AbstractConjunction(ConditionComponent):
 class EqualsCondition(AbstractCondition):
     def __init__(self, child, parent, value):
         super(EqualsCondition, self).__init__(child, parent)
-        parent.is_legal(value)
+        if not parent.is_legal(value):
+            raise ValueError("Hyperparameter '%s' is "
+                             "conditional on the illegal value '%s' of "
+                             "its parent hyperparameter '%s'" %
+                             (child.name, value, parent.name))
         self.value = value
 
     def __repr__(self):
@@ -196,7 +200,11 @@ class EqualsCondition(AbstractCondition):
 class NotEqualsCondition(AbstractCondition):
     def __init__(self, child, parent, value):
         super(NotEqualsCondition, self).__init__(child, parent)
-        parent.is_legal(value)
+        if not parent.is_legal(value):
+            raise ValueError("Hyperparameter '%s' is "
+                             "conditional on the illegal value '%s' of "
+                             "its parent hyperparameter '%s'" %
+                             (child.name, value, parent.name))
         self.value = value
 
     def __repr__(self):
@@ -219,7 +227,11 @@ class InCondition(AbstractCondition):
     def __init__(self, child, parent, values):
         super(InCondition, self).__init__(child, parent)
         for value in values:
-            parent.is_legal(value)
+            if not parent.is_legal(value):
+                raise ValueError("Hyperparameter '%s' is "
+                                 "conditional on the illegal value '%s' of "
+                                 "its parent hyperparameter '%s'" %
+                                 (child.name, value, parent.name))
         self.values = values
 
     def __repr__(self):
@@ -264,7 +276,7 @@ class AndConjunction(AbstractConjunction):
 class OrConjunction(AbstractConjunction):
     def __init__(self, *args):
         if len(args) < 2:
-            raise ValueError("AndConjunction must at least have two "
+            raise ValueError("OrConjunction must at least have two "
                              "Conditions.")
         super(OrConjunction, self).__init__(*args)
 

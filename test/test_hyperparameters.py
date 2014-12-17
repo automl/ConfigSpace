@@ -226,6 +226,16 @@ class TestHyperparameters(unittest.TestCase):
         self.assertNotEqual(f2, f2_large_q)
         self.assertNotEqual(f1, "UniformFloat")
 
+    def test_uniformint_legal_float_values(self):
+        n_iter = UniformIntegerHyperparameter("n_iter", 5., 1000., default=20.0)
+        self.assertIsInstance(n_iter.default, int)
+        self.assertRaisesRegexp(ValueError, "For the Integer parameter n_iter, "
+                                            "the value must be an Integer, too."
+                                            " Right now it is a <type 'float'>"
+                                            " with value 20.5.",
+                                UniformIntegerHyperparameter,"n_iter", 5.,
+                                1000., default=20.5)
+
     def test_uniformint_illegal_bounds(self):
         self.assertRaisesRegexp(ValueError,
             "Negative lower bound \(0\) for log-scale hyperparameter "
@@ -291,6 +301,16 @@ class TestHyperparameters(unittest.TestCase):
 
         self.assertNotEqual(f1, f2)
         self.assertNotEqual(f1, "UniformFloat")
+
+    def test_uniformint_legal_float_values(self):
+        n_iter = NormalIntegerHyperparameter("n_iter", 0, 1., default=2.0)
+        self.assertIsInstance(n_iter.default, int)
+        self.assertRaisesRegexp(ValueError, "For the Integer parameter n_iter, "
+                                            "the value must be an Integer, too."
+                                            " Right now it is a <type 'float'>"
+                                            " with value 0.5.",
+                                UniformIntegerHyperparameter, "n_iter", 0,
+                                1., default=0.5)
 
     def test_normalint_to_uniform(self):
         f1 = NormalIntegerHyperparameter("param", 0, 10, q=0.1)

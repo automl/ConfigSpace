@@ -31,16 +31,18 @@ from HPOlibConfigSpace.configuration_space import ConfigurationSpace
 import HPOlibConfigSpace.converters.pcs_parser as pcs_parser
 from HPOlibConfigSpace.hyperparameters import CategoricalHyperparameter, \
     UniformIntegerHyperparameter, UniformFloatHyperparameter
-from HPOlibConfigSpace.conditions import EqualsCondition
+from HPOlibConfigSpace.conditions import EqualsCondition, InCondition
 
 # More complex search space
 classifier = CategoricalHyperparameter("classifier", ["svm", "nn"])
-kernel = CategoricalHyperparameter("kernel", ["rbf", "linear"])
+kernel = CategoricalHyperparameter("kernel", ["rbf", "poly", "sigmoid"])
 kernel_condition = EqualsCondition(kernel, classifier, "svm")
-C = UniformFloatHyperparameter("C", 0.03125, 32768)
+C = UniformFloatHyperparameter("C", 0.03125, 32768, log=True)
 C_condition = EqualsCondition(C, classifier, "svm")
-gamma = UniformFloatHyperparameter("gamma", 0.000030518, 8)
+gamma = UniformFloatHyperparameter("gamma", 0.000030518, 8, log=True)
 gamma_condition = EqualsCondition(gamma, kernel, "rbf")
+degree = UniformIntegerHyperparameter("degree", 1, 5)
+degree_condition = InCondition(degree, kernel, ["poly", "sigmoid"])
 neurons = UniformIntegerHyperparameter("neurons", 16, 1024)
 neurons_condition = EqualsCondition(neurons, classifier, "nn")
 lr = UniformFloatHyperparameter("lr", 0.0001, 1.0)
@@ -51,12 +53,14 @@ conditional_space.add_hyperparameter(classifier)
 conditional_space.add_hyperparameter(kernel)
 conditional_space.add_hyperparameter(C)
 conditional_space.add_hyperparameter(gamma)
+conditional_space.add_hyperparameter(degree)
 conditional_space.add_hyperparameter(neurons)
 conditional_space.add_hyperparameter(lr)
 conditional_space.add_hyperparameter(preprocessing)
 conditional_space.add_condition(kernel_condition)
 conditional_space.add_condition(C_condition)
 conditional_space.add_condition(gamma_condition)
+conditional_space.add_condition(degree_condition)
 conditional_space.add_condition(neurons_condition)
 conditional_space.add_condition(lr_condition)
 
@@ -108,15 +112,17 @@ class TestPCSConverter(unittest.TestCase):
         # More complex search space as string array
         complex_cs = list()
         complex_cs.append("classifier {svm, nn} [svm]")
-        complex_cs.append("kernel {rbf, linear} [rbf]")
+        complex_cs.append("kernel {rbf, poly, sigmoid} [rbf]")
         complex_cs.append("kernel | classifier in {svm}")
-        complex_cs.append("C [0.03125, 32768] [100] # Should be base 2")
+        complex_cs.append("C [0.03125, 32768] [32]l")
         complex_cs.append("C | classifier in {svm}")
-        complex_cs.append("gamma [0.000030518, 8] [2] # Should be base=2")
+        complex_cs.append("gamma [0.000030518, 8] [0.0156251079996]l")
         complex_cs.append("gamma | kernel in {rbf}")
-        complex_cs.append("neurons [16, 1024] [100]i # Should be Q16")
+        complex_cs.append("degree [1, 5] [3]i")
+        complex_cs.append("degree | kernel in {poly, sigmoid}")
+        complex_cs.append("neurons [16, 1024] [520]i # Should be Q16")
         complex_cs.append("neurons | classifier in {nn}")
-        complex_cs.append("lr [0.0001, 1.0] [0.5]")
+        complex_cs.append("lr [0.0001, 1.0] [0.50005]")
         complex_cs.append("lr | classifier in {nn}")
         complex_cs.append("preprocessing {None, pca} [None]")
 
