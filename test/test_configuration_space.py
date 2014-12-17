@@ -167,11 +167,9 @@ class TestConfigurationSpace(unittest.TestCase):
         cond1 = EqualsCondition(hp2, hp1, 1)
         cs.add_condition(cond1)
         self.assertEqual([hp1, hp2], cs.get_hyperparameters())
-        self.assertEqual([hp2, hp1], cs.get_hyperparameters(
-            order='dfs_postorder'))
         # TODO: I need more tests for the topological sort!
         self.assertEqual([hp1, hp2], cs.get_hyperparameters(
-            order='topological'))
+            order='topologic'))
 
     def test_get_hyperparameters_topological_sort(self):
         cs = ConfigurationSpace()
@@ -214,8 +212,13 @@ class TestConfigurationSpace(unittest.TestCase):
         cs.add_condition(cond5)
         cs.add_condition(conj3)
 
-        self.assertEqual([hp1, hp2, hp3, hp5, hp4, hp6],
-                         cs.get_hyperparameters(order='topological'))
+        hps = cs.get_hyperparameters(order='topologic')
+        self.assertGreater(hps.index(hp6), hps.index(hp5))
+        self.assertGreater(hps.index(hp6), hps.index(hp4))
+        self.assertGreater(hps.index(hp6), hps.index(hp3))
+        self.assertGreater(hps.index(hp6), hps.index(hp2))
+        self.assertGreater(hps.index(hp6), hps.index(hp1))
+
 
     def test_get_hyperparameter(self):
         cs = ConfigurationSpace()
@@ -320,9 +323,11 @@ class TestConfigurationSpace(unittest.TestCase):
                              False, True]
 
         for idx, values in enumerate(product([0, 1], repeat=5)):
-            # The first hyperparameter returned is the Constant!
-            instantiations = [cs.get_hyperparameters(order='topological')
-                              [jdx].instantiate(values[jdx])
+            # The hyperparameters aren't sorted, but the test assumes them to
+            #  be sorted.
+            hyperparameters = sorted(cs.get_hyperparameters(order='topologic'),
+                                     key=lambda t: t.name)
+            instantiations = [hyperparameters[jdx+1].instantiate(values[jdx])
                               for jdx in range(len(values))]
 
             evaluation = conj3.evaluate(instantiations)

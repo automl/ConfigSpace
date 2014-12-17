@@ -28,13 +28,13 @@ class RandomSampler(object):
 
     def sample_configuration(self):
         # TODO: this is straightforward, but slow. It would make more sense
-        # to have a list of conditions, which are sorted topologicoly by the
+        # to have a list of conditions, which are sorted topological by the
         # appearence of their children
         iteration = 0
         while True:
             instantiated_hyperparameters = {}
             hyperparameters = self.configuration_space.get_hyperparameters(
-                order="topological")
+                order="topologic")
             for hyperparameter in hyperparameters:
                 conditions =  self.configuration_space.get_parents_of(
                     hyperparameter.name)

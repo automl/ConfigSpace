@@ -160,28 +160,21 @@ class ConfigurationSpace(object):
         HPOlibConfigSpace.nx.draw(self._dg, pos, with_labels=True)
         plt.savefig('nx_test.png')
 
-    def get_hyperparameters(self, order='dfs_preorder'):
-        sorted_dag = self._dg.copy()
-
+    def get_hyperparameters(self, order=None):
+        # TODO this was too expensive!
+        #sorted_dag = self._dg.copy()
         # The children of a node are traversed in a random order. Therefore,
         # copy the graph, sort the children and then traverse it
-        for adj in sorted_dag.adj:
-            sorted_dag.adj[adj] = OrderedDict(
-                sorted(sorted_dag.adj[adj].items(), key=lambda item: item[0]))
-        sorted_dag.node = OrderedDict(
-            sorted(sorted_dag.node.items(), key=lambda item: item[0]))
+        #for adj in sorted_dag.adj:
+        #    sorted_dag.adj[adj] = OrderedDict(
+        #        sorted(sorted_dag.adj[adj].items(), key=lambda item: item[0]))
+        #sorted_dag.node = OrderedDict(
+        #    sorted(sorted_dag.node.items(), key=lambda item: item[0]))
 
-        # If needed, preorder can be exchanged with postorder
-        if order == 'dfs_preorder':
-            nodes = HPOlibConfigSpace.nx.algorithms.traversal.\
-                dfs_preorder_nodes(sorted_dag,
-                source='__HPOlib_configuration_space_root__')
-        elif order == 'dfs_postorder':
-            nodes = HPOlibConfigSpace.nx.algorithms.traversal\
-                .dfs_postorder_nodes(sorted_dag,
-                source='__HPOlib_configuration_space_root__')
-        elif order == 'topological':
-            nodes = HPOlibConfigSpace.nx.algorithms.topological_sort(sorted_dag)
+        if order is None:
+            nodes = self._dg.node
+        elif order == 'topologic':
+            nodes = HPOlibConfigSpace.nx.algorithms.topological_sort(self._dg)
         else:
             raise NotImplementedError()
 
@@ -262,7 +255,7 @@ class ConfigurationSpace(object):
         # Check if adding that hyperparameter leads to an illegal default
         # configuration:
         instantiated_hyperparameters = {}
-        for hp in self.get_hyperparameters(order='topological'):
+        for hp in self.get_hyperparameters(order='topologic'):
             conditions = self.get_parents_of(hp.name)
             active = True
             for condition in conditions:
@@ -305,7 +298,7 @@ class ConfigurationSpace(object):
             raise TypeError("The method check_configuration must be called "
                             "with an instance of %s." % Configuration)
 
-        hyperparameters = self.get_hyperparameters(order="topological")
+        hyperparameters = self.get_hyperparameters(order="topologic")
         for hyperparameter in hyperparameters:
             ihp = configuration[hyperparameter.name]
 
@@ -442,7 +435,7 @@ class Configuration(object):
         repr.write("Configuration:\n")
 
         hyperparameters = self.configuration_space.get_hyperparameters(
-            order='topological')
+            order='topologic')
         for hyperparameter in hyperparameters:
             if hyperparameter.name in self.values:
                 repr.write("  ")
