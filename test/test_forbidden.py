@@ -52,6 +52,8 @@ class TestForbidden(unittest.TestCase):
                                 "forbidden clause; you are missing "
                                 "'parent'", forb1.is_forbidden,
                                 [InstantiatedCategoricalHyperparameter(1, hp2)])
+        self.assertFalse(forb1.is_forbidden([
+            InstantiatedCategoricalHyperparameter(1, hp2)], strict=False))
 
         self.assertFalse(forb1.is_forbidden([
             InstantiatedCategoricalHyperparameter(0, hp1)]))
@@ -98,6 +100,8 @@ class TestForbidden(unittest.TestCase):
                                 "forbidden clause; you are missing "
                                 "'child'", forb1.is_forbidden,
                                 [InstantiatedCategoricalHyperparameter(1, hp1)])
+        self.assertFalse(forb1.is_forbidden(
+            [InstantiatedCategoricalHyperparameter(1, hp1)], strict=False))
 
         for i in range(0, 5):
             self.assertFalse(forb1.is_forbidden([
@@ -150,3 +154,5 @@ class TestForbidden(unittest.TestCase):
                  InstantiatedUniformIntegerHyperparameter(values[3], hp4)])
 
             self.assertEqual(results[i], is_forbidden)
+
+            self.assertFalse(total_and.is_forbidden([], strict=False))

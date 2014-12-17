@@ -378,8 +378,8 @@ class TestConfigurationSpace(unittest.TestCase):
         cs.add_condition(metric_depends_on_classifier)
         cs.add_condition(p_depends_on_metric)
 
-        #forbidden = ForbiddenEqualsClause(metric, "other")
-        #cs.add_forbidden_clause(forbidden)
+        forbidden = ForbiddenEqualsClause(metric, "other")
+        cs.add_forbidden_clause(forbidden)
 
         configuration = Configuration(cs, classifier="extra_trees")
 

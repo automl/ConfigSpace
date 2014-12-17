@@ -64,7 +64,7 @@ class SingleValueForbiddenClause(AbstractForbiddenClause):
         else:
             return True
 
-    def is_forbidden(self, instantiated_hyperparameters):
+    def is_forbidden(self, instantiated_hyperparameters, strict=True):
         target_ihp = None
         for ihp in instantiated_hyperparameters:
             if not isinstance(ihp, InstantiatedHyperparameter):
@@ -75,10 +75,13 @@ class SingleValueForbiddenClause(AbstractForbiddenClause):
                 target_ihp = ihp
 
         if target_ihp is None:
-            raise ValueError("Is_forbidden must be called with the "
-                             "instanstatiated hyperparameter in the "
-                             "forbidden clause; you are missing "
-                             "'%s'" % self.hyperparameter.name)
+            if strict:
+                raise ValueError("Is_forbidden must be called with the "
+                                 "instanstatiated hyperparameter in the "
+                                 "forbidden clause; you are missing "
+                                 "'%s'" % self.hyperparameter.name)
+            else:
+                return False
 
         return self._is_forbidden(target_ihp)
 
@@ -111,7 +114,7 @@ class MultipleValueForbiddenClause(AbstractForbiddenClause):
         else:
             return True
 
-    def is_forbidden(self, instantiated_hyperparameters):
+    def is_forbidden(self, instantiated_hyperparameters, strict=True):
         target_ihp = None
         for ihp in instantiated_hyperparameters:
             if not isinstance(ihp, InstantiatedHyperparameter):
@@ -122,10 +125,13 @@ class MultipleValueForbiddenClause(AbstractForbiddenClause):
                 target_ihp = ihp
 
         if target_ihp is None:
-            raise ValueError("Is_forbidden must be called with the "
-                             "instanstatiated hyperparameter in the "
-                             "forbidden clause; you are missing "
-                             "'%s'." % self.hyperparameter.name)
+            if strict:
+                raise ValueError("Is_forbidden must be called with the "
+                                 "instanstatiated hyperparameter in the "
+                                 "forbidden clause; you are missing "
+                                 "'%s'." % self.hyperparameter.name)
+            else:
+                return False
 
         return self._is_forbidden(target_ihp)
 
@@ -195,7 +201,7 @@ class AbstractForbiddenConjunction(AbstractForbiddenComponent):
                 children.append(component)
         return children
 
-    def is_forbidden(self, instantiated_hyperparameters):
+    def is_forbidden(self, instantiated_hyperparameters, strict=True):
         ihp_names = []
         for ihp in instantiated_hyperparameters:
             if not isinstance(ihp, InstantiatedHyperparameter):
@@ -207,17 +213,21 @@ class AbstractForbiddenConjunction(AbstractForbiddenComponent):
         dlcs = self.get_descendant_literal_clauses()
         for dlc in dlcs:
             if dlc.hyperparameter.name not in ihp_names:
-                raise ValueError("Is_forbidden must be called with all "
-                                 "instanstatiated hyperparameters in the and conjunction of "
-                                 "forbidden clauses; you are (at least) missing "
-                                 "'%s'" % dlc.hyperparameter.name)
+                if strict:
+                    raise ValueError("Is_forbidden must be called with all "
+                                     "instanstatiated hyperparameters in the and conjunction of "
+                                     "forbidden clauses; you are (at least) missing "
+                                     "'%s'" % dlc.hyperparameter.name)
+                else:
+                    return False
 
         # Finally, call is_forbidden for all direct descendents and combine the
         # outcomes
         evaluations = []
         for component in self.components:
             # If it's a condition, we must only pass the parent hyperparameter
-            e = component.is_forbidden(instantiated_hyperparameters)
+            e = component.is_forbidden(instantiated_hyperparameters,
+                                       strict=strict)
             evaluations.append(e)
 
         return self._is_forbidden(evaluations)

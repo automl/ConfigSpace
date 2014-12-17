@@ -352,7 +352,7 @@ class ConfigurationSpace(object):
         # Check if all forbidden clauses are satisfied
         # TODO check if AutoSklearn default would be a legal!
         for clause in self.forbidden_clauses:
-            if clause.is_forbidden(configuration):
+            if clause.is_forbidden(configuration, strict=False):
                 raise ValueError("%sviolates forbidden clause %s" % (
                     str(configuration), str(clause)))
 
