@@ -62,7 +62,9 @@ pp_forbidden_clause = "{" + pp_param_name + "=" + pp_numberorname + \
 
 def build_categorical(param):
     cat_template = "%s {%s} [%s]"
-    return cat_template % (param.name, ", ".join(param.choices), param.default)
+    return cat_template % (param.name,
+                           ", ".join([str(value) for value in param.choices]),
+                           str(param.default))
 
 
 def build_constant(param):
