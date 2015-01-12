@@ -430,6 +430,15 @@ class Configuration(object):
     def __contains__(self, item):
         return item in self.values
 
+    def __eq__(self, other):
+        if type(self) != type(other):
+            return False
+        elif self.configuration_space != other.configuration_space:
+            return False
+        else:
+            # TODO: this is a pretty bad equality test
+            return self.__repr__() == other.__repr__()
+
     def __repr__(self):
         repr = StringIO.StringIO()
         repr.write("Configuration:\n")

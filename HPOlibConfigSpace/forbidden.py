@@ -229,7 +229,6 @@ class AbstractForbiddenConjunction(AbstractForbiddenComponent):
             e = component.is_forbidden(instantiated_hyperparameters,
                                        strict=strict)
             evaluations.append(e)
-
         return self._is_forbidden(evaluations)
 
     @abstractmethod
