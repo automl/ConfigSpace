@@ -31,7 +31,8 @@ from HPOlibConfigSpace.configuration_space import ConfigurationSpace
 import HPOlibConfigSpace.converters.pcs_parser as pcs_parser
 from HPOlibConfigSpace.hyperparameters import CategoricalHyperparameter, \
     UniformIntegerHyperparameter, UniformFloatHyperparameter
-from HPOlibConfigSpace.conditions import EqualsCondition, InCondition
+from HPOlibConfigSpace.conditions import EqualsCondition, InCondition, \
+    AndConjunction
 
 # More complex search space
 classifier = CategoricalHyperparameter("classifier", ["svm", "nn"])
@@ -128,6 +129,17 @@ class TestPCSConverter(unittest.TestCase):
 
         cs = pcs_parser.read(complex_cs)
         self.assertEqual(cs, conditional_space)
+
+    def test_read_configuration_space_conditional_with_two_parents(self):
+        pcs = list()
+        pcs.append("@1:0:restarts {F,L,D,x,+,no}[x]")
+        pcs.append("@1:S:Luby:aryrestarts {1,2}[1]")
+        pcs.append("@1:2:Luby:restarts [1,65535][1000]il")
+        pcs.append("@1:2:Luby:restarts | @1:0:restarts in {L}")
+        pcs.append("@1:2:Luby:restarts | @1:S:Luby:aryrestarts in {2}")
+        cs = pcs_parser.read(pcs)
+        self.assertEqual(len(cs.get_conditions()), 1)
+        self.assertIsInstance(cs.get_conditions()[0], AndConjunction)
 
     def test_write_illegal_argument(self):
         sp = {"a": int_a}
