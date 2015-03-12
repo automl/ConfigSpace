@@ -21,6 +21,7 @@
 __authors__ = ["Katharina Eggensperger", "Matthias Feurer"]
 __contact__ = "automl.org"
 
+from collections import defaultdict
 import StringIO
 import sys
 
@@ -258,20 +259,35 @@ def read(pcs_string, debug=False):
             *clause_list))
 
     #Now handle conditions
+    # If there are two conditions for one child, these two conditions are an
+    # AND-conjunction of conditions, thus we have to connect them
+    conditions_per_child = defaultdict(list)
     for condition in conditions:
         child_name = condition[0]
-        child = configuration_space.get_hyperparameter(child_name)
-        parent_name = condition[2]
-        parent = configuration_space.get_hyperparameter(parent_name)
-        restrictions = condition[5:-1:2]
+        conditions_per_child[child_name].append(condition)
 
-        # TODO: cast the type of the restriction!
-        if len(restrictions) == 1:
-            condition = EqualsCondition(child, parent, restrictions[0])
+    for child_name in conditions_per_child:
+        condition_objects = []
+        for condition in conditions_per_child[child_name]:
+            child = configuration_space.get_hyperparameter(child_name)
+            parent_name = condition[2]
+            parent = configuration_space.get_hyperparameter(parent_name)
+            restrictions = condition[5:-1:2]
+
+            # TODO: cast the type of the restriction!
+            if len(restrictions) == 1:
+                condition = EqualsCondition(child, parent, restrictions[0])
+            else:
+                condition = InCondition(child, parent, values=restrictions)
+            condition_objects.append(condition)
+
+        # Now we have all condition objects for this child, so we can build a
+        #  giant AND-conjunction of them (if number of conditions >= 2)!
+        if len(condition_objects) > 1:
+            and_conjunction = AndConjunction(*condition_objects)
+            configuration_space.add_condition(and_conjunction)
         else:
-            condition = InCondition(child, parent, values=restrictions)
-
-        configuration_space.add_condition(condition)
+            configuration_space.add_condition(condition_objects[0])
 
     if debug:
         print
