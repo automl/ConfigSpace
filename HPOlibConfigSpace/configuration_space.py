@@ -231,13 +231,19 @@ class ConfigurationSpace(object):
         self.get_hyperparameter(name)
 
         edges = []
+        for source, target in self._dg.edge.items():
+            if source == "__HPOlib_configuration_space_root__":
+                pass
+            elif name in target:
+                edges.append(self._dg[source][name]['condition'])
+
         # Nodes is a list of nodes
-        for source_node in self.get_hyperparameters():
+        #for source_node in self.get_hyperparameters():
             # This is a list of keys in a dictionary
-            for target_node_name in self._dg.edge[source_node.name]:
-                if target_node_name == name:
-                    edges.append(self._dg[source_node.name][target_node_name][
-                        'condition'])
+        #    for target_node_name in self._dg.edge[source_node.name]:
+        #        if target_node_name == name:
+        #            edges.append(self._dg[source_node.name][target_node_name][
+        #                'condition'])
 
         return edges
 
