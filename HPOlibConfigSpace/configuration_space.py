@@ -21,7 +21,7 @@
 __authors__ = ["Katharina Eggensperger", "Matthias Feurer"]
 __contact__ = "automl.org"
 
-from collections import deque, OrderedDict
+from collections import defaultdict
 import StringIO
 
 import HPOlibConfigSpace.nx
@@ -291,8 +291,7 @@ class ConfigurationSpace(object):
 
             # TODO copy paste from check configuration
 
-
-        # TODO get an extra Exception type for the case that the default
+        # TODO add an extra Exception type for the case that the default
         # configuration is forbidden!
         return Configuration(self, **instantiated_hyperparameters)
 
@@ -349,10 +348,10 @@ class ConfigurationSpace(object):
                                  (ihp.hyperparameter.name, ihp))
 
         # Check if all forbidden clauses are satisfied
-        # TODO check if AutoSklearn default would be a legal!
         for clause in self.forbidden_clauses:
             if clause.is_forbidden(configuration, strict=False):
-                raise ValueError("%sviolates forbidden clause %s" % (
+                raise ValueError("Default %sviolates "
+                                 "forbidden clause %s" % (
                     str(configuration), str(clause)))
 
     def __eq__(self, other):
