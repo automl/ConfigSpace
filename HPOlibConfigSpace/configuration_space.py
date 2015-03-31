@@ -21,7 +21,7 @@
 __authors__ = ["Katharina Eggensperger", "Matthias Feurer"]
 __contact__ = "automl.org"
 
-from collections import deque, OrderedDict
+from collections import defaultdict
 import StringIO
 
 import HPOlibConfigSpace.nx
@@ -231,13 +231,19 @@ class ConfigurationSpace(object):
         self.get_hyperparameter(name)
 
         edges = []
+        for source, target in self._dg.edge.items():
+            if source == "__HPOlib_configuration_space_root__":
+                pass
+            elif name in target:
+                edges.append(self._dg[source][name]['condition'])
+
         # Nodes is a list of nodes
-        for source_node in self.get_hyperparameters():
+        #for source_node in self.get_hyperparameters():
             # This is a list of keys in a dictionary
-            for target_node_name in self._dg.edge[source_node.name]:
-                if target_node_name == name:
-                    edges.append(self._dg[source_node.name][target_node_name][
-                        'condition'])
+        #    for target_node_name in self._dg.edge[source_node.name]:
+        #        if target_node_name == name:
+        #            edges.append(self._dg[source_node.name][target_node_name][
+        #                'condition'])
 
         return edges
 
@@ -285,8 +291,7 @@ class ConfigurationSpace(object):
 
             # TODO copy paste from check configuration
 
-
-        # TODO get an extra Exception type for the case that the default
+        # TODO add an extra Exception type for the case that the default
         # configuration is forbidden!
         return Configuration(self, **instantiated_hyperparameters)
 
@@ -343,10 +348,10 @@ class ConfigurationSpace(object):
                                  (ihp.hyperparameter.name, ihp))
 
         # Check if all forbidden clauses are satisfied
-        # TODO check if AutoSklearn default would be a legal!
         for clause in self.forbidden_clauses:
             if clause.is_forbidden(configuration, strict=False):
-                raise ValueError("%sviolates forbidden clause %s" % (
+                raise ValueError("Default %sviolates "
+                                 "forbidden clause %s" % (
                     str(configuration), str(clause)))
 
     def __eq__(self, other):
