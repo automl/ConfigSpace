@@ -350,7 +350,7 @@ class ConfigurationSpace(object):
         # Check if all forbidden clauses are satisfied
         for clause in self.forbidden_clauses:
             if clause.is_forbidden(configuration, strict=False):
-                raise ValueError("Default %sviolates "
+                raise ValueError("%sviolates "
                                  "forbidden clause %s" % (
                     str(configuration), str(clause)))
 
