@@ -33,6 +33,8 @@ from HPOlibConfigSpace.hyperparameters import CategoricalHyperparameter, \
     UniformIntegerHyperparameter, UniformFloatHyperparameter
 from HPOlibConfigSpace.conditions import EqualsCondition, InCondition, \
     AndConjunction
+from HPOlibConfigSpace.forbidden import ForbiddenEqualsClause, \
+    ForbiddenInClause, ForbiddenAndConjunction
 
 # More complex search space
 classifier = CategoricalHyperparameter("classifier", ["svm", "nn"])
@@ -186,3 +188,17 @@ class TestPCSConverter(unittest.TestCase):
             UniformFloatHyperparameter("a", 10, 1000, log=True))
         value = pcs_parser.write(cs)
         self.assertEqual(expected, value)
+
+    def test_build_forbidden(self):
+        expected = "{a=a, b=a}\n{a=a, b=b}\n{a=b, b=a}\n{a=b, b=b}"
+        cs = ConfigurationSpace()
+        a = CategoricalHyperparameter("a", ["a", "b", "c"], "a")
+        b = CategoricalHyperparameter("b", ["a", "b", "c"], "c")
+        cs.add_hyperparameter(a)
+        cs.add_hyperparameter(b)
+        fb = ForbiddenAndConjunction(ForbiddenInClause(a, ["a", "b"]),
+                                     ForbiddenInClause(b, ["a", "b"]))
+        cs.add_forbidden_clause(fb)
+        value = pcs_parser.write(cs)
+        self.assertIn(expected, value)
+

@@ -68,8 +68,32 @@ class Constant(Hyperparameter):
             return False
 
     def instantiate(self, value):
-        if value != self.value:
-            raise ValueError("Cannot instantiate a constant with a new value!")
+        # First check if value is illgal, try to convert it to int/float
+        # afterwards because this takes a lot of time
+        error = True
+        if value == self.value:
+            error = False
+        else:
+            try:
+                value_ = float(value)
+                if value_ == self.value:
+                    error = False
+            except ValueError:
+                pass
+
+            try:
+                value_ = int(value)
+                if value_ == self.value:
+                    error = False
+            except ValueError:
+                pass
+
+        if error is True:
+            raise ValueError("Cannot instantiate a constant %s of type %s with "
+                             "new value %s of type %s!" %
+                             (str(self.value), str(type(self.value)),
+                              str(value), str(type(value))))
+
         return InstantiatedConstant(self.value, self)
 
     def is_legal(self, value):

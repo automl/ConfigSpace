@@ -22,6 +22,7 @@ __authors__ = ["Katharina Eggensperger", "Matthias Feurer"]
 __contact__ = "automl.org"
 
 from collections import defaultdict
+from itertools import product
 import StringIO
 import sys
 
@@ -36,7 +37,7 @@ from HPOlibConfigSpace.hyperparameters import CategoricalHyperparameter, \
 from HPOlibConfigSpace.conditions import EqualsCondition, NotEqualsCondition,\
     InCondition, AndConjunction, OrConjunction, ConditionComponent
 from HPOlibConfigSpace.forbidden import ForbiddenEqualsClause, \
-    ForbiddenAndConjunction, ForbiddenInClause, AbstractForbiddenComponent
+    ForbiddenAndConjunction, ForbiddenInClause, AbstractForbiddenComponent, MultipleValueForbiddenClause
 
 
 # Build pyparsing expressions for params
@@ -343,7 +344,33 @@ def write(configuration_space):
     for forbidden_clause in configuration_space.forbidden_clauses:
         if forbidden_lines.tell() > 0:
             forbidden_lines.write("\n")
-        forbidden_lines.write(build_forbidden(forbidden_clause))
+        # Convert in-statement into two or more equals statements
+        dlcs = forbidden_clause.get_descendant_literal_clauses()
+        # First, get all in statements and convert them to equal statements
+        in_statements = []
+        other_statements = []
+        for dlc in dlcs:
+            if isinstance(dlc, MultipleValueForbiddenClause):
+                if not isinstance(dlc, ForbiddenInClause):
+                    raise ValueError("SMAC cannot handle this forbidden "
+                                     "clause: %s" % dlc)
+                in_statements.append(
+                    [ForbiddenEqualsClause(dlc.hyperparameter, value)
+                     for value in dlc.values])
+            else:
+                other_statements.append(dlc)
+
+        # Second, create the product of all elements in the IN statements,
+        # create a ForbiddenAnd and add all ForbiddenEquals
+        if len(in_statements) > 0:
+            for i, p in enumerate(product(*in_statements)):
+                if i > 0:
+                    forbidden_lines.write("\n")
+                all_forbidden_clauses = list(p) + other_statements
+                f = ForbiddenAndConjunction(*all_forbidden_clauses)
+                forbidden_lines.write(build_forbidden(f))
+        else:
+            forbidden_lines.write(build_forbidden(forbidden_clause))
 
     if condition_lines.tell() > 0:
         condition_lines.seek(0)
