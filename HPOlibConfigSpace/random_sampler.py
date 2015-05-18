@@ -33,11 +33,10 @@ class RandomSampler(object):
         iteration = 0
         while True:
             instantiated_hyperparameters = {}
-            hyperparameters = self.configuration_space.get_hyperparameters(
-                order="topologic")
+            hyperparameters = self.configuration_space.get_hyperparameters()
             for hyperparameter in hyperparameters:
-                conditions =  self.configuration_space.get_parents_of(
-                    hyperparameter.name)
+                conditions =  self.configuration_space.\
+                    _get_parent_conditions_of(hyperparameter.name)
                 # TODO this conditions should all be equal, are they actually?
                 add = True
                 for condition in conditions:

@@ -21,7 +21,7 @@
 __authors__ = ["Katharina Eggensperger", "Matthias Feurer"]
 __contact__ = "automl.org"
 
-from collections import defaultdict
+from collections import defaultdict, OrderedDict
 import StringIO
 
 import HPOlibConfigSpace.nx
@@ -41,8 +41,9 @@ class ConfigurationSpace(object):
     """Represent a configuration space.
     """
     def __init__(self):
-        self._dg = HPOlibConfigSpace.nx.DiGraph()
-        self._dg.add_node('__HPOlib_configuration_space_root__')
+        self._hyperparameters = OrderedDict()
+        self._children = defaultdict(dict)
+        self._parents = defaultdict(dict)
         self.forbidden_clauses = []
 
     def add_hyperparameter(self, hyperparameter):
@@ -60,13 +61,15 @@ class ConfigurationSpace(object):
 
         # Check if adding the hyperparameter is legal:
         # * Its name must not already exist
-        if hyperparameter.name in self._dg.node:
+        if hyperparameter.name in self._hyperparameters:
             raise ValueError("Hyperparameter '%s' is already in the "
                              "configuration space." % hyperparameter.name)
 
-        self._dg.add_node(hyperparameter.name, hyperparameter=hyperparameter)
-        self._dg.add_edge('__HPOlib_configuration_space_root__',
-                          hyperparameter.name)
+        self._hyperparameters[hyperparameter.name] = hyperparameter
+        self._children['__HPOlib_configuration_space_root__'][
+            hyperparameter.name] = None
+        self._parents[hyperparameter.name][
+            '__HPOlib_configuration_space_root__'] = None
 
         self._check_default_configuration()
 
@@ -90,11 +93,7 @@ class ConfigurationSpace(object):
 
         # Loop over the Conjunctions to find out the conditions we must add!
         elif isinstance(condition, AbstractConjunction):
-            # The variable name child is misleading; this is a child in the
-            # nested condition. Actually, these are the literal conditions!
-            conditions_to_add = []
             for dlc in condition.get_descendant_literal_conditions():
-                conditions_to_add.append(dlc)
                 self._check_edge(dlc.parent.name,
                                  dlc.child.name,
                                  condition=condition)
@@ -109,40 +108,78 @@ class ConfigurationSpace(object):
         self._check_edge(parent_node, child_node, condition)
         try:
             # TODO maybe this has to be done more carefully
-            self._dg.remove_edge('__HPOlib_configuration_space_root__',
-                                 child_node)
+            del self._children['__HPOlib_configuration_space_root__'][child_node]
         except:
             pass
 
-        self._dg.add_edge(parent_node, child_node,
-                          condition=condition)
+        try:
+            del self._parents[child_node]['__HPOlib_configuration_space_root__']
+        except:
+            pass
+
+        self._children[parent_node][child_node] = condition
+        self._parents[child_node][parent_node] = condition
+        self._sort_hyperparameters()
 
     def _check_edge(self, parent_node, child_node, condition):
         # check if both nodes are already inserted into the graph
-        if child_node not in self._dg.nodes():
+        if child_node not in self._hyperparameters:
             raise ValueError("Child hyperparameter '%s' not in configuration "
                              "space." % (child_node))
-        if parent_node not in self._dg.nodes():
+        if parent_node not in self._hyperparameters:
             raise ValueError("Parent hyperparameter '%s' not in configuration "
                              "space." % parent_node)
 
         # TODO: recursively check everything which is inside the conditions,
         # this means we have to recursively traverse the condition
 
-        tmp_dag = self._dg.copy()
-        tmp_dag.add_edge(parent_node, child_node, condition=condition)
+        tmp_dag = self._create_tmp_dag()
+        tmp_dag.add_edge(parent_node, child_node)
+
         if not HPOlibConfigSpace.nx.is_directed_acyclic_graph(tmp_dag):
             cycles = list(HPOlibConfigSpace.nx.simple_cycles(tmp_dag))
             raise ValueError("Hyperparameter configuration contains a "
                              "cycle %s" % str(cycles))
 
-        for other_condition in self.get_parents_of(child_node):
+        for other_condition in self._get_parent_conditions_of(child_node):
             if other_condition != condition:
                 raise ValueError("Adding a second condition (different) for a "
                                  "hyperparameter is ambigouos and "
                                  "therefore forbidden. Add a conjunction "
                                  "instead!\nAlready inserted: %s\nNew one: "
                                  "%s" % (str(other_condition), str(condition)))
+
+    def _sort_hyperparameters(self):
+        tmp_dag = self._create_tmp_dag()
+        nodes = HPOlibConfigSpace.nx.algorithms.topological_sort(tmp_dag)
+        nodes = [node for node in nodes if
+                 node != '__HPOlib_configuration_space_root__']
+
+        # Resort the OrderedDict
+        for node in nodes:
+            hp = self._hyperparameters[node]
+            del self._hyperparameters[node]
+            self._hyperparameters[node] = hp
+
+    def _create_tmp_dag(self):
+        tmp_dag = HPOlibConfigSpace.nx.DiGraph()
+        for hp_name in self._hyperparameters:
+            tmp_dag.add_node(hp_name)
+            tmp_dag.add_edge('__HPOlib_configuration_space_root__', hp_name)
+
+        for parent_node_ in self._children:
+            if parent_node_ == '__HPOlib_configuration_space_root__':
+                continue
+            for child_node_ in self._children[parent_node_]:
+                try:
+                    tmp_dag.remove_edge('__HPOlib_configuration_space_root__',
+                                        child_node_)
+                except:
+                    pass
+                condition = self._children[parent_node_][child_node_]
+                tmp_dag.add_edge(parent_node_, child_node_, condition=condition)
+
+        return tmp_dag
 
     def add_forbidden_clause(self, clause):
         if not isinstance(clause, AbstractForbiddenComponent):
@@ -152,47 +189,28 @@ class ConfigurationSpace(object):
         self.forbidden_clauses.append(clause)
         self._check_default_configuration()
 
-    def print_configuration_space(self):
-        HPOlibConfigSpace.nx.write_dot(self._dg, "hyperparameters.dot")
-        import matplotlib.pyplot as plt
-        plt.title("draw_networkx")
-        pos = HPOlibConfigSpace.nx.graphviz_layout(DG, prog='dot')
-        HPOlibConfigSpace.nx.draw(self._dg, pos, with_labels=True)
-        plt.savefig('nx_test.png')
+    # def print_configuration_space(self):
+    #     HPOlibConfigSpace.nx.write_dot(self._dg, "hyperparameters.dot")
+    #     import matplotlib.pyplot as plt
+    #     plt.title("draw_networkx")
+    #     pos = HPOlibConfigSpace.nx.graphviz_layout(DG, prog='dot')
+    #     HPOlibConfigSpace.nx.draw(self._dg, pos, with_labels=True)
+    #     plt.savefig('nx_test.png')
 
-    def get_hyperparameters(self, order=None):
-        # TODO this was too expensive!
-        #sorted_dag = self._dg.copy()
-        # The children of a node are traversed in a random order. Therefore,
-        # copy the graph, sort the children and then traverse it
-        #for adj in sorted_dag.adj:
-        #    sorted_dag.adj[adj] = OrderedDict(
-        #        sorted(sorted_dag.adj[adj].items(), key=lambda item: item[0]))
-        #sorted_dag.node = OrderedDict(
-        #    sorted(sorted_dag.node.items(), key=lambda item: item[0]))
-
-        if order is None:
-            nodes = self._dg.node
-        elif order == 'topologic':
-            nodes = HPOlibConfigSpace.nx.algorithms.topological_sort(self._dg)
-        else:
-            raise NotImplementedError()
-
-        nodes = [self._dg.node[node]['hyperparameter'] for node in nodes if
-                 node != '__HPOlib_configuration_space_root__']
-
-        return nodes
+    def get_hyperparameters(self):
+        return self._hyperparameters.values()
 
     def get_hyperparameter(self, name):
-        for node in self._dg.node:
-            if node != '__HPOlib_configuration_space_root__' and node == name:
-                return self._dg.node[node]['hyperparameter']
+        hp = self._hyperparameters.get(name)
 
-        raise KeyError("Hyperparameter '%s' does not exist in this "
-                       "configuration space." % name)
+        if hp is None:
+            raise KeyError("Hyperparameter '%s' does not exist in this "
+                           "configuration space." % name)
+        else:
+            return hp
 
     def get_conditions(self):
-        edges = []
+        conditions = []
         added_conditions = set()
 
         # Nodes is a list of nodes
@@ -200,58 +218,76 @@ class ConfigurationSpace(object):
             # This is a list of keys in a dictionary
             # TODO sort the edges by the order of their source_node in the
             # hyperparameter list!
-            for target_node_name in self._dg.edge[source_node.name]:
-                condition_ = self._dg[source_node.name][target_node_name][
-                    'condition']
+            for target_node in self._children[source_node.name]:
+                if target_node not in added_conditions:
+                    condition = self._children[source_node.name][target_node]
+                    conditions.append(condition)
+                    added_conditions.add(target_node)
 
-                if condition_ not in added_conditions:
-                    edges.append(condition_)
-                    added_conditions.add(condition_)
-
-        return edges
+        return conditions
 
     def get_children_of(self, name):
+        conditions = self.get_child_conditions_of(name)
+        parents = []
+        for condition in conditions:
+            parents.append(condition.child)
+        return parents
+
+    def get_child_conditions_of(self, name):
         if isinstance(name, Hyperparameter):
             name = name.name
 
         # This raises an exception if the hyperparameter does not exist
         self.get_hyperparameter(name)
 
-        edges = []
-        for target_node_name in self._dg.edge[name]:
-            edges.append(self._dg[name][target_node_name][
-                'condition'])
-        return edges
+        conditions = []
+        for child_name in self._children[name]:
+            if child_name == "__HPOlib_configuration_space_root__":
+                continue
+            condition = self._children[name][child_name]
+            conditions.append(condition)
+        return conditions
 
     def get_parents_of(self, name):
+        """Return the parent hyperparameters of a given hyperparameter.
+
+        Parameters
+        ----------
+        name : str or Hyperparameter
+            Can either be the name of a hyperparameter or the hyperparameter
+            object.
+
+        Returns
+        -------
+        list
+            List with all parent hyperparameters.
+        """
+        conditions = self.get_parent_conditions_of(name)
+        parents = []
+        for condition in conditions:
+            parents.append(condition.parent)
+        return parents
+
+    def get_parent_conditions_of(self, name):
         if isinstance(name, Hyperparameter):
             name = name.name
 
         # This raises an exception if the hyperparameter does not exist
         self.get_hyperparameter(name)
+        return self._get_parent_conditions_of(name)
 
-        edges = []
-        for source, target in self._dg.edge.items():
-            if source == "__HPOlib_configuration_space_root__":
-                pass
-            elif name in target:
-                edges.append(self._dg[source][name]['condition'])
-
-        # Nodes is a list of nodes
-        #for source_node in self.get_hyperparameters():
-            # This is a list of keys in a dictionary
-        #    for target_node_name in self._dg.edge[source_node.name]:
-        #        if target_node_name == name:
-        #            edges.append(self._dg[source_node.name][target_node_name][
-        #                'condition'])
-
-        return edges
+    def _get_parent_conditions_of(self, name):
+        conditions = []
+        for parent_name in self._parents[name]:
+            if parent_name == "__HPOlib_configuration_space_root__":
+                continue
+            conditions.append(self._parents[name][parent_name])
+        return conditions
 
     def get_all_uncoditional_hyperparameters(self):
         hyperparameters = []
-        for target_node_name in self._dg.edge[
-                '__HPOlib_configuration_space_root__']:
-            hyperparameters.append(self._dg.node[target_node_name]['hyperparameter'])
+        for hp_name in self._children['__HPOlib_configuration_space_root__']:
+            hyperparameters.append(self._hyperparameters[hp_name])
         return hyperparameters
 
     def get_default_configuration(self):
@@ -261,8 +297,8 @@ class ConfigurationSpace(object):
         # Check if adding that hyperparameter leads to an illegal default
         # configuration:
         instantiated_hyperparameters = {}
-        for hp in self.get_hyperparameters(order='topologic'):
-            conditions = self.get_parents_of(hp.name)
+        for hp in self.get_hyperparameters():
+            conditions = self._get_parent_conditions_of(hp.name)
             active = True
             for condition in conditions:
                 parent_names = [c.parent.name for c in
@@ -303,7 +339,7 @@ class ConfigurationSpace(object):
             raise TypeError("The method check_configuration must be called "
                             "with an instance of %s." % Configuration)
 
-        hyperparameters = self.get_hyperparameters(order="topologic")
+        hyperparameters = self.get_hyperparameters()
         for hyperparameter in hyperparameters:
             ihp = configuration[hyperparameter.name]
 
@@ -313,7 +349,7 @@ class ConfigurationSpace(object):
                 raise ValueError("Hyperparameter instantiation '%s' is "
                                  "illegal" % ihp)
 
-            conditions = self.get_parents_of(hyperparameter.name)
+            conditions = self._get_parent_conditions_of(hyperparameter.name)
 
             # TODO this conditions should all be equal, are they actually?
             active = True
@@ -358,12 +394,14 @@ class ConfigurationSpace(object):
         if type(self) != type(other):
             return False
         else:
-            return self._dg.graph == other._dg.graph and \
-                self._dg.node == other._dg.node and \
-                self._dg.adj == other._dg.adj and \
-                self._dg.pred == other._dg.pred and \
-                self._dg.succ == other._dg.succ and \
-                self._dg.edge == other._dg.edge
+            tmp_dag = self._create_tmp_dag()
+            other_tmp_dag = other._create_tmp_dag()
+            return tmp_dag.graph == other_tmp_dag.graph and \
+                   tmp_dag.node == other_tmp_dag.node and \
+                   tmp_dag.adj == other_tmp_dag.adj and \
+                   tmp_dag.pred == other_tmp_dag.pred and \
+                   tmp_dag.succ == other_tmp_dag.succ and \
+                   tmp_dag.edge == other_tmp_dag.edge
 
     def __ne__(self, other):
         return not self.__eq__(other)
@@ -372,14 +410,16 @@ class ConfigurationSpace(object):
         retval = StringIO.StringIO()
         retval.write("Configuration space object:\n  Hyperparameters:\n")
 
-        hyperparameters = self.get_hyperparameters()
+        hyperparameters = sorted(self.get_hyperparameters(),
+                                 key=lambda t: t.name)
         if hyperparameters:
             retval.write("    ")
             retval.write("\n    ".join(
                 [str(hyperparameter) for hyperparameter in hyperparameters]))
             retval.write("\n")
 
-        conditions = self.get_conditions()
+        conditions = sorted(self.get_conditions(),
+                            key=lambda t: t.child.name)
         if conditions:
             retval.write("  Conditions:\n")
             retval.write("    ")
@@ -448,8 +488,7 @@ class Configuration(object):
         repr = StringIO.StringIO()
         repr.write("Configuration:\n")
 
-        hyperparameters = self.configuration_space.get_hyperparameters(
-            order='topologic')
+        hyperparameters = self.configuration_space.get_hyperparameters()
         hyperparameters.sort(key=lambda t: t.name)
         for hyperparameter in hyperparameters:
             if hyperparameter.name in self.values:

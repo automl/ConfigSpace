@@ -63,7 +63,7 @@ class TestConfigurationSpace(unittest.TestCase):
         cs.add_hyperparameter(hp2)
         cond = EqualsCondition(hp2, hp1, 0)
         cs.add_condition(cond)
-        self.assertEqual(len(cs._dg.nodes()), 3)
+        self.assertEqual(len(cs._hyperparameters), 2)
 
     def test_condition_without_added_hyperparameters(self):
         cs = ConfigurationSpace()
@@ -84,7 +84,6 @@ class TestConfigurationSpace(unittest.TestCase):
         self.assertRaisesRegexp(ValueError, "Parent hyperparameter 'parent' "
                                 "not in configuration space.",
                                 cs2.add_condition, cond)
-
 
     def test_condition_with_cycles(self):
         cs = ConfigurationSpace()
@@ -168,8 +167,7 @@ class TestConfigurationSpace(unittest.TestCase):
         cs.add_condition(cond1)
         self.assertEqual([hp1, hp2], cs.get_hyperparameters())
         # TODO: I need more tests for the topological sort!
-        self.assertEqual([hp1, hp2], cs.get_hyperparameters(
-            order='topologic'))
+        self.assertEqual([hp1, hp2], cs.get_hyperparameters())
 
     def test_get_hyperparameters_topological_sort(self):
         cs = ConfigurationSpace()
@@ -212,7 +210,7 @@ class TestConfigurationSpace(unittest.TestCase):
         cs.add_condition(cond5)
         cs.add_condition(conj3)
 
-        hps = cs.get_hyperparameters(order='topologic')
+        hps = cs.get_hyperparameters()
         self.assertGreater(hps.index(hp6), hps.index(hp5))
         self.assertGreater(hps.index(hp6), hps.index(hp4))
         self.assertGreater(hps.index(hp6), hps.index(hp3))
@@ -244,7 +242,7 @@ class TestConfigurationSpace(unittest.TestCase):
         cs.add_condition(cond1)
         self.assertEqual([cond1], cs.get_conditions())
 
-    def test_get_parents_and_children_of(self):
+    def test_get_parent_and_chil_conditions_of(self):
         cs = ConfigurationSpace()
         hp1 = CategoricalHyperparameter("parent", [0, 1])
         cs.add_hyperparameter(hp1)
@@ -253,10 +251,33 @@ class TestConfigurationSpace(unittest.TestCase):
         cond1 = EqualsCondition(hp2, hp1, 0)
         cs.add_condition(cond1)
 
-        self.assertEqual([cond1], cs.get_parents_of(hp2.name))
-        self.assertEqual([cond1], cs.get_parents_of(hp2))
-        self.assertEqual([cond1], cs.get_children_of(hp1.name))
-        self.assertEqual([cond1], cs.get_children_of(hp1))
+        self.assertEqual([cond1], cs.get_parent_conditions_of(hp2.name))
+        self.assertEqual([cond1], cs.get_parent_conditions_of(hp2))
+        self.assertEqual([cond1], cs.get_child_conditions_of(hp1.name))
+        self.assertEqual([cond1], cs.get_child_conditions_of(hp1))
+
+        self.assertRaisesRegexp(KeyError,
+                                "Hyperparameter 'Foo' does not exist in this "
+                                "configuration space.", cs.get_parents_of,
+                                "Foo")
+        self.assertRaisesRegexp(KeyError,
+                                "Hyperparameter 'Foo' does not exist in this "
+                                "configuration space.", cs.get_children_of,
+                                "Foo")
+
+    def test_get_parent_and_children_of(self):
+        cs = ConfigurationSpace()
+        hp1 = CategoricalHyperparameter("parent", [0, 1])
+        cs.add_hyperparameter(hp1)
+        hp2 = UniformIntegerHyperparameter("child", 0, 10)
+        cs.add_hyperparameter(hp2)
+        cond1 = EqualsCondition(hp2, hp1, 0)
+        cs.add_condition(cond1)
+
+        self.assertEqual([hp1], cs.get_parents_of(hp2.name))
+        self.assertEqual([hp1], cs.get_parents_of(hp2))
+        self.assertEqual([hp2], cs.get_children_of(hp1.name))
+        self.assertEqual([hp2], cs.get_children_of(hp1))
 
         self.assertRaisesRegexp(KeyError,
                                 "Hyperparameter 'Foo' does not exist in this "
@@ -325,7 +346,7 @@ class TestConfigurationSpace(unittest.TestCase):
         for idx, values in enumerate(product([0, 1], repeat=5)):
             # The hyperparameters aren't sorted, but the test assumes them to
             #  be sorted.
-            hyperparameters = sorted(cs.get_hyperparameters(order='topologic'),
+            hyperparameters = sorted(cs.get_hyperparameters(),
                                      key=lambda t: t.name)
             instantiations = [hyperparameters[jdx+1].instantiate(values[jdx])
                               for jdx in range(len(values))]
@@ -377,9 +398,9 @@ class TestConfigurationSpace(unittest.TestCase):
         metric_depends_on_classifier = EqualsCondition(metric, classifier,
                                                        "k_nearest_neighbors")
         p_depends_on_metric = EqualsCondition(p, metric, "minkowski")
-        cs.add_hyperparameter(classifier)
         cs.add_hyperparameter(metric)
         cs.add_hyperparameter(p)
+        cs.add_hyperparameter(classifier)
         cs.add_condition(metric_depends_on_classifier)
         cs.add_condition(p_depends_on_metric)
 
@@ -435,4 +456,4 @@ class TestConfigurationSpace(unittest.TestCase):
         retval = cs1.__str__()
         self.assertEqual("Configuration space object:\n  Hyperparameters:\n"
                          "    %s\n    %s\n  Conditions:\n    %s\n" %
-                         (str(hp1), str(hp2), str(cond1)), retval)
+                         (str(hp2), str(hp1), str(cond1)), retval)

@@ -123,12 +123,12 @@ class IntegerHyperparameter(NumericalHyperparameter):
         return isinstance(value, int)
 
     def check_int(self, parameter, name):
-        if abs(np.round(parameter, 0) - parameter) > 0.00000001 and \
+        if abs(int(parameter) - parameter) > 0.00000001 and \
                         type(parameter) is not int:
             raise ValueError("For the Integer parameter %s, the value must be "
                              "an Integer, too. Right now it is a %s with value"
                              " %s." % (name, type(parameter), str(parameter)))
-        return int(np.round(parameter, 0))
+        return int(parameter)
 
     def check_default(self, default):
         return int(np.round(default, 0))
