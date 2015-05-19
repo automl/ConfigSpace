@@ -37,14 +37,14 @@ class TestConfigurationSpace(unittest.TestCase):
 
     def test_illegal_default_configuration(self):
         cs = ConfigurationSpace()
-        hp1 = CategoricalHyperparameter("loss", ["l1", "l2"])
-        hp2 = CategoricalHyperparameter("penalty", ["l1", "l2"])
+        hp1 = CategoricalHyperparameter("loss", ["l1", "l2"], default='l1')
+        hp2 = CategoricalHyperparameter("penalty", ["l1", "l2"], default='l1')
         cs.add_hyperparameter(hp1)
         cs.add_hyperparameter(hp2)
         forb1 = ForbiddenEqualsClause(hp1, "l1")
         forb2 = ForbiddenEqualsClause(hp2, "l1")
         forb3 = ForbiddenAndConjunction(forb1, forb2)
-        #cs.add_forbidden_clause(forb3)
+        # cs.add_forbidden_clause(forb3)
         self.assertRaisesRegexp(ValueError, "Configuration:\n"
             "  loss, Value: l1\n  penalty, Value: l1\n"
             "violates forbidden clause \(Forbidden: loss == l1 && Forbidden: "
@@ -178,7 +178,7 @@ class TestConfigurationSpace(unittest.TestCase):
         cond1 = EqualsCondition(hp2, hp1, 0)
         cs.add_condition(cond1)
         # This automatically checks the configuration!
-        Configuration(cs, parent=hp1.instantiate(0), child=hp2.instantiate(5))
+        Configuration(cs, parent=0, child=5)
 
         # and now for something more complicated
         cs = ConfigurationSpace()
@@ -307,7 +307,7 @@ class TestConfigurationSpace(unittest.TestCase):
         cond1 = EqualsCondition(hp2, hp1, 0)
         cs.add_condition(cond1)
         # This automatically checks the configuration!
-        Configuration(cs, parent=hp1.instantiate(0), child=hp2.instantiate(5))
+        Configuration(cs, parent=0, child=5)
 
         # and now for something more complicated
         cs = ConfigurationSpace()
@@ -348,8 +348,8 @@ class TestConfigurationSpace(unittest.TestCase):
             #  be sorted.
             hyperparameters = sorted(cs.get_hyperparameters(),
                                      key=lambda t: t.name)
-            instantiations = [hyperparameters[jdx+1].instantiate(values[jdx])
-                              for jdx in range(len(values))]
+            instantiations = {hyperparameters[jdx+1].name: values[jdx]
+                              for jdx in range(len(values))}
 
             evaluation = conj3.evaluate(instantiations)
             self.assertEqual(expected_outcomes[idx], evaluation)
@@ -357,34 +357,22 @@ class TestConfigurationSpace(unittest.TestCase):
             if evaluation == False:
                 self.assertRaisesRegexp(ValueError,
                                         "Inactive hyperparameter 'AND' must "
-                                        "not be specified, but is: "
-                                        "'AND, Constant: True'.",
-                                        Configuration, cs,
-                                        input1=cs.get_hyperparameter(
-                                            "input1").instantiate(values[0]),
-                                        input2=cs.get_hyperparameter(
-                                            "input2").instantiate(values[1]),
-                                        input3=cs.get_hyperparameter(
-                                            "input3").instantiate(values[2]),
-                                        input4=cs.get_hyperparameter(
-                                            "input4").instantiate(values[3]),
-                                        input5=cs.get_hyperparameter(
-                                            "input5").instantiate(values[4]),
-                                        AND=cs.get_hyperparameter(
-                                            "AND").instantiate("True"))
+                                        "not be specified, but has the value: "
+                                        "'True'.",
+                                        Configuration, cs, values={
+                                        "input1": values[0],
+                                        "input2": values[1],
+                                        "input3": values[2],
+                                        "input4": values[3],
+                                        "input5": values[4],
+                                        "AND": "True"})
             else:
-                Configuration(cs, input1 = cs.get_hyperparameter(
-                                   "input1").instantiate(values[0]),
-                              input2 = cs.get_hyperparameter(
-                                  "input2").instantiate(values[1]),
-                              input3 = cs.get_hyperparameter(
-                                   "input3").instantiate(values[2]),
-                              input4 = cs.get_hyperparameter(
-                                   "input4").instantiate(values[3]),
-                              input5 = cs.get_hyperparameter(
-                                    "input5").instantiate(values[4]),
-                              AND = cs.get_hyperparameter(
-                                    "AND").instantiate("True"))
+                Configuration(cs, values={"input1": values[0],
+                                          "input2": values[1],
+                                          "input3": values[2],
+                                          "input4": values[3],
+                                          "input5": values[4],
+                                          "AND": "True"})
 
     def test_check_configuration2(self):
         # Test that hyperparameters which are not active must not be set and
@@ -457,3 +445,47 @@ class TestConfigurationSpace(unittest.TestCase):
         self.assertEqual("Configuration space object:\n  Hyperparameters:\n"
                          "    %s\n    %s\n  Conditions:\n    %s\n" %
                          (str(hp2), str(hp1), str(cond1)), retval)
+
+    def test_sample_configuration(self):
+        cs = ConfigurationSpace()
+        hp1 = CategoricalHyperparameter("parent", [0, 1])
+        cs.add_hyperparameter(hp1)
+        hp2 = UniformIntegerHyperparameter("child", 0, 10)
+        cs.add_hyperparameter(hp2)
+        cond1 = EqualsCondition(hp2, hp1, 0)
+        cs.add_condition(cond1)
+        # This automatically checks the configuration!
+        Configuration(cs, parent=0, child=5)
+
+        # and now for something more complicated
+        cs = ConfigurationSpace(seed=1)
+        hp1 = CategoricalHyperparameter("input1", [0, 1])
+        cs.add_hyperparameter(hp1)
+        hp2 = CategoricalHyperparameter("input2", [0, 1])
+        cs.add_hyperparameter(hp2)
+        hp3 = CategoricalHyperparameter("input3", [0, 1])
+        cs.add_hyperparameter(hp3)
+        hp4 = CategoricalHyperparameter("input4", [0, 1])
+        cs.add_hyperparameter(hp4)
+        hp5 = CategoricalHyperparameter("input5", [0, 1])
+        cs.add_hyperparameter(hp5)
+        hp6 = Constant("AND", "True")
+        cs.add_hyperparameter(hp6)
+
+        cond1 = EqualsCondition(hp6, hp1, 1)
+        cond2 = NotEqualsCondition(hp6, hp2, 1)
+        cond3 = InCondition(hp6, hp3, [1])
+        cond4 = EqualsCondition(hp5, hp3, 1)
+        cond5 = EqualsCondition(hp4, hp5, 1)
+        cond6 = EqualsCondition(hp6, hp4, 1)
+        cond7 = EqualsCondition(hp6, hp5, 1)
+
+        conj1 = AndConjunction(cond1, cond2)
+        conj2 = OrConjunction(conj1, cond3)
+        conj3 = AndConjunction(conj2, cond6, cond7)
+        cs.add_condition(cond4)
+        cs.add_condition(cond5)
+        cs.add_condition(conj3)
+
+        for i in range(1000):
+            cs.sample_configuration()

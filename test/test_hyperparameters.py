@@ -1,5 +1,8 @@
+from collections import defaultdict
 import unittest
 import warnings
+
+import numpy as np
 
 from HPOlibConfigSpace.hyperparameters import Constant, \
     UniformFloatHyperparameter, NormalFloatHyperparameter, \
@@ -237,13 +240,6 @@ class TestHyperparameters(unittest.TestCase):
                                 UniformIntegerHyperparameter,"n_iter", 5.,
                                 1000., default=20.5)
 
-        self.assertRaisesRegexp(ValueError, "For the Integer parameter n_iter, "
-                                            "the value must be an Integer, too. "
-                                            "Right now it is a <type 'float'> "
-                                            "with value 350.5.",
-                                n_iter.instantiate, 350.5)
-        self.assertIsInstance(n_iter.instantiate(20.0).value, int)
-
     def test_uniformint_illegal_bounds(self):
         self.assertRaisesRegexp(ValueError,
             "Negative lower bound \(0\) for log-scale hyperparameter "
@@ -320,13 +316,6 @@ class TestHyperparameters(unittest.TestCase):
                                 UniformIntegerHyperparameter, "n_iter", 0,
                                 1., default=0.5)
 
-        self.assertRaisesRegexp(ValueError, "For the Integer parameter n_iter, "
-                                            "the value must be an Integer, too. "
-                                            "Right now it is a <type 'float'> "
-                                            "with value 350.5.",
-                                n_iter.instantiate, 350.5)
-        self.assertIsInstance(n_iter.instantiate(20.0).value, int)
-
     def test_normalint_to_uniform(self):
         f1 = NormalIntegerHyperparameter("param", 0, 10, q=0.1)
         f1_expected = UniformIntegerHyperparameter("param", -30, 30)
@@ -388,3 +377,140 @@ class TestHyperparameters(unittest.TestCase):
         self.assertTrue(f1.is_legal(u"a"))
         self.assertFalse(f1.is_legal("c"))
         self.assertFalse(f1.is_legal(3))
+
+    def test_sample_UniformFloatHyperparameter(self):
+        # This can sample four distributions
+        def sample(hp):
+            rs = np.random.RandomState(1)
+            counts_per_bin = [0 for i in range(21)]
+            for i in range(100000):
+                value = hp.sample(rs)
+                index = int((value - hp.lower) / (hp.upper - hp.lower) * 20)
+                # print sample, index
+                counts_per_bin[index] += 1
+
+            self.assertIsInstance(value, float)
+            return counts_per_bin
+
+        # Uniform
+        hp = UniformFloatHyperparameter("ufhp", 0.5, 2.5)
+
+        counts_per_bin = sample(hp)
+        # The 21st bin is only filled if exactly 2.5 is sampled...very rare...
+        for bin in counts_per_bin[:-1]:
+            self.assertTrue(5200 > bin > 4800)
+        self.assertEqual(sample(hp), sample(hp))
+
+        # Quantized Uniform
+        hp = UniformFloatHyperparameter("ufhp", 0.0, 1.0, q=0.1)
+
+        counts_per_bin = sample(hp)
+        for bin in counts_per_bin[::2]:
+            self.assertTrue(9301 > bin > 8700)
+        for bin in counts_per_bin[1::2]:
+            self.assertEqual(bin, 0)
+        self.assertEqual(sample(hp), sample(hp))
+
+        # Log Uniform
+        hp = UniformFloatHyperparameter("ufhp", 1.0, np.e ** 2, log=True)
+
+        counts_per_bin = sample(hp)
+        self.assertEqual(counts_per_bin,
+                         [14012, 10977, 8809, 7559, 6424, 5706, 5276, 4694,
+                          4328, 3928, 3655, 3386, 3253, 2932, 2816, 2727, 2530,
+                          2479, 2280, 2229, 0])
+        self.assertEqual(sample(hp), sample(hp))
+
+        # Quantized Log-Uniform
+        # 7.2 ~ np.round(e * e, 1)
+        hp = UniformFloatHyperparameter("ufhp", 1.2, 7.2, q=0.6, log=True)
+
+        counts_per_bin = sample(hp)
+        self.assertEqual(counts_per_bin,
+                         [24359, 15781, 0, 11635, 0, 0, 9506, 7867, 0, 0, 6763,
+                          0, 5919, 5114, 0, 4798, 0, 0, 4339, 3919, 0])
+        self.assertEqual(sample(hp), sample(hp))
+
+    def test_sample_NormalFloatHyperparameter(self):
+        hp = NormalFloatHyperparameter("nfhp", 0, 1)
+
+        def actual_test():
+            rs = np.random.RandomState(1)
+            counts_per_bin = [0 for i in range(11)]
+            for i in range(100000):
+                value = hp.sample(rs)
+                index = min(max(int((round(value + 0.5)) + 5), 0), 9)
+                counts_per_bin[index] += 1
+
+            self.assertEqual([0, 4, 138, 2113, 13394, 34104, 34282, 13683,
+                              2136, 146, 0], counts_per_bin)
+
+            return counts_per_bin
+
+        self.assertEqual(actual_test(), actual_test())
+
+    def test_sample_UniformIntegerHyperparameter(self):
+        def sample(hp):
+            rs = np.random.RandomState(1)
+            counts_per_bin = [0 for i in range(21)]
+            values = []
+            for i in range(100000):
+                value = hp.sample(rs)
+                values.append(value)
+                index = int(float(value - hp.lower) /
+                            (hp.upper - hp.lower) * 20)
+                counts_per_bin[index] += 1
+            return counts_per_bin
+
+        # Quantized Uniform
+        hp = UniformIntegerHyperparameter("uihp", 0, 10)
+
+        counts_per_bin = sample(hp)
+        print counts_per_bin
+        for bin in counts_per_bin[::2]:
+            self.assertTrue(9300 > bin > 8700)
+        for bin in counts_per_bin[1::2]:
+            self.assertEqual(bin, 0)
+        self.assertEqual(sample(hp), sample(hp))
+
+    def test_sample_NormalIntegerHyperparameter(self):
+        def sample(hp):
+            lower = -30
+            upper = 30
+            rs = np.random.RandomState(1)
+            counts_per_bin = [0 for i in range(21)]
+            for i in range(100000):
+                value = hp.sample(rs)
+                sample = float(value)
+                if sample < lower:
+                    sample = lower
+                if sample > upper:
+                    sample = upper
+                index = int((sample - lower) / (upper - lower) * 20)
+                counts_per_bin[index] += 1
+
+            return counts_per_bin
+
+        hp = NormalIntegerHyperparameter("nihp", 0, 10)
+        self.assertEqual(sample(hp),
+                         [305, 422, 835, 1596, 2682, 4531, 6572, 8670, 10649,
+                          11510, 11854, 11223, 9309, 7244, 5155, 3406, 2025,
+                          1079, 514, 249, 170])
+        self.assertEqual(sample(hp), sample(hp))
+
+    def test_sample_CategoricalHyperparameter(self):
+        hp = CategoricalHyperparameter("chp", [0, 2, "Bla", u"Blub"])
+
+        def actual_test():
+            rs = np.random.RandomState(1)
+            counts_per_bin = defaultdict(int)
+            for i in range(10000):
+                value = hp.sample(rs)
+                counts_per_bin[value] += 1
+
+            self.assertEqual(
+                {0: 2456, 2: 2485, 'Bla': 2550, u'Blub': 2509},
+                dict(counts_per_bin.items()))
+            return counts_per_bin
+
+        self.assertEqual(actual_test(), actual_test())

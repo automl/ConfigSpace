@@ -3,7 +3,6 @@ import StringIO
 import types
 import warnings
 
-
 import numpy as np
 
 
@@ -29,11 +28,11 @@ class Hyperparameter(object):
         pass
 
     @abstractmethod
-    def instantiate(self, value):
+    def is_legal(self, value):
         pass
 
     @abstractmethod
-    def is_legal(self, value):
+    def sample(self, rs):
         pass
 
 
@@ -67,37 +66,11 @@ class Constant(Hyperparameter):
         else:
             return False
 
-    def instantiate(self, value):
-        # First check if value is illgal, try to convert it to int/float
-        # afterwards because this takes a lot of time
-        error = True
-        if value == self.value:
-            error = False
-        else:
-            try:
-                value_ = float(value)
-                if value_ == self.value:
-                    error = False
-            except ValueError:
-                pass
-
-            try:
-                value_ = int(value)
-                if value_ == self.value:
-                    error = False
-            except ValueError:
-                pass
-
-        if error is True:
-            raise ValueError("Cannot instantiate a constant %s of type %s with "
-                             "new value %s of type %s!" %
-                             (str(self.value), str(type(self.value)),
-                              str(value), str(type(value))))
-
-        return InstantiatedConstant(self.value, self)
-
     def is_legal(self, value):
         return value == self.value
+
+    def sample(self, rs):
+        return self.value
 
 
 class UnParametrizedHyperparameter(Constant):
@@ -184,19 +157,37 @@ class UniformFloatHyperparameter(UniformMixin, FloatHyperparameter):
                              (self.lower, name))
         elif self.q is not None and \
                 (abs(int(self.lower / self.q) - (self.lower / self.q)) >
-                    0.00001):
+                     0.00001):
             raise ValueError("If q is active, the lower bound %f "
                              "must be a multiple of q %f!" % (self.lower,
                                                               self.q))
         elif self.q is not None and \
                 (abs(int(self.upper / self.q) - (self.upper / self.q)) >
-                    0.00001):
+                     0.00001):
             raise ValueError("If q is active, the upper bound %f "
                              "must be a multiple of q %f!" % (self.upper,
                                                               self.q))
 
-        super(UniformFloatHyperparameter, self).\
+        super(UniformFloatHyperparameter, self). \
             __init__(name, self.check_default(default))
+
+        if self.log:
+            if self.q is not None:
+                lower = self.lower - (np.float64(self.q) / 2 - 0.0001)
+                upper = self.upper + (np.float64(self.q) / 2 - 0.0001)
+            else:
+                lower = self.lower
+                upper = self.upper
+            self._lower = np.log(lower)
+            self._upper = np.log(upper)
+        else:
+            if self.q is not None:
+                self._lower = self.lower - (self.q / 2 - 0.0001)
+                self._upper = self.upper + (self.q / 2 - 0.0001)
+            else:
+                self._lower = self.lower
+                self._upper = self.upper
+
 
     def __repr__(self):
         repr_str = StringIO.StringIO()
@@ -228,8 +219,13 @@ class UniformFloatHyperparameter(UniformMixin, FloatHyperparameter):
         return UniformIntegerHyperparameter(self.name, self.lower,
             self.upper, int(np.round(self.default)), self.q, self.log)
 
-    def instantiate(self, value):
-        return InstantiatedUniformFloatHyperparameter(value, self)
+    def sample(self, rs):
+        value = rs.uniform(self._lower, self._upper)
+        if self.log:
+            value = np.exp(value)
+        if self.q is not None:
+            value = int(np.round(value / self.q, 0)) * self.q
+        return value
 
 
 class NormalFloatHyperparameter(NormalMixin, FloatHyperparameter):
@@ -279,8 +275,15 @@ class NormalFloatHyperparameter(NormalMixin, FloatHyperparameter):
         else:
             return False
 
-    def instantiate(self, value):
-        return InstantiatedNormalFloatHyperparameter(value, self)
+    def sample(self, rs):
+        mu = self.mu
+        sigma = self.sigma
+        gauss = rs.normal(mu, sigma)
+        if self.log:
+            gauss = np.exp(gauss)
+        if self.q is not None:
+            gauss = int(np.round(gauss / self.q, 0)) * self.q
+        return gauss
 
 
 class UniformIntegerHyperparameter(UniformMixin, IntegerHyperparameter):
@@ -322,9 +325,14 @@ class UniformIntegerHyperparameter(UniformMixin, IntegerHyperparameter):
                              "must be a multiple of q %d!" % (self.upper,
                                                               self.q))
 
-        super(UniformIntegerHyperparameter, self).\
+        super(UniformIntegerHyperparameter, self). \
             __init__(name, self.check_default(default))
 
+        self.ufhp = UniformFloatHyperparameter(self.name,
+                                               self.lower,
+                                               self.upper,
+                                               log=self.log, q=self.q,
+                                               default=self.default)
 
     def __repr__(self):
         repr_str = StringIO.StringIO()
@@ -350,8 +358,15 @@ class UniformIntegerHyperparameter(UniformMixin, IntegerHyperparameter):
         else:
             return False
 
-    def instantiate(self, value):
-        return InstantiatedUniformIntegerHyperparameter(value, self)
+    def sample(self, rs):
+        if self.log is False and self.q is None:
+            value = rs.randint(self.lower, self.upper + 1)
+            return value
+        else:
+            value = self.ufhp.sample(rs)
+            if self.q is not None:
+                value = int(np.round(value / self.q, 0)) * self.q
+            return int(np.round(value, 0))
 
 
 class NormalIntegerHyperparameter(NormalMixin, IntegerHyperparameter):
@@ -371,8 +386,16 @@ class NormalIntegerHyperparameter(NormalMixin, IntegerHyperparameter):
         else:
             self.q = None
         self.log = bool(log)
-        super(NormalIntegerHyperparameter, self).\
+
+        super(NormalIntegerHyperparameter, self). \
             __init__(name, self.check_default(default))
+
+        self.nfhp = NormalFloatHyperparameter(self.name,
+                                              self.mu,
+                                              self.sigma,
+                                              log=self.log,
+                                              q=self.q,
+                                              default=self.default)
 
     def __repr__(self):
         repr_str = StringIO.StringIO()
@@ -411,8 +434,9 @@ class NormalIntegerHyperparameter(NormalMixin, IntegerHyperparameter):
         else:
             return False
 
-    def instantiate(self, value):
-        return InstantiatedNormalIntegerHyperparameter(value, self)
+    def sample(self, rs):
+        value = self.nfhp.sample(rs)
+        return int(np.round(value, 0))
 
 
 class CategoricalHyperparameter(Hyperparameter):
@@ -464,101 +488,7 @@ class CategoricalHyperparameter(Hyperparameter):
         else:
             raise ValueError("Illegal default value %s" % str(default))
 
-    def instantiate(self, value):
-        return InstantiatedCategoricalHyperparameter(value, self)
+    def sample(self, rs):
+        return self.choices[rs.randint(0, len(self.choices))]
 
 
-class InstantiatedHyperparameter(object):
-    __metaclass__ = ABCMeta
-
-    def __init__(self, value, hyperparameter):
-        if not isinstance(hyperparameter, Hyperparameter):
-            raise TypeError("Argument 'hyperparameter' is not of type %s, "
-                            "but %s" % (Hyperparameter, type(hyperparameter)))
-        if not hyperparameter.is_legal(value):
-            raise ValueError("Value %s, %s for instantiation of "
-                             "hyperparameter '%s' is not a legal value." %
-                             (str(value), str(type(value)), hyperparameter))
-
-        self.value = value
-        self.hyperparameter = hyperparameter
-
-    def __eq__(self, other):
-        if type(self) != type(other):
-            return False
-        elif self.value != other.value:
-            return False
-        elif self.hyperparameter != other.hyperparameter:
-            return False
-        return True
-
-    @abstractmethod
-    def __repr__(self):
-        pass
-
-    def is_legal(self):
-        return self.hyperparameter.is_legal(self.value)
-
-
-class InactiveHyperparameter(InstantiatedHyperparameter):
-    def __init__(self, value, hyperparameter):
-        # TODO document that value is just a dummy argument here!
-        self.value = value
-        self.hyperparameter = hyperparameter
-
-    # TODO implement a better equals function
-    def __repr__(self):
-        return "%s, Inactive" % self.hyperparameter.name
-
-    def is_legal(self):
-        return False
-
-
-class InstantiatedConstant(InstantiatedHyperparameter):
-    def __repr__(self):
-        return "%s, Constant: %s" % (self.hyperparameter.name, str(self.value))
-
-
-class InstantiatedNumericalHyperparameter(InstantiatedHyperparameter):
-    __metaclass__ = ABCMeta
-
-
-class InstantiatedFloatHyperparameter(InstantiatedNumericalHyperparameter):
-    __metaclass__ = ABCMeta
-
-    def __repr__(self):
-        return "%s, Value: %f" % (self.hyperparameter.name, self.value)
-
-
-class InstantiatedIntegerHyperparameter(InstantiatedNumericalHyperparameter):
-    __metaclass__ = ABCMeta
-
-    def __init__(self, value, hyperparameter):
-        value = hyperparameter.check_int(value, hyperparameter.name)
-        super(InstantiatedIntegerHyperparameter, self).__init__(value, hyperparameter)
-
-    def __repr__(self):
-        return "%s, Value: %d" % (self.hyperparameter.name, self.value)
-
-
-class InstantiatedUniformFloatHyperparameter(InstantiatedFloatHyperparameter):
-    pass
-
-
-class InstantiatedNormalFloatHyperparameter(InstantiatedFloatHyperparameter):
-    pass
-
-
-class InstantiatedUniformIntegerHyperparameter(
-    InstantiatedIntegerHyperparameter):
-    pass
-
-
-class InstantiatedNormalIntegerHyperparameter(
-    InstantiatedIntegerHyperparameter):
-    pass
-
-
-class InstantiatedCategoricalHyperparameter(InstantiatedHyperparameter):
-    def __repr__(self):
-        return "%s, Value: %s" % (self.hyperparameter.name, str(self.value))

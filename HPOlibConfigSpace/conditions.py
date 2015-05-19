@@ -6,8 +6,7 @@ import operator
 import StringIO
 
 
-from HPOlibConfigSpace.hyperparameters import Hyperparameter, \
-    InstantiatedHyperparameter
+from HPOlibConfigSpace.hyperparameters import Hyperparameter
 
 
 class ConditionComponent(object):
@@ -65,21 +64,8 @@ class AbstractCondition(ConditionComponent):
         return [self]
 
     def evaluate(self, instantiated_parent_hyperparameter):
-        if not isinstance(instantiated_parent_hyperparameter,
-                          InstantiatedHyperparameter):
-            raise TypeError("Evaluate must be called with an instance of %s, "
-                            "not %s" % (InstantiatedHyperparameter,
-                                        type(instantiated_parent_hyperparameter)))
-
-        if instantiated_parent_hyperparameter.hyperparameter.name != \
-                self.parent.name:
-            raise ValueError("Evaluate must be called with the "
-                             "instanstatiated parent hyperparameter '%s', "
-                             "not '%s'." % (self.parent.name,
-                                          instantiated_parent_hyperparameter.
-                                          hyperparameter.name))
-
-        return self._evaluate(instantiated_parent_hyperparameter)
+        hp_name = self.parent.name
+        return self._evaluate(instantiated_parent_hyperparameter[hp_name])
 
     @abstractmethod
     def _evaluate(self, instantiated_parent_hyperparameter):
@@ -132,20 +118,10 @@ class AbstractConjunction(ConditionComponent):
         return children
 
     def evaluate(self, instantiated_hyperparameters):
-        # First, check if evaluate was called only with instantiated
-        # hyperparameters
-        ihps = {}
-        for ihp in instantiated_hyperparameters:
-            if not isinstance(ihp, InstantiatedHyperparameter):
-                raise TypeError("Evaluate must be called with an instances of "
-                                "%s, you provided one instance of %s" % (
-                                    InstantiatedHyperparameter, type(ihp)))
-            ihps[ihp.hyperparameter.name] = ihp
-
         # Then, check if all parents were passed
         conditions = self.get_descendant_literal_conditions()
         for condition in conditions:
-            if condition.parent.name not in ihps:
+            if condition.parent.name not in instantiated_hyperparameters:
                 raise ValueError("Evaluate must be called with all "
                                  "instanstatiated parent hyperparameters in "
                                  "the conjunction; you are (at least) missing "
@@ -155,14 +131,8 @@ class AbstractConjunction(ConditionComponent):
         # outcomes
         evaluations = []
         for component in self.components:
-            # If it's a condition, we must only pass the parent hyperparameter
-            if isinstance(component, AbstractCondition):
-                parent_name = component.parent.name
-                e = component.evaluate(ihps[parent_name])
-                evaluations.append(e)
-            else:
-                e = component.evaluate(instantiated_hyperparameters)
-                evaluations.append(e)
+            e = component.evaluate(instantiated_hyperparameters)
+            evaluations.append(e)
 
         return self._evaluate(evaluations)
 
@@ -193,8 +163,8 @@ class EqualsCondition(AbstractCondition):
                 self.parent == other.parent and \
                 self.value == other.value
 
-    def _evaluate(self, instantiated_parent_hyperparameter):
-        return instantiated_parent_hyperparameter.value == self.value
+    def _evaluate(self, value):
+        return value == self.value
 
 
 class NotEqualsCondition(AbstractCondition):
@@ -219,8 +189,8 @@ class NotEqualsCondition(AbstractCondition):
                    self.parent == other.parent and \
                    self.value == other.value
 
-    def _evaluate(self, instantiated_parent_hyperparameter):
-        return instantiated_parent_hyperparameter.value != self.value
+    def _evaluate(self, value):
+        return value != self.value
 
 
 class InCondition(AbstractCondition):
@@ -246,8 +216,8 @@ class InCondition(AbstractCondition):
                    self.parent == other.parent and \
                    self.values == other.values
 
-    def _evaluate(self, instantiated_parent_hyperparameter):
-        return instantiated_parent_hyperparameter.value in self.values
+    def _evaluate(self, value):
+        return value in self.values
 
 
 class AndConjunction(AbstractConjunction):
