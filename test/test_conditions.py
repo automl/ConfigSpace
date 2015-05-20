@@ -200,3 +200,12 @@ class TestConditions(unittest.TestCase):
         self.assertRaisesRegexp(ValueError,
                                 "All Conjunctions and Conditions must have "
                                 "the same child.", AndConjunction, cond1, cond4)
+
+    def test_condition_from_cryptominisat(self):
+        parent = CategoricalHyperparameter('blkrest', ['0', '1'], default='1')
+        child = UniformIntegerHyperparameter('blkrestlen', 2000, 10000,
+                                             log=True)
+        condition = EqualsCondition(child, parent, '1')
+        self.assertFalse(condition.evaluate(dict(blkrest='0')))
+        self.assertTrue(condition.evaluate(dict(blkrest='1')))
+

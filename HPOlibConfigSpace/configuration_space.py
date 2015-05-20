@@ -22,12 +22,14 @@ __authors__ = ["Katharina Eggensperger", "Matthias Feurer"]
 __contact__ = "automl.org"
 
 from collections import defaultdict, OrderedDict
+from itertools import product
 import StringIO
 
 import numpy as np
 
 import HPOlibConfigSpace.nx
-from HPOlibConfigSpace.hyperparameters import Hyperparameter, Constant
+from HPOlibConfigSpace.hyperparameters import Hyperparameter, Constant, \
+    IntegerHyperparameter, FloatHyperparameter, CategoricalHyperparameter
 from HPOlibConfigSpace.conditions import ConditionComponent, \
     AbstractCondition, AbstractConjunction
 from HPOlibConfigSpace.forbidden import AbstractForbiddenComponent
@@ -49,6 +51,7 @@ class ConfigurationSpace(object):
         self._conditionsals = OrderedDict()
         self.forbidden_clauses = []
         self.random = np.random.RandomState(seed)
+        self._vector_types = None
 
     def add_hyperparameter(self, hyperparameter):
         """Add a hyperparameter to the configuration space.
@@ -76,6 +79,12 @@ class ConfigurationSpace(object):
             '__HPOlib_configuration_space_root__'] = None
 
         self._check_default_configuration()
+        # Update the vector
+        types = [(hp.name, int if isinstance(hp,
+                                             (CategoricalHyperparameter, Constant))
+                           else float)
+                 for hp in self._hyperparameters.values()]
+        self._vector_types = types
 
     def add_condition(self, condition):
         # Check if adding the condition is legal:
@@ -124,7 +133,7 @@ class ConfigurationSpace(object):
         self._children[parent_node][child_node] = condition
         self._parents[child_node][parent_node] = condition
         self._sort_hyperparameters()
-        self._conditionsals[parent_node] = parent_node
+        self._conditionsals[child_node] = child_node
 
     def _check_edge(self, parent_node, child_node, condition):
         # check if both nodes are already inserted into the graph
@@ -170,8 +179,6 @@ class ConfigurationSpace(object):
             if hp is not None:
                 del self._conditionsals[node]
                 self._conditionsals[node] = hp
-
-
 
     def _create_tmp_dag(self):
         tmp_dag = HPOlibConfigSpace.nx.DiGraph()
@@ -340,7 +347,7 @@ class ConfigurationSpace(object):
 
         # TODO add an extra Exception type for the case that the default
         # configuration is forbidden!
-        return Configuration(self, **instantiated_hyperparameters)
+        return Configuration(self, instantiated_hyperparameters)
 
     def check_configuration(self, configuration):
         # TODO: This should be a method of configuration, as it already knows
@@ -448,48 +455,54 @@ class ConfigurationSpace(object):
         retval.seek(0)
         return retval.getvalue()
 
-    def sample_configuration(self):
-        # TODO: this is straightforward, but slow. It would make more sense
-        # to have a list of conditions, which are sorted topological by the
-        # appearence of their children
+    def sample_configuration(self, size=1):
         iteration = 0
-        while True:
-            instantiated_hyperparameters = {}
-            for hp_name in self.get_all_uncoditional_hyperparameters():
-                hyperparameter = self._hyperparameters[hp_name]
-                instantiated_hyperparameters[hp_name] = \
-                    hyperparameter.sample(self.random)
+        missing = size
+        accepted_configurations = []
+        while len(accepted_configurations) < size:
+            vector = np.ndarray((missing,), dtype=self._vector_types)
 
-            for hp_name in self.get_all_conditional_hyperparameters():
+            for hp_name in self._hyperparameters:
+                hyperparameter = self._hyperparameters[hp_name]
+                vector[hp_name] = hyperparameter._sample(self.random, size)
+
+            for i, hp_name in product(range(missing), self.get_all_conditional_hyperparameters()):
                 conditions = self._get_parent_conditions_of(hp_name)
                 add = True
                 for condition in conditions:
                     parent_names = [c.parent.name for c in
                                     condition.get_descendant_literal_conditions()]
 
-                    parents = {
-                        parent_name: instantiated_hyperparameters[parent_name]
-                        for parent_name in parent_names}
+                    parents = {parent_name: self._hyperparameters[parent_name].
+                                            _transform(vector[i][parent_name])
+                               for parent_name in parent_names}
 
                     if not condition.evaluate(parents):
                         add = False
 
-                if add:
-                    hyperparameter = self._hyperparameters[hp_name]
-                    instantiated_hyperparameters[hp_name] = \
-                        hyperparameter.sample(self.random)
+                if not add:
+                    vector[hp_name][i] = hyperparameter._nan
+                    #hyperparameter = self._hyperparameters[hp_name]
+                    #vector[i][hp_name] = hyperparameter._sample(self.random,
+                    #                                           size)
                 else:
-                    instantiated_hyperparameters[hp_name] = None
+                    #vector[hp_name] = hyperparameter._nan
+                    pass
 
-            try:
-                return Configuration(self, values=instantiated_hyperparameters,
-                                     _____________sentinel_____________=True)
-            except ValueError as e:
-                iteration += 1
+            for i in range(missing):
+                try:
+                    configuration = Configuration(self, vector=vector[i])
+                    accepted_configurations.append(configuration)
+                except ValueError as e:
+                    iteration += 1
 
-                if iteration == 1000000:
-                    raise ValueError("Cannot sample valid configuration for "
-                                     "%s" % self)
+                    if iteration == 1000000:
+                        raise ValueError("Cannot sample valid configuration for "
+                                         "%s" % self)
+        if size <= 1:
+            return accepted_configurations[0]
+        else:
+            return accepted_configurations
 
     def seed(self, seed):
         self.random = np.random.RandomState(seed)
@@ -498,7 +511,7 @@ class ConfigurationSpace(object):
 class Configuration(object):
     # TODO add a method to eliminate inactive hyperparameters from a
     # configuration
-    def __init__(self, configuration_space, values=None, **kwargs):
+    def __init__(self, configuration_space, values=None, vector=None):
         """A single configuration.
 
         Parameters
@@ -516,43 +529,42 @@ class Configuration(object):
                             "you provided '%s'" %
                             (ConfigurationSpace, type(configuration_space)))
 
+        self._values = dict()
         self.configuration_space = configuration_space
+        self._query_values = False
 
-        _values = OrderedDict()
-        if values is None:
-            values = kwargs
-
-        try:
-            do_checks = not kwargs['_____________sentinel_____________']
-            del kwargs['_____________sentinel_____________']
-        except:
-            do_checks = True
-
-        # Using cs._hyperparameters to iterate makes sure that the
-        # hyperparameters in the configuration are sorted in the same way as
-        # they are sorted in the configuration space
-        if do_checks:
+        if values is not None:
+            # Using cs._hyperparameters to iterate makes sure that the
+            # hyperparameters in the configuration are sorted in the same way as
+            # they are sorted in the configuration space
             for key in configuration_space._hyperparameters:
                 value = values.get(key)
                 if value is None:
                     continue
                 hyperparameter = configuration_space.get_hyperparameter(key)
                 hyperparameter.is_legal(value)
-                _values[key] = value
-            self._values = _values
+                self._values[key] = value
+            self._query_values = True
             self.is_valid_configuration()
-        else:
-            self._values = values
+            self._vector = np.ndarray((1,),
+                                      dtype=configuration_space._vector_types)
+
+        elif vector is not None:
+            self._vector = vector
             self.configuration_space._check_forbidden(self)
+        else:
+            raise ValueError()
 
     def is_valid_configuration(self):
         self.configuration_space._check_configuration(self)
 
-    def get_values(self):
-        return [value for value in self._values]
-
     def __getitem__(self, item):
-        return self._values.get(item)
+        if self._query_values or item in self._values:
+            return self._values.get(item)
+
+        hyperparameter = self.configuration_space.get_hyperparameter(item)
+        self._values[item] = hyperparameter._transform(self._vector[item])
+        return self._values[item]
 
     def __contains__(self, item):
         return item in self._values
@@ -566,7 +578,14 @@ class Configuration(object):
             # TODO: this is a pretty bad equality test
             return self.__repr__() == other.__repr__()
 
+    def _populate_values(self):
+        for hyperparameter in self.configuration_space.get_hyperparameters():
+            self[hyperparameter.name]
+
     def __repr__(self):
+        if self._query_values is False:
+            self._populate_values()
+
         repr = StringIO.StringIO()
         repr.write("Configuration:\n")
 

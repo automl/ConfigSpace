@@ -178,7 +178,7 @@ class TestConfigurationSpace(unittest.TestCase):
         cond1 = EqualsCondition(hp2, hp1, 0)
         cs.add_condition(cond1)
         # This automatically checks the configuration!
-        Configuration(cs, parent=0, child=5)
+        Configuration(cs, dict(parent=0, child=5))
 
         # and now for something more complicated
         cs = ConfigurationSpace()
@@ -307,7 +307,7 @@ class TestConfigurationSpace(unittest.TestCase):
         cond1 = EqualsCondition(hp2, hp1, 0)
         cs.add_condition(cond1)
         # This automatically checks the configuration!
-        Configuration(cs, parent=0, child=5)
+        Configuration(cs, dict(parent=0, child=5))
 
         # and now for something more complicated
         cs = ConfigurationSpace()
@@ -395,7 +395,7 @@ class TestConfigurationSpace(unittest.TestCase):
         forbidden = ForbiddenEqualsClause(metric, "other")
         cs.add_forbidden_clause(forbidden)
 
-        configuration = Configuration(cs, classifier="extra_trees")
+        configuration = Configuration(cs, dict(classifier="extra_trees"))
 
     def test_eq(self):
         # Compare empty configuration spaces
@@ -455,7 +455,7 @@ class TestConfigurationSpace(unittest.TestCase):
         cond1 = EqualsCondition(hp2, hp1, 0)
         cs.add_condition(cond1)
         # This automatically checks the configuration!
-        Configuration(cs, parent=0, child=5)
+        Configuration(cs, dict(parent=0, child=5))
 
         # and now for something more complicated
         cs = ConfigurationSpace(seed=1)
