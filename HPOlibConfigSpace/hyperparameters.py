@@ -103,7 +103,7 @@ class FloatHyperparameter(NumericalHyperparameter):
         return isinstance(value, float) or isinstance(value, int)
 
     def check_default(self, default):
-        return default
+        return float(default)
 
 
 class IntegerHyperparameter(NumericalHyperparameter):

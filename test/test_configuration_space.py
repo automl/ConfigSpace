@@ -1,6 +1,8 @@
 from itertools import product
 import unittest
 
+import numpy as np
+
 from HPOlibConfigSpace.configuration_space import ConfigurationSpace, \
     Configuration
 from HPOlibConfigSpace.hyperparameters import CategoricalHyperparameter, \
@@ -396,6 +398,18 @@ class TestConfigurationSpace(unittest.TestCase):
         cs.add_forbidden_clause(forbidden)
 
         configuration = Configuration(cs, dict(classifier="extra_trees"))
+
+    def test_check_forbidden_with_sampled_vector_configuration(self):
+        cs = ConfigurationSpace()
+        metric = CategoricalHyperparameter("metric", ["minkowski", "other"])
+        cs.add_hyperparameter(metric)
+
+        forbidden = ForbiddenEqualsClause(metric, "other")
+        cs.add_forbidden_clause(forbidden)
+        configuration = Configuration(cs,
+            vector=np.ones(1, dtype=[('metric', int)]))
+        self.assertRaisesRegexp(ValueError, "violates forbidden clause",
+                                cs._check_forbidden, configuration)
 
     def test_eq(self):
         # Compare empty configuration spaces

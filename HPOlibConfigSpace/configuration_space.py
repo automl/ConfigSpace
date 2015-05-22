@@ -80,9 +80,8 @@ class ConfigurationSpace(object):
 
         self._check_default_configuration()
         # Update the vector
-        types = [(hp.name, int if isinstance(hp,
-                                             (CategoricalHyperparameter, Constant))
-                           else float)
+        types = [(hp.name, int if isinstance(hp, (CategoricalHyperparameter, Constant))
+                               else float)
                  for hp in self._hyperparameters.values()]
         self._vector_types = types
 
@@ -350,9 +349,6 @@ class ConfigurationSpace(object):
         return Configuration(self, instantiated_hyperparameters)
 
     def check_configuration(self, configuration):
-        # TODO: This should be a method of configuration, as it already knows
-        #  the configuration space!
-
         if not isinstance(configuration, Configuration):
             raise TypeError("The method check_configuration must be called "
                             "with an instance of %s." % Configuration)
@@ -363,10 +359,10 @@ class ConfigurationSpace(object):
             hyperparameter = self._hyperparameters[hp_name]
             hp_value = configuration[hp_name]
 
-            # TODO test that a hyperparameter is missing in a configuration
             if hp_value is not None and not hyperparameter.is_legal(hp_value):
                 raise ValueError("Hyperparameter instantiation '%s' is "
-                                 "illegal" % hp_value)
+                                 "illegal for hyperparameter %s" %
+                                 (hp_value, hyperparameter))
 
             conditions = self._get_parent_conditions_of(hyperparameter.name)
 
@@ -402,11 +398,14 @@ class ConfigurationSpace(object):
 
     def _check_forbidden(self, configuration):
         # Check if all forbidden clauses are satisfied
+        #import traceback
+        #for line in traceback.format_stack():
+        #    print line.strip()
+        #print
         for clause in self.forbidden_clauses:
             if clause.is_forbidden(configuration, strict=False):
-                raise ValueError("%sviolates "
-                                 "forbidden clause %s" % (
-                    str(configuration), str(clause)))
+                raise ValueError("%sviolates forbidden clause %s" % (
+                                 str(configuration), str(clause)))
 
     def __eq__(self, other):
         if type(self) != type(other):
@@ -481,24 +480,25 @@ class ConfigurationSpace(object):
                         add = False
 
                 if not add:
+                    hyperparameter = self._hyperparameters[hp_name]
                     vector[hp_name][i] = hyperparameter._nan
-                    #hyperparameter = self._hyperparameters[hp_name]
-                    #vector[i][hp_name] = hyperparameter._sample(self.random,
-                    #                                           size)
                 else:
-                    #vector[hp_name] = hyperparameter._nan
                     pass
 
             for i in range(missing):
                 try:
                     configuration = Configuration(self, vector=vector[i])
+                    self._check_forbidden(configuration)
                     accepted_configurations.append(configuration)
                 except ValueError as e:
                     iteration += 1
 
-                    if iteration == 1000000:
+                    if iteration == size * 100:
                         raise ValueError("Cannot sample valid configuration for "
                                          "%s" % self)
+
+            missing = size - len(accepted_configurations)
+
         if size <= 1:
             return accepted_configurations[0]
         else:
@@ -529,7 +529,6 @@ class Configuration(object):
                             "you provided '%s'" %
                             (ConfigurationSpace, type(configuration_space)))
 
-        self._values = dict()
         self.configuration_space = configuration_space
         self._query_values = False
 
@@ -537,6 +536,7 @@ class Configuration(object):
             # Using cs._hyperparameters to iterate makes sure that the
             # hyperparameters in the configuration are sorted in the same way as
             # they are sorted in the configuration space
+            self._values = dict()
             for key in configuration_space._hyperparameters:
                 value = values.get(key)
                 if value is None:
@@ -550,8 +550,8 @@ class Configuration(object):
                                       dtype=configuration_space._vector_types)
 
         elif vector is not None:
+            self._values = dict()
             self._vector = vector
-            self.configuration_space._check_forbidden(self)
         else:
             raise ValueError()
 
@@ -562,7 +562,7 @@ class Configuration(object):
         if self._query_values or item in self._values:
             return self._values.get(item)
 
-        hyperparameter = self.configuration_space.get_hyperparameter(item)
+        hyperparameter = self.configuration_space._hyperparameters[item]
         self._values[item] = hyperparameter._transform(self._vector[item])
         return self._values[item]
 
@@ -595,13 +595,18 @@ class Configuration(object):
             hp_name = hyperparameter.name
             if hp_name in self._values and self._values[hp_name] is not None:
                 repr.write("  ")
-                repr.write("%s, Value: %s" % (hp_name,
-                                              self._values[hp_name]))
+                value = str(self._values[hp_name])
+                if isinstance(hyperparameter, Constant):
+                    repr.write("%s, Constant: %s" % (hp_name, value))
+                else:
+                    repr.write("%s, Value: %s" % (hp_name, value))
                 repr.write("\n")
 
         return repr.getvalue()
 
     def __iter__(self):
-        return iter(self._values.keys())
+        # TODO: the hyperparameter names should also be in the configuration
+        # object!
+        return iter(self.configuration_space._hyperparameters.keys())
 
 

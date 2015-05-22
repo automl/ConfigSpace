@@ -66,7 +66,10 @@ class TestHyperparameters(unittest.TestCase):
 
         f4 = UniformFloatHyperparameter("param", 0, 10, default=1.0)
         f4_ = UniformFloatHyperparameter("param", 0, 10, default=1.0)
+        # Test that a int default is converted to float
+        f4__ = UniformFloatHyperparameter("param", 0, 10, default=1)
         self.assertEqual(f4, f4_)
+        self.assertEqual(type(f4.default), type(f4__.default))
         self.assertEqual(
             "param, Type: UniformFloat, Range: [0.0, 10.0], Default: 1.0",
             str(f4))
