@@ -2,10 +2,8 @@ from itertools import product
 import unittest
 import warnings
 
-from HPOlibConfigSpace.hyperparameters import Constant, \
-    UniformIntegerHyperparameter, CategoricalHyperparameter, \
-    InstantiatedCategoricalHyperparameter, \
-    InstantiatedUniformIntegerHyperparameter
+from HPOlibConfigSpace.hyperparameters import \
+    UniformIntegerHyperparameter, CategoricalHyperparameter
 from HPOlibConfigSpace.forbidden import ForbiddenEqualsClause, \
     ForbiddenInClause, ForbiddenAndConjunction
 
@@ -38,27 +36,15 @@ class TestForbidden(unittest.TestCase):
         self.assertNotEqual(forb1__, forb1)
         self.assertEqual("Forbidden: parent == 1", str(forb1))
 
-        self.assertRaisesRegexp(TypeError,
-                                "Is_forbidden\(\) must be called with an "
-                                "instance of "
-                                "<class "
-                                "'HPOlibConfigSpace.hyperparameters.InstantiatedHyperparameter'>,"
-                                " you provided an instance of <class "
-                                "'HPOlibConfigSpace.hyperparameters.CategoricalHyperparameter'>.",
-                                forb1.is_forbidden, [hp1])
         self.assertRaisesRegexp(ValueError,
                                 "Is_forbidden must be called with the "
                                 "instanstatiated hyperparameter in the "
                                 "forbidden clause; you are missing "
                                 "'parent'", forb1.is_forbidden,
-                                [InstantiatedCategoricalHyperparameter(1, hp2)])
-        self.assertFalse(forb1.is_forbidden([
-            InstantiatedCategoricalHyperparameter(1, hp2)], strict=False))
-
-        self.assertFalse(forb1.is_forbidden([
-            InstantiatedCategoricalHyperparameter(0, hp1)]))
-        self.assertTrue(forb1.is_forbidden([
-            InstantiatedCategoricalHyperparameter(1, hp1)]))
+                                [{1: hp2}])
+        self.assertFalse(forb1.is_forbidden({'child': 1}, strict=False))
+        self.assertFalse(forb1.is_forbidden({'parent': 0}))
+        self.assertTrue(forb1.is_forbidden({'parent': 1}))
 
     def test_in_condition(self):
         hp1 = CategoricalHyperparameter("parent", [0, 1])
@@ -86,30 +72,19 @@ class TestForbidden(unittest.TestCase):
         self.assertNotEqual(forb1, forb3)
         self.assertEqual("Forbidden: child in {5, 6, 7, 8, 9}", str(forb1))
 
-        self.assertRaisesRegexp(TypeError,
-                                "Is_forbidden\(\) must be called with an "
-                                "instance of "
-                                "<class "
-                                "'HPOlibConfigSpace.hyperparameters.InstantiatedHyperparameter'>,"
-                                " you provided an instance of <class "
-                                "'HPOlibConfigSpace.hyperparameters.CategoricalHyperparameter'>.",
-                                forb1.is_forbidden, [hp1])
         self.assertRaisesRegexp(ValueError,
                                 "Is_forbidden must be called with the "
                                 "instanstatiated hyperparameter in the "
                                 "forbidden clause; you are missing "
                                 "'child'", forb1.is_forbidden,
-                                [InstantiatedCategoricalHyperparameter(1, hp1)])
-        self.assertFalse(forb1.is_forbidden(
-            [InstantiatedCategoricalHyperparameter(1, hp1)], strict=False))
+                                {'parent': 1})
+        self.assertFalse(forb1.is_forbidden({'parent': 1}, strict=False))
 
         for i in range(0, 5):
-            self.assertFalse(forb1.is_forbidden([
-                InstantiatedUniformIntegerHyperparameter(i, hp2)]))
+            self.assertFalse(forb1.is_forbidden({'child': i}))
 
         for i in range(5, 10):
-            self.assertTrue(forb1.is_forbidden([
-                InstantiatedUniformIntegerHyperparameter(i, hp2)]))
+            self.assertTrue(forb1.is_forbidden({'child': i}))
 
 
     def test_and_conjunction(self):
@@ -148,10 +123,10 @@ class TestForbidden(unittest.TestCase):
         for i, values in enumerate(product(range(2), range(3), range(3),
                                            range(3))):
             is_forbidden = total_and.is_forbidden(
-                [InstantiatedCategoricalHyperparameter(values[0], hp1),
-                 InstantiatedUniformIntegerHyperparameter(values[1], hp2),
-                 InstantiatedUniformIntegerHyperparameter(values[2], hp3),
-                 InstantiatedUniformIntegerHyperparameter(values[3], hp4)])
+                {"parent": values[0],
+                 "child": values[1],
+                 "child2": values[2],
+                 "child3": values[3]})
 
             self.assertEqual(results[i], is_forbidden)
 

@@ -3,8 +3,7 @@ from itertools import izip
 import operator
 import StringIO
 
-from HPOlibConfigSpace.hyperparameters import Hyperparameter, \
-    InstantiatedHyperparameter
+from HPOlibConfigSpace.hyperparameters import Hyperparameter
 
 
 class AbstractForbiddenComponent(object):
@@ -65,16 +64,12 @@ class SingleValueForbiddenClause(AbstractForbiddenClause):
             return True
 
     def is_forbidden(self, instantiated_hyperparameters, strict=True):
-        target_ihp = None
-        for ihp in instantiated_hyperparameters:
-            if not isinstance(ihp, InstantiatedHyperparameter):
-                raise TypeError("Is_forbidden() must be called with an "
-                                "instance of %s, you provided an instance of "
-                                "%s." % (InstantiatedHyperparameter, type(ihp)))
-            if ihp.hyperparameter.name == self.hyperparameter.name:
-                target_ihp = ihp
+        value = None
+        for hp_name in instantiated_hyperparameters:
+            if hp_name == self.hyperparameter.name:
+                value = instantiated_hyperparameters[hp_name]
 
-        if target_ihp is None:
+        if value is None:
             if strict:
                 raise ValueError("Is_forbidden must be called with the "
                                  "instanstatiated hyperparameter in the "
@@ -83,7 +78,7 @@ class SingleValueForbiddenClause(AbstractForbiddenClause):
             else:
                 return False
 
-        return self._is_forbidden(target_ihp)
+        return self._is_forbidden(value)
 
     @abstractmethod
     def _is_forbidden(self, target_instantiated_hyperparameter):
@@ -115,16 +110,12 @@ class MultipleValueForbiddenClause(AbstractForbiddenClause):
             return True
 
     def is_forbidden(self, instantiated_hyperparameters, strict=True):
-        target_ihp = None
-        for ihp in instantiated_hyperparameters:
-            if not isinstance(ihp, InstantiatedHyperparameter):
-                raise TypeError("Is_forbidden() must be called with an "
-                                "instance of %s, you provided an instance of "
-                                "%s." % (InstantiatedHyperparameter, type(ihp)))
-            if ihp.hyperparameter.name == self.hyperparameter.name:
-                target_ihp = ihp
+        value = None
+        for hp_name in instantiated_hyperparameters:
+            if hp_name == self.hyperparameter.name:
+                value = instantiated_hyperparameters[hp_name]
 
-        if target_ihp is None:
+        if value is None:
             if strict:
                 raise ValueError("Is_forbidden must be called with the "
                                  "instanstatiated hyperparameter in the "
@@ -133,7 +124,7 @@ class MultipleValueForbiddenClause(AbstractForbiddenClause):
             else:
                 return False
 
-        return self._is_forbidden(target_ihp)
+        return self._is_forbidden(value)
 
     @abstractmethod
     def _is_forbidden(self, target_instantiated_hyperparameter):
@@ -145,8 +136,8 @@ class ForbiddenEqualsClause(SingleValueForbiddenClause):
         return "Forbidden: %s == %s" % (self.hyperparameter.name,
                                         str(self.value))
 
-    def _is_forbidden(self, target_instantiated_hyperparameter):
-        return target_instantiated_hyperparameter.value == self.value
+    def _is_forbidden(self, value):
+        return value == self.value
 
 
 class ForbiddenInClause(MultipleValueForbiddenClause):
@@ -158,8 +149,8 @@ class ForbiddenInClause(MultipleValueForbiddenClause):
         return "Forbidden: %s in %s" % (self.hyperparameter.name,
             "{" + ", ".join((str(value) for value in sorted(self.values))) + "}")
 
-    def _is_forbidden(self, target_instantiated_hyperparameter):
-        return target_instantiated_hyperparameter.value in self.values
+    def _is_forbidden(self, value):
+        return value in self.values
 
 
 class AbstractForbiddenConjunction(AbstractForbiddenComponent):
@@ -204,11 +195,7 @@ class AbstractForbiddenConjunction(AbstractForbiddenComponent):
     def is_forbidden(self, instantiated_hyperparameters, strict=True):
         ihp_names = []
         for ihp in instantiated_hyperparameters:
-            if not isinstance(ihp, InstantiatedHyperparameter):
-                raise TypeError("Is_forbidden() must be called with "
-                                "instances of %s, you provided an instance of "
-                                "%s" % (InstantiatedHyperparameter, type(ihp)))
-            ihp_names.append(ihp.hyperparameter.name)
+            ihp_names.append(ihp)
 
         dlcs = self.get_descendant_literal_clauses()
         for dlc in dlcs:
@@ -225,7 +212,6 @@ class AbstractForbiddenConjunction(AbstractForbiddenComponent):
         # outcomes
         evaluations = []
         for component in self.components:
-            # If it's a condition, we must only pass the parent hyperparameter
             e = component.is_forbidden(instantiated_hyperparameters,
                                        strict=strict)
             evaluations.append(e)
