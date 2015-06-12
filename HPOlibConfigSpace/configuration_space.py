@@ -459,11 +459,14 @@ class ConfigurationSpace(object):
         missing = size
         accepted_configurations = []
         while len(accepted_configurations) < size:
+            print missing
+            if missing != size:
+                missing = int(1.1 * missing)
             vector = np.ndarray((missing,), dtype=self._vector_types)
 
             for hp_name in self._hyperparameters:
                 hyperparameter = self._hyperparameters[hp_name]
-                vector[hp_name] = hyperparameter._sample(self.random, size)
+                vector[hp_name] = hyperparameter._sample(self.random, missing)
 
             for i, hp_name in product(range(missing), self.get_all_conditional_hyperparameters()):
                 conditions = self._get_parent_conditions_of(hp_name)
