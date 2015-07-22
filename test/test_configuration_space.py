@@ -157,6 +157,24 @@ class TestConfigurationSpace(unittest.TestCase):
                                   "  Forbidden Clauses:\n"
                                   "    Forbidden: input1 == 1\n")
 
+    def test_add_configuration_space(self):
+        cs = ConfigurationSpace()
+        hp1 = cs.add_hyperparameter(CategoricalHyperparameter("input1", [0, 1]))
+        forb1 = cs.add_forbidden_clause(ForbiddenEqualsClause(hp1, 1))
+        hp2 = cs.add_hyperparameter(UniformIntegerHyperparameter("child", 0, 10))
+        cond = cs.add_condition(EqualsCondition(hp2, hp1, 0))
+        cs2 = ConfigurationSpace()
+        cs2.add_configuration_space('prefix', cs, delimiter='__')
+        self.assertEqual(str(cs2), '''Configuration space object:
+  Hyperparameters:
+    prefix__child, Type: UniformInteger, Range: [0, 10], Default: 5
+    prefix__input1, Type: Categorical, Choices: {0, 1}, Default: 0
+  Conditions:
+    prefix__child | prefix__input1 == 0
+  Forbidden Clauses:
+    Forbidden: prefix__input1 == 1
+''')
+
     def test_get_hyperparameters(self):
         cs = ConfigurationSpace()
         self.assertEqual([], cs.get_hyperparameters())

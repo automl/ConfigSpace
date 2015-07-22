@@ -22,6 +22,7 @@ __authors__ = ["Katharina Eggensperger", "Matthias Feurer"]
 __contact__ = "automl.org"
 
 from collections import defaultdict, OrderedDict
+import copy
 from itertools import product
 import StringIO
 
@@ -29,9 +30,9 @@ import numpy as np
 
 import HPOlibConfigSpace.nx
 from HPOlibConfigSpace.hyperparameters import Hyperparameter, Constant, \
-    IntegerHyperparameter, FloatHyperparameter, CategoricalHyperparameter
+    CategoricalHyperparameter
 from HPOlibConfigSpace.conditions import ConditionComponent, \
-    AbstractCondition, AbstractConjunction
+    AbstractCondition, AbstractConjunction, EqualsCondition
 from HPOlibConfigSpace.forbidden import AbstractForbiddenComponent
 
 
@@ -84,6 +85,7 @@ class ConfigurationSpace(object):
                                else float)
                  for hp in self._hyperparameters.values()]
         self._vector_types = types
+        return hyperparameter
 
     def add_condition(self, condition):
         # Check if adding the condition is legal:
@@ -115,6 +117,7 @@ class ConfigurationSpace(object):
 
         else:
             raise Exception("This should never happen!")
+        return condition
 
     def _add_edge(self, parent_node, child_node, condition):
         self._check_edge(parent_node, child_node, condition)
@@ -206,6 +209,7 @@ class ConfigurationSpace(object):
                             "HPOlibConfigSpace.forbidden.AbstractForbiddenComponent.")
         self.forbidden_clauses.append(clause)
         self._check_default_configuration()
+        return clause
 
     # def print_configuration_space(self):
     #     HPOlibConfigSpace.nx.write_dot(self._dg, "hyperparameters.dot")
@@ -214,6 +218,40 @@ class ConfigurationSpace(object):
     #     pos = HPOlibConfigSpace.nx.graphviz_layout(DG, prog='dot')
     #     HPOlibConfigSpace.nx.draw(self._dg, pos, with_labels=True)
     #     plt.savefig('nx_test.png')
+
+    def add_configuration_space(self, prefix, configuration_space,
+                                delimiter=":"):
+        if not isinstance(configuration_space, ConfigurationSpace):
+            raise TypeError("The method add_configuration_space must be "
+                            "called with an instance of "
+                            "HPOlibConfigSpace.configuration_space.ConfigurationSpace.")
+
+        for hp in configuration_space.get_hyperparameters():
+            new_parameter = copy.deepcopy(hp)
+            new_parameter.name = "%s%s%s" % (prefix, delimiter,
+                                             new_parameter.name)
+            self.add_hyperparameter(new_parameter)
+
+        for condition in configuration_space.get_conditions():
+            dlcs = condition.get_descendant_literal_conditions()
+            for dlc in dlcs:
+                if not dlc.child.name.startswith("%s%s" % (prefix, delimiter)):
+                    dlc.child.name = "%s%s%s" % (prefix, delimiter, dlc.child.name)
+                if not dlc.parent.name.startswith("%s%s" % (prefix, delimiter)):
+                    dlc.parent.name = "%s%s%s" % (prefix, delimiter, dlc.parent.name)
+            self.add_condition(condition)
+
+        for forbidden_clause in configuration_space.forbidden_clauses:
+            dlcs = forbidden_clause.get_descendant_literal_clauses()
+            for dlc in dlcs:
+                if not dlc.hyperparameter.name.startswith(
+                                "%s%s" % (prefix, delimiter)):
+                    dlc.hyperparameter.name = "%s%s%s" % \
+                        (prefix, delimiter, dlc.hyperparameter.name)
+            self.add_forbidden_clause(forbidden_clause)
+
+        return configuration_space
+
 
     def get_hyperparameters(self):
         return self._hyperparameters.values()
@@ -459,7 +497,6 @@ class ConfigurationSpace(object):
         missing = size
         accepted_configurations = []
         while len(accepted_configurations) < size:
-            print missing
             if missing != size:
                 missing = int(1.1 * missing)
             vector = np.ndarray((missing,), dtype=self._vector_types)
