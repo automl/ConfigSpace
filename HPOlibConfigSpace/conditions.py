@@ -1,10 +1,10 @@
 __author__ = 'feurerm'
 
 from abc import ABCMeta, abstractmethod
-from itertools import combinations, izip
+from itertools import combinations
 import operator
-import StringIO
 
+import six
 
 from HPOlibConfigSpace.hyperparameters import Hyperparameter
 
@@ -94,10 +94,9 @@ class AbstractConjunction(ConditionComponent):
         elif len(self.components) != len(other.components):
             return False
         else:
-            for comp1, comp2 in izip(sorted(self.components,
-                                            key=lambda t:t.__repr__()),
-                                     sorted(other.components,
-                                            key=lambda t: t.__repr__())):
+            for comp1, comp2 in six.moves.zip\
+                    (sorted(self.components, key=lambda t:t.__repr__()),
+                     sorted(other.components, key=lambda t: t.__repr__())):
                 if comp1 != comp2:
                     return False
         return True
@@ -230,7 +229,7 @@ class AndConjunction(AbstractConjunction):
         super(AndConjunction, self).__init__(*args)
 
     def __repr__(self):
-        retval = StringIO.StringIO()
+        retval = six.StringIO()
         retval.write("(")
         for idx, component in enumerate(self.components):
             retval.write(str(component))
@@ -240,7 +239,7 @@ class AndConjunction(AbstractConjunction):
         return retval.getvalue()
 
     def _evaluate(self, evaluations):
-        return reduce(operator.and_, evaluations)
+        return six.moves.reduce(operator.and_, evaluations)
 
 
 class OrConjunction(AbstractConjunction):
@@ -251,7 +250,7 @@ class OrConjunction(AbstractConjunction):
         super(OrConjunction, self).__init__(*args)
 
     def __repr__(self):
-        retval = StringIO.StringIO()
+        retval = six.StringIO()
         retval.write("(")
         for idx, component in enumerate(self.components):
             retval.write(str(component))
@@ -261,4 +260,4 @@ class OrConjunction(AbstractConjunction):
         return retval.getvalue()
 
     def _evaluate(self, evaluations):
-        return reduce(operator.or_, evaluations)
+        return six.moves.reduce(operator.or_, evaluations)

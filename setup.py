@@ -24,6 +24,7 @@ setup(
     install_requires=['argparse',
                       'numpy',
                       'pyparsing'
+                      'six'
                       ],
     author_email='feurerm@informatik.uni-freiburg.de',
     description=desc,
@@ -32,7 +33,7 @@ setup(
     packages=find_packages(),
     scripts=['scripts/HPOlib-convert'],
     classifiers=[
-        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 2.7 :: 3.4',
         'Development Status :: 3 - Alpha',
         'Natural Language :: English',
         'Environment :: Console',

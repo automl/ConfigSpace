@@ -23,11 +23,11 @@ __contact__ = "automl.org"
 
 from collections import defaultdict
 from itertools import product
-import StringIO
 import sys
 
 import numpy as np
 import pyparsing
+import six
 
 from HPOlibConfigSpace.configuration_space import ConfigurationSpace
 from HPOlibConfigSpace.hyperparameters import CategoricalHyperparameter, \
@@ -139,7 +139,7 @@ def build_forbidden(clause):
         raise NotImplementedError("SMAC cannot handle '%s' of type %s" %
                                   str(clause), (type(clause)))
 
-    retval = StringIO.StringIO()
+    retval = six.StringIO()
     retval.write("{")
     # Really simple because everything is an AND-conjunction of equals
     # conditions
@@ -185,7 +185,7 @@ def read(pcs_string, debug=False):
                 raise NotImplementedError("Could not parse condition: %s" % line)
             continue
         if "}" not in line and "]" not in line:
-            print "Skipping: %s" % line
+            print("Skipping: %s" % line)
             continue
         if line.startswith("{") and line.endswith("}"):
             forbidden.append(line)
@@ -290,19 +290,6 @@ def read(pcs_string, debug=False):
         else:
             configuration_space.add_condition(condition_objects[0])
 
-    if debug:
-        print
-        print "============== Reading Results"
-        print "First 10 lines:"
-        sp_list = ["%s: %s" % (j, str(searchspace[j])) for j in searchspace]
-        print "\n".join(sp_list[:10])
-        print
-        print "#Invalid lines: %d ( of %d )" % (line_ct - len(conditions) - ct, line_ct)
-        print "#Parameter: %d" % len(searchspace)
-        print "#Conditions: %d" % len(conditions)
-        print "#Conditioned params: %d" % sum([1 if len(searchspace[j].conditions[0]) > 0 else 0 for j in searchspace])
-        print "#Categorical: %d" % cat_ct
-        print "#Continuous: %d" % cont_ct
     return configuration_space
 
 
@@ -312,9 +299,9 @@ def write(configuration_space):
                         "you provided '%s'" % (ConfigurationSpace,
                         type(configuration_space)))
 
-    param_lines = StringIO.StringIO()
-    condition_lines = StringIO.StringIO()
-    forbidden_lines = StringIO.StringIO()
+    param_lines = six.StringIO()
+    condition_lines = six.StringIO()
+    forbidden_lines = []
     for hyperparameter in configuration_space.get_hyperparameters():
         # Check if the hyperparameter names are valid SMAC names!
         try:
@@ -342,10 +329,8 @@ def write(configuration_space):
         condition_lines.write(build_condition(condition))
 
     for forbidden_clause in configuration_space.forbidden_clauses:
-        if forbidden_lines.tell() > 0:
-            forbidden_lines.write("\n")
         # Convert in-statement into two or more equals statements
-        dlcs = forbidden_clause.get_descendant_literal_clauses()
+        dlcs = forbidden_clause.get_descendant_literal_clauses().copy()
         # First, get all in statements and convert them to equal statements
         in_statements = []
         other_statements = []
@@ -364,13 +349,11 @@ def write(configuration_space):
         # create a ForbiddenAnd and add all ForbiddenEquals
         if len(in_statements) > 0:
             for i, p in enumerate(product(*in_statements)):
-                if i > 0:
-                    forbidden_lines.write("\n")
                 all_forbidden_clauses = list(p) + other_statements
                 f = ForbiddenAndConjunction(*all_forbidden_clauses)
-                forbidden_lines.write(build_forbidden(f))
+                forbidden_lines.append(build_forbidden(f))
         else:
-            forbidden_lines.write(build_forbidden(forbidden_clause))
+            forbidden_lines.append(build_forbidden(forbidden_clause))
 
     if condition_lines.tell() > 0:
         condition_lines.seek(0)
@@ -378,11 +361,12 @@ def write(configuration_space):
         for line in condition_lines:
             param_lines.write(line)
 
-    if forbidden_lines.tell() > 0:
-        forbidden_lines.seek(0)
+    if len(forbidden_lines) > 0:
+        forbidden_lines.sort()
         param_lines.write("\n\n")
         for line in forbidden_lines:
             param_lines.write(line)
+            param_lines.write("\n")
 
     # Check if the default configuration is a valid configuration!
 
@@ -396,11 +380,11 @@ if __name__ == "__main__":
     orig_pcs = fh.readlines()
     sp = read(orig_pcs, debug=True)
     created_pcs = write(sp).split("\n")
-    print "============== Writing Results"
-    print "#Lines: ", len(created_pcs)
-    print "#LostLines: ", len(orig_pcs) - len(created_pcs)
+    print("============== Writing Results")
+    print("#Lines: ", len(created_pcs))
+    print("#LostLines: ", len(orig_pcs) - len(created_pcs))
     diff = ["%s\n" % i for i in created_pcs if i not in " ".join(orig_pcs)]
-    print "Identical Lines: ", len(created_pcs) - len(diff)
-    print
-    print "Up to 10 random different lines (of %d):" % len(diff)
-    print "".join(diff[:10])
+    print("Identical Lines: ", len(created_pcs) - len(diff))
+    print()
+    print("Up to 10 random different lines (of %d):" % len(diff))
+    print("".join(diff[:10]))

@@ -1,7 +1,7 @@
 from abc import ABCMeta, abstractmethod
-from itertools import izip
 import operator
-import StringIO
+
+import six
 
 from HPOlibConfigSpace.hyperparameters import Hyperparameter
 
@@ -175,10 +175,9 @@ class AbstractForbiddenConjunction(AbstractForbiddenComponent):
         elif len(self.components) != len(other.components):
             return False
         else:
-            for comp1, comp2 in izip(sorted(self.components,
-                                            key=lambda t: t.__repr__()),
-                                     sorted(other.components,
-                                            key=lambda t: t.__repr__())):
+            for comp1, comp2 in six.moves.zip(
+                    sorted(self.components, key=lambda t: t.__repr__()),
+                    sorted(other.components, key=lambda t: t.__repr__())):
                 if comp1 != comp2:
                     return False
         return True
@@ -224,7 +223,7 @@ class AbstractForbiddenConjunction(AbstractForbiddenComponent):
 
 class ForbiddenAndConjunction(AbstractForbiddenConjunction):
     def __repr__(self):
-        retval = StringIO.StringIO()
+        retval = six.StringIO()
         retval.write("(")
         for idx, component in enumerate(self.components):
             retval.write(str(component))
@@ -234,7 +233,7 @@ class ForbiddenAndConjunction(AbstractForbiddenConjunction):
         return retval.getvalue()
 
     def _is_forbidden(self, evaluations):
-        return reduce(operator.and_, evaluations)
+        return six.moves.reduce(operator.and_, evaluations)
 
 
 

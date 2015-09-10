@@ -1,9 +1,9 @@
 from abc import ABCMeta, abstractmethod
-import StringIO
 import types
 import warnings
 
 import numpy as np
+import six
 
 
 class Hyperparameter(object):
@@ -11,9 +11,10 @@ class Hyperparameter(object):
 
     @abstractmethod
     def __init__(self, name):
-        if not isinstance(name, types.StringTypes):
+        if type(name) not in six.string_types or \
+                not isinstance(name, six.text_type):
             raise TypeError("The name of a hyperparameter must be of in %s, "
-                            "but is %s." % (str(types.StringTypes), type(name)))
+                            "but is %s." % (str(six.string_types), type(name)))
         self.name = name
 
     @abstractmethod
@@ -46,8 +47,12 @@ class Hyperparameter(object):
 class Constant(Hyperparameter):
     def __init__(self, name, value):
         super(Constant, self).__init__(name)
-        allowed_types = (types.IntType, types.FloatType,
-                         types.StringType, types.UnicodeType)
+        allowed_types = []
+        allowed_types.extend(six.integer_types)
+        allowed_types.append(float)
+        allowed_types.extend(six.string_types)
+        allowed_types.append(six.text_type)
+        allowed_types = tuple(allowed_types)
 
         if not isinstance(value, allowed_types) or \
                 isinstance(value, bool):
@@ -103,7 +108,7 @@ class FloatHyperparameter(NumericalHyperparameter):
         return isinstance(value, float) or isinstance(value, int)
 
     def check_default(self, default):
-        return float(default)
+        return np.round(float(default), 10)
 
 
 class IntegerHyperparameter(NumericalHyperparameter):
@@ -174,18 +179,6 @@ class UniformFloatHyperparameter(UniformMixin, FloatHyperparameter):
             raise ValueError("Negative lower bound (%f) for log-scale "
                              "hyperparameter %s is forbidden." %
                              (self.lower, name))
-        elif self.q is not None and \
-                (abs(int(self.lower / self.q) - (self.lower / self.q)) >
-                     0.00001):
-            raise ValueError("If q is active, the lower bound %f "
-                             "must be a multiple of q %f!" % (self.lower,
-                                                              self.q))
-        elif self.q is not None and \
-                (abs(int(self.upper / self.q) - (self.upper / self.q)) >
-                     0.00001):
-            raise ValueError("If q is active, the upper bound %f "
-                             "must be a multiple of q %f!" % (self.upper,
-                                                              self.q))
 
         super(UniformFloatHyperparameter, self). \
             __init__(name, self.check_default(default))
@@ -207,9 +200,8 @@ class UniformFloatHyperparameter(UniformMixin, FloatHyperparameter):
                 self._lower = self.lower
                 self._upper = self.upper
 
-
     def __repr__(self):
-        repr_str = StringIO.StringIO()
+        repr_str = six.StringIO()
         repr_str.write("%s, Type: UniformFloat, Range: [%s, %s], Default: %s" %
                        (self.name, str(self.lower), str(self.upper),
                        str(self.default)))
@@ -263,7 +255,7 @@ class NormalFloatHyperparameter(NormalMixin, FloatHyperparameter):
             __init__(name, self.check_default(default))
 
     def __repr__(self):
-        repr_str = StringIO.StringIO()
+        repr_str = six.StringIO()
         repr_str.write("%s, Type: NormalFloat, Mu: %s Sigma: %s, Default: %s" %
                        (self.name, str(self.mu), str(self.sigma), str(self.default)))
         if self.log:
@@ -341,18 +333,6 @@ class UniformIntegerHyperparameter(UniformMixin, IntegerHyperparameter):
             raise ValueError("Negative lower bound (%d) for log-scale "
                              "hyperparameter %s is forbidden." %
                              (self.lower, name))
-        elif self.q is not None and \
-                (abs(int(float(self.lower) / self.q) -
-                    (float(self.lower) / self.q)) > 0.00001):
-            raise ValueError("If q is active, the lower bound %d "
-                             "must be a multiple of q %d!" % (self.lower,
-                                                              self.q))
-        elif self.q is not None and \
-                (abs(int(float(self.upper) / self.q) -
-                    (float(self.upper) / self.q)) > 0.00001):
-            raise ValueError("If q is active, the upper bound %d "
-                             "must be a multiple of q %d!" % (self.upper,
-                                                              self.q))
 
         super(UniformIntegerHyperparameter, self). \
             __init__(name, self.check_default(default))
@@ -364,7 +344,7 @@ class UniformIntegerHyperparameter(UniformMixin, IntegerHyperparameter):
                                                default=self.default)
 
     def __repr__(self):
-        repr_str = StringIO.StringIO()
+        repr_str = six.StringIO()
         repr_str.write("%s, Type: UniformInteger, Range: [%s, %s], Default: %s"
                        % (self.name, str(self.lower),
                           str(self.upper), str(self.default)))
@@ -437,7 +417,7 @@ class NormalIntegerHyperparameter(NormalMixin, IntegerHyperparameter):
                                               default=self.default)
 
     def __repr__(self):
-        repr_str = StringIO.StringIO()
+        repr_str = six.StringIO()
         repr_str.write("%s, Type: NormalInteger, Mu: %s Sigma: %s, Default: "
                        "%s" % (self.name, str(self.mu),
                                str(self.sigma), str(self.default)))
@@ -494,7 +474,7 @@ class CategoricalHyperparameter(Hyperparameter):
         self._nan = -1
 
     def __repr__(self):
-        repr_str = StringIO.StringIO()
+        repr_str = six.StringIO()
         repr_str.write("%s, Type: Categorical, Choices: {" % (self.name))
         for idx, choice in enumerate(self.choices):
             repr_str.write(str(choice))

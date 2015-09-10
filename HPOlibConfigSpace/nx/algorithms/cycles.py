@@ -9,8 +9,8 @@ Cycle finding algorithms
 #    Pieter Swart <swart@lanl.gov>
 #    All rights reserved.
 #    BSD license.
-from HPOlibConfigSpace.nx.utils import *
 from collections import defaultdict
+import HPOlibConfigSpace.nx
 
 __all__ = ['simple_cycles']
 __author__ = "\n".join(['Jon Olav Vik <jonovik@gmail.com>',
@@ -18,7 +18,6 @@ __author__ = "\n".join(['Jon Olav Vik <jonovik@gmail.com>',
                         'Aric Hagberg <hagberg@lanl.gov>'])
 
 
-@not_implemented_for('undirected')
 def simple_cycles(G):
     """Find simple cycles (elementary circuits) of a directed graph.
 

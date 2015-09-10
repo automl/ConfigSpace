@@ -21,11 +21,9 @@
 __authors__ = ["Katharina Eggensperger", "Matthias Feurer"]
 __contact__ = "automl.org"
 
-import StringIO
 import unittest
 
-import sys
-print sys.path
+import six
 
 from HPOlibConfigSpace.configuration_space import ConfigurationSpace
 import HPOlibConfigSpace.converters.pcs_parser as pcs_parser
@@ -96,7 +94,7 @@ class TestPCSConverter(unittest.TestCase):
         self.assertDictEqual(a_real, a_copy)
 
     def test_read_configuration_space_easy(self):
-        expected = StringIO.StringIO()
+        expected = six.StringIO()
         expected.write('# This is a \n')
         expected.write('   # This is a comment with a leading whitespace ### ffds \n')
         expected.write('\n')
@@ -149,7 +147,7 @@ class TestPCSConverter(unittest.TestCase):
                                 "instance of "
                                 "<class 'HPOlibConfigSpace.configuration_"
                                 "space.ConfigurationSpace'>, you provided "
-                                "'<type 'dict'>'", pcs_parser.write, sp)
+                                "'<(type|class) 'dict'>'", pcs_parser.write, sp)
 
     def test_write_int(self):
         expected = "int_a [-1, 6] [2]i"
@@ -190,7 +188,8 @@ class TestPCSConverter(unittest.TestCase):
         self.assertEqual(expected, value)
 
     def test_build_forbidden(self):
-        expected = "{a=a, b=a}\n{a=a, b=b}\n{a=b, b=a}\n{a=b, b=b}"
+        expected = "a {a, b, c} [a]\nb {a, b, c} [c]\n\n" \
+                   "{a=a, b=a}\n{a=a, b=b}\n{a=b, b=a}\n{a=b, b=b}"
         cs = ConfigurationSpace()
         a = CategoricalHyperparameter("a", ["a", "b", "c"], "a")
         b = CategoricalHyperparameter("b", ["a", "b", "c"], "c")

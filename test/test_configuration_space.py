@@ -177,7 +177,7 @@ class TestConfigurationSpace(unittest.TestCase):
 
     def test_get_hyperparameters(self):
         cs = ConfigurationSpace()
-        self.assertEqual([], cs.get_hyperparameters())
+        self.assertEqual(0, len(cs.get_hyperparameters()))
         hp1 = CategoricalHyperparameter("parent", [0, 1])
         cs.add_hyperparameter(hp1)
         self.assertEqual([hp1], cs.get_hyperparameters())

@@ -24,9 +24,9 @@ __contact__ = "automl.org"
 from collections import defaultdict, OrderedDict
 import copy
 from itertools import product
-import StringIO
 
 import numpy as np
+import six
 
 import HPOlibConfigSpace.nx
 from HPOlibConfigSpace.hyperparameters import Hyperparameter, Constant, \
@@ -154,6 +154,9 @@ class ConfigurationSpace(object):
 
         if not HPOlibConfigSpace.nx.is_directed_acyclic_graph(tmp_dag):
             cycles = list(HPOlibConfigSpace.nx.simple_cycles(tmp_dag))
+            for cycle in cycles:
+                cycle.sort()
+            cycles.sort()
             raise ValueError("Hyperparameter configuration contains a "
                              "cycle %s" % str(cycles))
 
@@ -254,7 +257,7 @@ class ConfigurationSpace(object):
 
 
     def get_hyperparameters(self):
-        return self._hyperparameters.values()
+        return list(self._hyperparameters.values())
 
     def get_hyperparameter(self, name):
         hp = self._hyperparameters.get(name)
@@ -462,7 +465,7 @@ class ConfigurationSpace(object):
         return not self.__eq__(other)
 
     def __repr__(self):
-        retval = StringIO.StringIO()
+        retval = six.StringIO()
         retval.write("Configuration space object:\n  Hyperparameters:\n")
 
         hyperparameters = sorted(self.get_hyperparameters(),
@@ -626,7 +629,7 @@ class Configuration(object):
         if self._query_values is False:
             self._populate_values()
 
-        repr = StringIO.StringIO()
+        repr = six.StringIO()
         repr.write("Configuration:\n")
 
         hyperparameters = self.configuration_space.get_hyperparameters()

@@ -116,14 +116,6 @@ class TestHyperparameters(unittest.TestCase):
             "0.000000 for hyperparameter param",
                                 UniformFloatHyperparameter, "param", 1, 0)
 
-        self.assertRaisesRegexp(ValueError,
-            "If q is active, the upper bound 1.000000 must be a multiple of q "
-            "0.300000!", UniformFloatHyperparameter, "param", 0, 1, q=0.3)
-
-        self.assertRaisesRegexp(ValueError,
-            "If q is active, the lower bound 0.100000 must be a multiple of q "
-            "0.300000!", UniformFloatHyperparameter, "param", 0.1, 1, q=0.3)
-
     def test_normalfloat(self):
         # TODO test non-equality
         f1 = NormalFloatHyperparameter("param", 0.5, 10.5)
@@ -238,7 +230,8 @@ class TestHyperparameters(unittest.TestCase):
         self.assertIsInstance(n_iter.default, int)
         self.assertRaisesRegexp(ValueError, "For the Integer parameter n_iter, "
                                             "the value must be an Integer, too."
-                                            " Right now it is a <type 'float'>"
+                                            " Right now it is a <(type|class) "
+                                            "'float'>"
                                             " with value 20.5.",
                                 UniformIntegerHyperparameter,"n_iter", 5.,
                                 1000., default=20.5)
@@ -252,15 +245,6 @@ class TestHyperparameters(unittest.TestCase):
         self.assertRaisesRegexp(ValueError,
             "Upper bound 1 must be larger than lower bound 0 for "
             "hyperparameter param", UniformIntegerHyperparameter, "param", 1, 0)
-
-        self.assertRaisesRegexp(ValueError,
-            "If q is active, the upper bound 1 must be a multiple of q "
-            "2!", UniformIntegerHyperparameter, "param", 0, 1, q=2)
-
-        self.assertRaisesRegexp(ValueError,
-            "If q is active, the lower bound 1 must be a multiple of q "
-            "2!", UniformIntegerHyperparameter, "param", 1, 3, q=2)
-
 
     def test_normalint(self):
         # TODO test for unequal!
@@ -314,7 +298,8 @@ class TestHyperparameters(unittest.TestCase):
         self.assertIsInstance(n_iter.default, int)
         self.assertRaisesRegexp(ValueError, "For the Integer parameter n_iter, "
                                             "the value must be an Integer, too."
-                                            " Right now it is a <type 'float'>"
+                                            " Right now it is a "
+                                            "<(type|class) 'float'>"
                                             " with value 0.5.",
                                 UniformIntegerHyperparameter, "n_iter", 0,
                                 1., default=0.5)
@@ -355,7 +340,7 @@ class TestHyperparameters(unittest.TestCase):
         f4 = CategoricalHyperparameter("param_", range(0, 1000))
         self.assertNotEqual(f2, f4)
 
-        f5 = CategoricalHyperparameter("param", range(0, 999) + [1001])
+        f5 = CategoricalHyperparameter("param", list(range(0, 999)) + [1001])
         self.assertNotEqual(f2, f5)
 
         f6 = CategoricalHyperparameter("param", ["a", "b"], default="b")
@@ -468,7 +453,7 @@ class TestHyperparameters(unittest.TestCase):
         hp = UniformIntegerHyperparameter("uihp", 0, 10)
 
         counts_per_bin = sample(hp)
-        print counts_per_bin
+        print(counts_per_bin)
         for bin in counts_per_bin[::2]:
             self.assertTrue(9302 > bin > 8700)
         for bin in counts_per_bin[1::2]:
