@@ -1,5 +1,4 @@
 from abc import ABCMeta, abstractmethod
-import types
 import warnings
 
 import numpy as np
@@ -11,10 +10,9 @@ class Hyperparameter(object):
 
     @abstractmethod
     def __init__(self, name):
-        if type(name) not in six.string_types or \
-                not isinstance(name, six.text_type):
-            raise TypeError("The name of a hyperparameter must be of in %s, "
-                            "but is %s." % (str(six.string_types), type(name)))
+        if not isinstance(name, six.string_types):
+            raise TypeError("The name of a hyperparameter must be an instance of"
+                            " %s, but is %s." % (str(six.string_types), type(name)))
         self.name = name
 
     @abstractmethod
