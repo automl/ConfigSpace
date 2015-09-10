@@ -23,7 +23,7 @@ setup(
     test_suite="nose.collector",
     install_requires=['argparse',
                       'numpy',
-                      'pyparsing'
+                      'pyparsing',
                       'six'
                       ],
     author_email='feurerm@informatik.uni-freiburg.de',
