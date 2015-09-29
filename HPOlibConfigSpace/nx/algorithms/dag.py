@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*-
 from fractions import gcd
+
 import HPOlibConfigSpace.nx
+
+
 """Algorithms for directed acyclic graphs (DAGs)."""
-#    Copyright (C) 2006-2011 by 
+# Copyright (C) 2006-2011 by
 #    Aric Hagberg <hagberg@lanl.gov>
 #    Dan Schult <dschult@colgate.edu>
 #    Pieter Swart <swart@lanl.gov>
@@ -13,10 +16,11 @@ __author__ = """\n""".join(['Aric Hagberg <aric.hagberg@gmail.com>',
                             'Ben Edwards (bedwards@cs.unm.edu)'])
 __all__ = ['descendants',
            'ancestors',
-           'topological_sort', 
+           'topological_sort',
            'topological_sort_recursive',
            'is_directed_acyclic_graph',
            'is_aperiodic']
+
 
 def descendants(G, source):
     """Return all nodes reachable from `source` in G.
@@ -32,9 +36,13 @@ def descendants(G, source):
        The descendants of source in G
     """
     if not G.has_node(source):
-        raise HPOlibConfigSpace.nx.NetworkXError("The node %s is not in the graph." % source)
-    des = set(HPOlibConfigSpace.nx.shortest_path_length(G, source=source).keys()) - set([source])
+        raise HPOlibConfigSpace.nx.NetworkXError(
+            "The node %s is not in the graph." % source)
+    des = set(HPOlibConfigSpace.nx.shortest_path_length(G,
+                                                        source=source).keys()) - set(
+        [source])
     return des
+
 
 def ancestors(G, source):
     """Return all nodes having a path to `source` in G.
@@ -50,9 +58,13 @@ def ancestors(G, source):
        The ancestors of source in G
     """
     if not G.has_node(source):
-        raise HPOlibConfigSpace.nx.NetworkXError("The node %s is not in the graph." % source)
-    anc = set(HPOlibConfigSpace.nx.shortest_path_length(G, target=source).keys()) - set([source])
+        raise HPOlibConfigSpace.nx.NetworkXError(
+            "The node %s is not in the graph." % source)
+    anc = set(HPOlibConfigSpace.nx.shortest_path_length(G,
+                                                        target=source).keys()) - set(
+        [source])
     return anc
+
 
 def is_directed_acyclic_graph(G):
     """Return True if the graph G is a directed acyclic graph (DAG) or 
@@ -76,7 +88,8 @@ def is_directed_acyclic_graph(G):
     except HPOlibConfigSpace.nx.NetworkXUnfeasible:
         return False
 
-def topological_sort(G,nbunch=None):
+
+def topological_sort(G, nbunch=None):
     """Return a list of nodes in topological sort order.
 
     A topological sort is a nonunique permutation of the nodes
@@ -117,41 +130,43 @@ def topological_sort(G,nbunch=None):
     """
     if not G.is_directed():
         raise HPOlibConfigSpace.nx.NetworkXError(
-                "Topological sort not defined on undirected graphs.")
+            "Topological sort not defined on undirected graphs.")
 
     # nonrecursive version
     seen = set()
-    order = [] 
-    explored = set() 
-                     
+    order = []
+    explored = set()
+
     if nbunch is None:
         nbunch = G.nodes_iter()
-    for v in nbunch:     # process all vertices in G
-        if v in explored: 
+    for v in nbunch:  # process all vertices in G
+        if v in explored:
             continue
-        fringe = [v]   # nodes yet to look at
+        fringe = [v]  # nodes yet to look at
         while fringe:
             w = fringe[-1]  # depth first search
-            if w in explored: # already looked down this branch
+            if w in explored:  # already looked down this branch
                 fringe.pop()
                 continue
-            seen.add(w)     # mark as seen
+            seen.add(w)  # mark as seen
             # Check successors for cycles and for new nodes
             new_nodes = []
             for n in G[w]:
                 if n not in explored:
-                    if n in seen: #CYCLE !!
-                        raise HPOlibConfigSpace.nx.NetworkXUnfeasible("Graph contains a cycle.")
+                    if n in seen:  #CYCLE !!
+                        raise HPOlibConfigSpace.nx.NetworkXUnfeasible(
+                            "Graph contains a cycle.")
                     new_nodes.append(n)
-            if new_nodes:   # Add new_nodes to fringe
+            if new_nodes:  # Add new_nodes to fringe
                 fringe.extend(new_nodes)
-            else:           # No new nodes so w is fully explored
+            else:  # No new nodes so w is fully explored
                 explored.add(w)
                 order.append(w)
-                fringe.pop()    # done considering this node
+                fringe.pop()  # done considering this node
     return list(reversed(order))
 
-def topological_sort_recursive(G,nbunch=None):
+
+def topological_sort_recursive(G, nbunch=None):
     """Return a list of nodes in topological sort order.
 
     A topological sort is a nonunique permutation of the nodes such
@@ -194,7 +209,8 @@ def topological_sort_recursive(G,nbunch=None):
 
         for w in G[v]:
             if w in ancestors:
-                raise HPOlibConfigSpace.nx.NetworkXUnfeasible("Graph contains a cycle.")
+                raise HPOlibConfigSpace.nx.NetworkXUnfeasible(
+                    "Graph contains a cycle.")
 
             if w not in explored:
                 _dfs(w)
@@ -213,8 +229,9 @@ def topological_sort_recursive(G,nbunch=None):
     for v in nbunch:
         if v not in explored:
             _dfs(v)
-            
+
     return list(reversed(order))
+
 
 def is_aperiodic(G):
     """Return True if G is aperiodic.
@@ -251,10 +268,11 @@ def is_aperiodic(G):
        A Multidisciplinary Approach, CRC Press.
     """
     if not G.is_directed():
-        raise HPOlibConfigSpace.nx.NetworkXError("is_aperiodic not defined for undirected graphs")
+        raise HPOlibConfigSpace.nx.NetworkXError(
+            "is_aperiodic not defined for undirected graphs")
 
     s = next(G.nodes_iter())
-    levels = {s:0}
+    levels = {s: 0}
     this_level = [s]
     g = 0
     l = 1
@@ -262,14 +280,15 @@ def is_aperiodic(G):
         next_level = []
         for u in this_level:
             for v in G[u]:
-                if v in levels: # Non-Tree Edge
-                    g = gcd(g, levels[u]-levels[v] + 1)
-                else: # Tree Edge
+                if v in levels:  # Non-Tree Edge
+                    g = gcd(g, levels[u] - levels[v] + 1)
+                else:  # Tree Edge
                     next_level.append(v)
                     levels[v] = l
         this_level = next_level
         l += 1
-    if len(levels)==len(G): #All nodes in tree
-        return g==1
+    if len(levels) == len(G):  #All nodes in tree
+        return g == 1
     else:
-        return g==1 and HPOlibConfigSpace.nx.is_aperiodic(G.subgraph(set(G)-set(levels)))
+        return g == 1 and HPOlibConfigSpace.nx.is_aperiodic(
+            G.subgraph(set(G) - set(levels)))

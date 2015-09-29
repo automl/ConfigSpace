@@ -71,6 +71,7 @@ class AbstractCondition(ConditionComponent):
     def _evaluate(self, instantiated_parent_hyperparameter):
         pass
 
+
 class AbstractConjunction(ConditionComponent):
     def __init__(self, *args):
         self.components = args
@@ -79,7 +80,8 @@ class AbstractConjunction(ConditionComponent):
         for idx, component in enumerate(self.components):
             if not isinstance(component, ConditionComponent):
                 raise TypeError("Argument #%d is not an instance of %s, "
-                                "but %s" % (idx, ConditionComponent, type(component)))
+                                "but %s" % (
+                                idx, ConditionComponent, type(component)))
 
         # Test that all conjunctions and conditions have the same child!
         children = self.get_children()
@@ -94,8 +96,8 @@ class AbstractConjunction(ConditionComponent):
         elif len(self.components) != len(other.components):
             return False
         else:
-            for comp1, comp2 in six.moves.zip\
-                    (sorted(self.components, key=lambda t:t.__repr__()),
+            for comp1, comp2 in six.moves.zip \
+                    (sorted(self.components, key=lambda t: t.__repr__()),
                      sorted(other.components, key=lambda t: t.__repr__())):
                 if comp1 != comp2:
                     return False
@@ -185,8 +187,8 @@ class NotEqualsCondition(AbstractCondition):
             return False
         else:
             return self.child == other.child and \
-                   self.parent == other.parent and \
-                   self.value == other.value
+                self.parent == other.parent and \
+                self.value == other.value
 
     def _evaluate(self, value):
         return value != self.value
@@ -205,15 +207,16 @@ class InCondition(AbstractCondition):
 
     def __repr__(self):
         return "%s | %s in {%s}" % (self.child.name, self.parent.name,
-            ", ".join([str(value) for value in self.values]))
+                                    ", ".join(
+                                        [str(value) for value in self.values]))
 
     def __eq__(self, other):
         if type(self) != type(other):
             return False
         else:
             return self.child == other.child and \
-                   self.parent == other.parent and \
-                   self.values == other.values
+                self.parent == other.parent and \
+                self.values == other.values
 
     def _evaluate(self, value):
         return value in self.values

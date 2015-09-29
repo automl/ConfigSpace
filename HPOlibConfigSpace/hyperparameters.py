@@ -11,8 +11,9 @@ class Hyperparameter(object):
     @abstractmethod
     def __init__(self, name):
         if not isinstance(name, six.string_types):
-            raise TypeError("The name of a hyperparameter must be an instance of"
-                            " %s, but is %s." % (str(six.string_types), type(name)))
+            raise TypeError(
+                "The name of a hyperparameter must be an instance of"
+                " %s, but is %s." % (str(six.string_types), type(name)))
         self.name = name
 
     @abstractmethod
@@ -42,6 +43,7 @@ class Hyperparameter(object):
     def _transform(self, vector):
         pass
 
+
 class Constant(Hyperparameter):
     def __init__(self, name, value):
         super(Constant, self).__init__(name)
@@ -55,8 +57,8 @@ class Constant(Hyperparameter):
         if not isinstance(value, allowed_types) or \
                 isinstance(value, bool):
             raise TypeError("Constant value is of type %s, but only the "
-                            "following types are allowed: %s" % (type(value),
-                                                                 allowed_types))
+                            "following types are allowed: %s" %
+                            (type(value), allowed_types))
 
         self.value = value
         self._nan = -1
@@ -202,7 +204,7 @@ class UniformFloatHyperparameter(UniformMixin, FloatHyperparameter):
         repr_str = six.StringIO()
         repr_str.write("%s, Type: UniformFloat, Range: [%s, %s], Default: %s" %
                        (self.name, str(self.lower), str(self.upper),
-                       str(self.default)))
+                        str(self.default)))
         if self.log:
             repr_str.write(", on log-scale")
         if self.q is not None:
@@ -226,7 +228,9 @@ class UniformFloatHyperparameter(UniformMixin, FloatHyperparameter):
         # TODO check if conversion makes sense at all (at least two integer
         # values possible!)
         return UniformIntegerHyperparameter(self.name, self.lower,
-            self.upper, int(np.round(self.default)), self.q, self.log)
+                                            self.upper,
+                                            int(np.round(self.default)), self.q,
+                                            self.log)
 
     def _sample(self, rs, size=None):
         return rs.uniform(size=size)
@@ -249,13 +253,14 @@ class NormalFloatHyperparameter(NormalMixin, FloatHyperparameter):
         self.sigma = float(sigma)
         self.q = float(q) if q is not None else None
         self.log = bool(log)
-        super(NormalFloatHyperparameter, self).\
+        super(NormalFloatHyperparameter, self). \
             __init__(name, self.check_default(default))
 
     def __repr__(self):
         repr_str = six.StringIO()
         repr_str.write("%s, Type: NormalFloat, Mu: %s Sigma: %s, Default: %s" %
-                       (self.name, str(self.mu), str(self.sigma), str(self.default)))
+                       (self.name, str(self.mu), str(self.sigma),
+                        str(self.default)))
         if self.log:
             repr_str.write(", on log-scale")
         if self.q is not None:
@@ -277,12 +282,17 @@ class NormalFloatHyperparameter(NormalMixin, FloatHyperparameter):
 
     def to_uniform(self, z=3):
         return UniformFloatHyperparameter(self.name,
-            self.mu - (z * self.sigma), self.mu + (z * self.sigma),
-            default=int(np.round(self.default, 0)), q=self.q, log=self.log)
+                                          self.mu - (z * self.sigma),
+                                          self.mu + (z * self.sigma),
+                                          default=int(
+                                              np.round(self.default, 0)),
+                                          q=self.q, log=self.log)
 
     def to_integer(self):
         return NormalIntegerHyperparameter(self.name, self.mu, self.sigma,
-            default=int(np.round(self.default, 0)), q=self.q, log=self.log)
+                                           default=int(
+                                               np.round(self.default, 0)),
+                                           q=self.q, log=self.log)
 
     def is_legal(self, value):
         if isinstance(value, (float, int)):
@@ -368,7 +378,7 @@ class UniformIntegerHyperparameter(UniformMixin, IntegerHyperparameter):
     def _sample(self, rs, size=None):
         value = self.ufhp._sample(rs, size=size)
         return value
-        #if self.log is False and self.q is None:
+        # if self.log is False and self.q is None:
         #    value = rs.randint(self.lower, self.upper + 1)
         #    return value
         #else:
@@ -519,5 +529,3 @@ class CategoricalHyperparameter(Hyperparameter):
         if vector == -1:
             return None
         return self.choices[vector]
-
-

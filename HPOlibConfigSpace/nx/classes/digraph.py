@@ -1,5 +1,5 @@
 """Base class for directed graphs."""
-#    Copyright (C) 2004-2011 by
+# Copyright (C) 2004-2011 by
 #    Aric Hagberg <hagberg@lanl.gov>
 #    Dan Schult <dschult@colgate.edu>
 #    Pieter Swart <swart@lanl.gov>
@@ -7,13 +7,17 @@
 #    BSD license.
 import collections
 from copy import deepcopy
+
 import HPOlibConfigSpace.nx
 from HPOlibConfigSpace.nx.classes.graph import Graph
 from HPOlibConfigSpace.nx.exception import NetworkXError
 from HPOlibConfigSpace.nx import convert
+
+
 __author__ = """\n""".join(['Aric Hagberg (hagberg@lanl.gov)',
                             'Pieter Swart (swart@lanl.gov)',
                             'Dan Schult(dschult@colgate.edu)'])
+
 
 class DiGraph(Graph):
     """
@@ -163,6 +167,7 @@ class DiGraph(Graph):
 
     For details on these and other miscellaneous methods, see below.
     """
+
     def __init__(self, data=None, **attr):
         """Initialize a graph with edges, name, graph attributes.
 
@@ -197,8 +202,8 @@ class DiGraph(Graph):
         {'day': 'Friday'}
 
         """
-        self.graph = collections.OrderedDict() # dictionary for graph attributes
-        self.node = collections.OrderedDict() # dictionary for node attributes
+        self.graph = collections.OrderedDict()  # dictionary for graph attributes
+        self.node = collections.OrderedDict()  # dictionary for node attributes
         # We store two adjacency lists:
         # the  predecessors of node n are stored in the dict self.pred
         # the successors of node n are stored in the dict self.succ=self.adj
@@ -208,10 +213,10 @@ class DiGraph(Graph):
 
         # attempt to load graph with data
         if data is not None:
-            convert.to_networkx_graph(data,create_using=self)
+            convert.to_networkx_graph(data, create_using=self)
         # load graph attributes (must be after convert)
         self.graph.update(attr)
-        self.edge=self.adj
+        self.edge = self.adj
 
 
     def add_node(self, n, attr_dict=None, **attr):
@@ -258,18 +263,18 @@ class DiGraph(Graph):
         """
         # set up attribute dict
         if attr_dict is None:
-            attr_dict=attr
+            attr_dict = attr
         else:
             try:
                 attr_dict.update(attr)
             except AttributeError:
-                raise NetworkXError(\
+                raise NetworkXError( \
                     "The attr_dict argument must be a dictionary.")
         if n not in self.succ:
             self.succ[n] = collections.OrderedDict()
             self.pred[n] = collections.OrderedDict()
             self.node[n] = attr_dict
-        else: # update attr even if node already exists
+        else:  # update attr even if node already exists
             self.node[n].update(attr_dict)
 
 
@@ -320,9 +325,9 @@ class DiGraph(Graph):
         """
         for n in nodes:
             try:
-                newnode=n not in self.succ
+                newnode = n not in self.succ
             except TypeError:
-                nn,ndict = n
+                nn, ndict = n
                 if nn not in self.succ:
                     self.succ[nn] = collections.OrderedDict()
                     self.pred[nn] = collections.OrderedDict()
@@ -373,16 +378,16 @@ class DiGraph(Graph):
 
         """
         try:
-            nbrs=self.succ[n]
+            nbrs = self.succ[n]
             del self.node[n]
-        except KeyError: # NetworkXError if n not in self
-            raise NetworkXError("The node %s is not in the digraph."%(n,))
+        except KeyError:  # NetworkXError if n not in self
+            raise NetworkXError("The node %s is not in the digraph." % (n,))
         for u in nbrs:
-            del self.pred[u][n] # remove all edges n-u in digraph
-        del self.succ[n]          # remove node from succ
+            del self.pred[u][n]  # remove all edges n-u in digraph
+        del self.succ[n]  # remove node from succ
         for u in self.pred[n]:
-            del self.succ[u][n] # remove all edges n-u in digraph
-        del self.pred[n]          # remove node from pred
+            del self.succ[u][n]  # remove all edges n-u in digraph
+        del self.pred[n]  # remove node from pred
 
 
     def remove_nodes_from(self, nbunch):
@@ -413,16 +418,16 @@ class DiGraph(Graph):
         """
         for n in nbunch:
             try:
-                succs=self.succ[n]
+                succs = self.succ[n]
                 del self.node[n]
                 for u in succs:
-                    del self.pred[u][n] # remove all edges n-u in digraph
-                del self.succ[n]          # now remove node
+                    del self.pred[u][n]  # remove all edges n-u in digraph
+                del self.succ[n]  # now remove node
                 for u in self.pred[n]:
-                    del self.succ[u][n] # remove all edges n-u in digraph
-                del self.pred[n]          # now remove node
+                    del self.succ[u][n]  # remove all edges n-u in digraph
+                del self.pred[n]  # now remove node
             except KeyError:
-                pass # silent failure on remove
+                pass  # silent failure on remove
 
 
     def add_edge(self, u, v, attr_dict=None, **attr):
@@ -475,27 +480,27 @@ class DiGraph(Graph):
         """
         # set up attribute dict
         if attr_dict is None:
-            attr_dict=attr
+            attr_dict = attr
         else:
             try:
                 attr_dict.update(attr)
             except AttributeError:
-                raise NetworkXError(\
+                raise NetworkXError( \
                     "The attr_dict argument must be a dictionary.")
         # add nodes
         if u not in self.succ:
-            self.succ[u]=collections.OrderedDict()
-            self.pred[u]=collections.OrderedDict()
+            self.succ[u] = collections.OrderedDict()
+            self.pred[u] = collections.OrderedDict()
             self.node[u] = collections.OrderedDict()
         if v not in self.succ:
-            self.succ[v]=collections.OrderedDict()
-            self.pred[v]=collections.OrderedDict()
+            self.succ[v] = collections.OrderedDict()
+            self.pred[v] = collections.OrderedDict()
             self.node[v] = collections.OrderedDict()
         # add the edge
-        datadict=self.adj[u].get(v,collections.OrderedDict())
+        datadict = self.adj[u].get(v, collections.OrderedDict())
         datadict.update(attr_dict)
-        self.succ[u][v]=datadict
-        self.pred[v][u]=datadict
+        self.succ[u][v] = datadict
+        self.pred[v][u] = datadict
 
     def add_edges_from(self, ebunch, attr_dict=None, **attr):
         """Add all the edges in ebunch.
@@ -539,25 +544,25 @@ class DiGraph(Graph):
         """
         # set up attribute dict
         if attr_dict is None:
-            attr_dict=attr
+            attr_dict = attr
         else:
             try:
                 attr_dict.update(attr)
             except AttributeError:
-                raise NetworkXError(\
+                raise NetworkXError( \
                     "The attr_dict argument must be a dict.")
         # process ebunch
         for e in ebunch:
             ne = len(e)
-            if ne==3:
-                u,v,dd = e
-                assert hasattr(dd,"update")
-            elif ne==2:
-                u,v = e
+            if ne == 3:
+                u, v, dd = e
+                assert hasattr(dd, "update")
+            elif ne == 2:
+                u, v = e
                 dd = collections.OrderedDict()
             else:
-                raise NetworkXError(\
-                    "Edge tuple %s must be a 2-tuple or 3-tuple."%(e,))
+                raise NetworkXError( \
+                    "Edge tuple %s must be a 2-tuple or 3-tuple." % (e,))
             if u not in self.succ:
                 self.succ[u] = collections.OrderedDict()
                 self.pred[u] = collections.OrderedDict()
@@ -566,7 +571,7 @@ class DiGraph(Graph):
                 self.succ[v] = collections.OrderedDict()
                 self.pred[v] = collections.OrderedDict()
                 self.node[v] = collections.OrderedDict()
-            datadict=self.adj[u].get(v,collections.OrderedDict())
+            datadict = self.adj[u].get(v, collections.OrderedDict())
             datadict.update(attr_dict)
             datadict.update(dd)
             self.succ[u][v] = datadict
@@ -604,7 +609,7 @@ class DiGraph(Graph):
             del self.succ[u][v]
             del self.pred[v][u]
         except KeyError:
-            raise NetworkXError("The edge %s-%s not in graph."%(u,v))
+            raise NetworkXError("The edge %s-%s not in graph." % (u, v))
 
 
     def remove_edges_from(self, ebunch):
@@ -635,7 +640,7 @@ class DiGraph(Graph):
         >>> G.remove_edges_from(ebunch)
         """
         for e in ebunch:
-            (u,v)=e[:2]  # ignore edge data
+            (u, v) = e[:2]  # ignore edge data
             if u in self.succ and v in self.succ[u]:
                 del self.succ[u][v]
                 del self.pred[v][u]
@@ -655,7 +660,7 @@ class DiGraph(Graph):
         """
         return (u in self.pred and v in self.pred[u])
 
-    def successors_iter(self,n):
+    def successors_iter(self, n):
         """Return an iterator over successor nodes of n.
 
         neighbors_iter() and successors_iter() are the same.
@@ -663,14 +668,14 @@ class DiGraph(Graph):
         try:
             return iter(self.succ[n])
         except KeyError:
-            raise NetworkXError("The node %s is not in the digraph."%(n,))
+            raise NetworkXError("The node %s is not in the digraph." % (n,))
 
-    def predecessors_iter(self,n):
+    def predecessors_iter(self, n):
         """Return an iterator over predecessor nodes of n."""
         try:
             return iter(self.pred[n])
         except KeyError:
-            raise NetworkXError("The node %s is not in the digraph."%(n,))
+            raise NetworkXError("The node %s is not in the digraph." % (n,))
 
     def successors(self, n):
         """Return a list of successor nodes of n.
@@ -731,21 +736,21 @@ class DiGraph(Graph):
 
         """
         if nbunch is None:
-            nodes_nbrs=self.adj.items()
+            nodes_nbrs = self.adj.items()
         else:
-            nodes_nbrs=((n,self.adj[n]) for n in self.nbunch_iter(nbunch))
+            nodes_nbrs = ((n, self.adj[n]) for n in self.nbunch_iter(nbunch))
         if data:
-            for n,nbrs in nodes_nbrs:
-                for nbr,data in nbrs.items():
-                    yield (n,nbr,data)
+            for n, nbrs in nodes_nbrs:
+                for nbr, data in nbrs.items():
+                    yield (n, nbr, data)
         else:
-            for n,nbrs in nodes_nbrs:
+            for n, nbrs in nodes_nbrs:
                 for nbr in nbrs:
-                    yield (n,nbr)
+                    yield (n, nbr)
 
     # alias out_edges to edges
-    out_edges_iter=edges_iter
-    out_edges=Graph.edges
+    out_edges_iter = edges_iter
+    out_edges = Graph.edges
 
     def in_edges_iter(self, nbunch=None, data=False):
         """Return an iterator over the incoming edges.
@@ -768,17 +773,17 @@ class DiGraph(Graph):
         edges_iter : return an iterator of edges
         """
         if nbunch is None:
-            nodes_nbrs=self.pred.items()
+            nodes_nbrs = self.pred.items()
         else:
-            nodes_nbrs=((n,self.pred[n]) for n in self.nbunch_iter(nbunch))
+            nodes_nbrs = ((n, self.pred[n]) for n in self.nbunch_iter(nbunch))
         if data:
-            for n,nbrs in nodes_nbrs:
-                for nbr,data in nbrs.items():
-                    yield (nbr,n,data)
+            for n, nbrs in nodes_nbrs:
+                for nbr, data in nbrs.items():
+                    yield (nbr, n, data)
         else:
-            for n,nbrs in nodes_nbrs:
+            for n, nbrs in nodes_nbrs:
                 for nbr in nbrs:
-                    yield (nbr,n)
+                    yield (nbr, n)
 
     def in_edges(self, nbunch=None, data=False):
         """Return a list of the incoming edges.
@@ -825,21 +830,21 @@ class DiGraph(Graph):
 
         """
         if nbunch is None:
-            nodes_nbrs=zip(iter(self.succ.items()),iter(self.pred.items()))
+            nodes_nbrs = zip(iter(self.succ.items()), iter(self.pred.items()))
         else:
-            nodes_nbrs=zip(
-                ((n,self.succ[n]) for n in self.nbunch_iter(nbunch)),
-                ((n,self.pred[n]) for n in self.nbunch_iter(nbunch)))
+            nodes_nbrs = zip(
+                ((n, self.succ[n]) for n in self.nbunch_iter(nbunch)),
+                ((n, self.pred[n]) for n in self.nbunch_iter(nbunch)))
 
         if weight is None:
-            for (n,succ),(n2,pred) in nodes_nbrs:
-                yield (n,len(succ)+len(pred))
+            for (n, succ), (n2, pred) in nodes_nbrs:
+                yield (n, len(succ) + len(pred))
         else:
-        # edge weighted graph - degree is sum of edge weights
-            for (n,succ),(n2,pred) in nodes_nbrs:
-               yield (n,
-                      sum((succ[nbr].get(weight,1) for nbr in succ))+
-                      sum((pred[nbr].get(weight,1) for nbr in pred)))
+            # edge weighted graph - degree is sum of edge weights
+            for (n, succ), (n2, pred) in nodes_nbrs:
+                yield (n,
+                       sum((succ[nbr].get(weight, 1) for nbr in succ)) +
+                       sum((pred[nbr].get(weight, 1) for nbr in pred)))
 
 
     def in_degree_iter(self, nbunch=None, weight=None):
@@ -878,17 +883,17 @@ class DiGraph(Graph):
 
         """
         if nbunch is None:
-            nodes_nbrs=self.pred.items()
+            nodes_nbrs = self.pred.items()
         else:
-            nodes_nbrs=((n,self.pred[n]) for n in self.nbunch_iter(nbunch))
+            nodes_nbrs = ((n, self.pred[n]) for n in self.nbunch_iter(nbunch))
 
         if weight is None:
-            for n,nbrs in nodes_nbrs:
-                yield (n,len(nbrs))
+            for n, nbrs in nodes_nbrs:
+                yield (n, len(nbrs))
         else:
-        # edge weighted graph - degree is sum of edge weights
-            for n,nbrs in nodes_nbrs:
-                yield (n, sum(data.get(weight,1) for data in nbrs.values()))
+            # edge weighted graph - degree is sum of edge weights
+            for n, nbrs in nodes_nbrs:
+                yield (n, sum(data.get(weight, 1) for data in nbrs.values()))
 
 
     def out_degree_iter(self, nbunch=None, weight=None):
@@ -927,17 +932,17 @@ class DiGraph(Graph):
 
         """
         if nbunch is None:
-            nodes_nbrs=self.succ.items()
+            nodes_nbrs = self.succ.items()
         else:
-            nodes_nbrs=((n,self.succ[n]) for n in self.nbunch_iter(nbunch))
+            nodes_nbrs = ((n, self.succ[n]) for n in self.nbunch_iter(nbunch))
 
         if weight is None:
-            for n,nbrs in nodes_nbrs:
-                yield (n,len(nbrs))
+            for n, nbrs in nodes_nbrs:
+                yield (n, len(nbrs))
         else:
-        # edge weighted graph - degree is sum of edge weights
-            for n,nbrs in nodes_nbrs:
-                yield (n, sum(data.get(weight,1) for data in nbrs.values()))
+            # edge weighted graph - degree is sum of edge weights
+            for n, nbrs in nodes_nbrs:
+                yield (n, sum(data.get(weight, 1) for data in nbrs.values()))
 
 
     def in_degree(self, nbunch=None, weight=None):
@@ -977,10 +982,10 @@ class DiGraph(Graph):
         >>> list(G.in_degree([0,1]).values())
         [0, 1]
         """
-        if nbunch in self:      # return a single node
-            return next(self.in_degree_iter(nbunch,weight))[1]
-        else:           # return a dict
-            return dict(self.in_degree_iter(nbunch,weight))
+        if nbunch in self:  # return a single node
+            return next(self.in_degree_iter(nbunch, weight))[1]
+        else:  # return a dict
+            return dict(self.in_degree_iter(nbunch, weight))
 
     def out_degree(self, nbunch=None, weight=None):
         """Return the out-degree of a node or nodes.
@@ -1017,10 +1022,10 @@ class DiGraph(Graph):
 
 
         """
-        if nbunch in self:      # return a single node
-            return next(self.out_degree_iter(nbunch,weight))[1]
-        else:           # return a dict
-            return dict(self.out_degree_iter(nbunch,weight))
+        if nbunch in self:  # return a single node
+            return next(self.out_degree_iter(nbunch, weight))[1]
+        else:  # return a dict
+            return dict(self.out_degree_iter(nbunch, weight))
 
     def clear(self):
         """Remove all nodes and edges from the graph.
@@ -1128,20 +1133,20 @@ class DiGraph(Graph):
         See the Python copy module for more information on shallow
         and deep copies, http://docs.python.org/library/copy.html.
         """
-        H=Graph()
-        H.name=self.name
+        H = Graph()
+        H.name = self.name
         H.add_nodes_from(self)
         if reciprocal is True:
-            H.add_edges_from( (u,v,deepcopy(d))
-                              for u,nbrs in self.adjacency_iter()
-                              for v,d in nbrs.items() 
-                              if v in self.pred[u])
+            H.add_edges_from((u, v, deepcopy(d))
+                             for u, nbrs in self.adjacency_iter()
+                             for v, d in nbrs.items()
+                             if v in self.pred[u])
         else:
-            H.add_edges_from( (u,v,deepcopy(d))
-                              for u,nbrs in self.adjacency_iter()
-                              for v,d in nbrs.items() )
-        H.graph=deepcopy(self.graph)
-        H.node=deepcopy(self.node)
+            H.add_edges_from((u, v, deepcopy(d))
+                             for u, nbrs in self.adjacency_iter()
+                             for v, d in nbrs.items())
+        H.graph = deepcopy(self.graph)
+        H.node = deepcopy(self.node)
         return H
 
 
@@ -1159,16 +1164,16 @@ class DiGraph(Graph):
             the original graph (this changes the original graph).
         """
         if copy:
-            H = self.__class__(name="Reverse of (%s)"%self.name)
+            H = self.__class__(name="Reverse of (%s)" % self.name)
             H.add_nodes_from(self)
-            H.add_edges_from( (v,u,deepcopy(d)) for u,v,d 
-                              in self.edges(data=True) )
-            H.graph=deepcopy(self.graph)
-            H.node=deepcopy(self.node)
+            H.add_edges_from((v, u, deepcopy(d)) for u, v, d
+                             in self.edges(data=True))
+            H.graph = deepcopy(self.graph)
+            H.node = deepcopy(self.node)
         else:
-            self.pred,self.succ=self.succ,self.pred
-            self.adj=self.succ
-            H=self
+            self.pred, self.succ = self.succ, self.pred
+            self.adj = self.succ
+            H = self
         return H
 
 
@@ -1216,22 +1221,22 @@ class DiGraph(Graph):
         H = self.__class__()
         # copy node and attribute dictionaries
         for n in bunch:
-            H.node[n]=self.node[n]
+            H.node[n] = self.node[n]
         # namespace shortcuts for speed
-        H_succ=H.succ
-        H_pred=H.pred
-        self_succ=self.succ
+        H_succ = H.succ
+        H_pred = H.pred
+        self_succ = self.succ
         # add nodes
         for n in H:
-            H_succ[n]=collections.OrderedDict()
-            H_pred[n]=collections.OrderedDict()
+            H_succ[n] = collections.OrderedDict()
+            H_pred[n] = collections.OrderedDict()
         # add edges
         for u in H_succ:
-            Hnbrs=H_succ[u]
-            for v,datadict in self_succ[u].items():
+            Hnbrs = H_succ[u]
+            for v, datadict in self_succ[u].items():
                 if v in H_succ:
                     # add both representations of edge: u-v and v-u
-                    Hnbrs[v]=datadict
-                    H_pred[v][u]=datadict
-        H.graph=self.graph
+                    Hnbrs[v] = datadict
+                    H_pred[v][u] = datadict
+        H.graph = self.graph
         return H

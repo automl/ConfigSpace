@@ -1,34 +1,3 @@
-"""Release data for NetworkX.
-
-When NetworkX is imported a number of steps are followed to determine
-the version information.
-
-   1) If the release is not a development release (dev=False), then version
-      information is read from version.py, a file containing statically
-      defined version information.  This file should exist on every
-      downloadable release of NetworkX since setup.py creates it during
-      packaging/installation.  However, version.py might not exist if one
-      is running NetworkX from the mercurial repository.  In the event that
-      version.py does not exist, then no vcs information will be available.
-
-   2) If the release is a development release, then version information
-      is read dynamically, when possible.  If no dynamic information can be
-      read, then an attempt is made to read the information from version.py.
-      If version.py does not exist, then no vcs information will be available.
-
-Clarification:
-      version.py is created only by setup.py
-
-When setup.py creates version.py, it does so before packaging/installation.
-So the created file is included in the source distribution.  When a user
-downloads a tar.gz file and extracts the files, the files will not be in a
-live version control repository.  So when the user runs setup.py to install
-NetworkX, we must make sure write_versionfile() does not overwrite the
-revision information contained in the version.py that was included in the
-tar.gz file. This is why write_versionfile() includes an early escape.
-
-"""
-
 #    Copyright (C) 2004-2011 by
 #    Aric Hagberg <hagberg@lanl.gov>
 #    Dan Schult <dschult@colgate.edu>
@@ -46,77 +15,6 @@ import subprocess
 
 basedir = os.path.abspath(os.path.split(__file__)[0])
 
-def write_versionfile():
-    """Creates a static file containing version information."""
-    versionfile = os.path.join(basedir, 'version.py')
-
-    text = '''"""
-Version information for NetworkX, created during installation.
-
-Do not add this file to the repository.
-
-"""
-
-import datetime
-
-version = %(version)r
-date = %(date)r
-
-# Was NetworkX built from a development version? If so, remember that the major
-# and minor versions reference the "target" (rather than "current") release.
-dev = %(dev)r
-
-# Format: (name, major, min, revision)
-version_info = %(version_info)r
-
-# Format: a 'datetime.datetime' instance
-date_info = %(date_info)r
-
-# Format: (vcs, vcs_tuple)
-vcs_info = %(vcs_info)r
-
-'''
-
-    # Try to update all information
-    date, date_info, version, version_info, vcs_info = get_info(dynamic=True)
-
-    def writefile():
-        fh = open(versionfile, 'w')
-        subs = {
-            'dev' : dev,
-            'version': version,
-            'version_info': version_info,
-            'date': date,
-            'date_info': date_info,
-            'vcs_info': vcs_info
-        }
-        fh.write(text % subs)
-        fh.close()
-
-    if vcs_info[0] == 'mercurial':
-        # Then, we want to update version.py.
-        writefile()
-    else:
-        if os.path.isfile(versionfile):
-            # This is *good*, and the most likely place users will be when
-            # running setup.py. We do not want to overwrite version.py.
-            # Grab the version so that setup can use it.
-            sys.path.insert(0, basedir)
-            from version import version
-            del sys.path[0]
-        else:
-            # This is *bad*.  It means the user might have a tarball that
-            # does not include version.py.  Let this error raise so we can
-            # fix the tarball.
-            ##raise Exception('version.py not found!')
-
-            # We no longer require that prepared tarballs include a version.py
-            # So we use the possibly trunctated value from get_info()
-            # Then we write a new file.
-            writefile()
-
-    return version
-
 def get_revision():
     """Returns revision and vcs information, dynamically obtained."""
     vcs, revision, tag = None, None, None
@@ -127,7 +25,7 @@ def get_revision():
     if os.path.isdir(hgdir):
         vcs = 'mercurial'
         try:
-            p = subprocess.Popen(['hg', 'id'], 
+            p = subprocess.Popen(['hg', 'id'],
                                  cwd=basedir,
                                  stdout=subprocess.PIPE)
         except OSError:
@@ -137,7 +35,7 @@ def get_revision():
             stdout = p.communicate()[0]
             # Force strings instead of unicode.
             x = list(map(str, stdout.decode().strip().split()))
-            
+
             if len(x) == 0:
                 # Somehow stdout was empty. This can happen, for example,
                 # if you're running in a terminal which has redirected stdout.
@@ -149,7 +47,7 @@ def get_revision():
             else:
                 revision = str(x[0])
                 tag = str(x[1])
-                
+
     elif os.path.isdir(gitdir):
         vcs = 'git'
         # For now, we are not bothering with revision and tag.
@@ -157,6 +55,7 @@ def get_revision():
     vcs_info = (vcs, (revision, tag))
 
     return revision, vcs_info
+
 
 def get_info(dynamic=True):
     ## Date information
@@ -226,7 +125,7 @@ maintainer = "NetworkX Developers"
 maintainer_email = "networkx-discuss@googlegroups.com"
 url = 'http://networkx.lanl.gov/'
 download_url="http://networkx.lanl.gov/download/networkx"
-platforms = ['Linux','Mac OSX','Windows','Unix']
+platforms = ['Linux', 'Mac OSX', 'Windows', 'Unix']
 keywords = ['Networks', 'Graph Theory', 'Mathematics', 'network', 'graph', 'discrete mathematics', 'math']
 classifiers = [
         'Development Status :: 4 - Beta',
@@ -248,7 +147,4 @@ classifiers = [
 
 date, date_info, version, version_info, vcs_info = get_info()
 
-if __name__ == '__main__':
-    # Write versionfile for nightly snapshots.
-    write_versionfile()
 
