@@ -21,7 +21,7 @@
 __authors__ = ["Katharina Eggensperger", "Matthias Feurer"]
 __contact__ = "automl.org"
 
-from collections import defaultdict, OrderedDict
+from collections import defaultdict, deque, OrderedDict
 import copy
 from itertools import product
 
@@ -80,6 +80,7 @@ class ConfigurationSpace(object):
             '__HPOlib_configuration_space_root__'] = None
 
         self._check_default_configuration()
+        self._sort_hyperparameters()
         # Update the vector
         types = [(hp.name, int if isinstance(hp, (CategoricalHyperparameter, Constant))
                                else float)
@@ -169,10 +170,42 @@ class ConfigurationSpace(object):
                                  "%s" % (str(other_condition), str(condition)))
 
     def _sort_hyperparameters(self):
-        tmp_dag = self._create_tmp_dag()
-        nodes = HPOlibConfigSpace.nx.algorithms.topological_sort(tmp_dag)
-        nodes = [node for node in nodes if
-                 node != '__HPOlib_configuration_space_root__']
+        levels = dict()
+        to_visit = deque()
+        for hp_name in self._hyperparameters:
+            to_visit.appendleft(hp_name)
+
+        while len(to_visit) > 0:
+            current = to_visit.pop()
+            if '__HPOlib_configuration_space_root__' in self._parents[current]:
+                assert len(self._parents[current]) == 1
+                levels[current] = 1
+
+            else:
+                all_parents_visited = True
+                depth = -1
+                for parent in self._parents[current]:
+                    if parent not in levels:
+                        all_parents_visited = False
+                        break
+                    else:
+                        depth = max(depth, levels[parent] + 1)
+
+                if all_parents_visited:
+                    levels[current] = depth
+                else:
+                    to_visit.appendleft(current)
+
+        by_level = defaultdict(list)
+        for hp in levels:
+            level = levels[hp]
+            by_level[level].append(hp)
+
+        nodes = []
+        # Sort and add to list
+        for level in by_level:
+            by_level[level].sort()
+            nodes.extend(by_level[level])
 
         # Resort the OrderedDict
         for node in nodes:
@@ -254,7 +287,6 @@ class ConfigurationSpace(object):
             self.add_forbidden_clause(forbidden_clause)
 
         return configuration_space
-
 
     def get_hyperparameters(self):
         return list(self._hyperparameters.values())
@@ -452,14 +484,7 @@ class ConfigurationSpace(object):
         if type(self) != type(other):
             return False
         else:
-            tmp_dag = self._create_tmp_dag()
-            other_tmp_dag = other._create_tmp_dag()
-            return tmp_dag.graph == other_tmp_dag.graph and \
-                   tmp_dag.node == other_tmp_dag.node and \
-                   tmp_dag.adj == other_tmp_dag.adj and \
-                   tmp_dag.pred == other_tmp_dag.pred and \
-                   tmp_dag.succ == other_tmp_dag.succ and \
-                   tmp_dag.edge == other_tmp_dag.edge
+            return self.__repr__() == other.__repr__()
 
     def __ne__(self, other):
         return not self.__eq__(other)
@@ -477,7 +502,7 @@ class ConfigurationSpace(object):
             retval.write("\n")
 
         conditions = sorted(self.get_conditions(),
-                            key=lambda t: t.child.name)
+                            key=lambda t: str(t))
         if conditions:
             retval.write("  Conditions:\n")
             retval.write("    ")

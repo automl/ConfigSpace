@@ -5,6 +5,7 @@
 #    Pieter Swart <swart@lanl.gov>
 #    All rights reserved.
 #    BSD license.
+import collections
 from copy import deepcopy
 import HPOlibConfigSpace.nx
 from HPOlibConfigSpace.nx.classes.graph import Graph
@@ -196,13 +197,13 @@ class DiGraph(Graph):
         {'day': 'Friday'}
 
         """
-        self.graph = {} # dictionary for graph attributes
-        self.node = {} # dictionary for node attributes
+        self.graph = collections.OrderedDict() # dictionary for graph attributes
+        self.node = collections.OrderedDict() # dictionary for node attributes
         # We store two adjacency lists:
         # the  predecessors of node n are stored in the dict self.pred
         # the successors of node n are stored in the dict self.succ=self.adj
-        self.adj = {}  # empty adjacency dictionary
-        self.pred = {}  # predecessor
+        self.adj = collections.OrderedDict()  # empty adjacency dictionary
+        self.pred = collections.OrderedDict()  # predecessor
         self.succ = self.adj  # successor
 
         # attempt to load graph with data
@@ -265,8 +266,8 @@ class DiGraph(Graph):
                 raise NetworkXError(\
                     "The attr_dict argument must be a dictionary.")
         if n not in self.succ:
-            self.succ[n] = {}
-            self.pred[n] = {}
+            self.succ[n] = collections.OrderedDict()
+            self.pred[n] = collections.OrderedDict()
             self.node[n] = attr_dict
         else: # update attr even if node already exists
             self.node[n].update(attr_dict)
@@ -323,8 +324,8 @@ class DiGraph(Graph):
             except TypeError:
                 nn,ndict = n
                 if nn not in self.succ:
-                    self.succ[nn] = {}
-                    self.pred[nn] = {}
+                    self.succ[nn] = collections.OrderedDict()
+                    self.pred[nn] = collections.OrderedDict()
                     newdict = attr.copy()
                     newdict.update(ndict)
                     self.node[nn] = newdict
@@ -334,8 +335,8 @@ class DiGraph(Graph):
                     olddict.update(ndict)
                 continue
             if newnode:
-                self.succ[n] = {}
-                self.pred[n] = {}
+                self.succ[n] = collections.OrderedDict()
+                self.pred[n] = collections.OrderedDict()
                 self.node[n] = attr.copy()
             else:
                 self.node[n].update(attr)
@@ -483,15 +484,15 @@ class DiGraph(Graph):
                     "The attr_dict argument must be a dictionary.")
         # add nodes
         if u not in self.succ:
-            self.succ[u]={}
-            self.pred[u]={}
-            self.node[u] = {}
+            self.succ[u]=collections.OrderedDict()
+            self.pred[u]=collections.OrderedDict()
+            self.node[u] = collections.OrderedDict()
         if v not in self.succ:
-            self.succ[v]={}
-            self.pred[v]={}
-            self.node[v] = {}
+            self.succ[v]=collections.OrderedDict()
+            self.pred[v]=collections.OrderedDict()
+            self.node[v] = collections.OrderedDict()
         # add the edge
-        datadict=self.adj[u].get(v,{})
+        datadict=self.adj[u].get(v,collections.OrderedDict())
         datadict.update(attr_dict)
         self.succ[u][v]=datadict
         self.pred[v][u]=datadict
@@ -553,19 +554,19 @@ class DiGraph(Graph):
                 assert hasattr(dd,"update")
             elif ne==2:
                 u,v = e
-                dd = {}
+                dd = collections.OrderedDict()
             else:
                 raise NetworkXError(\
                     "Edge tuple %s must be a 2-tuple or 3-tuple."%(e,))
             if u not in self.succ:
-                self.succ[u] = {}
-                self.pred[u] = {}
-                self.node[u] = {}
+                self.succ[u] = collections.OrderedDict()
+                self.pred[u] = collections.OrderedDict()
+                self.node[u] = collections.OrderedDict()
             if v not in self.succ:
-                self.succ[v] = {}
-                self.pred[v] = {}
-                self.node[v] = {}
-            datadict=self.adj[u].get(v,{})
+                self.succ[v] = collections.OrderedDict()
+                self.pred[v] = collections.OrderedDict()
+                self.node[v] = collections.OrderedDict()
+            datadict=self.adj[u].get(v,collections.OrderedDict())
             datadict.update(attr_dict)
             datadict.update(dd)
             self.succ[u][v] = datadict
@@ -1222,8 +1223,8 @@ class DiGraph(Graph):
         self_succ=self.succ
         # add nodes
         for n in H:
-            H_succ[n]={}
-            H_pred[n]={}
+            H_succ[n]=collections.OrderedDict()
+            H_pred[n]=collections.OrderedDict()
         # add edges
         for u in H_succ:
             Hnbrs=H_succ[u]

@@ -8,6 +8,8 @@ before_install:
   - sudo apt-get install -q libatlas3gf-base libatlas-dev liblapack-dev gfortran
 
 install:
+  - pip install pip --upgrade
+  - pip install numpy
   - pip install nose
   - pip install coverage
   - python setup.py install

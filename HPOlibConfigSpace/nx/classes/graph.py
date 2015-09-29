@@ -13,6 +13,7 @@ For directed graphs see DiGraph and MultiDiGraph.
 #    Pieter Swart <swart@lanl.gov>
 #    All rights reserved.
 #    BSD license.
+import collections
 from copy import deepcopy
 import HPOlibConfigSpace.nx
 from HPOlibConfigSpace.nx.exception import NetworkXError
@@ -206,9 +207,9 @@ class Graph(object):
         {'day': 'Friday'}
 
         """
-        self.graph = {}   # dictionary for graph attributes
-        self.node = {}    # empty node dict (created before convert)
-        self.adj = {}     # empty adjacency dict
+        self.graph = collections.OrderedDict()   # dictionary for graph attributes
+        self.node = collections.OrderedDict()    # empty node dict (created before convert)
+        self.adj = collections.OrderedDict()     # empty adjacency dict
         # attempt to load graph with data
         if data is not None:
             convert.to_networkx_graph(data,create_using=self)
@@ -371,7 +372,7 @@ class Graph(object):
                 raise NetworkXError(\
                     "The attr_dict argument must be a dictionary.")
         if n not in self.node:
-            self.adj[n] = {}
+            self.adj[n] = collections.OrderedDict()
             self.node[n] = attr_dict
         else: # update attr even if node already exists
             self.node[n].update(attr_dict)
@@ -428,7 +429,7 @@ class Graph(object):
             except TypeError:
                 nn,ndict = n
                 if nn not in self.node:
-                    self.adj[nn] = {}
+                    self.adj[nn] = collections.OrderedDict()
                     newdict = attr.copy()
                     newdict.update(ndict)
                     self.node[nn] = newdict
@@ -438,7 +439,7 @@ class Graph(object):
                     olddict.update(ndict)
                 continue
             if newnode:
-                self.adj[n] = {}
+                self.adj[n] = collections.OrderedDict()
                 self.node[n] = attr.copy()
             else:
                 self.node[n].update(attr)
@@ -704,13 +705,13 @@ class Graph(object):
                     "The attr_dict argument must be a dictionary.")
         # add nodes
         if u not in self.node:
-            self.adj[u] = {}
-            self.node[u] = {}
+            self.adj[u] = collections.OrderedDict()
+            self.node[u] = collections.OrderedDict()
         if v not in self.node:
-            self.adj[v] = {}
-            self.node[v] = {}
+            self.adj[v] = collections.OrderedDict()
+            self.node[v] = collections.OrderedDict()
         # add the edge
-        datadict=self.adj[u].get(v,{})
+        datadict=self.adj[u].get(v,collections.OrderedDict())
         datadict.update(attr_dict)
         self.adj[u][v] = datadict
         self.adj[v][u] = datadict
@@ -772,17 +773,17 @@ class Graph(object):
                 u,v,dd = e
             elif ne==2:
                 u,v = e
-                dd = {}
+                dd = collections.OrderedDict()
             else:
                 raise NetworkXError(\
                     "Edge tuple %s must be a 2-tuple or 3-tuple."%(e,))
             if u not in self.node:
-                self.adj[u] = {}
-                self.node[u] = {}
+                self.adj[u] = collections.OrderedDict()
+                self.node[u] = collections.OrderedDict()
             if v not in self.node:
-                self.adj[v] = {}
-                self.node[v] = {}
-            datadict=self.adj[u].get(v,{})
+                self.adj[v] = collections.OrderedDict()
+                self.node[v] = collections.OrderedDict()
+            datadict=self.adj[u].get(v,collections.OrderedDict())
             datadict.update(attr_dict)
             datadict.update(dd)
             self.adj[u][v] = datadict
@@ -1088,7 +1089,7 @@ class Graph(object):
         [(0, 1)]
 
         """
-        seen={}     # helper dict to keep track of multiply stored edges
+        seen=collections.OrderedDict()     # helper dict to keep track of multiply stored edges
         if nbunch is None:
             nodes_nbrs = self.adj.items()
         else:
@@ -1489,7 +1490,7 @@ class Graph(object):
         self_adj=self.adj
         # add nodes and edges (undirected method)
         for n in H.node:
-            Hnbrs={}
+            Hnbrs=collections.OrderedDict()
             H_adj[n]=Hnbrs
             for nbr,d in self_adj[n].items():
                 if nbr in H_adj:

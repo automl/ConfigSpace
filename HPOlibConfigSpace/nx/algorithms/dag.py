@@ -125,7 +125,7 @@ def topological_sort(G,nbunch=None):
     explored = set() 
                      
     if nbunch is None:
-        nbunch = G.nodes_iter() 
+        nbunch = G.nodes_iter()
     for v in nbunch:     # process all vertices in G
         if v in explored: 
             continue
