@@ -21,13 +21,6 @@ class ConditionComponent(object):
         pass
 
     @abstractmethod
-    def __eq__(self, other):
-        pass
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
-
-    @abstractmethod
     def get_children(self):
         pass
 
@@ -36,8 +29,25 @@ class ConditionComponent(object):
         pass
 
     @abstractmethod
-    def evaluate(self):
+    def evaluate(self, instantiated_parent_hyperparameter):
         pass
+
+    # http://stackoverflow.com/a/25176504/4636294
+    def __eq__(self, other):
+        """Override the default Equals behavior"""
+        if isinstance(other, self.__class__):
+            return self.__dict__ == other.__dict__
+        return NotImplemented
+
+    def __ne__(self, other):
+        """Define a non-equality test"""
+        if isinstance(other, self.__class__):
+            return not self.__eq__(other)
+        return NotImplemented
+
+    def __hash__(self):
+        """Override the default hash behavior (that returns the id or the object)"""
+        return hash(tuple(sorted(self.__dict__.items())))
 
 
 class AbstractCondition(ConditionComponent):
@@ -89,19 +99,6 @@ class AbstractConjunction(ConditionComponent):
             if c1 != c2:
                 raise ValueError("All Conjunctions and Conditions must have "
                                  "the same child.")
-
-    def __eq__(self, other):
-        if type(self) != type(other):
-            return False
-        elif len(self.components) != len(other.components):
-            return False
-        else:
-            for comp1, comp2 in six.moves.zip \
-                    (sorted(self.components, key=lambda t: t.__repr__()),
-                     sorted(other.components, key=lambda t: t.__repr__())):
-                if comp1 != comp2:
-                    return False
-        return True
 
     def get_descendant_literal_conditions(self):
         children = []
@@ -156,14 +153,6 @@ class EqualsCondition(AbstractCondition):
         return "%s | %s == %s" % (self.child.name, self.parent.name,
                                   str(self.value))
 
-    def __eq__(self, other):
-        if type(self) != type(other):
-            return False
-        else:
-            return self.child == other.child and \
-                self.parent == other.parent and \
-                self.value == other.value
-
     def _evaluate(self, value):
         return value == self.value
 
@@ -181,14 +170,6 @@ class NotEqualsCondition(AbstractCondition):
     def __repr__(self):
         return "%s | %s != %s" % (self.child.name, self.parent.name,
                                   str(self.value))
-
-    def __eq__(self, other):
-        if type(self) != type(other):
-            return False
-        else:
-            return self.child == other.child and \
-                self.parent == other.parent and \
-                self.value == other.value
 
     def _evaluate(self, value):
         return value != self.value
@@ -209,14 +190,6 @@ class InCondition(AbstractCondition):
         return "%s | %s in {%s}" % (self.child.name, self.parent.name,
                                     ", ".join(
                                         [str(value) for value in self.values]))
-
-    def __eq__(self, other):
-        if type(self) != type(other):
-            return False
-        else:
-            return self.child == other.child and \
-                self.parent == other.parent and \
-                self.values == other.values
 
     def _evaluate(self, value):
         return value in self.values

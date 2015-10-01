@@ -49,7 +49,8 @@ class ConfigurationSpace(object):
         self._hyperparameters = OrderedDict()
         self._children = defaultdict(dict)
         self._parents = defaultdict(dict)
-        # For speed reasons
+        # changing this to a normal dict will break sampling because there is
+        #  no guarantee that the parent of a condition was evaluated before
         self._conditionsals = OrderedDict()
         self.forbidden_clauses = []
         self.random = np.random.RandomState(seed)
@@ -488,14 +489,26 @@ class ConfigurationSpace(object):
                 raise ValueError("%sviolates forbidden clause %s" % (
                     str(configuration), str(clause)))
 
+    # http://stackoverflow.com/a/25176504/4636294
     def __eq__(self, other):
-        if type(self) != type(other):
-            return False
-        else:
-            return self.__repr__() == other.__repr__()
+        """Override the default Equals behavior"""
+        if isinstance(other, self.__class__):
+            this_dict = self.__dict__.copy()
+            del this_dict['random']
+            other_dict = other.__dict__.copy()
+            del other_dict['random']
+            return this_dict == other_dict
+        return NotImplemented
 
     def __ne__(self, other):
-        return not self.__eq__(other)
+        """Define a non-equality test"""
+        if isinstance(other, self.__class__):
+            return not self.__eq__(other)
+        return NotImplemented
+
+    def __hash__(self):
+        """Override the default hash behavior (that returns the id or the object)"""
+        return hash(tuple(sorted(self.__dict__.items())))
 
     def __repr__(self):
         retval = six.StringIO()
@@ -532,6 +545,8 @@ class ConfigurationSpace(object):
         iteration = 0
         missing = size
         accepted_configurations = []
+        num_hyperparameters = len(self._hyperparameters)
+
         while len(accepted_configurations) < size:
             if missing != size:
                 missing = int(1.1 * missing)
@@ -541,26 +556,34 @@ class ConfigurationSpace(object):
                 hyperparameter = self._hyperparameters[hp_name]
                 vector[hp_name] = hyperparameter._sample(self.random, missing)
 
-            for i, hp_name in product(
-                    range(missing), self.get_all_conditional_hyperparameters()):
-                conditions = self._get_parent_conditions_of(hp_name)
-                add = True
-                for condition in conditions:
-                    parent_names = [c.parent.name for c in
-                                    condition.get_descendant_literal_conditions()]
+            for i in range(missing):
+                inactive = set()
+                for hp_name in self.get_all_conditional_hyperparameters():
+                    conditions = self._get_parent_conditions_of(hp_name)
+                    add = True
+                    for condition in conditions:
+                        parent_names = [c.parent.name for c in
+                                        condition.get_descendant_literal_conditions()]
 
-                    parents = {parent_name: self._hyperparameters[parent_name].
-                        _transform(vector[i][parent_name])
-                               for parent_name in parent_names}
+                        parents = {parent_name: self._hyperparameters[
+                                       parent_name]._transform(vector[i][
+                                           parent_name])
+                                   for parent_name in parent_names}
 
-                    if not condition.evaluate(parents):
-                        add = False
+                        # A parent condition is not fulfilled
+                        if np.sum([parent_name in inactive
+                                   for parent_name in parent_names]) > 0:
+                            add = False
+                            break
+                        if not condition.evaluate(parents):
+                            add = False
+                            break
 
-                if not add:
-                    hyperparameter = self._hyperparameters[hp_name]
-                    vector[hp_name][i] = hyperparameter._nan
-                else:
-                    pass
+                    if not add:
+                        hyperparameter = self._hyperparameters[hp_name]
+                        vector[hp_name][i] = hyperparameter._nan
+                        inactive.add(hp_name)
+
 
             for i in range(missing):
                 try:
@@ -647,14 +670,22 @@ class Configuration(object):
     def __contains__(self, item):
         return item in self._values
 
+    # http://stackoverflow.com/a/25176504/4636294
     def __eq__(self, other):
-        if type(self) != type(other):
-            return False
-        elif self.configuration_space != other.configuration_space:
-            return False
-        else:
-            # TODO: this is a pretty bad equality test
-            return self.__repr__() == other.__repr__()
+        """Override the default Equals behavior"""
+        if isinstance(other, self.__class__):
+            return self.__dict__ == other.__dict__
+        return NotImplemented
+
+    def __ne__(self, other):
+        """Define a non-equality test"""
+        if isinstance(other, self.__class__):
+            return not self.__eq__(other)
+        return NotImplemented
+
+    def __hash__(self):
+        """Override the default hash behavior (that returns the id or the object)"""
+        return hash(tuple(sorted(self.__dict__.items())))
 
     def _populate_values(self):
         for hyperparameter in self.configuration_space.get_hyperparameters():

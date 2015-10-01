@@ -17,12 +17,22 @@ class AbstractForbiddenComponent(object):
     def __repr__(self):
         pass
 
-    @abstractmethod
+    # http://stackoverflow.com/a/25176504/4636294
     def __eq__(self, other):
-        pass
+        """Override the default Equals behavior"""
+        if isinstance(other, self.__class__):
+            return self.__dict__ == other.__dict__
+        return NotImplemented
 
     def __ne__(self, other):
-        return not self.__eq__(other)
+        """Define a non-equality test"""
+        if isinstance(other, self.__class__):
+            return not self.__eq__(other)
+        return NotImplemented
+
+    def __hash__(self):
+        """Override the default hash behavior (that returns the id or the object)"""
+        return hash(tuple(sorted(self.__dict__.items())))
 
     @abstractmethod
     def get_descendant_literal_clauses(self):
@@ -50,16 +60,6 @@ class SingleValueForbiddenClause(AbstractForbiddenClause):
                              "legal hyperparameter value for '%s', but got "
                              "'%s'" % (hyperparameter, str(value)))
         self.value = value
-
-    def __eq__(self, other):
-        if type(self) != type(other):
-            return False
-        elif self.hyperparameter != other.hyperparameter:
-            return False
-        elif self.value != other.value:
-            return False
-        else:
-            return True
 
     def is_forbidden(self, instantiated_hyperparameters, strict=True):
         value = None
@@ -96,16 +96,6 @@ class MultipleValueForbiddenClause(AbstractForbiddenClause):
                                  "legal hyperparameter value for '%s', but got "
                                  "'%s'" % (hyperparameter, str(value)))
         self.values = values
-
-    def __eq__(self, other):
-        if type(self) != type(other):
-            return False
-        elif self.hyperparameter != other.hyperparameter:
-            return False
-        elif self.values != other.values:
-            return False
-        else:
-            return True
 
     def is_forbidden(self, instantiated_hyperparameters, strict=True):
         value = None
@@ -169,19 +159,6 @@ class AbstractForbiddenConjunction(AbstractForbiddenComponent):
     @abstractmethod
     def __repr__(self):
         pass
-
-    def __eq__(self, other):
-        if type(self) != type(other):
-            return False
-        elif len(self.components) != len(other.components):
-            return False
-        else:
-            for comp1, comp2 in six.moves.zip(
-                    sorted(self.components, key=lambda t: t.__repr__()),
-                    sorted(other.components, key=lambda t: t.__repr__())):
-                if comp1 != comp2:
-                    return False
-        return True
 
     def get_descendant_literal_clauses(self):
         children = []
