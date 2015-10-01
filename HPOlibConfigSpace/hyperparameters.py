@@ -16,12 +16,22 @@ class Hyperparameter(object):
                 " %s, but is %s." % (str(six.string_types), type(name)))
         self.name = name
 
-    @abstractmethod
+    # http://stackoverflow.com/a/25176504/4636294
     def __eq__(self, other):
-        pass
+        """Override the default Equals behavior"""
+        if isinstance(other, self.__class__):
+            return self.__dict__ == other.__dict__
+        return NotImplemented
 
     def __ne__(self, other):
-        return not self.__eq__(other)
+        """Define a non-equality test"""
+        if isinstance(other, self.__class__):
+            return not self.__eq__(other)
+        return NotImplemented
+
+    def __hash__(self):
+        """Override the default hash behavior (that returns the id or the object)"""
+        return hash(tuple(sorted(self.__dict__.items())))
 
     @abstractmethod
     def __repr__(self):
@@ -68,16 +78,6 @@ class Constant(Hyperparameter):
                     "Type: Constant",
                     "Value: %s" % self.value]
         return ", ".join(repr_str)
-
-    def __eq__(self, other):
-        if type(self) == type(other):
-            if self.name != other.name:
-                return False
-            if self.value != other.value:
-                return False
-            return True
-        else:
-            return False
 
     def is_legal(self, value):
         return value == self.value
@@ -363,18 +363,6 @@ class UniformIntegerHyperparameter(UniformMixin, IntegerHyperparameter):
         repr_str.seek(0)
         return repr_str.getvalue()
 
-    def __eq__(self, other):
-        if isinstance(other, self.__class__):
-            return all([self.name == other.name,
-                        self.lower == other.lower,
-                        self.upper == other.upper,
-                        self.log == other.log,
-                        self.q is None and other.q is None or
-                        self.q is not None and other.q is not None and
-                        self.q == other.q])
-        else:
-            return False
-
     def _sample(self, rs, size=None):
         value = self.ufhp._sample(rs, size=size)
         return value
@@ -493,20 +481,6 @@ class CategoricalHyperparameter(Hyperparameter):
         repr_str.write(str(self.default))
         repr_str.seek(0)
         return repr_str.getvalue()
-
-    def __eq__(self, other):
-        if isinstance(other, self.__class__):
-            if self.name != other.name:
-                return False
-            if len(self.choices) != len(other.choices):
-                return False
-            else:
-                for i in range(len(self.choices)):
-                    if self.choices[i] != other.choices[i]:
-                        return False
-            return True
-        else:
-            return False
 
     def is_legal(self, value):
         if value in self.choices:
