@@ -4,13 +4,10 @@ import unittest
 
 import numpy as np
 
-from ParameterConfigurationSpace.configuration_space import ConfigurationSpace, \
-    Configuration
-from ParameterConfigurationSpace.hyperparameters import CategoricalHyperparameter, \
-    UniformIntegerHyperparameter, Constant
-from ParameterConfigurationSpace.conditions import EqualsCondition, NotEqualsCondition,\
-    InCondition, AndConjunction, OrConjunction
-from ParameterConfigurationSpace.forbidden import ForbiddenEqualsClause, \
+from ParameterConfigurationSpace import ConfigurationSpace, \
+    Configuration, CategoricalHyperparameter, UniformIntegerHyperparameter, \
+    Constant, EqualsCondition, NotEqualsCondition, InCondition, \
+    AndConjunction, OrConjunction, ForbiddenEqualsClause, \
     ForbiddenAndConjunction
 
 
@@ -533,3 +530,68 @@ class TestConfigurationSpace(unittest.TestCase):
             if i > 0:
                 for j in range(100):
                     self.assertEqual(samples[-1][j], samples[-2][j])
+
+
+class ConfigurationTest(unittest.TestCase):
+    def setUp(self):
+        cs = ConfigurationSpace()
+        hp1 = cs.add_hyperparameter(CategoricalHyperparameter("parent", [0, 1]))
+        hp2 = cs.add_hyperparameter(
+            UniformIntegerHyperparameter("child", 0, 10))
+        hp3 = cs.add_hyperparameter(
+            UniformIntegerHyperparameter("friend", 0, 5))
+        self.cs = cs
+
+    def test_wrong_init(self):
+        self.assertRaisesRegex(ValueError,
+                               'Configuration neither specified as dictionary '
+                               'or vector.', Configuration, self.cs)
+
+        self.assertRaisesRegex(ValueError,
+                               'Configuration specified both as dictionary and '
+                               'vector, can only do one.', Configuration,
+                               self.cs, values={}, vector=np.zeros((3, )))
+
+    def test_init_with_values(self):
+        c1 = Configuration(self.cs, values={'parent': 1,
+                                            'child': 2,
+                                            'friend': 3})
+        # Pay attention that the vector does not necessarily has an intuitive
+        #  sorting!
+        print(self.cs._hyperparameter_idx)
+
+        # Values are a little bit higher than one would expect because,
+        # an integer range of [0,10] is transformed to [-0.499,10.499].
+        vector_values = {'parent': 1, 'child': 0.22727223, 'friend': 0.58333361}
+        vector = [None] * 3
+        for name in self.cs._hyperparameter_idx:
+            vector[self.cs._hyperparameter_idx[name]] = vector_values[name]
+        c2 = Configuration(self.cs, vector=vector)
+        # This tests
+        # a) that the vector representation of both are the same
+        # b) that the dictionary representation of both are the same
+        self.assertEqual(c1, c2)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

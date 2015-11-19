@@ -47,6 +47,7 @@ class ConfigurationSpace(object):
 
     def __init__(self, seed=1):
         self._hyperparameters = OrderedDict()
+        self._hyperparameter_idx = dict()
         self._children = defaultdict(dict)
         self._parents = defaultdict(dict)
         # changing this to a normal dict will break sampling because there is
@@ -54,7 +55,6 @@ class ConfigurationSpace(object):
         self._conditionsals = OrderedDict()
         self.forbidden_clauses = []
         self.random = np.random.RandomState(seed)
-        self._vector_types = None
 
     def add_hyperparameter(self, hyperparameter):
         """Add a hyperparameter to the configuration space.
@@ -82,14 +82,14 @@ class ConfigurationSpace(object):
         self._parents[hyperparameter.name][
             '__HPOlib_configuration_space_root__'] = None
 
+        # Save the index of each hyperparameter name to later on access a
+        # vector of hyperparameter values by indices
+        for i, hp in enumerate(self._hyperparameters):
+            self._hyperparameter_idx[hp] = i
+
         self._check_default_configuration()
         self._sort_hyperparameters()
-        # Update the vector
-        types = [(hp.name,
-                  int if isinstance(hp, (CategoricalHyperparameter, Constant))
-                  else float)
-                 for hp in self._hyperparameters.values()]
-        self._vector_types = types
+
         return hyperparameter
 
     def add_condition(self, condition):
@@ -550,15 +550,16 @@ class ConfigurationSpace(object):
         while len(accepted_configurations) < size:
             if missing != size:
                 missing = int(1.1 * missing)
-            vector = np.ndarray((missing,), dtype=self._vector_types)
+            vector = np.ndarray((missing, num_hyperparameters), dtype=np.float32)
 
-            for hp_name in self._hyperparameters:
+            for i, hp_name in enumerate(self._hyperparameters):
                 hyperparameter = self._hyperparameters[hp_name]
-                vector[hp_name] = hyperparameter._sample(self.random, missing)
+                vector[:, i] = hyperparameter._sample(self.random, missing)
 
             for i in range(missing):
                 inactive = set()
-                for hp_name in self.get_all_conditional_hyperparameters():
+                for j, hp_name in enumerate(
+                        self.get_all_conditional_hyperparameters()):
                     conditions = self._get_parent_conditions_of(hp_name)
                     add = True
                     for condition in conditions:
@@ -566,9 +567,9 @@ class ConfigurationSpace(object):
                                         condition.get_descendant_literal_conditions()]
 
                         parents = {parent_name: self._hyperparameters[
-                                       parent_name]._transform(vector[i][
-                                           parent_name])
-                                   for parent_name in parent_names}
+                                       parent_name]._transform(vector[i][p])
+                                   for p, parent_name
+                                   in enumerate(parent_names)}
 
                         # A parent condition is not fulfilled
                         if np.sum([parent_name in inactive
@@ -581,7 +582,7 @@ class ConfigurationSpace(object):
 
                     if not add:
                         hyperparameter = self._hyperparameters[hp_name]
-                        vector[hp_name][i] = hyperparameter._nan
+                        vector[i][j] = np.NaN
                         inactive.add(hp_name)
 
 
@@ -624,6 +625,10 @@ class Configuration(object):
             A dictionary with pairs (hyperparameter_name, value), where value is
             a legal value of the hyperparameter in the above
             configuration_space.
+
+        vector : np.ndarray
+            A numpy array for efficient representation. Either values or
+            vector has to be given.
         """
         if not isinstance(configuration_space, ConfigurationSpace):
             raise TypeError("Configuration expects an instance of %s, "
@@ -632,7 +637,11 @@ class Configuration(object):
 
         self.configuration_space = configuration_space
         self._query_values = False
+        self._num_hyperparameters = len(self.configuration_space._hyperparameters)
 
+        if values is not None and vector is not None:
+            raise ValueError('Configuration specified both as dictionary and '
+                             'vector, can only do one.')
         if values is not None:
             # Using cs._hyperparameters to iterate makes sure that the
             # hyperparameters in the configuration are sorted in the same way as
@@ -645,16 +654,25 @@ class Configuration(object):
                 hyperparameter = configuration_space.get_hyperparameter(key)
                 hyperparameter.is_legal(value)
                 self._values[key] = value
+
             self._query_values = True
             self.is_valid_configuration()
-            self._vector = np.ndarray((1,),
-                                      dtype=configuration_space._vector_types)
+            self._vector = np.ndarray((self._num_hyperparameters, ),
+                                      dtype=np.float32)
+
+            # Populate the vector
+            # TODO very unintuitive calls...
+            for key in configuration_space._hyperparameters:
+                self._vector[self.configuration_space._hyperparameter_idx[
+                    key]] = self.configuration_space.get_hyperparameter(key). \
+                        _inverse_transform(self[key])
 
         elif vector is not None:
             self._values = dict()
-            self._vector = vector
+            self._vector = np.array(vector).astype(np.float32)
         else:
-            raise ValueError()
+            raise ValueError('Configuration neither specified as dictionary '
+                             'or vector.')
 
     def is_valid_configuration(self):
         self.configuration_space._check_configuration(self)
@@ -664,17 +682,23 @@ class Configuration(object):
             return self._values.get(item)
 
         hyperparameter = self.configuration_space._hyperparameters[item]
-        self._values[item] = hyperparameter._transform(self._vector[item])
+        item_idx = self.configuration_space._hyperparameter_idx[item]
+        self._values[item] = hyperparameter._transform(self._vector[item_idx])
         return self._values[item]
 
     def __contains__(self, item):
+        self._populate_values()
         return item in self._values
 
     # http://stackoverflow.com/a/25176504/4636294
     def __eq__(self, other):
         """Override the default Equals behavior"""
         if isinstance(other, self.__class__):
-            return self.__dict__ == other.__dict__
+            finite = np.isfinite(self._vector)
+            other_finite = np.isfinite(other._vector)
+            return all(finite == other_finite) and \
+                np.allclose(self._vector[finite], other._vector[finite]) and \
+                self.configuration_space == other.configuration_space
         return NotImplemented
 
     def __ne__(self, other):
@@ -685,11 +709,14 @@ class Configuration(object):
 
     def __hash__(self):
         """Override the default hash behavior (that returns the id or the object)"""
-        return hash(tuple(sorted(self.__dict__.items())))
+        self._populate_values()
+        return hash(tuple(list(sorted(self.items())) + \
+                          list(sorted(self.configuration_space.items))))
 
     def _populate_values(self):
         for hyperparameter in self.configuration_space.get_hyperparameters():
             self[hyperparameter.name]
+        self._query_values = True
 
     def __repr__(self):
         if self._query_values is False:
@@ -714,6 +741,7 @@ class Configuration(object):
         return repr.getvalue()
 
     def __iter__(self):
-        # TODO: the hyperparameter names should also be in the configuration
-        # object!
-        return iter(self.configuration_space._hyperparameters.keys())
+        return iter(self.keys())
+
+    def keys(self):
+        return self.configuration_space._hyperparameters.keys()

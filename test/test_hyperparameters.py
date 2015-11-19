@@ -373,6 +373,12 @@ class TestHyperparameters(unittest.TestCase):
             counts_per_bin = [0 for i in range(21)]
             for i in range(100000):
                 value = hp.sample(rs)
+                if hp.log:
+                    self.assertLessEqual(value, np.exp(hp._upper))
+                    self.assertGreaterEqual(value, np.exp(hp._lower))
+                else:
+                    self.assertLessEqual(value, hp._upper)
+                    self.assertGreaterEqual(value, hp._lower)
                 index = int((value - hp.lower) / (hp.upper - hp.lower) * 20)
                 counts_per_bin[index] += 1
 
@@ -402,6 +408,7 @@ class TestHyperparameters(unittest.TestCase):
         hp = UniformFloatHyperparameter("ufhp", 1.0, np.e ** 2, log=True)
 
         counts_per_bin = sample(hp)
+        print(counts_per_bin)
         self.assertEqual(counts_per_bin,
                          [14012, 10977, 8809, 7559, 6424, 5706, 5276, 4694,
                           4328, 3928, 3655, 3386, 3253, 2932, 2816, 2727, 2530,

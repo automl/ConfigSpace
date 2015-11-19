@@ -53,6 +53,10 @@ class Hyperparameter(object):
     def _transform(self, vector):
         pass
 
+    @abstractmethod
+    def _inverse_transform(self, vector):
+        pass
+
 
 class Constant(Hyperparameter):
     def __init__(self, name, value):
@@ -71,7 +75,6 @@ class Constant(Hyperparameter):
                             (type(value), allowed_types))
 
         self.value = value
-        self._nan = -1
 
     def __repr__(self):
         repr_str = ["%s" % self.name,
@@ -88,6 +91,9 @@ class Constant(Hyperparameter):
     def _transform(self, vector):
         return self.value if vector == 0 else None
 
+    def _inverse_transform(self, vector):
+        return self.value if vector == 0 else None
+
 
 class UnParametrizedHyperparameter(Constant):
     pass
@@ -101,7 +107,6 @@ class NumericalHyperparameter(Hyperparameter):
 
 class FloatHyperparameter(NumericalHyperparameter):
     def __init__(self, name, default):
-        self._nan = np.NaN
         super(FloatHyperparameter, self).__init__(name, default)
 
     def is_legal(self, value):
@@ -113,7 +118,6 @@ class FloatHyperparameter(NumericalHyperparameter):
 
 class IntegerHyperparameter(NumericalHyperparameter):
     def __init__(self, name, default):
-        self._nan = np.NaN
         super(IntegerHyperparameter, self).__init__(name, default)
 
     def is_legal(self, value):
@@ -246,6 +250,13 @@ class UniformFloatHyperparameter(UniformMixin, FloatHyperparameter):
             vector = int(np.round(vector / self.q, 0)) * self.q
         return vector
 
+    def _inverse_transform(self, vector):
+        if vector is None:
+            return np.NaN
+        if self.log:
+            vector = np.log(vector)
+        return (vector - self._lower) / (self._upper - self._lower)
+
 
 class NormalFloatHyperparameter(NormalMixin, FloatHyperparameter):
     def __init__(self, name, mu, sigma, default=None, q=None, log=False):
@@ -312,6 +323,14 @@ class NormalFloatHyperparameter(NormalMixin, FloatHyperparameter):
             vector = np.exp(vector)
         if self.q is not None:
             vector = int(np.round(vector / self.q, 0)) * self.q
+        return vector
+
+    def _inverse_transform(self, vector):
+        if vector is None:
+            return np.NaN
+
+        if self.log:
+            vector = np.log(vector)
         return vector
 
 
@@ -382,6 +401,9 @@ class UniformIntegerHyperparameter(UniformMixin, IntegerHyperparameter):
         if self.q is not None:
             vector = int(np.round(vector / self.q, 0)) * self.q
         return int(np.round(vector, 0))
+
+    def _inverse_transform(self, vector):
+        return self.ufhp._inverse_transform(vector)
 
 
 class NormalIntegerHyperparameter(NormalMixin, IntegerHyperparameter):
@@ -458,6 +480,9 @@ class NormalIntegerHyperparameter(NormalMixin, IntegerHyperparameter):
         vector = self.nfhp._transform(vector)
         return int(np.round(vector, 0))
 
+    def _inverse_transform(self, vector):
+        return self.nfhp._inverse_transform(vector)
+
 
 class CategoricalHyperparameter(Hyperparameter):
     # TODO add more magic for automated type recognition
@@ -467,7 +492,6 @@ class CategoricalHyperparameter(Hyperparameter):
         self.choices = choices
         self._num_choices = len(choices)
         self.default = self.check_default(default)
-        self._nan = -1
 
     def __repr__(self):
         repr_str = six.StringIO()
@@ -500,6 +524,16 @@ class CategoricalHyperparameter(Hyperparameter):
         return rs.randint(0, self._num_choices, size=size)
 
     def _transform(self, vector):
-        if vector == -1:
+        if vector != vector:
             return None
-        return self.choices[vector]
+        if np.equal(np.mod(vector, 1), 0):
+            return self.choices[int(vector)]
+        else:
+            raise ValueError('Can only index the choices of a categorical '
+                             'hyperparameter with an integer, but provided '
+                             'the following float: %f' % vector)
+
+    def _inverse_transform(self, vector):
+        if vector is None:
+            return np.NaN
+        return self.choices.index(vector)
