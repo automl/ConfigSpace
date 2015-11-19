@@ -23,7 +23,6 @@ __contact__ = "automl.org"
 
 from collections import defaultdict, deque, OrderedDict
 import copy
-from itertools import product
 
 import numpy as np
 import six
@@ -714,13 +713,13 @@ class Configuration(object):
                           list(sorted(self.configuration_space.items))))
 
     def _populate_values(self):
-        for hyperparameter in self.configuration_space.get_hyperparameters():
-            self[hyperparameter.name]
-        self._query_values = True
+        if self._query_values is False:
+            for hyperparameter in self.configuration_space.get_hyperparameters():
+                self[hyperparameter.name]
+            self._query_values = True
 
     def __repr__(self):
-        if self._query_values is False:
-            self._populate_values()
+        self._populate_values()
 
         repr = six.StringIO()
         repr.write("Configuration:\n")
@@ -745,3 +744,30 @@ class Configuration(object):
 
     def keys(self):
         return self.configuration_space._hyperparameters.keys()
+
+    def get_dictionary(self):
+        self._populate_values()
+        return self._values
+
+    def get_array(self):
+        return self._vector
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
