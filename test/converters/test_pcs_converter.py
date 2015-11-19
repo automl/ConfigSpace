@@ -25,13 +25,13 @@ import unittest
 
 import six
 
-from ParameterConfigurationSpace.configuration_space import ConfigurationSpace
-import ParameterConfigurationSpace.io.pcs as pcs
-from ParameterConfigurationSpace.hyperparameters import CategoricalHyperparameter, \
+from ConfigSpace.configuration_space import ConfigurationSpace
+import ConfigSpace.io.pcs as pcs
+from ConfigSpace.hyperparameters import CategoricalHyperparameter, \
     UniformIntegerHyperparameter, UniformFloatHyperparameter
-from ParameterConfigurationSpace.conditions import EqualsCondition, InCondition, \
+from ConfigSpace.conditions import EqualsCondition, InCondition, \
     AndConjunction
-from ParameterConfigurationSpace.forbidden import ForbiddenEqualsClause, \
+from ConfigSpace.forbidden import ForbiddenEqualsClause, \
     ForbiddenInClause, ForbiddenAndConjunction
 
 # More complex search space
@@ -147,7 +147,7 @@ class TestPCSConverter(unittest.TestCase):
         self.assertRaisesRegexp(TypeError, "pcs_parser.write expects an "
                                 "instance of "
                                 "<class "
-                                "'ParameterConfigurationSpace.configuration_"
+                                "'ConfigSpace.configuration_"
                                 "space.ConfigurationSpace'>, you provided "
                                 "'<(type|class) 'dict'>'", pcs.write, sp)
 

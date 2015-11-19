@@ -21,9 +21,9 @@
 from argparse import ArgumentParser, FileType
 from string import upper
 
-from ParameterConfigurationSpace.io import pb_parser
-from ParameterConfigurationSpace.io import pyll_parser
-from ParameterConfigurationSpace.io import pcs_parser
+from ConfigSpace.io import pb_parser
+from ConfigSpace.io import pyll_parser
+from ConfigSpace.io import pcs_parser
 
 
 __authors__ = ["Katharina Eggensperger", "Matthias Feurer"]

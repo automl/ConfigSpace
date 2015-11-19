@@ -1,11 +1,11 @@
 import unittest
 import warnings
 
-from ParameterConfigurationSpace.hyperparameters import Constant, \
+from ConfigSpace.hyperparameters import Constant, \
     UniformFloatHyperparameter, NormalFloatHyperparameter, \
     UniformIntegerHyperparameter, NormalIntegerHyperparameter, \
     CategoricalHyperparameter
-from ParameterConfigurationSpace.conditions import EqualsCondition, NotEqualsCondition,\
+from ConfigSpace.conditions import EqualsCondition, NotEqualsCondition,\
     InCondition, AndConjunction, OrConjunction
 
 class TestConditions(unittest.TestCase):

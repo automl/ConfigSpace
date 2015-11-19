@@ -18,7 +18,7 @@ if sys.version_info[:2] < (2, 6):
 del sys
 
 # Release data
-from ParameterConfigurationSpace.nx.release import authors, license, date, version
+from ConfigSpace.nx.release import authors, license, date, version
 
 __author__   = '%s <%s>\n%s <%s>\n%s <%s>' % \
               ( authors['Hagberg'] + authors['Schult'] + \
@@ -29,14 +29,14 @@ __date__ = date
 __version__ = version
 
 #These are import orderwise
-from ParameterConfigurationSpace.nx import *
+from ConfigSpace.nx import *
 
-import ParameterConfigurationSpace.nx.exception
-from ParameterConfigurationSpace.nx.exception import *
+import ConfigSpace.nx.exception
+from ConfigSpace.nx.exception import *
 
-import ParameterConfigurationSpace.nx.classes
-from ParameterConfigurationSpace.nx.classes import *
+import ConfigSpace.nx.classes
+from ConfigSpace.nx.classes import *
 
-import ParameterConfigurationSpace.nx.algorithms
-from ParameterConfigurationSpace.nx.algorithms import *
+import ConfigSpace.nx.algorithms
+from ConfigSpace.nx.algorithms import *
 

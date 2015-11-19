@@ -29,14 +29,14 @@ import numpy as np
 import pyparsing
 import six
 
-from ParameterConfigurationSpace.configuration_space import ConfigurationSpace
-from ParameterConfigurationSpace.hyperparameters import CategoricalHyperparameter, \
+from ConfigSpace.configuration_space import ConfigurationSpace
+from ConfigSpace.hyperparameters import CategoricalHyperparameter, \
     UniformIntegerHyperparameter, UniformFloatHyperparameter, \
     NumericalHyperparameter, Constant, IntegerHyperparameter, \
     NormalIntegerHyperparameter, NormalFloatHyperparameter
-from ParameterConfigurationSpace.conditions import EqualsCondition, NotEqualsCondition,\
+from ConfigSpace.conditions import EqualsCondition, NotEqualsCondition,\
     InCondition, AndConjunction, OrConjunction, ConditionComponent
-from ParameterConfigurationSpace.forbidden import ForbiddenEqualsClause, \
+from ConfigSpace.forbidden import ForbiddenEqualsClause, \
     ForbiddenAndConjunction, ForbiddenInClause, AbstractForbiddenComponent, MultipleValueForbiddenClause
 
 

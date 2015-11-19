@@ -1,16 +1,16 @@
 import os
 import unittest
 
-import ParameterConfigurationSpace
-import ParameterConfigurationSpace.io.pcs_parser as pcs_parser
-from ParameterConfigurationSpace.random_sampler import RandomSampler
+import ConfigSpace
+import ConfigSpace.io.pcs_parser as pcs_parser
+from ConfigSpace.random_sampler import RandomSampler
 
 
 class TestPCSConverterOnMiniAutoSklearn(unittest.TestCase):
     # TODO test the other formats once they are ready!
 
     def test_read_and_write_pcs(self):
-        configuration_space_path = os.path.abspath(ParameterConfigurationSpace.__file__)
+        configuration_space_path = os.path.abspath(ConfigSpace.__file__)
         configuration_space_path = os.path.dirname(configuration_space_path)
         configuration_space_path = os.path.join(configuration_space_path,
                                                 "..", "test",

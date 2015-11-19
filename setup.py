@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 import os
 
-import ParameterConfigurationSpace
+import ConfigSpace
 
 here = os.path.abspath(os.path.dirname(__file__))
 desc = 'Package to describe configuration spaces for automated algorithm ' \
@@ -15,11 +15,11 @@ def read(fname):
 
 setup(
     name='HPOlibConfigSpace',
-    version=ParameterConfigurationSpace.__version__,
+    version=ConfigSpace.__version__,
     url='https://github.com/automl/HPOlibConfigSpace',
     license='GPLv3',
     platforms=['Linux'],
-    author=ParameterConfigurationSpace.__authors__,
+    author=ConfigSpace.__authors__,
     test_suite="nose.collector",
     install_requires=['argparse',
                       'numpy',

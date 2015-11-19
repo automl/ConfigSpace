@@ -4,7 +4,7 @@ import unittest
 
 import numpy as np
 
-from ParameterConfigurationSpace import ConfigurationSpace, \
+from ConfigSpace import ConfigurationSpace, \
     Configuration, CategoricalHyperparameter, UniformIntegerHyperparameter, \
     Constant, EqualsCondition, NotEqualsCondition, InCondition, \
     AndConjunction, OrConjunction, ForbiddenEqualsClause, \

@@ -8,7 +8,7 @@ Strongly connected components.
 #    Pieter Swart <swart@lanl.gov>
 #    All rights reserved.
 #    BSD license.
-import ParameterConfigurationSpace.nx
+import ConfigSpace.nx
 
 __authors__ = "\n".join(['Eben Kenah',
                          'Aric Hagberg (hagberg@lanl.gov)'
@@ -55,7 +55,7 @@ def strongly_connected_components(G):
        Information Processing Letters 49(1): 9-14, (1994)..
     """
     if not G.is_directed():
-        raise ParameterConfigurationSpace.nx.NetworkXError("""Not allowed for undirected graph G.
+        raise ConfigSpace.nx.NetworkXError("""Not allowed for undirected graph G.
               Use connected_components() """)
     preorder = {}
     lowlink = {}

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from fractions import gcd
 
-import ParameterConfigurationSpace.nx
+import ConfigSpace.nx
 
 
 """Algorithms for directed acyclic graphs (DAGs)."""
@@ -36,10 +36,10 @@ def descendants(G, source):
        The descendants of source in G
     """
     if not G.has_node(source):
-        raise ParameterConfigurationSpace.nx.NetworkXError(
+        raise ConfigSpace.nx.NetworkXError(
             "The node %s is not in the graph." % source)
-    des = set(ParameterConfigurationSpace.nx.shortest_path_length(G,
-                                                        source=source).keys()) - set(
+    des = set(ConfigSpace.nx.shortest_path_length(G,
+                                                  source=source).keys()) - set(
         [source])
     return des
 
@@ -58,10 +58,10 @@ def ancestors(G, source):
        The ancestors of source in G
     """
     if not G.has_node(source):
-        raise ParameterConfigurationSpace.nx.NetworkXError(
+        raise ConfigSpace.nx.NetworkXError(
             "The node %s is not in the graph." % source)
-    anc = set(ParameterConfigurationSpace.nx.shortest_path_length(G,
-                                                        target=source).keys()) - set(
+    anc = set(ConfigSpace.nx.shortest_path_length(G,
+                                                  target=source).keys()) - set(
         [source])
     return anc
 
@@ -85,7 +85,7 @@ def is_directed_acyclic_graph(G):
     try:
         topological_sort(G)
         return True
-    except ParameterConfigurationSpace.nx.NetworkXUnfeasible:
+    except ConfigSpace.nx.NetworkXUnfeasible:
         return False
 
 
@@ -129,7 +129,7 @@ def topological_sort(G, nbunch=None):
         http://www.amazon.com/exec/obidos/ASIN/0387948600/ref=ase_thealgorithmrepo/
     """
     if not G.is_directed():
-        raise ParameterConfigurationSpace.nx.NetworkXError(
+        raise ConfigSpace.nx.NetworkXError(
             "Topological sort not defined on undirected graphs.")
 
     # nonrecursive version
@@ -154,7 +154,7 @@ def topological_sort(G, nbunch=None):
             for n in G[w]:
                 if n not in explored:
                     if n in seen:  #CYCLE !!
-                        raise ParameterConfigurationSpace.nx.NetworkXUnfeasible(
+                        raise ConfigSpace.nx.NetworkXUnfeasible(
                             "Graph contains a cycle.")
                     new_nodes.append(n)
             if new_nodes:  # Add new_nodes to fringe
@@ -201,7 +201,7 @@ def topological_sort_recursive(G, nbunch=None):
 
     """
     if not G.is_directed():
-        raise ParameterConfigurationSpace.nx.NetworkXError(
+        raise ConfigSpace.nx.NetworkXError(
             "Topological sort not defined on undirected graphs.")
 
     def _dfs(v):
@@ -209,7 +209,7 @@ def topological_sort_recursive(G, nbunch=None):
 
         for w in G[v]:
             if w in ancestors:
-                raise ParameterConfigurationSpace.nx.NetworkXUnfeasible(
+                raise ConfigSpace.nx.NetworkXUnfeasible(
                     "Graph contains a cycle.")
 
             if w not in explored:
@@ -268,7 +268,7 @@ def is_aperiodic(G):
        A Multidisciplinary Approach, CRC Press.
     """
     if not G.is_directed():
-        raise ParameterConfigurationSpace.nx.NetworkXError(
+        raise ConfigSpace.nx.NetworkXError(
             "is_aperiodic not defined for undirected graphs")
 
     s = next(G.nodes_iter())
@@ -290,5 +290,5 @@ def is_aperiodic(G):
     if len(levels) == len(G):  #All nodes in tree
         return g == 1
     else:
-        return g == 1 and ParameterConfigurationSpace.nx.is_aperiodic(
+        return g == 1 and ConfigSpace.nx.is_aperiodic(
             G.subgraph(set(G) - set(levels)))

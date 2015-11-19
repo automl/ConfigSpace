@@ -6,7 +6,7 @@ import operator
 
 import six
 
-from ParameterConfigurationSpace.hyperparameters import Hyperparameter
+from ConfigSpace.hyperparameters import Hyperparameter
 
 
 class ConditionComponent(object):

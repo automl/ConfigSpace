@@ -43,7 +43,7 @@ __author__ = """\n""".join(['Aric Hagberg (hagberg@lanl.gov)',
 
 import warnings
 
-import ParameterConfigurationSpace.nx
+import ConfigSpace.nx
 
 
 __all__ = ['to_networkx_graph',
@@ -63,7 +63,7 @@ def _prep_create_using(create_using):
 
     """
     if create_using is None:
-        G = ParameterConfigurationSpace.nx.Graph()
+        G = ConfigSpace.nx.Graph()
     else:
         G = create_using
         try:
@@ -122,16 +122,16 @@ def to_networkx_graph(data, create_using=None, multigraph_input=False):
                     (n, dd.copy()) for n, dd in data.node.items())
             return result
         except:
-            raise ParameterConfigurationSpace.nx.NetworkXError(
+            raise ConfigSpace.nx.NetworkXError(
                 "Input is not a correct NetworkX graph.")
 
     # pygraphviz  agraph
     if hasattr(data, "is_strict"):
         try:
-            return ParameterConfigurationSpace.nx.from_agraph(data,
-                                                    create_using=create_using)
+            return ConfigSpace.nx.from_agraph(data,
+                                              create_using=create_using)
         except:
-            raise ParameterConfigurationSpace.nx.NetworkXError(
+            raise ConfigSpace.nx.NetworkXError(
                 "Input is not a correct pygraphviz graph.")
 
     # dict of dicts/lists
@@ -152,7 +152,7 @@ def to_networkx_graph(data, create_using=None, multigraph_input=False):
         try:
             return from_edgelist(data, create_using=create_using)
         except:
-            raise ParameterConfigurationSpace.nx.NetworkXError(
+            raise ConfigSpace.nx.NetworkXError(
                 "Input is not a valid edge list")
 
     # numpy matrix or ndarray 
@@ -164,7 +164,7 @@ def to_networkx_graph(data, create_using=None, multigraph_input=False):
             try:
                 return from_numpy_matrix(data, create_using=create_using)
             except:
-                raise ParameterConfigurationSpace.nx.NetworkXError( \
+                raise ConfigSpace.nx.NetworkXError( \
                     "Input is not a correct numpy matrix or array.")
     except ImportError:
         warnings.warn('numpy not found, skipping conversion test.',
@@ -178,13 +178,13 @@ def to_networkx_graph(data, create_using=None, multigraph_input=False):
             try:
                 return from_scipy_sparse_matrix(data, create_using=create_using)
             except:
-                raise ParameterConfigurationSpace.nx.NetworkXError( \
+                raise ConfigSpace.nx.NetworkXError( \
                     "Input is not a correct scipy sparse matrix type.")
     except ImportError:
         warnings.warn('scipy not found, skipping conversion test.',
                       ImportWarning)
 
-    raise ParameterConfigurationSpace.nx.NetworkXError( \
+    raise ConfigSpace.nx.NetworkXError( \
         "Input is not a known data type for conversion.")
 
     return
@@ -503,7 +503,7 @@ def to_numpy_matrix(G, nodelist=None, dtype=None, order=None,
     nodeset = set(nodelist)
     if len(nodelist) != len(nodeset):
         msg = "Ambiguous ordering: `nodelist` contained duplicates."
-        raise ParameterConfigurationSpace.nx.NetworkXError(msg)
+        raise ConfigSpace.nx.NetworkXError(msg)
 
     nlen = len(nodelist)
     undirected = not G.is_directed()
@@ -610,7 +610,7 @@ def from_numpy_matrix(A, create_using=None):
     G = _prep_create_using(create_using)
     n, m = A.shape
     if n != m:
-        raise ParameterConfigurationSpace.nx.NetworkXError(
+        raise ConfigSpace.nx.NetworkXError(
             "Adjacency matrix is not square.",
             "nx,ny=%s" % (A.shape,))
     dt = A.dtype
