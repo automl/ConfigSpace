@@ -4,7 +4,7 @@ import warnings
 
 import numpy as np
 
-from HPOlibConfigSpace.hyperparameters import Constant, \
+from ParameterConfigurationSpace.hyperparameters import Constant, \
     UniformFloatHyperparameter, NormalFloatHyperparameter, \
     UniformIntegerHyperparameter, NormalIntegerHyperparameter, \
     CategoricalHyperparameter

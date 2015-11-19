@@ -4,13 +4,13 @@ import unittest
 
 import numpy as np
 
-from HPOlibConfigSpace.configuration_space import ConfigurationSpace, \
+from ParameterConfigurationSpace.configuration_space import ConfigurationSpace, \
     Configuration
-from HPOlibConfigSpace.hyperparameters import CategoricalHyperparameter, \
+from ParameterConfigurationSpace.hyperparameters import CategoricalHyperparameter, \
     UniformIntegerHyperparameter, Constant
-from HPOlibConfigSpace.conditions import EqualsCondition, NotEqualsCondition,\
+from ParameterConfigurationSpace.conditions import EqualsCondition, NotEqualsCondition,\
     InCondition, AndConjunction, OrConjunction
-from HPOlibConfigSpace.forbidden import ForbiddenEqualsClause, \
+from ParameterConfigurationSpace.forbidden import ForbiddenEqualsClause, \
     ForbiddenAndConjunction
 
 

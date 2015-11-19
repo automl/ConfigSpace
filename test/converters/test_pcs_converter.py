@@ -25,13 +25,13 @@ import unittest
 
 import six
 
-from HPOlibConfigSpace.configuration_space import ConfigurationSpace
-import HPOlibConfigSpace.converters.pcs_parser as pcs_parser
-from HPOlibConfigSpace.hyperparameters import CategoricalHyperparameter, \
+from ParameterConfigurationSpace.configuration_space import ConfigurationSpace
+import ParameterConfigurationSpace.io.pcs as pcs
+from ParameterConfigurationSpace.hyperparameters import CategoricalHyperparameter, \
     UniformIntegerHyperparameter, UniformFloatHyperparameter
-from HPOlibConfigSpace.conditions import EqualsCondition, InCondition, \
+from ParameterConfigurationSpace.conditions import EqualsCondition, InCondition, \
     AndConjunction
-from HPOlibConfigSpace.forbidden import ForbiddenEqualsClause, \
+from ParameterConfigurationSpace.forbidden import ForbiddenEqualsClause, \
     ForbiddenInClause, ForbiddenAndConjunction
 
 # More complex search space
@@ -106,7 +106,7 @@ class TestPCSConverter(unittest.TestCase):
         expected.write('cat_a {a,"b",c,d} [a]\n')
         expected.write('@.:;/\?!$%&_-<>*+1234567890 {"const"} ["const"]\n')
         expected.seek(0)
-        cs = pcs_parser.read(expected)
+        cs = pcs.read(expected)
         self.assertEqual(cs, easy_space)
 
     def test_read_configuration_space_conditional(self):
@@ -128,17 +128,17 @@ class TestPCSConverter(unittest.TestCase):
         complex_cs.append("lr | classifier in {nn}")
         complex_cs.append("neurons | classifier in {nn}")
 
-        cs = pcs_parser.read(complex_cs)
+        cs = pcs.read(complex_cs)
         self.assertEqual(cs, conditional_space)
 
     def test_read_configuration_space_conditional_with_two_parents(self):
-        pcs = list()
-        pcs.append("@1:0:restarts {F,L,D,x,+,no}[x]")
-        pcs.append("@1:S:Luby:aryrestarts {1,2}[1]")
-        pcs.append("@1:2:Luby:restarts [1,65535][1000]il")
-        pcs.append("@1:2:Luby:restarts | @1:0:restarts in {L}")
-        pcs.append("@1:2:Luby:restarts | @1:S:Luby:aryrestarts in {2}")
-        cs = pcs_parser.read(pcs)
+        config_space = list()
+        config_space.append("@1:0:restarts {F,L,D,x,+,no}[x]")
+        config_space.append("@1:S:Luby:aryrestarts {1,2}[1]")
+        config_space.append("@1:2:Luby:restarts [1,65535][1000]il")
+        config_space.append("@1:2:Luby:restarts | @1:0:restarts in {L}")
+        config_space.append("@1:2:Luby:restarts | @1:S:Luby:aryrestarts in {2}")
+        cs = pcs.read(config_space)
         self.assertEqual(len(cs.get_conditions()), 1)
         self.assertIsInstance(cs.get_conditions()[0], AndConjunction)
 
@@ -146,22 +146,23 @@ class TestPCSConverter(unittest.TestCase):
         sp = {"a": int_a}
         self.assertRaisesRegexp(TypeError, "pcs_parser.write expects an "
                                 "instance of "
-                                "<class 'HPOlibConfigSpace.configuration_"
+                                "<class "
+                                "'ParameterConfigurationSpace.configuration_"
                                 "space.ConfigurationSpace'>, you provided "
-                                "'<(type|class) 'dict'>'", pcs_parser.write, sp)
+                                "'<(type|class) 'dict'>'", pcs.write, sp)
 
     def test_write_int(self):
         expected = "int_a [-1, 6] [2]i"
         cs = ConfigurationSpace()
         cs.add_hyperparameter(int_a)
-        value = pcs_parser.write(cs)
+        value = pcs.write(cs)
         self.assertEqual(expected, value)
 
     def test_write_log_int(self):
         expected = "int_log_a [1, 6] [2]il"
         cs = ConfigurationSpace()
         cs.add_hyperparameter(int_log_a)
-        value = pcs_parser.write(cs)
+        value = pcs.write(cs)
         self.assertEqual(expected, value)
 
     def test_write_q_int(self):
@@ -169,7 +170,7 @@ class TestPCSConverter(unittest.TestCase):
         cs = ConfigurationSpace()
         cs.add_hyperparameter(
             UniformIntegerHyperparameter("int_a", 16, 1024, q=16))
-        value = pcs_parser.write(cs)
+        value = pcs.write(cs)
         self.assertEqual(expected, value)
 
     def test_write_q_float(self):
@@ -177,7 +178,7 @@ class TestPCSConverter(unittest.TestCase):
         cs = ConfigurationSpace()
         cs.add_hyperparameter(
             UniformFloatHyperparameter("float_a", 16, 1024, q=16))
-        value = pcs_parser.write(cs)
+        value = pcs.write(cs)
         self.assertEqual(expected, value)
 
     def test_write_log10(self):
@@ -185,7 +186,7 @@ class TestPCSConverter(unittest.TestCase):
         cs = ConfigurationSpace()
         cs.add_hyperparameter(
             UniformFloatHyperparameter("a", 10, 1000, log=True))
-        value = pcs_parser.write(cs)
+        value = pcs.write(cs)
         self.assertEqual(expected, value)
 
     def test_build_forbidden(self):
@@ -199,6 +200,6 @@ class TestPCSConverter(unittest.TestCase):
         fb = ForbiddenAndConjunction(ForbiddenInClause(a, ["a", "b"]),
                                      ForbiddenInClause(b, ["a", "b"]))
         cs.add_forbidden_clause(fb)
-        value = pcs_parser.write(cs)
+        value = pcs.write(cs)
         self.assertIn(expected, value)
 

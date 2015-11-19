@@ -17,7 +17,7 @@ __all__ = ['dfs_edges', 'dfs_tree',
 
 from collections import defaultdict
 
-import HPOlibConfigSpace.nx
+import ParameterConfigurationSpace.nx
 
 
 def dfs_edges(G, source=None):
@@ -50,7 +50,7 @@ def dfs_edges(G, source=None):
 
 def dfs_tree(G, source):
     """Return directed tree of depth-first-search from source."""
-    T = HPOlibConfigSpace.nx.DiGraph()
+    T = ParameterConfigurationSpace.nx.DiGraph()
     if source is None:
         T.add_nodes_from(G)
     else:
@@ -77,7 +77,7 @@ def dfs_postorder_nodes(G, source=None):
     from source.
     """
     post = (v for u, v, d in
-            HPOlibConfigSpace.nx.dfs_labeled_edges(G, source=source)
+            ParameterConfigurationSpace.nx.dfs_labeled_edges(G, source=source)
             if d['dir'] == 'reverse')
     # chain source to end of pre-ordering
     # return chain(post,[source])
@@ -87,7 +87,7 @@ def dfs_postorder_nodes(G, source=None):
 def dfs_preorder_nodes(G, source=None):
     """Produce nodes in a depth-first-search pre-ordering starting at source."""
     pre = (v for u, v, d in
-           HPOlibConfigSpace.nx.dfs_labeled_edges(G, source=source)
+           ParameterConfigurationSpace.nx.dfs_labeled_edges(G, source=source)
            if d['dir'] == 'forward')
     # chain source to beginning of pre-ordering
     # return chain([source],pre)

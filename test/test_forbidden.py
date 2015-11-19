@@ -2,9 +2,9 @@ from itertools import product
 import unittest
 import warnings
 
-from HPOlibConfigSpace.hyperparameters import \
+from ParameterConfigurationSpace.hyperparameters import \
     UniformIntegerHyperparameter, CategoricalHyperparameter
-from HPOlibConfigSpace.forbidden import ForbiddenEqualsClause, \
+from ParameterConfigurationSpace.forbidden import ForbiddenEqualsClause, \
     ForbiddenInClause, ForbiddenAndConjunction
 
 
@@ -15,8 +15,8 @@ class TestForbidden(unittest.TestCase):
         hp2 = UniformIntegerHyperparameter("child", 0, 10)
 
         self.assertRaisesRegexp(TypeError, "HP1' is not of"
-            " type <class 'HPOlibConfigSpace.hyperparameters.Hyperparameter'>.",
-                                ForbiddenEqualsClause, "HP1", 1)
+            " type <class 'ParameterConfigurationSpace.hyperparameters"
+            ".Hyperparameter'>.", ForbiddenEqualsClause, "HP1", 1)
 
         self.assertRaisesRegexp(ValueError,
                                 "Forbidden clause must be instantiated with a "
@@ -52,7 +52,7 @@ class TestForbidden(unittest.TestCase):
         hp3 = UniformIntegerHyperparameter("child2", 0, 10)
 
         self.assertRaisesRegexp(TypeError, "Argument 'hyperparameter' is not of"
-                                " type <class 'HPOlibConfigSpace.hyperparameters.Hyperparameter'>.",
+                                " type <class 'ParameterConfigurationSpace.hyperparameters.Hyperparameter'>.",
                                 ForbiddenInClause, "HP1", 1)
 
         self.assertRaisesRegexp(ValueError,

@@ -28,12 +28,12 @@ from itertools import product
 import numpy as np
 import six
 
-import HPOlibConfigSpace.nx
-from HPOlibConfigSpace.hyperparameters import Hyperparameter, Constant, \
+import ParameterConfigurationSpace.nx
+from ParameterConfigurationSpace.hyperparameters import Hyperparameter, Constant, \
     CategoricalHyperparameter
-from HPOlibConfigSpace.conditions import ConditionComponent, \
+from ParameterConfigurationSpace.conditions import ConditionComponent, \
     AbstractCondition, AbstractConjunction
-from HPOlibConfigSpace.forbidden import AbstractForbiddenComponent
+from ParameterConfigurationSpace.forbidden import AbstractForbiddenComponent
 
 
 class ConfigurationSpace(object):
@@ -156,8 +156,8 @@ class ConfigurationSpace(object):
         tmp_dag = self._create_tmp_dag()
         tmp_dag.add_edge(parent_node, child_node)
 
-        if not HPOlibConfigSpace.nx.is_directed_acyclic_graph(tmp_dag):
-            cycles = list(HPOlibConfigSpace.nx.simple_cycles(tmp_dag))
+        if not ParameterConfigurationSpace.nx.is_directed_acyclic_graph(tmp_dag):
+            cycles = list(ParameterConfigurationSpace.nx.simple_cycles(tmp_dag))
             for cycle in cycles:
                 cycle.sort()
             cycles.sort()
@@ -222,7 +222,7 @@ class ConfigurationSpace(object):
                 self._conditionsals[node] = hp
 
     def _create_tmp_dag(self):
-        tmp_dag = HPOlibConfigSpace.nx.DiGraph()
+        tmp_dag = ParameterConfigurationSpace.nx.DiGraph()
         for hp_name in self._hyperparameters:
             tmp_dag.add_node(hp_name)
             tmp_dag.add_edge('__HPOlib_configuration_space_root__', hp_name)
@@ -717,5 +717,3 @@ class Configuration(object):
         # TODO: the hyperparameter names should also be in the configuration
         # object!
         return iter(self.configuration_space._hyperparameters.keys())
-
-

@@ -1,0 +1,2 @@
+import ParameterConfigurationSpace.nx.algorithms.traversal.depth_first_search
+from ParameterConfigurationSpace.nx.algorithms.traversal.depth_first_search import *

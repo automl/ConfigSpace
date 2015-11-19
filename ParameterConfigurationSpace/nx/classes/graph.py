@@ -16,9 +16,9 @@ For directed graphs see DiGraph and MultiDiGraph.
 import collections
 from copy import deepcopy
 
-import HPOlibConfigSpace.nx
-from HPOlibConfigSpace.nx.exception import NetworkXError
-from HPOlibConfigSpace.nx import convert
+import ParameterConfigurationSpace.nx
+from ParameterConfigurationSpace.nx.exception import NetworkXError
+from ParameterConfigurationSpace.nx import convert
 
 
 __author__ = """\n""".join(['Aric Hagberg (hagberg@lanl.gov)',
@@ -1397,7 +1397,7 @@ class Graph(object):
         >>> H.edges()
         [(0, 1)]
         """
-        from HPOlibConfigSpace.nx import DiGraph
+        from ParameterConfigurationSpace.nx import DiGraph
 
         G = DiGraph()
         G.name = self.name
