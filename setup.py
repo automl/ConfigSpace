@@ -14,7 +14,7 @@ def read(fname):
 
 
 setup(
-    name='HPOlibConfigSpace',
+    name='ConfigSpace',
     version=ConfigSpace.__version__,
     url='https://github.com/automl/HPOlibConfigSpace',
     license='GPLv3',
