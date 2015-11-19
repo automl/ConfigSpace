@@ -529,9 +529,9 @@ class CategoricalHyperparameter(Hyperparameter):
         if np.equal(np.mod(vector, 1), 0):
             return self.choices[int(vector)]
         else:
-            raise ValueError('Can only index the choices of a categorical '
-                             'hyperparameter with an integer, but provided '
-                             'the following float: %f' % vector)
+            raise ValueError('Can only index the choices of the categorical '
+                             'hyperparameter %s with an integer, but provided '
+                             'the following float: %f' % (self, vector))
 
     def _inverse_transform(self, vector):
         if vector is None:

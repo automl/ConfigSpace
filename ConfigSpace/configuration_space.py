@@ -82,12 +82,17 @@ class ConfigurationSpace(object):
             '__HPOlib_configuration_space_root__'] = None
 
         # Save the index of each hyperparameter name to later on access a
-        # vector of hyperparameter values by indices
+        # vector of hyperparameter values by indices, must be done twice
+        # because check_default_configuration depends on it
         for i, hp in enumerate(self._hyperparameters):
             self._hyperparameter_idx[hp] = i
 
         self._check_default_configuration()
         self._sort_hyperparameters()
+
+        # Update to reflect sorting
+        for i, hp in enumerate(self._hyperparameters):
+            self._hyperparameter_idx[hp] = i
 
         return hyperparameter
 
@@ -434,7 +439,8 @@ class ConfigurationSpace(object):
                             "with an instance of %s." % Configuration)
         self._check_configuration(configuration)
 
-    def _check_configuration(self, configuration):
+    def _check_configuration(self, configuration,
+                             allow_inactive_with_values=False):
         for hp_name in self._hyperparameters:
             hyperparameter = self._hyperparameters[hp_name]
             hp_value = configuration[hp_name]
@@ -471,18 +477,14 @@ class ConfigurationSpace(object):
                 raise ValueError("Active hyperparameter '%s' not specified!" %
                                  hyperparameter.name)
 
-            if not active and hp_value is not None:
+            if not allow_inactive_with_values and not active and \
+                    hp_value is not None:
                 raise ValueError("Inactive hyperparameter '%s' must not be "
                                  "specified, but has the value: '%s'." %
                                  (hp_name, hp_value))
         self._check_forbidden(configuration)
 
     def _check_forbidden(self, configuration):
-        # Check if all forbidden clauses are satisfied
-        #import traceback
-        #for line in traceback.format_stack():
-        #    print line.strip()
-        #print
         for clause in self.forbidden_clauses:
             if clause.is_forbidden(configuration, strict=False):
                 raise ValueError("%sviolates forbidden clause %s" % (
@@ -612,7 +614,8 @@ class ConfigurationSpace(object):
 class Configuration(object):
     # TODO add a method to eliminate inactive hyperparameters from a
     # configuration
-    def __init__(self, configuration_space, values=None, vector=None):
+    def __init__(self, configuration_space, values=None, vector=None,
+                 allow_inactive_with_values=False):
         """A single configuration.
 
         Parameters
@@ -628,6 +631,10 @@ class Configuration(object):
         vector : np.ndarray
             A numpy array for efficient representation. Either values or
             vector has to be given.
+
+        allow_inactive_with_values : bool (default=False)
+            Whether an Exception will be raised if a value for an inactive
+            hyperparameter is given. Default is to raise an Exception.
         """
         if not isinstance(configuration_space, ConfigurationSpace):
             raise TypeError("Configuration expects an instance of %s, "
@@ -635,6 +642,7 @@ class Configuration(object):
                             (ConfigurationSpace, type(configuration_space)))
 
         self.configuration_space = configuration_space
+        self.allow_inactive_with_values = allow_inactive_with_values
         self._query_values = False
         self._num_hyperparameters = len(self.configuration_space._hyperparameters)
 
@@ -674,7 +682,8 @@ class Configuration(object):
                              'or vector.')
 
     def is_valid_configuration(self):
-        self.configuration_space._check_configuration(self)
+        self.configuration_space._check_configuration(
+            self, allow_inactive_with_values=self.allow_inactive_with_values)
 
     def __getitem__(self, item):
         if self._query_values or item in self._values:

@@ -558,8 +558,6 @@ class ConfigurationTest(unittest.TestCase):
                                             'friend': 3})
         # Pay attention that the vector does not necessarily has an intuitive
         #  sorting!
-        print(self.cs._hyperparameter_idx)
-
         # Values are a little bit higher than one would expect because,
         # an integer range of [0,10] is transformed to [-0.499,10.499].
         vector_values = {'parent': 1, 'child': 0.22727223, 'friend': 0.58333361}
