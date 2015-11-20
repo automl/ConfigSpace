@@ -185,7 +185,6 @@ def read(pcs_string, debug=False):
                 raise NotImplementedError("Could not parse condition: %s" % line)
             continue
         if "}" not in line and "]" not in line:
-            print("Skipping: %s" % line)
             continue
         if line.startswith("{") and line.endswith("}"):
             forbidden.append(line)
@@ -195,7 +194,6 @@ def read(pcs_string, debug=False):
 
         ct += 1
         param = None
-        # print "Parsing: " + line
 
         create = {"int": UniformIntegerHyperparameter,
                   "float": UniformFloatHyperparameter,

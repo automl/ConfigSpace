@@ -57,6 +57,10 @@ class Hyperparameter(object):
     def _inverse_transform(self, vector):
         pass
 
+    @abstractmethod
+    def has_neighbors(self):
+        pass
+
 
 class Constant(Hyperparameter):
     def __init__(self, name, value):
@@ -94,6 +98,9 @@ class Constant(Hyperparameter):
     def _inverse_transform(self, vector):
         return self.value if vector == 0 else None
 
+    def has_neighbors(self):
+        return False
+
 
 class UnParametrizedHyperparameter(Constant):
     pass
@@ -114,6 +121,9 @@ class FloatHyperparameter(NumericalHyperparameter):
 
     def check_default(self, default):
         return np.round(float(default), 10)
+
+    def has_neighbors(self):
+        return True
 
 
 class IntegerHyperparameter(NumericalHyperparameter):
@@ -257,6 +267,12 @@ class UniformFloatHyperparameter(UniformMixin, FloatHyperparameter):
             vector = np.log(vector)
         return (vector - self._lower) / (self._upper - self._lower)
 
+    def get_neighbor(self, value, rs, transform=False):
+        neighbor = max(0, min(1, rs.normal(value, 0.2)))
+        if transform:
+            return self._transform(neighbor)
+        return neighbor
+
 
 class NormalFloatHyperparameter(NormalMixin, FloatHyperparameter):
     def __init__(self, name, mu, sigma, default=None, q=None, log=False):
@@ -333,6 +349,10 @@ class NormalFloatHyperparameter(NormalMixin, FloatHyperparameter):
             vector = np.log(vector)
         return vector
 
+    def get_neighbor(self, value, rs):
+        new_value = rs.normal(value, self.sigma)
+        return new_value
+
 
 class UniformIntegerHyperparameter(UniformMixin, IntegerHyperparameter):
     def __init__(self, name, lower, upper, default=None, q=None, log=False):
@@ -385,14 +405,6 @@ class UniformIntegerHyperparameter(UniformMixin, IntegerHyperparameter):
     def _sample(self, rs, size=None):
         value = self.ufhp._sample(rs, size=size)
         return value
-        # if self.log is False and self.q is None:
-        #    value = rs.randint(self.lower, self.upper + 1)
-        #    return value
-        #else:
-        #    value = self.ufhp.sample(rs)
-        #    if self.q is not None:
-        #        value = int(np.round(value / self.q, 0)) * self.q
-        #    return int(np.round(value, 0))
 
     def _transform(self, vector):
         if np.isnan(vector):
@@ -404,6 +416,36 @@ class UniformIntegerHyperparameter(UniformMixin, IntegerHyperparameter):
 
     def _inverse_transform(self, vector):
         return self.ufhp._inverse_transform(vector)
+
+    def has_neighbors(self):
+        if self.log:
+            upper = np.exp(self.ufhp._upper)
+            lower = np.exp(self.ufhp._lower)
+        else:
+            upper = self.ufhp._upper
+            lower = self.ufhp._lower
+
+        # If there is only one active value, this is not enough
+        if upper - lower >= 1:
+            return True
+        else:
+            return False
+
+    def get_neighbor(self, value, rs, transform=False):
+        rejected = True
+        iteration = 0
+        while rejected:
+            new_value = np.max((0, min(1, rs.normal(value, 0.2))))
+            int_value = self._transform(value)
+            new_int_value = self._transform(new_value)
+            if int_value != new_int_value:
+                rejected = False
+            elif iteration > 100000:
+                raise ValueError('Probably caught in an infinite loop.')
+
+        if transform:
+            return self._transform(new_value)
+        return new_value
 
 
 class NormalIntegerHyperparameter(NormalMixin, IntegerHyperparameter):
@@ -483,6 +525,23 @@ class NormalIntegerHyperparameter(NormalMixin, IntegerHyperparameter):
     def _inverse_transform(self, vector):
         return self.nfhp._inverse_transform(vector)
 
+    def has_neighbors(self):
+        return True
+
+    def get_neighbor(self, value, rs, transform=False):
+        rejected = True
+        while rejected:
+            new_value = rs.normal(value, self.sigma)
+            int_value = self._transform(value)
+            new_int_value = self._transform(new_value)
+            if int_value != new_int_value:
+                rejected = False
+
+        if transform:
+            return self._transform(new_value)
+        return new_value
+
+
 
 class CategoricalHyperparameter(Hyperparameter):
     # TODO add more magic for automated type recognition
@@ -537,3 +596,18 @@ class CategoricalHyperparameter(Hyperparameter):
         if vector is None:
             return np.NaN
         return self.choices.index(vector)
+
+    def has_neighbors(self):
+        return len(self.choices) > 1
+
+    def get_neighbor(self, value, rs, transform=False):
+        rejected = True
+        index = int(value)
+        while rejected:
+            neighbor_idx = rs.randint(0, self._num_choices)
+            if neighbor_idx != index:
+                rejected = False
+
+        if transform:
+            return self._transform(neighbor_idx)
+        return float(neighbor_idx)

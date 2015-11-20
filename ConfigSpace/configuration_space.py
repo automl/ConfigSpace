@@ -47,6 +47,7 @@ class ConfigurationSpace(object):
     def __init__(self, seed=1):
         self._hyperparameters = OrderedDict()
         self._hyperparameter_idx = dict()
+        self._idx_to_hyperparameter = dict()
         self._children = defaultdict(dict)
         self._parents = defaultdict(dict)
         # changing this to a normal dict will break sampling because there is
@@ -93,6 +94,7 @@ class ConfigurationSpace(object):
         # Update to reflect sorting
         for i, hp in enumerate(self._hyperparameters):
             self._hyperparameter_idx[hp] = i
+            self._idx_to_hyperparameter[i] = hp
 
         return hyperparameter
 
@@ -310,6 +312,16 @@ class ConfigurationSpace(object):
                            "configuration space." % name)
         else:
             return hp
+
+    def get_hyperparameter_by_idx(self, idx):
+        hp = self._idx_to_hyperparameter.get(idx)
+
+        if hp is None:
+            raise KeyError("Hyperparameter #'%d' does not exist in this "
+                           "configuration space." % idx)
+        else:
+            return hp
+
 
     def get_conditions(self):
         conditions = []
