@@ -33,7 +33,7 @@ install:
 
 # command to run tests, e.g. python setup.py test
 script:
-  - nosetests --with-coverage
+  - nosetests -v --with-coverage
 
 after_success::
   - coveralls
