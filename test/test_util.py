@@ -54,14 +54,14 @@ class UtilTest(unittest.TestCase):
 
     def test_random_neighbor_failing(self):
         hp = Constant('a', 'b')
-        self.assertRaisesRegex(ValueError, 'Probably caught in an infinite '
+        self.assertRaisesRegexp(ValueError, 'Probably caught in an infinite '
                                            'loop.',
-                               self._test_random_neigbor, hp)
+                                self._test_random_neigbor, hp)
 
         hp = CategoricalHyperparameter('a', ['a'])
-        self.assertRaisesRegex(ValueError, 'Probably caught in an infinite '
+        self.assertRaisesRegexp(ValueError, 'Probably caught in an infinite '
                                            'loop.',
-                               self._test_random_neigbor, hp)
+                                self._test_random_neigbor, hp)
 
     def test_random_neigbor_conditional(self):
         mini_autosklearn_config_space_path = os.path.join(

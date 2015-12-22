@@ -554,11 +554,11 @@ class ConfigurationTest(unittest.TestCase):
         self.cs = cs
 
     def test_wrong_init(self):
-        self.assertRaisesRegex(ValueError,
+        self.assertRaisesRegexp(ValueError,
                                'Configuration neither specified as dictionary '
                                'or vector.', Configuration, self.cs)
 
-        self.assertRaisesRegex(ValueError,
+        self.assertRaisesRegexp(ValueError,
                                'Configuration specified both as dictionary and '
                                'vector, can only do one.', Configuration,
                                self.cs, values={}, vector=np.zeros((3, )))
