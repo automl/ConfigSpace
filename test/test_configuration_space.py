@@ -187,7 +187,7 @@ class TestConfigurationSpace(unittest.TestCase):
         # TODO: I need more tests for the topological sort!
         self.assertEqual([hp1, hp2], cs.get_hyperparameters())
 
-    def test_get_hyperparameters_topological_sort(self):
+    def test_get_hyperparameters_topological_sort_simple(self):
         for iteration in range(10):
             cs = ConfigurationSpace()
             hp1 = CategoricalHyperparameter("parent", [0, 1])
@@ -199,6 +199,7 @@ class TestConfigurationSpace(unittest.TestCase):
             # This automatically checks the configuration!
             Configuration(cs, dict(parent=0, child=5))
 
+    def test_get_hyperparameters_topological_sort(self):
             # and now for something more complicated
             cs = ConfigurationSpace()
             hp1 = CategoricalHyperparameter("input1", [0, 1])
@@ -209,9 +210,10 @@ class TestConfigurationSpace(unittest.TestCase):
             hp6 = Constant("AND", "True")
             # More top-level hyperparameters
             hp7 = CategoricalHyperparameter("input7", [0, 1])
-            hps = [hp1, hp2, hp3, hp4, hp5, hp6, hp7]
-            random.shuffle(hps)
-            for hp in hps:
+            # Somewhat shuffled
+            hyperparameters = [hp7, hp5, hp1, hp4, hp3, hp6, hp2]
+
+            for hp in hyperparameters:
                 cs.add_hyperparameter(hp)
 
             cond1 = EqualsCondition(hp6, hp1, 1)
@@ -225,18 +227,27 @@ class TestConfigurationSpace(unittest.TestCase):
             conj1 = AndConjunction(cond1, cond2)
             conj2 = OrConjunction(conj1, cond3)
             conj3 = AndConjunction(conj2, cond6, cond7)
-            cs.add_condition(cond4)
-            cs.add_condition(cond5)
-            cs.add_condition(conj3)
 
+            cs.add_condition(cond4)
             hps = cs.get_hyperparameters()
-            self.assertEqual(hps.index(hp1), 0)
-            self.assertEqual(hps.index(hp2), 1)
-            self.assertEqual(hps.index(hp3), 2)
-            self.assertEqual(hps.index(hp7), 3)
-            self.assertEqual(hps.index(hp5), 4)
-            self.assertEqual(hps.index(hp4), 5)
-            self.assertEqual(hps.index(hp6), 6)
+            for hp, idx in zip(hyperparameters, [0, 6, 1, 2, 3, 4, 5]):
+                self.assertEqual(hps.index(hp), idx)
+                self.assertEqual(cs._hyperparameter_idx[hp.name], idx)
+                self.assertEqual(cs._idx_to_hyperparameter[idx], hp.name)
+
+            cs.add_condition(cond5)
+            hps = cs.get_hyperparameters()
+            for hp, idx in zip(hyperparameters, [0, 5, 1, 6, 2, 3, 4]):
+                self.assertEqual(hps.index(hp), idx)
+                self.assertEqual(cs._hyperparameter_idx[hp.name], idx)
+                self.assertEqual(cs._idx_to_hyperparameter[idx], hp.name)
+
+            cs.add_condition(conj3)
+            hps = cs.get_hyperparameters()
+            for hp, idx in zip(hyperparameters, [0, 4, 1, 5, 2, 6, 3]):
+                self.assertEqual(hps.index(hp), idx)
+                self.assertEqual(cs._hyperparameter_idx[hp.name], idx)
+            self.assertEqual(cs._idx_to_hyperparameter[idx], hp.name)
 
     def test_get_hyperparameter(self):
         cs = ConfigurationSpace()

@@ -91,11 +91,6 @@ class ConfigurationSpace(object):
         self._check_default_configuration()
         self._sort_hyperparameters()
 
-        # Update to reflect sorting
-        for i, hp in enumerate(self._hyperparameters):
-            self._hyperparameter_idx[hp] = i
-            self._idx_to_hyperparameter[i] = hp
-
         return hyperparameter
 
     def add_condition(self, condition):
@@ -179,7 +174,7 @@ class ConfigurationSpace(object):
                                  "%s" % (str(other_condition), str(condition)))
 
     def _sort_hyperparameters(self):
-        levels = dict()
+        levels = OrderedDict()
         to_visit = deque()
         for hp_name in self._hyperparameters:
             to_visit.appendleft(hp_name)
@@ -213,7 +208,6 @@ class ConfigurationSpace(object):
         nodes = []
         # Sort and add to list
         for level in by_level:
-            by_level[level].sort()
             nodes.extend(by_level[level])
 
         # Resort the OrderedDict
@@ -226,6 +220,11 @@ class ConfigurationSpace(object):
             if hp is not None:
                 del self._conditionsals[node]
                 self._conditionsals[node] = hp
+
+        # Update to reflect sorting
+        for i, hp in enumerate(self._hyperparameters):
+            self._hyperparameter_idx[hp] = i
+            self._idx_to_hyperparameter[i] = hp
 
     def _create_tmp_dag(self):
         tmp_dag = ConfigSpace.nx.DiGraph()
@@ -464,7 +463,6 @@ class ConfigurationSpace(object):
 
             conditions = self._get_parent_conditions_of(hyperparameter.name)
 
-            # TODO this conditions should all be equal, are they actually?
             active = True
             for condition in conditions:
                 parent_names = [c.parent.name for c in
@@ -480,8 +478,6 @@ class ConfigurationSpace(object):
                     active = False
 
                 else:
-                    #if len(parents) == 1:
-                    #    parents = parents[0]
                     if not condition.evaluate(parents):
                         active = False
 
@@ -571,8 +567,7 @@ class ConfigurationSpace(object):
 
             for i in range(missing):
                 inactive = set()
-                for j, hp_name in enumerate(
-                        self.get_all_conditional_hyperparameters()):
+                for hp_name in self.get_all_conditional_hyperparameters():
                     conditions = self._get_parent_conditions_of(hp_name)
                     add = True
                     for condition in conditions:
@@ -594,10 +589,9 @@ class ConfigurationSpace(object):
                             break
 
                     if not add:
-                        hyperparameter = self._hyperparameters[hp_name]
-                        vector[i][j] = np.NaN
+                        hyperparameter_idx = self._hyperparameter_idx[hp_name]
+                        vector[i][hyperparameter_idx] = np.NaN
                         inactive.add(hp_name)
-
 
             for i in range(missing):
                 try:
