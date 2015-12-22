@@ -575,9 +575,10 @@ class ConfigurationSpace(object):
                                         condition.get_descendant_literal_conditions()]
 
                         parents = {parent_name: self._hyperparameters[
-                                       parent_name]._transform(vector[i][p])
-                                   for p, parent_name
-                                   in enumerate(parent_names)}
+                                       parent_name]._transform(vector[i][
+                                           self._hyperparameter_idx[
+                                              parent_name]])
+                                   for parent_name in parent_names}
 
                         # A parent condition is not fulfilled
                         if np.sum([parent_name in inactive
