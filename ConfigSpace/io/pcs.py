@@ -21,7 +21,7 @@
 __authors__ = ["Katharina Eggensperger", "Matthias Feurer"]
 __contact__ = "automl.org"
 
-from collections import defaultdict
+from collections import OrderedDict
 from itertools import product
 import sys
 
@@ -260,9 +260,11 @@ def read(pcs_string, debug=False):
     #Now handle conditions
     # If there are two conditions for one child, these two conditions are an
     # AND-conjunction of conditions, thus we have to connect them
-    conditions_per_child = defaultdict(list)
+    conditions_per_child = OrderedDict()
     for condition in conditions:
         child_name = condition[0]
+        if child_name not in conditions_per_child:
+            conditions_per_child[child_name] = list()
         conditions_per_child[child_name].append(condition)
 
     for child_name in conditions_per_child:
@@ -282,6 +284,7 @@ def read(pcs_string, debug=False):
 
         # Now we have all condition objects for this child, so we can build a
         #  giant AND-conjunction of them (if number of conditions >= 2)!
+
         if len(condition_objects) > 1:
             and_conjunction = AndConjunction(*condition_objects)
             configuration_space.add_condition(and_conjunction)
