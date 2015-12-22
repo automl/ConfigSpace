@@ -31,7 +31,7 @@ configuration_space_path = os.path.join(configuration_space_path,
 pcs_files = os.listdir(configuration_space_path)
 
 for pcs_file in pcs_files:
-    if '.pcs' in pcs_file:
+    if 'mini_autosklearn_original.pcs' in pcs_file:
         pcs_file = os.path.join(configuration_space_path, pcs_file)
         setattr(ExampleSearchSpacesTest, 'test_%s' % pcs_file,
                 generate(pcs_file))
