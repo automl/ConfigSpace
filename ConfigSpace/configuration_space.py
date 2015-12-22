@@ -567,12 +567,29 @@ class ConfigurationSpace(object):
 
             for i in range(missing):
                 inactive = set()
-                for hp_name in self.get_all_conditional_hyperparameters():
+                visited = set()
+                visited.update(self.get_all_uncoditional_hyperparameters())
+                to_visit = deque()
+                to_visit.extendleft(self.get_all_conditional_hyperparameters())
+                infiniteloopcounter = 0
+                while len(to_visit) > 0:
+                    infiniteloopcounter += 1
+                    if infiniteloopcounter >= 100000:
+                        raise ValueError("Probably an infinite loop...")
+
+                    hp_name = to_visit.pop()
                     conditions = self._get_parent_conditions_of(hp_name)
                     add = True
                     for condition in conditions:
                         parent_names = [c.parent.name for c in
                                         condition.get_descendant_literal_conditions()]
+
+                        # Not all parents visited so far
+                        if np.sum([parent_name in visited
+                                   for parent_name in parent_names]) != \
+                                len(parent_names):
+                            to_visit.appendleft(hp_name)
+                            break
 
                         parents = {parent_name: self._hyperparameters[
                                        parent_name]._transform(vector[i][
@@ -593,6 +610,7 @@ class ConfigurationSpace(object):
                         hyperparameter_idx = self._hyperparameter_idx[hp_name]
                         vector[i][hyperparameter_idx] = np.NaN
                         inactive.add(hp_name)
+                    visited.add(hp_name)
 
             for i in range(missing):
                 try:

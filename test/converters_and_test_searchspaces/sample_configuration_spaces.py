@@ -18,8 +18,15 @@ def generate(configuration_space_path):
         # Sample a little bit
         for i in range(100):
             configurations = cs.sample_configuration(size=100)
-            for c in configurations:
-                c.is_valid_configuration()
+            for j, c in enumerate(configurations):
+                try:
+                    c.is_valid_configuration()
+                except Exception as e:
+                    # Allow for some minor debugging
+                    print(i, j)
+                    print(cs)
+                    print(c)
+                    raise e
     return run_test
 
 
@@ -31,7 +38,7 @@ configuration_space_path = os.path.join(configuration_space_path,
 pcs_files = os.listdir(configuration_space_path)
 
 for pcs_file in pcs_files:
-    if 'mini_autosklearn_original.pcs' in pcs_file:
+    if '.pcs' in pcs_file:
         pcs_file = os.path.join(configuration_space_path, pcs_file)
         setattr(ExampleSearchSpacesTest, 'test_%s' % pcs_file,
                 generate(pcs_file))
