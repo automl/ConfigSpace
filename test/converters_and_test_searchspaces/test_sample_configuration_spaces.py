@@ -2,6 +2,7 @@ import os
 import unittest
 
 import ConfigSpace
+import ConfigSpace.util
 import ConfigSpace.io.pcs as pcs_parser
 
 
@@ -11,16 +12,20 @@ class ExampleSearchSpacesTest(unittest.TestCase):
 
 def generate(configuration_space_path):
     def run_test(self):
+        if 'autoweka' in configuration_space_path:
+            return
         with open(configuration_space_path) as fh:
             cs = pcs_parser.read(fh)
 
         cs.seed(1)
         # Sample a little bit
         for i in range(100):
-            configurations = cs.sample_configuration(size=100)
+            configurations = cs.sample_configuration(size=10)
             for j, c in enumerate(configurations):
                 try:
                     c.is_valid_configuration()
+                    n = ConfigSpace.util.get_one_exchange_neighbourhood(c,
+                                                                        seed=1)
                 except Exception as e:
                     # Allow for some minor debugging
                     print(i, j)

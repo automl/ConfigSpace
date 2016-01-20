@@ -321,6 +321,14 @@ class ConfigurationSpace(object):
         else:
             return hp
 
+    def get_idx_by_hyperparameter_name(self, name):
+        idx = self._hyperparameter_idx.get(name)
+
+        if idx is None:
+            raise KeyError("Hyperparameter '%s' does not exist in this "
+                           "configuration space." % name)
+        else:
+            return idx
 
     def get_conditions(self):
         conditions = []
@@ -343,7 +351,7 @@ class ConfigurationSpace(object):
         conditions = self.get_child_conditions_of(name)
         parents = []
         for condition in conditions:
-            parents.append(condition.child)
+            parents.extend(condition.get_children())
         return parents
 
     def get_child_conditions_of(self, name):
@@ -687,6 +695,11 @@ class Configuration(object):
                 hyperparameter.is_legal(value)
                 self._values[key] = value
 
+            for key in values:
+                if key not in configuration_space._hyperparameters:
+                    raise ValueError('Tried to specify unknown hyperparameter '
+                                     '%s' % key)
+
             self._query_values = True
             self.is_valid_configuration()
             self._vector = np.ndarray((self._num_hyperparameters, ),
@@ -743,8 +756,7 @@ class Configuration(object):
     def __hash__(self):
         """Override the default hash behavior (that returns the id or the object)"""
         self._populate_values()
-        return hash(tuple(list(sorted(self.items())) + \
-                          list(sorted(self.configuration_space.items))))
+        return hash(self.__repr__())
 
     def _populate_values(self):
         if self._query_values is False:

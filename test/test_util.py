@@ -1,10 +1,13 @@
 import os
 import unittest
 
+import numpy as np
+
 from ConfigSpace import ConfigurationSpace, UniformIntegerHyperparameter, \
     UniformFloatHyperparameter, CategoricalHyperparameter, Constant
 from ConfigSpace.io.pcs import read
-from ConfigSpace.util import impute_inactive_values, get_random_neighbor
+from ConfigSpace.util import impute_inactive_values, get_random_neighbor, \
+    get_one_exchange_neighbourhood
 
 
 class UtilTest(unittest.TestCase):
@@ -36,11 +39,48 @@ class UtilTest(unittest.TestCase):
             new_config = get_random_neighbor(config, i)
             self.assertNotEqual(config, new_config)
 
+    def _test_get_one_exchange_neighbourhood(self, hp):
+        cs = ConfigurationSpace()
+        num_neighbors = 0
+        if not isinstance(hp, list):
+            hp = [hp]
+        for hp_ in hp:
+            cs.add_hyperparameter(hp_)
+            if np.isinf(hp_.get_num_neighbors()):
+                num_neighbors += 4
+            else:
+                num_neighbors += hp_.get_num_neighbors()
+
+        cs.seed(1)
+        config = cs.get_default_configuration()
+        all_neighbors = []
+        for i in range(100):
+            neighborhood = get_one_exchange_neighbourhood(config, i)
+            self.assertEqual(len(neighborhood), num_neighbors)
+            for new_config in neighborhood:
+                self.assertNotEqual(config, new_config)
+                all_neighbors.append(new_config)
+
+        return all_neighbors
+
     def test_random_neighbor_float(self):
         hp = UniformFloatHyperparameter('a', 1, 10)
         self._test_random_neigbor(hp)
         hp = UniformFloatHyperparameter('a', 1, 10, log=True)
         self._test_random_neigbor(hp)
+
+    def test_random_neighborhood_float(self):
+        hp = UniformFloatHyperparameter('a', 1, 10)
+        all_neighbors = self._test_get_one_exchange_neighbourhood(hp)
+        all_neighbors = [neighbor['a'] for neighbor in all_neighbors]
+        self.assertAlmostEqual(5.44, np.mean(all_neighbors), places=2)
+        self.assertAlmostEqual(3.065,  np.var(all_neighbors), places=2)
+        hp = UniformFloatHyperparameter('a', 1, 10, log=True)
+        all_neighbors = self._test_get_one_exchange_neighbourhood(hp)
+        all_neighbors = [neighbor['a'] for neighbor in all_neighbors]
+        # Default value is 3.16
+        self.assertAlmostEqual(3.45, np.mean(all_neighbors), places=2)
+        self.assertAlmostEqual(2.67, np.var(all_neighbors), places=2)
 
     def test_random_neighbor_int(self):
         hp = UniformIntegerHyperparameter('a', 1, 10)
@@ -48,7 +88,26 @@ class UtilTest(unittest.TestCase):
         hp = UniformIntegerHyperparameter('a', 1, 10, log=True)
         self._test_random_neigbor(hp)
 
+    def test_random_neighborhood_int(self):
+        hp = UniformIntegerHyperparameter('a', 1, 10)
+        all_neighbors = self._test_get_one_exchange_neighbourhood(hp)
+        all_neighbors = [neighbor['a'] for neighbor in all_neighbors]
+        self.assertAlmostEqual(5.79, np.mean(all_neighbors), places=2)
+        self.assertAlmostEqual(4.99, np.var(all_neighbors), places=2)
+        hp = UniformIntegerHyperparameter('a', 1, 10, log=True)
+        all_neighbors = self._test_get_one_exchange_neighbourhood(hp)
+        all_neighbors = [neighbor['a'] for neighbor in all_neighbors]
+        # Default value is 3.16
+        self.assertAlmostEqual(3.55, np.mean(all_neighbors), places=2)
+        self.assertAlmostEqual(5.91, np.var(all_neighbors), places=2)
+
     def test_random_neighbor_cat(self):
+        hp = CategoricalHyperparameter('a', [5, 6, 7, 8])
+        all_neighbors = self._test_get_one_exchange_neighbourhood(hp)
+        all_neighbors = [neighbor['a'] for neighbor in all_neighbors]
+        self.assertEqual(len(all_neighbors), 300) # 3 (neighbors) * 100 (samples)
+
+    def test_random_neighborhood_cat(self):
         hp = CategoricalHyperparameter('a', [5, 6, 7, 8])
         self._test_random_neigbor(hp)
 
@@ -75,3 +134,17 @@ class UtilTest(unittest.TestCase):
         for i in range(100):
             new_config = get_random_neighbor(configuration, i)
             self.assertNotEqual(configuration, new_config)
+
+    def test_random_neigborhood_conditional(self):
+        mini_autosklearn_config_space_path = os.path.join(
+            os.path.dirname(__file__), 'test_searchspaces',
+            'mini_autosklearn_original.pcs')
+        with open(mini_autosklearn_config_space_path) as fh:
+            cs = read(fh)
+
+        cs.seed(1)
+        configuration = cs.get_default_configuration()
+        for i in range(100):
+            neighborhood = get_one_exchange_neighbourhood(configuration, i)
+            for new_config in neighborhood:
+                self.assertNotEqual(configuration, new_config)

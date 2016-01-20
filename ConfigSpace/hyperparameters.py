@@ -35,11 +35,11 @@ class Hyperparameter(object):
 
     @abstractmethod
     def __repr__(self):
-        pass
+        raise NotImplementedError()
 
     @abstractmethod
     def is_legal(self, value):
-        pass
+        raise NotImplementedError()
 
     def sample(self, rs):
         vector = self._sample(rs)
@@ -47,19 +47,27 @@ class Hyperparameter(object):
 
     @abstractmethod
     def _sample(self, rs, size):
-        pass
+        raise NotImplementedError()
 
     @abstractmethod
     def _transform(self, vector):
-        pass
+        raise NotImplementedError()
 
     @abstractmethod
     def _inverse_transform(self, vector):
-        pass
+        raise NotImplementedError()
 
     @abstractmethod
     def has_neighbors(self):
-        pass
+        raise NotImplementedError()
+
+    @abstractmethod
+    def get_neighbors(self, value, rs, number, transform=False):
+        raise NotImplementedError()
+
+    @abstractmethod
+    def get_num_neighbors(self):
+        raise NotImplementedError()
 
 
 class Constant(Hyperparameter):
@@ -101,6 +109,12 @@ class Constant(Hyperparameter):
     def has_neighbors(self):
         return False
 
+    def get_num_neighbors(self):
+        return 0
+
+    def get_neighbors(self, value, rs, number, transform=False):
+        return []
+
 
 class UnParametrizedHyperparameter(Constant):
     pass
@@ -111,6 +125,11 @@ class NumericalHyperparameter(Hyperparameter):
         super(NumericalHyperparameter, self).__init__(name)
         self.default = default
 
+    def has_neighbors(self):
+        return True
+
+    def get_num_neighbors(self):
+        return np.inf
 
 class FloatHyperparameter(NumericalHyperparameter):
     def __init__(self, name, default):
@@ -121,9 +140,6 @@ class FloatHyperparameter(NumericalHyperparameter):
 
     def check_default(self, default):
         return np.round(float(default), 10)
-
-    def has_neighbors(self):
-        return True
 
 
 class IntegerHyperparameter(NumericalHyperparameter):
@@ -267,11 +283,17 @@ class UniformFloatHyperparameter(UniformMixin, FloatHyperparameter):
             vector = np.log(vector)
         return (vector - self._lower) / (self._upper - self._lower)
 
-    def get_neighbor(self, value, rs, transform=False):
-        neighbor = max(0, min(1, rs.normal(value, 0.2)))
-        if transform:
-            return self._transform(neighbor)
-        return neighbor
+    def get_neighbors(self, value, rs, number=4, transform=False):
+        neighbors = []
+        while len(neighbors) < number:
+            neighbor = rs.normal(value, 0.2)
+            if neighbor < 0 or neighbor > 1:
+                continue
+            if transform:
+                neighbors.append(self._transform(neighbor))
+            else:
+                neighbors.append(neighbor)
+        return neighbors
 
 
 class NormalFloatHyperparameter(NormalMixin, FloatHyperparameter):
@@ -349,9 +371,11 @@ class NormalFloatHyperparameter(NormalMixin, FloatHyperparameter):
             vector = np.log(vector)
         return vector
 
-    def get_neighbor(self, value, rs):
-        new_value = rs.normal(value, self.sigma)
-        return new_value
+    def get_neighbors(self, value, rs, number=4):
+        neighbors = []
+        for i in range(number):
+            neighbors.append(rs.normal(value, self.sigma))
+        return neighbors
 
 
 class UniformIntegerHyperparameter(UniformMixin, IntegerHyperparameter):
@@ -431,21 +455,26 @@ class UniformIntegerHyperparameter(UniformMixin, IntegerHyperparameter):
         else:
             return False
 
-    def get_neighbor(self, value, rs, transform=False):
-        rejected = True
-        iteration = 0
-        while rejected:
-            new_value = np.max((0, min(1, rs.normal(value, 0.2))))
-            int_value = self._transform(value)
-            new_int_value = self._transform(new_value)
-            if int_value != new_int_value:
-                rejected = False
-            elif iteration > 100000:
-                raise ValueError('Probably caught in an infinite loop.')
+    def get_neighbors(self, value, rs, number=4, transform=False):
+        neighbors = []
+        while len(neighbors) < number:
+            rejected = True
+            iteration = 0
+            while rejected:
+                new_value = np.max((0, min(1, rs.normal(value, 0.2))))
+                int_value = self._transform(value)
+                new_int_value = self._transform(new_value)
+                if int_value != new_int_value:
+                    rejected = False
+                elif iteration > 100000:
+                    raise ValueError('Probably caught in an infinite loop.')
 
-        if transform:
-            return self._transform(new_value)
-        return new_value
+            if transform:
+                neighbors.append(self._transform(new_value))
+            else:
+                neighbors.append(new_value)
+
+        return neighbors
 
 
 class NormalIntegerHyperparameter(NormalMixin, IntegerHyperparameter):
@@ -528,19 +557,25 @@ class NormalIntegerHyperparameter(NormalMixin, IntegerHyperparameter):
     def has_neighbors(self):
         return True
 
-    def get_neighbor(self, value, rs, transform=False):
-        rejected = True
-        while rejected:
-            new_value = rs.normal(value, self.sigma)
-            int_value = self._transform(value)
-            new_int_value = self._transform(new_value)
-            if int_value != new_int_value:
-                rejected = False
+    def get_neighbors(self, value, rs, number=4, transform=False):
+        neighbors = []
+        while len(neighbors) < number:
+            rejected = True
+            iteration = 0
+            while rejected:
+                iteration += 1
+                new_value = rs.normal(value, self.sigma)
+                int_value = self._transform(value)
+                new_int_value = self._transform(new_value)
+                if int_value != new_int_value:
+                    rejected = False
+                elif iteration > 100000:
+                    raise ValueError('Probably caught in an infinite loop.')
 
-        if transform:
-            return self._transform(new_value)
-        return new_value
-
+            if transform:
+                neighbors.append(self._transform(new_value))
+            else:
+                neighbors.append(new_value)
 
 
 class CategoricalHyperparameter(Hyperparameter):
@@ -600,14 +635,39 @@ class CategoricalHyperparameter(Hyperparameter):
     def has_neighbors(self):
         return len(self.choices) > 1
 
-    def get_neighbor(self, value, rs, transform=False):
-        rejected = True
-        index = int(value)
-        while rejected:
-            neighbor_idx = rs.randint(0, self._num_choices)
-            if neighbor_idx != index:
-                rejected = False
+    def get_num_neighbors(self):
+        return len(self.choices) - 1
 
-        if transform:
-            return self._transform(neighbor_idx)
-        return float(neighbor_idx)
+    def get_neighbors(self, value, rs, number=np.inf, transform=False):
+        neighbors = []
+        if number < len(self.choices):
+            while len(neighbors) < number:
+                rejected = True
+                index = int(value)
+                while rejected:
+                    neighbor_idx = rs.randint(0, self._num_choices)
+                    if neighbor_idx != index:
+                        rejected = False
+
+                if transform:
+                    candidate = self._transform(neighbor_idx)
+                else:
+                    candidate = float(neighbor_idx)
+
+                if candidate in neighbors:
+                    continue
+                else:
+                    neighbors.append(candidate)
+        else:
+            for candidate_idx, candidate_value in enumerate(self.choices):
+                if int(value) == candidate_idx:
+                    continue
+                else:
+                    if transform:
+                        candidate = self._transform(candidate_idx)
+                    else:
+                        candidate = float(candidate_idx)
+
+                    neighbors.append(candidate)
+
+        return neighbors
