@@ -87,6 +87,7 @@ class Constant(Hyperparameter):
                             (type(value), allowed_types))
 
         self.value = value
+        self.default = value
 
     def __repr__(self):
         repr_str = ["%s" % self.name,
@@ -671,3 +672,4 @@ class CategoricalHyperparameter(Hyperparameter):
                     neighbors.append(candidate)
 
         return neighbors
+
