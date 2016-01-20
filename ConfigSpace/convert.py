@@ -21,9 +21,9 @@
 from argparse import ArgumentParser, FileType
 from string import upper
 
-from ConfigSpace.io import pb_parser
-from ConfigSpace.io import pyll_parser
-from ConfigSpace.io import pcs_parser
+from ConfigSpace.io import pb
+from ConfigSpace.io import pyll
+from ConfigSpace.io import pcs
 
 
 __authors__ = ["Katharina Eggensperger", "Matthias Feurer"]
@@ -62,18 +62,18 @@ def main():
     if args.input_file is None:
         raise ValueError("No input file given")
 
-    read_options = {"SMAC": pcs_parser.read,
-                    "SPEARMINT": pb_parser.read,
-                    "TPE": pyll_parser.read
+    read_options = {"SMAC": pcs.read,
+                    "SPEARMINT": pb.read,
+                    "TPE": pyll.read
                     }
     # First read searchspace
     print "Reading searchspace..."
     searchspace = read_options[args.conv_from](args.input_file)
     print "...done. Found %d params" % len(searchspace)
 
-    write_options = {"SMAC": pcs_parser.write,
-                     "SPEARMINT": pb_parser.write,
-                     "TPE": pyll_parser.write
+    write_options = {"SMAC": pcs.write,
+                     "SPEARMINT": pb.write,
+                     "TPE": pyll.write
                      }
     new_space = write_options[args.conv_to](searchspace)
 
