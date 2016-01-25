@@ -567,7 +567,7 @@ class ConfigurationSpace(object):
         while len(accepted_configurations) < size:
             if missing != size:
                 missing = int(1.1 * missing)
-            vector = np.ndarray((missing, num_hyperparameters), dtype=np.float32)
+            vector = np.ndarray((missing, num_hyperparameters), dtype=np.float)
 
             for i, hp_name in enumerate(self._hyperparameters):
                 hyperparameter = self._hyperparameters[hp_name]
@@ -703,7 +703,7 @@ class Configuration(object):
             self._query_values = True
             self.is_valid_configuration()
             self._vector = np.ndarray((self._num_hyperparameters, ),
-                                      dtype=np.float32)
+                                      dtype=np.float)
 
             # Populate the vector
             # TODO very unintuitive calls...
@@ -714,7 +714,7 @@ class Configuration(object):
 
         elif vector is not None:
             self._values = dict()
-            self._vector = np.array(vector).astype(np.float32)
+            self._vector = vector
         else:
             raise ValueError('Configuration neither specified as dictionary '
                              'or vector.')
