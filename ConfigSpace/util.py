@@ -3,7 +3,7 @@ import copy
 
 import numpy as np
 
-from ConfigSpace import Configuration
+from ConfigSpace import Configuration, Constant
 
 
 def impute_inactive_values(configuration, strategy='default'):
@@ -56,28 +56,32 @@ def get_one_exchange_neighbourhood(configuration, seed):
     neighbourhood = []
     for i, hp_name in enumerate(configuration):
         number_of_sampled_neighbors = 0
-        iteration = 0
         array = configuration.get_array()
 
         if not np.isfinite(array[i]):
             continue
 
+        iteration = 0
         while True:
             hp = configuration.configuration_space.get_hyperparameter(hp_name)
+            configuration._populate_values()
             num_neighbors = hp.get_num_neighbors()
 
             # Obtain neigbors differently for different possible numbers of
             # neighbors
             if num_neighbors == 0:
                 break
+            # No infinite loops
+            elif iteration > 1000:
+                break
             elif np.isinf(num_neighbors):
-                num_samples = 4 - number_of_sampled_neighbors
-                if num_samples <= 0:
+                if number_of_sampled_neighbors >= 4:
                     break
+                num_samples_to_go = 4 - number_of_sampled_neighbors
                 neighbors = hp.get_neighbors(array[i], random,
-                                             number=num_samples)
+                                             number=num_samples_to_go)
             else:
-                if number_of_sampled_neighbors > 0:
+                if iteration > 0:
                     break
                 neighbors = hp.get_neighbors(array[i], random)
 
@@ -85,6 +89,7 @@ def get_one_exchange_neighbourhood(configuration, seed):
             for neighbor in neighbors:
                 new_array = array.copy()
                 new_array[i] = neighbor
+                neighbor_value = hp._transform(neighbor)
 
                 # Activate hyperparameters if their parent node got activated
                 children = configuration.configuration_space.get_children_of(
@@ -93,10 +98,16 @@ def get_one_exchange_neighbourhood(configuration, seed):
                 if len(children) > 0:
                     to_visit = deque()
                     to_visit.extendleft(children)
+                    visited = set()
+                    activated_values = dict()
                     while len(to_visit) > 0:
                         current = to_visit.pop()
-                        current_idx = \
-                            configuration.configuration_space.get_idx_by_hyperparameter_name(current.name)
+                        if current.name in visited:
+                            continue
+                        visited.add(current.name)
+
+                        current_idx = configuration.configuration_space. \
+                            get_idx_by_hyperparameter_name(current.name)
                         current_value = new_array[current_idx]
 
                         conditions = configuration.configuration_space.\
@@ -110,41 +121,63 @@ def get_one_exchange_neighbourhood(configuration, seed):
                             parents = {parent_name: configuration[parent_name] for
                                        parent_name in parent_names}
 
+                            # parents come from the original configuration.
+                            # We change at least one parameter. In order set
+                            # other parameters which are conditional on this,
+                            #  we have to activate this
+                            if hp_name in parents:
+                                parents[hp_name] = neighbor_value
+                            # Hyperparameters which are in depth 1 of the
+                            # hyperparameter tree might have children which
+                            # have to be activated as well. Once we set hp in
+                            #  level 1 to active, it's value changes from the
+                            #  value of the original configuration and this
+                            # must be done here
+                            for parent_name in parent_names:
+                                if parent_name in activated_values:
+                                    parents[parent_name] = activated_values[
+                                        parent_name]
+
                             # if one of the parents is None, the hyperparameter cannot be
                             # active! Else we have to check this
                             if any([parent_value is None for parent_value in
                                     parents.values()]):
                                 active = False
-
                             else:
                                 if not condition.evaluate(parents):
                                     active = False
 
-
-                        if active and current_value is None:
-                            default = \
-                                current._inverse_transform(
-                                    current.default)
+                        if active and (current_value is None or
+                                       not np.isfinite(current_value)):
+                            default = current._inverse_transform(current.default)
                             new_array[current_idx] = default
                             children = configuration.configuration_space.get_children_of(
                                 current.name)
                             if len(children) > 0:
                                 to_visit.extendleft(children)
+                            activated_values[current.name] = current.default
 
-                        if not active and current_value is not None:
+                        if not active and (current_value is not None
+                                           or np.isfinite(current_value)):
                             new_array[current_idx] = np.NaN
 
-
                 try:
+                    # Populating a configuration from an array does not check
+                    #  if it is a legal configuration - check this (slow)
                     new_configuration = Configuration(
                         configuration.configuration_space, vector=new_array)
+                    new_configuration.is_valid_configuration()
                     neighbourhood.append(new_configuration)
                     number_of_sampled_neighbors += 1
                 except ValueError as e:
                     pass
 
-                if iteration > 10000:
-                    raise ValueError('Infinite loop!')
+                # Count iterations to not run into an infinite loop when
+                # sampling floats/ints and there is large amount of forbidden
+                #  values; also to find out if we tried to get a neighbor for
+                #  a categorical hyperparameter, and the only possible
+                # neighbor is forbidden together with another active
+                # value/default hyperparameter
                 iteration += 1
 
     return neighbourhood

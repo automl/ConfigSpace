@@ -17,21 +17,17 @@ def generate(configuration_space_path):
         with open(configuration_space_path) as fh:
             cs = pcs_parser.read(fh)
 
-        cs.seed(1)
         # Sample a little bit
-        for i in range(100):
+        for i in range(10):
+            cs.seed(i)
             configurations = cs.sample_configuration(size=10)
             for j, c in enumerate(configurations):
-                try:
-                    c.is_valid_configuration()
-                    n = ConfigSpace.util.get_one_exchange_neighbourhood(c,
-                                                                        seed=1)
-                except Exception as e:
-                    # Allow for some minor debugging
-                    print(i, j)
-                    print(cs)
-                    print(c)
-                    raise e
+                c.is_valid_configuration()
+                neighborhood = ConfigSpace.util.get_one_exchange_neighbourhood(
+                    c, seed=i)
+                for n in neighborhood:
+                    n.is_valid_configuration()
+
     return run_test
 
 

@@ -1,0 +1,284 @@
+imputation:strategy {mean, median, most_frequent} [mean]
+one_hot_encoding:use_minimum_fraction {True, False} [True]
+preprocessor:__choice__ {extra_trees_preproc_for_regression, fast_ica, feature_agglomeration, kernel_pca, kitchen_sinks, no_preprocessing, nystroem_sampler, pca, polynomial, random_trees_embedding, select_percentile_regression} [no_preprocessing]
+regressor:__choice__ {adaboost, ard_regression, decision_tree, extra_trees, gaussian_process, gradient_boosting, k_nearest_neighbors, liblinear_svr, libsvm_svr, random_forest, ridge_regression, sgd} [random_forest]
+rescaling:__choice__ {none, min/max, standardize, normalize} [min/max]
+one_hot_encoding:minimum_fraction [0.0001, 0.5] [0.01]l
+preprocessor:extra_trees_preproc_for_regression:bootstrap {True, False} [False]
+preprocessor:extra_trees_preproc_for_regression:criterion {mse} [mse]
+preprocessor:extra_trees_preproc_for_regression:max_depth {None} [None]
+preprocessor:extra_trees_preproc_for_regression:max_features [0.5, 5.0] [1.0]
+preprocessor:extra_trees_preproc_for_regression:min_samples_leaf [1, 20] [1]i
+preprocessor:extra_trees_preproc_for_regression:min_samples_split [2, 20] [2]i
+preprocessor:extra_trees_preproc_for_regression:min_weight_fraction_leaf {0.0} [0.0]
+preprocessor:extra_trees_preproc_for_regression:n_estimators {100} [100]
+preprocessor:fast_ica:algorithm {parallel, deflation} [parallel]
+preprocessor:fast_ica:fun {logcosh, exp, cube} [logcosh]
+preprocessor:fast_ica:whiten {False, True} [False]
+preprocessor:feature_agglomeration:affinity {euclidean, manhattan, cosine} [euclidean]
+preprocessor:feature_agglomeration:linkage {ward, complete, average} [ward]
+preprocessor:feature_agglomeration:n_clusters [2, 400] [25]i
+preprocessor:feature_agglomeration:pooling_func {mean, median, max} [mean]
+preprocessor:kernel_pca:kernel {poly, rbf, sigmoid, cosine} [rbf]
+preprocessor:kernel_pca:n_components [10, 2000] [100]i
+preprocessor:kitchen_sinks:gamma [0.3, 2.0] [1.0]
+preprocessor:kitchen_sinks:n_components [50, 10000] [100]il
+preprocessor:nystroem_sampler:kernel {poly, rbf, sigmoid, cosine} [rbf]
+preprocessor:nystroem_sampler:n_components [50, 10000] [100]il
+preprocessor:pca:keep_variance [0.5, 0.9999] [0.9999]
+preprocessor:pca:whiten {False, True} [False]
+preprocessor:polynomial:degree [2, 3] [2]i
+preprocessor:polynomial:include_bias {True, False} [True]
+preprocessor:polynomial:interaction_only {False, True} [False]
+preprocessor:random_trees_embedding:max_depth [2, 10] [5]i
+preprocessor:random_trees_embedding:max_leaf_nodes {None} [None]
+preprocessor:random_trees_embedding:min_samples_leaf [1, 20] [1]i
+preprocessor:random_trees_embedding:min_samples_split [2, 20] [2]i
+preprocessor:random_trees_embedding:min_weight_fraction_leaf {1.0} [1.0]
+preprocessor:random_trees_embedding:n_estimators [10, 100] [10]i
+preprocessor:select_percentile_regression:percentile [1.0, 99.0] [50.0]
+preprocessor:select_percentile_regression:score_func {f_regression} [f_regression]
+regressor:adaboost:learning_rate [0.0001, 2.0] [0.1]l
+regressor:adaboost:loss {linear, square, exponential} [linear]
+regressor:adaboost:max_depth [1, 10] [1]i
+regressor:adaboost:n_estimators [50, 500] [50]i
+regressor:ard_regression:alpha_1 [1e-10, 0.001] [1e-06]
+regressor:ard_regression:alpha_2 [1e-10, 0.001] [1e-06]l
+regressor:ard_regression:fit_intercept {True} [True]
+regressor:ard_regression:lambda_1 [1e-10, 0.001] [1e-06]l
+regressor:ard_regression:lambda_2 [1e-10, 0.001] [1e-06]l
+regressor:ard_regression:n_iter {300} [300]
+regressor:ard_regression:threshold_lambda [1000.0, 100000.0] [10000.0]l
+regressor:ard_regression:tol [1e-05, 0.1] [0.0001]l
+regressor:decision_tree:criterion {mse} [mse]
+regressor:decision_tree:max_depth [0.0, 2.0] [0.5]
+regressor:decision_tree:max_features {1.0} [1.0]
+regressor:decision_tree:max_leaf_nodes {None} [None]
+regressor:decision_tree:min_samples_leaf [1, 20] [1]i
+regressor:decision_tree:min_samples_split [2, 20] [2]i
+regressor:decision_tree:min_weight_fraction_leaf {0.0} [0.0]
+regressor:decision_tree:splitter {best} [best]
+regressor:extra_trees:bootstrap {True, False} [False]
+regressor:extra_trees:criterion {mse} [mse]
+regressor:extra_trees:max_depth {None} [None]
+regressor:extra_trees:max_features [0.5, 5.0] [1.0]
+regressor:extra_trees:min_samples_leaf [1, 20] [1]i
+regressor:extra_trees:min_samples_split [2, 20] [2]i
+regressor:extra_trees:n_estimators {100} [100]
+regressor:gaussian_process:nugget [0.0001, 10.0] [0.1]l
+regressor:gaussian_process:thetaL [1e-06, 0.001] [0.0001]l
+regressor:gaussian_process:thetaU [0.2, 10.0] [1.0]l
+regressor:gradient_boosting:learning_rate [0.0001, 1.0] [0.1]l
+regressor:gradient_boosting:loss {ls, lad, huber, quantile} [ls]
+regressor:gradient_boosting:max_depth [1, 10] [3]i
+regressor:gradient_boosting:max_features [0.5, 5.0] [1.0]
+regressor:gradient_boosting:max_leaf_nodes {None} [None]
+regressor:gradient_boosting:min_samples_leaf [1, 20] [1]i
+regressor:gradient_boosting:min_samples_split [2, 20] [2]i
+regressor:gradient_boosting:min_weight_fraction_leaf {0.0} [0.0]
+regressor:gradient_boosting:n_estimators {100} [100]
+regressor:gradient_boosting:subsample [0.01, 1.0] [1.0]
+regressor:k_nearest_neighbors:n_neighbors [1, 100] [1]il
+regressor:k_nearest_neighbors:p {1, 2} [2]
+regressor:k_nearest_neighbors:weights {uniform, distance} [uniform]
+regressor:liblinear_svr:C [0.03125, 32768.0] [1.0]l
+regressor:liblinear_svr:dual {False} [False]
+regressor:liblinear_svr:epsilon [0.001, 1.0] [0.1]l
+regressor:liblinear_svr:fit_intercept {True} [True]
+regressor:liblinear_svr:intercept_scaling {1} [1]
+regressor:liblinear_svr:loss {epsilon_insensitive, squared_epsilon_insensitive} [squared_epsilon_insensitive]
+regressor:liblinear_svr:tol [1e-05, 0.1] [0.0001]l
+regressor:libsvm_svr:C [0.03125, 32768.0] [1.0]l
+regressor:libsvm_svr:epsilon [0.001, 1.0] [0.1]l
+regressor:libsvm_svr:kernel {linear, poly, rbf, sigmoid} [rbf]
+regressor:libsvm_svr:max_iter {-1} [-1]
+regressor:libsvm_svr:shrinking {True, False} [True]
+regressor:libsvm_svr:tol [1e-05, 0.1] [0.001]l
+regressor:random_forest:bootstrap {True, False} [True]
+regressor:random_forest:criterion {mse} [mse]
+regressor:random_forest:max_depth {None} [None]
+regressor:random_forest:max_features [0.5, 5.0] [1.0]
+regressor:random_forest:max_leaf_nodes {None} [None]
+regressor:random_forest:min_samples_leaf [1, 20] [1]i
+regressor:random_forest:min_samples_split [2, 20] [2]i
+regressor:random_forest:min_weight_fraction_leaf {0.0} [0.0]
+regressor:random_forest:n_estimators {100} [100]
+regressor:ridge_regression:alpha [1e-05, 10.0] [1.0]l
+regressor:ridge_regression:fit_intercept {True} [True]
+regressor:ridge_regression:tol [1e-05, 0.1] [0.0001]l
+regressor:sgd:alpha [1e-06, 0.1] [0.01]l
+regressor:sgd:average {False, True} [False]
+regressor:sgd:eta0 [1e-07, 0.1] [0.01]
+regressor:sgd:fit_intercept {True} [True]
+regressor:sgd:learning_rate {optimal, invscaling, constant} [optimal]
+regressor:sgd:loss {squared_loss, huber, epsilon_insensitive, squared_epsilon_insensitive} [squared_loss]
+regressor:sgd:n_iter [5, 1000] [20]il
+regressor:sgd:penalty {l1, l2, elasticnet} [l2]
+preprocessor:fast_ica:n_components [10, 2000] [100]i
+preprocessor:kernel_pca:coef0 [-1.0, 1.0] [0.0]
+preprocessor:kernel_pca:degree [2, 5] [3]i
+preprocessor:kernel_pca:gamma [3.0517578125e-05, 8.0] [1.0]l
+preprocessor:nystroem_sampler:coef0 [-1.0, 1.0] [0.0]
+preprocessor:nystroem_sampler:degree [2, 5] [3]i
+preprocessor:nystroem_sampler:gamma [3.0517578125e-05, 8.0] [0.1]l
+regressor:gradient_boosting:alpha [0.75, 0.99] [0.9]
+regressor:libsvm_svr:coef0 [-1.0, 1.0] [0.0]
+regressor:libsvm_svr:degree [1, 5] [3]i
+regressor:libsvm_svr:gamma [3.0517578125e-05, 8.0] [0.1]l
+regressor:sgd:epsilon [1e-05, 0.1] [0.0001]l
+regressor:sgd:l1_ratio [1e-09, 1.0] [0.15]l
+regressor:sgd:power_t [1e-05, 1.0] [0.5]
+
+one_hot_encoding:minimum_fraction | one_hot_encoding:use_minimum_fraction in {True}
+preprocessor:fast_ica:fun | preprocessor:__choice__ in {fast_ica}
+preprocessor:extra_trees_preproc_for_regression:min_weight_fraction_leaf | preprocessor:__choice__ in {extra_trees_preproc_for_regression}
+preprocessor:extra_trees_preproc_for_regression:max_features | preprocessor:__choice__ in {extra_trees_preproc_for_regression}
+preprocessor:nystroem_sampler:n_components | preprocessor:__choice__ in {nystroem_sampler}
+preprocessor:polynomial:degree | preprocessor:__choice__ in {polynomial}
+preprocessor:feature_agglomeration:affinity | preprocessor:__choice__ in {feature_agglomeration}
+preprocessor:extra_trees_preproc_for_regression:min_samples_leaf | preprocessor:__choice__ in {extra_trees_preproc_for_regression}
+preprocessor:kernel_pca:n_components | preprocessor:__choice__ in {kernel_pca}
+preprocessor:pca:keep_variance | preprocessor:__choice__ in {pca}
+preprocessor:feature_agglomeration:pooling_func | preprocessor:__choice__ in {feature_agglomeration}
+preprocessor:kitchen_sinks:n_components | preprocessor:__choice__ in {kitchen_sinks}
+preprocessor:feature_agglomeration:n_clusters | preprocessor:__choice__ in {feature_agglomeration}
+preprocessor:random_trees_embedding:max_depth | preprocessor:__choice__ in {random_trees_embedding}
+preprocessor:random_trees_embedding:min_samples_leaf | preprocessor:__choice__ in {random_trees_embedding}
+preprocessor:random_trees_embedding:n_estimators | preprocessor:__choice__ in {random_trees_embedding}
+preprocessor:kitchen_sinks:gamma | preprocessor:__choice__ in {kitchen_sinks}
+preprocessor:extra_trees_preproc_for_regression:bootstrap | preprocessor:__choice__ in {extra_trees_preproc_for_regression}
+preprocessor:extra_trees_preproc_for_regression:max_depth | preprocessor:__choice__ in {extra_trees_preproc_for_regression}
+preprocessor:random_trees_embedding:min_weight_fraction_leaf | preprocessor:__choice__ in {random_trees_embedding}
+preprocessor:nystroem_sampler:kernel | preprocessor:__choice__ in {nystroem_sampler}
+preprocessor:fast_ica:algorithm | preprocessor:__choice__ in {fast_ica}
+preprocessor:random_trees_embedding:min_samples_split | preprocessor:__choice__ in {random_trees_embedding}
+preprocessor:pca:whiten | preprocessor:__choice__ in {pca}
+preprocessor:extra_trees_preproc_for_regression:n_estimators | preprocessor:__choice__ in {extra_trees_preproc_for_regression}
+preprocessor:random_trees_embedding:max_leaf_nodes | preprocessor:__choice__ in {random_trees_embedding}
+preprocessor:feature_agglomeration:linkage | preprocessor:__choice__ in {feature_agglomeration}
+preprocessor:kernel_pca:kernel | preprocessor:__choice__ in {kernel_pca}
+preprocessor:fast_ica:whiten | preprocessor:__choice__ in {fast_ica}
+preprocessor:extra_trees_preproc_for_regression:criterion | preprocessor:__choice__ in {extra_trees_preproc_for_regression}
+preprocessor:extra_trees_preproc_for_regression:min_samples_split | preprocessor:__choice__ in {extra_trees_preproc_for_regression}
+preprocessor:polynomial:interaction_only | preprocessor:__choice__ in {polynomial}
+preprocessor:select_percentile_regression:score_func | preprocessor:__choice__ in {select_percentile_regression}
+preprocessor:polynomial:include_bias | preprocessor:__choice__ in {polynomial}
+preprocessor:select_percentile_regression:percentile | preprocessor:__choice__ in {select_percentile_regression}
+regressor:libsvm_svr:max_iter | regressor:__choice__ in {libsvm_svr}
+regressor:liblinear_svr:epsilon | regressor:__choice__ in {liblinear_svr}
+regressor:decision_tree:min_samples_leaf | regressor:__choice__ in {decision_tree}
+regressor:liblinear_svr:loss | regressor:__choice__ in {liblinear_svr}
+regressor:ard_regression:n_iter | regressor:__choice__ in {ard_regression}
+regressor:ard_regression:lambda_1 | regressor:__choice__ in {ard_regression}
+regressor:gradient_boosting:max_features | regressor:__choice__ in {gradient_boosting}
+regressor:sgd:eta0 | regressor:__choice__ in {sgd}
+regressor:sgd:average | regressor:__choice__ in {sgd}
+regressor:adaboost:learning_rate | regressor:__choice__ in {adaboost}
+regressor:liblinear_svr:intercept_scaling | regressor:__choice__ in {liblinear_svr}
+regressor:liblinear_svr:tol | regressor:__choice__ in {liblinear_svr}
+regressor:libsvm_svr:kernel | regressor:__choice__ in {libsvm_svr}
+regressor:decision_tree:max_features | regressor:__choice__ in {decision_tree}
+regressor:random_forest:bootstrap | regressor:__choice__ in {random_forest}
+regressor:extra_trees:n_estimators | regressor:__choice__ in {extra_trees}
+regressor:gradient_boosting:min_samples_leaf | regressor:__choice__ in {gradient_boosting}
+regressor:random_forest:min_samples_split | regressor:__choice__ in {random_forest}
+regressor:libsvm_svr:C | regressor:__choice__ in {libsvm_svr}
+regressor:k_nearest_neighbors:p | regressor:__choice__ in {k_nearest_neighbors}
+regressor:adaboost:max_depth | regressor:__choice__ in {adaboost}
+regressor:libsvm_svr:epsilon | regressor:__choice__ in {libsvm_svr}
+regressor:extra_trees:criterion | regressor:__choice__ in {extra_trees}
+regressor:random_forest:max_leaf_nodes | regressor:__choice__ in {random_forest}
+regressor:extra_trees:bootstrap | regressor:__choice__ in {extra_trees}
+regressor:random_forest:max_features | regressor:__choice__ in {random_forest}
+regressor:sgd:alpha | regressor:__choice__ in {sgd}
+regressor:adaboost:n_estimators | regressor:__choice__ in {adaboost}
+regressor:decision_tree:criterion | regressor:__choice__ in {decision_tree}
+regressor:ridge_regression:tol | regressor:__choice__ in {ridge_regression}
+regressor:decision_tree:min_weight_fraction_leaf | regressor:__choice__ in {decision_tree}
+regressor:k_nearest_neighbors:n_neighbors | regressor:__choice__ in {k_nearest_neighbors}
+regressor:liblinear_svr:C | regressor:__choice__ in {liblinear_svr}
+regressor:decision_tree:max_depth | regressor:__choice__ in {decision_tree}
+regressor:decision_tree:min_samples_split | regressor:__choice__ in {decision_tree}
+regressor:gradient_boosting:learning_rate | regressor:__choice__ in {gradient_boosting}
+regressor:sgd:loss | regressor:__choice__ in {sgd}
+regressor:ard_regression:fit_intercept | regressor:__choice__ in {ard_regression}
+regressor:ridge_regression:alpha | regressor:__choice__ in {ridge_regression}
+regressor:random_forest:n_estimators | regressor:__choice__ in {random_forest}
+regressor:ard_regression:threshold_lambda | regressor:__choice__ in {ard_regression}
+regressor:ard_regression:tol | regressor:__choice__ in {ard_regression}
+regressor:adaboost:loss | regressor:__choice__ in {adaboost}
+regressor:ard_regression:lambda_2 | regressor:__choice__ in {ard_regression}
+regressor:libsvm_svr:tol | regressor:__choice__ in {libsvm_svr}
+regressor:gradient_boosting:max_depth | regressor:__choice__ in {gradient_boosting}
+regressor:ard_regression:alpha_2 | regressor:__choice__ in {ard_regression}
+regressor:extra_trees:max_depth | regressor:__choice__ in {extra_trees}
+regressor:gradient_boosting:max_leaf_nodes | regressor:__choice__ in {gradient_boosting}
+regressor:gaussian_process:thetaL | regressor:__choice__ in {gaussian_process}
+regressor:gradient_boosting:min_weight_fraction_leaf | regressor:__choice__ in {gradient_boosting}
+regressor:random_forest:min_weight_fraction_leaf | regressor:__choice__ in {random_forest}
+regressor:ridge_regression:fit_intercept | regressor:__choice__ in {ridge_regression}
+regressor:sgd:fit_intercept | regressor:__choice__ in {sgd}
+regressor:libsvm_svr:shrinking | regressor:__choice__ in {libsvm_svr}
+regressor:gaussian_process:thetaU | regressor:__choice__ in {gaussian_process}
+regressor:random_forest:max_depth | regressor:__choice__ in {random_forest}
+regressor:ard_regression:alpha_1 | regressor:__choice__ in {ard_regression}
+regressor:liblinear_svr:dual | regressor:__choice__ in {liblinear_svr}
+regressor:extra_trees:max_features | regressor:__choice__ in {extra_trees}
+regressor:gradient_boosting:min_samples_split | regressor:__choice__ in {gradient_boosting}
+regressor:gradient_boosting:loss | regressor:__choice__ in {gradient_boosting}
+regressor:sgd:n_iter | regressor:__choice__ in {sgd}
+regressor:gaussian_process:nugget | regressor:__choice__ in {gaussian_process}
+regressor:decision_tree:splitter | regressor:__choice__ in {decision_tree}
+regressor:gradient_boosting:n_estimators | regressor:__choice__ in {gradient_boosting}
+regressor:sgd:penalty | regressor:__choice__ in {sgd}
+regressor:decision_tree:max_leaf_nodes | regressor:__choice__ in {decision_tree}
+regressor:liblinear_svr:fit_intercept | regressor:__choice__ in {liblinear_svr}
+regressor:gradient_boosting:subsample | regressor:__choice__ in {gradient_boosting}
+regressor:k_nearest_neighbors:weights | regressor:__choice__ in {k_nearest_neighbors}
+regressor:extra_trees:min_samples_split | regressor:__choice__ in {extra_trees}
+regressor:extra_trees:min_samples_leaf | regressor:__choice__ in {extra_trees}
+regressor:random_forest:min_samples_leaf | regressor:__choice__ in {random_forest}
+regressor:random_forest:criterion | regressor:__choice__ in {random_forest}
+regressor:sgd:learning_rate | regressor:__choice__ in {sgd}
+preprocessor:fast_ica:n_components | preprocessor:fast_ica:whiten in {True}
+preprocessor:kernel_pca:gamma | preprocessor:kernel_pca:kernel in {poly, rbf}
+preprocessor:kernel_pca:degree | preprocessor:kernel_pca:kernel in {poly}
+preprocessor:kernel_pca:coef0 | preprocessor:kernel_pca:kernel in {poly, sigmoid}
+preprocessor:nystroem_sampler:degree | preprocessor:nystroem_sampler:kernel in {poly}
+preprocessor:nystroem_sampler:gamma | preprocessor:nystroem_sampler:kernel in {poly, rbf, sigmoid}
+preprocessor:nystroem_sampler:coef0 | preprocessor:nystroem_sampler:kernel in {poly, sigmoid}
+regressor:gradient_boosting:alpha | regressor:gradient_boosting:loss in {huber, quantile}
+regressor:libsvm_svr:gamma | regressor:libsvm_svr:kernel in {poly, rbf}
+regressor:libsvm_svr:degree | regressor:libsvm_svr:kernel in {poly, rbf, sigmoid}
+regressor:libsvm_svr:coef0 | regressor:libsvm_svr:kernel in {poly, sigmoid}
+regressor:sgd:power_t | regressor:sgd:learning_rate in {invscaling}
+regressor:sgd:epsilon | regressor:sgd:loss in {huber, epsilon_insensitive, squared_epsilon_insensitive}
+regressor:sgd:l1_ratio | regressor:sgd:penalty in {elasticnet}
+
+{preprocessor:__choice__=random_trees_embedding, regressor:__choice__=ard_regression}
+{preprocessor:__choice__=random_trees_embedding, regressor:__choice__=gaussian_process}
+{preprocessor:__choice__=random_trees_embedding, regressor:__choice__=gradient_boosting}
+{preprocessor:feature_agglomeration:affinity=cosine, preprocessor:feature_agglomeration:linkage=ward}
+{preprocessor:feature_agglomeration:affinity=manhattan, preprocessor:feature_agglomeration:linkage=ward}
+{regressor:__choice__=adaboost, preprocessor:__choice__=kernel_pca}
+{regressor:__choice__=adaboost, preprocessor:__choice__=kitchen_sinks}
+{regressor:__choice__=adaboost, preprocessor:__choice__=nystroem_sampler}
+{regressor:__choice__=decision_tree, preprocessor:__choice__=kernel_pca}
+{regressor:__choice__=decision_tree, preprocessor:__choice__=kitchen_sinks}
+{regressor:__choice__=decision_tree, preprocessor:__choice__=nystroem_sampler}
+{regressor:__choice__=extra_trees, preprocessor:__choice__=kernel_pca}
+{regressor:__choice__=extra_trees, preprocessor:__choice__=kitchen_sinks}
+{regressor:__choice__=extra_trees, preprocessor:__choice__=nystroem_sampler}
+{regressor:__choice__=gaussian_process, preprocessor:__choice__=kernel_pca}
+{regressor:__choice__=gaussian_process, preprocessor:__choice__=kitchen_sinks}
+{regressor:__choice__=gaussian_process, preprocessor:__choice__=nystroem_sampler}
+{regressor:__choice__=gradient_boosting, preprocessor:__choice__=kernel_pca}
+{regressor:__choice__=gradient_boosting, preprocessor:__choice__=kitchen_sinks}
+{regressor:__choice__=gradient_boosting, preprocessor:__choice__=nystroem_sampler}
+{regressor:__choice__=k_nearest_neighbors, preprocessor:__choice__=kernel_pca}
+{regressor:__choice__=k_nearest_neighbors, preprocessor:__choice__=kitchen_sinks}
+{regressor:__choice__=k_nearest_neighbors, preprocessor:__choice__=nystroem_sampler}
+{regressor:__choice__=random_forest, preprocessor:__choice__=kernel_pca}
+{regressor:__choice__=random_forest, preprocessor:__choice__=kitchen_sinks}
+{regressor:__choice__=random_forest, preprocessor:__choice__=nystroem_sampler}
+{regressor:liblinear_svr:dual=False, regressor:liblinear_svr:loss=epsilon_insensitive}

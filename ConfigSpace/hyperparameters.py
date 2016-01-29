@@ -102,10 +102,14 @@ class Constant(Hyperparameter):
         return 0 if size == 1 else np.zeros((size,))
 
     def _transform(self, vector):
-        return self.value if vector == 0 else None
+        if not np.isfinite(vector):
+            return None
+        return self.value
 
     def _inverse_transform(self, vector):
-        return self.value if vector == 0 else None
+        if vector != self.value:
+            return np.NaN
+        return 0
 
     def has_neighbors(self):
         return False
