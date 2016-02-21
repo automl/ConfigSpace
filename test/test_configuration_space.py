@@ -117,7 +117,7 @@ class TestConfigurationSpace(unittest.TestCase):
         cs.add_hyperparameter(hp4)
 
         cs.add_condition(andconj1)
-        self.assertNotIn(hp4, cs.get_all_uncoditional_hyperparameters())
+        self.assertNotIn(hp4, cs.get_all_unconditional_hyperparameters())
 
     def test_add_second_condition_wo_conjunction(self):
         hp1 = CategoricalHyperparameter("input1", [0, 1])
