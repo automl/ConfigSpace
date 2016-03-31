@@ -648,7 +648,7 @@ class Configuration(object):
     # TODO add a method to eliminate inactive hyperparameters from a
     # configuration
     def __init__(self, configuration_space, values=None, vector=None,
-                 allow_inactive_with_values=False):
+                 allow_inactive_with_values=False, origin=None):
         """A single configuration.
 
         Parameters
@@ -678,6 +678,7 @@ class Configuration(object):
         self.allow_inactive_with_values = allow_inactive_with_values
         self._query_values = False
         self._num_hyperparameters = len(self.configuration_space._hyperparameters)
+        self.origin = origin
 
         if values is not None and vector is not None:
             raise ValueError('Configuration specified both as dictionary and '
