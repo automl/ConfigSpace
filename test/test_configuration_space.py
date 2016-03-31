@@ -436,7 +436,7 @@ class TestConfigurationSpace(unittest.TestCase):
         forbidden = ForbiddenEqualsClause(metric, "other")
         cs.add_forbidden_clause(forbidden)
         configuration = Configuration(cs,
-            vector=np.ones(1, dtype=[('metric', int)]))
+            vector=np.ones(1, dtype=float))
         self.assertRaisesRegexp(ValueError, "violates forbidden clause",
                                 cs._check_forbidden, configuration)
 

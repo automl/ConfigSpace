@@ -715,6 +715,8 @@ class Configuration(object):
 
         elif vector is not None:
             self._values = dict()
+            if not isinstance(vector, np.ndarray):
+                vector = np.array(vector, dtype=float)
             self._vector = vector
         else:
             raise ValueError('Configuration neither specified as dictionary '
