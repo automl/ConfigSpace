@@ -19,9 +19,11 @@ def generate(configuration_space_path):
 
         # Sample a little bit
         for i in range(10):
+            print(i)
             cs.seed(i)
             configurations = cs.sample_configuration(size=10)
             for j, c in enumerate(configurations):
+                print(j)
                 c.is_valid_configuration()
                 neighborhood = ConfigSpace.util.get_one_exchange_neighbourhood(
                     c, seed=i)
