@@ -407,7 +407,7 @@ class ConfigurationSpace(object):
                       if parent_name != "__HPOlib_configuration_space_root__"]
         return conditions
 
-    def get_all_uncoditional_hyperparameters(self):
+    def get_all_unconditional_hyperparameters(self):
         hyperparameters = [hp_name for hp_name in
                            self._children[
                                '__HPOlib_configuration_space_root__']]
@@ -576,7 +576,7 @@ class ConfigurationSpace(object):
             for i in range(missing):
                 inactive = set()
                 visited = set()
-                visited.update(self.get_all_uncoditional_hyperparameters())
+                visited.update(self.get_all_unconditional_hyperparameters())
                 to_visit = deque()
                 to_visit.extendleft(self.get_all_conditional_hyperparameters())
                 infiniteloopcounter = 0
