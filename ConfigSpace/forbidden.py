@@ -62,10 +62,7 @@ class SingleValueForbiddenClause(AbstractForbiddenClause):
         self.value = value
 
     def is_forbidden(self, instantiated_hyperparameters, strict=True):
-        value = None
-        for hp_name in instantiated_hyperparameters:
-            if hp_name == self.hyperparameter.name:
-                value = instantiated_hyperparameters[hp_name]
+        value = instantiated_hyperparameters.get(self.hyperparameter.name)
 
         if value is None:
             if strict:
@@ -98,10 +95,7 @@ class MultipleValueForbiddenClause(AbstractForbiddenClause):
         self.values = values
 
     def is_forbidden(self, instantiated_hyperparameters, strict=True):
-        value = None
-        for hp_name in instantiated_hyperparameters:
-            if hp_name == self.hyperparameter.name:
-                value = instantiated_hyperparameters[hp_name]
+        value = instantiated_hyperparameters.get(self.hyperparameter.name)
 
         if value is None:
             if strict:
@@ -170,9 +164,7 @@ class AbstractForbiddenConjunction(AbstractForbiddenComponent):
         return children
 
     def is_forbidden(self, instantiated_hyperparameters, strict=True):
-        ihp_names = []
-        for ihp in instantiated_hyperparameters:
-            ihp_names.append(ihp)
+        ihp_names = list(instantiated_hyperparameters.keys())
 
         dlcs = self.get_descendant_literal_clauses()
         for dlc in dlcs:

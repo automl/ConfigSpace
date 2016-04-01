@@ -679,6 +679,7 @@ class Configuration(object):
         self._query_values = False
         self._num_hyperparameters = len(self.configuration_space._hyperparameters)
         self.origin = origin
+        self._keys = None
 
         if values is not None and vector is not None:
             raise ValueError('Configuration specified both as dictionary and '
@@ -734,6 +735,12 @@ class Configuration(object):
         item_idx = self.configuration_space._hyperparameter_idx[item]
         self._values[item] = hyperparameter._transform(self._vector[item_idx])
         return self._values[item]
+
+    def get(self, item, default=None):
+        try:
+            return self[item]
+        except:
+            return default
 
     def __contains__(self, item):
         self._populate_values()
@@ -792,7 +799,11 @@ class Configuration(object):
         return iter(self.keys())
 
     def keys(self):
-        return self.configuration_space._hyperparameters.keys()
+        # Cache the keys to speed up the process of retrieving the keys
+        if self._keys is None:
+            self._keys = list(self.configuration_space._hyperparameters.keys())
+        return self._keys
+
 
     def get_dictionary(self):
         self._populate_values()

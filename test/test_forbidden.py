@@ -41,7 +41,7 @@ class TestForbidden(unittest.TestCase):
                                 "instanstatiated hyperparameter in the "
                                 "forbidden clause; you are missing "
                                 "'parent'", forb1.is_forbidden,
-                                [{1: hp2}])
+                                {1: hp2})
         self.assertFalse(forb1.is_forbidden({'child': 1}, strict=False))
         self.assertFalse(forb1.is_forbidden({'parent': 0}))
         self.assertTrue(forb1.is_forbidden({'parent': 1}))
@@ -130,4 +130,4 @@ class TestForbidden(unittest.TestCase):
 
             self.assertEqual(results[i], is_forbidden)
 
-            self.assertFalse(total_and.is_forbidden([], strict=False))
+            self.assertFalse(total_and.is_forbidden({}, strict=False))
