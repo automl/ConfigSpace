@@ -179,9 +179,9 @@ class UniformMixin(object):
     def check_default(self, default):
         if default is None:
             if self.log:
-                default = np.exp((np.log(self.lower) + np.log(self.upper)) / 2)
+                default = np.exp((np.log(self.lower) + np.log(self.upper)) / 2.)
             else:
-                default = (self.lower + self.upper) / 2
+                default = (self.lower + self.upper) / 2.
         default = super(UniformMixin, self).check_default(default)
         if self.is_legal(default):
             return default
@@ -220,8 +220,8 @@ class UniformFloatHyperparameter(UniformMixin, FloatHyperparameter):
 
         if self.log:
             if self.q is not None:
-                lower = self.lower - (np.float64(self.q) / 2 - 0.0001)
-                upper = self.upper + (np.float64(self.q) / 2 - 0.0001)
+                lower = self.lower - (np.float64(self.q) / 2. - 0.0001)
+                upper = self.upper + (np.float64(self.q) / 2. - 0.0001)
             else:
                 lower = self.lower
                 upper = self.upper
@@ -229,8 +229,8 @@ class UniformFloatHyperparameter(UniformMixin, FloatHyperparameter):
             self._upper = np.log(upper)
         else:
             if self.q is not None:
-                self._lower = self.lower - (self.q / 2 - 0.0001)
-                self._upper = self.upper + (self.q / 2 - 0.0001)
+                self._lower = self.lower - (self.q / 2. - 0.0001)
+                self._upper = self.upper + (self.q / 2. - 0.0001)
             else:
                 self._lower = self.lower
                 self._upper = self.upper

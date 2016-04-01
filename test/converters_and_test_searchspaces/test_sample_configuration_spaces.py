@@ -33,15 +33,15 @@ def generate(configuration_space_path):
     return run_test
 
 
-configuration_space_path = os.path.abspath(ConfigSpace.__file__)
-configuration_space_path = os.path.dirname(configuration_space_path)
-configuration_space_path = os.path.join(configuration_space_path,
-                                        "..", "test",
-                                        "test_searchspaces")
+this_file = os.path.abspath(__file__)
+this_directory = os.path.dirname(this_file)
+configuration_space_path = os.path.join(this_directory,
+                                        "..", "test_searchspaces")
+configuration_space_path = os.path.abspath(configuration_space_path)
 pcs_files = os.listdir(configuration_space_path)
 
 for pcs_file in pcs_files:
     if '.pcs' in pcs_file:
-        pcs_file = os.path.join(configuration_space_path, pcs_file)
-        setattr(ExampleSearchSpacesTest, 'test_%s' % pcs_file,
-                generate(pcs_file))
+        full_path = os.path.join(configuration_space_path, pcs_file)
+        setattr(ExampleSearchSpacesTest, 'test_%s' % pcs_file.replace('.', '_'),
+                generate(full_path))
