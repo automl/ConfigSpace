@@ -1,4 +1,6 @@
-__version__ = "0.1dev"
+__version__ = "0.1.1"
+__authors__ = ["Matthias Feurer", "Katharina Eggensperger",
+               "Jost Tobias Springenberg"]
 __authors__ = ["Matthias Feurer", "Katharina Eggensperger"]
 
 from ConfigSpace.configuration_space import Configuration, \
