@@ -390,7 +390,7 @@ class ConfigurationSpace(object):
         conditions = self.get_parent_conditions_of(name)
         parents = []
         for condition in conditions:
-            parents.append(condition.parent)
+            parents.extend(condition.get_parents())
         return parents
 
     def get_parent_conditions_of(self, name):

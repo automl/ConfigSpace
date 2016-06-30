@@ -25,6 +25,10 @@ class ConditionComponent(object):
         pass
 
     @abstractmethod
+    def get_parents(self):
+        pass
+
+    @abstractmethod
     def get_descendant_literal_conditions(self):
         pass
 
@@ -70,6 +74,9 @@ class AbstractCondition(ConditionComponent):
     def get_children(self):
         return [self.child]
 
+    def get_parents(self):
+        return [self.parent]
+
     def get_descendant_literal_conditions(self):
         return [self]
 
@@ -114,6 +121,12 @@ class AbstractConjunction(ConditionComponent):
         for component in self.components:
             children.extend(component.get_children())
         return children
+
+    def get_parents(self):
+        parents = []
+        for component in self.components:
+            parents.extend(component.get_parents())
+        return parents
 
     def evaluate(self, instantiated_hyperparameters):
         # Then, check if all parents were passed

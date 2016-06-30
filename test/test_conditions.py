@@ -209,3 +209,22 @@ class TestConditions(unittest.TestCase):
         self.assertFalse(condition.evaluate(dict(blkrest='0')))
         self.assertTrue(condition.evaluate(dict(blkrest='1')))
 
+    def test_get_parents(self):
+        # Necessary because we couldn't call cs.get_parents for
+        # clasp-sat-params-nat.pcs
+        counter = UniformIntegerHyperparameter('bump', 10, 4096, log=True)
+        _1_S_countercond = CategoricalHyperparameter('cony', ['yes', 'no'])
+        _1_0_restarts = CategoricalHyperparameter('restarts', ['F', 'L', 'D',
+                                                               'x', '+', 'no'],
+                                                  default='x')
+
+        condition = EqualsCondition(counter, _1_S_countercond, 'yes')
+        # All conditions inherit get_parents from abstractcondition
+        self.assertEqual([_1_S_countercond], condition.get_parents())
+        condition2 = InCondition(counter, _1_0_restarts, ['F', 'D', 'L', 'x', '+'])
+        # All conjunctions inherit get_parents from abstractconjunction
+        conjunction = AndConjunction(condition, condition2)
+        self.assertEqual([_1_S_countercond, _1_0_restarts], conjunction.get_parents())
+
+
+
