@@ -33,10 +33,9 @@ import numpy as np
 import six
 
 import ConfigSpace.nx
-from ConfigSpace.hyperparameters import Hyperparameter, Constant, \
-    CategoricalHyperparameter
+from ConfigSpace.hyperparameters import Hyperparameter, Constant
 from ConfigSpace.conditions import ConditionComponent, \
-    AbstractCondition, AbstractConjunction
+    AbstractCondition, AbstractConjunction, EqualsCondition
 from ConfigSpace.forbidden import AbstractForbiddenComponent
 
 
@@ -269,39 +268,66 @@ class ConfigurationSpace(object):
     #     plt.savefig('nx_test.png')
 
     def add_configuration_space(self, prefix, configuration_space,
-                                delimiter=":"):
+                                delimiter=":", parent_hyperparameter=None):
         if not isinstance(configuration_space, ConfigurationSpace):
             raise TypeError("The method add_configuration_space must be "
                             "called with an instance of "
                             "HPOlibConfigSpace.configuration_space."
                             "ConfigurationSpace.")
 
+        new_parameters = []
         for hp in configuration_space.get_hyperparameters():
             new_parameter = copy.deepcopy(hp)
-            new_parameter.name = "%s%s%s" % (prefix, delimiter,
-                                             new_parameter.name)
+            # Allow for an empty top-level parameter
+            if new_parameter.name == '':
+                new_parameter.name = prefix
+            else:
+                new_parameter.name = "%s%s%s" % (prefix, delimiter,
+                                                 new_parameter.name)
             self.add_hyperparameter(new_parameter)
+            new_parameters.append(new_parameter)
 
         for condition in configuration_space.get_conditions():
             dlcs = condition.get_descendant_literal_conditions()
             for dlc in dlcs:
-                if not dlc.child.name.startswith("%s%s" % (prefix, delimiter)):
+                if dlc.child.name == prefix or dlc.child.name == '':
+                    dlc.child.name = prefix
+                elif not dlc.child.name.startswith(
+                                "%s%s" % (prefix, delimiter)):
                     dlc.child.name = "%s%s%s" % (
-                    prefix, delimiter, dlc.child.name)
-                if not dlc.parent.name.startswith("%s%s" % (prefix, delimiter)):
+                        prefix, delimiter, dlc.child.name)
+                if dlc.parent.name == prefix or dlc.parent.name == '':
+                    dlc.parent.name = prefix
+                elif not dlc.parent.name.startswith(
+                                "%s%s" % (prefix, delimiter)):
                     dlc.parent.name = "%s%s%s" % (
-                    prefix, delimiter, dlc.parent.name)
+                        prefix, delimiter, dlc.parent.name)
             self.add_condition(condition)
 
         for forbidden_clause in configuration_space.forbidden_clauses:
             dlcs = forbidden_clause.get_descendant_literal_clauses()
             for dlc in dlcs:
-                if not dlc.hyperparameter.name.startswith(
+                if dlc.hyperparameter.name == prefix or \
+                                dlc.hyperparameter.name == '':
+                    dlc.hyperparameter.name = prefix
+                elif not dlc.hyperparameter.name.startswith(
                                 "%s%s" % (prefix, delimiter)):
                     dlc.hyperparameter.name = "%s%s%s" % \
                                               (prefix, delimiter,
                                                dlc.hyperparameter.name)
             self.add_forbidden_clause(forbidden_clause)
+
+        if parent_hyperparameter is not None:
+            for new_parameter in new_parameters:
+                # Only add a condition if the parameter is a top-level
+                # parameter of the new configuration space (this will be some
+                #  kind of tree structure).
+                if self.get_parents_of(new_parameter):
+                    continue
+                condition = EqualsCondition(new_parameter,
+                                            parent_hyperparameter['parent'],
+                                            parent_hyperparameter['value'])
+                self.add_condition(condition)
 
         return configuration_space
 
