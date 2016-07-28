@@ -52,13 +52,23 @@ class ConfigurationSpace(object):
         self._hyperparameters = OrderedDict()
         self._hyperparameter_idx = dict()
         self._idx_to_hyperparameter = dict()
-        self._children = defaultdict(dict)
-        self._parents = defaultdict(dict)
+
+        # Use dictionaries to make sure that we don't accidently add
+        # additional keys to these mappings (which happened with defaultdict()).
+        # This once broke auto-sklearn's equal comparison of configuration
+        # spaces when _children of one instance contained  all possible
+        # hyperparameters as keys and empty dictionaries as values while the
+        # other instance not containing these.
+        self._children = dict()
+        self._parents = dict()
+
         # changing this to a normal dict will break sampling because there is
         #  no guarantee that the parent of a condition was evaluated before
         self._conditionsals = OrderedDict()
         self.forbidden_clauses = []
         self.random = np.random.RandomState(seed)
+
+        self._children['__HPOlib_configuration_space_root__'] = dict()
 
     def add_hyperparameter(self, hyperparameter):
         """Add a hyperparameter to the configuration space.
@@ -81,8 +91,11 @@ class ConfigurationSpace(object):
                              "configuration space." % hyperparameter.name)
 
         self._hyperparameters[hyperparameter.name] = hyperparameter
+        self._children[hyperparameter.name] = dict()
         self._children['__HPOlib_configuration_space_root__'][
             hyperparameter.name] = None
+
+        self._parents[hyperparameter.name] = dict()
         self._parents[hyperparameter.name][
             '__HPOlib_configuration_space_root__'] = None
 
