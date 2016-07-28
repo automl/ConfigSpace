@@ -13,3 +13,6 @@ under a BSD license.
 .. image:: https://landscape.io/github/automl/ConfigSpace/master/landscape.svg?style=flat
    :target: https://landscape.io/github/automl/ConfigSpace/master
    :alt: Code Health
+.. image:: https://coveralls.io/repos/github/automl/ConfigSpace/badge.svg?branch=master
+   :target: https://coveralls.io/github/automl/ConfigSpace?branch=master
+
