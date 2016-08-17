@@ -509,9 +509,10 @@ class ConfigurationSpace(object):
             hp_value = configuration[hp_name]
 
             if hp_value is not None and not hyperparameter.is_legal(hp_value):
-                raise ValueError("Hyperparameter instantiation '%s' is "
-                                 "illegal for hyperparameter %s" %
-                                 (hp_value, hyperparameter))
+                raise ValueError("Hyperparameter instantiation '%s' "
+                                 "(type: %s) is illegal for hyperparameter %s" %
+                                 (hp_value, str(type(hp_value)),
+                                  hyperparameter))
 
             conditions = self._get_parent_conditions_of(hyperparameter.name)
 

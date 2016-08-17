@@ -180,7 +180,7 @@ class IntegerHyperparameter(NumericalHyperparameter):
         super(IntegerHyperparameter, self).__init__(name, default)
 
     def is_legal(self, value):
-        return isinstance(value, int)
+        return isinstance(value, (int, np.int, np.int32, np.int64))
 
     def check_int(self, parameter, name):
         if abs(int(parameter) - parameter) > 0.00000001 and \
@@ -299,7 +299,7 @@ class UniformFloatHyperparameter(UniformMixin, FloatHyperparameter):
         return rs.uniform(size=size)
 
     def _transform(self, vector):
-        if np.isnan(vector):
+        if np.any(np.isnan(vector)):
             return None
         vector *= (self._upper - self._lower)
         vector += self._lower
@@ -461,15 +461,24 @@ class UniformIntegerHyperparameter(UniformMixin, IntegerHyperparameter):
 
     def _sample(self, rs, size=None):
         value = self.ufhp._sample(rs, size=size)
+        # Map all floats which belong to the same integer value to the same
+        # float value by first transforming it to an integer and then
+        # transforming it back to a float between zero and one
+        value = self._transform(value)
+        value = self._inverse_transform(value)
         return value
 
     def _transform(self, vector):
-        if np.isnan(vector):
+        if np.any(np.isnan(vector)):
             return None
         vector = self.ufhp._transform(vector)
         if self.q is not None:
-            vector = int(np.round(vector / self.q, 0)) * self.q
-        return int(np.round(vector, 0))
+            vector = (np.round(vector / self.q, 0)).astype(int) * self.q
+        vector = (np.round(vector, 0)).astype(int)
+        # Convert to regular float to avoid handling different data types
+        if isinstance(vector, np.int):
+            vector = int(vector)
+        return vector
 
     def _inverse_transform(self, vector):
         return self.ufhp._inverse_transform(vector)
@@ -576,13 +585,22 @@ class NormalIntegerHyperparameter(NormalMixin, IntegerHyperparameter):
             return False
 
     def _sample(self, rs, size=None):
-        return self.nfhp._sample(rs, size=size)
+        value = self.nfhp._sample(rs, size=size)
+        # Map all floats which belong to the same integer value to the same
+        # float value by first transforming it to an integer and then
+        # transforming it back to a float between zero and one
+        value = self._transform(value)
+        value = self._inverse_transform(value)
+        return value
 
     def _transform(self, vector):
         if np.isnan(vector):
             return None
         vector = self.nfhp._transform(vector)
-        return int(np.round(vector, 0))
+        vector = (np.round(vector, 0)).astype(int)
+        if isinstance(vector, np.int):
+            vector = int(vector)
+        return vector
 
     def _inverse_transform(self, vector):
         return self.nfhp._inverse_transform(vector)

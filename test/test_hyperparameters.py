@@ -472,6 +472,8 @@ class TestHyperparameters(unittest.TestCase):
         self.assertEqual(actual_test(), actual_test())
 
     def test_sample_UniformIntegerHyperparameter(self):
+        # TODO: disentangle, actually test _sample and test sample on the
+        # base class
         def sample(hp):
             rs = np.random.RandomState(1)
             counts_per_bin = [0 for i in range(21)]
@@ -494,6 +496,14 @@ class TestHyperparameters(unittest.TestCase):
         for bin in counts_per_bin[1::2]:
             self.assertEqual(bin, 0)
         self.assertEqual(sample(hp), sample(hp))
+
+    def test__sample_UniformIntegerHyperparameter(self):
+        hp = UniformIntegerHyperparameter("uihp", 0, 10)
+        values = []
+        rs = np.random.RandomState(1)
+        for i in range(100):
+            values.append(hp._sample(rs))
+        self.assertEqual(len(np.unique(values)), 11)
 
     def test_sample_NormalIntegerHyperparameter(self):
         def sample(hp):
@@ -519,6 +529,15 @@ class TestHyperparameters(unittest.TestCase):
                           11510, 11854, 11223, 9309, 7244, 5155, 3406, 2025,
                           1079, 514, 249, 170])
         self.assertEqual(sample(hp), sample(hp))
+
+    def test__sample_NormalIntegerHyperparameter(self):
+        # mean zero, std 1
+        hp = NormalIntegerHyperparameter("uihp", 0, 1)
+        values = []
+        rs = np.random.RandomState(1)
+        for i in range(100):
+            values.append(hp._sample(rs))
+        self.assertEqual(len(np.unique(values)), 5)
 
     def test_sample_CategoricalHyperparameter(self):
         hp = CategoricalHyperparameter("chp", [0, 2, "Bla", u"Blub"])
