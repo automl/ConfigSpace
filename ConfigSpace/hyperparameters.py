@@ -476,7 +476,7 @@ class UniformIntegerHyperparameter(UniformMixin, IntegerHyperparameter):
             vector = (np.round(vector / self.q, 0)).astype(int) * self.q
         vector = (np.round(vector, 0)).astype(int)
         # Convert to regular float to avoid handling different data types
-        if isinstance(vector, np.int):
+        if isinstance(vector, (np.int, np.int32, np.int64)):
             vector = int(vector)
         return vector
 
@@ -598,7 +598,7 @@ class NormalIntegerHyperparameter(NormalMixin, IntegerHyperparameter):
             return None
         vector = self.nfhp._transform(vector)
         vector = (np.round(vector, 0)).astype(int)
-        if isinstance(vector, np.int):
+        if isinstance(vector, (np.int, np.int32, np.int64)):
             vector = int(vector)
         return vector
 
