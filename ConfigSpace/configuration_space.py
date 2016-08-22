@@ -798,7 +798,7 @@ class Configuration(object):
             finite = np.isfinite(self._vector)
             other_finite = np.isfinite(other._vector)
             return all(finite == other_finite) and \
-                np.allclose(self._vector[finite], other._vector[finite]) and \
+                all(self._vector[finite] == other._vector[finite]) and \
                 self.configuration_space == other.configuration_space
         return NotImplemented
 
