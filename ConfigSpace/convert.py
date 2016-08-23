@@ -75,9 +75,9 @@ def main():
                     "TPE": pyll.read
                     }
     # First read searchspace
-    print "Reading searchspace..."
+    print("Reading searchspace...")
     searchspace = read_options[args.conv_from](args.input_file)
-    print "...done. Found %d params" % len(searchspace)
+    print("...done. Found %d params" % len(searchspace))
 
     write_options = {"SMAC": pcs.write,
                      "SPEARMINT": pb.write,
@@ -91,7 +91,7 @@ def main():
         output_fh.write(new_space)
         output_fh.close()
     else:
-        print new_space
+        print(new_space)
 
 if __name__ == "__main__":
     main()
