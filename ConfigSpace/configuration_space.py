@@ -38,7 +38,6 @@ from ConfigSpace.conditions import ConditionComponent, \
     AbstractCondition, AbstractConjunction, EqualsCondition
 from ConfigSpace.forbidden import AbstractForbiddenComponent
 
-
 class ConfigurationSpace(object):
     # TODO add comments to both the configuration space and single
     # hyperparameters!
@@ -798,7 +797,7 @@ class Configuration(object):
             finite = np.isfinite(self._vector)
             other_finite = np.isfinite(other._vector)
             return all(finite == other_finite) and \
-                all(self._vector[finite] == other._vector[finite]) and \
+                np.allclose(self._vector[finite], other._vector[finite]) and \
                 self.configuration_space == other.configuration_space
         return NotImplemented
 
@@ -812,7 +811,7 @@ class Configuration(object):
         """Override the default hash behavior (that returns the id or the object)"""
         self._populate_values()
         return hash(self.__repr__())
-
+    
     def _populate_values(self):
         if self._query_values is False:
             for hyperparameter in self.configuration_space.get_hyperparameters():
