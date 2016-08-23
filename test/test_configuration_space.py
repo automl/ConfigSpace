@@ -599,7 +599,9 @@ class ConfigurationTest(unittest.TestCase):
         #  sorting!
         # Values are a little bit higher than one would expect because,
         # an integer range of [0,10] is transformed to [-0.499,10.499].
-        vector_values = {'parent': 1, 'child': 0.22727223, 'friend': 0.58333361}
+        vector_values = {'parent': 1,
+                         'child': 0.22727223140405708,
+                         'friend': 0.583333611112037}
         vector = [None] * 3
         for name in self.cs._hyperparameter_idx:
             vector[self.cs._hyperparameter_idx[name]] = vector_values[name]
