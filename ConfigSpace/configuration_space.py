@@ -59,8 +59,8 @@ class ConfigurationSpace(object):
         # spaces when _children of one instance contained  all possible
         # hyperparameters as keys and empty dictionaries as values while the
         # other instance not containing these.
-        self._children = dict()
-        self._parents = dict()
+        self._children = OrderedDict()
+        self._parents = OrderedDict()
 
         # changing this to a normal dict will break sampling because there is
         #  no guarantee that the parent of a condition was evaluated before
@@ -68,7 +68,7 @@ class ConfigurationSpace(object):
         self.forbidden_clauses = []
         self.random = np.random.RandomState(seed)
 
-        self._children['__HPOlib_configuration_space_root__'] = dict()
+        self._children['__HPOlib_configuration_space_root__'] = OrderedDict()
 
     def add_hyperparameter(self, hyperparameter):
         """Add a hyperparameter to the configuration space.
@@ -91,11 +91,11 @@ class ConfigurationSpace(object):
                              "configuration space." % hyperparameter.name)
 
         self._hyperparameters[hyperparameter.name] = hyperparameter
-        self._children[hyperparameter.name] = dict()
+        self._children[hyperparameter.name] = OrderedDict()
         self._children['__HPOlib_configuration_space_root__'][
             hyperparameter.name] = None
 
-        self._parents[hyperparameter.name] = dict()
+        self._parents[hyperparameter.name] = OrderedDict()
         self._parents[hyperparameter.name][
             '__HPOlib_configuration_space_root__'] = None
 
@@ -811,7 +811,7 @@ class Configuration(object):
     def __hash__(self):
         """Override the default hash behavior (that returns the id or the object)"""
         self._populate_values()
-        return hash(self.__repr__())
+        return hash(self._vector.data.tobytes())
 
     def _populate_values(self):
         if self._query_values is False:
