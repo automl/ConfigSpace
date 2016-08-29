@@ -144,7 +144,7 @@ class MultipleValueForbiddenClause(AbstractForbiddenClause):
 class ForbiddenEqualsClause(SingleValueForbiddenClause):
     def __repr__(self):
         return "Forbidden: %s == %s" % (self.hyperparameter.name,
-                                        str(self.value))
+                                        repr(self.value))
 
     def _is_forbidden(self, value):
         return value == self.value
@@ -158,7 +158,7 @@ class ForbiddenInClause(MultipleValueForbiddenClause):
     def __repr__(self):
         return "Forbidden: %s in %s" % (
             self.hyperparameter.name,
-            "{" + ", ".join((str(value)
+            "{" + ", ".join((repr(value)
                              for value in sorted(self.values))) + "}")
 
     def _is_forbidden(self, value):

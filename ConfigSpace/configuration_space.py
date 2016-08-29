@@ -33,7 +33,7 @@ import numpy as np
 import six
 
 import ConfigSpace.nx
-from ConfigSpace.hyperparameters import Hyperparameter, Constant
+from ConfigSpace.hyperparameters import Hyperparameter, Constant, FloatHyperparameter
 from ConfigSpace.conditions import ConditionComponent, \
     AbstractCondition, AbstractConjunction, EqualsCondition
 from ConfigSpace.forbidden import AbstractForbiddenComponent
@@ -612,7 +612,8 @@ class ConfigurationSpace(object):
         while len(accepted_configurations) < size:
             if missing != size:
                 missing = int(1.1 * missing)
-            vector = np.ndarray((missing, num_hyperparameters), dtype=np.float)
+            vector = np.ndarray((missing, num_hyperparameters),
+                                dtype=np.float64)
 
             for i, hp_name in enumerate(self._hyperparameters):
                 hyperparameter = self._hyperparameters[hp_name]
@@ -740,6 +741,11 @@ class Configuration(object):
                     continue
                 hyperparameter = configuration_space.get_hyperparameter(key)
                 hyperparameter.is_legal(value)
+                # Truncate the representation of the float to be of constant
+                # length for a python version
+                if isinstance(hyperparameter, FloatHyperparameter):
+                    value = float(repr(value))
+
                 self._values[key] = value
 
             for key in values:
@@ -778,7 +784,13 @@ class Configuration(object):
 
         hyperparameter = self.configuration_space._hyperparameters[item]
         item_idx = self.configuration_space._hyperparameter_idx[item]
-        self._values[item] = hyperparameter._transform(self._vector[item_idx])
+        value = hyperparameter._transform(self._vector[item_idx])
+        # Truncate the representation of the float to be of constant
+        # length for a python version
+        if value is not None and \
+                isinstance(hyperparameter, FloatHyperparameter):
+            value = float(repr(value))
+        self._values[item] = value
         return self._values[item]
 
     def get(self, item, default=None):
@@ -795,10 +807,9 @@ class Configuration(object):
     def __eq__(self, other):
         """Override the default Equals behavior"""
         if isinstance(other, self.__class__):
-            finite = np.isfinite(self._vector)
-            other_finite = np.isfinite(other._vector)
-            return all(finite == other_finite) and \
-                all(self._vector[finite] == other._vector[finite]) and \
+            self._populate_values()
+            other._populate_values()
+            return self._values == other._values and \
                 self.configuration_space == other.configuration_space
         return NotImplemented
 
@@ -811,7 +822,7 @@ class Configuration(object):
     def __hash__(self):
         """Override the default hash behavior (that returns the id or the object)"""
         self._populate_values()
-        return hash(self._vector.data.tobytes())
+        return hash(self.__repr__())
 
     def _populate_values(self):
         if self._query_values is False:
@@ -822,23 +833,24 @@ class Configuration(object):
     def __repr__(self):
         self._populate_values()
 
-        repr = six.StringIO()
-        repr.write("Configuration:\n")
+        representation = six.StringIO()
+        representation.write("Configuration:\n")
 
         hyperparameters = self.configuration_space.get_hyperparameters()
         hyperparameters.sort(key=lambda t: t.name)
         for hyperparameter in hyperparameters:
             hp_name = hyperparameter.name
             if hp_name in self._values and self._values[hp_name] is not None:
-                repr.write("  ")
-                value = str(self._values[hp_name])
-                if isinstance(hyperparameter, Constant):
-                    repr.write("%s, Constant: %s" % (hp_name, value))
-                else:
-                    repr.write("%s, Value: %s" % (hp_name, value))
-                repr.write("\n")
+                representation.write("  ")
 
-        return repr.getvalue()
+                value = repr(self._values[hp_name])
+                if isinstance(hyperparameter, Constant):
+                    representation.write("%s, Constant: %s" % (hp_name, value))
+                else:
+                    representation.write("%s, Value: %s" % (hp_name, value))
+                representation.write("\n")
+
+        return representation.getvalue()
 
     def __iter__(self):
         return iter(self.keys())

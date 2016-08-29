@@ -27,7 +27,7 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from itertools import product
-import random
+import json
 import unittest
 
 import numpy as np
@@ -36,7 +36,8 @@ from ConfigSpace import ConfigurationSpace, \
     Configuration, CategoricalHyperparameter, UniformIntegerHyperparameter, \
     Constant, EqualsCondition, NotEqualsCondition, InCondition, \
     AndConjunction, OrConjunction, ForbiddenEqualsClause, \
-    ForbiddenAndConjunction
+    ForbiddenAndConjunction, UniformFloatHyperparameter
+from ConfigSpace.hyperparameters import NormalFloatHyperparameter
 
 
 class TestConfigurationSpace(unittest.TestCase):
@@ -74,9 +75,9 @@ class TestConfigurationSpace(unittest.TestCase):
         forb3 = ForbiddenAndConjunction(forb1, forb2)
         # cs.add_forbidden_clause(forb3)
         self.assertRaisesRegexp(ValueError, "Configuration:\n"
-            "  loss, Value: l1\n  penalty, Value: l1\n"
-            "violates forbidden clause \(Forbidden: loss == l1 && Forbidden: "
-            "penalty == l1\)", cs.add_forbidden_clause, forb3)
+            "  loss, Value: \'l1\'\n  penalty, Value: \'l1\'\n"
+            "violates forbidden clause \(Forbidden: loss == \'l1\' && "
+            "Forbidden: penalty == \'l1\'\)", cs.add_forbidden_clause, forb3)
 
     def test_add_non_condition(self):
         cs = ConfigurationSpace()
@@ -611,7 +612,33 @@ class ConfigurationTest(unittest.TestCase):
         # b) that the dictionary representation of both are the same
         self.assertEqual(c1, c2)
 
+    def test_uniformfloat_transform(self):
+        """This checks whether a value sampled through the configuration
+        space (it does not happend when the variable is sampled alone) stays
+        equal when it is serialized via JSON and the deserialized again."""
 
+        cs = ConfigurationSpace()
+        a = cs.add_hyperparameter(UniformFloatHyperparameter('a', -5, 10))
+        b = cs.add_hyperparameter(NormalFloatHyperparameter('b', 1, 2,
+                                                            log=True))
+        for i in range(100):
+            config = cs.sample_configuration()
+            value = config.get_dictionary()
+            string = json.dumps(value)
+            saved_value = json.loads(string)
+            self.assertEqual(repr(value), repr(saved_value))
+
+        # Next, test whether the truncation also works when initializing the
+        # Configuration with a dictionary
+        for i in range(100):
+            rs = np.random.RandomState(1)
+            value_a = a.sample(rs)
+            value_b = b.sample(rs)
+            values_dict = {'a': value_a, 'b': value_b}
+            config = Configuration(cs, values=values_dict)
+            string = json.dumps(config.get_dictionary())
+            saved_value = json.loads(string)
+            self.assertEqual(values_dict, saved_value)
 
 
 

@@ -190,7 +190,7 @@ class EqualsCondition(AbstractCondition):
 
     def __repr__(self):
         return "%s | %s == %s" % (self.child.name, self.parent.name,
-                                  str(self.value))
+                                  repr(self.value))
 
     def _evaluate(self, value):
         return value == self.value
@@ -208,7 +208,7 @@ class NotEqualsCondition(AbstractCondition):
 
     def __repr__(self):
         return "%s | %s != %s" % (self.child.name, self.parent.name,
-                                  str(self.value))
+                                  repr(self.value))
 
     def _evaluate(self, value):
         return value != self.value
@@ -228,7 +228,7 @@ class InCondition(AbstractCondition):
     def __repr__(self):
         return "%s | %s in {%s}" % (self.child.name, self.parent.name,
                                     ", ".join(
-                                        [str(value) for value in self.values]))
+                                        [repr(value) for value in self.values]))
 
     def _evaluate(self, value):
         return value in self.values

@@ -266,8 +266,8 @@ class UniformFloatHyperparameter(UniformMixin, FloatHyperparameter):
     def __repr__(self):
         repr_str = six.StringIO()
         repr_str.write("%s, Type: UniformFloat, Range: [%s, %s], Default: %s" %
-                       (self.name, str(self.lower), str(self.upper),
-                        str(self.default)))
+                       (self.name, repr(self.lower), repr(self.upper),
+                        repr(self.default)))
         if self.log:
             repr_str.write(", on log-scale")
         if self.q is not None:
@@ -341,8 +341,8 @@ class NormalFloatHyperparameter(NormalMixin, FloatHyperparameter):
     def __repr__(self):
         repr_str = six.StringIO()
         repr_str.write("%s, Type: NormalFloat, Mu: %s Sigma: %s, Default: %s" %
-                       (self.name, str(self.mu), str(self.sigma),
-                        str(self.default)))
+                       (self.name, repr(self.mu), repr(self.sigma),
+                        repr(self.default)))
         if self.log:
             repr_str.write(", on log-scale")
         if self.q is not None:
@@ -450,12 +450,12 @@ class UniformIntegerHyperparameter(UniformMixin, IntegerHyperparameter):
     def __repr__(self):
         repr_str = six.StringIO()
         repr_str.write("%s, Type: UniformInteger, Range: [%s, %s], Default: %s"
-                       % (self.name, str(self.lower),
-                          str(self.upper), str(self.default)))
+                       % (self.name, repr(self.lower),
+                          repr(self.upper), repr(self.default)))
         if self.log:
             repr_str.write(", on log-scale")
         if self.q is not None:
-            repr_str.write(", Q: %s" % str(np.int(self.q)))
+            repr_str.write(", Q: %s" % repr(np.int(self.q)))
         repr_str.seek(0)
         return repr_str.getvalue()
 
@@ -550,8 +550,8 @@ class NormalIntegerHyperparameter(NormalMixin, IntegerHyperparameter):
     def __repr__(self):
         repr_str = six.StringIO()
         repr_str.write("%s, Type: NormalInteger, Mu: %s Sigma: %s, Default: "
-                       "%s" % (self.name, str(self.mu),
-                               str(self.sigma), str(self.default)))
+                       "%s" % (self.name, repr(self.mu),
+                               repr(self.sigma), repr(self.default)))
         if self.log:
             repr_str.write(", on log-scale")
         if self.q is not None:
