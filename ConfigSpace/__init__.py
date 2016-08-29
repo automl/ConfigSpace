@@ -26,9 +26,9 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-__version__ = "0.2.0"
+__version__ = "0.2.1"
 __authors__ = ["Matthias Feurer", "Katharina Eggensperger",
-               "Jost Tobias Springenberg"]
+               "Jost Tobias Springenberg", "Marius Lindauer"]
 
 from ConfigSpace.configuration_space import Configuration, \
     ConfigurationSpace
