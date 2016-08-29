@@ -28,6 +28,7 @@
 
 from itertools import product
 import json
+import sys
 import unittest
 
 import numpy as np
@@ -38,6 +39,23 @@ from ConfigSpace import ConfigurationSpace, \
     AndConjunction, OrConjunction, ForbiddenEqualsClause, \
     ForbiddenAndConjunction, UniformFloatHyperparameter
 from ConfigSpace.hyperparameters import NormalFloatHyperparameter
+
+
+def byteify(input):
+    print(sys.version)
+    if sys.version_info >= (3, 0):
+        return input
+
+    # From http://stackoverflow.com/a/13105359/4636294
+    if isinstance(input, dict):
+        return {byteify(key): byteify(value)
+                for key, value in input.iteritems()}
+    elif isinstance(input, list):
+        return [byteify(element) for element in input]
+    elif isinstance(input, unicode):
+        return input.encode('utf-8')
+    else:
+        return input
 
 
 class TestConfigurationSpace(unittest.TestCase):
@@ -626,6 +644,7 @@ class ConfigurationTest(unittest.TestCase):
             value = config.get_dictionary()
             string = json.dumps(value)
             saved_value = json.loads(string)
+            saved_value = byteify(saved_value)
             self.assertEqual(repr(value), repr(saved_value))
 
         # Next, test whether the truncation also works when initializing the
@@ -638,6 +657,7 @@ class ConfigurationTest(unittest.TestCase):
             config = Configuration(cs, values=values_dict)
             string = json.dumps(config.get_dictionary())
             saved_value = json.loads(string)
+            saved_value = byteify(saved_value)
             self.assertEqual(values_dict, saved_value)
 
 
