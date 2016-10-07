@@ -48,7 +48,7 @@ class ConfigurationSpace(object):
     """Represent a configuration space.
     """
 
-    def __init__(self, seed=1):
+    def __init__(self, seed=None):
         self._hyperparameters = OrderedDict()
         self._hyperparameter_idx = dict()
         self._idx_to_hyperparameter = dict()
