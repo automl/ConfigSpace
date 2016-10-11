@@ -103,7 +103,7 @@ def build_continuous(param):
         return float_template % (q_prefix, param.name,  str(param.lower),
                                  str(param.upper), str(default))
 
-# TODO change conditionals (major changes)
+# TODO add ordinals
 def build_condition(condition):
     if not isinstance(condition, ConditionComponent):
         raise TypeError("build_condition must be called with an instance of "
@@ -111,21 +111,23 @@ def build_condition(condition):
                         (ConditionComponent, type(condition)))
 
     # Now handle the conditions SMAC can handle
-    condition_template = "%s | %s {%s}"
+    in_template = "%s | %s in {%s}"
+    notequal_template = "%s | %s != %s"
+    equal_template = "%s | %s == %s"
     if isinstance(condition, NotEqualsCondition):
-        return condition_template % (condition.child.name,
-                                     condition.parent.name,
-                                     condition.value)
+        return notequal_template % (condition.child.name,
+                                    condition.parent.name,
+                                    condition.value)
                                      
     elif isinstance(condition, InCondition):
-        return condition_template % (condition.child.name,
-                                     condition.parent.name,
-                                      ", ".join(condition.values))
+        return in_template % (condition.child.name,
+                              condition.parent.name,
+                              ", ".join(condition.values))
                                      
     elif isinstance(condition, EqualsCondition):
-        return condition_template % (condition.child.name,
-                                     condition.parent.name,
-                                     condition.value)
+        return equal_template % (condition.child.name,
+                                 condition.parent.name,
+                                 condition.value)
 
 
 def build_forbidden(clause):
@@ -257,6 +259,7 @@ def read(pcs_string, debug=False):
     # AND-conjunction or OR-conjunction of conditions, thus we have to connect them
     conditions_per_child = OrderedDict()
     for condition in conditions:
+        print(condition)
         child_name = condition[0]
         if child_name not in conditions_per_child:
             conditions_per_child[child_name] = list()
@@ -278,6 +281,7 @@ def read(pcs_string, debug=False):
                     parent_name2 = condition[8]
                     parent2 = configuration_space.get_hyperparameter(parent_name2)
                     operation2 = condition[9]
+                    print('op2', operation2)
                     if operation2 == 'in':
                         restrictions2 = condition[11:-1:2]
                         condition2 = InCondition(child, parent2, values=restrictions2)
@@ -335,7 +339,7 @@ def read(pcs_string, debug=False):
                 configuration_space.add_condition(or_conjunction)
         else:
             configuration_space.add_condition(condition_objects[0])
-
+    print(configuration_space)
     return configuration_space
     
 def write(configuration_space):
@@ -431,5 +435,5 @@ if __name__ == "__main__":
     diff = ["%s\n" % i for i in created_pcs if i not in " ".join(orig_pcs)]
     print("Identical Lines: ", len(created_pcs) - len(diff))
     print()
-    print("Up to 10 random different lines (of %d):" % len(diff))
-    print("".join(diff[:10]))
+    print("Up to 10 random different lines (of %d):" % len(orig_pcs))
+    print("".join(orig_pcs[:10]))
