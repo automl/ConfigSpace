@@ -722,4 +722,96 @@ class CategoricalHyperparameter(Hyperparameter):
                     neighbors.append(candidate)
 
         return neighbors
+        
+class OrdinalHyperparameter(Hyperparameter):
+    def __init__(self, name, sequence, default=None):
+        super(OrdinalHyperparameter, self).__init__(name)
+        self.sequence= sequence
+        self._num_elements = len(sequence)
+        self.default = self.check_default(default)
+
+    def __repr__(self):
+        repr_str = six.StringIO()
+        repr_str.write("%s, Type: Ordinal, Sequence: {" % (self.name))
+        for idx, seq in enumerate(self.sequence):
+            repr_str.write(str(seq))
+            if idx < len(self.sequence) - 1:
+                repr_str.write(", ")
+        repr_str.write("}")
+        repr_str.write(", Default: ")
+        repr_str.write(str(self.default))
+        repr_str.seek(0)
+        return repr_str.getvalue()
+
+    def is_legal(self, value):
+        if value in self.sequence:
+            return True
+        else:
+            return False
+
+    def check_default(self, default):
+        if default is None:
+            return self.sequence[0]
+        elif self.is_legal(default):
+            return default
+        else:
+            raise ValueError("Illegal default value %s" % str(default))
+
+    def _sample(self, rs, size=None):
+        return rs.randint(0, self._num_elements, size=size)
+
+    def _transform(self, vector):
+        if vector != vector:
+            return None
+        if np.equal(np.mod(vector, 1), 0):
+            return self.sequence[int(vector)]
+        else:
+            raise ValueError('Can only index the choices of the ordinal '
+                             'hyperparameter %s with an integer, but provided '
+                             'the following float: %f' % (self, vector))
+
+    def _inverse_transform(self, vector):
+        if vector is None:
+            return np.NaN
+        return self.sequence.index(vector)
+
+    def has_neighbors(self):
+        return len(self.sequence) > 1
+
+    def get_num_neighbors(self):
+        return len(self.sequence) - 1
+
+    def get_neighbors(self, value, rs, number=np.inf, transform=False):
+        neighbors = []
+        if number < len(self.sequence):
+            while len(neighbors) < number:
+                rejected = True
+                index = int(value)
+                while rejected:
+                    neighbor_idx = rs.randint(0, self._num_elements)
+                    if neighbor_idx != index:
+                        rejected = False
+
+                if transform:
+                    candidate = self._transform(neighbor_idx)
+                else:
+                    candidate = float(neighbor_idx)
+
+                if candidate in neighbors:
+                    continue
+                else:
+                    neighbors.append(candidate)
+        else:
+            for candidate_idx, candidate_value in enumerate(self.sequence):
+                if int(value) == candidate_idx:
+                    continue
+                else:
+                    if transform:
+                        candidate = self._transform(candidate_idx)
+                    else:
+                        candidate = float(candidate_idx)
+
+                    neighbors.append(candidate)
+
+        return neighbors
 

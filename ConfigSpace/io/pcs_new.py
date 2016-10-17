@@ -25,7 +25,6 @@ from collections import OrderedDict
 from itertools import product
 import sys
 
-import numpy as np
 import pyparsing
 import six
 
@@ -33,9 +32,10 @@ from ConfigSpace.configuration_space import ConfigurationSpace
 from ConfigSpace.hyperparameters import CategoricalHyperparameter, \
     UniformIntegerHyperparameter, UniformFloatHyperparameter, \
     NumericalHyperparameter, Constant, IntegerHyperparameter, \
-    NormalIntegerHyperparameter, NormalFloatHyperparameter
+    NormalIntegerHyperparameter, NormalFloatHyperparameter, OrdinalHyperparameter
 from ConfigSpace.conditions import EqualsCondition, NotEqualsCondition,\
-    InCondition, AndConjunction, OrConjunction, ConditionComponent
+    InCondition, AndConjunction, OrConjunction, ConditionComponent,\
+    GreaterThanCondition, LessThanCondition
 from ConfigSpace.forbidden import ForbiddenEqualsClause, \
     ForbiddenAndConjunction, ForbiddenInClause, AbstractForbiddenComponent, MultipleValueForbiddenClause
 
@@ -50,7 +50,7 @@ pp_plusorminus = pyparsing.Literal('+') | pyparsing.Literal('-')
 pp_int = pyparsing.Combine(pyparsing.Optional(pp_plusorminus) + pyparsing.Word(pp_digits))
 pp_float = pyparsing.Combine(pyparsing.Optional(pp_plusorminus) + pyparsing.Optional(pp_int) + "." + pp_int)
 pp_eorE = pyparsing.Literal('e') | pyparsing.Literal('E')
-pp_param_type = pyparsing.Word("integer" + "real" + "categorical")
+pp_param_type = pyparsing.Word("integer" + "real" + "categorical" + "ordinal")
 pp_floatorint = pp_float | pp_int
 pp_e_notation = pyparsing.Combine(pp_floatorint + pp_eorE + pp_int)
 pp_number = pp_e_notation | pp_float | pp_int
@@ -58,7 +58,8 @@ pp_numberorname = pp_number | pp_param_name
 pp_log = pyparsing.Word("log")
 pp_connective = pyparsing.Word("||" + "&&")
 pp_choices = pp_param_name + pyparsing.Optional(pyparsing.OneOrMore("," + pp_param_name))
-
+pp_sequence = pp_param_name + pyparsing.Optional(pyparsing.OneOrMore("," + pp_param_name))
+pp_ord_param = pp_param_name + pp_param_type + "{" + pp_sequence + "}" + "[" + pp_param_name + "]"
 pp_cont_param = pp_param_name + pp_param_type + "[" + pp_number + "," + pp_number + "]" + "[" + pp_number + "]" + pyparsing.Optional(pp_log)
 pp_cat_param = pp_param_name + pp_param_type + "{" + pp_choices + "}" + "[" + pp_param_name + "]"
 pp_condition = pp_param_name + "|" + pp_param_name + pp_param_operation + pyparsing.Optional('{') + pp_param_val + pyparsing.Optional('}') + pyparsing.Optional(pp_connective +  pp_param_name + pp_param_operation + pp_param_val)
@@ -72,12 +73,16 @@ def build_categorical(param):
                            ", ".join([str(value) for value in param.choices]),
                            str(param.default))
 
-
 def build_constant(param):
     constant_template = "%s {%s} [%s]"
     return constant_template % (param.name, param.value, param.value)
 
-
+def build_ordinal(param):
+    ordinal_template = '%s ordinal {%s} [%s]'
+    return ordinal_template % (param.name, 
+                               ", ".join([str(value) for value in param.sequence]),
+                                str(param.default))
+                                
 def build_continuous(param):
     if type(param) in (NormalIntegerHyperparameter,
                        NormalFloatHyperparameter):
@@ -103,7 +108,6 @@ def build_continuous(param):
         return float_template % (q_prefix, param.name,  str(param.lower),
                                  str(param.upper), str(default))
 
-# TODO add ordinals
 def build_condition(condition):
     if not isinstance(condition, ConditionComponent):
         raise TypeError("build_condition must be called with an instance of "
@@ -112,6 +116,8 @@ def build_condition(condition):
 
     # Now handle the conditions SMAC can handle
     in_template = "%s | %s in {%s}"
+    less_template = "%s | %s < %s"
+    greater_template = "%s | %s > %s"
     notequal_template = "%s | %s != %s"
     equal_template = "%s | %s == %s"
     if isinstance(condition, NotEqualsCondition):
@@ -126,6 +132,14 @@ def build_condition(condition):
                                      
     elif isinstance(condition, EqualsCondition):
         return equal_template % (condition.child.name,
+                                 condition.parent.name,
+                                 condition.value)
+    elif isinstance(condition, LessThanCondition):
+        return less_template % (condition.child.name,
+                                 condition.parent.name,
+                                 condition.value)
+    elif isinstance(condition, GreaterThanCondition):
+        return greater_template % (condition.child.name,
                                  condition.parent.name,
                                  condition.value)
 
@@ -159,9 +173,11 @@ def read(pcs_string, debug=False):
     ct = 0
     cont_ct = 0
     cat_ct = 0
+    ord_ct = 0
     line_ct = 0
 
     for line in pcs_string:
+        print('line', line)
         line_ct += 1
 
         if "#" in line:
@@ -194,7 +210,8 @@ def read(pcs_string, debug=False):
 
         create = {"int": UniformIntegerHyperparameter,
                   "float": UniformFloatHyperparameter,
-                  "categorical": CategoricalHyperparameter}
+                  "categorical": CategoricalHyperparameter,
+                  "ordinal": OrdinalHyperparameter}
 
         try:
             param_list = pp_cont_param.parseString(line)
@@ -215,13 +232,22 @@ def read(pcs_string, debug=False):
             pass
 
         try:
-            param_list = pp_cat_param.parseString(line)
-            name = param_list[0]
-            choices = [choice for choice in param_list[3:-4:2]]
-            default = param_list[-2]
-            param = create["categorical"](name=name, choices=choices,
-                                          default=default)
-            cat_ct += 1
+            if "categorical" in line:
+                param_list = pp_cat_param.parseString(line)
+                name = param_list[0]
+                choices = [choice for choice in param_list[3:-4:2]]
+                default = param_list[-2]
+                param = create["categorical"](name=name, choices=choices, default=default)
+                cat_ct += 1
+                
+            elif "ordinal" in line:
+                param_list = pp_ord_param.parseString(line)
+                name = param_list[0]
+                sequence = [seq for seq in param_list[3:-4:2]]
+                default = param_list[-2]
+                param = create["ordinal"](name=name, sequence=sequence, default=default)
+                ord_ct += 1
+                
         except pyparsing.ParseException:
             pass
 
@@ -254,92 +280,93 @@ def read(pcs_string, debug=False):
         configuration_space.add_forbidden_clause(ForbiddenAndConjunction(
             *clause_list))
 
-    #Now handle conditions
-    # If there are two conditions for one child, these two conditions are an
-    # AND-conjunction or OR-conjunction of conditions, thus we have to connect them
-    conditions_per_child = OrderedDict()
-    for condition in conditions:
-        print(condition)
-        child_name = condition[0]
-        if child_name not in conditions_per_child:
-            conditions_per_child[child_name] = list()
-        conditions_per_child[child_name].append(condition)
 
-    for child_name in conditions_per_child:
+    conditions_per_child = []
+    for condition in conditions:
+        conditions_per_child.append(condition)
+    for condition in conditions_per_child:
         condition_objects = []
-        for condition in conditions_per_child[child_name]:
-            child = configuration_space.get_hyperparameter(child_name)
-            parent_name = condition[2]
-            parent = configuration_space.get_hyperparameter(parent_name)
-            operation = condition[3]
-            if operation == 'in':
-                restrictions = condition[5:-1:2]
-                condition1 = InCondition(child, parent, values=restrictions)
-                condition_objects.append(condition1)
-                if len(condition) > 7:
-                    connective = condition[7]
-                    parent_name2 = condition[8]
-                    parent2 = configuration_space.get_hyperparameter(parent_name2)
-                    operation2 = condition[9]
-                    print('op2', operation2)
-                    if operation2 == 'in':
-                        restrictions2 = condition[11:-1:2]
-                        condition2 = InCondition(child, parent2, values=restrictions2)
-                    else:
-                        restrictions2 = condition[10]
-                
-                    if operation2 == '==':
-                        condition2 = EqualsCondition(child, parent2, restrictions2)
-                    elif operation2 == '!=':
-                        condition2 = NotEqualsCondition(child, parent2, restrictions2)
-            
-                    condition_objects.append(condition2)
-                else:
-                    continue
-                
-            else:
-                restrictions = condition[4]
-                
-            if operation == '==':
-                condition1 = EqualsCondition(child, parent, restrictions)
-            elif operation == '!=':
-                condition1 = NotEqualsCondition(child, parent, restrictions)
-            
+        child_name = condition[0]
+        child = configuration_space.get_hyperparameter(child_name)
+        parent_name = condition[2]
+        parent = configuration_space.get_hyperparameter(parent_name)
+        operation = condition[3]
+        # in template must be treated differently from the rest
+        if operation == 'in':
+            restrictions = condition[5:-1:2]
+            condition1 = InCondition(child, parent, values=restrictions)
             condition_objects.append(condition1)
-            
-            if len(condition) > 4:
-                connective = condition[5]
-                parent_name2 = condition[6]
+            if len(condition) > 7:
+                connective = condition[7]
+                parent_name2 = condition[8]
                 parent2 = configuration_space.get_hyperparameter(parent_name2)
-                operation2 = condition[7]
+                operation2 = condition[9]
                 if operation2 == 'in':
-                    restrictions2 = condition[9:-1:2]
+                    restrictions2 = condition[11:-1:2]
                     condition2 = InCondition(child, parent2, values=restrictions2)
                 else:
-                    restrictions2 = condition[8]
-                    
+                    restrictions2 = condition[10]
+            
                 if operation2 == '==':
                     condition2 = EqualsCondition(child, parent2, restrictions2)
                 elif operation2 == '!=':
                     condition2 = NotEqualsCondition(child, parent2, restrictions2)
-            
+                elif operation2 == '<':
+                    condition2 = LessThanCondition(child, parent2, restrictions2)
+                elif operation2 == '>':
+                    condition2 = GreaterThanCondition(child, parent2, restrictions2)
+        
                 condition_objects.append(condition2)
             else:
                 continue
-
-        # Now we have all condition objects for this child, so we can build a
-        #  giant AND-conjunction of them (if number of conditions >= 2)!
+            
+        else:
+            restrictions = condition[4]
+            
+        if operation == '==':
+            condition1 = EqualsCondition(child, parent, restrictions)
+        elif operation == '!=':
+            condition1 = NotEqualsCondition(child, parent, restrictions)
+        elif operation == '<':
+            condition1 = LessThanCondition(child, parent, restrictions)
+        elif operation == '>':
+            condition1 = GreaterThanCondition(child, parent, restrictions)
         
+        condition_objects.append(condition1)
+        
+        if len(condition) > 4:
+            connective = condition[5]
+            parent_name2 = condition[6]
+            parent2 = configuration_space.get_hyperparameter(parent_name2)
+            operation2 = condition[7]
+            if operation2 == 'in':
+                restrictions2 = condition[9:-1:2]
+                condition2 = InCondition(child, parent2, values=restrictions2)
+            else:
+                restrictions2 = condition[8]
+                
+            if operation2 == '==':
+                condition2 = EqualsCondition(child, parent2, restrictions2)
+            elif operation2 == '!=':
+                condition2 = NotEqualsCondition(child, parent2, restrictions2)
+            elif operation2 == '<':
+                condition2 = LessThanCondition(child, parent2, restrictions2)
+            elif operation2 == '>':
+                condition2 = GreaterThanCondition(child, parent2, restrictions2)
+        
+            condition_objects.append(condition2)
+        else:
+            continue
         if len(condition_objects) > 1:
             if connective == '&&':
                 and_conjunction = AndConjunction(*condition_objects)
                 configuration_space.add_condition(and_conjunction)
-            else:
+            elif connective == '||':
                 or_conjunction = OrConjunction(*condition_objects)
                 configuration_space.add_condition(or_conjunction)
         else:
             configuration_space.add_condition(condition_objects[0])
-    print(configuration_space)
+            
     return configuration_space
     
 def write(configuration_space):
@@ -368,6 +395,8 @@ def write(configuration_space):
             param_lines.write(build_categorical(hyperparameter))
         elif isinstance(hyperparameter, Constant):
             param_lines.write(build_constant(hyperparameter))
+        elif isinstance(hyperparameter, OrdinalHyperparameter):
+            param_lines.write(build_ordinal(hyperparameter))
         else:
             raise TypeError("Unknown type: %s (%s)" % (
                 type(hyperparameter), hyperparameter))

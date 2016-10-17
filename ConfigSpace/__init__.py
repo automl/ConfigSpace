@@ -34,8 +34,8 @@ from ConfigSpace.configuration_space import Configuration, \
     ConfigurationSpace
 from ConfigSpace.hyperparameters import CategoricalHyperparameter, \
     UniformFloatHyperparameter, UniformIntegerHyperparameter, Constant, \
-    UnParametrizedHyperparameter
+    UnParametrizedHyperparameter, OrdinalHyperparameter
 from ConfigSpace.conditions import AndConjunction, OrConjunction, \
-    EqualsCondition, NotEqualsCondition, InCondition
+    EqualsCondition, NotEqualsCondition, InCondition, GreaterThanCondition, LessThanCondition
 from ConfigSpace.forbidden import ForbiddenAndConjunction, \
     ForbiddenEqualsClause, ForbiddenInClause

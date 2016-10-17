@@ -181,11 +181,13 @@ class AbstractConjunction(ConditionComponent):
 class EqualsCondition(AbstractCondition):
     def __init__(self, child, parent, value):
         super(EqualsCondition, self).__init__(child, parent)
+        '''
         if not parent.is_legal(value):
             raise ValueError("Hyperparameter '%s' is "
                              "conditional on the illegal value '%s' of "
                              "its parent hyperparameter '%s'" %
                              (child.name, value, parent.name))
+        '''
         self.value = value
 
     def __repr__(self):
@@ -199,11 +201,14 @@ class EqualsCondition(AbstractCondition):
 class NotEqualsCondition(AbstractCondition):
     def __init__(self, child, parent, value):
         super(NotEqualsCondition, self).__init__(child, parent)
+        '''
         if not parent.is_legal(value):
             raise ValueError("Hyperparameter '%s' is "
                              "conditional on the illegal value '%s' of "
                              "its parent hyperparameter '%s'" %
                              (child.name, value, parent.name))
+                             
+        '''
         self.value = value
 
     def __repr__(self):
@@ -212,7 +217,42 @@ class NotEqualsCondition(AbstractCondition):
 
     def _evaluate(self, value):
         return value != self.value
-
+        
+class LessThanCondition(AbstractCondition):
+    def __init__(self, child, parent, value):
+        super(LessThanCondition, self).__init__(child, parent)
+        '''
+        if not parent.is_legal(value):
+            raise ValueError("Hyperparameter '%s' is "
+                             "conditional on the illegal value '%s' of "
+                             "its parent hyperparameter '%s'" %
+                             (child.name, value, parent.name))
+        '''
+        self.value = value
+        
+    def __repr__(self):
+        return "%s | %s < %s" % (self.child.name, self.parent.name,
+                                  repr(self.value))
+    def _evaluate(self, value):
+        return value < self.value
+    
+class GreaterThanCondition(AbstractCondition):
+    def __init__(self, child, parent, value):
+        super(GreaterThanCondition, self).__init__(child, parent)
+        '''
+        if not parent.is_legal(value):
+            raise ValueError("Hyperparameter '%s' is "
+                             "conditional on the illegal value '%s' of "
+                             "its parent hyperparameter '%s'" %
+                             (child.name, value, parent.name))
+        '''
+        self.value = value
+        
+    def __repr__(self):
+        return "%s | %s > %s" % (self.child.name, self.parent.name,
+                                  repr(self.value))
+    def _evaluate(self, value):
+        return value > self.value
 
 class InCondition(AbstractCondition):
     def __init__(self, child, parent, values):
