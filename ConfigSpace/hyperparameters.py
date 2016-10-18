@@ -29,6 +29,8 @@
 from abc import ABCMeta, abstractmethod
 import warnings
 
+from collections import OrderedDict
+
 import numpy as np
 import six
 
@@ -729,6 +731,12 @@ class OrdinalHyperparameter(Hyperparameter):
         self.sequence= sequence
         self._num_elements = len(sequence)
         self.default = self.check_default(default)
+        
+        self.value_dict = OrderedDict()
+        counter = 1
+        for element in self.sequence:
+            self.value_dict[element] = counter
+            counter += 1
 
     def __repr__(self):
         repr_str = six.StringIO()
@@ -756,6 +764,22 @@ class OrdinalHyperparameter(Hyperparameter):
             return default
         else:
             raise ValueError("Illegal default value %s" % str(default))
+            
+    def get_seq_order(self):
+        return np.arange(1,self._num_elements+1)
+        
+    def get_order(self, value):
+        return self.value_dict[value]
+        
+    def get_value(self, idx):
+        return list(self.value_dict.keys())[list(self.value_dict.values()).index(idx)]
+            
+    def check_order(self,value):
+        idx = self.get_order(value)
+        if idx < self.sequence[idx+1]:
+            return True
+        else:
+            return False
 
     def _sample(self, rs, size=None):
         return rs.randint(0, self._num_elements, size=size)
