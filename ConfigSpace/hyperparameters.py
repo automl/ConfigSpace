@@ -774,9 +774,10 @@ class OrdinalHyperparameter(Hyperparameter):
     def get_value(self, idx):
         return list(self.value_dict.keys())[list(self.value_dict.values()).index(idx)]
             
-    def check_order(self,value):
-        idx = self.get_order(value)
-        if idx < self.sequence[idx+1]:
+    def check_order(self,val1, val2):
+        idx1 = self.get_order(val1)
+        idx2 = self.get_order(val2)
+        if idx1 < idx2:
             return True
         else:
             return False

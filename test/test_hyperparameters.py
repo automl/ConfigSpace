@@ -35,7 +35,7 @@ import numpy as np
 from ConfigSpace.hyperparameters import Constant, \
     UniformFloatHyperparameter, NormalFloatHyperparameter, \
     UniformIntegerHyperparameter, NormalIntegerHyperparameter, \
-    CategoricalHyperparameter
+    CategoricalHyperparameter, OrdinalHyperparameter
 
 
 class TestHyperparameters(unittest.TestCase):
@@ -551,6 +551,57 @@ class TestHyperparameters(unittest.TestCase):
 
             self.assertEqual(
                 {0: 2456, 2: 2485, 'Bla': 2550, u'Blub': 2509},
+                dict(counts_per_bin.items()))
+            return counts_per_bin
+
+        self.assertEqual(actual_test(), actual_test())
+    
+    def test_ordinal_is_legal(self):
+        f1 = OrdinalHyperparameter("temp", 
+                                   ["freezing", "cold", "warm", "hot"])
+        self.assertTrue(f1.is_legal("warm"))
+        self.assertTrue(f1.is_legal(u"freezing"))
+        self.assertFalse(f1.is_legal("chill"))
+        self.assertFalse(f1.is_legal(2.5))
+        self.assertFalse(f1.is_legal("3"))
+        
+    def test_ordinal_check_order(self):
+        f1 = OrdinalHyperparameter("temp", 
+                                   ["freezing", "cold", "warm", "hot"])
+        self.assertTrue(f1.check_order("freezing", "cold"))
+        self.assertTrue(f1.check_order("freezing", "hot"))
+        self.assertFalse(f1.check_order("hot", "cold"))
+        self.assertFalse(f1.check_order("hot", "warm"))
+        
+    def test_ordinal_get_value(self):
+        f1 = OrdinalHyperparameter("temp", 
+                                   ["freezing", "cold", "warm", "hot"])
+        self.assertEqual(f1.get_value(3), "warm")
+        self.assertNotEqual(f1.get_value(1), "warm")
+        
+    def test_ordinal_get_order(self):
+        f1 = OrdinalHyperparameter("temp", 
+                                   ["freezing", "cold", "warm", "hot"])
+        self.assertEqual(f1.get_order("warm"),3)
+        self.assertNotEqual(f1.get_order("freezing"), 4)
+    
+    def test_ordinal_get_seq_order(self):
+        f1 = OrdinalHyperparameter("temp", 
+                                   ["freezing", "cold", "warm", "hot"])
+        self.assertEqual(tuple(f1.get_seq_order()), tuple([1,2,3,4]))
+    
+    def test_sample_ordinal(self):
+        hp = OrdinalHyperparameter("alphabet", [0, 2, "a", u"B"])
+
+        def actual_test():
+            rs = np.random.RandomState(1)
+            counts_per_bin = defaultdict(int)
+            for i in range(10000):
+                value = hp.sample(rs)
+                counts_per_bin[value] += 1
+
+            self.assertEqual(
+                {0: 2456, 2: 2485, 'a': 2550, u'B': 2509},
                 dict(counts_per_bin.items()))
             return counts_per_bin
 
