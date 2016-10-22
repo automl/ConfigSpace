@@ -727,6 +727,11 @@ class CategoricalHyperparameter(Hyperparameter):
         
 class OrdinalHyperparameter(Hyperparameter):
     def __init__(self, name, sequence, default=None):
+        """
+        since the sequence can consist of elements from different types we
+        store them into a dictionary in order to handle them as a
+        numeric sequence according to their order/position.
+        """
         super(OrdinalHyperparameter, self).__init__(name)
         self.sequence= sequence
         self._num_elements = len(sequence)
@@ -738,7 +743,10 @@ class OrdinalHyperparameter(Hyperparameter):
             self.value_dict[element] = counter
             counter += 1
 
-    def __repr__(self):
+    def __repr__(self):        
+        """
+        writes out the parameter definition
+        """
         repr_str = six.StringIO()
         repr_str.write("%s, Type: Ordinal, Sequence: {" % (self.name))
         for idx, seq in enumerate(self.sequence):
@@ -752,12 +760,20 @@ class OrdinalHyperparameter(Hyperparameter):
         return repr_str.getvalue()
 
     def is_legal(self, value):
+        """
+        checks if a certain value is represented in the sequence
+        """
         if value in self.sequence:
             return True
         else:
             return False
 
     def check_default(self, default):
+        """
+        checks if given default value is represented in the sequence.
+        If there's no default value we simply choose the 
+        first element in our sequence as default.
+        """
         if default is None:
             return self.sequence[0]
         elif self.is_legal(default):
@@ -766,15 +782,28 @@ class OrdinalHyperparameter(Hyperparameter):
             raise ValueError("Illegal default value %s" % str(default))
             
     def get_seq_order(self):
+        """
+        returns the ordinal sequence as numeric sequence 
+        (according to the the ordering) from 1 to length of our sequence.
+        """
         return np.arange(1,self._num_elements+1)
         
     def get_order(self, value):
+        """
+        returns the seuence position/order of a certain value from the sequence
+        """
         return self.value_dict[value]
         
     def get_value(self, idx):
+        """
+        returns the sequence value of a given order/position
+        """
         return list(self.value_dict.keys())[list(self.value_dict.values()).index(idx)]
             
     def check_order(self,val1, val2):
+        """
+        checks whether value1 is smaller than value2.
+        """
         idx1 = self.get_order(val1)
         idx2 = self.get_order(val2)
         if idx1 < idx2:
@@ -783,30 +812,49 @@ class OrdinalHyperparameter(Hyperparameter):
             return False
 
     def _sample(self, rs, size=None):
+        """
+        returns a random sample from our sequence as order/position index
+        """
         return rs.randint(0, self._num_elements, size=size)
 
     def _transform(self, vector):
+        """
+        transforms elements of sequence into given vector with indices
+        """
         if vector != vector:
             return None
         if np.equal(np.mod(vector, 1), 0):
             return self.sequence[int(vector)]
         else:
-            raise ValueError('Can only index the choices of the ordinal '
+            raise ValueError('Can only index the elements of the ordinal '
                              'hyperparameter %s with an integer, but provided '
                              'the following float: %f' % (self, vector))
 
     def _inverse_transform(self, vector):
+        """
+        makes an inverse transformation
+        """
         if vector is None:
             return np.NaN
         return self.sequence.index(vector)
 
     def has_neighbors(self):
+        """
+        checks if there are neighbors or we're only dealing with an 
+        one-element sequence
+        """
         return len(self.sequence) > 1
 
     def get_num_neighbors(self):
+        """
+        returns the number of existing neighbors in the sequence
+        """
         return len(self.sequence) - 1
 
     def get_neighbors(self, value, rs, number=np.inf, transform=False):
+        """
+        returns the neighbors of a given value
+        """
         neighbors = []
         if number < len(self.sequence):
             while len(neighbors) < number:
