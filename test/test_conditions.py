@@ -32,9 +32,10 @@ import warnings
 from ConfigSpace.hyperparameters import Constant, \
     UniformFloatHyperparameter, NormalFloatHyperparameter, \
     UniformIntegerHyperparameter, NormalIntegerHyperparameter, \
-    CategoricalHyperparameter
+    CategoricalHyperparameter, OrdinalHyperparameter
 from ConfigSpace.conditions import EqualsCondition, NotEqualsCondition,\
-    InCondition, AndConjunction, OrConjunction
+    InCondition, AndConjunction, OrConjunction, LessThanCondition,\
+    GreaterThanCondition
 
 class TestConditions(unittest.TestCase):
     # TODO: return only copies of the objects!
@@ -253,6 +254,27 @@ class TestConditions(unittest.TestCase):
         # All conjunctions inherit get_parents from abstractconjunction
         conjunction = AndConjunction(condition, condition2)
         self.assertEqual([_1_S_countercond, _1_0_restarts], conjunction.get_parents())
+    
+    def test_less_than_condition(self):
+        child = OrdinalHyperparameter('gloves', ['none', 'yarn', 'leather', 'gortex'])
+        parent = UniformFloatHyperparameter('temperature', -273.15, 100, log=False)
+        cond = LessThanCondition(child, parent, 5)
+        cond_ = LessThanCondition(child, parent, 5)
 
-
-
+        self.assertEqual(cond, cond_)
+        cond_reverse = LessThanCondition(parent, child, 5)
+        self.assertNotEqual(cond, cond_reverse)
+        self.assertNotEqual(cond, dict())
+        self.assertEqual("gloves | temperature < 5", str(cond))
+        
+    def test_greater_than_condition(self):
+        child = OrdinalHyperparameter('gloves', ['none', 'yarn', 'leather', 'gortex'])
+        parent = UniformFloatHyperparameter('rain', 0, 200, log=False)        
+        cond = GreaterThanCondition(child, parent, 0)
+        cond_ = GreaterThanCondition(child, parent, 0)
+        
+        self.assertEqual(cond, cond_)
+        cond_reverse = LessThanCondition(parent, child, 0)
+        self.assertNotEqual(cond, cond_reverse)
+        self.assertNotEqual(cond, dict())
+        self.assertEqual("gloves | rain > 0", str(cond))
