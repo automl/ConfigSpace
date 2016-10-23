@@ -21,7 +21,6 @@
 __authors__ = ["Katharina Eggensperger", "Matthias Feurer"]
 __contact__ = "automl.org"
 
-from collections import OrderedDict
 from itertools import product
 import sys
 
@@ -290,7 +289,10 @@ def read(pcs_string, debug=False):
         # in template must be treated differently from the rest
         if operation == 'in':
             restrictions = condition[5:-1:2]
-            condition1 = InCondition(child, parent, values=restrictions)
+            if len(restrictions) == 1:
+                condition1 = EqualsCondition(child, parent, restrictions[0])
+            else:
+                condition1 = InCondition(child, parent, values=restrictions)
             condition_objects.append(condition1)
             if (len(condition) - len(restrictions)) > 7:
                 connective = condition[7]
@@ -337,7 +339,12 @@ def read(pcs_string, debug=False):
                 operation2 = condition[7]
                 if operation2 == 'in':
                     restrictions2 = condition[9:-1:2]
-                    condition2 = InCondition(child, parent2, values=restrictions2)
+                    if len(restrictions) == 1:
+                        condition2 = EqualsCondition(child, parent2, restrictions2[0])
+                    else:
+                        condition2 = InCondition(child, parent2, values=restrictions2)
+                    condition_objects.append(condition2)
+                    
                 else:
                     restrictions2 = condition[8]
                 
