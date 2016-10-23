@@ -285,12 +285,10 @@ class AndConjunction(AbstractConjunction):
 
     def __repr__(self):
         retval = six.StringIO()
-        retval.write("(")
         for idx, component in enumerate(self.components):
             retval.write(str(component))
             if idx < len(self.components) - 1:
                 retval.write(" && ")
-        retval.write(")")
         return retval.getvalue()
 
     def _evaluate(self, evaluations):
@@ -306,12 +304,10 @@ class OrConjunction(AbstractConjunction):
 
     def __repr__(self):
         retval = six.StringIO()
-        retval.write("(")
         for idx, component in enumerate(self.components):
             retval.write(str(component))
             if idx < len(self.components) - 1:
                 retval.write(" || ")
-        retval.write(")")
         return retval.getvalue()
 
     def _evaluate(self, evaluations):

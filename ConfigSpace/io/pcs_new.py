@@ -118,7 +118,7 @@ def build_condition(condition):
     less_template = "%s | %s < %s"
     greater_template = "%s | %s > %s"
     notequal_template = "%s | %s != %s"
-    equal_template = "%s | %s == %s"
+    equal_template = "%s | %s == %s"    
     if isinstance(condition, NotEqualsCondition):
         return notequal_template % (condition.child.name,
                                     condition.parent.name,
@@ -141,7 +141,6 @@ def build_condition(condition):
         return greater_template % (condition.child.name,
                                  condition.parent.name,
                                  condition.value)
-
 
 def build_forbidden(clause):
     if not isinstance(clause, AbstractForbiddenComponent):
@@ -358,8 +357,6 @@ def read(pcs_string, debug=False):
                     condition2 = GreaterThanCondition(child, parent2, restrictions2)
         
                 condition_objects.append(condition2)
-            else:
-                pass
             
         if len(condition_objects) > 1:
             if connective == '&&':
@@ -370,7 +367,6 @@ def read(pcs_string, debug=False):
                 configuration_space.add_condition(or_conjunction)
         else:
             configuration_space.add_condition(condition_objects[0])
-      
     return configuration_space
     
 def write(configuration_space):
@@ -406,9 +402,16 @@ def write(configuration_space):
                 type(hyperparameter), hyperparameter))
 
     for condition in configuration_space.get_conditions():
-        if condition_lines.tell() > 0:
+        if isinstance(condition, AndConjunction) or isinstance(condition, OrConjunction):
+            vals = condition.__repr__()
             condition_lines.write("\n")
-        condition_lines.write(build_condition(condition))
+            condition_lines.write(vals)
+            
+        else:
+            if condition_lines.tell() > 0:
+                condition_lines.write("\n")
+            condition_lines.write(build_condition(condition))
+
 
     for forbidden_clause in configuration_space.forbidden_clauses:
         # Convert in-statement into two or more equals statements
