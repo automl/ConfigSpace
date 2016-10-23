@@ -45,7 +45,7 @@ pp_param_name = pyparsing.Word(pyparsing.alphanums + "_" + "-" + "@" + "." + ":"
                                "$" + "%" + "&" + "*" + "+" + "<" + ">")
 pp_param_operation = pyparsing.Word("in" + "!=" + "==" + ">" + "<")
 pp_digits = "0123456789"
-pp_param_val = pyparsing.Word(pyparsing.alphanums + pp_digits)
+pp_param_val = pp_param_name + pyparsing.Optional(pyparsing.OneOrMore("," + pp_param_name))
 pp_plusorminus = pyparsing.Literal('+') | pyparsing.Literal('-')
 pp_int = pyparsing.Combine(pyparsing.Optional(pp_plusorminus) + pyparsing.Word(pp_digits))
 pp_float = pyparsing.Combine(pyparsing.Optional(pp_plusorminus) + pyparsing.Optional(pp_int) + "." + pp_int)
@@ -177,7 +177,6 @@ def read(pcs_string, debug=False):
     line_ct = 0
 
     for line in pcs_string:
-        print('line', line)
         line_ct += 1
 
         if "#" in line:
@@ -188,7 +187,6 @@ def read(pcs_string, debug=False):
         # Remove quotes and whitespaces at beginning and end
         line = line.replace('"', "").replace("'", "")
         line = line.strip()
-
         if "|" in line:
             # It's a condition
             try:
@@ -257,9 +255,6 @@ def read(pcs_string, debug=False):
         configuration_space.add_hyperparameter(param)
 
     for clause in forbidden:
-        # TODO test this properly!
-        # TODO Add a try/catch here!
-        # noinspection PyUnusedLocal
         param_list = pp_forbidden_clause.parseString(clause)
         tmp_list = []
         clause_list = []
@@ -268,7 +263,8 @@ def read(pcs_string, debug=False):
                 tmp_list.append(value)
             else:
                 # So far, only equals is supported by SMAC
-                if tmp_list[1] == '=':
+                legal = ['=', '>', '<']
+                if tmp_list[1] in legal:
                     # TODO maybe add a check if the hyperparameter is
                     # actually in the configuration space
                     clause_list.append(ForbiddenEqualsClause(
@@ -296,7 +292,7 @@ def read(pcs_string, debug=False):
             restrictions = condition[5:-1:2]
             condition1 = InCondition(child, parent, values=restrictions)
             condition_objects.append(condition1)
-            if len(condition) > 7:
+            if (len(condition) - len(restrictions)) > 7:
                 connective = condition[7]
                 parent_name2 = condition[8]
                 parent2 = configuration_space.get_hyperparameter(parent_name2)
@@ -318,45 +314,46 @@ def read(pcs_string, debug=False):
         
                 condition_objects.append(condition2)
             else:
-                continue
+                pass
             
         else:
             restrictions = condition[4]
             
-        if operation == '==':
-            condition1 = EqualsCondition(child, parent, restrictions)
-        elif operation == '!=':
-            condition1 = NotEqualsCondition(child, parent, restrictions)
-        elif operation == '<':
-            condition1 = LessThanCondition(child, parent, restrictions)
-        elif operation == '>':
-            condition1 = GreaterThanCondition(child, parent, restrictions)
+            if operation == '==':
+                condition1 = EqualsCondition(child, parent, restrictions)
+            elif operation == '!=':
+                condition1 = NotEqualsCondition(child, parent, restrictions)
+            elif operation == '<':
+                condition1 = LessThanCondition(child, parent, restrictions)
+            elif operation == '>':
+                condition1 = GreaterThanCondition(child, parent, restrictions)
         
-        condition_objects.append(condition1)
+            condition_objects.append(condition1)
         
-        if len(condition) > 4:
-            connective = condition[5]
-            parent_name2 = condition[6]
-            parent2 = configuration_space.get_hyperparameter(parent_name2)
-            operation2 = condition[7]
-            if operation2 == 'in':
-                restrictions2 = condition[9:-1:2]
-                condition2 = InCondition(child, parent2, values=restrictions2)
-            else:
-                restrictions2 = condition[8]
+            if len(condition) > 4:
+                connective = condition[5]
+                parent_name2 = condition[6]
+                parent2 = configuration_space.get_hyperparameter(parent_name2)
+                operation2 = condition[7]
+                if operation2 == 'in':
+                    restrictions2 = condition[9:-1:2]
+                    condition2 = InCondition(child, parent2, values=restrictions2)
+                else:
+                    restrictions2 = condition[8]
                 
-            if operation2 == '==':
-                condition2 = EqualsCondition(child, parent2, restrictions2)
-            elif operation2 == '!=':
-                condition2 = NotEqualsCondition(child, parent2, restrictions2)
-            elif operation2 == '<':
-                condition2 = LessThanCondition(child, parent2, restrictions2)
-            elif operation2 == '>':
-                condition2 = GreaterThanCondition(child, parent2, restrictions2)
+                if operation2 == '==':
+                    condition2 = EqualsCondition(child, parent2, restrictions2)
+                elif operation2 == '!=':
+                    condition2 = NotEqualsCondition(child, parent2, restrictions2)
+                elif operation2 == '<':
+                    condition2 = LessThanCondition(child, parent2, restrictions2)
+                elif operation2 == '>':
+                    condition2 = GreaterThanCondition(child, parent2, restrictions2)
         
-            condition_objects.append(condition2)
-        else:
-            continue
+                condition_objects.append(condition2)
+            else:
+                pass
+            
         if len(condition_objects) > 1:
             if connective == '&&':
                 and_conjunction = AndConjunction(*condition_objects)
@@ -366,7 +363,7 @@ def read(pcs_string, debug=False):
                 configuration_space.add_condition(or_conjunction)
         else:
             configuration_space.add_condition(condition_objects[0])
-            
+      
     return configuration_space
     
 def write(configuration_space):
@@ -464,5 +461,5 @@ if __name__ == "__main__":
     diff = ["%s\n" % i for i in created_pcs if i not in " ".join(orig_pcs)]
     print("Identical Lines: ", len(created_pcs) - len(diff))
     print()
-    print("Up to 10 random different lines (of %d):" % len(orig_pcs))
-    print("".join(orig_pcs[:10]))
+    print("Up to 10 random different lines (of %d):" % len(diff))
+    print("".join(diff[:10]))
