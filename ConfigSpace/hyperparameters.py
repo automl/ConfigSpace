@@ -198,6 +198,12 @@ class UniformMixin(object):
     def is_legal(self, value):
         if not super(UniformMixin, self).is_legal(value):
             return False
+        elif self.log:
+            # compute legality in log space due to rounding errors
+            if np.log(self.upper) >= np.log(value) >= np.log(self.lower):
+                return True
+            else:
+                return False
         # Strange numerical issues!
         elif self.upper >= value >= (self.lower - 0.0000000001):
             return True
