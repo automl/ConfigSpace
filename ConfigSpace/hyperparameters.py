@@ -200,7 +200,7 @@ class UniformMixin(object):
             return False
         elif self.log:
             # compute legality in log space due to rounding errors
-            if np.log(self.upper) >= np.log(value) >= np.log(self.lower):
+            if self._upper >= np.log(value) >= self._lower:
                 return True
             else:
                 return False
@@ -249,9 +249,6 @@ class UniformFloatHyperparameter(UniformMixin, FloatHyperparameter):
                              "hyperparameter %s is forbidden." %
                              (self.lower, name))
 
-        super(UniformFloatHyperparameter, self). \
-            __init__(name, self.check_default(default))
-
         if self.log:
             if self.q is not None:
                 lower = self.lower - (np.float64(self.q) / 2. - 0.0001)
@@ -268,6 +265,9 @@ class UniformFloatHyperparameter(UniformMixin, FloatHyperparameter):
             else:
                 self._lower = self.lower
                 self._upper = self.upper
+
+        super(UniformFloatHyperparameter, self). \
+            __init__(name, self.check_default(default))
 
     def __repr__(self):
         repr_str = six.StringIO()
