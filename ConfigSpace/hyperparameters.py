@@ -435,6 +435,10 @@ class UniformIntegerHyperparameter(UniformMixin, IntegerHyperparameter):
             self.q = None
         self.log = bool(log)
 
+        if self.log:
+            self._lower = np.log(lower)
+            self._upper = np.log(upper)
+
         if self.lower >= self.upper:
             raise ValueError("Upper bound %d must be larger than lower bound "
                              "%d for hyperparameter %s" %
