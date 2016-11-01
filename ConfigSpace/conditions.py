@@ -181,13 +181,11 @@ class AbstractConjunction(ConditionComponent):
 class EqualsCondition(AbstractCondition):
     def __init__(self, child, parent, value):
         super(EqualsCondition, self).__init__(child, parent)
-        '''
         if not parent.is_legal(value):
             raise ValueError("Hyperparameter '%s' is "
                              "conditional on the illegal value '%s' of "
                              "its parent hyperparameter '%s'" %
                              (child.name, value, parent.name))
-        '''
         self.value = value
 
     def __repr__(self):
@@ -201,14 +199,11 @@ class EqualsCondition(AbstractCondition):
 class NotEqualsCondition(AbstractCondition):
     def __init__(self, child, parent, value):
         super(NotEqualsCondition, self).__init__(child, parent)
-        '''
         if not parent.is_legal(value):
             raise ValueError("Hyperparameter '%s' is "
                              "conditional on the illegal value '%s' of "
                              "its parent hyperparameter '%s'" %
                              (child.name, value, parent.name))
-                             
-        '''
         self.value = value
 
     def __repr__(self):
@@ -221,13 +216,11 @@ class NotEqualsCondition(AbstractCondition):
 class LessThanCondition(AbstractCondition):
     def __init__(self, child, parent, value):
         super(LessThanCondition, self).__init__(child, parent)
-        '''
         if not parent.is_legal(value):
             raise ValueError("Hyperparameter '%s' is "
                              "conditional on the illegal value '%s' of "
                              "its parent hyperparameter '%s'" %
                              (child.name, value, parent.name))
-        '''
         self.value = value
         
     def __repr__(self):
@@ -239,13 +232,11 @@ class LessThanCondition(AbstractCondition):
 class GreaterThanCondition(AbstractCondition):
     def __init__(self, child, parent, value):
         super(GreaterThanCondition, self).__init__(child, parent)
-        '''
         if not parent.is_legal(value):
             raise ValueError("Hyperparameter '%s' is "
                              "conditional on the illegal value '%s' of "
                              "its parent hyperparameter '%s'" %
                              (child.name, value, parent.name))
-        '''
         self.value = value
         
     def __repr__(self):
@@ -285,10 +276,12 @@ class AndConjunction(AbstractConjunction):
 
     def __repr__(self):
         retval = six.StringIO()
+        retval.write("(")
         for idx, component in enumerate(self.components):
             retval.write(str(component))
             if idx < len(self.components) - 1:
                 retval.write(" && ")
+        retval.write(")")
         return retval.getvalue()
 
     def _evaluate(self, evaluations):
@@ -304,10 +297,12 @@ class OrConjunction(AbstractConjunction):
 
     def __repr__(self):
         retval = six.StringIO()
+        retval.write("(")
         for idx, component in enumerate(self.components):
             retval.write(str(component))
             if idx < len(self.components) - 1:
                 retval.write(" || ")
+        retval.write(")")
         return retval.getvalue()
 
     def _evaluate(self, evaluations):

@@ -590,19 +590,11 @@ class TestHyperparameters(unittest.TestCase):
                                    ["freezing", "cold", "warm", "hot"])
         self.assertEqual(tuple(f1.get_seq_order()), tuple([1,2,3,4]))
     
-    def test_sample_ordinal(self):
-        hp = OrdinalHyperparameter("alphabet", [0, 2, "a", u"B"])
-
-        def actual_test():
-            rs = np.random.RandomState(1)
-            counts_per_bin = defaultdict(int)
-            for i in range(10000):
-                value = hp.sample(rs)
-                counts_per_bin[value] += 1
-
-            self.assertEqual(
-                {0: 2456, 2: 2485, 'a': 2550, u'B': 2509},
-                dict(counts_per_bin.items()))
-            return counts_per_bin
-
-        self.assertEqual(actual_test(), actual_test())
+    def test_ordinal_get_neighbors(self):
+        f1 = OrdinalHyperparameter("temp", 
+                                   ["freezing", "cold", "warm", "hot"])
+        self.assertEqual(f1.get_neighbors("freezing"), [2])     
+        self.assertEqual(f1.get_neighbors("cold", transform =True), ["freezing", "warm"])
+        self.assertEqual(f1.get_neighbors("hot"), [3])
+        self.assertEqual(f1.get_neighbors("hot", transform =True), ["warm"])
+        

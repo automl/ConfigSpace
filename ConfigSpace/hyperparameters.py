@@ -817,27 +817,6 @@ class OrdinalHyperparameter(Hyperparameter):
         """
         return rs.randint(0, self._num_elements, size=size)
 
-    def _transform(self, vector):
-        """
-        transforms elements of sequence into given vector with indices
-        """
-        if vector != vector:
-            return None
-        if np.equal(np.mod(vector, 1), 0):
-            return self.sequence[int(vector)]
-        else:
-            raise ValueError('Can only index the elements of the ordinal '
-                             'hyperparameter %s with an integer, but provided '
-                             'the following float: %f' % (self, vector))
-
-    def _inverse_transform(self, vector):
-        """
-        makes an inverse transformation
-        """
-        if vector is None:
-            return np.NaN
-        return self.sequence.index(vector)
-
     def has_neighbors(self):
         """
         checks if there are neighbors or we're only dealing with an 
@@ -851,40 +830,30 @@ class OrdinalHyperparameter(Hyperparameter):
         """
         return len(self.sequence) - 1
 
-    def get_neighbors(self, value, rs, number=np.inf, transform=False):
+    def get_neighbors(self, value, number=2, transform = False):
         """
-        returns the neighbors of a given value
+        Returns the neighbors of a given value.
         """
         neighbors = []
         if number < len(self.sequence):
-            while len(neighbors) < number:
-                rejected = True
-                index = int(value)
-                while rejected:
-                    neighbor_idx = rs.randint(0, self._num_elements)
-                    if neighbor_idx != index:
-                        rejected = False
-
-                if transform:
-                    candidate = self._transform(neighbor_idx)
-                else:
-                    candidate = float(neighbor_idx)
-
-                if candidate in neighbors:
-                    continue
-                else:
-                    neighbors.append(candidate)
-        else:
-            for candidate_idx, candidate_value in enumerate(self.sequence):
-                if int(value) == candidate_idx:
-                    continue
-                else:
-                    if transform:
-                        candidate = self._transform(candidate_idx)
-                    else:
-                        candidate = float(candidate_idx)
-
-                    neighbors.append(candidate)
+            index = self.get_order(value)
+            neighbor_idx1 = index -1
+            neighbor_idx2 = index + 1
+            seq = self.get_seq_order()
+            if transform:
+                if neighbor_idx1 >= seq[0]:
+                    candidate1 = self.get_value(neighbor_idx1)
+                    if self.check_order(candidate1, value):
+                        neighbors.append(candidate1)
+                if neighbor_idx2 <= self._num_elements:
+                    candidate2 = self.get_value(neighbor_idx2)     
+                    if self.check_order(value, candidate2):
+                        neighbors.append(candidate2)
+            else:
+                if neighbor_idx1 < index and neighbor_idx1 >= seq[0]:
+                    neighbors.append(neighbor_idx1)
+                if neighbor_idx2 > index and neighbor_idx2 <= self._num_elements:
+                    neighbors.append(neighbor_idx2)
 
         return neighbors
 
