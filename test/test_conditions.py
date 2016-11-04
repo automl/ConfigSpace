@@ -254,3 +254,4 @@ class TestConditions(unittest.TestCase):
         # All conjunctions inherit get_parents from abstractconjunction
         conjunction = AndConjunction(condition, condition2)
         self.assertEqual([_1_S_countercond, _1_0_restarts], conjunction.get_parents())
+        

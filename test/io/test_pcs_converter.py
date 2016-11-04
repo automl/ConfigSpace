@@ -337,3 +337,4 @@ class TestPCSConverter(unittest.TestCase):
         cs.add_forbidden_clause(fb)
         value = pcs_new.write(cs)
         self.assertIn(expected, value)
+        

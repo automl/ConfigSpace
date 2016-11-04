@@ -840,7 +840,10 @@ class OrdinalHyperparameter(Hyperparameter):
         """
         returns the number of existing neighbors in the sequence
         """
-        return len(self.sequence) - 1
+        if len(self.sequence) < 3:
+            return 1
+        else:
+            return 2
 
     def get_neighbors(self, value, number=2, transform = False):
         """
