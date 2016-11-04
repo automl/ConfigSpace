@@ -749,10 +749,7 @@ class OrdinalHyperparameter(Hyperparameter):
         """
         repr_str = six.StringIO()
         repr_str.write("%s, Type: Ordinal, Sequence: {" % (self.name))
-        for idx, seq in enumerate(self.sequence):
-            repr_str.write(str(seq))
-            if idx < len(self.sequence) - 1:
-                repr_str.write(", ")
+        ', '.join([self.sequence.keys()])
         repr_str.write("}")
         repr_str.write(", Default: ")
         repr_str.write(str(self.default))
@@ -780,6 +777,21 @@ class OrdinalHyperparameter(Hyperparameter):
             return default
         else:
             raise ValueError("Illegal default value %s" % str(default))
+            
+    def _transform(self, vector):
+        if vector != vector:
+            return None
+        if np.equal(np.mod(vector, 1), 0):
+            return self.sequence[int(vector)]
+        else:
+            raise ValueError('Can only index the choices of the ordinal '
+                             'hyperparameter %s with an integer, but provided '
+                             'the following float: %f' % (self, vector))
+
+    def _inverse_transform(self, vector):
+        if vector is None:
+            return np.NaN
+        return self.sequence.index(vector)
             
     def get_seq_order(self):
         """

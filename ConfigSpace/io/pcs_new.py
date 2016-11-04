@@ -18,9 +18,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-__authors__ = ["Katharina Eggensperger", "Matthias Feurer"]
+__authors__ = ["Katharina Eggensperger", "Matthias Feurer", "Christina Hernández Wunsch"]
 __contact__ = "automl.org"
 
+from collections import OrderedDict
 from itertools import product
 import sys
 
@@ -61,7 +62,9 @@ pp_sequence = pp_param_name + pyparsing.Optional(pyparsing.OneOrMore("," + pp_pa
 pp_ord_param = pp_param_name + pp_param_type + "{" + pp_sequence + "}" + "[" + pp_param_name + "]"
 pp_cont_param = pp_param_name + pp_param_type + "[" + pp_number + "," + pp_number + "]" + "[" + pp_number + "]" + pyparsing.Optional(pp_log)
 pp_cat_param = pp_param_name + pp_param_type + "{" + pp_choices + "}" + "[" + pp_param_name + "]"
-pp_condition = pp_param_name + "|" + pp_param_name + pp_param_operation + pyparsing.Optional('{') + pp_param_val + pyparsing.Optional('}') + pyparsing.Optional(pp_connective +  pp_param_name + pp_param_operation + pp_param_val)
+pp_condition = pp_param_name + "|" + pyparsing.Optional('(') + pp_param_name + pp_param_operation + \
+    pyparsing.Optional('{') + pp_param_val + pyparsing.Optional('}') + \
+    pyparsing.Optional(')')+ pyparsing.Optional(pyparsing.OneOrMore(pp_connective + '(' + pp_param_name + pp_param_operation + pp_param_val + ')'))
 pp_forbidden_clause = "{" + pp_param_name + "=" + pp_numberorname + \
     pyparsing.Optional(pyparsing.OneOrMore("," + pp_param_name + "=" + pp_numberorname)) + "}"
 
@@ -71,10 +74,6 @@ def build_categorical(param):
     return cat_template % (param.name,
                            ", ".join([str(value) for value in param.choices]),
                            str(param.default))
-
-def build_constant(param):
-    constant_template = "%s {%s} [%s]"
-    return constant_template % (param.name, param.value, param.value)
 
 def build_ordinal(param):
     ordinal_template = '%s ordinal {%s} [%s]'
@@ -261,8 +260,7 @@ def read(pcs_string, debug=False):
                 tmp_list.append(value)
             else:
                 # So far, only equals is supported by SMAC
-                legal = ['=', '>', '<']
-                if tmp_list[1] in legal:
+                if tmp_list[1] == '=':
                     # TODO maybe add a check if the hyperparameter is
                     # actually in the configuration space
                     clause_list.append(ForbiddenEqualsClause(
@@ -275,96 +273,91 @@ def read(pcs_string, debug=False):
             *clause_list))
 
 
-    conditions_per_child = []
+    conditions_per_child = OrderedDict()
     for condition in conditions:
-        conditions_per_child.append(condition)
-    for condition in conditions_per_child:
-        condition_objects = []
         child_name = condition[0]
-        child = configuration_space.get_hyperparameter(child_name)
-        parent_name = condition[2]
-        parent = configuration_space.get_hyperparameter(parent_name)
-        operation = condition[3]
-        # in template must be treated differently from the rest
-        if operation == 'in':
-            restrictions = condition[5:-1:2]
-            if len(restrictions) == 1:
-                condition1 = EqualsCondition(child, parent, restrictions[0])
-            else:
-                condition1 = InCondition(child, parent, values=restrictions)
-            condition_objects.append(condition1)
-            if (len(condition) - len(restrictions)) > 7:
-                connective = condition[7]
-                parent_name2 = condition[8]
-                parent2 = configuration_space.get_hyperparameter(parent_name2)
-                operation2 = condition[9]
-                if operation2 == 'in':
-                    restrictions2 = condition[11:-1:2]
-                    condition2 = InCondition(child, parent2, values=restrictions2)
+        if child_name not in conditions_per_child:
+            conditions_per_child[child_name] = list()
+        connectives = []
+        if condition[2] =='(':
+            i = 2
+            j = 2
+            while i < len(condition):
+                if condition[i] == '&&' or condition[i] == '||':
+                    connectives.append(condition[i])
+                    i += 1
+                if condition[i] == ')':
+                    conditions_per_child[child_name].append(condition[j:i+1])
+                    i +=1
+                    j = i+1
                 else:
-                    restrictions2 = condition[10]
-            
-                if operation2 == '==':
-                    condition2 = EqualsCondition(child, parent2, restrictions2)
-                elif operation2 == '!=':
-                    condition2 = NotEqualsCondition(child, parent2, restrictions2)
-                elif operation2 == '<':
-                    condition2 = LessThanCondition(child, parent2, restrictions2)
-                elif operation2 == '>':
-                    condition2 = GreaterThanCondition(child, parent2, restrictions2)
-        
-                condition_objects.append(condition2)
-            else:
-                pass
-            
+                    i += 1
         else:
-            restrictions = condition[4]
-            
-            if operation == '==':
-                condition1 = EqualsCondition(child, parent, restrictions)
-            elif operation == '!=':
-                condition1 = NotEqualsCondition(child, parent, restrictions)
-            elif operation == '<':
-                condition1 = LessThanCondition(child, parent, restrictions)
-            elif operation == '>':
-                condition1 = GreaterThanCondition(child, parent, restrictions)
-        
-            condition_objects.append(condition1)
-        
-            if len(condition) > 4:
-                connective = condition[5]
-                parent_name2 = condition[6]
-                parent2 = configuration_space.get_hyperparameter(parent_name2)
-                operation2 = condition[7]
-                if operation2 == 'in':
-                    restrictions2 = condition[9:-1:2]
+            conditions_per_child[child_name].append(condition)
+    for child_name in conditions_per_child:
+        condition_objects = []
+        for condition in conditions_per_child[child_name]:
+            child = configuration_space.get_hyperparameter(child_name)
+            if '(' not in condition:
+                parent_name = condition[2]
+                parent = configuration_space.get_hyperparameter(parent_name)
+                operation = condition[3]
+                # in template must be treated differently from the rest
+                if operation == 'in':
+                    restrictions = condition[5:-1:2]
                     if len(restrictions) == 1:
-                        condition2 = EqualsCondition(child, parent2, restrictions2[0])
+                        condition = EqualsCondition(child, parent, restrictions[0])
                     else:
-                        condition2 = InCondition(child, parent2, values=restrictions2)
-                    condition_objects.append(condition2)
-                    
-                else:
-                    restrictions2 = condition[8]
+                        condition = InCondition(child, parent, values=restrictions)
+                    condition_objects.append(condition)
                 
-                if operation2 == '==':
-                    condition2 = EqualsCondition(child, parent2, restrictions2)
-                elif operation2 == '!=':
-                    condition2 = NotEqualsCondition(child, parent2, restrictions2)
-                elif operation2 == '<':
-                    condition2 = LessThanCondition(child, parent2, restrictions2)
-                elif operation2 == '>':
-                    condition2 = GreaterThanCondition(child, parent2, restrictions2)
-        
-                condition_objects.append(condition2)
+                else:
+                    restrictions = condition[4]
+                
+                    if operation == '==':
+                        condition = EqualsCondition(child, parent, restrictions)
+                    elif operation == '!=':
+                        condition = NotEqualsCondition(child, parent, restrictions)
+                    elif operation == '<':
+                        condition = LessThanCondition(child, parent, restrictions)
+                    elif operation == '>':
+                        condition = GreaterThanCondition(child, parent, restrictions)
             
+                    condition_objects.append(condition)
+            else:
+                parent_name = condition[1]
+                parent = configuration_space.get_hyperparameter(parent_name)
+                operation = condition[2]
+                # in template must be treated differently from the rest
+                if operation == 'in':
+                    restrictions = condition[4:-1:2]
+                    if len(restrictions) == 1:
+                        condition = EqualsCondition(child, parent, restrictions[0])
+                    else:
+                        condition = InCondition(child, parent, values=restrictions)
+                    condition_objects.append(condition)
+            
+                else:
+                    restrictions = condition[3]
+            
+                    if operation == '==':
+                        condition = EqualsCondition(child, parent, restrictions)
+                    elif operation == '!=':
+                        condition = NotEqualsCondition(child, parent, restrictions)
+                    elif operation == '<':
+                        condition = LessThanCondition(child, parent, restrictions)
+                    elif operation == '>':
+                        condition = GreaterThanCondition(child, parent, restrictions)
+        
+                    condition_objects.append(condition)       
         if len(condition_objects) > 1:
-            if connective == '&&':
-                and_conjunction = AndConjunction(*condition_objects)
-                configuration_space.add_condition(and_conjunction)
-            elif connective == '||':
-                or_conjunction = OrConjunction(*condition_objects)
-                configuration_space.add_condition(or_conjunction)
+            for connective in connectives:
+                if connective == '&&':
+                    and_conjunction = AndConjunction(*condition_objects)
+                    configuration_space.add_condition(and_conjunction)
+                elif connective == '||':
+                    or_conjunction = OrConjunction(*condition_objects)
+                    configuration_space.add_condition(or_conjunction)
         else:
             configuration_space.add_condition(condition_objects[0])
     return configuration_space
@@ -458,18 +451,3 @@ def write(configuration_space):
 
     param_lines.seek(0)
     return param_lines.getvalue()
-
-
-if __name__ == "__main__":
-    fh = open(sys.argv[1])
-    orig_pcs = fh.readlines()
-    sp = read(orig_pcs, debug=True)
-    created_pcs = write(sp).split("\n")
-    print("============== Writing Results")
-    print("#Lines: ", len(created_pcs))
-    print("#LostLines: ", len(orig_pcs) - len(created_pcs))
-    diff = ["%s\n" % i for i in created_pcs if i not in " ".join(orig_pcs)]
-    print("Identical Lines: ", len(created_pcs) - len(diff))
-    print()
-    print("Up to 10 random different lines (of %d):" % len(diff))
-    print("".join(diff[:10]))
