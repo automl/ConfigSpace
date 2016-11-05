@@ -18,12 +18,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-__authors__ = ["Katharina Eggensperger", "Matthias Feurer", "Christina Hernández Wunsch"]
+__authors__ = ["Katharina Eggensperger", "Matthias Feurer", "Christina Hernandez Wunsch"]
 __contact__ = "automl.org"
 
 from collections import OrderedDict
 from itertools import product
-import sys
 
 import pyparsing
 import six
