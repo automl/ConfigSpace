@@ -555,3 +555,14 @@ class TestHyperparameters(unittest.TestCase):
             return counts_per_bin
 
         self.assertEqual(actual_test(), actual_test())
+
+    def test_log_space_conversion(self):
+        lower, upper = 1e-5, 1e5
+        hyper = UniformFloatHyperparameter('test', lower=lower, upper=upper, 
+            log=True)
+        self.assertTrue(hyper.is_legal(hyper._transform(1.)))
+
+        lower, upper = 1e-10, 1e10
+        hyper = UniformFloatHyperparameter('test', lower=lower, upper=upper, 
+            log=True)
+        self.assertTrue(hyper.is_legal(hyper._transform(1.)))
