@@ -749,10 +749,7 @@ class OrdinalHyperparameter(Hyperparameter):
         """
         repr_str = six.StringIO()
         repr_str.write("%s, Type: Ordinal, Sequence: {" % (self.name))
-        for idx, seq in enumerate(self.sequence):
-            repr_str.write(str(seq))
-            if idx < len(self.sequence) - 1:
-                repr_str.write(", ")
+        ', '.join([self.sequence.keys()])
         repr_str.write("}")
         repr_str.write(", Default: ")
         repr_str.write(str(self.default))
