@@ -604,4 +604,5 @@ class TestHyperparameters(unittest.TestCase):
         self.assertEqual(f1.get_num_neighbors("freezing"), 1)
         self.assertEqual(f1.get_num_neighbors("hot"), 1)
         self.assertEqual(f1.get_num_neighbors("cold"), 2)
-        
+
+
