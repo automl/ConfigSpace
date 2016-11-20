@@ -749,7 +749,10 @@ class OrdinalHyperparameter(Hyperparameter):
         """
         repr_str = six.StringIO()
         repr_str.write("%s, Type: Ordinal, Sequence: {" % (self.name))
-        ', '.join([self.sequence.keys()])
+        for idx, seq in enumerate(self.sequence):
+            repr_str.write(str(seq))
+            if idx < len(self.sequence) - 1:
+                repr_str.write(", ")
         repr_str.write("}")
         repr_str.write(", Default: ")
         repr_str.write(str(self.default))
@@ -760,10 +763,7 @@ class OrdinalHyperparameter(Hyperparameter):
         """
         checks if a certain value is represented in the sequence
         """
-        if value in self.sequence:
-            return True
-        else:
-            return False
+        return value in self.sequence
 
     def check_default(self, default):
         """
@@ -836,11 +836,11 @@ class OrdinalHyperparameter(Hyperparameter):
         """
         return len(self.sequence) > 1
 
-    def get_num_neighbors(self):
+    def get_num_neighbors(self, value):
         """
         returns the number of existing neighbors in the sequence
         """
-        if len(self.sequence) < 3:
+        if value == self.sequence[0] or value ==self.sequence[-1]:
             return 1
         else:
             return 2
