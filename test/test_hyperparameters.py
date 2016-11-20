@@ -598,3 +598,10 @@ class TestHyperparameters(unittest.TestCase):
         self.assertEqual(f1.get_neighbors("hot"), [3])
         self.assertEqual(f1.get_neighbors("hot", transform =True), ["warm"])
         
+    def test_get_num_neighbors(self):
+        f1 = OrdinalHyperparameter("temp", 
+                                   ["freezing", "cold", "warm", "hot"])
+        self.assertEqual(f1.get_num_neighbors("freezing"), 1)
+        self.assertEqual(f1.get_num_neighbors("hot"), 1)
+        self.assertEqual(f1.get_num_neighbors("cold"), 2)
+        
