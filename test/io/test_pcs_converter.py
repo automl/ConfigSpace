@@ -339,51 +339,37 @@ class TestPCSConverter(unittest.TestCase):
         self.assertIn(expected, value)
     
     def test_read_new_configuration_space_complex_conditionals(self):
-        bokstav = OrdinalHyperparameter("bokstav", ["a","b","c","d","e","f","g"])
-        ordet = CategoricalHyperparameter("ordet", ["true", "false"])
         classi = OrdinalHyperparameter("classi", ["random_forest","extra_trees","k_nearest_neighbors","something"])
         knn_weights = CategoricalHyperparameter("knn_weights", ["uniform", "distance"])
         weather = OrdinalHyperparameter("weather",["sunny", "rainy", "cloudy", "snowing"])
         temperature = UniformFloatHyperparameter("temperature",-273.15, 100)
-        Cl_condition = OrConjunction(AndConjunction(NotEqualsCondition(knn_weights, classi, "extra_trees"),
-                                                    EqualsCondition(knn_weights, classi, "random_forest")),
-                                    EqualsCondition(knn_weights, classi, "k_nearest_neighbors"),
-                                    EqualsCondition(knn_weights, classi, "something"))
+        and_conjunction = AndConjunction(NotEqualsCondition(knn_weights, classi, "extra_trees"), 
+                                         EqualsCondition(knn_weights, classi, "random_forest"))
+        Cl_condition = OrConjunction(EqualsCondition(knn_weights, classi, "k_nearest_neighbors"),
+                                     and_conjunction,
+                                     EqualsCondition(knn_weights, classi, "something"))
         
-        abc_condition = OrConjunction(AndConjunction(NotEqualsCondition(ordet, bokstav, "a"),
-                                                    EqualsCondition(ordet, bokstav, "b"),
-                                                    EqualsCondition(ordet, bokstav, "c"),
-                                                    EqualsCondition(ordet, bokstav, "f")),
-                                    EqualsCondition(ordet, bokstav, "g"),
-                                    NotEqualsCondition(ordet, bokstav, "e"))
-                                    
-        another_condition = OrConjunction(AndConjunction(EqualsCondition(temperature, weather, "sunny"),
-                                                         NotEqualsCondition(temperature, weather, "snowing")),
-                                         EqualsCondition(temperature, weather, "rainy"),
-                                         NotEqualsCondition(temperature, weather, "cloudy"))
+        and1 = AndConjunction(EqualsCondition(temperature, weather, "rainy"),
+                              EqualsCondition(temperature, weather, "cloudy"))   
+        and2 = AndConjunction(EqualsCondition(temperature, weather, "sunny"),
+                              NotEqualsCondition(temperature, weather, "snowing"))                       
+        another_condition = OrConjunction(and1,and2)
         
         complex_conditional_space = ConfigurationSpace()
-        complex_conditional_space.add_hyperparameter(bokstav)
-        complex_conditional_space.add_hyperparameter(ordet)
         complex_conditional_space.add_hyperparameter(classi)
         complex_conditional_space.add_hyperparameter(knn_weights)
         complex_conditional_space.add_hyperparameter(weather)
         complex_conditional_space.add_hyperparameter(temperature)
         
         complex_conditional_space.add_condition(Cl_condition)
-        complex_conditional_space.add_condition(abc_condition)
         complex_conditional_space.add_condition(another_condition)
-
         complex_cs = list()
-        complex_cs.append("bokstav ordinal {a,b,c,d,e,f,g} [a]")
-        complex_cs.append("ordet categorical {true, false} [true]")
         complex_cs.append("classi ordinal {random_forest,extra_trees,k_nearest_neighbors, something} [random_forest]")
         complex_cs.append("knn_weights categorical {uniform, distance} [uniform]")
         complex_cs.append("weather ordinal {sunny, rainy, cloudy, snowing} [sunny]")
         complex_cs.append("temperature real [-273.15, 100] [10]")
         complex_cs.append("knn_weights | classi == k_nearest_neighbors || classi != extra_trees && classi == random_forest || classi == something")
-        complex_cs.append("ordet | bokstav == g || bokstav != a && bokstav == b && bokstav == c && bokstav == f || bokstav != e")
-        complex_cs.append("temperature | weather == rainy || weather != cloudy || weather == sunny && weather != snowing")
+        complex_cs.append("temperature | weather == rainy && weather == cloudy || weather == sunny && weather != snowing")
         cs_new = pcs_new.read(complex_cs)
 
         self.assertEqual(cs_new, complex_conditional_space)

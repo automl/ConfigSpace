@@ -24,6 +24,7 @@ __contact__ = "automl.org"
 
 from collections import OrderedDict
 from itertools import product
+import numpy as np
 
 import pyparsing
 import six
@@ -160,6 +161,32 @@ def build_forbidden(clause):
     retval.write("}")
     retval.seek(0)
     return retval.getvalue()
+    
+def condition_specification(child_name, condition, configuration_space):
+    # specifies the condition type
+    child = configuration_space.get_hyperparameter(child_name)
+    parent_name = condition[0]
+    parent = configuration_space.get_hyperparameter(parent_name)
+    operation = condition[1]
+    if operation == 'in':
+        restrictions = condition[3:-1:2]
+        if len(restrictions) == 1:
+            condition = EqualsCondition(child, parent, restrictions[0])
+        else:
+            condition = InCondition(child, parent, values=restrictions)
+        return condition                
+    else:
+        restrictions = condition[2]                
+        if operation == '==':
+            condition = EqualsCondition(child, parent, restrictions)
+        elif operation == '!=':
+            condition = NotEqualsCondition(child, parent, restrictions)
+        elif operation == '<':
+            condition = LessThanCondition(child, parent, restrictions)
+        elif operation == '>':
+            condition = GreaterThanCondition(child, parent, restrictions)
+        return condition
+                                
 
 
 def read(pcs_string, debug=False):
@@ -272,140 +299,60 @@ def read(pcs_string, debug=False):
                 tmp_list = []
         configuration_space.add_forbidden_clause(ForbiddenAndConjunction(
             *clause_list))
+            
     conditions_per_child = OrderedDict()
-    for condition in conditions:        
+    for condition in conditions:
         child_name = condition[0]
         if child_name not in conditions_per_child:
             conditions_per_child[child_name] = list()
-        if ('&&' in str(condition)) or ('||' in str(condition)):
-            i = 2
-            j = 2
-            while i < len(condition):
-                if condition[i] == '&&':
-                    conditions_per_child[child_name].append(condition[j:i+1])
-                    i += 1
-                    j = i-1
-                elif condition[i] == '||':
-                    conditions_per_child[child_name].append(condition[j:i])
-                    i += 1
-                    j = i
-                else:
-                    i +=1
-                    rest = condition[j:i+1]
-            conditions_per_child[child_name].append(rest)
-        else:
-            conditions_per_child[child_name].append(condition)  
+        conditions_per_child[child_name].append(condition)
+
     for child_name in conditions_per_child:
-        condition_objects = []
-        ands = []
-        ors = []
-        if len(conditions_per_child[child_name]) > 1:
-            for condition in conditions_per_child[child_name]:
-                child = configuration_space.get_hyperparameter(child_name)
+        for condition in conditions_per_child[child_name]:
+            condition = condition[2:]
+            condition = ' '.join(condition)
+            if '||' in str(condition):
+                ors = []
+                # 1st case we have a mixture of || and &&
                 if '&&' in str(condition):
-                    if '&&' == condition[-1] and '&&' == condition[0]:
-                        condition = condition[1:-1]
-                    elif '&&' == condition[0]:
-                        condition = condition[1:]
-                    elif '&&' == condition[-1]:
-                        condition = condition[:-1]
-                    parent_name = condition[0]
-                    parent = configuration_space.get_hyperparameter(parent_name)
-                    operation = condition[1]
-                    # in template must be treated differently from the rest
-                    if operation == 'in':
-                        restrictions = condition[3:-1:2]
-                        if len(restrictions) == 1:
-                            condition = EqualsCondition(child, parent, restrictions[0])
+                    ors_combis = []
+                    for cond_parts in str(condition).split('||'):
+                        condition = str(cond_parts).split('&&')
+                        # if length is 1 it must be or
+                        if len(condition) == 1:
+                            element_list = [element for part in condition for element in part.split()]
+                            ors_combis.append(condition_specification(child_name, element_list, configuration_space))       
                         else:
-                            condition = InCondition(child, parent, values=restrictions)
-                        condition_objects.append(condition)
-                        ands.append(condition)
-                
-                    else:
-                        restrictions = condition[2]
-                
-                        if operation == '==':
-                            condition = EqualsCondition(child, parent, restrictions)
-                        elif operation == '!=':
-                            condition = NotEqualsCondition(child, parent, restrictions)
-                        elif operation == '<':
-                            condition = LessThanCondition(child, parent, restrictions)
-                        elif operation == '>':
-                            condition = GreaterThanCondition(child, parent, restrictions)
-            
-                        condition_objects.append(condition)
-                        ands.append(condition)
+                            # now taking care of ands
+                            ands = []
+                            for and_part in condition:
+                                element_list = [element for part in condition for element in and_part.split()]
+                                ands.append(condition_specification(child_name, element_list, configuration_space))
+                            ors_combis.append(AndConjunction(*ands))
+                    mixed_conjunction = OrConjunction(*ors_combis)
+                    configuration_space.add_condition(mixed_conjunction)
                 else:
-                    parent_name = condition[0]
-                    parent = configuration_space.get_hyperparameter(parent_name)
-                    operation = condition[1]
-                    # in template must be treated differently from the rest
-                    if operation == 'in':
-                        restrictions = condition[3:-1:2]
-                        if len(restrictions) == 1:
-                            condition = EqualsCondition(child, parent, restrictions[0])
-                        else:
-                            condition = InCondition(child, parent, values=restrictions)
-                        condition_objects.append(condition)
-                        ors.append(condition)
-                
-                    else:
-                        restrictions = condition[2]
-                
-                        if operation == '==':
-                            condition = EqualsCondition(child, parent, restrictions)
-                        elif operation == '!=':
-                            condition = NotEqualsCondition(child, parent, restrictions)
-                        elif operation == '<':
-                            condition = LessThanCondition(child, parent, restrictions)
-                        elif operation == '>':
-                            condition = GreaterThanCondition(child, parent, restrictions)
-            
-                        condition_objects.append(condition) 
-                        ors.append(condition)
-        else:
-            for condition in conditions_per_child[child_name]:
-                child = configuration_space.get_hyperparameter(child_name)
-                parent_name = condition[2]
-                parent = configuration_space.get_hyperparameter(parent_name)
-                operation = condition[3]
-                # in template must be treated differently from the rest
-                if operation == 'in':
-                    restrictions = condition[5:-1:2]
-                    if len(restrictions) == 1:
-                        condition = EqualsCondition(child, parent, restrictions[0])
-                    else:
-                        condition = InCondition(child, parent, values=restrictions)
-                    condition_objects.append(condition)
-                
-                else:
-                    restrictions = condition[4]
-                
-                    if operation == '==':
-                        condition = EqualsCondition(child, parent, restrictions)
-                    elif operation == '!=':
-                        condition = NotEqualsCondition(child, parent, restrictions)
-                    elif operation == '<':
-                        condition = LessThanCondition(child, parent, restrictions)
-                    elif operation == '>':
-                        condition = GreaterThanCondition(child, parent, restrictions)
-            
-                    condition_objects.append(condition)
-                    
-        if len(condition_objects) > 1:
-            if ors:
-                if ands:
-                    orand_conjunction = OrConjunction(AndConjunction(*ands), *ors)
-                    configuration_space.add_condition(orand_conjunction)
-                else:
+                    # 2nd case: we only have ors
+                    for cond_parts in str(condition).split('||'):
+                        element_list = [element for element in cond_parts.split()]
+                        ors.append(condition_specification(child_name, element_list, configuration_space))
                     or_conjunction = OrConjunction(*ors)
                     configuration_space.add_condition(or_conjunction)
             else:
-                and_conjunction = AndConjunction(*ands)
-                configuration_space.add_condition(and_conjunction)
-        else:
-            configuration_space.add_condition(condition_objects[0])    
+                # 3rd case: we only have ands
+                if '&&' in str(condition):
+                    ands = []
+                    for cond_parts in str(condition).split('&&'):
+                        element_list = [element for element in cond_parts.split()]
+                        ands.append(condition_specification(child_name, element_list, configuration_space))
+                    and_conjunction = AndConjunction(*ands)
+                    configuration_space.add_condition(and_conjunction)
+                else:
+                    # 4th case: we have a normal condition
+                    element_list = [element for element in condition.split()]
+                    normal_condition = condition_specification(child_name, element_list, configuration_space)
+                    configuration_space.add_condition(normal_condition)
+                 
     return configuration_space
     
 def write(configuration_space):
