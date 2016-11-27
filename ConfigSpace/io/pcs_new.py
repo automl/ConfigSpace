@@ -24,7 +24,6 @@ __contact__ = "automl.org"
 
 from collections import OrderedDict
 from itertools import product
-import numpy as np
 
 import pyparsing
 import six
@@ -352,7 +351,7 @@ def read(pcs_string, debug=False):
                     element_list = [element for element in condition.split()]
                     normal_condition = condition_specification(child_name, element_list, configuration_space)
                     configuration_space.add_condition(normal_condition)
-                 
+         
     return configuration_space
     
 def write(configuration_space):
