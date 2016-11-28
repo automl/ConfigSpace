@@ -319,7 +319,7 @@ def read(pcs_string, debug=False):
                         condition = str(cond_parts).split('&&')
                         # if length is 1 it must be or
                         if len(condition) == 1:
-                            element_list = [element for part in condition for element in part.split()]
+                            element_list =  condition[0].split()
                             ors_combis.append(condition_specification(child_name, element_list, configuration_space))       
                         else:
                             # now taking care of ands
@@ -351,7 +351,7 @@ def read(pcs_string, debug=False):
                     element_list = [element for element in condition.split()]
                     normal_condition = condition_specification(child_name, element_list, configuration_space)
                     configuration_space.add_condition(normal_condition)
-         
+   
     return configuration_space
     
 def write(configuration_space):
