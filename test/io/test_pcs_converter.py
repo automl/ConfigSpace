@@ -36,7 +36,8 @@ import ConfigSpace.io.pcs_new as pcs_new
 from ConfigSpace.hyperparameters import CategoricalHyperparameter, \
     UniformIntegerHyperparameter, UniformFloatHyperparameter, OrdinalHyperparameter
 from ConfigSpace.conditions import EqualsCondition, InCondition, \
-    AndConjunction, OrConjunction, NotEqualsCondition
+    AndConjunction, OrConjunction, NotEqualsCondition, \
+    LessThanCondition, GreaterThanCondition
 from ConfigSpace.forbidden import ForbiddenEqualsClause, \
     ForbiddenInClause, ForbiddenAndConjunction
 
@@ -342,7 +343,16 @@ class TestPCSConverter(unittest.TestCase):
         classi = OrdinalHyperparameter("classi", ["random_forest","extra_trees","k_nearest_neighbors","something"])
         knn_weights = CategoricalHyperparameter("knn_weights", ["uniform", "distance"])
         weather = OrdinalHyperparameter("weather",["sunny", "rainy", "cloudy", "snowing"])
-        temperature = UniformFloatHyperparameter("temperature",-273.15, 100)
+        temperature = CategoricalHyperparameter("temperature", ["high", "low"])
+        rain = CategoricalHyperparameter("rain", ["yes", "no"])
+        gloves = OrdinalHyperparameter("gloves",["none", "yarn", "leather", "gortex"])
+        heur1 = CategoricalHyperparameter("heur1", ["off", "on"])
+        heur2 = CategoricalHyperparameter("heur2", ["off", "on"])
+        heur_order = CategoricalHyperparameter("heur_order", ["heur1then2", "heur2then1"])
+        gloves_condition = OrConjunction(EqualsCondition(gloves, rain, "yes"),
+                                           EqualsCondition(gloves, temperature, "low"))
+        heur_condition = AndConjunction(EqualsCondition(heur_order, heur1, "on"),
+                                        EqualsCondition(heur_order, heur2, "on"))
         and_conjunction = AndConjunction(NotEqualsCondition(knn_weights, classi, "extra_trees"), 
                                          EqualsCondition(knn_weights, classi, "random_forest"))
         Cl_condition = OrConjunction(EqualsCondition(knn_weights, classi, "k_nearest_neighbors"),
@@ -360,16 +370,30 @@ class TestPCSConverter(unittest.TestCase):
         complex_conditional_space.add_hyperparameter(knn_weights)
         complex_conditional_space.add_hyperparameter(weather)
         complex_conditional_space.add_hyperparameter(temperature)
+        complex_conditional_space.add_hyperparameter(rain)
+        complex_conditional_space.add_hyperparameter(gloves)
+        complex_conditional_space.add_hyperparameter(heur1)
+        complex_conditional_space.add_hyperparameter(heur2)
+        complex_conditional_space.add_hyperparameter(heur_order)
         
+        complex_conditional_space.add_condition(gloves_condition)
+        complex_conditional_space.add_condition(heur_condition)
         complex_conditional_space.add_condition(Cl_condition)
         complex_conditional_space.add_condition(another_condition)
+
         complex_cs = list()
         complex_cs.append("classi ordinal {random_forest,extra_trees,k_nearest_neighbors, something} [random_forest]")
         complex_cs.append("knn_weights categorical {uniform, distance} [uniform]")
         complex_cs.append("weather ordinal {sunny, rainy, cloudy, snowing} [sunny]")
-        complex_cs.append("temperature real [-273.15, 100] [10]")
+        complex_cs.append("temperature categorical {high, low} [high]")
+        complex_cs.append("rain categorical { yes, no } [yes]")
+        complex_cs.append("gloves ordinal { none, yarn, leather, gortex } [none]")
+        complex_cs.append("heur1 categorical { off, on } [off]")
+        complex_cs.append("heur2 categorical { off, on } [off]")
+        complex_cs.append("heur_order categorical { heur1then2, heur2then1 } [heur1then2]")
+        complex_cs.append("gloves | rain == yes || temperature == low")
+        complex_cs.append("heur_order | heur1 == on && heur2 == on")
         complex_cs.append("knn_weights | classi == k_nearest_neighbors || classi != extra_trees && classi == random_forest || classi == something")
         complex_cs.append("temperature | weather == rainy && weather == cloudy || weather == sunny && weather != snowing")
         cs_new = pcs_new.read(complex_cs)
-
         self.assertEqual(cs_new, complex_conditional_space)
