@@ -36,5 +36,5 @@ install:
 script:
   - nosetests -sv --with-coverage --cover-package=ConfigSpace
 
-after_success::
+after_success:
   - coveralls
