@@ -535,10 +535,12 @@ class ConfigurationSpace(object):
                 if any([parent_value is None for parent_value in
                         parents.values()]):
                     active = False
+                    break
 
                 else:
                     if not condition.evaluate(parents):
                         active = False
+                        break
 
             if active and hp_value is None:
                 raise ValueError("Active hyperparameter '%s' not specified!" %

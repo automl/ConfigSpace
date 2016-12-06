@@ -16,6 +16,10 @@ def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
 
+with open("ConfigSpace/__version__.py") as fh:
+    version = fh.readlines()[-1].split()[-1].strip("\"'")
+
+
 setup(
     name='ConfigSpace',
     version=ConfigSpace.__version__,
@@ -37,6 +41,7 @@ setup(
     classifiers=[
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: 3.5',
         'Development Status :: 4 - Beta',
         'Natural Language :: English',
         'Intended Audience :: Developers',
