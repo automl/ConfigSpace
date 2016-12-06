@@ -35,7 +35,7 @@ import numpy as np
 from ConfigSpace.hyperparameters import Constant, \
     UniformFloatHyperparameter, NormalFloatHyperparameter, \
     UniformIntegerHyperparameter, NormalIntegerHyperparameter, \
-    CategoricalHyperparameter
+    CategoricalHyperparameter, OrdinalHyperparameter
 
 
 class TestHyperparameters(unittest.TestCase):
@@ -555,3 +555,54 @@ class TestHyperparameters(unittest.TestCase):
             return counts_per_bin
 
         self.assertEqual(actual_test(), actual_test())
+    
+    def test_ordinal_is_legal(self):
+        f1 = OrdinalHyperparameter("temp", 
+                                   ["freezing", "cold", "warm", "hot"])
+        self.assertTrue(f1.is_legal("warm"))
+        self.assertTrue(f1.is_legal(u"freezing"))
+        self.assertFalse(f1.is_legal("chill"))
+        self.assertFalse(f1.is_legal(2.5))
+        self.assertFalse(f1.is_legal("3"))
+        
+    def test_ordinal_check_order(self):
+        f1 = OrdinalHyperparameter("temp", 
+                                   ["freezing", "cold", "warm", "hot"])
+        self.assertTrue(f1.check_order("freezing", "cold"))
+        self.assertTrue(f1.check_order("freezing", "hot"))
+        self.assertFalse(f1.check_order("hot", "cold"))
+        self.assertFalse(f1.check_order("hot", "warm"))
+        
+    def test_ordinal_get_value(self):
+        f1 = OrdinalHyperparameter("temp", 
+                                   ["freezing", "cold", "warm", "hot"])
+        self.assertEqual(f1.get_value(3), "warm")
+        self.assertNotEqual(f1.get_value(1), "warm")
+        
+    def test_ordinal_get_order(self):
+        f1 = OrdinalHyperparameter("temp", 
+                                   ["freezing", "cold", "warm", "hot"])
+        self.assertEqual(f1.get_order("warm"),3)
+        self.assertNotEqual(f1.get_order("freezing"), 4)
+    
+    def test_ordinal_get_seq_order(self):
+        f1 = OrdinalHyperparameter("temp", 
+                                   ["freezing", "cold", "warm", "hot"])
+        self.assertEqual(tuple(f1.get_seq_order()), tuple([1,2,3,4]))
+    
+    def test_ordinal_get_neighbors(self):
+        f1 = OrdinalHyperparameter("temp", 
+                                   ["freezing", "cold", "warm", "hot"])
+        self.assertEqual(f1.get_neighbors("freezing"), [2])     
+        self.assertEqual(f1.get_neighbors("cold", transform =True), ["freezing", "warm"])
+        self.assertEqual(f1.get_neighbors("hot"), [3])
+        self.assertEqual(f1.get_neighbors("hot", transform =True), ["warm"])
+        
+    def test_get_num_neighbors(self):
+        f1 = OrdinalHyperparameter("temp", 
+                                   ["freezing", "cold", "warm", "hot"])
+        self.assertEqual(f1.get_num_neighbors("freezing"), 1)
+        self.assertEqual(f1.get_num_neighbors("hot"), 1)
+        self.assertEqual(f1.get_num_neighbors("cold"), 2)
+
+
