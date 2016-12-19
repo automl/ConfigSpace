@@ -397,3 +397,19 @@ class TestPCSConverter(unittest.TestCase):
         complex_cs.append("temperature | weather == rainy && weather == cloudy || weather == sunny && weather != snowing")
         cs_new = pcs_new.read(complex_cs)
         self.assertEqual(cs_new, complex_conditional_space)
+
+    def test_convert_restrictions(self):
+        # This is a smoke test to make sure that the int/float values in the
+        # greater or smaller statements are converted to the right type when
+        # reading them
+        s = """x1 real [0,1] [0]
+        x2 real [0,1] [0]
+        x3 real [0,1] [0]
+        x4 integer [0,2] [0]
+        x5 real [0,1] [0]
+        x6 ordinal {cold, luke-warm, hot} [cold]
+        x1 | x2 > 0.5
+        x3 | x4 > 1
+        x5 | x6 > luke-warm"""
+
+        pcs_new.read(s.split('\n'))

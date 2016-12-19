@@ -32,7 +32,7 @@ import sys
 from ConfigSpace.configuration_space import ConfigurationSpace
 from ConfigSpace.hyperparameters import CategoricalHyperparameter, \
     UniformIntegerHyperparameter, UniformFloatHyperparameter, \
-    NumericalHyperparameter, IntegerHyperparameter, \
+    NumericalHyperparameter, IntegerHyperparameter, FloatHyperparameter, \
     NormalIntegerHyperparameter, NormalFloatHyperparameter, OrdinalHyperparameter
 from ConfigSpace.conditions import EqualsCondition, NotEqualsCondition,\
     InCondition, AndConjunction, OrConjunction, ConditionComponent,\
@@ -180,10 +180,22 @@ def condition_specification(child_name, condition, configuration_space):
             condition = EqualsCondition(child, parent, restrictions)
         elif operation == '!=':
             condition = NotEqualsCondition(child, parent, restrictions)
-        elif operation == '<':
-            condition = LessThanCondition(child, parent, restrictions)
-        elif operation == '>':
-            condition = GreaterThanCondition(child, parent, restrictions)
+        else:
+            if isinstance(parent, FloatHyperparameter):
+                restrictions = float(restrictions)
+            elif isinstance(parent, IntegerHyperparameter):
+                restrictions = int(restrictions)
+            elif isinstance(parent, OrdinalHyperparameter):
+                pass
+            else:
+                raise ValueError('The parent of a conditional hyperparameter '
+                                 'must be either a float, int or ordinal '
+                                 'hyperparameter, but is %s.' % type(parent))
+
+            if operation == '<':
+                condition = LessThanCondition(child, parent, restrictions)
+            elif operation == '>':
+                condition = GreaterThanCondition(child, parent, restrictions)
         return condition
                                 
 
