@@ -51,7 +51,8 @@ pp_plusorminus = pyparsing.Literal('+') | pyparsing.Literal('-')
 pp_int = pyparsing.Combine(pyparsing.Optional(pp_plusorminus) + pyparsing.Word(pp_digits))
 pp_float = pyparsing.Combine(pyparsing.Optional(pp_plusorminus) + pyparsing.Optional(pp_int) + "." + pp_int)
 pp_eorE = pyparsing.Literal('e') | pyparsing.Literal('E')
-pp_param_type = pyparsing.Word("integer" + "real" + "categorical" + "ordinal")
+pp_param_type = (pyparsing.Literal("integer") | pyparsing.Literal("real") |
+                 pyparsing.Literal("categorical") | pyparsing.Literal("ordinal"))
 pp_floatorint = pp_float | pp_int
 pp_e_notation = pyparsing.Combine(pp_floatorint + pp_eorE + pp_int)
 pp_number = pp_e_notation | pp_float | pp_int
