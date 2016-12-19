@@ -1,6 +1,5 @@
 from setuptools import setup, find_packages
 import os
-import ConfigSpace
 
 # Read http://peterdowns.com/posts/first-time-with-pypi.html to figure out how
 # to publish the package on PyPI
@@ -22,13 +21,14 @@ with open("ConfigSpace/__version__.py") as fh:
 
 setup(
     name='ConfigSpace',
-    version=ConfigSpace.__version__,
+    version=version,
     url='https://github.com/automl/ConfigSpace',
     description=desc,
     long_description=read("README.rst"),
     license='BSD 3-clause',
     platforms=['Linux'],
-    author=', '.join(ConfigSpace.__authors__),
+    author=', '.join(["Matthias Feurer", "Katharina Eggensperger",
+                      "Jost Tobias Springenberg", "Marius Lindauer"]),
     author_email='feurerm@informatik.uni-freiburg.de',
     test_suite="nose.collector",
     install_requires=['argparse',
