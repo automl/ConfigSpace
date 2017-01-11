@@ -28,6 +28,7 @@
 
 from abc import ABCMeta, abstractmethod
 from itertools import combinations
+from typing import Any, List
 import operator
 
 import six
@@ -63,19 +64,20 @@ class ConditionComponent(object):
         pass
 
     # http://stackoverflow.com/a/25176504/4636294
-    def __eq__(self, other):
+    def __eq__(self, other: Any) -> bool:
         """Override the default Equals behavior"""
         if isinstance(other, self.__class__):
             return self.__dict__ == other.__dict__
         return NotImplemented
 
-    def __ne__(self, other):
+    def __ne__(self, other: Any) -> bool:
         """Define a non-equality test"""
         if isinstance(other, self.__class__):
             return not self.__eq__(other)
         return NotImplemented
 
-    def __hash__(self):
+    # return type of hash()?
+    def __hash__(self) -> int:
         """Override the default hash behavior (that returns the id or the object)"""
         return hash(tuple(sorted(self.__dict__.items())))
 
@@ -84,7 +86,7 @@ class AbstractCondition(ConditionComponent):
     # TODO create a condition evaluator!
 
     @abstractmethod
-    def __init__(self, child, parent):
+    def __init__(self, child: Hyperparameter, parent: Hyperparameter) -> None:
         if not isinstance(child, Hyperparameter):
             raise ValueError("Argument 'child' is not an instance of "
                              "HPOlibConfigSpace.hyperparameter.Hyperparameter.")
@@ -97,15 +99,16 @@ class AbstractCondition(ConditionComponent):
         self.child = child
         self.parent = parent
 
-    def get_children(self):
+    def get_children(self) -> List[Hyperparameter]:
         return [self.child]
 
-    def get_parents(self):
+    def get_parents(self) -> List[Hyperparameter]:
         return [self.parent]
 
-    def get_descendant_literal_conditions(self):
+    def get_descendant_literal_conditions(self) -> List['AbstractCondition']:
         return [self]
 
+    # TODO: find typeof _evaluate?
     def evaluate(self, instantiated_parent_hyperparameter):
         hp_name = self.parent.name
         return self._evaluate(instantiated_parent_hyperparameter[hp_name])
@@ -116,7 +119,7 @@ class AbstractCondition(ConditionComponent):
 
 
 class AbstractConjunction(ConditionComponent):
-    def __init__(self, *args):
+    def __init__(self, *args: ConditionComponent) -> None:
         self.components = args
 
         # Test the classes
@@ -133,8 +136,8 @@ class AbstractConjunction(ConditionComponent):
                 raise ValueError("All Conjunctions and Conditions must have "
                                  "the same child.")
 
-    def get_descendant_literal_conditions(self):
-        children = []
+    def get_descendant_literal_conditions(self) -> List[ConditionComponent]:
+        children = []  # type: List[ConditionComponent]
         for component in self.components:
             if isinstance(component, AbstractConjunction):
                 children.extend(component.get_descendant_literal_conditions())
@@ -142,18 +145,18 @@ class AbstractConjunction(ConditionComponent):
                 children.append(component)
         return children
 
-    def get_children(self):
-        children = []
+    def get_children(self) -> List[ConditionComponent]:
+        children = []  # type: List[ConditionComponent]
         for component in self.components:
             children.extend(component.get_children())
         return children
 
-    def get_parents(self):
-        parents = []
+    def get_parents(self) -> List[ConditionComponent]:
+        parents = []  # type: List[ConditionComponent]
         for component in self.components:
             parents.extend(component.get_parents())
         return parents
-
+    # TODO: find typeof _evaluate?
     def evaluate(self, instantiated_hyperparameters):
         # Then, check if all parents were passed
         conditions = self.get_descendant_literal_conditions()
@@ -179,7 +182,8 @@ class AbstractConjunction(ConditionComponent):
 
 
 class EqualsCondition(AbstractCondition):
-    def __init__(self, child, parent, value):
+    # ToDo: typeof value?
+    def __init__(self, child: Hyperparameter, parent: Hyperparameter, value: Any) -> None:
         super(EqualsCondition, self).__init__(child, parent)
         if not parent.is_legal(value):
             raise ValueError("Hyperparameter '%s' is "
@@ -188,11 +192,11 @@ class EqualsCondition(AbstractCondition):
                              (child.name, value, parent.name))
         self.value = value
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "%s | %s == %s" % (self.child.name, self.parent.name,
                                   repr(self.value))
 
-    def _evaluate(self, value):
+    def _evaluate(self, value: Any) -> bool:
         return value == self.value
 
 
@@ -206,15 +210,16 @@ class NotEqualsCondition(AbstractCondition):
                              (child.name, value, parent.name))
         self.value = value
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "%s | %s != %s" % (self.child.name, self.parent.name,
                                   repr(self.value))
 
-    def _evaluate(self, value):
+    def _evaluate(self, value: Any) -> bool:
         return value != self.value
-        
+
+
 class LessThanCondition(AbstractCondition):
-    def __init__(self, child, parent, value):
+    def __init__(self, child: Hyperparameter, parent: Hyperparameter, value: Any) -> None:
         super(LessThanCondition, self).__init__(child, parent)
         if not parent.is_legal(value):
             raise ValueError("Hyperparameter '%s' is "
@@ -223,14 +228,16 @@ class LessThanCondition(AbstractCondition):
                              (child.name, value, parent.name))
         self.value = value
         
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "%s | %s < %s" % (self.child.name, self.parent.name,
                                   repr(self.value))
-    def _evaluate(self, value):
+
+    def _evaluate(self, value: Any) -> bool:
         return value < self.value
-    
+
+
 class GreaterThanCondition(AbstractCondition):
-    def __init__(self, child, parent, value):
+    def __init__(self, child: Hyperparameter, parent: Hyperparameter, value: Any) -> None:
         super(GreaterThanCondition, self).__init__(child, parent)
         if not parent.is_legal(value):
             raise ValueError("Hyperparameter '%s' is "
@@ -239,14 +246,16 @@ class GreaterThanCondition(AbstractCondition):
                              (child.name, value, parent.name))
         self.value = value
         
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "%s | %s > %s" % (self.child.name, self.parent.name,
                                   repr(self.value))
-    def _evaluate(self, value):
+
+    def _evaluate(self, value: Any) -> bool:
         return value > self.value
 
+
 class InCondition(AbstractCondition):
-    def __init__(self, child, parent, values):
+    def __init__(self, child: Hyperparameter, parent: Hyperparameter, values: Any) -> None:
         super(InCondition, self).__init__(child, parent)
         for value in values:
             if not parent.is_legal(value):
@@ -256,25 +265,25 @@ class InCondition(AbstractCondition):
                                  (child.name, value, parent.name))
         self.values = values
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "%s | %s in {%s}" % (self.child.name, self.parent.name,
                                     ", ".join(
                                         [repr(value) for value in self.values]))
 
-    def _evaluate(self, value):
+    def _evaluate(self, value: Any) -> bool:
         return value in self.values
 
 
 class AndConjunction(AbstractConjunction):
     # TODO: test if an AndConjunction results in an illegal state or a
     # Tautology! -> SAT solver
-    def __init__(self, *args):
+    def __init__(self, *args: ConditionComponent) -> None:
         if len(args) < 2:
             raise ValueError("AndConjunction must at least have two "
                              "Conditions.")
         super(AndConjunction, self).__init__(*args)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         retval = six.StringIO()
         retval.write("(")
         for idx, component in enumerate(self.components):
@@ -284,18 +293,19 @@ class AndConjunction(AbstractConjunction):
         retval.write(")")
         return retval.getvalue()
 
-    def _evaluate(self, evaluations):
+    # TODO: type of evaluations?
+    def _evaluate(self, evaluations: Any) -> bool:
         return six.moves.reduce(operator.and_, evaluations)
 
 
 class OrConjunction(AbstractConjunction):
-    def __init__(self, *args):
+    def __init__(self, *args: ConditionComponent) -> None:
         if len(args) < 2:
             raise ValueError("OrConjunction must at least have two "
                              "Conditions.")
         super(OrConjunction, self).__init__(*args)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         retval = six.StringIO()
         retval.write("(")
         for idx, component in enumerate(self.components):
@@ -305,5 +315,5 @@ class OrConjunction(AbstractConjunction):
         retval.write(")")
         return retval.getvalue()
 
-    def _evaluate(self, evaluations):
+    def _evaluate(self, evaluations: Any) -> bool:
         return six.moves.reduce(operator.or_, evaluations)
