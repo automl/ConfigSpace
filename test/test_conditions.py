@@ -118,6 +118,37 @@ class TestConditions(unittest.TestCase):
 
         self.assertEqual("child | parent in {0, 1, 2, 3, 4, 5}", str(cond))
 
+    def test_greater_and_less_condition(self):
+        child = Constant('child', 'child')
+        hp1 = UniformFloatHyperparameter("float", 0, 5)
+        hp2 = UniformIntegerHyperparameter("int", 0, 5)
+        hp3 = OrdinalHyperparameter("ord", list(range(6)))
+
+        for hp in [hp1, hp2, hp3]:
+            gt = GreaterThanCondition(child, hp, 1)
+            self.assertFalse(gt.evaluate({hp.name: 0}))
+            self.assertTrue(gt.evaluate({hp.name: 2}))
+            self.assertFalse(gt.evaluate({hp.name: None}))
+
+            lt = LessThanCondition(child, hp, 1)
+            self.assertTrue(lt.evaluate({hp.name: 0}))
+            self.assertFalse(lt.evaluate({hp.name: 2}))
+            self.assertFalse(lt.evaluate({hp.name: None}))
+
+        hp4 = CategoricalHyperparameter("cat", list(range(6)))
+        self.assertRaisesRegex(ValueError, "Parent hyperparameter in a > "
+                                           "condition must be a subclass of "
+                                           "NumericalHyperparameter or "
+                                           "OrdinalHyperparameter, but is "
+                                           "<class 'ConfigSpace.hyperparameters.CategoricalHyperparameter'>",
+                               GreaterThanCondition, child, hp4, 1)
+        self.assertRaisesRegex(ValueError, "Parent hyperparameter in a < "
+                                           "condition must be a subclass of "
+                                           "NumericalHyperparameter or "
+                                           "OrdinalHyperparameter, but is "
+                                           "<class 'ConfigSpace.hyperparameters.CategoricalHyperparameter'>",
+                               LessThanCondition, child, hp4, 1)
+
     def test_in_condition_illegal_value(self):
         epsilon = UniformFloatHyperparameter("epsilon", 1e-5, 1e-1,
                                              default=1e-4, log=True)

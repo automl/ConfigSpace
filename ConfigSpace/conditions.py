@@ -32,7 +32,8 @@ import operator
 
 import six
 
-from ConfigSpace.hyperparameters import Hyperparameter
+from ConfigSpace.hyperparameters import Hyperparameter, \
+    NumericalHyperparameter, OrdinalHyperparameter
 
 
 class ConditionComponent(object):
@@ -215,6 +216,11 @@ class NotEqualsCondition(AbstractCondition):
         
 class LessThanCondition(AbstractCondition):
     def __init__(self, child, parent, value):
+        if not isinstance(parent, (NumericalHyperparameter,
+                                   OrdinalHyperparameter)):
+            raise ValueError("Parent hyperparameter in a < condition must "
+                             "be a subclass of NumericalHyperparameter or "
+                             "OrdinalHyperparameter, but is %s" % type(parent))
         super(LessThanCondition, self).__init__(child, parent)
         if not parent.is_legal(value):
             raise ValueError("Hyperparameter '%s' is "
@@ -227,10 +233,18 @@ class LessThanCondition(AbstractCondition):
         return "%s | %s < %s" % (self.child.name, self.parent.name,
                                   repr(self.value))
     def _evaluate(self, value):
-        return value < self.value
+        if value is None:
+            return False
+        else:
+            return value < self.value
     
 class GreaterThanCondition(AbstractCondition):
     def __init__(self, child, parent, value):
+        if not isinstance(parent, (NumericalHyperparameter,
+                                   OrdinalHyperparameter)):
+            raise ValueError("Parent hyperparameter in a > condition must "
+                             "be a subclass of NumericalHyperparameter or "
+                             "OrdinalHyperparameter, but is %s" % type(parent))
         super(GreaterThanCondition, self).__init__(child, parent)
         if not parent.is_legal(value):
             raise ValueError("Hyperparameter '%s' is "
@@ -243,7 +257,10 @@ class GreaterThanCondition(AbstractCondition):
         return "%s | %s > %s" % (self.child.name, self.parent.name,
                                   repr(self.value))
     def _evaluate(self, value):
-        return value > self.value
+        if value is None:
+            return False
+        else:
+            return value > self.value
 
 class InCondition(AbstractCondition):
     def __init__(self, child, parent, values):
