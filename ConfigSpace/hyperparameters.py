@@ -29,6 +29,8 @@
 from abc import ABCMeta, abstractmethod
 import warnings
 
+from collections import OrderedDict
+
 import numpy as np
 import six
 
@@ -730,6 +732,153 @@ class CategoricalHyperparameter(Hyperparameter):
                         candidate = float(candidate_idx)
 
                     neighbors.append(candidate)
+
+        return neighbors
+        
+class OrdinalHyperparameter(Hyperparameter):
+    def __init__(self, name, sequence, default=None):
+        """
+        since the sequence can consist of elements from different types we
+        store them into a dictionary in order to handle them as a
+        numeric sequence according to their order/position.
+        """
+        super(OrdinalHyperparameter, self).__init__(name)
+        self.sequence= sequence
+        self._num_elements = len(sequence)
+        self.default = self.check_default(default)
+        
+        self.value_dict = OrderedDict()
+        counter = 1
+        for element in self.sequence:
+            self.value_dict[element] = counter
+            counter += 1
+
+    def __repr__(self):        
+        """
+        writes out the parameter definition
+        """
+        repr_str = six.StringIO()
+        repr_str.write("%s, Type: Ordinal, Sequence: {" % (self.name))
+        for idx, seq in enumerate(self.sequence):
+            repr_str.write(str(seq))
+            if idx < len(self.sequence) - 1:
+                repr_str.write(", ")
+        repr_str.write("}")
+        repr_str.write(", Default: ")
+        repr_str.write(str(self.default))
+        repr_str.seek(0)
+        return repr_str.getvalue()
+
+    def is_legal(self, value):
+        """
+        checks if a certain value is represented in the sequence
+        """
+        return value in self.sequence
+
+    def check_default(self, default):
+        """
+        checks if given default value is represented in the sequence.
+        If there's no default value we simply choose the 
+        first element in our sequence as default.
+        """
+        if default is None:
+            return self.sequence[0]
+        elif self.is_legal(default):
+            return default
+        else:
+            raise ValueError("Illegal default value %s" % str(default))
+            
+    def _transform(self, vector):
+        if vector != vector:
+            return None
+        if np.equal(np.mod(vector, 1), 0):
+            return self.sequence[int(vector)]
+        else:
+            raise ValueError('Can only index the choices of the ordinal '
+                             'hyperparameter %s with an integer, but provided '
+                             'the following float: %f' % (self, vector))
+
+    def _inverse_transform(self, vector):
+        if vector is None:
+            return np.NaN
+        return self.sequence.index(vector)
+            
+    def get_seq_order(self):
+        """
+        returns the ordinal sequence as numeric sequence 
+        (according to the the ordering) from 1 to length of our sequence.
+        """
+        return np.arange(1,self._num_elements+1)
+        
+    def get_order(self, value):
+        """
+        returns the seuence position/order of a certain value from the sequence
+        """
+        return self.value_dict[value]
+        
+    def get_value(self, idx):
+        """
+        returns the sequence value of a given order/position
+        """
+        return list(self.value_dict.keys())[list(self.value_dict.values()).index(idx)]
+            
+    def check_order(self,val1, val2):
+        """
+        checks whether value1 is smaller than value2.
+        """
+        idx1 = self.get_order(val1)
+        idx2 = self.get_order(val2)
+        if idx1 < idx2:
+            return True
+        else:
+            return False
+
+    def _sample(self, rs, size=None):
+        """
+        returns a random sample from our sequence as order/position index
+        """
+        return rs.randint(0, self._num_elements, size=size)
+
+    def has_neighbors(self):
+        """
+        checks if there are neighbors or we're only dealing with an 
+        one-element sequence
+        """
+        return len(self.sequence) > 1
+
+    def get_num_neighbors(self, value):
+        """
+        returns the number of existing neighbors in the sequence
+        """
+        if value == self.sequence[0] or value ==self.sequence[-1]:
+            return 1
+        else:
+            return 2
+
+    def get_neighbors(self, value, number=2, transform = False):
+        """
+        Returns the neighbors of a given value.
+        """
+        neighbors = []
+        if number < len(self.sequence):
+            index = self.get_order(value)
+            neighbor_idx1 = index -1
+            neighbor_idx2 = index + 1
+            seq = self.get_seq_order()
+            if transform:
+                if neighbor_idx1 >= seq[0]:
+                    candidate1 = self.get_value(neighbor_idx1)
+                    if self.check_order(candidate1, value):
+                        neighbors.append(candidate1)
+                if neighbor_idx2 <= self._num_elements:
+                    candidate2 = self.get_value(neighbor_idx2)     
+                    if self.check_order(value, candidate2):
+                        neighbors.append(candidate2)
+            else:
+                if neighbor_idx1 < index and neighbor_idx1 >= seq[0]:
+                    neighbors.append(neighbor_idx1)
+                if neighbor_idx2 > index and neighbor_idx2 <= self._num_elements:
+                    neighbors.append(neighbor_idx2)
 
         return neighbors
 

@@ -32,10 +32,12 @@ import six
 
 from ConfigSpace.configuration_space import ConfigurationSpace
 import ConfigSpace.io.pcs as pcs
+import ConfigSpace.io.pcs_new as pcs_new
 from ConfigSpace.hyperparameters import CategoricalHyperparameter, \
-    UniformIntegerHyperparameter, UniformFloatHyperparameter
+    UniformIntegerHyperparameter, UniformFloatHyperparameter, OrdinalHyperparameter
 from ConfigSpace.conditions import EqualsCondition, InCondition, \
-    AndConjunction
+    AndConjunction, OrConjunction, NotEqualsCondition, \
+    LessThanCondition, GreaterThanCondition
 from ConfigSpace.forbidden import ForbiddenEqualsClause, \
     ForbiddenInClause, ForbiddenAndConjunction
 
@@ -98,7 +100,11 @@ class TestPCSConverter(unittest.TestCase):
         a_copy = {"a": float_a_copy, "b": int_a}
         a_real = {"b": int_a, "a": float_a}
         self.assertDictEqual(a_real, a_copy)
-
+    
+    '''
+    Tests for the "older pcs" version
+    
+    '''
     def test_read_configuration_space_easy(self):
         expected = six.StringIO()
         expected.write('# This is a \n')
@@ -114,7 +120,7 @@ class TestPCSConverter(unittest.TestCase):
         expected.seek(0)
         cs = pcs.read(expected)
         self.assertEqual(cs, easy_space)
-
+    
     def test_read_configuration_space_conditional(self):
         # More complex search space as string array
         complex_cs = list()
@@ -208,4 +214,202 @@ class TestPCSConverter(unittest.TestCase):
         cs.add_forbidden_clause(fb)
         value = pcs.write(cs)
         self.assertIn(expected, value)
+    
+    """
+    Tests for the "newer pcs" version in order to check 
+    if both deliver the same results
+    """
+    def test_read_new_configuration_space_easy(self):
+        expected = six.StringIO()
+        expected.write('# This is a \n')
+        expected.write('   # This is a comment with a leading whitespace ### ffds \n')
+        expected.write('\n')
+        expected.write('float_a real [-1.23, 6.45] [2.61] # bla\n')
+        expected.write('e_float_a real [.5E-2, 4.5e+06] [2250000.0025]\n')
+        expected.write('int_a integer [-1, 6] [2]\n')
+        expected.write('log_a real [4e-1, 6.45] [1.6062378404]log\n')
+        expected.write('int_log_a integer [1, 6] [2]log\n')
+        expected.write('cat_a categorical {a,"b",c,d} [a]\n')
+        expected.write('@.:;/\?!$%&_-<>*+1234567890 categorical {"const"} ["const"]\n')
+        expected.seek(0)
+        cs = pcs_new.read(expected)
+        self.assertEqual(cs, easy_space)
+        
+    def test_read_new_configuration_space_conditional(self):
+        # More complex search space as string array
+        complex_cs = list()
+        complex_cs.append("preprocessing categorical {None, pca} [None]")
+        complex_cs.append("classifier categorical {svm, nn} [svm]")
+        complex_cs.append("kernel categorical {rbf, poly, sigmoid} [rbf]")
+        complex_cs.append("C real [0.03125, 32768] [32]log")
+        complex_cs.append("neurons integer [16, 1024] [520] # Should be Q16")
+        complex_cs.append("lr real [0.0001, 1.0] [0.50005]")
+        complex_cs.append("degree integer [1, 5] [3]")
+        complex_cs.append("gamma real [0.000030518, 8] [0.0156251079996]log")
 
+        complex_cs.append("C | classifier in {svm}")
+        complex_cs.append("kernel | classifier in {svm}")
+        complex_cs.append("lr | classifier in {nn}")
+        complex_cs.append("neurons | classifier in {nn}")
+        complex_cs.append("degree | kernel in {poly, sigmoid}")
+        complex_cs.append("gamma | kernel in {rbf}")
+
+        cs_new = pcs_new.read(complex_cs)
+        self.assertEqual(cs_new, conditional_space)
+        
+        # same in older version
+        complex_cs_old = list()
+        complex_cs_old.append("preprocessing {None, pca} [None]")
+        complex_cs_old.append("classifier {svm, nn} [svm]")
+        complex_cs_old.append("kernel {rbf, poly, sigmoid} [rbf]")
+        complex_cs_old.append("C [0.03125, 32768] [32]l")
+        complex_cs_old.append("neurons [16, 1024] [520]i # Should be Q16")
+        complex_cs_old.append("lr [0.0001, 1.0] [0.50005]")
+        complex_cs_old.append("degree [1, 5] [3]i")
+        complex_cs_old.append("gamma [0.000030518, 8] [0.0156251079996]l")
+
+        complex_cs_old.append("C | classifier in {svm}")
+        complex_cs_old.append("kernel | classifier in {svm}")
+        complex_cs_old.append("lr | classifier in {nn}")
+        complex_cs_old.append("neurons | classifier in {nn}")
+        complex_cs_old.append("degree | kernel in {poly, sigmoid}")
+        complex_cs_old.append("gamma | kernel in {rbf}")
+
+        cs_old = pcs.read(complex_cs_old)
+        self.assertEqual(cs_old, cs_new)
+        
+    def test_write_new_illegal_argument(self):
+        sp = {"a": int_a}
+        self.assertRaisesRegexp(TypeError, "pcs_parser.write expects an "
+                                "instance of "
+                                "<class "
+                                "'ConfigSpace.configuration_"
+                                "space.ConfigurationSpace'>, you provided "
+                                "'<(type|class) 'dict'>'", pcs_new.write, sp)
+                                
+    def test_write_new_int(self):
+        expected = "int_a integer [-1, 6] [2]"
+        cs = ConfigurationSpace()
+        cs.add_hyperparameter(int_a)
+        value = pcs_new.write(cs)
+        self.assertEqual(expected, value)
+
+    def test_write_new_log_int(self):
+        expected = "int_log_a integer [1, 6] [2]log"
+        cs = ConfigurationSpace()
+        cs.add_hyperparameter(int_log_a)
+        value = pcs_new.write(cs)
+        self.assertEqual(expected, value)
+
+    def test_write_new_q_int(self):
+        expected = "Q16_int_a integer [16, 1024] [520]"
+        cs = ConfigurationSpace()
+        cs.add_hyperparameter(
+            UniformIntegerHyperparameter("int_a", 16, 1024, q=16))
+        value = pcs_new.write(cs)
+        self.assertEqual(expected, value)
+
+    def test_write_new_q_float(self):
+        expected = "Q16_float_a real [16.0, 1024.0] [520.0]"
+        cs = ConfigurationSpace()
+        cs.add_hyperparameter(
+            UniformFloatHyperparameter("float_a", 16, 1024, q=16))
+        value = pcs_new.write(cs)
+        self.assertEqual(expected, value)
+
+    def test_write_new_log10(self):
+        expected = "a real [10.0, 1000.0] [100.0]log"
+        cs = ConfigurationSpace()
+        cs.add_hyperparameter(
+            UniformFloatHyperparameter("a", 10, 1000, log=True))
+        value = pcs_new.write(cs)
+        self.assertEqual(expected, value)
+
+    def test_build_new_forbidden(self):
+        expected = "a categorical {a, b, c} [a]\nb categorical {a, b, c} [c]\n\n" \
+                   "{a=a, b=a}\n{a=a, b=b}\n{a=b, b=a}\n{a=b, b=b}"
+        cs = ConfigurationSpace()
+        a = CategoricalHyperparameter("a", ["a", "b", "c"], "a")
+        b = CategoricalHyperparameter("b", ["a", "b", "c"], "c")
+        cs.add_hyperparameter(a)
+        cs.add_hyperparameter(b)
+        fb = ForbiddenAndConjunction(ForbiddenInClause(a, ["a", "b"]),
+                                     ForbiddenInClause(b, ["a", "b"]))
+        cs.add_forbidden_clause(fb)
+        value = pcs_new.write(cs)
+        self.assertIn(expected, value)
+    
+    def test_read_new_configuration_space_complex_conditionals(self):
+        classi = OrdinalHyperparameter("classi", ["random_forest","extra_trees","k_nearest_neighbors","something"])
+        knn_weights = CategoricalHyperparameter("knn_weights", ["uniform", "distance"])
+        weather = OrdinalHyperparameter("weather",["sunny", "rainy", "cloudy", "snowing"])
+        temperature = CategoricalHyperparameter("temperature", ["high", "low"])
+        rain = CategoricalHyperparameter("rain", ["yes", "no"])
+        gloves = OrdinalHyperparameter("gloves",["none", "yarn", "leather", "gortex"])
+        heur1 = CategoricalHyperparameter("heur1", ["off", "on"])
+        heur2 = CategoricalHyperparameter("heur2", ["off", "on"])
+        heur_order = CategoricalHyperparameter("heur_order", ["heur1then2", "heur2then1"])
+        gloves_condition = OrConjunction(EqualsCondition(gloves, rain, "yes"),
+                                           EqualsCondition(gloves, temperature, "low"))
+        heur_condition = AndConjunction(EqualsCondition(heur_order, heur1, "on"),
+                                        EqualsCondition(heur_order, heur2, "on"))
+        and_conjunction = AndConjunction(NotEqualsCondition(knn_weights, classi, "extra_trees"), 
+                                         EqualsCondition(knn_weights, classi, "random_forest"))
+        Cl_condition = OrConjunction(EqualsCondition(knn_weights, classi, "k_nearest_neighbors"),
+                                     and_conjunction,
+                                     EqualsCondition(knn_weights, classi, "something"))
+        
+        and1 = AndConjunction(EqualsCondition(temperature, weather, "rainy"),
+                              EqualsCondition(temperature, weather, "cloudy"))   
+        and2 = AndConjunction(EqualsCondition(temperature, weather, "sunny"),
+                              NotEqualsCondition(temperature, weather, "snowing"))                       
+        another_condition = OrConjunction(and1,and2)
+        
+        complex_conditional_space = ConfigurationSpace()
+        complex_conditional_space.add_hyperparameter(classi)
+        complex_conditional_space.add_hyperparameter(knn_weights)
+        complex_conditional_space.add_hyperparameter(weather)
+        complex_conditional_space.add_hyperparameter(temperature)
+        complex_conditional_space.add_hyperparameter(rain)
+        complex_conditional_space.add_hyperparameter(gloves)
+        complex_conditional_space.add_hyperparameter(heur1)
+        complex_conditional_space.add_hyperparameter(heur2)
+        complex_conditional_space.add_hyperparameter(heur_order)
+        
+        complex_conditional_space.add_condition(gloves_condition)
+        complex_conditional_space.add_condition(heur_condition)
+        complex_conditional_space.add_condition(Cl_condition)
+        complex_conditional_space.add_condition(another_condition)
+
+        complex_cs = list()
+        complex_cs.append("classi ordinal {random_forest,extra_trees,k_nearest_neighbors, something} [random_forest]")
+        complex_cs.append("knn_weights categorical {uniform, distance} [uniform]")
+        complex_cs.append("weather ordinal {sunny, rainy, cloudy, snowing} [sunny]")
+        complex_cs.append("temperature categorical {high, low} [high]")
+        complex_cs.append("rain categorical { yes, no } [yes]")
+        complex_cs.append("gloves ordinal { none, yarn, leather, gortex } [none]")
+        complex_cs.append("heur1 categorical { off, on } [off]")
+        complex_cs.append("heur2 categorical { off, on } [off]")
+        complex_cs.append("heur_order categorical { heur1then2, heur2then1 } [heur1then2]")
+        complex_cs.append("gloves | rain == yes || temperature == low")
+        complex_cs.append("heur_order | heur1 == on && heur2 == on")
+        complex_cs.append("knn_weights | classi == k_nearest_neighbors || classi != extra_trees && classi == random_forest || classi == something")
+        complex_cs.append("temperature | weather == rainy && weather == cloudy || weather == sunny && weather != snowing")
+        cs_new = pcs_new.read(complex_cs)
+        self.assertEqual(cs_new, complex_conditional_space)
+
+    def test_convert_restrictions(self):
+        # This is a smoke test to make sure that the int/float values in the
+        # greater or smaller statements are converted to the right type when
+        # reading them
+        s = """x1 real [0,1] [0]
+        x2 real [0,1] [0]
+        x3 real [0,1] [0]
+        x4 integer [0,2] [0]
+        x5 real [0,1] [0]
+        x6 ordinal {cold, luke-warm, hot} [cold]
+        x1 | x2 > 0.5
+        x3 | x4 > 1
+        x5 | x6 > luke-warm"""
+
+        pcs_new.read(s.split('\n'))

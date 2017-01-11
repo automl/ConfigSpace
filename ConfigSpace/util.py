@@ -171,9 +171,11 @@ def get_one_exchange_neighbourhood(configuration, seed):
                             if any([parent_value is None for parent_value in
                                     parents.values()]):
                                 active = False
+                                break
                             else:
                                 if not condition.evaluate(parents):
                                     active = False
+                                    break
 
                         if active and (current_value is None or
                                        not np.isfinite(current_value)):
