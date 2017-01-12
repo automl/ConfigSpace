@@ -170,13 +170,24 @@ def condition_specification(child_name, condition, configuration_space):
     operation = condition[1]
     if operation == 'in':
         restrictions = condition[3:-1:2]
+        for i in range(len(restrictions)):
+            if isinstance(parent, FloatHyperparameter):
+                restrictions[i] = float(restrictions[i])
+            elif isinstance(parent, IntegerHyperparameter):
+                restrictions[i] = int(restrictions[i])
+
         if len(restrictions) == 1:
             condition = EqualsCondition(child, parent, restrictions[0])
         else:
             condition = InCondition(child, parent, values=restrictions)
         return condition                
     else:
-        restrictions = condition[2]                
+        restrictions = condition[2]
+        if isinstance(parent, FloatHyperparameter):
+            restrictions = float(restrictions)
+        elif isinstance(parent, IntegerHyperparameter):
+            restrictions = int(restrictions)
+
         if operation == '==':
             condition = EqualsCondition(child, parent, restrictions)
         elif operation == '!=':
