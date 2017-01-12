@@ -126,8 +126,8 @@ def get_one_exchange_neighbourhood(configuration: Configuration, seed: int) -> L
                 if len(children) > 0:
                     to_visit = deque()  # type : ignore
                     to_visit.extendleft(children)
-                    visited = set()  # type : ignore
-                    activated_values = dict()  # type : ignore
+                    visited = set()  # type : Set[str]
+                    activated_values = dict()  # type : Dict[str,
                     while len(to_visit) > 0:
                         current = to_visit.pop()
                         if current.name in visited:
