@@ -28,7 +28,7 @@
 
 from collections import deque
 import copy
-from typing import Union, List, Any
+from typing import Union, List, Any, Dict
 
 import numpy as np  # type: ignore
 from ConfigSpace import Configuration, Constant
@@ -122,12 +122,12 @@ def get_one_exchange_neighbourhood(configuration: Configuration, seed: int) -> L
                 # Activate hyperparameters if their parent node got activated
                 children = configuration.configuration_space.get_children_of(
                     hp_name)
-
+                # todo: debug why mypy is giving error here
                 if len(children) > 0:
                     to_visit = deque()  # type : ignore
                     to_visit.extendleft(children)
                     visited = set()  # type : Set[str]
-                    activated_values = dict()  # type : Dict[str,
+                    activated_values = dict()  # type : Dict[str, Union[int, float, str]]
                     while len(to_visit) > 0:
                         current = to_visit.pop()
                         if current.name in visited:
