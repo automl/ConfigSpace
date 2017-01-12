@@ -66,7 +66,7 @@ class ConfigurationSpace(object):
         # changing this to a normal dict will break sampling because there is
         #  no guarantee that the parent of a condition was evaluated before
         self._conditionsals = OrderedDict()   # type: OrderedDict[str, str]
-        self.forbidden_clauses = []
+        self.forbidden_clauses = []  # type: List['AbstractForbiddenComponent']
         self.random = np.random.RandomState(seed)
 
         self._children['__HPOlib_configuration_space_root__'] = OrderedDict()
