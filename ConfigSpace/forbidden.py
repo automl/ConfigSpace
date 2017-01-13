@@ -29,7 +29,8 @@
 from abc import ABCMeta, abstractmethod
 import operator
 
-import six
+import io
+from functools import reduce
 
 from ConfigSpace.hyperparameters import Hyperparameter
 
@@ -222,7 +223,7 @@ class AbstractForbiddenConjunction(AbstractForbiddenComponent):
 
 class ForbiddenAndConjunction(AbstractForbiddenConjunction):
     def __repr__(self):
-        retval = six.StringIO()
+        retval = io.StringIO()
         retval.write("(")
         for idx, component in enumerate(self.components):
             retval.write(str(component))
@@ -232,4 +233,4 @@ class ForbiddenAndConjunction(AbstractForbiddenConjunction):
         return retval.getvalue()
 
     def _is_forbidden(self, evaluations):
-        return six.moves.reduce(operator.and_, evaluations)
+        return reduce(operator.and_, evaluations)

@@ -32,18 +32,18 @@ import warnings
 from collections import OrderedDict
 
 import numpy as np
-import six
-
+import io
+from functools import reduce
 
 class Hyperparameter(object):
     __metaclass__ = ABCMeta
 
     @abstractmethod
     def __init__(self, name):
-        if not isinstance(name, six.string_types):
+        if not isinstance(name, str):
             raise TypeError(
                 "The name of a hyperparameter must be an instance of"
-                " %s, but is %s." % (str(six.string_types), type(name)))
+                " %s, but is %s." % (str(str), type(name)))
         self.name = name
 
     # http://stackoverflow.com/a/25176504/4636294
@@ -104,10 +104,10 @@ class Constant(Hyperparameter):
     def __init__(self, name, value):
         super(Constant, self).__init__(name)
         allowed_types = []
-        allowed_types.extend(six.integer_types)
+        allowed_types.extend(int)
         allowed_types.append(float)
-        allowed_types.extend(six.string_types)
-        allowed_types.append(six.text_type)
+        allowed_types.extend(str)
+        allowed_types.append(str)
         allowed_types = tuple(allowed_types)
 
         if not isinstance(value, allowed_types) or \
@@ -272,7 +272,7 @@ class UniformFloatHyperparameter(UniformMixin, FloatHyperparameter):
             __init__(name, self.check_default(default))
 
     def __repr__(self):
-        repr_str = six.StringIO()
+        repr_str = io.StringIO()
         repr_str.write("%s, Type: UniformFloat, Range: [%s, %s], Default: %s" %
                        (self.name, repr(self.lower), repr(self.upper),
                         repr(self.default)))
@@ -347,7 +347,7 @@ class NormalFloatHyperparameter(NormalMixin, FloatHyperparameter):
             __init__(name, self.check_default(default))
 
     def __repr__(self):
-        repr_str = six.StringIO()
+        repr_str = io.StringIO()
         repr_str.write("%s, Type: NormalFloat, Mu: %s Sigma: %s, Default: %s" %
                        (self.name, repr(self.mu), repr(self.sigma),
                         repr(self.default)))
@@ -460,7 +460,7 @@ class UniformIntegerHyperparameter(UniformMixin, IntegerHyperparameter):
                                                default=self.default)
 
     def __repr__(self):
-        repr_str = six.StringIO()
+        repr_str = io.StringIO()
         repr_str.write("%s, Type: UniformInteger, Range: [%s, %s], Default: %s"
                        % (self.name, repr(self.lower),
                           repr(self.upper), repr(self.default)))
@@ -560,7 +560,7 @@ class NormalIntegerHyperparameter(NormalMixin, IntegerHyperparameter):
                                               default=self.default)
 
     def __repr__(self):
-        repr_str = six.StringIO()
+        repr_str = io.StringIO()
         repr_str.write("%s, Type: NormalInteger, Mu: %s Sigma: %s, Default: "
                        "%s" % (self.name, repr(self.mu),
                                repr(self.sigma), repr(self.default)))
@@ -651,7 +651,7 @@ class CategoricalHyperparameter(Hyperparameter):
         self.default = self.check_default(default)
 
     def __repr__(self):
-        repr_str = six.StringIO()
+        repr_str = io.StringIO()
         repr_str.write("%s, Type: Categorical, Choices: {" % (self.name))
         for idx, choice in enumerate(self.choices):
             repr_str.write(str(choice))
@@ -757,7 +757,7 @@ class OrdinalHyperparameter(Hyperparameter):
         """
         writes out the parameter definition
         """
-        repr_str = six.StringIO()
+        repr_str = io.StringIO()
         repr_str.write("%s, Type: Ordinal, Sequence: {" % (self.name))
         for idx, seq in enumerate(self.sequence):
             repr_str.write(str(seq))
