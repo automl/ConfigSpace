@@ -201,6 +201,12 @@ class UniformMixin(object):
     def is_legal(self, value):
         if not super(UniformMixin, self).is_legal(value):
             return False
+        elif self.log:
+            # compute legality in log space due to rounding errors
+            if self._upper >= np.log(value) >= self._lower:
+                return True
+            else:
+                return False
         # Strange numerical issues!
         elif self.upper >= value >= (self.lower - 0.0000000001):
             return True
@@ -246,9 +252,6 @@ class UniformFloatHyperparameter(UniformMixin, FloatHyperparameter):
                              "hyperparameter %s is forbidden." %
                              (self.lower, name))
 
-        super(UniformFloatHyperparameter, self). \
-            __init__(name, self.check_default(default))
-
         if self.log:
             if self.q is not None:
                 lower = self.lower - (np.float64(self.q) / 2. - 0.0001)
@@ -265,6 +268,9 @@ class UniformFloatHyperparameter(UniformMixin, FloatHyperparameter):
             else:
                 self._lower = self.lower
                 self._upper = self.upper
+
+        super(UniformFloatHyperparameter, self). \
+            __init__(name, self.check_default(default))
 
     def __repr__(self):
         repr_str = io.StringIO()
@@ -431,6 +437,10 @@ class UniformIntegerHyperparameter(UniformMixin, IntegerHyperparameter):
         else:
             self.q = None
         self.log = bool(log)
+
+        if self.log:
+            self._lower = np.log(lower)
+            self._upper = np.log(upper)
 
         if self.lower >= self.upper:
             raise ValueError("Upper bound %d must be larger than lower bound "
