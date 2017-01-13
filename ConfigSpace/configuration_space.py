@@ -30,13 +30,15 @@ from collections import defaultdict, deque, OrderedDict
 import copy
 
 import numpy as np
+# import six
 import io
-from functools import reduce
+
 import ConfigSpace.nx
 from ConfigSpace.hyperparameters import Hyperparameter, Constant, FloatHyperparameter
 from ConfigSpace.conditions import ConditionComponent, \
     AbstractCondition, AbstractConjunction, EqualsCondition
 from ConfigSpace.forbidden import AbstractForbiddenComponent
+from typing import Union, List, Any, Dict, Iterable, Set
 
 
 class ConfigurationSpace(object):
@@ -48,10 +50,10 @@ class ConfigurationSpace(object):
     """Represent a configuration space.
     """
 
-    def __init__(self, seed=None):
-        self._hyperparameters = OrderedDict()
-        self._hyperparameter_idx = dict()
-        self._idx_to_hyperparameter = dict()
+    def __init__(self, seed: Union[int, None] = None) -> None:
+        self._hyperparameters = OrderedDict()  # type: OrderedDict[str, Hyperparameter]
+        self._hyperparameter_idx = dict()  # type: Dict[str, int]
+        self._idx_to_hyperparameter = dict()  # type: Dict[int, str]
 
         # Use dictionaries to make sure that we don't accidently add
         # additional keys to these mappings (which happened with defaultdict()).
@@ -59,23 +61,24 @@ class ConfigurationSpace(object):
         # spaces when _children of one instance contained  all possible
         # hyperparameters as keys and empty dictionaries as values while the
         # other instance not containing these.
-        self._children = OrderedDict()
-        self._parents = OrderedDict()
+        self._children = OrderedDict()   # type: OrderedDict[str, OrderedDict[str, Union[None, AbstractCondition]]]
+        self._parents = OrderedDict()   # type: OrderedDict[str, OrderedDict[str, Union[None, AbstractCondition]]]
 
         # changing this to a normal dict will break sampling because there is
         #  no guarantee that the parent of a condition was evaluated before
-        self._conditionsals = OrderedDict()
-        self.forbidden_clauses = []
+        self._conditionsals = OrderedDict()   # type: OrderedDict[str, str]
+        self.forbidden_clauses = []  # type: List['AbstractForbiddenComponent']
         self.random = np.random.RandomState(seed)
 
         self._children['__HPOlib_configuration_space_root__'] = OrderedDict()
 
-    def generate_all_continuous_from_bounds(self, bounds):
-        for i,(l,u) in enumerate(bounds):
+    # todo: typeof bounds?
+    def generate_all_continuous_from_bounds(self, bounds: List[List[Any]]) -> None:
+        for i, (l, u) in enumerate(bounds):
             hp = ConfigSpace.UniformFloatHyperparameter('x%d' % i, l, u)
             self.add_hyperparameter(hp)
 
-    def add_hyperparameter(self, hyperparameter):
+    def add_hyperparameter(self, hyperparameter: Hyperparameter) -> Hyperparameter:
         """Add a hyperparameter to the configuration space.
 
         Parameters
@@ -113,9 +116,10 @@ class ConfigurationSpace(object):
         self._check_default_configuration()
         self._sort_hyperparameters()
 
+        # todo: check it returns input as aoutput?
         return hyperparameter
 
-    def add_condition(self, condition):
+    def add_condition(self, condition: ConditionComponent) -> ConditionComponent:
         # Check if adding the condition is legal:
         # * The parent in a condition statement must exist
         # * The condition must add no cycles
@@ -145,7 +149,7 @@ class ConfigurationSpace(object):
             raise Exception("This should never happen!")
         return condition
 
-    def _add_edge(self, parent_node, child_node, condition):
+    def _add_edge(self, parent_node: str, child_node: str, condition: AbstractCondition) -> None:
         self._check_edge(parent_node, child_node, condition)
         try:
             # TODO maybe this has to be done more carefully
@@ -164,7 +168,7 @@ class ConfigurationSpace(object):
         self._sort_hyperparameters()
         self._conditionsals[child_node] = child_node
 
-    def _check_edge(self, parent_node, child_node, condition):
+    def _check_edge(self, parent_node: str, child_node: str, condition: AbstractCondition) -> None:
         # check if both nodes are already inserted into the graph
         if child_node not in self._hyperparameters:
             raise ValueError("Child hyperparameter '%s' not in configuration "
@@ -195,9 +199,9 @@ class ConfigurationSpace(object):
                                  "instead!\nAlready inserted: %s\nNew one: "
                                  "%s" % (str(other_condition), str(condition)))
 
-    def _sort_hyperparameters(self):
-        levels = OrderedDict()
-        to_visit = deque()
+    def _sort_hyperparameters(self) -> None:
+        levels = OrderedDict()  # type: OrderedDict[str, int]
+        to_visit = deque() # type: ignore
         for hp_name in self._hyperparameters:
             to_visit.appendleft(hp_name)
 
@@ -222,7 +226,7 @@ class ConfigurationSpace(object):
                 else:
                     to_visit.appendleft(current)
 
-        by_level = defaultdict(list)
+        by_level = defaultdict(list)  # type: Dict['int', List[str]]
         for hp in levels:
             level = levels[hp]
             by_level[level].append(hp)
@@ -248,7 +252,7 @@ class ConfigurationSpace(object):
             self._hyperparameter_idx[hp] = i
             self._idx_to_hyperparameter[i] = hp
 
-    def _create_tmp_dag(self):
+    def _create_tmp_dag(self) -> ConfigSpace.nx.DiGraph:
         tmp_dag = ConfigSpace.nx.DiGraph()
         for hp_name in self._hyperparameters:
             tmp_dag.add_node(hp_name)
@@ -268,7 +272,7 @@ class ConfigurationSpace(object):
 
         return tmp_dag
 
-    def add_forbidden_clause(self, clause):
+    def add_forbidden_clause(self, clause: AbstractForbiddenComponent) -> AbstractForbiddenComponent:
         if not isinstance(clause, AbstractForbiddenComponent):
             raise TypeError("The method add_forbidden_clause must be called "
                             "with an instance of "
@@ -285,8 +289,8 @@ class ConfigurationSpace(object):
     #     HPOlibConfigSpace.nx.draw(self._dg, pos, with_labels=True)
     #     plt.savefig('nx_test.png')
 
-    def add_configuration_space(self, prefix, configuration_space,
-                                delimiter=":", parent_hyperparameter=None):
+    def add_configuration_space(self, prefix: str, configuration_space: ConfigSpace,
+                                delimiter: str=":", parent_hyperparameter: Hyperparameter=None) -> ConfigSpace:
         if not isinstance(configuration_space, ConfigurationSpace):
             raise TypeError("The method add_configuration_space must be "
                             "called with an instance of "
@@ -349,10 +353,11 @@ class ConfigurationSpace(object):
 
         return configuration_space
 
-    def get_hyperparameters(self):
+    # todo: verify return types of these get functions
+    def get_hyperparameters(self) -> List[Hyperparameter]:
         return list(self._hyperparameters.values())
 
-    def get_hyperparameter(self, name):
+    def get_hyperparameter(self, name: str) -> Hyperparameter:
         hp = self._hyperparameters.get(name)
 
         if hp is None:
@@ -361,7 +366,7 @@ class ConfigurationSpace(object):
         else:
             return hp
 
-    def get_hyperparameter_by_idx(self, idx):
+    def get_hyperparameter_by_idx(self, idx: int) -> str:
         hp = self._idx_to_hyperparameter.get(idx)
 
         if hp is None:
@@ -370,7 +375,7 @@ class ConfigurationSpace(object):
         else:
             return hp
 
-    def get_idx_by_hyperparameter_name(self, name):
+    def get_idx_by_hyperparameter_name(self, name: str) -> int:
         idx = self._hyperparameter_idx.get(name)
 
         if idx is None:
@@ -379,9 +384,9 @@ class ConfigurationSpace(object):
         else:
             return idx
 
-    def get_conditions(self):
+    def get_conditions(self) -> List[AbstractCondition]:
         conditions = []
-        added_conditions = set()
+        added_conditions = set()  # type: Set[str]
 
         # Nodes is a list of nodes
         for source_node in self.get_hyperparameters():
@@ -396,16 +401,16 @@ class ConfigurationSpace(object):
 
         return conditions
 
-    def get_children_of(self, name):
+    def get_children_of(self, name: Hyperparameter) -> List[Hyperparameter]:
         conditions = self.get_child_conditions_of(name)
-        parents = []
+        parents = [] # type: List[Hyperparameter]
         for condition in conditions:
             parents.extend(condition.get_children())
         return parents
 
-    def get_child_conditions_of(self, name):
+    def get_child_conditions_of(self, name: Union[str, Hyperparameter]) -> List[AbstractCondition]:
         if isinstance(name, Hyperparameter):
-            name = name.name
+            name = name.name  # type: ignore
 
         # This raises an exception if the hyperparameter does not exist
         self.get_hyperparameter(name)
@@ -422,7 +427,7 @@ class ConfigurationSpace(object):
                       if child_name != "__HPOlib_configuration_space_root__"]
         return conditions
 
-    def get_parents_of(self, name):
+    def get_parents_of(self, name: Union[str, Hyperparameter]) -> List[Hyperparameter]:
         """Return the parent hyperparameters of a given hyperparameter.
 
         Parameters
@@ -437,41 +442,42 @@ class ConfigurationSpace(object):
             List with all parent hyperparameters.
         """
         conditions = self.get_parent_conditions_of(name)
-        parents = []
+        parents = [] # type: List[Hyperparameter]
         for condition in conditions:
             parents.extend(condition.get_parents())
         return parents
 
-    def get_parent_conditions_of(self, name):
+    def get_parent_conditions_of(self, name: Union[str, Hyperparameter]) -> List[AbstractCondition]:
         if isinstance(name, Hyperparameter):
-            name = name.name
+            name = name.name  # type: ignore
 
         # This raises an exception if the hyperparameter does not exist
         self.get_hyperparameter(name)
         return self._get_parent_conditions_of(name)
 
-    def _get_parent_conditions_of(self, name):
+    def _get_parent_conditions_of(self, name: str) -> List[AbstractCondition]:
         parents = self._parents[name]
         conditions = [parents[parent_name] for parent_name in parents
                       if parent_name != "__HPOlib_configuration_space_root__"]
         return conditions
-
-    def get_all_unconditional_hyperparameters(self):
+    # todo: find out if hyperparameter obj or only its name is returned?
+    def get_all_unconditional_hyperparameters(self) -> List[Hyperparameter]:
         hyperparameters = [hp_name for hp_name in
                            self._children[
                                '__HPOlib_configuration_space_root__']]
         return hyperparameters
 
-    def get_all_conditional_hyperparameters(self):
+    def get_all_conditional_hyperparameters(self) -> OrderedDict[str, str]:
         return self._conditionsals
 
-    def get_default_configuration(self):
+    def get_default_configuration(self) -> Configuration:
         return self._check_default_configuration()
 
-    def _check_default_configuration(self):
+    def _check_default_configuration(self) -> Configuration:
         # Check if adding that hyperparameter leads to an illegal default
         # configuration:
-        instantiated_hyperparameters = {}
+        # todo: recheck type of instantiated_hyperparameter
+        instantiated_hyperparameters = {} # type: Dict[str, Union[None, int, float, str]]
         for hp in self.get_hyperparameters():
             conditions = self._get_parent_conditions_of(hp.name)
             active = True
@@ -489,10 +495,6 @@ class ConfigurationSpace(object):
                     active = False
 
             if active == False:
-                # Condition evaluation must be called with all
-                # hyperparameters that are in the condition, even if they are
-                # inactive. For that, an inactive hyperparameter is assigned
-                # the value None
                 instantiated_hyperparameters[hp.name] = None
             elif isinstance(hp, Constant):
                 instantiated_hyperparameters[hp.name] = hp.value
@@ -505,15 +507,15 @@ class ConfigurationSpace(object):
         # configuration is forbidden!
         return Configuration(self, instantiated_hyperparameters)
 
-    def check_configuration(self, configuration):
+    def check_configuration(self, configuration: Configuration) -> None:
         if not isinstance(configuration, Configuration):
             raise TypeError("The method check_configuration must be called "
-                            "with an instance of %s. " 
+                            "with an instance of %s. "
                             "Your input was of type %s"% (Configuration, type(configuration)))
         self._check_configuration(configuration)
 
-    def _check_configuration(self, configuration,
-                             allow_inactive_with_values=False):
+    def _check_configuration(self, configuration: Configuration,
+                             allow_inactive_with_values: bool=False) -> None:
         for hp_name in self._hyperparameters:
             hyperparameter = self._hyperparameters[hp_name]
             hp_value = configuration[hp_name]
@@ -557,14 +559,14 @@ class ConfigurationSpace(object):
                                  (hp_name, hp_value))
         self._check_forbidden(configuration)
 
-    def _check_forbidden(self, configuration):
+    def _check_forbidden(self, configuration: Configuration) -> None:
         for clause in self.forbidden_clauses:
             if clause.is_forbidden(configuration, strict=False):
                 raise ValueError("%sviolates forbidden clause %s" % (
                     str(configuration), str(clause)))
 
     # http://stackoverflow.com/a/25176504/4636294
-    def __eq__(self, other):
+    def __eq__(self, other: Any) -> bool:
         """Override the default Equals behavior"""
         if isinstance(other, self.__class__):
             this_dict = self.__dict__.copy()
@@ -574,17 +576,17 @@ class ConfigurationSpace(object):
             return this_dict == other_dict
         return NotImplemented
 
-    def __ne__(self, other):
+    def __ne__(self, other: Any) -> bool:
         """Define a non-equality test"""
         if isinstance(other, self.__class__):
             return not self.__eq__(other)
         return NotImplemented
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         """Override the default hash behavior (that returns the id or the object)"""
         return hash(tuple(sorted(self.__dict__.items())))
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         retval = io.StringIO()
         retval.write("Configuration space object:\n  Hyperparameters:\n")
 
@@ -615,14 +617,14 @@ class ConfigurationSpace(object):
         retval.seek(0)
         return retval.getvalue()
 
-    def __iter__(self):
+    def __iter__(self) -> Iterable:
         """ Allows to iterate over the hyperparameter names in (hopefully?) the right order."""
         return iter(self._hyperparameters.keys())
 
-    def sample_configuration(self, size=1):
+    def sample_configuration(self, size: int=1) -> Union[Configuration, List[Configuration]]:
         iteration = 0
         missing = size
-        accepted_configurations = []
+        accepted_configurations = []  # type: List['Configuration']
         num_hyperparameters = len(self._hyperparameters)
 
         while len(accepted_configurations) < size:
@@ -636,10 +638,10 @@ class ConfigurationSpace(object):
                 vector[:, i] = hyperparameter._sample(self.random, missing)
 
             for i in range(missing):
-                inactive = set()
+                inactive = set()  # type: Set['str']
                 visited = set()
                 visited.update(self.get_all_unconditional_hyperparameters())
-                to_visit = deque()
+                to_visit = deque()  # type: ignore
                 to_visit.extendleft(self.get_all_conditional_hyperparameters())
                 infiniteloopcounter = 0
                 while len(to_visit) > 0:
@@ -661,8 +663,7 @@ class ConfigurationSpace(object):
                             to_visit.appendleft(hp_name)
                             break
 
-                        parents = {parent_name: self._hyperparameters[
-                                       parent_name]._transform(vector[i][
+                        parents = {parent_name: self._hyperparameters[parent_name]._transform(vector[i][
                                            self._hyperparameter_idx[
                                               parent_name]])
                                    for parent_name in parent_names}
@@ -702,15 +703,17 @@ class ConfigurationSpace(object):
         else:
             return accepted_configurations
 
-    def seed(self, seed):
+    def seed(self, seed: int) -> None:
         self.random = np.random.RandomState(seed)
 
 
 class Configuration(object):
     # TODO add a method to eliminate inactive hyperparameters from a
     # configuration
-    def __init__(self, configuration_space, values=None, vector=None,
-                 allow_inactive_with_values=False, origin=None):
+    # todo check types of vector and origin
+    def __init__(self, configuration_space: ConfigurationSpace, values: Union[None, Dict[str, Hyperparameter]] = None,
+                 vector: Union[None, np.ndarray[int]]=None, allow_inactive_with_values: bool=False, origin: Any=None)\
+            -> None:
         """A single configuration.
 
         Parameters
@@ -741,7 +744,7 @@ class Configuration(object):
         self._query_values = False
         self._num_hyperparameters = len(self.configuration_space._hyperparameters)
         self.origin = origin
-        self._keys = None
+        self._keys = None  # type: ignore
 
         if values is not None and vector is not None:
             raise ValueError('Configuration specified both as dictionary and '
@@ -750,7 +753,7 @@ class Configuration(object):
             # Using cs._hyperparameters to iterate makes sure that the
             # hyperparameters in the configuration are sorted in the same way as
             # they are sorted in the configuration space
-            self._values = dict()
+            self._values = dict()  # type: ignore
             for key in configuration_space._hyperparameters:
                 value = values.get(key)
                 if value is None:
@@ -790,11 +793,11 @@ class Configuration(object):
             raise ValueError('Configuration neither specified as dictionary '
                              'or vector.')
 
-    def is_valid_configuration(self):
+    def is_valid_configuration(self) -> None:
         self.configuration_space._check_configuration(
             self, allow_inactive_with_values=self.allow_inactive_with_values)
-
-    def __getitem__(self, item):
+    # todo: find typeof _value
+    def __getitem__(self, item: str) -> Any:
         if self._query_values or item in self._values:
             return self._values.get(item)
 
@@ -808,19 +811,19 @@ class Configuration(object):
             value = float(repr(value))
         self._values[item] = value
         return self._values[item]
-
-    def get(self, item, default=None):
+    # todo: find return type of get
+    def get(self, item: str, default: None=None) -> Union[None, Any]:
         try:
             return self[item]
         except:
             return default
-
-    def __contains__(self, item):
+    # todo: recheck
+    def __contains__(self, item: str) -> Any:
         self._populate_values()
         return item in self._values
 
     # http://stackoverflow.com/a/25176504/4636294
-    def __eq__(self, other):
+    def __eq__(self, other: Any) -> bool:
         """Override the default Equals behavior"""
         if isinstance(other, self.__class__):
             self._populate_values()
@@ -829,24 +832,24 @@ class Configuration(object):
                 self.configuration_space == other.configuration_space
         return NotImplemented
 
-    def __ne__(self, other):
+    def __ne__(self, other: Any) -> bool:
         """Define a non-equality test"""
         if isinstance(other, self.__class__):
             return not self.__eq__(other)
         return NotImplemented
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         """Override the default hash behavior (that returns the id or the object)"""
         self._populate_values()
         return hash(self.__repr__())
 
-    def _populate_values(self):
+    def _populate_values(self) -> None:
         if self._query_values is False:
             for hyperparameter in self.configuration_space.get_hyperparameters():
                 self[hyperparameter.name]
             self._query_values = True
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         self._populate_values()
 
         representation = io.StringIO()
@@ -868,21 +871,21 @@ class Configuration(object):
 
         return representation.getvalue()
 
-    def __iter__(self):
+    def __iter__(self) -> Iterable:
         return iter(self.keys())
 
-    def keys(self):
+    def keys(self) -> List[str]:
         # Cache the keys to speed up the process of retrieving the keys
         if self._keys is None:
             self._keys = list(self.configuration_space._hyperparameters.keys())
         return self._keys
 
-
-    def get_dictionary(self):
+    # todo: recheck
+    def get_dictionary(self) -> Any:
         self._populate_values()
         return self._values
 
-    def get_array(self):
+    def get_array(self) -> np.ndarray:
         """
         Returns
         -------
