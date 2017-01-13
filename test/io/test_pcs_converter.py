@@ -409,7 +409,7 @@ class TestPCSConverter(unittest.TestCase):
         x5 real [0,1] [0]
         x6 ordinal {cold, luke-warm, hot} [cold]
         x1 | x2 > 0.5
-        x3 | x4 > 1
+        x3 | x4 > 1 && x4 == 2 && x4 in {2}
         x5 | x6 > luke-warm"""
 
         pcs_new.read(s.split('\n'))

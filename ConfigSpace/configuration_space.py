@@ -489,6 +489,10 @@ class ConfigurationSpace(object):
                     active = False
 
             if active == False:
+                # Condition evaluation must be called with all
+                # hyperparameters that are in the condition, even if they are
+                # inactive. For that, an inactive hyperparameter is assigned
+                # the value None
                 instantiated_hyperparameters[hp.name] = None
             elif isinstance(hp, Constant):
                 instantiated_hyperparameters[hp.name] = hp.value

@@ -170,13 +170,24 @@ def condition_specification(child_name, condition, configuration_space):
     operation = condition[1]
     if operation == 'in':
         restrictions = condition[3:-1:2]
+        for i in range(len(restrictions)):
+            if isinstance(parent, FloatHyperparameter):
+                restrictions[i] = float(restrictions[i])
+            elif isinstance(parent, IntegerHyperparameter):
+                restrictions[i] = int(restrictions[i])
+
         if len(restrictions) == 1:
             condition = EqualsCondition(child, parent, restrictions[0])
         else:
             condition = InCondition(child, parent, values=restrictions)
         return condition                
     else:
-        restrictions = condition[2]                
+        restrictions = condition[2]
+        if isinstance(parent, FloatHyperparameter):
+            restrictions = float(restrictions)
+        elif isinstance(parent, IntegerHyperparameter):
+            restrictions = int(restrictions)
+
         if operation == '==':
             condition = EqualsCondition(child, parent, restrictions)
         elif operation == '!=':
@@ -250,19 +261,27 @@ def read(pcs_string, debug=False):
 
         try:
             param_list = pp_cont_param.parseString(line)
-            log = param_list[10:]
-            if len(log) > 0:
-                log = log[0]
-            param_list = param_list[:10]
             name = param_list[0]
-            paramtype = "int" if "integer" in param_list else "float"
-            lower = float(param_list[3])
-            upper = float(param_list[5])
-            log_on = True if "log" in log else False
-            default = float(param_list[8])
-            param = create[paramtype](name=name, lower=lower, upper=upper,
-                                      q=None, log=log_on, default=default)
-            cont_ct += 1
+            if param_list[1]  == 'integer':
+                paramtype = 'int'
+            elif param_list[1] == 'real':
+                paramtype = 'float'
+            else:
+                paramtype = None
+
+            if paramtype in ['int', 'float']:
+                log = param_list[10:]
+                param_list = param_list[:10]
+                if len(log) > 0:
+                    log = log[0]
+                lower = float(param_list[3])
+                upper = float(param_list[5])
+                log_on = True if "log" in log else False
+                default = float(param_list[8])
+                param = create[paramtype](name=name, lower=lower, upper=upper,
+                                          q=None, log=log_on, default=default)
+                cont_ct += 1
+
         except pyparsing.ParseException:
             pass
 
@@ -274,7 +293,7 @@ def read(pcs_string, debug=False):
                 default = param_list[-2]
                 param = create["categorical"](name=name, choices=choices, default=default)
                 cat_ct += 1
-                
+
             elif "ordinal" in line:
                 param_list = pp_ord_param.parseString(line)
                 name = param_list[0]
@@ -282,7 +301,7 @@ def read(pcs_string, debug=False):
                 default = param_list[-2]
                 param = create["ordinal"](name=name, sequence=sequence, default=default)
                 ord_ct += 1
-                
+
         except pyparsing.ParseException:
             pass
 
