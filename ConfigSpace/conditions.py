@@ -32,11 +32,8 @@ import operator
 
 import io
 from functools import reduce
-
 from ConfigSpace.hyperparameters import Hyperparameter, \
     NumericalHyperparameter, OrdinalHyperparameter
-
-from ConfigSpace.hyperparameters import Hyperparameter
 
 
 class ConditionComponent(object):
