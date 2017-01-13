@@ -29,10 +29,13 @@
 from abc import ABCMeta, abstractmethod
 import operator
 
-import six
+# import six
+import io
+from functools import reduce
+
 
 from ConfigSpace.hyperparameters import Hyperparameter
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Union
 
 class AbstractForbiddenComponent(object):
     __metaclass__ = ABCMeta
@@ -184,7 +187,7 @@ class AbstractForbiddenConjunction(AbstractForbiddenComponent):
     def __repr__(self):
         pass
 
-    def get_descendant_literal_clauses(self) -> List[AbstractForbiddenComponent]:
+    def get_descendant_literal_clauses(self) -> List[Hyperparameter]:
         children = []
         for component in self.components:
             if isinstance(component, AbstractForbiddenConjunction):
@@ -212,8 +215,7 @@ class AbstractForbiddenConjunction(AbstractForbiddenComponent):
         # outcomes
         evaluations = []
         for component in self.components:
-            e = component.is_forbidden(instantiated_hyperparameters,
-                                       strict=strict)
+            e = component.is_forbidden(instantiated_hyperparameters)
             evaluations.append(e)
         return self._is_forbidden(evaluations)
 
@@ -224,7 +226,8 @@ class AbstractForbiddenConjunction(AbstractForbiddenComponent):
 
 class ForbiddenAndConjunction(AbstractForbiddenConjunction):
     def __repr__(self) -> str:
-        retval = six.StringIO()
+        # retval = six.StringIO()
+        retval = io.StringIO()
         retval.write("(")
         for idx, component in enumerate(self.components):
             retval.write(str(component))
@@ -233,5 +236,6 @@ class ForbiddenAndConjunction(AbstractForbiddenConjunction):
         retval.write(")")
         return retval.getvalue()
 
-    def _is_forbidden(self, evaluations: bool) -> bool:
-        return six.moves.reduce(operator.and_, evaluations)
+    def _is_forbidden(self, evaluations: List[bool]) -> bool:
+        return reduce(operator.and_, evaluations)
+        # return six.moves.reduce(operator.and_, evaluations)
