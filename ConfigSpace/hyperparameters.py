@@ -408,7 +408,7 @@ class NormalFloatHyperparameter(NormalMixin, FloatHyperparameter):
             vector = int(np.round(vector / self.q, 0)) * self.q
         return vector
 
-    def _inverse_transform(self, vector: [None, np.ndarray]) -> Union(float, np.ndarray):
+    def _inverse_transform(self, vector: [None, np.ndarray]) -> Union[float, np.ndarray]:
         if vector is None:
             return np.NaN
 
