@@ -30,14 +30,15 @@ from collections import defaultdict, deque, OrderedDict
 import copy
 
 import numpy as np
-import six
+# import six
+import io
 
 import ConfigSpace.nx
 from ConfigSpace.hyperparameters import Hyperparameter, Constant, FloatHyperparameter
 from ConfigSpace.conditions import ConditionComponent, \
     AbstractCondition, AbstractConjunction, EqualsCondition
 from ConfigSpace.forbidden import AbstractForbiddenComponent
-from typing import Union, List, Any, Dict, Iterable
+from typing import Union, List, Any, Dict, Iterable, Set
 
 
 class ConfigurationSpace(object):
@@ -199,8 +200,8 @@ class ConfigurationSpace(object):
                                  "%s" % (str(other_condition), str(condition)))
 
     def _sort_hyperparameters(self) -> None:
-        levels = OrderedDict()
-        to_visit = deque()
+        levels = OrderedDict()  # type: OrderedDict[str, int]
+        to_visit = deque() # type: ignore
         for hp_name in self._hyperparameters:
             to_visit.appendleft(hp_name)
 
@@ -225,7 +226,7 @@ class ConfigurationSpace(object):
                 else:
                     to_visit.appendleft(current)
 
-        by_level = defaultdict(list)
+        by_level = defaultdict(list)  # type: Dict['int', List[str]]
         for hp in levels:
             level = levels[hp]
             by_level[level].append(hp)
@@ -385,7 +386,7 @@ class ConfigurationSpace(object):
 
     def get_conditions(self) -> List[AbstractCondition]:
         conditions = []
-        added_conditions = set()
+        added_conditions = set()  # type: Set[str]
 
         # Nodes is a list of nodes
         for source_node in self.get_hyperparameters():
@@ -402,14 +403,14 @@ class ConfigurationSpace(object):
 
     def get_children_of(self, name: Hyperparameter) -> List[Hyperparameter]:
         conditions = self.get_child_conditions_of(name)
-        parents = []
+        parents = [] # type: List[Hyperparameter]
         for condition in conditions:
             parents.extend(condition.get_children())
         return parents
 
     def get_child_conditions_of(self, name: Union[str, Hyperparameter]) -> List[AbstractCondition]:
         if isinstance(name, Hyperparameter):
-            name = name.name
+            name = name.name  # type: ignore
 
         # This raises an exception if the hyperparameter does not exist
         self.get_hyperparameter(name)
@@ -441,14 +442,14 @@ class ConfigurationSpace(object):
             List with all parent hyperparameters.
         """
         conditions = self.get_parent_conditions_of(name)
-        parents = []
+        parents = [] # type: List[Hyperparameter]
         for condition in conditions:
             parents.extend(condition.get_parents())
         return parents
 
     def get_parent_conditions_of(self, name: Union[str, Hyperparameter]) -> List[AbstractCondition]:
         if isinstance(name, Hyperparameter):
-            name = name.name
+            name = name.name  # type: ignore
 
         # This raises an exception if the hyperparameter does not exist
         self.get_hyperparameter(name)
@@ -475,7 +476,8 @@ class ConfigurationSpace(object):
     def _check_default_configuration(self) -> Configuration:
         # Check if adding that hyperparameter leads to an illegal default
         # configuration:
-        instantiated_hyperparameters = {}
+        # todo: recheck type of instantiated_hyperparameter
+        instantiated_hyperparameters = {} # type: Dict[str, Union[None, int, float, str]]
         for hp in self.get_hyperparameters():
             conditions = self._get_parent_conditions_of(hp.name)
             active = True
@@ -585,7 +587,7 @@ class ConfigurationSpace(object):
         return hash(tuple(sorted(self.__dict__.items())))
 
     def __repr__(self) -> str:
-        retval = six.StringIO()
+        retval = io.StringIO()
         retval.write("Configuration space object:\n  Hyperparameters:\n")
 
         hyperparameters = sorted(self.get_hyperparameters(),
@@ -619,10 +621,10 @@ class ConfigurationSpace(object):
         """ Allows to iterate over the hyperparameter names in (hopefully?) the right order."""
         return iter(self._hyperparameters.keys())
 
-    def sample_configuration(self, size: int=1) -> Configuration:
+    def sample_configuration(self, size: int=1) -> Union[Configuration, List[Configuration]]:
         iteration = 0
         missing = size
-        accepted_configurations = []
+        accepted_configurations = []  # type: List['Configuration']
         num_hyperparameters = len(self._hyperparameters)
 
         while len(accepted_configurations) < size:
@@ -636,10 +638,10 @@ class ConfigurationSpace(object):
                 vector[:, i] = hyperparameter._sample(self.random, missing)
 
             for i in range(missing):
-                inactive = set()
+                inactive = set()  # type: Set['str']
                 visited = set()
                 visited.update(self.get_all_unconditional_hyperparameters())
-                to_visit = deque()
+                to_visit = deque()  # type: ignore
                 to_visit.extendleft(self.get_all_conditional_hyperparameters())
                 infiniteloopcounter = 0
                 while len(to_visit) > 0:
@@ -661,8 +663,7 @@ class ConfigurationSpace(object):
                             to_visit.appendleft(hp_name)
                             break
 
-                        parents = {parent_name: self._hyperparameters[
-                                       parent_name]._transform(vector[i][
+                        parents = {parent_name: self._hyperparameters[parent_name]._transform(vector[i][
                                            self._hyperparameter_idx[
                                               parent_name]])
                                    for parent_name in parent_names}
@@ -711,7 +712,8 @@ class Configuration(object):
     # configuration
     # todo check types of vector and origin
     def __init__(self, configuration_space: ConfigurationSpace, values: Union[None, Dict[str, Hyperparameter]] = None,
-                 vector: Union[None, numpy.ndarray[int]]=None, allow_inactive_with_values: bool=False, origin: Any=None):
+                 vector: Union[None, np.ndarray[int]]=None, allow_inactive_with_values: bool=False, origin: Any=None)\
+            -> None:
         """A single configuration.
 
         Parameters
@@ -742,7 +744,7 @@ class Configuration(object):
         self._query_values = False
         self._num_hyperparameters = len(self.configuration_space._hyperparameters)
         self.origin = origin
-        self._keys = None
+        self._keys = None  # type: ignore
 
         if values is not None and vector is not None:
             raise ValueError('Configuration specified both as dictionary and '
@@ -751,7 +753,7 @@ class Configuration(object):
             # Using cs._hyperparameters to iterate makes sure that the
             # hyperparameters in the configuration are sorted in the same way as
             # they are sorted in the configuration space
-            self._values = dict()
+            self._values = dict()  # type: ignore
             for key in configuration_space._hyperparameters:
                 value = values.get(key)
                 if value is None:
@@ -810,7 +812,7 @@ class Configuration(object):
         self._values[item] = value
         return self._values[item]
     # todo: find return type of get
-    def get(self, item: str, default: None=None) -> Any:
+    def get(self, item: str, default: None=None) -> Union[None, Any]:
         try:
             return self[item]
         except:
@@ -850,7 +852,7 @@ class Configuration(object):
     def __repr__(self) -> str:
         self._populate_values()
 
-        representation = six.StringIO()
+        representation = io.StringIO()
         representation.write("Configuration:\n")
 
         hyperparameters = self.configuration_space.get_hyperparameters()
