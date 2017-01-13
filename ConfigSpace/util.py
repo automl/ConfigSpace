@@ -28,13 +28,13 @@
 
 from collections import deque
 import copy
+from typing import Union, List, Any, Dict
 
-import numpy as np
-
+import numpy as np  # type: ignore
 from ConfigSpace import Configuration, Constant
 
 
-def impute_inactive_values(configuration, strategy='default'):
+def impute_inactive_values(configuration: Configuration, strategy: Union[str, float]='default') -> Configuration:
     """Impute inactive parameters.
 
     Parameters
@@ -72,7 +72,7 @@ def impute_inactive_values(configuration, strategy='default'):
     return new_configuration
 
 
-def get_one_exchange_neighbourhood(configuration, seed):
+def get_one_exchange_neighbourhood(configuration: Configuration, seed: int) -> List[Configuration]:
     """Return all configurations in a one-exchange neighborhood.
 
     The method is implemented as defined by:
@@ -122,12 +122,12 @@ def get_one_exchange_neighbourhood(configuration, seed):
                 # Activate hyperparameters if their parent node got activated
                 children = configuration.configuration_space.get_children_of(
                     hp_name)
-
+                # todo: debug why mypy is giving error here
                 if len(children) > 0:
-                    to_visit = deque()
+                    to_visit = deque()  # type : ignore
                     to_visit.extendleft(children)
-                    visited = set()
-                    activated_values = dict()
+                    visited = set()  # type : Set[str]
+                    activated_values = dict()  # type : Dict[str, Union[int, float, str]]
                     while len(to_visit) > 0:
                         current = to_visit.pop()
                         if current.name in visited:
@@ -214,7 +214,7 @@ def get_one_exchange_neighbourhood(configuration, seed):
 
 
 
-def get_random_neighbor(configuration, seed):
+def get_random_neighbor(configuration: Configuration, seed: int) -> Configuration:
     """Draw a random neighbor by changing one parameter of a configuration.
 
     * If the parameter is categorical, it changes it to another value.
