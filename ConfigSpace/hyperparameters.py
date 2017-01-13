@@ -32,7 +32,6 @@ import warnings
 from collections import OrderedDict
 
 import numpy as np
-# import six
 import io
 from functools import reduce
 
