@@ -30,11 +30,12 @@ from abc import ABCMeta, abstractmethod
 from itertools import combinations
 import operator
 
+import io
+from functools import reduce
 
 from ConfigSpace.hyperparameters import Hyperparameter, \
     NumericalHyperparameter, OrdinalHyperparameter
-import io
-from functools import reduce
+
 from ConfigSpace.hyperparameters import Hyperparameter
 
 
