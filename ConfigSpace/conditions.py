@@ -31,8 +31,9 @@ from itertools import combinations
 from typing import Any, List
 import operator
 
-import six
-
+# import six
+import io
+from functools import reduce
 from ConfigSpace.hyperparameters import Hyperparameter
 
 
@@ -284,7 +285,8 @@ class AndConjunction(AbstractConjunction):
         super(AndConjunction, self).__init__(*args)
 
     def __repr__(self) -> str:
-        retval = six.StringIO()
+        retval = io.StringIO()
+        # retval = six.StringIO()
         retval.write("(")
         for idx, component in enumerate(self.components):
             retval.write(str(component))
@@ -295,7 +297,8 @@ class AndConjunction(AbstractConjunction):
 
     # TODO: type of evaluations?
     def _evaluate(self, evaluations: Any) -> bool:
-        return six.moves.reduce(operator.and_, evaluations)
+        return reduce(operator.and_, evaluations)
+        # return six.moves.reduce(operator.and_, evaluations)
 
 
 class OrConjunction(AbstractConjunction):
@@ -306,7 +309,8 @@ class OrConjunction(AbstractConjunction):
         super(OrConjunction, self).__init__(*args)
 
     def __repr__(self) -> str:
-        retval = six.StringIO()
+        retval = io.StringIO()
+        # retval = six.StringIO()
         retval.write("(")
         for idx, component in enumerate(self.components):
             retval.write(str(component))
@@ -316,4 +320,5 @@ class OrConjunction(AbstractConjunction):
         return retval.getvalue()
 
     def _evaluate(self, evaluations: Any) -> bool:
-        return six.moves.reduce(operator.or_, evaluations)
+        return reduce(operator.or_, evaluations)
+        # return six.moves.reduce(operator.or_, evaluations)
