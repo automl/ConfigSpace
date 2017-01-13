@@ -1,6 +1,5 @@
 language: python
 python:
-  - "2.7"
   - "3.4"
   - "3.5"
   - "3.6"
@@ -31,7 +30,6 @@ install:
   - pip install nose
   - pip install coverage
   - pip install python-coveralls
-  - pip install six
   - python setup.py install
 
 # command to run tests, e.g. python setup.py test

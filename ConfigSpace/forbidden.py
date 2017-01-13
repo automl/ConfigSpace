@@ -29,14 +29,17 @@
 from abc import ABCMeta, abstractmethod
 import operator
 
-import six
+# import six
+import io
+from functools import reduce
+
 
 from ConfigSpace.hyperparameters import Hyperparameter
-
+from typing import List, Dict, Any, Union
 
 class AbstractForbiddenComponent(object):
     __metaclass__ = ABCMeta
-
+    # todo : should absract methods be annotated with types?
     @abstractmethod
     def __init__(self):
         pass
@@ -46,19 +49,19 @@ class AbstractForbiddenComponent(object):
         pass
 
     # http://stackoverflow.com/a/25176504/4636294
-    def __eq__(self, other):
+    def __eq__(self, other: Any) -> bool:
         """Override the default Equals behavior"""
         if isinstance(other, self.__class__):
             return self.__dict__ == other.__dict__
         return NotImplemented
 
-    def __ne__(self, other):
+    def __ne__(self, other: Any) -> bool:
         """Define a non-equality test"""
         if isinstance(other, self.__class__):
             return not self.__eq__(other)
         return NotImplemented
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         """Override the default hash behavior (that returns the id or the object)"""
         return hash(tuple(sorted(self.__dict__.items())))
 
@@ -72,12 +75,13 @@ class AbstractForbiddenComponent(object):
 
 
 class AbstractForbiddenClause(AbstractForbiddenComponent):
-    def get_descendant_literal_clauses(self):
+    def get_descendant_literal_clauses(self) -> List['AbstractForbiddenClause']:
         return [self]
 
 
 class SingleValueForbiddenClause(AbstractForbiddenClause):
-    def __init__(self, hyperparameter, value):
+    # todo: possible types of hyperparameter valuees?
+    def __init__(self, hyperparameter: Hyperparameter, value: Any) -> None:
         super(SingleValueForbiddenClause, self).__init__()
         if not isinstance(hyperparameter, Hyperparameter):
             raise TypeError("'%s' is not of type %s." %
@@ -89,7 +93,7 @@ class SingleValueForbiddenClause(AbstractForbiddenClause):
                              "'%s'" % (hyperparameter, str(value)))
         self.value = value
 
-    def is_forbidden(self, instantiated_hyperparameters, strict=True):
+    def is_forbidden(self, instantiated_hyperparameters: Hyperparameter, strict: bool=True) -> bool:
         value = instantiated_hyperparameters.get(self.hyperparameter.name)
 
         if value is None:
@@ -109,7 +113,8 @@ class SingleValueForbiddenClause(AbstractForbiddenClause):
 
 
 class MultipleValueForbiddenClause(AbstractForbiddenClause):
-    def __init__(self, hyperparameter, values):
+    # todo: type of vals of hp
+    def __init__(self, hyperparameter: Hyperparameter, values: Any) -> None:
         super(MultipleValueForbiddenClause, self).__init__()
         if not isinstance(hyperparameter, Hyperparameter):
             raise TypeError("Argument 'hyperparameter' is not of type %s." %
@@ -122,7 +127,7 @@ class MultipleValueForbiddenClause(AbstractForbiddenClause):
                                  "'%s'" % (hyperparameter, str(value)))
         self.values = values
 
-    def is_forbidden(self, instantiated_hyperparameters, strict=True):
+    def is_forbidden(self, instantiated_hyperparameters: Hyperparameter, strict: bool=True) -> bool:
         value = instantiated_hyperparameters.get(self.hyperparameter.name)
 
         if value is None:
@@ -142,31 +147,31 @@ class MultipleValueForbiddenClause(AbstractForbiddenClause):
 
 
 class ForbiddenEqualsClause(SingleValueForbiddenClause):
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "Forbidden: %s == %s" % (self.hyperparameter.name,
                                         repr(self.value))
 
-    def _is_forbidden(self, value):
+    def _is_forbidden(self, value: Any) -> bool:
         return value == self.value
 
 
 class ForbiddenInClause(MultipleValueForbiddenClause):
-    def __init__(self, hyperparameter, values):
+    def __init__(self, hyperparameter: Hyperparameter, values: Any) -> None:
         super(ForbiddenInClause, self).__init__(hyperparameter, values)
         self.values = set(self.values)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "Forbidden: %s in %s" % (
             self.hyperparameter.name,
             "{" + ", ".join((repr(value)
                              for value in sorted(self.values))) + "}")
 
-    def _is_forbidden(self, value):
+    def _is_forbidden(self, value: Any) -> bool:
         return value in self.values
 
 
 class AbstractForbiddenConjunction(AbstractForbiddenComponent):
-    def __init__(self, *args):
+    def __init__(self, *args: AbstractForbiddenComponent) -> None:
         super(AbstractForbiddenConjunction, self).__init__()
         # Test the classes
         for idx, component in enumerate(args):
@@ -182,7 +187,7 @@ class AbstractForbiddenConjunction(AbstractForbiddenComponent):
     def __repr__(self):
         pass
 
-    def get_descendant_literal_clauses(self):
+    def get_descendant_literal_clauses(self) -> List[Hyperparameter]:
         children = []
         for component in self.components:
             if isinstance(component, AbstractForbiddenConjunction):
@@ -191,7 +196,7 @@ class AbstractForbiddenConjunction(AbstractForbiddenComponent):
                 children.append(component)
         return children
 
-    def is_forbidden(self, instantiated_hyperparameters, strict=True):
+    def is_forbidden(self, instantiated_hyperparameters: Hyperparameter, strict: bool=True) -> bool:
         ihp_names = list(instantiated_hyperparameters.keys())
 
         dlcs = self.get_descendant_literal_clauses()
@@ -210,8 +215,7 @@ class AbstractForbiddenConjunction(AbstractForbiddenComponent):
         # outcomes
         evaluations = []
         for component in self.components:
-            e = component.is_forbidden(instantiated_hyperparameters,
-                                       strict=strict)
+            e = component.is_forbidden(instantiated_hyperparameters)
             evaluations.append(e)
         return self._is_forbidden(evaluations)
 
@@ -221,8 +225,9 @@ class AbstractForbiddenConjunction(AbstractForbiddenComponent):
 
 
 class ForbiddenAndConjunction(AbstractForbiddenConjunction):
-    def __repr__(self):
-        retval = six.StringIO()
+    def __repr__(self) -> str:
+        # retval = six.StringIO()
+        retval = io.StringIO()
         retval.write("(")
         for idx, component in enumerate(self.components):
             retval.write(str(component))
@@ -231,5 +236,6 @@ class ForbiddenAndConjunction(AbstractForbiddenConjunction):
         retval.write(")")
         return retval.getvalue()
 
-    def _is_forbidden(self, evaluations):
-        return six.moves.reduce(operator.and_, evaluations)
+    def _is_forbidden(self, evaluations: List[bool]) -> bool:
+        return reduce(operator.and_, evaluations)
+        # return six.moves.reduce(operator.and_, evaluations)
