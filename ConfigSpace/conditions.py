@@ -30,8 +30,9 @@ from abc import ABCMeta, abstractmethod
 from itertools import combinations
 import operator
 
-import six
-
+# import six
+import io
+from functools import reduce
 from ConfigSpace.hyperparameters import Hyperparameter
 
 
@@ -275,7 +276,8 @@ class AndConjunction(AbstractConjunction):
         super(AndConjunction, self).__init__(*args)
 
     def __repr__(self):
-        retval = six.StringIO()
+        retval = io.StringIO()
+        # retval = six.StringIO()
         retval.write("(")
         for idx, component in enumerate(self.components):
             retval.write(str(component))
@@ -285,7 +287,8 @@ class AndConjunction(AbstractConjunction):
         return retval.getvalue()
 
     def _evaluate(self, evaluations):
-        return six.moves.reduce(operator.and_, evaluations)
+        # return six.moves.reduce(operator.and_, evaluations)
+        return io.reduce(operator.and_, evaluations)
 
 
 class OrConjunction(AbstractConjunction):
@@ -296,7 +299,8 @@ class OrConjunction(AbstractConjunction):
         super(OrConjunction, self).__init__(*args)
 
     def __repr__(self):
-        retval = six.StringIO()
+        # retval = six.StringIO()
+        retval = io.StringIO()
         retval.write("(")
         for idx, component in enumerate(self.components):
             retval.write(str(component))
@@ -306,4 +310,5 @@ class OrConjunction(AbstractConjunction):
         return retval.getvalue()
 
     def _evaluate(self, evaluations):
-        return six.moves.reduce(operator.or_, evaluations)
+        # return six.moves.reduce(operator.or_, evaluations)
+        return reduce(operator.or_, evaluations)
