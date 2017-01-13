@@ -812,7 +812,7 @@ class Configuration(object):
         self._values[item] = value
         return self._values[item]
     # todo: find return type of get
-    def get(self, item: str, default: None=None) -> Union[None, Any]:
+    def get(self, item: str, default: Union[None, Any]=None) -> Union[None, Any]:
         try:
             return self[item]
         except:
