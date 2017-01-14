@@ -15,4 +15,3 @@ under a BSD license.
    :alt: Code Health
 .. image:: https://coveralls.io/repos/github/automl/ConfigSpace/badge.svg?branch=master
    :target: https://coveralls.io/github/automl/ConfigSpace?branch=master
-

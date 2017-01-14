@@ -30,8 +30,8 @@ from collections import defaultdict, deque, OrderedDict
 import copy
 
 import numpy as np
-import six
-
+import io
+from functools import reduce
 import ConfigSpace.nx
 from ConfigSpace.hyperparameters import Hyperparameter, Constant, FloatHyperparameter
 from ConfigSpace.conditions import ConditionComponent, \
@@ -585,7 +585,7 @@ class ConfigurationSpace(object):
         return hash(tuple(sorted(self.__dict__.items())))
 
     def __repr__(self):
-        retval = six.StringIO()
+        retval = io.StringIO()
         retval.write("Configuration space object:\n  Hyperparameters:\n")
 
         hyperparameters = sorted(self.get_hyperparameters(),
@@ -849,7 +849,7 @@ class Configuration(object):
     def __repr__(self):
         self._populate_values()
 
-        representation = six.StringIO()
+        representation = io.StringIO()
         representation.write("Configuration:\n")
 
         hyperparameters = self.configuration_space.get_hyperparameters()
