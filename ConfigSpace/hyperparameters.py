@@ -103,12 +103,12 @@ class Hyperparameter(object):
 class Constant(Hyperparameter):
     def __init__(self, name, value):
         super(Constant, self).__init__(name)
-        allowed_types = []
-        allowed_types.extend(int)
-        allowed_types.append(float)
-        allowed_types.extend(str)
-        allowed_types.append(str)
-        allowed_types = tuple(allowed_types)
+        allowed_types_list = []  # type: List[type]
+        allowed_types_list.append(int)
+        allowed_types_list.append(float)
+        allowed_types_list.append(str)
+
+        allowed_types = tuple(allowed_types_list)
 
         if not isinstance(value, allowed_types) or \
                 isinstance(value, bool):
