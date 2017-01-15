@@ -321,7 +321,7 @@ class UniformFloatHyperparameter(UniformMixin, FloatHyperparameter):
             vector = int(np.round(vector / self.q, 0)) * self.q
         return vector
 
-    def _inverse_transform(self, vector: Union[np.ndarray, None]) -> Union[np.NaN, np.ndarray]:
+    def _inverse_transform(self, vector: Union[np.ndarray, None]) -> Union[float, np.ndarray]:
         if vector is None:
             return np.NaN
         if self.log:
