@@ -375,7 +375,7 @@ class NormalFloatHyperparameter(NormalMixin, FloatHyperparameter):
         else:
             return False
 
-    def to_uniform(self, z: int = 3) -> UniformFloatHyperparameter:
+    def to_uniform(self, z: int = 3) -> 'UniformFloatHyperparameter':
         return UniformFloatHyperparameter(self.name,
                                           self.mu - (z * self.sigma),
                                           self.mu + (z * self.sigma),
@@ -383,7 +383,7 @@ class NormalFloatHyperparameter(NormalMixin, FloatHyperparameter):
                                               np.round(self.default, 0)),
                                           q=self.q, log=self.log)
 
-    def to_integer(self) -> NormalIntegerHyperparameter:
+    def to_integer(self) -> 'NormalIntegerHyperparameter':
         return NormalIntegerHyperparameter(self.name, self.mu, self.sigma,
                                            default=int(np.round(self.default, 0)),
                                            q=int(self.q), log=self.log)
@@ -587,7 +587,7 @@ class NormalIntegerHyperparameter(NormalMixin, IntegerHyperparameter):
         else:
             return False
     # todo check if conversion should be done in initiation call or inside class itsel
-    def to_uniform(self, z: int = 3) -> UniformIntegerHyperparameter:
+    def to_uniform(self, z: int = 3) -> 'UniformIntegerHyperparameter':
         return UniformIntegerHyperparameter(self.name,
                                             int(self.mu - (z * self.sigma)),
                                             int(self.mu + (z * self.sigma)),
