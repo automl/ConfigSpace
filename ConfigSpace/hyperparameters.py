@@ -684,7 +684,7 @@ class CategoricalHyperparameter(Hyperparameter):
         else:
             raise ValueError("Illegal default value %s" % str(default))
 
-    def _sample(self, rs: np.randint, size: int = None) -> Union[int, np.ndarray]:
+    def _sample(self, rs: np.random, size: int = None) -> Union[int, np.ndarray]:
         return rs.randint(0, self._num_choices, size=size)
 
     # todo recheck
