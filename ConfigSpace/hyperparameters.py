@@ -297,7 +297,7 @@ class UniformFloatHyperparameter(UniformMixin, FloatHyperparameter):
         else:
             return False
 
-    def to_integer(self) -> UniformIntegerHyperparameter:
+    def to_integer(self) -> 'UniformIntegerHyperparameter':
         # TODO check if conversion makes sense at all (at least two integer values possible!)
         # todo check if params should be converted to int while class initialization or inside class itself
         return UniformIntegerHyperparameter(self.name, int(self.lower),
