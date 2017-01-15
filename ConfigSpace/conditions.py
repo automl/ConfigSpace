@@ -302,7 +302,7 @@ class AndConjunction(AbstractConjunction):
         return retval.getvalue()
 
     def _evaluate(self, evaluations):
-        return io.reduce(operator.and_, evaluations)
+        return reduce(operator.and_, evaluations)
 
 
 class OrConjunction(AbstractConjunction):

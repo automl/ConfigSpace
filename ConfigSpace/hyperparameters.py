@@ -145,7 +145,7 @@ class Constant(Hyperparameter):
     def has_neighbors(self) -> bool:
         return False
 
-    def get_num_neighbors(self, value: None) -> int:
+    def get_num_neighbors(self, value: None=None) -> int:
         return 0
 
     def get_neighbors(self, value: Any, rs: Any, number: int, transform: bool = False) -> List:
@@ -165,7 +165,7 @@ class NumericalHyperparameter(Hyperparameter):
     def has_neighbors(self) -> bool:
         return True
 
-    def get_num_neighbors(self, value: None) -> np.inf:
+    def get_num_neighbors(self, value: None=None) -> np.inf:
         return np.inf
 
 
@@ -707,7 +707,7 @@ class CategoricalHyperparameter(Hyperparameter):
     def has_neighbors(self) -> bool:
         return len(self.choices) > 1
 
-    def get_num_neighbors(self, value: None) -> int:
+    def get_num_neighbors(self, value: None=None) -> int:
         return len(self.choices) - 1
 
     def get_neighbors(self, value: int, rs: np.random, number: Union[int, float] = np.inf, transform: bool = False) -> \
