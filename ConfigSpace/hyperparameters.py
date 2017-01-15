@@ -137,7 +137,7 @@ class Constant(Hyperparameter):
             return None
         return self.value
 
-    def _inverse_transform(self, vector: np.ndarray) -> Union[int, np.NaN]:
+    def _inverse_transform(self, vector: np.ndarray) -> Union[int, float]:
         if vector != self.value:
             return np.NaN
         return 0
