@@ -124,10 +124,10 @@ def get_one_exchange_neighbourhood(configuration: Configuration, seed: int) -> L
                     hp_name)
                 # todo: debug why mypy is giving error here
                 if len(children) > 0:
-                    to_visit = deque()  # type : ignore
+                    to_visit = deque()  #type: deque
                     to_visit.extendleft(children)
-                    visited = set()  # type : Set[str]
-                    activated_values = dict()  # type : Dict[str, Union[int, float, str]]
+                    visited = set()  #type: Set[str]
+                    activated_values = dict()  #type: Dict[str, Union[int, float, str]]
                     while len(to_visit) > 0:
                         current = to_visit.pop()
                         if current.name in visited:
