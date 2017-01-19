@@ -145,7 +145,7 @@ class Constant(Hyperparameter):
     def has_neighbors(self) -> bool:
         return False
 
-    def get_num_neighbors(self, value: None=None) -> int:
+    def get_num_neighbors(self, value: None) -> int:
         return 0
 
     def get_neighbors(self, value: Any, rs: Any, number: int, transform: bool = False) -> List:
@@ -165,8 +165,20 @@ class NumericalHyperparameter(Hyperparameter):
     def has_neighbors(self) -> bool:
         return True
 
-    def get_num_neighbors(self, value: None=None) -> np.inf:
+    def get_num_neighbors(self, value: None) -> float:
         return np.inf
+
+
+class BaseUniformFloatHyperparameter(object):
+    __metaclass__ = ABCMeta
+
+    @abstractmethod
+    def is_legal(self, value):
+        raise NotImplementedError()
+
+    @abstractmethod
+    def check_default(self, default):
+        raise NotImplementedError()
 
 
 class FloatHyperparameter(NumericalHyperparameter):
