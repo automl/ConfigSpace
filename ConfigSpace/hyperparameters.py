@@ -103,13 +103,7 @@ class Hyperparameter(object):
 class Constant(Hyperparameter):
     def __init__(self, name, value):
         super(Constant, self).__init__(name)
-        allowed_types_list = []  # type: List[type]
-        allowed_types_list.append(int)
-        allowed_types_list.append(float)
-        allowed_types_list.append(str)
-
-        allowed_types = tuple(allowed_types_list)
-
+        allowed_types = (int, float, str)
         if not isinstance(value, allowed_types) or \
                 isinstance(value, bool):
             raise TypeError("Constant value is of type %s, but only the "
