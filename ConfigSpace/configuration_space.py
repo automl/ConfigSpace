@@ -460,7 +460,7 @@ class ConfigurationSpace(object):
         conditions = [parents[parent_name] for parent_name in parents
                       if parent_name != "__HPOlib_configuration_space_root__"]
         return conditions
-    # todo: find out if hyperparameter obj or only its name is returned?
+
     def get_all_unconditional_hyperparameters(self) -> List[str]:
         hyperparameters = [hp_name for hp_name in
                            self._children[
