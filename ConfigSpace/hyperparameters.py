@@ -108,7 +108,7 @@ class Constant(Hyperparameter):
                 isinstance(value, bool):
             raise TypeError("Constant value is of type %s, but only the "
                             "following types are allowed: %s" %
-                            (type(value), allowed_types))
+                            (type(value), allowed_types)) # type: ignore
 
         self.value = value
         self.default = value
@@ -435,7 +435,7 @@ class NormalFloatHyperparameter(NormalMixin, FloatHyperparameter):
 
 class UniformIntegerHyperparameter(UniformMixin, IntegerHyperparameter):
     def __init__(self, name: str, lower: int, upper: int, default: Union[int, None] = None,
-                 q: Union[int, float, None] = None, log: bool = False) -> None:
+                 q: Union[int, None] = None, log: bool = False) -> None:
         self.lower = self.check_int(lower, "lower")
         self.upper = self.check_int(upper, "upper")
         if default is not None:
@@ -717,7 +717,7 @@ class CategoricalHyperparameter(Hyperparameter):
     def has_neighbors(self) -> bool:
         return len(self.choices) > 1
 
-    def get_num_neighbors(self, value: None=None) -> int:
+    def get_num_neighbors(self, value=None) -> int:
         return len(self.choices) - 1
 
     def get_neighbors(self, value: int, rs: np.random, number: Union[int, float] = np.inf, transform: bool = False) -> \
@@ -769,10 +769,10 @@ class OrdinalHyperparameter(Hyperparameter):
         self._num_elements = len(sequence)
         self.default = self.check_default(default)
         # todo recheck type of sequence
-        self.value_dict = OrderedDict()  # type : OrderedDict[Union[int, float, str], int]]
+        self.value_dict = OrderedDict()  # type: OrderedDict[Union[int, float, str], int]
         counter = 1
         for element in self.sequence:
-            self.value_dict[element] = counter   # type : OrderedDict[Union[int, float, str], int]]
+            self.value_dict[element] = counter
             counter += 1
 
     def __repr__(self) -> str:
@@ -880,7 +880,7 @@ class OrdinalHyperparameter(Hyperparameter):
             return 2
 
     # todo: recehck...added rs as param otherrwise mismatch with baseclass signature
-    def get_neighbors(self, value: Union[int, str, float], rs: None=None, number: int = 2, transform: bool = False) \
+    def get_neighbors(self, value: Union[int, str, float], rs=None, number: int = 2, transform: bool = False) \
             -> List[Union[str, float, int]]:
         """
         Returns the neighbors of a given value.
