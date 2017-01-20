@@ -211,7 +211,8 @@ class AbstractForbiddenConjunction(AbstractForbiddenComponent):
         # outcomes
         evaluations = []
         for component in self.components:
-            e = component.is_forbidden(instantiated_hyperparameters)
+            e = component.is_forbidden(instantiated_hyperparameters,
+                                       strict=strict)
             evaluations.append(e)
         return self._is_forbidden(evaluations)
 
