@@ -390,9 +390,13 @@ class NormalFloatHyperparameter(NormalMixin, FloatHyperparameter):
                                           q=self.q, log=self.log)
 
     def to_integer(self) -> 'NormalIntegerHyperparameter':
+        if self.q is None:
+            q_int = self.q
+        else:
+            q_int = int(self.q)
         return NormalIntegerHyperparameter(self.name, self.mu, self.sigma,
                                            default=int(np.round(self.default, 0)),
-                                           q=int(self.q), log=self.log)
+                                           q=q_int, log=self.log)
 
     def is_legal(self, value: Union[float, int]) -> bool:
         if isinstance(value, (float, int)):
@@ -431,7 +435,7 @@ class NormalFloatHyperparameter(NormalMixin, FloatHyperparameter):
 
 class UniformIntegerHyperparameter(UniformMixin, IntegerHyperparameter):
     def __init__(self, name: str, lower: int, upper: int, default: Union[int, None] = None,
-                 q: Union[int, None] = None, log: bool = False) -> None:
+                 q: Union[int, float, None] = None, log: bool = False) -> None:
         self.lower = self.check_int(lower, "lower")
         self.upper = self.check_int(upper, "upper")
         if default is not None:
@@ -876,7 +880,7 @@ class OrdinalHyperparameter(Hyperparameter):
             return 2
 
     # todo: recehck...added rs as param otherrwise mismatch with baseclass signature
-    def get_neighbors(self, value: Union[int, str, float], rs: None, number: int = 2, transform: bool = False) \
+    def get_neighbors(self, value: Union[int, str, float], rs: None=None, number: int = 2, transform: bool = False) \
             -> List[Union[str, float, int]]:
         """
         Returns the neighbors of a given value.
