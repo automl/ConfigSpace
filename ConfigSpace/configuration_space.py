@@ -467,13 +467,13 @@ class ConfigurationSpace(object):
                                '__HPOlib_configuration_space_root__']]
         return hyperparameters
 
-    def get_all_conditional_hyperparameters(self) -> OrderedDict[str, str]:
+    def get_all_conditional_hyperparameters(self) -> Dict[str, str]:
         return self._conditionsals
 
-    def get_default_configuration(self) -> Configuration:
+    def get_default_configuration(self) -> 'Configuration':
         return self._check_default_configuration()
 
-    def _check_default_configuration(self) -> Configuration:
+    def _check_default_configuration(self) -> 'Configuration':
         # Check if adding that hyperparameter leads to an illegal default
         # configuration:
         # todo: recheck type of instantiated_hyperparameter
@@ -507,14 +507,14 @@ class ConfigurationSpace(object):
         # configuration is forbidden!
         return Configuration(self, instantiated_hyperparameters)
 
-    def check_configuration(self, configuration: Configuration) -> None:
+    def check_configuration(self, configuration: 'Configuration') -> None:
         if not isinstance(configuration, Configuration):
             raise TypeError("The method check_configuration must be called "
                             "with an instance of %s. "
                             "Your input was of type %s"% (Configuration, type(configuration)))
         self._check_configuration(configuration)
 
-    def _check_configuration(self, configuration: Configuration,
+    def _check_configuration(self, configuration: 'Configuration',
                              allow_inactive_with_values: bool=False) -> None:
         for hp_name in self._hyperparameters:
             hyperparameter = self._hyperparameters[hp_name]
@@ -559,7 +559,7 @@ class ConfigurationSpace(object):
                                  (hp_name, hp_value))
         self._check_forbidden(configuration)
 
-    def _check_forbidden(self, configuration: Configuration) -> None:
+    def _check_forbidden(self, configuration: 'Configuration') -> None:
         for clause in self.forbidden_clauses:
             if clause.is_forbidden(configuration, strict=False):
                 raise ValueError("%sviolates forbidden clause %s" % (
@@ -621,7 +621,7 @@ class ConfigurationSpace(object):
         """ Allows to iterate over the hyperparameter names in (hopefully?) the right order."""
         return iter(self._hyperparameters.keys())
 
-    def sample_configuration(self, size: int=1) -> Union[Configuration, List[Configuration]]:
+    def sample_configuration(self, size: int=1) -> Union['Configuration', List['Configuration']]:
         iteration = 0
         missing = size
         accepted_configurations = []  # type: List['Configuration']
@@ -712,7 +712,7 @@ class Configuration(object):
     # configuration
     # todo check types of vector and origin
     def __init__(self, configuration_space: ConfigurationSpace, values: Union[None, Dict[str, Hyperparameter]] = None,
-                 vector: Union[None, np.ndarray[int]]=None, allow_inactive_with_values: bool=False, origin: Any=None)\
+                 vector: Union[None, np.ndarray]=None, allow_inactive_with_values: bool=False, origin: Any=None)\
             -> None:
         """A single configuration.
 
