@@ -38,7 +38,6 @@ from typing import List, Dict, Any, Union
 
 class AbstractForbiddenComponent(object):
     __metaclass__ = ABCMeta
-    # todo : should absract methods be annotated with types?
     @abstractmethod
     def __init__(self):
         pass
@@ -74,12 +73,11 @@ class AbstractForbiddenComponent(object):
 
 
 class AbstractForbiddenClause(AbstractForbiddenComponent):
-    def get_descendant_literal_clauses(self) -> List['AbstractForbiddenClause']:
+    def get_descendant_literal_clauses(self) -> List[AbstractForbiddenComponent]:
         return [self]
 
 
 class SingleValueForbiddenClause(AbstractForbiddenClause):
-    # todo: possible types of hyperparameter valuees?
     def __init__(self, hyperparameter: Hyperparameter, value: Any) -> None:
         super(SingleValueForbiddenClause, self).__init__()
         if not isinstance(hyperparameter, Hyperparameter):
@@ -92,7 +90,7 @@ class SingleValueForbiddenClause(AbstractForbiddenClause):
                              "'%s'" % (hyperparameter, str(value)))
         self.value = value
 
-    def is_forbidden(self, instantiated_hyperparameters: Hyperparameter, strict: bool=True) -> bool:
+    def is_forbidden(self, instantiated_hyperparameters: Dict[str, Union[None, str, float, int]], strict: bool=True) -> bool:
         value = instantiated_hyperparameters.get(self.hyperparameter.name)
 
         if value is None:
@@ -112,7 +110,6 @@ class SingleValueForbiddenClause(AbstractForbiddenClause):
 
 
 class MultipleValueForbiddenClause(AbstractForbiddenClause):
-    # todo: type of vals of hp
     def __init__(self, hyperparameter: Hyperparameter, values: Any) -> None:
         super(MultipleValueForbiddenClause, self).__init__()
         if not isinstance(hyperparameter, Hyperparameter):
@@ -126,7 +123,7 @@ class MultipleValueForbiddenClause(AbstractForbiddenClause):
                                  "'%s'" % (hyperparameter, str(value)))
         self.values = values
 
-    def is_forbidden(self, instantiated_hyperparameters: Hyperparameter, strict: bool=True) -> bool:
+    def is_forbidden(self, instantiated_hyperparameters: Dict[str, Union[None, str, float, int]], strict: bool=True) -> bool:
         value = instantiated_hyperparameters.get(self.hyperparameter.name)
 
         if value is None:
@@ -155,7 +152,7 @@ class ForbiddenEqualsClause(SingleValueForbiddenClause):
 
 
 class ForbiddenInClause(MultipleValueForbiddenClause):
-    def __init__(self, hyperparameter: Hyperparameter, values: Any) -> None:
+    def __init__(self, hyperparameter: Dict[str, Union[None, str, float, int]], values: Any) -> None:
         super(ForbiddenInClause, self).__init__(hyperparameter, values)
         self.values = set(self.values)
 
@@ -185,7 +182,7 @@ class AbstractForbiddenConjunction(AbstractForbiddenComponent):
     @abstractmethod
     def __repr__(self):
         pass
-
+    # todo: recheck is return type should be AbstractForbiddenComponent or AbstractForbiddenConjunction or Hyperparameter
     def get_descendant_literal_clauses(self) -> List[Hyperparameter]:
         children = []
         for component in self.components:
@@ -195,7 +192,7 @@ class AbstractForbiddenConjunction(AbstractForbiddenComponent):
                 children.append(component)
         return children
 
-    def is_forbidden(self, instantiated_hyperparameters: Hyperparameter, strict: bool=True) -> bool:
+    def is_forbidden(self, instantiated_hyperparameters: Dict[str, Union[None, str, float, int]], strict: bool=True) -> bool:
         ihp_names = list(instantiated_hyperparameters.keys())
 
         dlcs = self.get_descendant_literal_clauses()
