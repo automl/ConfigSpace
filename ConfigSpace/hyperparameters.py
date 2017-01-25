@@ -122,7 +122,6 @@ def check_int(parameter: int, name: str) -> int:
     return int(parameter)
 
 #########################################################################
-
 class Hyperparameter(object):
     __metaclass__ = ABCMeta
 
