@@ -29,6 +29,8 @@
 import os
 import unittest
 
+import numpy as np
+
 import ConfigSpace
 import ConfigSpace.util
 import ConfigSpace.io.pcs as pcs_parser
@@ -49,13 +51,14 @@ def generate(configuration_space_path):
         for i in range(10):
             print(i)
             cs.seed(i)
-            configurations = cs.sample_configuration(size=10)
+            configurations = cs.sample_configuration(size=5)
             for j, c in enumerate(configurations):
                 print(j)
                 c.is_valid_configuration()
                 neighborhood = ConfigSpace.util.get_one_exchange_neighbourhood(
                     c, seed=i)
-                for n in neighborhood:
+                np.random.shuffle(neighborhood)
+                for n in neighborhood[:5]:
                     n.is_valid_configuration()
 
     return run_test
