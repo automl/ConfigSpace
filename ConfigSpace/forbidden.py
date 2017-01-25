@@ -38,6 +38,7 @@ from typing import List, Dict, Any, Union
 
 class AbstractForbiddenComponent(object):
     __metaclass__ = ABCMeta
+    hyperparameter = None  # type: Hyperparameter
     @abstractmethod
     def __init__(self):
         pass
@@ -68,7 +69,7 @@ class AbstractForbiddenComponent(object):
         pass
 
     @abstractmethod
-    def is_forbidden(self, instantiated_hyperparameters):
+    def is_forbidden(self, instantiated_hyperparameters, strict):
         pass
 
 
@@ -182,8 +183,9 @@ class AbstractForbiddenConjunction(AbstractForbiddenComponent):
     @abstractmethod
     def __repr__(self):
         pass
-    # todo: recheck is return type should be AbstractForbiddenComponent or AbstractForbiddenConjunction or Hyperparameter
-    def get_descendant_literal_clauses(self) -> List[Hyperparameter]:
+
+    # todo:recheck is return type should be AbstractForbiddenComponent or AbstractForbiddenConjunction or Hyperparameter
+    def get_descendant_literal_clauses(self) -> List[AbstractForbiddenComponent]:
         children = []
         for component in self.components:
             if isinstance(component, AbstractForbiddenConjunction):
