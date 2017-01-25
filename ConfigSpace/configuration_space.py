@@ -66,13 +66,12 @@ class ConfigurationSpace(object):
 
         # changing this to a normal dict will break sampling because there is
         #  no guarantee that the parent of a condition was evaluated before
-        self._conditionsals = OrderedDict()   # type: OrderedDict[str, str]
+        self._conditionsals = []   # type: List[str]
         self.forbidden_clauses = []  # type: List['AbstractForbiddenComponent']
         self.random = np.random.RandomState(seed)
 
         self._children['__HPOlib_configuration_space_root__'] = OrderedDict()
 
-    # todo: typeof bounds?
     def generate_all_continuous_from_bounds(self, bounds: List[List[Any]]) -> None:
         for i, (l, u) in enumerate(bounds):
             hp = ConfigSpace.UniformFloatHyperparameter('x%d' % i, l, u)
@@ -116,10 +115,9 @@ class ConfigurationSpace(object):
         self._check_default_configuration()
         self._sort_hyperparameters()
 
-        # todo: check it returns input as aoutput?
         return hyperparameter
 
-    def add_condition(self, condition: ConditionComponent) -> AbstractCondition:
+    def add_condition(self, condition: ConditionComponent) -> ConditionComponent:
         # Check if adding the condition is legal:
         # * The parent in a condition statement must exist
         # * The condition must add no cycles
@@ -166,7 +164,7 @@ class ConfigurationSpace(object):
         self._children[parent_node][child_node] = condition
         self._parents[child_node][parent_node] = condition
         self._sort_hyperparameters()
-        self._conditionsals[child_node] = child_node
+        self._conditionsals.append(child_node)
 
     def _check_edge(self, parent_node: str, child_node: str, condition: AbstractCondition) -> None:
         # check if both nodes are already inserted into the graph
@@ -242,10 +240,10 @@ class ConfigurationSpace(object):
             del self._hyperparameters[node]
             self._hyperparameters[node] = hp
 
-            hp = self._conditionsals.get(node)
-            if hp is not None:
-                del self._conditionsals[node]
-                self._conditionsals[node] = hp
+            # hp = self._conditionsals.get(node)
+            # if hp is not None:
+            #     del self._conditionsals[node]
+            #     self._conditionsals[node] = hp
 
         # Update to reflect sorting
         for i, hp in enumerate(self._hyperparameters):
@@ -353,7 +351,6 @@ class ConfigurationSpace(object):
 
         return configuration_space
 
-    # todo: verify return types of these get functions
     def get_hyperparameters(self) -> List[Hyperparameter]:
         return list(self._hyperparameters.values())
 
@@ -467,16 +464,14 @@ class ConfigurationSpace(object):
                                '__HPOlib_configuration_space_root__']]
         return hyperparameters
 
-    def get_all_conditional_hyperparameters(self) -> Dict[str, str]:
+    def get_all_conditional_hyperparameters(self) -> List[str]:
         return self._conditionsals
 
     def get_default_configuration(self) -> 'Configuration':
         return self._check_default_configuration()
 
     def _check_default_configuration(self) -> 'Configuration':
-        # Check if adding that hyperparameter leads to an illegal default
-        # configuration:
-        # todo: recheck type of instantiated_hyperparameter
+        # Check if adding that hyperparameter leads to an illegal default configuration
         instantiated_hyperparameters = {} # type: Dict[str, Union[None, int, float, str]]
         for hp in self.get_hyperparameters():
             conditions = self._get_parent_conditions_of(hp.name)
@@ -708,9 +703,7 @@ class ConfigurationSpace(object):
 
 
 class Configuration(object):
-    # TODO add a method to eliminate inactive hyperparameters from a
-    # configuration
-    # todo check types of vector and origin
+    # TODO add a method to eliminate inactive hyperparameters from a configuration
     def __init__(self, configuration_space: ConfigurationSpace, values: Union[None,  Dict[str, Union[str, float, int]]] = None,
                  vector: Union[None, np.ndarray]=None, allow_inactive_with_values: bool=False, origin: Any=None)\
             -> None:
@@ -796,7 +789,7 @@ class Configuration(object):
     def is_valid_configuration(self) -> None:
         self.configuration_space._check_configuration(
             self, allow_inactive_with_values=self.allow_inactive_with_values)
-    # todo: find typeof _value
+
     def __getitem__(self, item: str) -> Any:
         if self._query_values or item in self._values:
             return self._values.get(item)
@@ -817,7 +810,7 @@ class Configuration(object):
             return self[item]
         except:
             return default
-    # todo: recheck
+
     def __contains__(self, item: str) -> bool:
         self._populate_values()
         return item in self._values
@@ -880,7 +873,6 @@ class Configuration(object):
             self._keys = list(self.configuration_space._hyperparameters.keys())
         return self._keys
 
-    # todo: recheck
     def get_dictionary(self) -> Dict[str, Union[str, float, int]]:
         self._populate_values()
         return self._values
