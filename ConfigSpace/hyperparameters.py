@@ -192,6 +192,7 @@ class Constant(Hyperparameter):
     def __init__(self, name: str, value: Union[str, int, float]) -> None:
         super(Constant, self).__init__(name)
         allowed_types = (int, float, str)
+
         if not isinstance(value, allowed_types) or \
                 isinstance(value, bool):
             raise TypeError("Constant value is of type %s, but only the "
@@ -247,27 +248,14 @@ class NumericalHyperparameter(Hyperparameter):
     def has_neighbors(self) -> bool:
         return True
 
-    def get_num_neighbors(self, value=None) -> float:
+    def get_num_neighbors(self, value: None=None) -> np.inf:
         return np.inf
-
-
-class BaseUniformFloatHyperparameter(object):
-    __metaclass__ = ABCMeta
-
-    @abstractmethod
-    def is_legal(self, value):
-        raise NotImplementedError()
-
-    @abstractmethod
-    def check_default(self, default):
-        raise NotImplementedError()
 
 
 class FloatHyperparameter(NumericalHyperparameter):
     # todo : type of name and default?
     def __init__(self, name: str, default: Union[int, float]) -> None:
-        # super(FloatHyperparameter, self).__init__(name, default)
-        pass
+        super(FloatHyperparameter, self).__init__(name, default)
 
     def is_legal(self, value: Union[int, float]) -> bool:
         # return isinstance(value, float) or isinstance(value, int)
@@ -341,7 +329,6 @@ class UniformFloatHyperparameter(FloatHyperparameter):
         self.upper = float(upper)
         self.q = float(q) if q is not None else None
         self.log = bool(log)
-        self.name = name
 
         if self.lower >= self.upper:
             raise ValueError("Upper bound %f must be larger than lower bound "
@@ -660,7 +647,7 @@ class NormalIntegerHyperparameter(IntegerHyperparameter):
                               name)
                 self.q = None
             else:
-                self.q = check_int(q, "q")
+                self.q = self.check_int(q, "q")
         else:
             self.q = None
         self.log = bool(log)
@@ -985,7 +972,7 @@ class OrdinalHyperparameter(Hyperparameter):
             return 2
 
     # todo: recehck...added rs as param otherrwise mismatch with baseclass signature
-    def get_neighbors(self, value: Union[int, str, float], rs=None, number: int = 2, transform: bool = False) \
+    def get_neighbors(self, value: Union[int, str, float], rs: None, number: int = 2, transform: bool = False) \
             -> List[Union[str, float, int]]:
         """
         Returns the neighbors of a given value.
