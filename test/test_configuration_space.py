@@ -26,6 +26,7 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+from collections import OrderedDict
 from itertools import product
 import json
 import sys
@@ -641,10 +642,10 @@ class ConfigurationTest(unittest.TestCase):
                                                             log=True))
         for i in range(100):
             config = cs.sample_configuration()
-            value = config.get_dictionary()
+            value = OrderedDict(sorted(config.get_dictionary().items()))
             string = json.dumps(value)
             saved_value = json.loads(string)
-            saved_value = byteify(saved_value)
+            saved_value = OrderedDict(sorted(byteify(saved_value).items()))
             self.assertEqual(repr(value), repr(saved_value))
 
         # Next, test whether the truncation also works when initializing the
