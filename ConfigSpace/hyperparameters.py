@@ -122,8 +122,7 @@ def check_int(parameter: int, name: str) -> int:
     return int(parameter)
 
 #########################################################################
-class Hyperparameter(object):
-    __metaclass__ = ABCMeta
+class Hyperparameter(object, metaclass=ABCMeta):
 
     @abstractmethod
     def __init__(self, name: str) -> None:
@@ -256,6 +255,7 @@ class FloatHyperparameter(NumericalHyperparameter):
     def __init__(self, name: str, default: Union[int, float]) -> None:
         super(FloatHyperparameter, self).__init__(name, default)
 
+    @abstractmethod
     def is_legal(self, value: Union[int, float]) -> bool:
         # return isinstance(value, float) or isinstance(value, int)
         pass
@@ -270,6 +270,7 @@ class IntegerHyperparameter(NumericalHyperparameter):
     def __init__(self, name: str, default: int) -> None:
         super(IntegerHyperparameter, self).__init__(name, default)
 
+    @abstractmethod
     def is_legal(self, value: int) -> bool:
         # return isinstance(value, (int, np.int, np.int32, np.int64))
         pass
@@ -383,6 +384,9 @@ class UniformFloatHyperparameter(FloatHyperparameter):
                         abs(self.q - other.q) < 0.00000001])
         else:
             return False
+
+    def is_legal(self, value: Union[int, float]):
+        return is_legal_uniformfloat(value, lower=self.lower, upper=self.upper)
 
     def to_integer(self) -> 'UniformIntegerHyperparameter':
         # TODO check if conversion makes sense at all (at least two integer values possible!)
@@ -593,6 +597,10 @@ class UniformIntegerHyperparameter(IntegerHyperparameter):
     def _inverse_transform(self, vector: np.ndarray) -> np.ndarray:
         return self.ufhp._inverse_transform(vector)
 
+    def is_legal(self, value: int) -> bool:
+        return is_legal_uniforminteger(value, self.upper, self.lower)
+
+
     def has_neighbors(self) -> bool:
         if self.log:
             upper = np.exp(self.ufhp._upper)
@@ -614,7 +622,7 @@ class UniformIntegerHyperparameter(IntegerHyperparameter):
             rejected = True
             iteration = 0
             while rejected:
-                new_min_value = np.min(1, rs.normal(value, 0.2))
+                new_min_value = np.min([1, rs.normal(loc=value, scale=0.2)])
                 new_value = np.max((0, new_min_value))
                 int_value = self._transform(value)
                 new_int_value = self._transform(new_value)
