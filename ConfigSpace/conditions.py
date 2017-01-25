@@ -232,7 +232,10 @@ class LessThanCondition(AbstractCondition):
                                   repr(self.value))
 
     def _evaluate(self, value: Any) -> bool:
-        return value < self.value
+        if not self.parent.is_legal(value):
+            return False
+        else:
+            return value < self.value
 
 
 class GreaterThanCondition(AbstractCondition):
@@ -250,7 +253,11 @@ class GreaterThanCondition(AbstractCondition):
                                   repr(self.value))
 
     def _evaluate(self, value: Any) -> bool:
-        return value > self.value
+        if not self.parent.is_legal(value):
+            return False
+        # if type(self.parent).__name_ == 'UniformFloatHyperparameter':
+        else:
+            return value > self.value
 
 
 class InCondition(AbstractCondition):
