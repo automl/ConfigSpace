@@ -35,6 +35,94 @@ import io
 import numpy as np
 
 
+def is_legal_uniformfloat(value: Union[float], upper: Union[float], lower: Union[int, float]) -> bool:
+    if not (isinstance(value, float) or isinstance(value, int)):
+        return False
+    # Strange numerical issues!
+    elif upper >= value >= (lower - 0.0000000001):
+        return True
+    else:
+        return False
+
+
+def is_legal_normalfloat(value: Union[int, float]) -> bool:
+    return isinstance(value, float) or isinstance(value, int)
+
+
+def check_default_uniformfloat(default: float, upper: float, lower: float,
+                               log: bool) -> Union[int, float]:
+    if default is None:
+        if log:
+            default = np.exp((np.log(lower) + np.log(upper)) / 2.)
+        else:
+            default = (lower + upper) / 2.
+    default = np.round(float(default), 10)
+
+    if is_legal_uniformfloat(default, upper, lower):
+        return default
+    else:
+        raise ValueError("Illegal default value %s" % str(default))
+
+
+def check_default_normalfloat(default: Union[int, float], mu: Union[int, float]) -> Union[int, float]:
+    if default is None:
+        return mu
+
+    elif is_legal_normalfloat(default):
+        return default
+    else:
+        raise ValueError("Illegal default value %s" % str(default))
+
+####################################################################
+
+def is_legal_uniforminteger(value: int, upper: float, lower: float) -> bool:
+    if not (isinstance(value, (int, np.int, np.int32, np.int64))):
+        return False
+    # Strange numerical issues!
+    elif upper >= value >= (lower - 0.0000000001):
+        return True
+    else:
+        return False
+
+
+def is_legal_normalinteger(value: int) -> bool:
+    return isinstance(value, (int, np.int, np.int32, np.int64))
+
+
+def check_default_uniforminteger(default: Union[int, float], upper: float, lower: float, log: bool) -> int:
+    if default is None:
+        if log:
+            default = np.exp((np.log(lower) + np.log(upper)) / 2.)
+        else:
+            default = (lower + upper) / 2.
+    default = int(np.round(default, 0))
+
+    if is_legal_uniforminteger(default, upper, lower):
+        return default
+    else:
+        raise ValueError("Illegal default value %s" % str(default))
+
+
+def check_default_normalinteger(default: int, mu: int) -> int:
+    if default is None:
+        return mu
+
+    elif is_legal_normalinteger(default):
+        return default
+    else:
+        raise ValueError("Illegal default value %s" % str(default))
+
+
+def check_int(parameter: int, name: str) -> int:
+    if abs(int(parameter) - parameter) > 0.00000001 and \
+                    type(parameter) is not int:
+        raise ValueError("For the Integer parameter %s, the value must be "
+                         "an Integer, too. Right now it is a %s with value"
+                         " %s." % (name, type(parameter), str(parameter)))
+    return int(parameter)
+
+#########################################################################
+
 class Hyperparameter(object):
     __metaclass__ = ABCMeta
 
@@ -108,7 +196,7 @@ class Constant(Hyperparameter):
                 isinstance(value, bool):
             raise TypeError("Constant value is of type %s, but only the "
                             "following types are allowed: %s" %
-                            (type(value), allowed_types)) # type: ignore
+                            (type(value), allowed_types))  # type: ignore
 
         self.value = value
         self.default = value
@@ -139,7 +227,7 @@ class Constant(Hyperparameter):
     def has_neighbors(self) -> bool:
         return False
 
-    def get_num_neighbors(self, value: None) -> int:
+    def get_num_neighbors(self, value=None) -> int:
         return 0
 
     def get_neighbors(self, value: Any, rs: Any, number: int, transform: bool = False) -> List:
@@ -159,7 +247,7 @@ class NumericalHyperparameter(Hyperparameter):
     def has_neighbors(self) -> bool:
         return True
 
-    def get_num_neighbors(self, value: None) -> float:
+    def get_num_neighbors(self, value=None) -> float:
         return np.inf
 
 
@@ -178,15 +266,17 @@ class BaseUniformFloatHyperparameter(object):
 class FloatHyperparameter(NumericalHyperparameter):
     # todo : type of name and default?
     def __init__(self, name: str, default: Union[int, float]) -> None:
-        super(FloatHyperparameter, self).__init__(name, default)
+        # super(FloatHyperparameter, self).__init__(name, default)
+        pass
 
     def is_legal(self, value: Union[int, float]) -> bool:
-        return isinstance(value, float) or isinstance(value, int)
+        # return isinstance(value, float) or isinstance(value, int)
+        pass
 
     # todo : recheck default
     def check_default(self, default: Union[int, float]) -> float:
-        return np.round(float(default), 10)
-
+        # return np.round(float(default), 10)
+        pass
 
 class IntegerHyperparameter(NumericalHyperparameter):
     # todo : type of name and default?
@@ -194,61 +284,64 @@ class IntegerHyperparameter(NumericalHyperparameter):
         super(IntegerHyperparameter, self).__init__(name, default)
 
     def is_legal(self, value: int) -> bool:
-        return isinstance(value, (int, np.int, np.int32, np.int64))
+        # return isinstance(value, (int, np.int, np.int32, np.int64))
+        pass
 
     def check_int(self, parameter: int, name: str) -> int:
-        if abs(int(parameter) - parameter) > 0.00000001 and \
-                        type(parameter) is not int:
-            raise ValueError("For the Integer parameter %s, the value must be "
-                             "an Integer, too. Right now it is a %s with value"
-                             " %s." % (name, type(parameter), str(parameter)))
-        return int(parameter)
+        # if abs(int(parameter) - parameter) > 0.00000001 and \
+        #                 type(parameter) is not int:
+        #     raise ValueError("For the Integer parameter %s, the value must be "
+        #                      "an Integer, too. Right now it is a %s with value"
+        #                      " %s." % (name, type(parameter), str(parameter)))
+        # return int(parameter)
+        pass
 
     def check_default(self, default: int) -> int:
-        return int(np.round(default, 0))
+        # return int(np.round(default, 0))
+        pass
+
+# # todo: find out purpose of mixin and annotate it?
+# class UniformMixin(object):
+#     def is_legal(self, value) -> bool:
+#         if not super(UniformMixin, self).is_legal(value):
+#             return False
+#         # Strange numerical issues!
+#         elif self.upper >= value >= (self.lower - 0.0000000001):
+#             return True
+#         else:
+#             return False
+#
+#     def check_default(self, default):
+#         if default is None:
+#             if self.log:
+#                 default = np.exp((np.log(self.lower) + np.log(self.upper)) / 2.)
+#             else:
+#                 default = (self.lower + self.upper) / 2.
+#         default = super(UniformMixin, self).check_default(default)
+#         if self.is_legal(default):
+#             return default
+#         else:
+#             raise ValueError("Illegal default value %s" % str(default))
+#
+#
+# class NormalMixin(object):
+#     def check_default(self, default):
+#         if default is None:
+#             return self.mu
+#         elif self.is_legal(default):
+#             return default
+#         else:
+#             raise ValueError("Illegal default value %s" % str(default))
 
 
-# todo: find out purpose of mixin and annotate it?
-class UniformMixin(object):
-    def is_legal(self, value) -> bool:
-        if not super(UniformMixin, self).is_legal(value):
-            return False
-        # Strange numerical issues!
-        elif self.upper >= value >= (self.lower - 0.0000000001):
-            return True
-        else:
-            return False
-
-    def check_default(self, default):
-        if default is None:
-            if self.log:
-                default = np.exp((np.log(self.lower) + np.log(self.upper)) / 2.)
-            else:
-                default = (self.lower + self.upper) / 2.
-        default = super(UniformMixin, self).check_default(default)
-        if self.is_legal(default):
-            return default
-        else:
-            raise ValueError("Illegal default value %s" % str(default))
-
-
-class NormalMixin(object):
-    def check_default(self, default):
-        if default is None:
-            return self.mu
-        elif self.is_legal(default):
-            return default
-        else:
-            raise ValueError("Illegal default value %s" % str(default))
-
-
-class UniformFloatHyperparameter(UniformMixin, FloatHyperparameter):
+class UniformFloatHyperparameter(FloatHyperparameter):
     def __init__(self, name: str, lower: Union[int, float], upper: Union[int, float],
                  default: Union[int, float, None] = None, q: Union[int, float, None] = None, log: bool = False) -> None:
         self.lower = float(lower)
         self.upper = float(upper)
         self.q = float(q) if q is not None else None
         self.log = bool(log)
+        self.name = name
 
         if self.lower >= self.upper:
             raise ValueError("Upper bound %f must be larger than lower bound "
@@ -259,8 +352,9 @@ class UniformFloatHyperparameter(UniformMixin, FloatHyperparameter):
                              "hyperparameter %s is forbidden." %
                              (self.lower, name))
 
-        super(UniformFloatHyperparameter, self). \
-            __init__(name, self.check_default(default))
+        # super(UniformFloatHyperparameter, self). \
+        #     __init__(name, self.check_default(default))
+        self.default = check_default_uniformfloat(default, self.upper, self.lower, self.log)
 
         if self.log:
             if self.q is not None:
@@ -347,15 +441,17 @@ class UniformFloatHyperparameter(UniformMixin, FloatHyperparameter):
         return neighbors
 
 
-class NormalFloatHyperparameter(NormalMixin, FloatHyperparameter):
+class NormalFloatHyperparameter(FloatHyperparameter):
     def __init__(self, name: str, mu: Union[int, float], sigma: Union[int, float],
                  default: Union[None, float] = None, q: Union[int, float, None] = None, log: bool = False) -> None:
         self.mu = float(mu)
         self.sigma = float(sigma)
         self.q = float(q) if q is not None else None
         self.log = bool(log)
-        super(NormalFloatHyperparameter, self). \
-            __init__(name, self.check_default(default))
+        self.name = name
+        # super(NormalFloatHyperparameter, self). \
+        #     __init__(name, self.check_default(default))
+        self.default = check_default_normalfloat(default, self.mu)
 
     def __repr__(self) -> str:
         repr_str = io.StringIO()
@@ -391,10 +487,10 @@ class NormalFloatHyperparameter(NormalMixin, FloatHyperparameter):
 
     def to_integer(self) -> 'NormalIntegerHyperparameter':
         if self.q is None:
-            q_int = self.q
+            q_int = None
         else:
             q_int = int(self.q)
-        return NormalIntegerHyperparameter(self.name, self.mu, self.sigma,
+        return NormalIntegerHyperparameter(self.name, int(self.mu), self.sigma,
                                            default=int(np.round(self.default, 0)),
                                            q=q_int, log=self.log)
 
@@ -426,20 +522,22 @@ class NormalFloatHyperparameter(NormalMixin, FloatHyperparameter):
             vector = np.log(vector)
         return vector
 
-    def get_neighbors(self, value: float, rs: np.random, number: int = 4, transform: bool=False) -> List[float]:
+    def get_neighbors(self, value: float, rs: np.random, number: int = 4, transform: bool = False) -> List[float]:
         neighbors = []
         for i in range(number):
             neighbors.append(rs.normal(value, self.sigma))
         return neighbors
 
 
-class UniformIntegerHyperparameter(UniformMixin, IntegerHyperparameter):
+class UniformIntegerHyperparameter(IntegerHyperparameter):
     def __init__(self, name: str, lower: int, upper: int, default: Union[int, None] = None,
                  q: Union[int, None] = None, log: bool = False) -> None:
-        self.lower = self.check_int(lower, "lower")
-        self.upper = self.check_int(upper, "upper")
+        self.lower = check_int(lower, "lower")
+        self.upper = check_int(upper, "upper")
+        self.name = name
         if default is not None:
-            default = self.check_int(default, name)
+            default = check_int(default, name)
+
         if q is not None:
             if q < 1:
                 warnings.warn("Setting quantization < 1 for Integer "
@@ -461,8 +559,9 @@ class UniformIntegerHyperparameter(UniformMixin, IntegerHyperparameter):
                              "hyperparameter %s is forbidden." %
                              (self.lower, name))
 
-        super(UniformIntegerHyperparameter, self). \
-            __init__(name, self.check_default(default))
+        # super(UniformIntegerHyperparameter, self). \
+        #     __init__(name, self.check_default(default))
+        self.default = check_default_uniforminteger(default, upper, lower, log)
 
         self.ufhp = UniformFloatHyperparameter(self.name,
                                                self.lower - 0.49999,
@@ -521,7 +620,8 @@ class UniformIntegerHyperparameter(UniformMixin, IntegerHyperparameter):
         else:
             return False
 
-    def get_neighbors(self, value: Union[int, float], rs: np.random, number: int = 4, transform: bool = False) -> List[int]:
+    def get_neighbors(self, value: Union[int, float], rs: np.random, number: int = 4, transform: bool = False) -> List[
+        int]:
         neighbors = []  # type: List[int]
         while len(neighbors) < number:
             rejected = True
@@ -544,13 +644,15 @@ class UniformIntegerHyperparameter(UniformMixin, IntegerHyperparameter):
         return neighbors
 
 
-class NormalIntegerHyperparameter(NormalMixin, IntegerHyperparameter):
-    def __init__(self, name: str, mu: Union[int, float], sigma: Union[int, float],
+class NormalIntegerHyperparameter(IntegerHyperparameter):
+    def __init__(self, name: str, mu: int, sigma: Union[int, float],
                  default: Union[int, None] = None, q: Union[None, int] = None, log: bool = False) -> None:
         self.mu = mu
         self.sigma = sigma
+        self.name = name
         if default is not None:
-            default = self.check_int(default, name)
+            default = check_int(default, self.name)
+
         if q is not None:
             if q < 1:
                 warnings.warn("Setting quantization < 1 for Integer "
@@ -558,13 +660,14 @@ class NormalIntegerHyperparameter(NormalMixin, IntegerHyperparameter):
                               name)
                 self.q = None
             else:
-                self.q = self.check_int(q, "q")
+                self.q = check_int(q, "q")
         else:
             self.q = None
         self.log = bool(log)
 
-        super(NormalIntegerHyperparameter, self). \
-            __init__(name, self.check_default(default))
+        # super(NormalIntegerHyperparameter, self). \
+        #     __init__(name, self.check_default(default))
+        self.default = check_default_normalinteger(default, self.mu)
 
         self.nfhp = NormalFloatHyperparameter(self.name,
                                               self.mu,
@@ -596,6 +699,7 @@ class NormalIntegerHyperparameter(NormalMixin, IntegerHyperparameter):
                         self.q == other.q])
         else:
             return False
+
     # todo check if conversion should be done in initiation call or inside class itsel
     def to_uniform(self, z: int = 3) -> 'UniformIntegerHyperparameter':
         return UniformIntegerHyperparameter(self.name,
@@ -633,8 +737,9 @@ class NormalIntegerHyperparameter(NormalMixin, IntegerHyperparameter):
 
     def has_neighbors(self) -> bool:
         return True
+
     # todo : find whay doesnt this function return anything
-    def get_neighbors(self, value: Union[int, float], rs: np.random, number: int = 4, transform: bool = False) ->\
+    def get_neighbors(self, value: Union[int, float], rs: np.random, number: int = 4, transform: bool = False) -> \
             List[Union[np.ndarray, float, int]]:
         neighbors = []  # type: List[Union[np.ndarray, float, int]]
         while len(neighbors) < number:
@@ -659,7 +764,7 @@ class NormalIntegerHyperparameter(NormalMixin, IntegerHyperparameter):
 
 class CategoricalHyperparameter(Hyperparameter):
     # TODO add more magic for automated type recognition
-    def __init__(self, name: str, choices: List[Union[str, float, int]], default: Union[int, float, str, None] = None)\
+    def __init__(self, name: str, choices: List[Union[str, float, int]], default: Union[int, float, str, None] = None) \
             -> None:
         super(CategoricalHyperparameter, self).__init__(name)
         # TODO check that there is no bullshit in the choices!
@@ -709,7 +814,7 @@ class CategoricalHyperparameter(Hyperparameter):
                              'the following float: %f' % (self, vector))
 
     # todo recheck
-    def _inverse_transform(self, vector: Union[None, str, float, int]) -> Union[int, float] :
+    def _inverse_transform(self, vector: Union[None, str, float, int]) -> Union[int, float]:
         if vector is None:
             return np.NaN
         return self.choices.index(vector)
@@ -721,8 +826,8 @@ class CategoricalHyperparameter(Hyperparameter):
         return len(self.choices) - 1
 
     def get_neighbors(self, value: int, rs: np.random, number: Union[int, float] = np.inf, transform: bool = False) -> \
-    List[Union[float, int, str]]:
-        neighbors = []   # type: List[Union[float, int, str]]
+            List[Union[float, int, str]]:
+        neighbors = []  # type: List[Union[float, int, str]]
         if number < len(self.choices):
             while len(neighbors) < number:
                 rejected = True
@@ -907,4 +1012,3 @@ class OrdinalHyperparameter(Hyperparameter):
                     neighbors.append(neighbor_idx2)
 
         return neighbors
-
