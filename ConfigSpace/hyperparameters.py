@@ -328,6 +328,7 @@ class UniformFloatHyperparameter(FloatHyperparameter):
         self.upper = float(upper)
         self.q = float(q) if q is not None else None
         self.log = bool(log)
+        self.name = name
 
         if self.lower >= self.upper:
             raise ValueError("Upper bound %f must be larger than lower bound "

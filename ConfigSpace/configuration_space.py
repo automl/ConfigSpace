@@ -33,7 +33,7 @@ import numpy as np
 import io
 from functools import reduce
 import ConfigSpace.nx
-from ConfigSpace.hyperparameters import Hyperparameter, Constant
+from ConfigSpace.hyperparameters import Hyperparameter, Constant, FloatHyperparameter
 from ConfigSpace.conditions import ConditionComponent, \
     AbstractCondition, AbstractConjunction, EqualsCondition
 from ConfigSpace.forbidden import AbstractForbiddenComponent
