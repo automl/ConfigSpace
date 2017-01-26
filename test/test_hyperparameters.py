@@ -571,14 +571,12 @@ class TestHyperparameters(unittest.TestCase):
         lower, upper = 1e-5, 1e5
         hyper = UniformFloatHyperparameter('test', lower=lower, upper=upper, 
             log=True)
-        # self.assertTrue(hyper.is_legal(hyper._transform(1.)))
-        self.assertTrue(is_legal_uniformfloat(hyper._transform(1.), hyper._upper, hyper._lower))
+        self.assertTrue(is_legal_uniformfloat(hyper._transform(1.), hyper.upper, hyper.lower))
 
         lower, upper = 1e-10, 1e10
         hyper = UniformFloatHyperparameter('test', lower=lower, upper=upper, 
             log=True)
-        # self.assertTrue(hyper.is_legal(hyper._transform(1.)))
-        self.assertTrue(is_legal_uniformfloat(hyper._transform(1.), hyper._upper, hyper._lower))
+        self.assertTrue(is_legal_uniformfloat(hyper._transform(1.), hyper.upper, hyper.lower))
     
     def test_ordinal_is_legal(self):
         f1 = OrdinalHyperparameter("temp", 

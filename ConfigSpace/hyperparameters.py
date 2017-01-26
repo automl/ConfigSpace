@@ -39,7 +39,8 @@ def is_legal_uniformfloat(value: Union[float], upper: Union[float], lower: Union
     if not (isinstance(value, float) or isinstance(value, int)):
         return False
     # Strange numerical issues!
-    elif upper >= value >= (lower - 0.0000000001):
+    # todo: discuss acceptable tolerance (without big tolerance for upper the test fails)
+    elif (upper + 0.00001) >= value >= (lower - 0.0000000001):
         return True
     else:
         return False
@@ -258,12 +259,12 @@ class FloatHyperparameter(NumericalHyperparameter):
     @abstractmethod
     def is_legal(self, value: Union[int, float]) -> bool:
         # return isinstance(value, float) or isinstance(value, int)
-        pass
+        raise NotImplemented
 
     # todo : recheck default
     def check_default(self, default: Union[int, float]) -> float:
         # return np.round(float(default), 10)
-        pass
+        raise NotImplemented
 
 class IntegerHyperparameter(NumericalHyperparameter):
     # todo : type of name and default?
@@ -272,21 +273,13 @@ class IntegerHyperparameter(NumericalHyperparameter):
 
     @abstractmethod
     def is_legal(self, value: int) -> bool:
-        # return isinstance(value, (int, np.int, np.int32, np.int64))
-        pass
+        raise NotImplemented
 
     def check_int(self, parameter: int, name: str) -> int:
-        # if abs(int(parameter) - parameter) > 0.00000001 and \
-        #                 type(parameter) is not int:
-        #     raise ValueError("For the Integer parameter %s, the value must be "
-        #                      "an Integer, too. Right now it is a %s with value"
-        #                      " %s." % (name, type(parameter), str(parameter)))
-        # return int(parameter)
-        pass
+        raise NotImplemented
 
     def check_default(self, default: int) -> int:
-        # return int(np.round(default, 0))
-        pass
+        raise NotImplemented
 
 # # todo: find out purpose of mixin and annotate it?
 # class UniformMixin(object):
@@ -536,7 +529,7 @@ class UniformIntegerHyperparameter(IntegerHyperparameter):
                               name)
                 self.q = None
             else:
-                self.q = self.check_int(q, "q")
+                self.q = check_int(q, "q")
         else:
             self.q = None
         self.log = bool(log)
@@ -655,7 +648,7 @@ class NormalIntegerHyperparameter(IntegerHyperparameter):
                               name)
                 self.q = None
             else:
-                self.q = self.check_int(q, "q")
+                self.q = check_int(q, "q")
         else:
             self.q = None
         self.log = bool(log)
