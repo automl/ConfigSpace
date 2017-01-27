@@ -127,7 +127,7 @@ class AbstractConjunction(ConditionComponent):
             if not isinstance(component, ConditionComponent):
                 raise TypeError("Argument #%d is not an instance of %s, "
                                 "but %s" % (
-                                idx, ConditionComponent, type(component)))
+                                    idx, ConditionComponent, type(component)))
 
         # Test that all conjunctions and conditions have the same child!
         children = self.get_children()
@@ -156,6 +156,7 @@ class AbstractConjunction(ConditionComponent):
         for component in self.components:
             parents.extend(component.get_parents())
         return parents
+
     # TODO: find typeof _evaluate?
     def evaluate(self, instantiated_hyperparameters):
         # Then, check if all parents were passed
@@ -216,24 +217,35 @@ class NotEqualsCondition(AbstractCondition):
 
     def _evaluate(self, value: Any) -> bool:
         return value != self.value
-        
+
+
 class LessThanCondition(AbstractCondition):
     def __init__(self, child: Hyperparameter, parent: Hyperparameter, value: Any) -> None:
         super(LessThanCondition, self).__init__(child, parent)
+        if type(self.parent).__name__ == 'CategoricalHyperparameter':
+            raise ValueError("Parent hyperparameter in a < "
+                             "condition must be a subclass of "
+                             "NumericalHyperparameter or "
+                             "OrdinalHyperparameter, but is "
+                             "<class 'ConfigSpace.hyperparameters.CategoricalHyperparameter'>")
+
         if not parent.is_legal(value):
             raise ValueError("Hyperparameter '%s' is "
                              "conditional on the illegal value '%s' of "
                              "its parent hyperparameter '%s'" %
                              (child.name, value, parent.name))
         self.value = value
-        
+
     def __repr__(self) -> str:
         return "%s | %s < %s" % (self.child.name, self.parent.name,
-                                  repr(self.value))
+                                 repr(self.value))
 
     def _evaluate(self, value: Any) -> bool:
         if not self.parent.is_legal(value):
             return False
+
+        if type(self.parent).__name__ == 'OrdinalHyperparameter':
+            return self.parent.value_dict[value] < self.parent.value_dict[self.value]
         else:
             return value < self.value
 
@@ -241,21 +253,30 @@ class LessThanCondition(AbstractCondition):
 class GreaterThanCondition(AbstractCondition):
     def __init__(self, child: Hyperparameter, parent: Hyperparameter, value: Any) -> None:
         super(GreaterThanCondition, self).__init__(child, parent)
+        if type(self.parent).__name__ == 'CategoricalHyperparameter':
+            raise ValueError("Parent hyperparameter in a > "
+                             "condition must be a subclass of "
+                             "NumericalHyperparameter or "
+                             "OrdinalHyperparameter, but is "
+                             "<class 'ConfigSpace.hyperparameters.CategoricalHyperparameter'>")
+
         if not parent.is_legal(value):
             raise ValueError("Hyperparameter '%s' is "
                              "conditional on the illegal value '%s' of "
                              "its parent hyperparameter '%s'" %
                              (child.name, value, parent.name))
         self.value = value
-        
+
     def __repr__(self) -> str:
         return "%s | %s > %s" % (self.child.name, self.parent.name,
-                                  repr(self.value))
+                                 repr(self.value))
 
     def _evaluate(self, value: Any) -> bool:
         if not self.parent.is_legal(value):
             return False
-        # if type(self.parent).__name_ == 'UniformFloatHyperparameter':
+
+        if type(self.parent).__name__ == 'OrdinalHyperparameter':
+            return self.parent.value_dict[value] > self.parent.value_dict[self.value]
         else:
             return value > self.value
 
