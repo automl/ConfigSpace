@@ -35,9 +35,7 @@ import numpy as np
 from ConfigSpace.hyperparameters import Constant, \
     UniformFloatHyperparameter, NormalFloatHyperparameter, \
     UniformIntegerHyperparameter, NormalIntegerHyperparameter, \
-    CategoricalHyperparameter, OrdinalHyperparameter, \
-    check_default_normalinteger, check_default_uniforminteger, check_default_normalfloat, check_default_uniformfloat, \
-    check_int, is_legal_normalfloat, is_legal_uniformfloat, is_legal_normalinteger, is_legal_uniforminteger
+    CategoricalHyperparameter, OrdinalHyperparameter
 
 
 class TestHyperparameters(unittest.TestCase):
@@ -131,18 +129,12 @@ class TestHyperparameters(unittest.TestCase):
         upper = 10
         f1 = UniformFloatHyperparameter("param", lower, upper, q=0.1, log=True)
 
-        # self.assertTrue(f1.is_legal(3.0))
-        # self.assertTrue(f1.is_legal(3))
-        # self.assertFalse(f1.is_legal(-0.1))
-        # self.assertFalse(f1.is_legal(10.1))
-        # self.assertFalse(f1.is_legal("AAA"))
-        # self.assertFalse(f1.is_legal(dict()))
-        self.assertTrue(is_legal_uniformfloat(3.0, upper, lower))
-        self.assertTrue(is_legal_uniformfloat(3, upper, lower))
-        self.assertFalse(is_legal_uniformfloat(-0.1, upper, lower))
-        self.assertFalse(is_legal_uniformfloat(10.1, upper, lower))
-        self.assertFalse(is_legal_uniformfloat("AAA", upper, lower))
-        self.assertFalse(is_legal_uniformfloat(dict(), upper, lower))
+        self.assertTrue(f1.is_legal(3.0))
+        self.assertTrue(f1.is_legal(3))
+        self.assertFalse(f1.is_legal(-0.1))
+        self.assertFalse(f1.is_legal(10.1))
+        self.assertFalse(f1.is_legal("AAA"))
+        self.assertFalse(f1.is_legal(dict()))
 
     def test_uniformfloat_illegal_bounds(self):
         self.assertRaisesRegexp(ValueError,
@@ -571,12 +563,12 @@ class TestHyperparameters(unittest.TestCase):
         lower, upper = 1e-5, 1e5
         hyper = UniformFloatHyperparameter('test', lower=lower, upper=upper, 
             log=True)
-        self.assertTrue(is_legal_uniformfloat(hyper._transform(1.), hyper.upper, hyper.lower))
+        self.assertTrue(hyper.is_legal(hyper._transform(1.)))
 
         lower, upper = 1e-10, 1e10
         hyper = UniformFloatHyperparameter('test', lower=lower, upper=upper, 
             log=True)
-        self.assertTrue(is_legal_uniformfloat(hyper._transform(1.), hyper.upper, hyper.lower))
+        self.assertTrue(hyper.is_legal(hyper._transform(1.)))
     
     def test_ordinal_is_legal(self):
         f1 = OrdinalHyperparameter("temp", 
