@@ -407,7 +407,7 @@ class NormalFloatHyperparameter(FloatHyperparameter):
             vector = np.log(vector)
         return vector
 
-    def get_neighbors(self, value: float, rs: np.random, number: int = 4, transform: bool = False) -> List[float]:
+    def get_neighbors(self, value: float, rs: np.random.RandomState, number: int = 4, transform: bool = False) -> List[float]:
         neighbors = []
         for i in range(number):
             neighbors.append(rs.normal(value, self.sigma))
@@ -465,7 +465,7 @@ class UniformIntegerHyperparameter(IntegerHyperparameter):
         repr_str.seek(0)
         return repr_str.getvalue()
 
-    def _sample(self, rs: np.random, size: Union[int, None] = None) -> np.ndarray:
+    def _sample(self, rs: np.random.RandomState, size: Union[int, None] = None) -> np.ndarray:
         value = self.ufhp._sample(rs, size=size)
         # Map all floats which belong to the same integer value to the same
         # float value by first transforming it to an integer and then
@@ -524,7 +524,7 @@ class UniformIntegerHyperparameter(IntegerHyperparameter):
         else:
             return False
 
-    def get_neighbors(self, value: Union[int, float], rs: np.random, number: int = 4, transform: bool = False) -> List[
+    def get_neighbors(self, value: Union[int, float], rs: np.random.RandomState, number: int = 4, transform: bool = False) -> List[
         int]:
         neighbors = []  # type: List[int]
         while len(neighbors) < number:
@@ -605,10 +605,10 @@ class NormalIntegerHyperparameter(IntegerHyperparameter):
             return False
 
     # todo check if conversion should be done in initiation call or inside class itsel
-    def to_uniform(self, z: np.round = 3) -> 'UniformIntegerHyperparameter':
+    def to_uniform(self, z: int = 3) -> 'UniformIntegerHyperparameter':
         return UniformIntegerHyperparameter(self.name,
-                                            int(self.mu - (z * self.sigma)),
-                                            int(self.mu + (z * self.sigma)),
+                                            np.round(int(self.mu - (z * self.sigma))),
+                                            np.round(int(self.mu + (z * self.sigma))),
                                             default=self.default,
                                             q=self.q, log=self.log)
 
@@ -624,7 +624,7 @@ class NormalIntegerHyperparameter(IntegerHyperparameter):
         else:
             raise ValueError("Illegal default value %s" % str(default))
 
-    def _sample(self, rs: np.random, size: Union[int, None] = None) -> np.ndarray:
+    def _sample(self, rs: np.random.RandomState, size: Union[int, None] = None) -> np.ndarray:
         value = self.nfhp._sample(rs, size=size)
         # Map all floats which belong to the same integer value to the same
         # float value by first transforming it to an integer and then
@@ -648,7 +648,7 @@ class NormalIntegerHyperparameter(IntegerHyperparameter):
     def has_neighbors(self) -> bool:
         return True
 
-    def get_neighbors(self, value: Union[int, float], rs: np.random, number: int = 4, transform: bool = False) -> \
+    def get_neighbors(self, value: Union[int, float], rs: np.random.RandomState, number: int = 4, transform: bool = False) -> \
             List[Union[np.ndarray, float, int]]:
         neighbors = []  # type: List[Union[np.ndarray, float, int]]
         while len(neighbors) < number:
@@ -708,7 +708,7 @@ class CategoricalHyperparameter(Hyperparameter):
         else:
             raise ValueError("Illegal default value %s" % str(default))
 
-    def _sample(self, rs: np.random, size: int = None) -> Union[int, np.ndarray]:
+    def _sample(self, rs: np.random.RandomState, size: int = None) -> Union[int, np.ndarray]:
         return rs.randint(0, self._num_choices, size=size)
 
     def _transform(self, vector: np.ndarray) -> Union[None, str, int, float]:
@@ -732,7 +732,7 @@ class CategoricalHyperparameter(Hyperparameter):
     def get_num_neighbors(self, value=None) -> int:
         return len(self.choices) - 1
 
-    def get_neighbors(self, value: int, rs: np.random, number: Union[int, float] = np.inf, transform: bool = False) -> \
+    def get_neighbors(self, value: int, rs: np.random.RandomState, number: Union[int, float] = np.inf, transform: bool = False) -> \
             List[Union[float, int, str]]:
         neighbors = []  # type: List[Union[float, int, str]]
         if number < len(self.choices):
@@ -866,7 +866,7 @@ class OrdinalHyperparameter(Hyperparameter):
         else:
             return False
 
-    def _sample(self, rs: np.random, size: Union[int, None] = None) -> int:
+    def _sample(self, rs: np.random.RandomState, size: Union[int, None] = None) -> int:
         """
         returns a random sample from our sequence as order/position index
         """
