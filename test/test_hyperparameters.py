@@ -125,7 +125,10 @@ class TestHyperparameters(unittest.TestCase):
                              "Default: 3, on log-scale", str(f2))
 
     def test_uniformfloat_is_legal(self):
-        f1 = UniformFloatHyperparameter("param", 0.1, 10, q=0.1, log=True)
+        lower = 0.1
+        upper = 10
+        f1 = UniformFloatHyperparameter("param", lower, upper, q=0.1, log=True)
+
         self.assertTrue(f1.is_legal(3.0))
         self.assertTrue(f1.is_legal(3))
         self.assertFalse(f1.is_legal(-0.1))
@@ -604,10 +607,10 @@ class TestHyperparameters(unittest.TestCase):
     def test_ordinal_get_neighbors(self):
         f1 = OrdinalHyperparameter("temp", 
                                    ["freezing", "cold", "warm", "hot"])
-        self.assertEqual(f1.get_neighbors("freezing"), [2])     
-        self.assertEqual(f1.get_neighbors("cold", transform =True), ["freezing", "warm"])
-        self.assertEqual(f1.get_neighbors("hot"), [3])
-        self.assertEqual(f1.get_neighbors("hot", transform =True), ["warm"])
+        self.assertEqual(f1.get_neighbors("freezing", rs=None), [2])
+        self.assertEqual(f1.get_neighbors("cold", transform=True, rs=None), ["freezing", "warm"])
+        self.assertEqual(f1.get_neighbors("hot", rs=None), [3])
+        self.assertEqual(f1.get_neighbors("hot", transform =True, rs=None), ["warm"])
         
     def test_get_num_neighbors(self):
         f1 = OrdinalHyperparameter("temp", 
