@@ -198,7 +198,10 @@ class EqualsCondition(AbstractCondition):
                                   repr(self.value))
 
     def _evaluate(self, value: Any) -> bool:
-        return value == self.value
+        if not self.parent.is_legal(value):
+            return False
+
+        return self.parent.get_order(value) == self.parent.get_order(self.value)
 
 
 class NotEqualsCondition(AbstractCondition):
@@ -216,18 +219,16 @@ class NotEqualsCondition(AbstractCondition):
                                   repr(self.value))
 
     def _evaluate(self, value: Any) -> bool:
-        return value != self.value
+        if not self.parent.is_legal(value):
+            return False
+
+        return self.parent.get_order(value) != self.parent.get_order(self.value)
 
 
 class LessThanCondition(AbstractCondition):
     def __init__(self, child: Hyperparameter, parent: Hyperparameter, value: Any) -> None:
         super(LessThanCondition, self).__init__(child, parent)
-        if type(self.parent).__name__ == 'CategoricalHyperparameter':
-            raise ValueError("Parent hyperparameter in a < "
-                             "condition must be a subclass of "
-                             "NumericalHyperparameter or "
-                             "OrdinalHyperparameter, but is "
-                             "<class 'ConfigSpace.hyperparameters.CategoricalHyperparameter'>")
+        self.parent.allow_inequality_checks()
 
         if not parent.is_legal(value):
             raise ValueError("Hyperparameter '%s' is "
@@ -244,22 +245,13 @@ class LessThanCondition(AbstractCondition):
         if not self.parent.is_legal(value):
             return False
 
-        if type(self.parent).__name__ == 'OrdinalHyperparameter':
-            return self.parent.value_dict[value] < self.parent.value_dict[self.value]
-        else:
-            return value < self.value
+        return self.parent.get_order(value) < self.parent.get_order(self.value)
 
 
 class GreaterThanCondition(AbstractCondition):
     def __init__(self, child: Hyperparameter, parent: Hyperparameter, value: Any) -> None:
         super(GreaterThanCondition, self).__init__(child, parent)
-        if type(self.parent).__name__ == 'CategoricalHyperparameter':
-            raise ValueError("Parent hyperparameter in a > "
-                             "condition must be a subclass of "
-                             "NumericalHyperparameter or "
-                             "OrdinalHyperparameter, but is "
-                             "<class 'ConfigSpace.hyperparameters.CategoricalHyperparameter'>")
-
+        self.parent.allow_inequality_checks()
         if not parent.is_legal(value):
             raise ValueError("Hyperparameter '%s' is "
                              "conditional on the illegal value '%s' of "
@@ -275,10 +267,7 @@ class GreaterThanCondition(AbstractCondition):
         if not self.parent.is_legal(value):
             return False
 
-        if type(self.parent).__name__ == 'OrdinalHyperparameter':
-            return self.parent.value_dict[value] > self.parent.value_dict[self.value]
-        else:
-            return value > self.value
+        return self.parent.get_order(value) > self.parent.get_order(self.value)
 
 
 class InCondition(AbstractCondition):

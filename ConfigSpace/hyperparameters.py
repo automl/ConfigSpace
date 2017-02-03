@@ -157,8 +157,14 @@ class NumericalHyperparameter(Hyperparameter):
     def has_neighbors(self) -> bool:
         return True
 
-    def get_num_neighbors(self, value= None) -> np.inf:
+    def get_num_neighbors(self, value=None) -> np.inf:
         return np.inf
+
+    def allow_inequality_checks(self) -> bool:
+        return True
+
+    def get_order(self, value: Union[int, float]) -> Union[int, float]:
+        return value
 
 
 class FloatHyperparameter(NumericalHyperparameter):
@@ -767,6 +773,19 @@ class CategoricalHyperparameter(Hyperparameter):
 
         return neighbors
 
+    def get_order(self, value: Union[None, int, str, float]) -> Union[None, int, str, float]:
+        """
+        returns the seuence position/order of a certain value from the sequence
+        """
+        return value
+
+    def allow_inequality_checks(self) -> bool:
+        raise ValueError("Parent hyperparameter in a > or < "
+                         "condition must be a subclass of "
+                         "NumericalHyperparameter or "
+                         "OrdinalHyperparameter, but is "
+                         "<class 'ConfigSpace.hyperparameters.CategoricalHyperparameter'>")
+
 
 class OrdinalHyperparameter(Hyperparameter):
     def __init__(self, name: str, sequence: List[Union[float, int, str]],
@@ -915,3 +934,6 @@ class OrdinalHyperparameter(Hyperparameter):
                     neighbors.append(neighbor_idx2)
 
         return neighbors
+
+    def allow_inequality_checks(self) -> bool:
+        return True
