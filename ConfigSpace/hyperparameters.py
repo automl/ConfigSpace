@@ -141,7 +141,7 @@ class Constant(Hyperparameter):
     def get_num_neighbors(self, value=None) -> int:
         return 0
 
-    def get_neighbors(self, value: Any, rs: Any, number: int, transform: bool = False) -> List:
+    def get_neighbors(self, value: Any, rs: np.random.RandomState, number: int, transform: bool = False) -> List:
         return []
 
 
@@ -157,7 +157,7 @@ class NumericalHyperparameter(Hyperparameter):
     def has_neighbors(self) -> bool:
         return True
 
-    def get_num_neighbors(self, value=None) -> np.inf:
+    def get_num_neighbors(self, value=None) -> np.float:
         return np.inf
 
     def allow_inequality_checks(self) -> bool:
@@ -775,7 +775,7 @@ class CategoricalHyperparameter(Hyperparameter):
 
     def get_order(self, value: Union[None, int, str, float]) -> Union[None, int, str, float]:
         """
-        returns the seuence position/order of a certain value from the sequence
+        returns input. this function is used for > and < comparisions
         """
         return value
 
