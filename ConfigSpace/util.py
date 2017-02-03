@@ -81,8 +81,9 @@ def get_one_exchange_neighbourhood(configuration: Configuration, seed: int) -> L
     In: Proceedings of the conference on Learning and Intelligent OptimizatioN (LION 5)
     """
     random = np.random.RandomState(seed)
-    neighbourhood = []
+    # neighbourhood = []
     for i, hp_name in enumerate(configuration):
+        neighbourhood = []
         number_of_sampled_neighbors = 0
         array = configuration.get_array()
 
@@ -122,7 +123,6 @@ def get_one_exchange_neighbourhood(configuration: Configuration, seed: int) -> L
                 # Activate hyperparameters if their parent node got activated
                 children = configuration.configuration_space.get_children_of(
                     hp_name)
-                # todo: debug why mypy is giving error here
                 if len(children) > 0:
                     to_visit = deque()  #type: deque
                     to_visit.extendleft(children)
@@ -209,8 +209,8 @@ def get_one_exchange_neighbourhood(configuration: Configuration, seed: int) -> L
                 # neighbor is forbidden together with another active
                 # value/default hyperparameter
                 iteration += 1
-
-    return neighbourhood
+        yield neighbourhood
+    # return neighbourhood
 
 
 

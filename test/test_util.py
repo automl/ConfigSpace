@@ -84,10 +84,12 @@ class UtilTest(unittest.TestCase):
         all_neighbors = []
         for i in range(100):
             neighborhood = get_one_exchange_neighbourhood(config, i)
-            self.assertEqual(len(neighborhood), num_neighbors)
+            # self.assertEqual(len(neighborhood), num_neighbors)
             for new_config in neighborhood:
+                self.assertEqual(len(new_config), num_neighbors)
                 self.assertNotEqual(config, new_config)
-                all_neighbors.append(new_config)
+                # all_neighbors.append(new_config)
+                all_neighbors.extend(new_config)
 
         return all_neighbors
 
