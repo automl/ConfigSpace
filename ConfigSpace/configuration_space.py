@@ -30,7 +30,6 @@ from collections import defaultdict, deque, OrderedDict
 import copy
 
 import numpy as np
-# import six
 import io
 
 import ConfigSpace.nx
@@ -38,7 +37,7 @@ from ConfigSpace.hyperparameters import Hyperparameter, Constant, FloatHyperpara
 from ConfigSpace.conditions import ConditionComponent, \
     AbstractCondition, AbstractConjunction, EqualsCondition
 from ConfigSpace.forbidden import AbstractForbiddenComponent
-from typing import Union, List, Any, Dict, Iterable, Set
+from typing import Union, List, Any, Dict, Iterable, Set, Tuple
 
 
 class ConfigurationSpace(object):
@@ -77,6 +76,33 @@ class ConfigurationSpace(object):
             hp = ConfigSpace.UniformFloatHyperparameter('x%d' % i, l, u)
             self.add_hyperparameter(hp)
 
+    def add_hyperparameters(self, hyperparameters: List[Hyperparameter]) -> List[Hyperparameter]:
+        """Add hyperparameters to the configuration space.
+
+        Parameters
+        ----------
+        hyperparameters : list
+            List of hyperparameters to add.
+
+        Returns
+        -------
+        hyperparameters : list
+            List of added hyperparameters (same as input)
+        """
+        for hyperparameter in hyperparameters:
+            if not isinstance(hyperparameter, Hyperparameter):
+                raise TypeError("Hyperparameter '%s' is not an instance of "
+                                "ConfigSpace.hyperparameters.Hyperparameter." %
+                                str(hyperparameter))
+
+        for hyperparameter in hyperparameters:
+            self._add_hyperparameter(hyperparameter)
+
+        self._check_default_configuration()
+        self._sort_hyperparameters()
+        return hyperparameters
+
+
     def add_hyperparameter(self, hyperparameter: Hyperparameter) -> Hyperparameter:
         """Add a hyperparameter to the configuration space.
 
@@ -89,33 +115,32 @@ class ConfigurationSpace(object):
         if not isinstance(hyperparameter, Hyperparameter):
             raise TypeError("The method add_hyperparameter must be called "
                             "with an instance of "
-                            "HPOlibConfigSpace.hyperparameters.Hyperparameter.")
+                            "ConfigSpace.hyperparameters.Hyperparameter.")
 
+        self._add_hyperparameter(hyperparameter)
+        self._check_default_configuration()
+        self._sort_hyperparameters()
+
+        return hyperparameter
+
+    def _add_hyperparameter(self, hyperparameter: Hyperparameter) -> None:
         # Check if adding the hyperparameter is legal:
         # * Its name must not already exist
         if hyperparameter.name in self._hyperparameters:
             raise ValueError("Hyperparameter '%s' is already in the "
                              "configuration space." % hyperparameter.name)
-
         self._hyperparameters[hyperparameter.name] = hyperparameter
         self._children[hyperparameter.name] = OrderedDict()
         self._children['__HPOlib_configuration_space_root__'][
             hyperparameter.name] = None
-
         self._parents[hyperparameter.name] = OrderedDict()
         self._parents[hyperparameter.name][
             '__HPOlib_configuration_space_root__'] = None
-
         # Save the index of each hyperparameter name to later on access a
         # vector of hyperparameter values by indices, must be done twice
         # because check_default_configuration depends on it
         for i, hp in enumerate(self._hyperparameters):
             self._hyperparameter_idx[hp] = i
-
-        self._check_default_configuration()
-        self._sort_hyperparameters()
-
-        return hyperparameter
 
     def add_condition(self, condition: ConditionComponent) -> ConditionComponent:
         # Check if adding the condition is legal:
@@ -127,18 +152,22 @@ class ConfigurationSpace(object):
         if not isinstance(condition, ConditionComponent):
             raise TypeError("The method add_condition must be called "
                             "with an instance of "
-                            "HPOlibConfigSpace.condition.ConditionComponent.")
+                            "ConfigSpace.condition.ConditionComponent.")
 
         if isinstance(condition, AbstractCondition):
+            self._check_edges([(condition.parent.name, condition.child.name)])
+            self._check_condition(condition.child.name, condition)
             self._add_edge(condition.parent.name, condition.child.name,
                            condition)
 
         # Loop over the Conjunctions to find out the conditions we must add!
         elif isinstance(condition, AbstractConjunction):
+            dlcs = condition.get_descendant_literal_conditions()
+            edges = [(dlc.parent.name, dlc.child.name) for dlc in dlcs]
+            self._check_edges(edges)
+
             for dlc in condition.get_descendant_literal_conditions():
-                self._check_edge(dlc.parent.name,
-                                 dlc.child.name,
-                                 condition=condition)
+                self._check_condition(dlc.child.name, condition)
                 self._add_edge(dlc.parent.name,
                                dlc.child.name,
                                condition=condition)
@@ -147,8 +176,31 @@ class ConfigurationSpace(object):
             raise Exception("This should never happen!")
         return condition
 
-    def _add_edge(self, parent_node: str, child_node: str, condition: AbstractCondition) -> None:
-        self._check_edge(parent_node, child_node, condition)
+    def add_conditions(self, conditions: List[ConditionComponent]) -> List[ConditionComponent]:
+        for condition in conditions:
+            if not isinstance(condition, ConditionComponent):
+                raise TypeError("Condition '%s' is not an instance of "
+                                "ConfigSpace.condition.ConditionComponent." %
+                                str(condition))
+
+        edges = []
+        conditions_to_add = []
+        for condition in conditions:
+            if isinstance(condition, AbstractCondition):
+                edges.append((condition.parent.name, condition.child.name))
+                conditions_to_add.append(condition)
+            elif isinstance(condition, AbstractConjunction):
+                dlcs = condition.get_descendant_literal_conditions()
+                edges = [(dlc.parent.name, dlc.child.name) for dlc in dlcs]
+                conditions_to_add.extend(dlcs)
+
+        for edge, condition in zip(edges, conditions_to_add):
+            self._check_condition(edge[1], condition)
+        self._check_edges(edges)
+        for edge, condition in zip(edges, conditions_to_add):
+            self._add_edge(edge[0], edge[1], condition)
+
+    def _add_edge(self, parent_node: str, child_node: str, condition: ConditionComponent) -> None:
         try:
             # TODO maybe this has to be done more carefully
             del self._children['__HPOlib_configuration_space_root__'][
@@ -166,20 +218,31 @@ class ConfigurationSpace(object):
         self._sort_hyperparameters()
         self._conditionsals.append(child_node)
 
-    def _check_edge(self, parent_node: str, child_node: str, condition: AbstractCondition) -> None:
-        # check if both nodes are already inserted into the graph
-        if child_node not in self._hyperparameters:
-            raise ValueError("Child hyperparameter '%s' not in configuration "
-                             "space." % child_node)
-        if parent_node not in self._hyperparameters:
-            raise ValueError("Parent hyperparameter '%s' not in configuration "
-                             "space." % parent_node)
+    def _check_condition(self, child_node: str, condition: ConditionComponent) -> None:
+        for other_condition in self._get_parent_conditions_of(child_node):
+            if other_condition != condition:
+                raise ValueError("Adding a second condition (different) for a "
+                                 "hyperparameter is ambigouos and "
+                                 "therefore forbidden. Add a conjunction "
+                                 "instead!\nAlready inserted: %s\nNew one: "
+                                 "%s" % (str(other_condition), str(condition)))
+
+    def _check_edges(self, edges: List[Tuple[str, str]]) -> None:
+        for parent_node, child_node in edges:
+            # check if both nodes are already inserted into the graph
+            if child_node not in self._hyperparameters:
+                raise ValueError("Child hyperparameter '%s' not in configuration "
+                                 "space." % child_node)
+            if parent_node not in self._hyperparameters:
+                raise ValueError("Parent hyperparameter '%s' not in configuration "
+                                 "space." % parent_node)
 
         # TODO: recursively check everything which is inside the conditions,
         # this means we have to recursively traverse the condition
 
         tmp_dag = self._create_tmp_dag()
-        tmp_dag.add_edge(parent_node, child_node)
+        for parent_node, child_node in edges:
+            tmp_dag.add_edge(parent_node, child_node)
 
         if not ConfigSpace.nx.is_directed_acyclic_graph(tmp_dag):
             cycles = list(ConfigSpace.nx.simple_cycles(tmp_dag))  # type: List[List[str]]
@@ -188,14 +251,6 @@ class ConfigurationSpace(object):
             cycles.sort()
             raise ValueError("Hyperparameter configuration contains a "
                              "cycle %s" % str(cycles))
-
-        for other_condition in self._get_parent_conditions_of(child_node):
-            if other_condition != condition:
-                raise ValueError("Adding a second condition (different) for a "
-                                 "hyperparameter is ambigouos and "
-                                 "therefore forbidden. Add a conjunction "
-                                 "instead!\nAlready inserted: %s\nNew one: "
-                                 "%s" % (str(other_condition), str(condition)))
 
     def _sort_hyperparameters(self) -> None:
         levels = OrderedDict()  # type: OrderedDict[str, int]
@@ -274,10 +329,20 @@ class ConfigurationSpace(object):
         if not isinstance(clause, AbstractForbiddenComponent):
             raise TypeError("The method add_forbidden_clause must be called "
                             "with an instance of "
-                            "HPOlibConfigSpace.forbidden.AbstractForbiddenComponent.")
+                            "ConfigSpace.forbidden.AbstractForbiddenComponent.")
         self.forbidden_clauses.append(clause)
         self._check_default_configuration()
         return clause
+
+    def add_forbidden_clauses(self, clauses: List[AbstractForbiddenComponent]) -> List[AbstractForbiddenComponent]:
+        for clause in clauses:
+            if not isinstance(clause, AbstractForbiddenComponent):
+                raise TypeError("Forbidden '%s' is not an instance of "
+                                "ConfigSpace.forbidden.AbstractForbiddenComponent." %
+                                str(clause))
+            self.forbidden_clauses.append(clause)
+        self._check_default_configuration()
+        return clauses
 
     # def print_configuration_space(self):
     #     HPOlibConfigSpace.nx.write_dot(self._dg, "hyperparameters.dot")
@@ -304,9 +369,10 @@ class ConfigurationSpace(object):
             else:
                 new_parameter.name = "%s%s%s" % (prefix, delimiter,
                                                  new_parameter.name)
-            self.add_hyperparameter(new_parameter)
             new_parameters.append(new_parameter)
+        self.add_hyperparameters(new_parameters)
 
+        conditions_to_add = []
         for condition in configuration_space.get_conditions():
             dlcs = condition.get_descendant_literal_conditions()
             for dlc in dlcs:
@@ -322,8 +388,10 @@ class ConfigurationSpace(object):
                                 "%s%s" % (prefix, delimiter)):
                     dlc.parent.name = "%s%s%s" % (
                         prefix, delimiter, dlc.parent.name)
-            self.add_condition(condition)
+            conditions_to_add.append(condition)
+        self.add_conditions(conditions_to_add)
 
+        forbiddens_to_add = []
         for forbidden_clause in configuration_space.forbidden_clauses:
             dlcs = forbidden_clause.get_descendant_literal_clauses()
             for dlc in dlcs:
@@ -335,8 +403,10 @@ class ConfigurationSpace(object):
                     dlc.hyperparameter.name = "%s%s%s" % \
                                               (prefix, delimiter,
                                                dlc.hyperparameter.name)
-            self.add_forbidden_clause(forbidden_clause)
+            forbiddens_to_add.append(forbidden_clause)
+        self.add_forbidden_clauses(forbiddens_to_add)
 
+        conditions_to_add = []
         if parent_hyperparameter is not None:
             for new_parameter in new_parameters:
                 # Only add a condition if the parameter is a top-level
@@ -347,7 +417,8 @@ class ConfigurationSpace(object):
                 condition = EqualsCondition(new_parameter,
                                             parent_hyperparameter['parent'],
                                             parent_hyperparameter['value'])
-                self.add_condition(condition)
+                conditions_to_add.append(condition)
+        self.add_conditions(conditions_to_add)
 
         return configuration_space
 
