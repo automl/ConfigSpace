@@ -174,6 +174,8 @@ class ConfigurationSpace(object):
 
         else:
             raise Exception("This should never happen!")
+
+        self._sort_hyperparameters()
         return condition
 
     def add_conditions(self, conditions: List[ConditionComponent]) -> List[ConditionComponent]:
@@ -200,6 +202,9 @@ class ConfigurationSpace(object):
         for edge, condition in zip(edges, conditions_to_add):
             self._add_edge(edge[0], edge[1], condition)
 
+        self._sort_hyperparameters()
+        return conditions
+
     def _add_edge(self, parent_node: str, child_node: str, condition: ConditionComponent) -> None:
         try:
             # TODO maybe this has to be done more carefully
@@ -215,7 +220,6 @@ class ConfigurationSpace(object):
 
         self._children[parent_node][child_node] = condition
         self._parents[child_node][parent_node] = condition
-        self._sort_hyperparameters()
         self._conditionsals.append(child_node)
 
     def _check_condition(self, child_node: str, condition: ConditionComponent) -> None:
