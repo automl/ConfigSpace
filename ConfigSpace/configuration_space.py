@@ -378,7 +378,8 @@ class ConfigurationSpace(object):
 
         conditions_to_add = []
         for condition in configuration_space.get_conditions():
-            dlcs = condition.get_descendant_literal_conditions()
+            new_condition = copy.deepcopy(condition)
+            dlcs = new_condition.get_descendant_literal_conditions()
             for dlc in dlcs:
                 if dlc.child.name == prefix or dlc.child.name == '':
                     dlc.child.name = prefix
@@ -392,12 +393,13 @@ class ConfigurationSpace(object):
                                 "%s%s" % (prefix, delimiter)):
                     dlc.parent.name = "%s%s%s" % (
                         prefix, delimiter, dlc.parent.name)
-            conditions_to_add.append(condition)
+            conditions_to_add.append(new_condition)
         self.add_conditions(conditions_to_add)
 
         forbiddens_to_add = []
         for forbidden_clause in configuration_space.forbidden_clauses:
-            dlcs = forbidden_clause.get_descendant_literal_clauses()
+            new_forbidden = copy.deepcopy(forbidden_clause)
+            dlcs = new_forbidden.get_descendant_literal_clauses()
             for dlc in dlcs:
                 if dlc.hyperparameter.name == prefix or \
                                 dlc.hyperparameter.name == '':
@@ -407,7 +409,7 @@ class ConfigurationSpace(object):
                     dlc.hyperparameter.name = "%s%s%s" % \
                                               (prefix, delimiter,
                                                dlc.hyperparameter.name)
-            forbiddens_to_add.append(forbidden_clause)
+            forbiddens_to_add.append(new_forbidden)
         self.add_forbidden_clauses(forbiddens_to_add)
 
         conditions_to_add = []
