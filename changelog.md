@@ -1,3 +1,22 @@
+# Version 0.2.3
+
+* FIX: allow installation via `python setup.py install`
+* MAINT: drop python2.7 support, add python3.6 support
+* MAINT: improve performance of `add_configuration_space`
+* FIX: a bug in `add_configuration_space` which changed the names of the
+  hyperparameters of a child configuration space
+* MAINT: new helper functions `add_hyperparameters` and `add_conditions`.
+
+# Version 0.2.2
+
+* ADD: two convenience functions to improve working with HPOlib2
+* MAINT: default seed of ConfigurationSpace is now None instead of 1. This makes
+  the package behave like other scientific programming packages.
+* FIX: improve bounds checking for log-space hyperparameters
+* FIX: version information is now in a separate file.
+* MAINT: improve sampling speed by breaking the sampling loop earlier when
+  possible
+
 # Version 0.2.1
 
 * FIX: bug which changed order of hyperparameters when adding new 
