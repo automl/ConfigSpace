@@ -60,12 +60,14 @@ def generate(configuration_space_path):
                 # np.random.shuffle(neighborhood)
                 # for n in neighborhood[:5]:
                 shuffle = 0
-                for n in neighborhood:
-                    if len(n) != 0:
-                        n[0].is_valid_configuration()
+                nh = [n for n in neighborhood]
+                for n in nh:
+                    if len(nh) != 0:
+                        n.is_valid_configuration()
                     shuffle += 1
                     if shuffle == 5:
                         break
+
 
     return run_test
 

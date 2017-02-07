@@ -81,137 +81,157 @@ def get_one_exchange_neighbourhood(configuration: Configuration, seed: int) -> L
     In: Proceedings of the conference on Learning and Intelligent OptimizatioN (LION 5)
     """
     random = np.random.RandomState(seed)
+    hyperparameters_list = list(configuration.keys())
+    hyperparameters_list_length = len(hyperparameters_list)
+    neighbors_to_return = dict()
+
     # neighbourhood = []
-    for i, hp_name in enumerate(configuration):
-        neighbourhood = []
-        number_of_sampled_neighbors = 0
-        array = configuration.get_array()
+    # for i, hp_name in enumerate(configuration):
+    for i in range(hyperparameters_list_length):
+        index = np.random.randint(hyperparameters_list_length)
+        hp_name = hyperparameters_list[index]
+        if hp_name in neighbors_to_return:
+            np.random.shuffle(neighbors_to_return[hp_name])
+            n_ = neighbors_to_return[hp_name].pop()
+            if len(neighbors_to_return[hp_name]) == 0:
+                del neighbors_to_return[hp_name]
+            yield n_
 
-        if not np.isfinite(array[i]):
-            continue
+        else:
+            neighbourhood = []
+            number_of_sampled_neighbors = 0
+            array = configuration.get_array()
 
-        iteration = 0
-        while True:
-            hp = configuration.configuration_space.get_hyperparameter(hp_name)
-            configuration._populate_values()
-            num_neighbors = hp.get_num_neighbors()
+            if not np.isfinite(array[index]):
+                continue
 
-            # Obtain neigbors differently for different possible numbers of
-            # neighbors
-            if num_neighbors == 0:
-                break
-            # No infinite loops
-            elif iteration > 1000:
-                break
-            elif np.isinf(num_neighbors):
-                if number_of_sampled_neighbors >= 4:
+            iteration = 0
+            while True:
+                hp = configuration.configuration_space.get_hyperparameter(hp_name)
+                configuration._populate_values()
+                num_neighbors = hp.get_num_neighbors()
+
+                # Obtain neigbors differently for different possible numbers of
+                # neighbors
+                if num_neighbors == 0:
                     break
-                num_samples_to_go = 4 - number_of_sampled_neighbors
-                neighbors = hp.get_neighbors(array[i], random,
-                                             number=num_samples_to_go)
-            else:
-                if iteration > 0:
+                # No infinite loops
+                elif iteration > 1000:
                     break
-                neighbors = hp.get_neighbors(array[i], random)
+                elif np.isinf(num_neighbors):
+                    if number_of_sampled_neighbors >= 4:
+                        break
+                    num_samples_to_go = 4 - number_of_sampled_neighbors
+                    neighbors = hp.get_neighbors(array[index], random,
+                                                 number=num_samples_to_go)
+                else:
+                    if iteration > 0:
+                        break
+                    neighbors = hp.get_neighbors(array[index], random)
 
-            # Check all newly obtained neigbors
-            for neighbor in neighbors:
-                new_array = array.copy()
-                new_array[i] = neighbor
-                neighbor_value = hp._transform(neighbor)
+                # Check all newly obtained neigbors
+                for neighbor in neighbors:
+                    new_array = array.copy()
+                    new_array[index] = neighbor
+                    neighbor_value = hp._transform(neighbor)
 
-                # Activate hyperparameters if their parent node got activated
-                children = configuration.configuration_space.get_children_of(
-                    hp_name)
-                if len(children) > 0:
-                    to_visit = deque()  #type: deque
-                    to_visit.extendleft(children)
-                    visited = set()  #type: Set[str]
-                    activated_values = dict()  #type: Dict[str, Union[int, float, str]]
-                    while len(to_visit) > 0:
-                        current = to_visit.pop()
-                        if current.name in visited:
-                            continue
-                        visited.add(current.name)
+                    # Activate hyperparameters if their parent node got activated
+                    children = configuration.configuration_space.get_children_of(
+                        hp_name)
+                    if len(children) > 0:
+                        to_visit = deque()  #type: deque
+                        to_visit.extendleft(children)
+                        visited = set()  #type: Set[str]
+                        activated_values = dict()  #type: Dict[str, Union[int, float, str]]
+                        while len(to_visit) > 0:
+                            current = to_visit.pop()
+                            if current.name in visited:
+                                continue
+                            visited.add(current.name)
 
-                        current_idx = configuration.configuration_space. \
-                            get_idx_by_hyperparameter_name(current.name)
-                        current_value = new_array[current_idx]
+                            current_idx = configuration.configuration_space. \
+                                get_idx_by_hyperparameter_name(current.name)
+                            current_value = new_array[current_idx]
 
-                        conditions = configuration.configuration_space.\
-                            _get_parent_conditions_of(current.name)
+                            conditions = configuration.configuration_space.\
+                                _get_parent_conditions_of(current.name)
 
-                        active = True
-                        for condition in conditions:
-                            parent_names = [c.parent.name for c in
-                                            condition.get_descendant_literal_conditions()]
+                            active = True
+                            for condition in conditions:
+                                parent_names = [c.parent.name for c in
+                                                condition.get_descendant_literal_conditions()]
 
-                            parents = {parent_name: configuration[parent_name] for
-                                       parent_name in parent_names}
+                                parents = {parent_name: configuration[parent_name] for
+                                           parent_name in parent_names}
 
-                            # parents come from the original configuration.
-                            # We change at least one parameter. In order set
-                            # other parameters which are conditional on this,
-                            #  we have to activate this
-                            if hp_name in parents:
-                                parents[hp_name] = neighbor_value
-                            # Hyperparameters which are in depth 1 of the
-                            # hyperparameter tree might have children which
-                            # have to be activated as well. Once we set hp in
-                            #  level 1 to active, it's value changes from the
-                            #  value of the original configuration and this
-                            # must be done here
-                            for parent_name in parent_names:
-                                if parent_name in activated_values:
-                                    parents[parent_name] = activated_values[
-                                        parent_name]
+                                # parents come from the original configuration.
+                                # We change at least one parameter. In order set
+                                # other parameters which are conditional on this,
+                                #  we have to activate this
+                                if hp_name in parents:
+                                    parents[hp_name] = neighbor_value
+                                # Hyperparameters which are in depth 1 of the
+                                # hyperparameter tree might have children which
+                                # have to be activated as well. Once we set hp in
+                                #  level 1 to active, it's value changes from the
+                                #  value of the original configuration and this
+                                # must be done here
+                                for parent_name in parent_names:
+                                    if parent_name in activated_values:
+                                        parents[parent_name] = activated_values[
+                                            parent_name]
 
-                            # if one of the parents is None, the hyperparameter cannot be
-                            # active! Else we have to check this
-                            if any([parent_value is None for parent_value in
-                                    parents.values()]):
-                                active = False
-                                break
-                            else:
-                                if not condition.evaluate(parents):
+                                # if one of the parents is None, the hyperparameter cannot be
+                                # active! Else we have to check this
+                                if any([parent_value is None for parent_value in
+                                        parents.values()]):
                                     active = False
                                     break
+                                else:
+                                    if not condition.evaluate(parents):
+                                        active = False
+                                        break
 
-                        if active and (current_value is None or
-                                       not np.isfinite(current_value)):
-                            default = current._inverse_transform(current.default)
-                            new_array[current_idx] = default
-                            children = configuration.configuration_space.get_children_of(
-                                current.name)
-                            if len(children) > 0:
-                                to_visit.extendleft(children)
-                            activated_values[current.name] = current.default
+                            if active and (current_value is None or
+                                           not np.isfinite(current_value)):
+                                default = current._inverse_transform(current.default)
+                                new_array[current_idx] = default
+                                children = configuration.configuration_space.get_children_of(
+                                    current.name)
+                                if len(children) > 0:
+                                    to_visit.extendleft(children)
+                                activated_values[current.name] = current.default
 
-                        if not active and (current_value is not None
-                                           or np.isfinite(current_value)):
-                            new_array[current_idx] = np.NaN
+                            if not active and (current_value is not None
+                                               or np.isfinite(current_value)):
+                                new_array[current_idx] = np.NaN
 
-                try:
-                    # Populating a configuration from an array does not check
-                    #  if it is a legal configuration - check this (slow)
-                    new_configuration = Configuration(
-                        configuration.configuration_space, vector=new_array)
-                    new_configuration.is_valid_configuration()
-                    neighbourhood.append(new_configuration)
-                    number_of_sampled_neighbors += 1
-                except ValueError as e:
-                    pass
+                    try:
+                        # Populating a configuration from an array does not check
+                        #  if it is a legal configuration - check this (slow)
+                        new_configuration = Configuration(
+                            configuration.configuration_space, vector=new_array)
+                        new_configuration.is_valid_configuration()
+                        neighbourhood.append(new_configuration)
+                        number_of_sampled_neighbors += 1
+                    except ValueError as e:
+                        pass
 
-                # Count iterations to not run into an infinite loop when
-                # sampling floats/ints and there is large amount of forbidden
-                #  values; also to find out if we tried to get a neighbor for
-                #  a categorical hyperparameter, and the only possible
-                # neighbor is forbidden together with another active
-                # value/default hyperparameter
-                iteration += 1
-        yield neighbourhood
+                    # Count iterations to not run into an infinite loop when
+                    # sampling floats/ints and there is large amount of forbidden
+                    #  values; also to find out if we tried to get a neighbor for
+                    #  a categorical hyperparameter, and the only possible
+                    # neighbor is forbidden together with another active
+                    # value/default hyperparameter
+                    iteration += 1
+            if len(neighbourhood) > 0:
+                neighbors_to_return[hp_name] = neighbourhood
+                np.random.shuffle(neighbors_to_return[hp_name])
+                n_ = neighbors_to_return[hp_name].pop()
+                if len(neighbors_to_return[hp_name]) == 0:
+                    del neighbors_to_return[hp_name]
+                yield n_
     # return neighbourhood
-
 
 
 def get_random_neighbor(configuration: Configuration, seed: int) -> Configuration:
