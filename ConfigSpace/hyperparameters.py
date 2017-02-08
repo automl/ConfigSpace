@@ -157,14 +157,8 @@ class NumericalHyperparameter(Hyperparameter):
     def has_neighbors(self) -> bool:
         return True
 
-    def get_num_neighbors(self, value=None) -> np.float:
+    def get_num_neighbors(self, value=None) -> float:
         return np.inf
-
-    def allow_inequality_checks(self) -> bool:
-        return True
-
-    def get_order(self, value: Union[int, float]) -> Union[int, float]:
-        return value
 
 
 class FloatHyperparameter(NumericalHyperparameter):
@@ -314,7 +308,7 @@ class UniformFloatHyperparameter(FloatHyperparameter):
             vector = np.log(vector)
         return (vector - self._lower) / (self._upper - self._lower)
 
-    def get_neighbors(self, value: Any, rs: np.random, number: int = 4, transform: bool = False) -> List[float]:
+    def get_neighbors(self, value: Any, rs: np.random.RandomState, number: int = 4, transform: bool = False) -> List[float]:
         neighbors = []  # type: List[float]
         while len(neighbors) < number:
             neighbor = rs.normal(value, 0.2)
@@ -391,7 +385,7 @@ class NormalFloatHyperparameter(FloatHyperparameter):
     def is_legal(self, value: Union[float]) -> bool:
         return isinstance(value, float) or isinstance(value, int)
 
-    def _sample(self, rs: np.random, size: Union[None, int] = None) -> np.ndarray:
+    def _sample(self, rs: np.random.RandomState, size: Union[None, int] = None) -> np.ndarray:
         mu = self.mu
         sigma = self.sigma
         return rs.normal(mu, sigma, size=size)
@@ -773,19 +767,6 @@ class CategoricalHyperparameter(Hyperparameter):
 
         return neighbors
 
-    def get_order(self, value: Union[None, int, str, float]) -> Union[None, int, str, float]:
-        """
-        returns input. this function is used for > and < comparisions
-        """
-        return value
-
-    def allow_inequality_checks(self) -> bool:
-        raise ValueError("Parent hyperparameter in a > or < "
-                         "condition must be a subclass of "
-                         "NumericalHyperparameter or "
-                         "OrdinalHyperparameter, but is "
-                         "<class 'ConfigSpace.hyperparameters.CategoricalHyperparameter'>")
-
 
 class OrdinalHyperparameter(Hyperparameter):
     def __init__(self, name: str, sequence: List[Union[float, int, str]],
@@ -934,6 +915,3 @@ class OrdinalHyperparameter(Hyperparameter):
                     neighbors.append(neighbor_idx2)
 
         return neighbors
-
-    def allow_inequality_checks(self) -> bool:
-        return True
