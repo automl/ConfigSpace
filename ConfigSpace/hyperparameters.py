@@ -160,6 +160,18 @@ class NumericalHyperparameter(Hyperparameter):
     def get_num_neighbors(self, value=None) -> float:
         return np.inf
 
+    def compare(self, value: Union[int, float, str], value2: Union[int, float, str]) -> int:
+        if value < value2:
+            return -1
+        elif value > value2:
+            return 1
+        elif value == value2:
+            return 0
+
+    def allow_inequality_checks(self) -> bool:
+        return True
+
+
 
 class FloatHyperparameter(NumericalHyperparameter):
     def __init__(self, name: str, default: Union[int, float]) -> None:
@@ -694,6 +706,12 @@ class CategoricalHyperparameter(Hyperparameter):
         repr_str.seek(0)
         return repr_str.getvalue()
 
+    def compare(self, value: Union[int, float, str], value2: Union[int, float, str]) -> int:
+        if value == value2:
+            return 0
+        else:
+            return 1
+
     def is_legal(self, value: Union[None, str, float, int]) -> bool:
         if value in self.choices:
             return True
@@ -767,6 +785,13 @@ class CategoricalHyperparameter(Hyperparameter):
 
         return neighbors
 
+    def allow_inequality_checks(self) -> bool:
+        raise ValueError("Parent hyperparameter in a > or < "
+                         "condition must be a subclass of "
+                         "NumericalHyperparameter or "
+                         "OrdinalHyperparameter, but is "
+                         "<class 'ConfigSpace.hyperparameters.CategoricalHyperparameter'>")
+
 
 class OrdinalHyperparameter(Hyperparameter):
     def __init__(self, name: str, sequence: List[Union[float, int, str]],
@@ -802,11 +827,13 @@ class OrdinalHyperparameter(Hyperparameter):
         repr_str.seek(0)
         return repr_str.getvalue()
 
-    def __gt__(self, value: Union[int, float, str]) -> bool:
-        return self.value_dict[value] > self.default
-
-
-
+    def compare(self, value: Union[int, float, str], value2: Union[int, float, str]) -> int:
+        if self.value_dict[value] < self.value_dict[value2]:
+            return -1
+        elif self.value_dict[value] > self.value_dict[value2]:
+            return 1
+        elif self.value_dict[value] == self.value_dict[value2]:
+            return 0
 
     def is_legal(self, value: Union[int, float, str]) -> bool:
         """
@@ -921,3 +948,6 @@ class OrdinalHyperparameter(Hyperparameter):
                     neighbors.append(neighbor_idx2)
 
         return neighbors
+
+    def allow_inequality_checks(self) -> bool:
+        return True
