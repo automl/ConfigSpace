@@ -88,10 +88,10 @@ def get_one_exchange_neighbourhood(configuration: Configuration, seed: int) -> L
     # neighbourhood = []
     # for i, hp_name in enumerate(configuration):
     for i in range(hyperparameters_list_length):
-        index = np.random.randint(hyperparameters_list_length)
+        index = random.randint(hyperparameters_list_length)
         hp_name = hyperparameters_list[index]
         if hp_name in neighbors_to_return:
-            np.random.shuffle(neighbors_to_return[hp_name])
+            random.shuffle(neighbors_to_return[hp_name])
             n_ = neighbors_to_return[hp_name].pop()
             if len(neighbors_to_return[hp_name]) == 0:
                 del neighbors_to_return[hp_name]
