@@ -113,7 +113,7 @@ class AbstractCondition(ConditionComponent):
         return self._evaluate(instantiated_parent_hyperparameter[hp_name])
 
     @abstractmethod
-    def _evaluate(self, instantiated_parent_hyperparameter: Hyperparameter) -> bool:
+    def _evaluate(self, instantiated_parent_hyperparameter: Union[str, int, float]) -> bool:
         pass
 
 
@@ -199,7 +199,7 @@ class EqualsCondition(AbstractCondition):
         if not self.parent.is_legal(value):
             return False
 
-        return self.parent.get_order(value) == self.parent.get_order(self.value)
+        return value == self.value
 
 
 class NotEqualsCondition(AbstractCondition):
@@ -220,13 +220,13 @@ class NotEqualsCondition(AbstractCondition):
         if not self.parent.is_legal(value):
             return False
 
-        return self.parent.get_order(value) != self.parent.get_order(self.value)
+        return value != self.value
 
 
 class LessThanCondition(AbstractCondition):
     def __init__(self, child: Hyperparameter, parent: Hyperparameter, value: Union[str, float, int]) -> None:
         super(LessThanCondition, self).__init__(child, parent)
-        self.parent.allow_inequality_checks()
+        # self.parent.allow_inequality_checks()
 
         if not parent.is_legal(value):
             raise ValueError("Hyperparameter '%s' is "
@@ -243,13 +243,13 @@ class LessThanCondition(AbstractCondition):
         if not self.parent.is_legal(value):
             return False
 
-        return self.parent.get_order(value) < self.parent.get_order(self.value)
+        return value < self.value
 
 
 class GreaterThanCondition(AbstractCondition):
     def __init__(self, child: Hyperparameter, parent: Hyperparameter, value: Union[str, float, int]) -> None:
         super(GreaterThanCondition, self).__init__(child, parent)
-        self.parent.allow_inequality_checks()
+        # self.parent.allow_inequality_checks()
         if not parent.is_legal(value):
             raise ValueError("Hyperparameter '%s' is "
                              "conditional on the illegal value '%s' of "
@@ -265,8 +265,8 @@ class GreaterThanCondition(AbstractCondition):
         if not self.parent.is_legal(value):
             return False
 
-        return self.parent.get_order(value) > self.parent.get_order(self.value)
-
+        # return self.parent.get_order(value) > self.parent.get_order(self.value)
+        return self.parent(value) > self.parent(self.value)
 
 class InCondition(AbstractCondition):
     def __init__(self, child: Hyperparameter, parent: Hyperparameter, values: List[Union[str, float, int]]) -> None:

@@ -802,6 +802,12 @@ class OrdinalHyperparameter(Hyperparameter):
         repr_str.seek(0)
         return repr_str.getvalue()
 
+    def __gt__(self, value: Union[int, float, str]) -> bool:
+        return self.value_dict[value] > self.default
+
+
+
+
     def is_legal(self, value: Union[int, float, str]) -> bool:
         """
         checks if a certain value is represented in the sequence
