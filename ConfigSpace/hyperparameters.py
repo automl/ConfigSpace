@@ -168,7 +168,7 @@ class NumericalHyperparameter(Hyperparameter):
         elif value == value2:
             return 0
 
-    def allow_inequality_checks(self) -> bool:
+    def allow_greater_less_comparison(self) -> bool:
         return True
 
 
@@ -785,7 +785,7 @@ class CategoricalHyperparameter(Hyperparameter):
 
         return neighbors
 
-    def allow_inequality_checks(self) -> bool:
+    def allow_greater_less_comparison(self) -> bool:
         raise ValueError("Parent hyperparameter in a > or < "
                          "condition must be a subclass of "
                          "NumericalHyperparameter or "
@@ -949,5 +949,5 @@ class OrdinalHyperparameter(Hyperparameter):
 
         return neighbors
 
-    def allow_inequality_checks(self) -> bool:
+    def allow_greater_less_comparison(self) -> bool:
         return True

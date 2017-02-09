@@ -234,7 +234,7 @@ class NotEqualsCondition(AbstractCondition):
 class LessThanCondition(AbstractCondition):
     def __init__(self, child: Hyperparameter, parent: Hyperparameter, value: Union[str, float, int]) -> None:
         super(LessThanCondition, self).__init__(child, parent)
-        self.parent.allow_inequality_checks()
+        self.parent.allow_greater_less_comparison()
         if not parent.is_legal(value):
             raise ValueError("Hyperparameter '%s' is "
                              "conditional on the illegal value '%s' of "
@@ -260,7 +260,7 @@ class LessThanCondition(AbstractCondition):
 class GreaterThanCondition(AbstractCondition):
     def __init__(self, child: Hyperparameter, parent: Hyperparameter, value: Union[str, float, int]) -> None:
         super(GreaterThanCondition, self).__init__(child, parent)
-        self.parent.allow_inequality_checks()
+        self.parent.allow_greater_less_comparison()
         if not parent.is_legal(value):
             raise ValueError("Hyperparameter '%s' is "
                              "conditional on the illegal value '%s' of "
