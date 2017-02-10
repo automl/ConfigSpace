@@ -84,7 +84,6 @@ class UtilTest(unittest.TestCase):
         all_neighbors = []
         for i in range(100):
             neighborhood = get_one_exchange_neighbourhood(config, i)
-            self.assertEqual(len(neighborhood), num_neighbors)
             for new_config in neighborhood:
                 self.assertNotEqual(config, new_config)
                 all_neighbors.append(new_config)
@@ -132,7 +131,7 @@ class UtilTest(unittest.TestCase):
     def test_random_neighbor_cat(self):
         hp = CategoricalHyperparameter('a', [5, 6, 7, 8])
         all_neighbors = self._test_get_one_exchange_neighbourhood(hp)
-        all_neighbors = [neighbor['a'] for neighbor in all_neighbors]
+        all_neighbors = [neighbor for neighbor in all_neighbors]
         self.assertEqual(len(all_neighbors), 300) # 3 (neighbors) * 100 (samples)
 
     def test_random_neighborhood_cat(self):

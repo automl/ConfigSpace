@@ -157,7 +157,7 @@ class NumericalHyperparameter(Hyperparameter):
     def has_neighbors(self) -> bool:
         return True
 
-    def get_num_neighbors(self, value= None) -> np.inf:
+    def get_num_neighbors(self, value=None) -> np.inf:
         return np.inf
 
 
