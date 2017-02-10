@@ -62,7 +62,6 @@ def generate(configuration_space_path):
                 shuffle = 0
                 # nh = [n for n in neighborhood]
                 for n in neighborhood:
-                    # if len(nh) != 0:
                     n.is_valid_configuration()
                     shuffle += 1
                     if shuffle == 5:
