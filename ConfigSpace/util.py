@@ -89,7 +89,7 @@ def get_one_exchange_neighbourhood(configuration: Configuration, seed: int) -> L
     # neighbourhood = []
     # for i, hp_name in enumerate(configuration):
     # for i in range(hyperparameters_list_length):
-    while True:
+    while len(hyperparameters_used) != number_of_usable_hyperparameters:
         index = random.randint(hyperparameters_list_length)
         hp_name = hyperparameters_list[index]
         if hp_name in neighbors_to_return:
@@ -98,8 +98,6 @@ def get_one_exchange_neighbourhood(configuration: Configuration, seed: int) -> L
             if len(neighbors_to_return[hp_name]) == 0:
                 del neighbors_to_return[hp_name]
                 hyperparameters_used.append(hp_name)
-                if len(hyperparameters_used) == number_of_usable_hyperparameters:
-                    break
             yield n_
 
         # elif hp_name in hyperparameters_used:
@@ -241,8 +239,6 @@ def get_one_exchange_neighbourhood(configuration: Configuration, seed: int) -> L
                     if len(neighbors_to_return[hp_name]) == 0:
                         del neighbors_to_return[hp_name]
                         hyperparameters_used.append(hp_name)
-                        if len(hyperparameters_used) == number_of_usable_hyperparameters:
-                            break
                     yield n_
     # return neighbourhood
 
