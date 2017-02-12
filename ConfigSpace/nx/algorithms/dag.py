@@ -14,12 +14,14 @@ import ConfigSpace.nx
 __author__ = """\n""".join(['Aric Hagberg <aric.hagberg@gmail.com>',
                             'Dan Schult (dschult@colgate.edu)',
                             'Ben Edwards (bedwards@cs.unm.edu)'])
-__all__ = ['descendants',
-           'ancestors',
-           'topological_sort',
-           'topological_sort_recursive',
-           'is_directed_acyclic_graph',
-           'is_aperiodic']
+__all__ = [
+            'descendants',
+            'ancestors',
+            'topological_sort',
+            'topological_sort_recursive',
+            'is_directed_acyclic_graph',
+            'is_aperiodic'
+           ]
 
 
 def descendants(G, source):
@@ -125,7 +127,7 @@ def topological_sort(G, nbunch=None):
 
     References
     ----------
-    .. [1] Skiena, S. S. The Algorithm Design Manual  (Springer-Verlag, 1998). 
+    .. [1] Skiena, S. S. The Algorithm Design Manual  (Springer-Verlag, 1998).
         http://www.amazon.com/exec/obidos/ASIN/0387948600/ref=ase_thealgorithmrepo/
     """
     if not G.is_directed():
@@ -236,7 +238,7 @@ def topological_sort_recursive(G, nbunch=None):
 def is_aperiodic(G):
     """Return True if G is aperiodic.
 
-    A directed graph is aperiodic if there is no integer k > 1 that 
+    A directed graph is aperiodic if there is no integer k > 1 that
     divides the length of every cycle in the graph.
 
     Parameters

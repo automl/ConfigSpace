@@ -34,7 +34,7 @@ from ConfigSpace.nx import *
 import ConfigSpace.nx.exception
 from ConfigSpace.nx.exception import *
 
-import ConfigSpace.nx.classes
+# import ConfigSpace.nx.classes
 from ConfigSpace.nx.classes import *
 
 import ConfigSpace.nx.algorithms

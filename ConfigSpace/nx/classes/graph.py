@@ -18,7 +18,7 @@ from copy import deepcopy
 
 import ConfigSpace.nx
 from ConfigSpace.nx.exception import NetworkXError
-from ConfigSpace.nx import convert
+# from ConfigSpace.nx import convert
 
 
 __author__ = """\n""".join(['Aric Hagberg (hagberg@lanl.gov)',
@@ -215,8 +215,8 @@ class Graph(object):
         self.node = collections.OrderedDict()  # empty node dict (created before convert)
         self.adj = collections.OrderedDict()  # empty adjacency dict
         # attempt to load graph with data
-        if data is not None:
-            convert.to_networkx_graph(data, create_using=self)
+        # if data is not None:
+        #     convert.to_networkx_graph(data, create_using=self)
         # load graph attributes (must be after convert)
         self.graph.update(attr)
         self.edge = self.adj
