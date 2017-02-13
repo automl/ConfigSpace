@@ -228,7 +228,7 @@ def get_one_exchange_neighbourhood(configuration: Configuration, seed: int) -> L
             if len(neighbourhood) > 0:
                 if hp_name not in hyperparameters_used:
                     neighbors_to_return[hp_name] = neighbourhood
-                    np.random.shuffle(neighbors_to_return[hp_name])
+                    random.shuffle(neighbors_to_return[hp_name])
                     n_ = neighbors_to_return[hp_name].pop()
                     if len(neighbors_to_return[hp_name]) == 0:
                         del neighbors_to_return[hp_name]
