@@ -1,3 +1,8 @@
+# Version 0.3
+
+* MAINT: improve speed of `get_one_exchange_neighborhood`. This changes the
+  return value of the function from a list to a generator.
+
 # Version 0.2.3
 
 * FIX: allow installation via `python setup.py install`
