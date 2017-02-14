@@ -1,3 +1,7 @@
+# Version 0.3.1
+
+* MAINT: fix endless loop in `get_one_exchange_neighborhood`.
+
 # Version 0.3
 
 * MAINT: improve speed of `get_one_exchange_neighborhood`. This changes the
