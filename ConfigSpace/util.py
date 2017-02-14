@@ -225,7 +225,9 @@ def get_one_exchange_neighbourhood(configuration: Configuration, seed: int) -> L
                     # neighbor is forbidden together with another active
                     # value/default hyperparameter
                     iteration += 1
-            if len(neighbourhood) > 0:
+            if len(neighbourhood) == 0:
+                hyperparameters_used.append(hp_name)
+            else:
                 if hp_name not in hyperparameters_used:
                     neighbors_to_return[hp_name] = neighbourhood
                     random.shuffle(neighbors_to_return[hp_name])
