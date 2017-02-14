@@ -117,7 +117,7 @@ def get_one_exchange_neighbourhood(configuration: Configuration, seed: int) -> L
                 if num_neighbors == 0:
                     break
                 # No infinite loops
-                elif iteration > 1000:
+                elif iteration > 100:
                     break
                 elif np.isinf(num_neighbors):
                     if number_of_sampled_neighbors >= 4:
