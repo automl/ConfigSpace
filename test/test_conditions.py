@@ -33,9 +33,10 @@ from ConfigSpace.hyperparameters import Constant, \
     UniformFloatHyperparameter, NormalFloatHyperparameter, \
     UniformIntegerHyperparameter, NormalIntegerHyperparameter, \
     CategoricalHyperparameter, OrdinalHyperparameter
-from ConfigSpace.conditions import EqualsCondition, NotEqualsCondition,\
-    InCondition, AndConjunction, OrConjunction, LessThanCondition,\
+from ConfigSpace.conditions import EqualsCondition, NotEqualsCondition, \
+    InCondition, AndConjunction, OrConjunction, LessThanCondition, \
     GreaterThanCondition
+
 
 class TestConditions(unittest.TestCase):
     # TODO: return only copies of the objects!
@@ -47,15 +48,15 @@ class TestConditions(unittest.TestCase):
 
         # Test invalid conditions:
         self.assertRaisesRegexp(ValueError, "Argument 'parent' is not an "
-                                "instance of HPOlibConfigSpace.hyperparameter."
-                                "Hyperparameter.", EqualsCondition, hp2,
+                                            "instance of HPOlibConfigSpace.hyperparameter."
+                                            "Hyperparameter.", EqualsCondition, hp2,
                                 "parent", 0)
         self.assertRaisesRegexp(ValueError, "Argument 'child' is not an "
-                                "instance of HPOlibConfigSpace.hyperparameter."
-                                "Hyperparameter.", EqualsCondition, "child",
+                                            "instance of HPOlibConfigSpace.hyperparameter."
+                                            "Hyperparameter.", EqualsCondition, "child",
                                 hp1, 0)
         self.assertRaisesRegexp(ValueError, "The child and parent hyperparameter "
-                                "must be different hyperparameters.",
+                                            "must be different hyperparameters.",
                                 EqualsCondition, hp1, hp1, 0)
 
         self.assertEqual(cond, cond_)
@@ -71,12 +72,12 @@ class TestConditions(unittest.TestCase):
         epsilon = UniformFloatHyperparameter("epsilon", 1e-5, 1e-1,
                                              default=1e-4, log=True)
         loss = CategoricalHyperparameter("loss",
-            ["hinge", "log", "modified_huber", "squared_hinge", "perceptron"],
-            default="hinge")
+                                         ["hinge", "log", "modified_huber", "squared_hinge", "perceptron"],
+                                         default="hinge")
         self.assertRaisesRegexp(ValueError, "Hyperparameter 'epsilon' is "
-                                "conditional on the illegal value 'huber' of "
-                                "its parent hyperparameter 'loss'",
-            EqualsCondition, epsilon, loss, "huber")
+                                            "conditional on the illegal value 'huber' of "
+                                            "its parent hyperparameter 'loss'",
+                                EqualsCondition, epsilon, loss, "huber")
 
     def test_not_equals_condition(self):
         hp1 = CategoricalHyperparameter("parent", [0, 1])
@@ -136,18 +137,28 @@ class TestConditions(unittest.TestCase):
             self.assertFalse(lt.evaluate({hp.name: None}))
 
         hp4 = CategoricalHyperparameter("cat", list(range(6)))
-        self.assertRaisesRegexp(ValueError, "Parent hyperparameter in a > "
-                                           "condition must be a subclass of "
-                                           "NumericalHyperparameter or "
-                                           "OrdinalHyperparameter, but is "
-                                           "<class 'ConfigSpace.hyperparameters.CategoricalHyperparameter'>",
-                               GreaterThanCondition, child, hp4, 1)
-        self.assertRaisesRegexp(ValueError, "Parent hyperparameter in a < "
-                                           "condition must be a subclass of "
-                                           "NumericalHyperparameter or "
-                                           "OrdinalHyperparameter, but is "
-                                           "<class 'ConfigSpace.hyperparameters.CategoricalHyperparameter'>",
-                               LessThanCondition, child, hp4, 1)
+        self.assertRaisesRegexp(ValueError, "Parent hyperparameter in a > or < "
+                                            "condition must be a subclass of "
+                                            "NumericalHyperparameter or "
+                                            "OrdinalHyperparameter, but is "
+                                            "<class 'ConfigSpace.hyperparameters.CategoricalHyperparameter'>",
+                                GreaterThanCondition, child, hp4, 1)
+        self.assertRaisesRegexp(ValueError, "Parent hyperparameter in a > or < "
+                                            "condition must be a subclass of "
+                                            "NumericalHyperparameter or "
+                                            "OrdinalHyperparameter, but is "
+                                            "<class 'ConfigSpace.hyperparameters.CategoricalHyperparameter'>",
+                                LessThanCondition, child, hp4, 1)
+
+        hp5 = OrdinalHyperparameter("ord", ['cold', 'luke warm', 'warm', 'hot'])
+
+        gt = GreaterThanCondition(child, hp5, 'warm')
+        self.assertTrue(gt.evaluate({hp5.name: 'hot'}))
+        self.assertFalse(gt.evaluate({hp5.name: 'cold'}))
+
+        lt = LessThanCondition(child, hp5, 'warm')
+        self.assertTrue(lt.evaluate({hp5.name: 'luke warm'}))
+        self.assertFalse(lt.evaluate({hp5.name: 'warm'}))
 
     def test_in_condition_illegal_value(self):
         epsilon = UniformFloatHyperparameter("epsilon", 1e-5, 1e-1,
@@ -190,7 +201,6 @@ class TestConditions(unittest.TestCase):
         # Test __eq__
         self.assertNotEqual(andconj1, andconj3)
         self.assertNotEqual(andconj1, "String")
-
 
     def test_or_conjunction(self):
         self.assertRaises(TypeError, AndConjunction, "String1", "String2")
@@ -285,4 +295,3 @@ class TestConditions(unittest.TestCase):
         # All conjunctions inherit get_parents from abstractconjunction
         conjunction = AndConjunction(condition, condition2)
         self.assertEqual([_1_S_countercond, _1_0_restarts], conjunction.get_parents())
-        

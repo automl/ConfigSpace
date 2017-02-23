@@ -141,7 +141,7 @@ class Constant(Hyperparameter):
     def get_num_neighbors(self, value=None) -> int:
         return 0
 
-    def get_neighbors(self, value: Any, rs: Any, number: int, transform: bool = False) -> List:
+    def get_neighbors(self, value: Any, rs: np.random.RandomState, number: int, transform: bool = False) -> List:
         return []
 
 
@@ -157,8 +157,21 @@ class NumericalHyperparameter(Hyperparameter):
     def has_neighbors(self) -> bool:
         return True
 
-    def get_num_neighbors(self, value=None) -> np.inf:
+    def get_num_neighbors(self, value=None) -> float:
+
         return np.inf
+
+    def compare(self, value: Union[int, float, str], value2: Union[int, float, str]) -> int:
+        if value < value2:
+            return -1
+        elif value > value2:
+            return 1
+        elif value == value2:
+            return 0
+
+    def allow_greater_less_comparison(self) -> bool:
+        return True
+
 
 
 class FloatHyperparameter(NumericalHyperparameter):
@@ -308,7 +321,7 @@ class UniformFloatHyperparameter(FloatHyperparameter):
             vector = np.log(vector)
         return (vector - self._lower) / (self._upper - self._lower)
 
-    def get_neighbors(self, value: Any, rs: np.random, number: int = 4, transform: bool = False) -> List[float]:
+    def get_neighbors(self, value: Any, rs: np.random.RandomState, number: int = 4, transform: bool = False) -> List[float]:
         neighbors = []  # type: List[float]
         while len(neighbors) < number:
             neighbor = rs.normal(value, 0.2)
@@ -385,7 +398,7 @@ class NormalFloatHyperparameter(FloatHyperparameter):
     def is_legal(self, value: Union[float]) -> bool:
         return isinstance(value, float) or isinstance(value, int)
 
-    def _sample(self, rs: np.random, size: Union[None, int] = None) -> np.ndarray:
+    def _sample(self, rs: np.random.RandomState, size: Union[None, int] = None) -> np.ndarray:
         mu = self.mu
         sigma = self.sigma
         return rs.normal(mu, sigma, size=size)
@@ -694,6 +707,12 @@ class CategoricalHyperparameter(Hyperparameter):
         repr_str.seek(0)
         return repr_str.getvalue()
 
+    def compare(self, value: Union[int, float, str], value2: Union[int, float, str]) -> int:
+        if value == value2:
+            return 0
+        else:
+            return 1
+
     def is_legal(self, value: Union[None, str, float, int]) -> bool:
         if value in self.choices:
             return True
@@ -767,6 +786,13 @@ class CategoricalHyperparameter(Hyperparameter):
 
         return neighbors
 
+    def allow_greater_less_comparison(self) -> bool:
+        raise ValueError("Parent hyperparameter in a > or < "
+                         "condition must be a subclass of "
+                         "NumericalHyperparameter or "
+                         "OrdinalHyperparameter, but is "
+                         "<class 'ConfigSpace.hyperparameters.CategoricalHyperparameter'>")
+
 
 class OrdinalHyperparameter(Hyperparameter):
     def __init__(self, name: str, sequence: List[Union[float, int, str]],
@@ -801,6 +827,14 @@ class OrdinalHyperparameter(Hyperparameter):
         repr_str.write(str(self.default))
         repr_str.seek(0)
         return repr_str.getvalue()
+
+    def compare(self, value: Union[int, float, str], value2: Union[int, float, str]) -> int:
+        if self.value_dict[value] < self.value_dict[value2]:
+            return -1
+        elif self.value_dict[value] > self.value_dict[value2]:
+            return 1
+        elif self.value_dict[value] == self.value_dict[value2]:
+            return 0
 
     def is_legal(self, value: Union[int, float, str]) -> bool:
         """
@@ -915,3 +949,6 @@ class OrdinalHyperparameter(Hyperparameter):
                     neighbors.append(neighbor_idx2)
 
         return neighbors
+
+    def allow_greater_less_comparison(self) -> bool:
+        return True
