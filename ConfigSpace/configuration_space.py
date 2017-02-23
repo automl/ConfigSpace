@@ -696,6 +696,9 @@ class ConfigurationSpace(object):
         accepted_configurations = []  # type: List['Configuration']
         num_hyperparameters = len(self._hyperparameters)
 
+        unconditional_hyperparameters = self.get_all_unconditional_hyperparameters()
+        conditional_hyperparameters = self.get_all_conditional_hyperparameters()
+
         while len(accepted_configurations) < size:
             if missing != size:
                 missing = int(1.1 * missing)
@@ -709,9 +712,9 @@ class ConfigurationSpace(object):
             for i in range(missing):
                 inactive = set()  # type: Set['str']
                 visited = set()
-                visited.update(self.get_all_unconditional_hyperparameters())
+                visited.update(unconditional_hyperparameters)
                 to_visit = deque()  # type: deque[str]
-                to_visit.extendleft(self.get_all_conditional_hyperparameters())
+                to_visit.extendleft(conditional_hyperparameters)
                 infiniteloopcounter = 0
                 while len(to_visit) > 0:
                     infiniteloopcounter += 1
@@ -721,6 +724,7 @@ class ConfigurationSpace(object):
                     hp_name = to_visit.pop()
                     conditions = self._get_parent_conditions_of(hp_name)
                     add = True
+                    continue_while = False
                     for condition in conditions:
                         parent_names = [c.parent.name for c in
                                         condition.get_descendant_literal_conditions()]
@@ -730,6 +734,7 @@ class ConfigurationSpace(object):
                                    for parent_name in parent_names]) != \
                                 len(parent_names):
                             to_visit.appendleft(hp_name)
+                            continue_while = True
                             break
 
                         parents = {parent_name: self._hyperparameters[parent_name]._transform(vector[i][
@@ -745,6 +750,9 @@ class ConfigurationSpace(object):
                         if not condition.evaluate(parents):
                             add = False
                             break
+
+                    if continue_while:
+                        continue
 
                     if not add:
                         hyperparameter_idx = self._hyperparameter_idx[hp_name]
