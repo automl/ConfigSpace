@@ -57,10 +57,11 @@ def generate(configuration_space_path):
                 c.is_valid_configuration()
                 neighborhood = ConfigSpace.util.get_one_exchange_neighbourhood(
                     c, seed=i)
-                np.random.shuffle(neighborhood)
-                for n in neighborhood[:5]:
-                    n.is_valid_configuration()
 
+                for shuffle, n in enumerate(neighborhood):
+                    n.is_valid_configuration()
+                    if shuffle == 10:
+                        break
     return run_test
 
 

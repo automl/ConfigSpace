@@ -43,7 +43,7 @@ class Hyperparameter(object, metaclass=ABCMeta):
             raise TypeError(
                 "The name of a hyperparameter must be an instance of"
                 " %s, but is %s." % (str(str), type(name)))
-        self.name = name
+        self.name = name # type : str
 
     # http://stackoverflow.com/a/25176504/4636294
     def __eq__(self, other: Any) -> bool:
@@ -158,6 +158,7 @@ class NumericalHyperparameter(Hyperparameter):
         return True
 
     def get_num_neighbors(self, value=None) -> float:
+
         return np.inf
 
     def compare(self, value: Union[int, float, str], value2: Union[int, float, str]) -> int:
