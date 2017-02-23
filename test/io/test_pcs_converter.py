@@ -26,9 +26,10 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+from io import StringIO
+import os
+import tempfile
 import unittest
-
-import six
 
 from ConfigSpace.configuration_space import ConfigurationSpace
 import ConfigSpace.io.pcs as pcs
@@ -106,7 +107,7 @@ class TestPCSConverter(unittest.TestCase):
     
     '''
     def test_read_configuration_space_easy(self):
-        expected = six.StringIO()
+        expected = StringIO()
         expected.write('# This is a \n')
         expected.write('   # This is a comment with a leading whitespace ### ffds \n')
         expected.write('\n')
@@ -220,7 +221,7 @@ class TestPCSConverter(unittest.TestCase):
     if both deliver the same results
     """
     def test_read_new_configuration_space_easy(self):
-        expected = six.StringIO()
+        expected = StringIO()
         expected.write('# This is a \n')
         expected.write('   # This is a comment with a leading whitespace ### ffds \n')
         expected.write('\n')
@@ -413,3 +414,27 @@ class TestPCSConverter(unittest.TestCase):
         x5 | x6 > luke-warm"""
 
         pcs_new.read(s.split('\n'))
+
+    def test_read_write(self):
+        # Some smoke tests whether reading, writing, reading alters makes the
+        #  configspace incomparable
+        this_file = os.path.abspath(__file__)
+        this_directory = os.path.dirname(this_file)
+        configuration_space_path = os.path.join(this_directory,
+                                                "..", "test_searchspaces")
+        configuration_space_path = os.path.abspath(configuration_space_path)
+        configuration_space_path = os.path.join(configuration_space_path,
+                                                "spear-params-mixed.pcs")
+        with open(configuration_space_path) as fh:
+            cs = pcs.read(fh)
+
+        tf = tempfile.NamedTemporaryFile()
+        name = tf.name
+        tf.close()
+        with open(name, 'w') as fh:
+            pcs_string = pcs.write(cs)
+            fh.write(pcs_string)
+        with open(name, 'r') as fh:
+            pcs_new = pcs.read(fh)
+        assert (pcs_new, cs)
+

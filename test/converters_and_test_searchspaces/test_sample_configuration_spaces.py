@@ -29,8 +29,6 @@
 import os
 import unittest
 
-import numpy as np
-
 import ConfigSpace
 import ConfigSpace.util
 import ConfigSpace.io.pcs as pcs_parser

@@ -65,7 +65,7 @@ class ConfigurationSpace(object):
 
         # changing this to a normal dict will break sampling because there is
         #  no guarantee that the parent of a condition was evaluated before
-        self._conditionsals = []   # type: List[str]
+        self._conditionals = set()   # type: Set[str]
         self.forbidden_clauses = []  # type: List['AbstractForbiddenComponent']
         self.random = np.random.RandomState(seed)
 
@@ -220,7 +220,7 @@ class ConfigurationSpace(object):
 
         self._children[parent_node][child_node] = condition
         self._parents[child_node][parent_node] = condition
-        self._conditionsals.append(child_node)
+        self._conditionals.add(child_node)
 
     def _check_condition(self, child_node: str, condition: ConditionComponent) -> None:
         for other_condition in self._get_parent_conditions_of(child_node):
@@ -290,19 +290,16 @@ class ConfigurationSpace(object):
 
         nodes = []
         # Sort and add to list
-        for level in by_level:
-            nodes.extend(by_level[level])
+        for level in sorted(by_level):
+            sorted_by_level = by_level[level]
+            sorted_by_level.sort()
+            nodes.extend(sorted_by_level)
 
         # Resort the OrderedDict
+        new_order = OrderedDict()
         for node in nodes:
-            hp = self._hyperparameters[node]
-            del self._hyperparameters[node]
-            self._hyperparameters[node] = hp
-
-            # hp = self._conditionsals.get(node)
-            # if hp is not None:
-            #     del self._conditionsals[node]
-            #     self._conditionsals[node] = hp
+            new_order[node] = self._hyperparameters[node]
+        self._hyperparameters = new_order
 
         # Update to reflect sorting
         for i, hp in enumerate(self._hyperparameters):
@@ -542,7 +539,7 @@ class ConfigurationSpace(object):
         return hyperparameters
 
     def get_all_conditional_hyperparameters(self) -> List[str]:
-        return self._conditionsals
+        return self._conditionals
 
     def get_default_configuration(self) -> 'Configuration':
         return self._check_default_configuration()
