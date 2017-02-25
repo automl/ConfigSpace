@@ -28,7 +28,9 @@ setup(
     license='BSD 3-clause',
     platforms=['Linux'],
     author=', '.join(["Matthias Feurer", "Katharina Eggensperger",
-                      "Jost Tobias Springenberg", "Marius Lindauer"]),
+                      "Syed Mohsin Ali", "Christina Hernandez Wunsch",
+                      "Julien-Charles Levesque", "Jost Tobias Springenberg",
+                      "Marius Lindauer"]),
     author_email='feurerm@informatik.uni-freiburg.de',
     test_suite="nose.collector",
     install_requires=['argparse',
@@ -41,6 +43,7 @@ setup(
     classifiers=[
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
         'Development Status :: 4 - Beta',
         'Natural Language :: English',
         'Intended Audience :: Developers',

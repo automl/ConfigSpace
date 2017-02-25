@@ -29,8 +29,6 @@
 import os
 import unittest
 
-import numpy as np
-
 import ConfigSpace
 import ConfigSpace.util
 import ConfigSpace.io.pcs as pcs_parser
@@ -60,7 +58,7 @@ def generate(configuration_space_path):
 
                 for shuffle, n in enumerate(neighborhood):
                     n.is_valid_configuration()
-                    if shuffle == 5:
+                    if shuffle == 10:
                         break
     return run_test
 

@@ -117,7 +117,7 @@ def get_one_exchange_neighbourhood(configuration: Configuration, seed: int) -> L
                 if num_neighbors == 0:
                     break
                 # No infinite loops
-                elif iteration > 1000:
+                elif iteration > 100:
                     break
                 elif np.isinf(num_neighbors):
                     if number_of_sampled_neighbors >= 4:
@@ -225,10 +225,12 @@ def get_one_exchange_neighbourhood(configuration: Configuration, seed: int) -> L
                     # neighbor is forbidden together with another active
                     # value/default hyperparameter
                     iteration += 1
-            if len(neighbourhood) > 0:
+            if len(neighbourhood) == 0:
+                hyperparameters_used.append(hp_name)
+            else:
                 if hp_name not in hyperparameters_used:
                     neighbors_to_return[hp_name] = neighbourhood
-                    np.random.shuffle(neighbors_to_return[hp_name])
+                    random.shuffle(neighbors_to_return[hp_name])
                     n_ = neighbors_to_return[hp_name].pop()
                     if len(neighbors_to_return[hp_name]) == 0:
                         del neighbors_to_return[hp_name]

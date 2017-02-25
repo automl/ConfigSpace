@@ -259,7 +259,7 @@ class TestConfigurationSpace(unittest.TestCase):
             # More top-level hyperparameters
             hp7 = CategoricalHyperparameter("input7", [0, 1])
             # Somewhat shuffled
-            hyperparameters = [hp7, hp5, hp1, hp4, hp3, hp6, hp2]
+            hyperparameters = [hp1, hp2, hp3, hp4, hp5, hp6, hp7]
 
             for hp in hyperparameters:
                 cs.add_hyperparameter(hp)
@@ -278,21 +278,24 @@ class TestConfigurationSpace(unittest.TestCase):
 
             cs.add_condition(cond4)
             hps = cs.get_hyperparameters()
-            for hp, idx in zip(hyperparameters, [0, 6, 1, 2, 3, 4, 5]):
+            # AND is moved to the front because of alphabetical sorting
+            for hp, idx in zip(hyperparameters, [1, 2, 3, 4, 6, 0, 5]):
                 self.assertEqual(hps.index(hp), idx)
                 self.assertEqual(cs._hyperparameter_idx[hp.name], idx)
                 self.assertEqual(cs._idx_to_hyperparameter[idx], hp.name)
 
             cs.add_condition(cond5)
             hps = cs.get_hyperparameters()
-            for hp, idx in zip(hyperparameters, [0, 5, 1, 6, 2, 3, 4]):
+            for hp, idx in zip(hyperparameters, [1, 2, 3, 6, 5, 0, 4]):
                 self.assertEqual(hps.index(hp), idx)
                 self.assertEqual(cs._hyperparameter_idx[hp.name], idx)
                 self.assertEqual(cs._idx_to_hyperparameter[idx], hp.name)
 
             cs.add_condition(conj3)
             hps = cs.get_hyperparameters()
-            for hp, idx in zip(hyperparameters, [0, 4, 1, 5, 2, 6, 3]):
+            print(hps, hyperparameters)
+            for hp, idx in zip(hyperparameters, [0, 1, 2, 5, 4, 6, 3]):
+                print(hp, idx)
                 self.assertEqual(hps.index(hp), idx)
                 self.assertEqual(cs._hyperparameter_idx[hp.name], idx)
             self.assertEqual(cs._idx_to_hyperparameter[idx], hp.name)
