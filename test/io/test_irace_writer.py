@@ -1,0 +1,153 @@
+# Copyright (c) 2014-2017, ConfigSpace developers
+# Matthias Feurer
+# Katharina Eggensperger
+# Mohsin Ali
+# and others (see commit history).
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#     * Redistributions of source code must retain the above copyright
+#       notice, this list of conditions and the following disclaimer.
+#     * Redistributions in binary form must reproduce the above copyright
+#       notice, this list of conditions and the following disclaimer in the
+#       documentation and/or other materials provided with the distribution.
+#     * Neither the name of the <organization> nor the
+#       names of its contributors may be used to endorse or promote products
+#       derived from this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL <COPYRIGHT HOLDER> BE LIABLE FOR ANY
+# DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+# ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+from io import StringIO
+import os
+import tempfile
+import unittest
+
+from ConfigSpace.configuration_space import ConfigurationSpace
+import ConfigSpace.io.irace as irace
+
+from ConfigSpace.hyperparameters import CategoricalHyperparameter, \
+    UniformIntegerHyperparameter, UniformFloatHyperparameter, OrdinalHyperparameter
+from ConfigSpace.conditions import EqualsCondition, InCondition, \
+    AndConjunction, OrConjunction, NotEqualsCondition, \
+    LessThanCondition, GreaterThanCondition
+
+# Copyright (c) 2014-2016, ConfigSpace developers
+# Matthias Feurer
+# Katharina Eggensperger
+# and others (see commit history).
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#     * Redistributions of source code must retain the above copyright
+#       notice, this list of conditions and the following disclaimer.
+#     * Redistributions in binary form must reproduce the above copyright
+#       notice, this list of conditions and the following disclaimer in the
+#       documentation and/or other materials provided with the distribution.
+#     * Neither the name of the <organization> nor the
+#       names of its contributors may be used to endorse or promote products
+#       derived from this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL <COPYRIGHT HOLDER> BE LIABLE FOR ANY
+# DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+# ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+class TestIraceWriter(unittest.TestCase):
+    '''
+    Test IRACE writer
+    '''
+
+    def test_write_illegal_argument(self):
+        sp = {"a": int_a}
+        self.assertRaisesRegexp(TypeError, "irace.write expects an "
+                                "instance of "
+                                "<class "
+                                "'ConfigSpace.configuration_"
+                                "space.ConfigurationSpace'>, you provided "
+                                "'<(type|class) 'dict'>'", irace.write, sp)
+
+    def test_write_int(self):
+        expected = "int_a '--int_a ' i (-1, 6)\n"
+        cs = ConfigurationSpace()
+        cs.add_hyperparameter(int_a)
+        value = irace.write(cs)
+        self.assertEqual(expected, value)
+
+    def test_write_log_int(self):
+        #todo: discuss how log params should be handled in irace writer (irace doesnt support log params)
+        # expected = "int_log_a [1, 6] [2]il"
+        expected = "int_log_a '--int_log_a ' i (1, 6)\n"
+        cs = ConfigurationSpace()
+        cs.add_hyperparameter(int_log_a)
+        value = irace.write(cs)
+        self.assertEqual(1, 0) # purposly fail the test
+        self.assertEqual(expected, value)
+
+    def test_write_q_int(self):
+        #todo: discuss if this needs to be in irace tests. q?
+        expected = "int_a '--int_a ' i (16, 1024)\n"
+        cs = ConfigurationSpace()
+        cs.add_hyperparameter(
+            UniformIntegerHyperparameter("int_a", 16, 1024, q=16))
+        value = irace.write(cs)
+        self.assertEqual(1, 0) # purposly fail the test
+        self.assertEqual(expected, value)
+
+
+    def test_write_float(self):
+        expected = "float_a '--float_a ' r (16.0, 1024.0) \n"
+        cs = ConfigurationSpace()
+        cs.add_hyperparameter(
+            UniformFloatHyperparameter("float_a", 16, 1024))
+        value = irace.write(cs)
+        self.assertEqual(expected, value)
+
+
+    def test_write_categorical(self):
+        expected = "cat_a '--cat_a ' c {a,b,c}\n"
+        cs = ConfigurationSpace()
+        cs.add_hyperparameter(
+            CategoricalHyperparameter("cat_a", ["a", "b", "c"]))
+        value = irace.write(cs)
+        self.assertEqual(expected, value)
+
+
+    def test_write_ordinal(self):
+        expected = "ord_a '--ord_a ' o {a,b,3}\n"
+        cs = ConfigurationSpace()
+        cs.add_hyperparameter(
+            OrdinalHyperparameter("ord_a", ["a", "b", 3]))
+        value = irace.write(cs)
+        self.assertEqual(expected, value)
+
+    def test_write_conditionals(self):
+        expected = "temp '--temp ' r (0.500000, 1.000000) |  ls  %in%  c('sa')  \n"
+
+        temp = UniformFloatHyperparameter("temp", 0.5, 1)
+        ls = CategoricalHyperparameter("ls", ["sa", "ca", "ny"], "sa")
+
+        cs = ConfigurationSpace()
+        cs.add_hyperparameter(temp)
+        cs.add_hyperparameter(ls)
+        c1 = EqualsCondition(temp, ls, 'sa')
+        cs.add_condition(c1)
+        value = irace.write(cs)
+        self.assertEqual(expected, value)

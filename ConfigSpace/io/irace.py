@@ -27,7 +27,7 @@ from ConfigSpace.configuration_space import ConfigurationSpace
 from ConfigSpace.hyperparameters import CategoricalHyperparameter, \
     UniformIntegerHyperparameter, UniformFloatHyperparameter, \
     NumericalHyperparameter, Constant, IntegerHyperparameter, \
-    NormalIntegerHyperparameter, NormalFloatHyperparameter
+    NormalIntegerHyperparameter, NormalFloatHyperparameter, OrdinalHyperparameter
 from ConfigSpace.conditions import EqualsCondition, NotEqualsCondition, \
     InCondition, AndConjunction, OrConjunction, ConditionComponent
 from ConfigSpace.forbidden import ForbiddenEqualsClause, \
@@ -41,10 +41,14 @@ pp_param_name = pyparsing.Word(pyparsing.alphanums + "_" + "-" + "@" + "." + ":"
                                "$" + "%" + "&" + "*" + "+" + "<" + ">")
 
 def build_categorical(param):
-    cat_template = "%s '--%s ' c (%s)"
+    cat_template = "%s '--%s ' c {%s}"
     return cat_template % (param.name, param.name,
                            ",".join([str(value) for value in param.choices]))
 
+def build_ordinal(param):
+    cat_template = "%s '--%s ' o {%s}"
+    return cat_template % (param.name, param.name,
+                           ",".join([str(value) for value in param.sequence]))
 
 def build_constant(param):
     constant_template = "%s '--%s ' c (%s)"
@@ -56,7 +60,7 @@ def build_continuous(param):
                        NormalFloatHyperparameter):
         param = param.to_uniform()
 
-    float_template = "%s '--%s ' r (%s, %s) "
+    float_template = "%s '--%s ' r (%f, %f) "
     int_template = "%s '--%s ' i (%d, %d)"
     # if param.log:
     #     float_template += "l"
@@ -73,8 +77,8 @@ def build_continuous(param):
         return int_template % (param.name, param.name, param.lower,
                                param.upper)
     else:
-        return float_template % (param.name, param.name, str(param.lower),
-                                 str(param.upper))
+        return float_template % (param.name, param.name, float(param.lower),
+                                 float(param.upper))
 
 
 def build_condition(condition):
@@ -90,6 +94,9 @@ def build_condition(condition):
     if isinstance(condition, NotEqualsCondition):
         raise NotImplementedError("IRACE cannot handle != conditions: %s" %
                                   (condition))
+    if isinstance(condition, AndConjunction):
+        raise NotImplementedError("IRACE cannot handle OR conditions: %s" %
+                                  (condition))
 
     # Findout type of parent
     pType = "i"
@@ -97,18 +104,23 @@ def build_condition(condition):
         pType = 'c'
     if condition.parent.__class__.__name__ == 'UniformFloatHyperparameter':
         pType = 'r'
+    if condition.parent.__class__.__name__ == 'OrdinalHyperparameter':
+        pType = 'o'
 
     # Now handle the conditions SMAC can handle
-    condition_template = "%s | %s %%in%% %s(%s) "
-    if isinstance(condition, AndConjunction):
-        raise NotImplementedError("This is not yet implemented!")
-    elif isinstance(condition, InCondition):
-        return condition_template % (condition.child.name,
+    numeric_condition_template = "%s | %s==%s(%s) "
+    nonnumeric_condition_template = "%s | %s %%in%% %s('%s') "
+
+
+    # if isinstance(condition, InCondition):
+    if pType == "i" or pType == "f":
+        return numeric_condition_template % (condition.child.name,
                                      condition.parent.name,
                                      pType,
-                                     ", ".join(condition.values))
-    elif isinstance(condition, EqualsCondition):
-        return condition_template % (condition.child.name,
+                                     condition.value)
+    # elif isinstance(condition, EqualsCondition):
+    elif pType == "o" or pType == "c":
+        return nonnumeric_condition_template % (condition.child.name,
                                      condition.parent.name,
                                      pType,
                                      condition.value)
@@ -140,7 +152,7 @@ def build_forbidden(clause):
 
 def write(configuration_space):
     if not isinstance(configuration_space, ConfigurationSpace):
-        raise TypeError("pcs_parser.write expects an instance of %s, "
+        raise TypeError("irace.write expects an instance of %s, "
                         "you provided '%s'" % (ConfigurationSpace,
                                                type(configuration_space)))
 
@@ -161,12 +173,19 @@ def write(configuration_space):
         if isinstance(hyperparameter, NumericalHyperparameter):
             # print "building countinuous param"
             param_lines.write(build_continuous(hyperparameter))
+
         elif isinstance(hyperparameter, CategoricalHyperparameter):
             # print "building categorical param"
             param_lines.write(build_categorical(hyperparameter))
+
         elif isinstance(hyperparameter, Constant):
             # print "building constant param"
             param_lines.write(build_constant(hyperparameter))
+
+        elif isinstance(hyperparameter, OrdinalHyperparameter):
+            # print "building constant param"
+            param_lines.write(build_ordinal(hyperparameter))
+
         else:
             raise TypeError("Unknown type: %s (%s)" % (
                 type(hyperparameter), hyperparameter))
@@ -210,9 +229,10 @@ def write(configuration_space):
         param_lines.write("\n\n")
         for line in condition_lines:
             param_lines.write(line)
-            t = filter(lambda x: line.split(" ")[0] in x, splitted_params)[0]
-            index = splitted_params.index(t)
+            t = filter(lambda x: line.split(" ")[0] in x, splitted_params)
+            index = splitted_params.index(next(t))
             splitted_params[index] = splitted_params[index] + "  ".join(line.split(" ")[1:])
+
 
     for i, j in enumerate(splitted_params):
         if j[-1] != "\n":
