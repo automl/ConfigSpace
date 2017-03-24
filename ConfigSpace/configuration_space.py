@@ -884,6 +884,10 @@ class Configuration(object):
         if value is not None and \
                 isinstance(hyperparameter, FloatHyperparameter):
             value = float(repr(value))
+        # TODO make everything faster, then it'll be possible to init all values
+        # at the same time and use an OrderedDict instead of only a dict here to
+        # support iterating that dict in the same order as the actual order of
+        # hyperparameters
         self._values[item] = value
         return self._values[item]
 
