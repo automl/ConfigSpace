@@ -691,6 +691,10 @@ class ConfigurationSpace(object):
         return iter(self._hyperparameters.keys())
 
     def sample_configuration(self, size: int=1) -> Union['Configuration', List['Configuration']]:
+        if not isinstance(size, int):
+            raise TypeError('Argument size must be of type int, but is %s'
+                            % type(size))
+
         iteration = 0
         missing = size
         accepted_configurations = []  # type: List['Configuration']
