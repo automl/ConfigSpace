@@ -108,22 +108,16 @@ def build_condition(condition):
         pType = 'o'
 
     # Now handle the conditions SMAC can handle
-    numeric_condition_template = "%s | %s==%s(%s) "
-    nonnumeric_condition_template = "%s | %s %%in%% %s('%s') "
+    condition_template_equals = "%s  | %s==%s"
+    condition_template_in = "%s  | %s %%in%% %s(%s)"
 
 
-    # if isinstance(condition, InCondition):
-    if pType == "i" or pType == "f":
-        return numeric_condition_template % (condition.child.name,
-                                     condition.parent.name,
-                                     pType,
-                                     condition.value)
-    # elif isinstance(condition, EqualsCondition):
-    elif pType == "o" or pType == "c":
-        return nonnumeric_condition_template % (condition.child.name,
-                                     condition.parent.name,
-                                     pType,
-                                     condition.value)
+    if isinstance(condition, InCondition):
+        return condition_template_in % (condition.child.name, condition.parent.name, pType,
+                                        ','.join(condition.values))
+
+    elif isinstance(condition, EqualsCondition):
+        return condition_template_equals % (condition.child.name, condition.parent.name, condition.value)
 
 
 def build_forbidden(clause):
@@ -137,15 +131,15 @@ def build_forbidden(clause):
                                   str(clause), (type(clause)))
 
     retval = six.StringIO()
-    retval.write("{")
+    retval.write("(")
     # Really simple because everything is an AND-conjunction of equals
     # conditions
     dlcs = clause.get_descendant_literal_clauses()
     for dlc in dlcs:
         if retval.tell() > 1:
-            retval.write(", ")
-        retval.write("%s=%s" % (dlc.hyperparameter.name, dlc.value))
-    retval.write("}")
+            retval.write(" && ")
+        retval.write("%s==%s" % (dlc.hyperparameter.name, dlc.value))
+    retval.write(")")
     retval.seek(0)
     return retval.getvalue()
 
@@ -239,13 +233,16 @@ def write(configuration_space):
             splitted_params[i] += "\n"
     # print splitted_params
 
+    forbidden_lines_write = six.StringIO()
     # TODO: check if irace supports forbidden lines
-    # if len(forbidden_lines) > 0:
-    #     forbidden_lines.sort()
-    #     param_lines.write("\n\n")
-    #     for line in forbidden_lines:
-    #         param_lines.write(line)
-    #         param_lines.write("\n")
+    if len(forbidden_lines) > 0:
+        for forbidden in forbidden_lines:
+            forbidden_lines_write.write(forbidden + '\n')
+
+    output_fh = open('forbidden.txt', 'w')
+    output_fh.write(forbidden_lines_write.getvalue())
+    output_fh.close()
+
 
     # Check if the default configuration is a valid configuration!
 

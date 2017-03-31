@@ -40,6 +40,8 @@ from ConfigSpace.hyperparameters import CategoricalHyperparameter, \
 from ConfigSpace.conditions import EqualsCondition, InCondition, \
     AndConjunction, OrConjunction, NotEqualsCondition, \
     LessThanCondition, GreaterThanCondition
+from ConfigSpace.forbidden import ForbiddenInClause, ForbiddenEqualsClause, ForbiddenAndConjunction
+
 
 # Copyright (c) 2014-2016, ConfigSpace developers
 # Matthias Feurer
@@ -69,6 +71,10 @@ from ConfigSpace.conditions import EqualsCondition, InCondition, \
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+
+int_a = UniformIntegerHyperparameter("int_a", -1, 6)
+log_a = UniformFloatHyperparameter("log_a", 4e-1, 6.45, log=True)
+int_log_a = UniformIntegerHyperparameter("int_log_a", 1, 6, log=True)
 
 class TestIraceWriter(unittest.TestCase):
     '''
@@ -138,8 +144,8 @@ class TestIraceWriter(unittest.TestCase):
         value = irace.write(cs)
         self.assertEqual(expected, value)
 
-    def test_write_conditionals(self):
-        expected = "temp '--temp ' r (0.500000, 1.000000) |  ls  %in%  c('sa')  \n"
+    def test_write_equals_condition_categorical(self):
+        expected = "ls '--ls ' c {sa,ca,ny}\ntemp '--temp ' r (0.500000, 1.000000)   |  ls==sa\n"
 
         temp = UniformFloatHyperparameter("temp", 0.5, 1)
         ls = CategoricalHyperparameter("ls", ["sa", "ca", "ny"], "sa")
@@ -151,3 +157,71 @@ class TestIraceWriter(unittest.TestCase):
         cs.add_condition(c1)
         value = irace.write(cs)
         self.assertEqual(expected, value)
+
+    def test_write_equals_condition_numerical(self):
+        expected = "temp '--temp ' i (1, 2)\nls '--ls ' c {sa,ca,ny}  |  temp==2\n"
+
+        temp = UniformIntegerHyperparameter("temp", 1, 2)
+        ls = CategoricalHyperparameter("ls", ["sa", "ca", "ny"], "sa")
+
+        cs = ConfigurationSpace()
+        cs.add_hyperparameter(temp)
+        cs.add_hyperparameter(ls)
+        c1 = EqualsCondition(ls, temp, 2)
+        cs.add_condition(c1)
+        value = irace.write(cs)
+        self.assertEqual(expected, value)
+
+    def test_write_in_condition(self):
+        expected = "ls '--ls ' c {sa,ca,ny}\ntemp '--temp ' r (0.500000, 1.000000)   |  ls  %in%  c(sa,ca)\n"
+
+        temp = UniformFloatHyperparameter("temp", 0.5, 1)
+        ls = CategoricalHyperparameter("ls", ["sa", "ca", "ny"], "sa")
+
+        cs = ConfigurationSpace()
+        cs.add_hyperparameter(temp)
+        cs.add_hyperparameter(ls)
+        c1 = InCondition(temp, ls, ['sa','ca'])
+        cs.add_condition(c1)
+        value = irace.write(cs)
+        self.assertEqual(expected, value)
+
+
+    def test_write_forbidden(self):
+        # expected = "ls '--ls ' c {sa,ca,ny}\ntemp '--temp ' r (0.500000, 1.000000)   |  ls  %in%  c(sa,ca)\n"
+        #
+        # temp = UniformFloatHyperparameter("temp", 0.5, 1)
+        # ls = CategoricalHyperparameter("ls", ["sa", "ca", "ny"], "sa")
+        #
+        # cs = ConfigurationSpace()
+        # cs.add_hyperparameter(temp)
+        # cs.add_hyperparameter(ls)
+        # c1 = InCondition(temp, ls, ['sa','ca'])
+        # cs.add_condition(c1)
+        # value = irace.write(cs)
+        # self.assertEqual(expected, value)
+        cs =ConfigurationSpace()
+
+        hp1 = CategoricalHyperparameter("parent", [0, 1])
+        hp2 = UniformIntegerHyperparameter("child", 0, 2)
+        hp3 = UniformIntegerHyperparameter("child2", 0, 2)
+        hp4 = UniformIntegerHyperparameter("child3", 0, 2)
+        hp5 = CategoricalHyperparameter("child4", [4,5,6,7])
+
+        cs.add_hyperparameters([hp1, hp2, hp3, hp4])
+
+        forb2 = ForbiddenEqualsClause(hp1, 1)
+        forb3 = ForbiddenInClause(hp2, range(2, 3))
+        forb4 = ForbiddenInClause(hp3, range(2, 3))
+        forb5 = ForbiddenInClause(hp4, range(2, 3))
+        forb6 = ForbiddenInClause(hp5, [6,7])
+
+        and1 = ForbiddenAndConjunction(forb2, forb3)
+        and2 = ForbiddenAndConjunction(forb2, forb4)
+        and3 = ForbiddenAndConjunction(forb2, forb5)
+
+        cs.add_forbidden_clauses([forb2, forb3, forb4, forb5, forb6, and1, and2, and3])
+
+        value = irace.write(cs)
+
+
