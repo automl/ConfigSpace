@@ -216,10 +216,7 @@ def get_one_exchange_neighbourhood(configuration: Configuration, seed: int) -> L
                         neighbourhood.append(new_configuration)
                         number_of_sampled_neighbors += 1
                     except ForbiddenValueError as e:
-                        print('caught a forbidden value error')
                         pass
-                    # except ValueError as e:
-                    #     pass
 
                     # Count iterations to not run into an infinite loop when
                     # sampling floats/ints and there is large amount of forbidden

@@ -632,8 +632,6 @@ class ConfigurationSpace(object):
     def _check_forbidden(self, configuration: 'Configuration') -> None:
         for clause in self.forbidden_clauses:
             if clause.is_forbidden(configuration, strict=False):
-                # raise ValueError("%sviolates forbidden clause %s" % (
-                #     str(configuration), str(clause)))
                 raise ForbiddenValueError("%sviolates forbidden clause %s" % (
                     str(configuration), str(clause)))
 
