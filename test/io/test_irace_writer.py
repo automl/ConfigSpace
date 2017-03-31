@@ -188,18 +188,6 @@ class TestIraceWriter(unittest.TestCase):
 
 
     def test_write_forbidden(self):
-        # expected = "ls '--ls ' c {sa,ca,ny}\ntemp '--temp ' r (0.500000, 1.000000)   |  ls  %in%  c(sa,ca)\n"
-        #
-        # temp = UniformFloatHyperparameter("temp", 0.5, 1)
-        # ls = CategoricalHyperparameter("ls", ["sa", "ca", "ny"], "sa")
-        #
-        # cs = ConfigurationSpace()
-        # cs.add_hyperparameter(temp)
-        # cs.add_hyperparameter(ls)
-        # c1 = InCondition(temp, ls, ['sa','ca'])
-        # cs.add_condition(c1)
-        # value = irace.write(cs)
-        # self.assertEqual(expected, value)
         cs =ConfigurationSpace()
 
         hp1 = CategoricalHyperparameter("parent", [0, 1])
@@ -222,6 +210,6 @@ class TestIraceWriter(unittest.TestCase):
 
         cs.add_forbidden_clauses([forb2, forb3, forb4, forb5, forb6, and1, and2, and3])
 
-        value = irace.write(cs)
+        value = irace.write(cs) # generates file called forbidden.txt
 
 
