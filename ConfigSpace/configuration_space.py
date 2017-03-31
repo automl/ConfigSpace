@@ -38,6 +38,7 @@ from ConfigSpace.conditions import ConditionComponent, \
     AbstractCondition, AbstractConjunction, EqualsCondition
 from ConfigSpace.forbidden import AbstractForbiddenComponent
 from typing import Union, List, Any, Dict, Iterable, Set, Tuple
+from ConfigSpace.exceptions import ForbiddenValueError
 
 
 class ConfigurationSpace(object):
@@ -631,7 +632,9 @@ class ConfigurationSpace(object):
     def _check_forbidden(self, configuration: 'Configuration') -> None:
         for clause in self.forbidden_clauses:
             if clause.is_forbidden(configuration, strict=False):
-                raise ValueError("%sviolates forbidden clause %s" % (
+                # raise ValueError("%sviolates forbidden clause %s" % (
+                #     str(configuration), str(clause)))
+                raise ForbiddenValueError("%sviolates forbidden clause %s" % (
                     str(configuration), str(clause)))
 
     # http://stackoverflow.com/a/25176504/4636294

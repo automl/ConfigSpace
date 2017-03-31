@@ -32,7 +32,7 @@ from typing import Union, List, Any, Dict
 
 import numpy as np  # type: ignore
 from ConfigSpace import Configuration, Constant
-
+from ConfigSpace.exceptions import ForbiddenValueError
 
 def impute_inactive_values(configuration: Configuration, strategy: Union[str, float]='default') -> Configuration:
     """Impute inactive parameters.
@@ -215,8 +215,11 @@ def get_one_exchange_neighbourhood(configuration: Configuration, seed: int) -> L
                         new_configuration.is_valid_configuration()
                         neighbourhood.append(new_configuration)
                         number_of_sampled_neighbors += 1
-                    except ValueError as e:
+                    except ForbiddenValueError as e:
+                        print('caught a forbidden value error')
                         pass
+                    # except ValueError as e:
+                    #     pass
 
                     # Count iterations to not run into an infinite loop when
                     # sampling floats/ints and there is large amount of forbidden
