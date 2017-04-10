@@ -766,11 +766,11 @@ class ConfigurationSpace(object):
                     configuration = Configuration(self, vector=vector[i])
                     self._check_forbidden(configuration)
                     accepted_configurations.append(configuration)
-                except ValueError as e:
+                except ForbiddenValueError as e:
                     iteration += 1
 
                     if iteration == size * 100:
-                        raise ValueError(
+                        raise ForbiddenValueError(
                             "Cannot sample valid configuration for "
                             "%s" % self)
 
