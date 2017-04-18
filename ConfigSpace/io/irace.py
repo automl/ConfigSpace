@@ -29,12 +29,13 @@ from ConfigSpace.hyperparameters import CategoricalHyperparameter, \
     NumericalHyperparameter, Constant, IntegerHyperparameter, \
     NormalIntegerHyperparameter, NormalFloatHyperparameter, OrdinalHyperparameter
 from ConfigSpace.conditions import EqualsCondition, NotEqualsCondition, \
-    InCondition, AndConjunction, OrConjunction, ConditionComponent
+    InCondition, AndConjunction, OrConjunction, ConditionComponent, GreaterThanCondition, LessThanCondition
 from ConfigSpace.forbidden import ForbiddenEqualsClause, \
     ForbiddenAndConjunction, ForbiddenInClause, AbstractForbiddenComponent, MultipleValueForbiddenClause
 import sys
 import pyparsing
 import six
+import numpy as np
 
 # Build pyparsing expressions for params
 pp_param_name = pyparsing.Word(pyparsing.alphanums + "_" + "-" + "@" + "." + ":" + ";" + "\\" + "/" + "?" + "!" +
@@ -60,25 +61,31 @@ def build_continuous(param):
                        NormalFloatHyperparameter):
         param = param.to_uniform()
 
-    float_template = "%s '--%s ' r (%f, %f) "
+    float_template = "%s '--%s ' r (%f, %f)"
     int_template = "%s '--%s ' i (%d, %d)"
-    # if param.log:
-    #     float_template += "l"
-    #     int_template += "l"
+
+    if param.log:
+        lower = np.log(param.lower)
+        upper = np.log(param.upper)
+        default = np.log(param.default)
+
+    else:
+        lower = param.lower
+        upper = param.upper
+        default = param.default
 
     if param.q is not None:
         q_prefix = "Q%d_" % (int(param.q),)
     else:
         q_prefix = ""
-    default = param.default
+
 
     if isinstance(param, IntegerHyperparameter):
-        default = int(default)
-        return int_template % (param.name, param.name, param.lower,
-                               param.upper)
+        return int_template % (param.name, param.name, int(lower),
+                               int(upper))
     else:
-        return float_template % (param.name, param.name, float(param.lower),
-                                 float(param.upper))
+        return float_template % (param.name, param.name, float(lower),
+                                 float(upper))
 
 
 def build_condition(condition):
@@ -87,37 +94,66 @@ def build_condition(condition):
                         "'%s', got '%s'" %
                         (ConditionComponent, type(condition)))
 
+    # Now handle the conditions IRACE can handle
+    in_template = "%s %%in%% %s(%s)"
+    less_template = "%s < %s"
+    greater_template = "%s > %s"
+    notequal_template = "%s != %s"
+    equal_template = "%s==%s"
+
+    full_condition = ''
+    child = ''
+    conditions = [condition] # if not a conjunction this makes condition iteratable
+
     # Check if IRACE can handle the condition
     if isinstance(condition, OrConjunction):
-        raise NotImplementedError("IRACE cannot handle OR conditions: %s" %
-                                  (condition))
-    if isinstance(condition, NotEqualsCondition):
-        raise NotImplementedError("IRACE cannot handle != conditions: %s" %
-                                  (condition))
-    if isinstance(condition, AndConjunction):
-        raise NotImplementedError("IRACE cannot handle OR conditions: %s" %
-                                  (condition))
+        # raise NotImplementedError("IRACE cannot handle OR conditions: %s" %
+        #                           (condition))
+        logic = " || "
+        conditions = condition.components
 
-    # Findout type of parent
-    pType = "i"
-    if condition.parent.__class__.__name__ == 'CategoricalHyperparameter':
-        pType = 'c'
-    if condition.parent.__class__.__name__ == 'UniformFloatHyperparameter':
-        pType = 'r'
-    if condition.parent.__class__.__name__ == 'OrdinalHyperparameter':
-        pType = 'o'
+    elif isinstance(condition, AndConjunction):
+        logic = " && "
+        conditions = condition.components
 
-    # Now handle the conditions SMAC can handle
-    condition_template_equals = "%s  | %s==%s"
-    condition_template_in = "%s  | %s %%in%% %s(%s)"
+    else:
+        logic = None
 
+    for clause in conditions:
+        child = clause.child.name
+        # Findout type of parent
+        pType = "i"
+        if clause.parent.__class__.__name__ == 'CategoricalHyperparameter':
+            pType = 'c'
+        elif clause.parent.__class__.__name__ == 'UniformFloatHyperparameter':
+            pType = 'r'
+        elif clause.parent.__class__.__name__ == 'OrdinalHyperparameter':
+            pType = 'o'
 
-    if isinstance(condition, InCondition):
-        return condition_template_in % (condition.child.name, condition.parent.name, pType,
-                                        ','.join(condition.values))
+        if pType == "i" or pType == "r":
+            if clause.parent.log:
+                clause.value = np.log(clause.value)
 
-    elif isinstance(condition, EqualsCondition):
-        return condition_template_equals % (condition.child.name, condition.parent.name, condition.value)
+        if full_condition != '':
+            full_condition += logic
+
+        if isinstance(clause, NotEqualsCondition):
+            full_condition += notequal_template % (clause.parent.name, clause.value)
+
+        elif isinstance(clause, InCondition):
+            full_condition += in_template % (clause.parent.name, pType, ",".join(clause.values))
+
+        elif isinstance(clause, EqualsCondition):
+            full_condition += equal_template % (clause.parent.name, clause.value)
+
+        elif isinstance(clause, LessThanCondition):
+            full_condition += less_template % (clause.parent.name, clause.value)
+
+        elif isinstance(clause, GreaterThanCondition):
+            full_condition += greater_template % (clause.parent.name, clause.value)
+
+    return child + ' | ' + full_condition
+
 
 
 def build_forbidden(clause):
@@ -127,7 +163,7 @@ def build_forbidden(clause):
                         (AbstractForbiddenComponent, type(clause)))
 
     if not isinstance(clause, (ForbiddenEqualsClause, ForbiddenAndConjunction)):
-        raise NotImplementedError("SMAC cannot handle '%s' of type %s" %
+        raise NotImplementedError("IRACE cannot handle '%s' of type %s" %
                                   str(clause), (type(clause)))
 
     retval = six.StringIO()

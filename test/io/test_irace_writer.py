@@ -36,7 +36,8 @@ from ConfigSpace.configuration_space import ConfigurationSpace
 import ConfigSpace.io.irace as irace
 
 from ConfigSpace.hyperparameters import CategoricalHyperparameter, \
-    UniformIntegerHyperparameter, UniformFloatHyperparameter, OrdinalHyperparameter
+    UniformIntegerHyperparameter, UniformFloatHyperparameter, OrdinalHyperparameter, \
+    NormalIntegerHyperparameter
 from ConfigSpace.conditions import EqualsCondition, InCondition, \
     AndConjunction, OrConjunction, NotEqualsCondition, \
     LessThanCondition, GreaterThanCondition
@@ -73,8 +74,6 @@ from ConfigSpace.forbidden import ForbiddenInClause, ForbiddenEqualsClause, Forb
 
 
 int_a = UniformIntegerHyperparameter("int_a", -1, 6)
-log_a = UniformFloatHyperparameter("log_a", 4e-1, 6.45, log=True)
-int_log_a = UniformIntegerHyperparameter("int_log_a", 1, 6, log=True)
 
 class TestIraceWriter(unittest.TestCase):
     '''
@@ -97,29 +96,10 @@ class TestIraceWriter(unittest.TestCase):
         value = irace.write(cs)
         self.assertEqual(expected, value)
 
-    def test_write_log_int(self):
-        #todo: discuss how log params should be handled in irace writer (irace doesnt support log params)
-        # expected = "int_log_a [1, 6] [2]il"
-        expected = "int_log_a '--int_log_a ' i (1, 6)\n"
-        cs = ConfigurationSpace()
-        cs.add_hyperparameter(int_log_a)
-        value = irace.write(cs)
-        self.assertEqual(1, 0) # purposly fail the test
-        self.assertEqual(expected, value)
-
-    def test_write_q_int(self):
-        #todo: discuss if this needs to be in irace tests. q?
-        expected = "int_a '--int_a ' i (16, 1024)\n"
-        cs = ConfigurationSpace()
-        cs.add_hyperparameter(
-            UniformIntegerHyperparameter("int_a", 16, 1024, q=16))
-        value = irace.write(cs)
-        self.assertEqual(1, 0) # purposly fail the test
-        self.assertEqual(expected, value)
 
 
     def test_write_float(self):
-        expected = "float_a '--float_a ' r (16.0, 1024.0) \n"
+        expected = "float_a '--float_a ' r (16.000000, 1024.000000)\n"
         cs = ConfigurationSpace()
         cs.add_hyperparameter(
             UniformFloatHyperparameter("float_a", 16, 1024))
@@ -145,7 +125,7 @@ class TestIraceWriter(unittest.TestCase):
         self.assertEqual(expected, value)
 
     def test_write_equals_condition_categorical(self):
-        expected = "ls '--ls ' c {sa,ca,ny}\ntemp '--temp ' r (0.500000, 1.000000)   |  ls==sa\n"
+        expected = "ls '--ls ' c {sa,ca,ny}\ntemp '--temp ' r (0.500000, 1.000000)|  ls==sa\n"
 
         temp = UniformFloatHyperparameter("temp", 0.5, 1)
         ls = CategoricalHyperparameter("ls", ["sa", "ca", "ny"], "sa")
@@ -159,7 +139,7 @@ class TestIraceWriter(unittest.TestCase):
         self.assertEqual(expected, value)
 
     def test_write_equals_condition_numerical(self):
-        expected = "temp '--temp ' i (1, 2)\nls '--ls ' c {sa,ca,ny}  |  temp==2\n"
+        expected = "temp '--temp ' i (1, 2)\nls '--ls ' c {sa,ca,ny}|  temp==2\n"
 
         temp = UniformIntegerHyperparameter("temp", 1, 2)
         ls = CategoricalHyperparameter("ls", ["sa", "ca", "ny"], "sa")
@@ -173,7 +153,7 @@ class TestIraceWriter(unittest.TestCase):
         self.assertEqual(expected, value)
 
     def test_write_in_condition(self):
-        expected = "ls '--ls ' c {sa,ca,ny}\ntemp '--temp ' r (0.500000, 1.000000)   |  ls  %in%  c(sa,ca)\n"
+        expected = "ls '--ls ' c {sa,ca,ny}\ntemp '--temp ' r (0.500000, 1.000000)|  ls  %in%  c(sa,ca)\n"
 
         temp = UniformFloatHyperparameter("temp", 0.5, 1)
         ls = CategoricalHyperparameter("ls", ["sa", "ca", "ny"], "sa")
@@ -186,6 +166,45 @@ class TestIraceWriter(unittest.TestCase):
         value = irace.write(cs)
         self.assertEqual(expected, value)
 
+
+    def test_write_AndConjunction_condition(self):
+        expected = "lp '--lp ' c {mi,bo}\nls '--ls ' c {sa,ca,ny}\ntemp '--temp ' r (0.500000, 1.000000)|  ls  %in%  c(sa,ca)  &&  lp  %in%  c(bo)\n"
+
+        temp = UniformFloatHyperparameter("temp", 0.5, 1)
+        ls = CategoricalHyperparameter("ls", ["sa", "ca", "ny"], "sa")
+        lp = CategoricalHyperparameter("lp", ["mi", "bo"], "bo")
+
+        cs = ConfigurationSpace()
+        cs.add_hyperparameter(temp)
+        cs.add_hyperparameter(lp)
+        cs.add_hyperparameter(ls)
+
+        c1 = InCondition(temp, ls, ['sa','ca'])
+        c2 = InCondition(temp, lp, ['bo'])
+        c3 = AndConjunction(c1, c2)
+        cs.add_condition(c3)
+        value = irace.write(cs)
+        self.assertEqual(expected, value)
+
+    def test_write_OrConjunction_condition(self):
+        import numpy as np
+        expected = "lp '--lp ' c {mi,bo}\nls '--ls ' c {sa,ca,ny}| temp==3.000000 || lp  %in%  c(bo)\ntemp '--temp ' r (2.000000, 5.000000)\n"
+
+        temp = UniformFloatHyperparameter("temp", np.exp(2), np.exp(5), log=True)
+        ls = CategoricalHyperparameter("ls", ["sa", "ca", "ny"], "sa")
+        lp = CategoricalHyperparameter("lp", ["mi", "bo"], "bo")
+
+        cs = ConfigurationSpace()
+        cs.add_hyperparameter(temp)
+        cs.add_hyperparameter(lp)
+        cs.add_hyperparameter(ls)
+
+        c1 = EqualsCondition(ls, temp, np.exp(3))
+        c2 = InCondition(ls, lp, ['bo'])
+        c3 = OrConjunction(c1, c2)
+        cs.add_condition(c3)
+        value = irace.write(cs)
+        self.assertEqual(expected, value)
 
     def test_write_forbidden(self):
         cs =ConfigurationSpace()
@@ -213,3 +232,19 @@ class TestIraceWriter(unittest.TestCase):
         value = irace.write(cs) # generates file called forbidden.txt
 
 
+    def test_write_log_int(self):
+        expected = "int_log '--int_log ' i (2, 4)\n"
+        int_log = UniformIntegerHyperparameter("int_log", 10, 100, log=True)
+        cs = ConfigurationSpace()
+        cs.add_hyperparameter(int_log)
+        value = irace.write(cs)
+        self.assertEqual(expected, value)
+
+    def test_write_log_float(self):
+        import numpy as np
+        expected = "float_log '--float_log ' r (2.000000, 5.000000)\n"
+        float_log = UniformFloatHyperparameter("float_log", np.exp(2), np.exp(5), log=True)
+        cs = ConfigurationSpace()
+        cs.add_hyperparameter(float_log)
+        value = irace.write(cs)
+        self.assertEqual(expected, value)
