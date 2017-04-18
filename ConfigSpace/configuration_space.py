@@ -588,7 +588,7 @@ class ConfigurationSpace(object):
                              allow_inactive_with_values: bool=False) -> None:
         for hp_name in self._hyperparameters:
             hyperparameter = self._hyperparameters[hp_name]
-            hp_value = configuration[hp_name]
+            hp_value = configuration.get(hp_name)
 
             if hp_value is not None and not hyperparameter.is_legal(hp_value):
                 raise ValueError("Hyperparameter instantiation '%s' "
@@ -603,7 +603,7 @@ class ConfigurationSpace(object):
                 parent_names = [c.parent.name for c in
                                 condition.get_descendant_literal_conditions()]
 
-                parents = {parent_name: configuration[parent_name] for
+                parents = {parent_name: configuration.get(parent_name) for
                            parent_name in parent_names}
 
                 # if one of the parents is None, the hyperparameter cannot be
@@ -692,6 +692,10 @@ class ConfigurationSpace(object):
         return iter(self._hyperparameters.keys())
 
     def sample_configuration(self, size: int=1) -> Union['Configuration', List['Configuration']]:
+        if not isinstance(size, int):
+            raise TypeError('Argument size must be of type int, but is %s'
+                            % type(size))
+
         iteration = 0
         missing = size
         accepted_configurations = []  # type: List['Configuration']
@@ -879,12 +883,19 @@ class Configuration(object):
 
         hyperparameter = self.configuration_space._hyperparameters[item]
         item_idx = self.configuration_space._hyperparameter_idx[item]
+
+        if not np.isfinite(self._vector[item_idx]):
+            raise KeyError()
+
         value = hyperparameter._transform(self._vector[item_idx])
         # Truncate the representation of the float to be of constant
         # length for a python version
-        if value is not None and \
-                isinstance(hyperparameter, FloatHyperparameter):
+        if isinstance(hyperparameter, FloatHyperparameter):
             value = float(repr(value))
+        # TODO make everything faster, then it'll be possible to init all values
+        # at the same time and use an OrderedDict instead of only a dict here to
+        # support iterating that dict in the same order as the actual order of
+        # hyperparameters
         self._values[item] = value
         return self._values[item]
 
@@ -922,7 +933,7 @@ class Configuration(object):
     def _populate_values(self) -> None:
         if self._query_values is False:
             for hyperparameter in self.configuration_space.get_hyperparameters():
-                self[hyperparameter.name]
+                self.get(hyperparameter.name)
             self._query_values = True
 
     def __repr__(self) -> str:
