@@ -130,7 +130,7 @@ def build_condition(condition):
         elif clause.parent.__class__.__name__ == 'OrdinalHyperparameter':
             pType = 'o'
 
-        if pType == "i" or pType == "r":
+        if pType == "r":
             if clause.parent.log:
                 clause.value = np.log(clause.value)
 

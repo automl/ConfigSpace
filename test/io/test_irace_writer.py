@@ -188,7 +188,7 @@ class TestIraceWriter(unittest.TestCase):
 
     def test_write_OrConjunction_condition(self):
         import numpy as np
-        expected = "lp '--lp ' c {mi,bo}\nls '--ls ' c {sa,ca,ny}| temp==3.000000 || lp  %in%  c(bo)\ntemp '--temp ' r (2.000000, 5.000000)\n"
+        expected = "lp '--lp ' c {mi,bo}\ntemp '--temp ' r (2.000000, 5.000000)\nls '--ls ' c {sa,ca,ny}|  temp==3.0  ||  lp  %in%  c(bo)\n"
 
         temp = UniformFloatHyperparameter("temp", np.exp(2), np.exp(5), log=True)
         ls = CategoricalHyperparameter("ls", ["sa", "ca", "ny"], "sa")
