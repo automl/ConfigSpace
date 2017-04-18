@@ -34,7 +34,7 @@ from ConfigSpace.forbidden import ForbiddenEqualsClause, \
     ForbiddenAndConjunction, ForbiddenInClause, AbstractForbiddenComponent, MultipleValueForbiddenClause
 import sys
 import pyparsing
-import six
+import io
 import numpy as np
 
 # Build pyparsing expressions for params
@@ -130,7 +130,7 @@ def build_condition(condition):
         elif clause.parent.__class__.__name__ == 'OrdinalHyperparameter':
             pType = 'o'
 
-        if pType == "r":
+        if pType == "i" or pType == "r":
             if clause.parent.log:
                 clause.value = np.log(clause.value)
 
@@ -166,7 +166,7 @@ def build_forbidden(clause):
         raise NotImplementedError("IRACE cannot handle '%s' of type %s" %
                                   str(clause), (type(clause)))
 
-    retval = six.StringIO()
+    retval = io.StringIO()
     retval.write("(")
     # Really simple because everything is an AND-conjunction of equals
     # conditions
@@ -186,8 +186,8 @@ def write(configuration_space):
                         "you provided '%s'" % (ConfigurationSpace,
                                                type(configuration_space)))
 
-    param_lines = six.StringIO()
-    condition_lines = six.StringIO()
+    param_lines = io.StringIO()
+    condition_lines = io.StringIO()
     forbidden_lines = []
     for hyperparameter in configuration_space.get_hyperparameters():
         # Check if the hyperparameter names are valid IRACE names!
@@ -269,7 +269,7 @@ def write(configuration_space):
             splitted_params[i] += "\n"
     # print splitted_params
 
-    forbidden_lines_write = six.StringIO()
+    forbidden_lines_write = io.StringIO()
     # TODO: check if irace supports forbidden lines
     if len(forbidden_lines) > 0:
         for forbidden in forbidden_lines:
@@ -283,7 +283,7 @@ def write(configuration_space):
     # Check if the default configuration is a valid configuration!
 
     # overwrite param_lines with splitted_params which contains lines with conditions
-    param_lines = six.StringIO()
+    param_lines = io.StringIO()
     for l in splitted_params:
         param_lines.write(l)
     return param_lines.getvalue()
