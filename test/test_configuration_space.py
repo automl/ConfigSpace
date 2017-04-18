@@ -593,6 +593,12 @@ class TestConfigurationSpace(unittest.TestCase):
                 for j in range(100):
                     self.assertEqual(samples[-1][j], samples[-2][j])
 
+    def test_sample_wrong_argument(self):
+        cs = ConfigurationSpace()
+        self.assertRaisesRegex(TypeError,
+                               "Argument size must be of type int, but is "
+                               "<class 'float'>", cs.sample_configuration, 1.2)
+
 
 class ConfigurationTest(unittest.TestCase):
     def setUp(self):

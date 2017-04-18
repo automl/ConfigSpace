@@ -1,3 +1,10 @@
+# Version 0.3.2
+
+* FIX: do not store `None` when calling `populate_values` on a Configuration
+* FIX #26: raise Exception if argument has the wrong type.
+* FIX #25: a bug related to sorting hyperparameters when reading them from a
+  PCS files.
+
 # Version 0.3.1
 
 * MAINT: fix endless loop in `get_one_exchange_neighborhood`.
@@ -46,3 +53,4 @@
   configuration space into an existing configuration space
 * FEATURE: python3.5 support
 * FIX: add function get_parent() to Conjunctions (issue #1)
+* Added this Changelog.
