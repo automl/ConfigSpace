@@ -132,7 +132,10 @@ def build_condition(condition):
 
         if pType == "i" or pType == "r":
             if clause.parent.log:
-                clause.value = np.log(clause.value)
+                if hasattr(clause, 'values'):
+                    clause.values = np.log(clause.values)
+                else:
+                    clause.value = np.log(clause.value)
 
         if full_condition != '':
             full_condition += logic
