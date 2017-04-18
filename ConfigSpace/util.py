@@ -48,7 +48,7 @@ def impute_inactive_values(configuration: Configuration, strategy: Union[str, fl
     """
     values = dict()
     for hp_name in configuration:
-        value = configuration[hp_name]
+        value = configuration.get(hp_name)
         if value is None:
 
             if strategy == 'default':

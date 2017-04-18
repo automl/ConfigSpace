@@ -24,10 +24,9 @@ __contact__ = "automl.org"
 
 from collections import OrderedDict
 from itertools import product
+from io import StringIO
 
 import pyparsing
-import six
-import sys
 
 from ConfigSpace.configuration_space import ConfigurationSpace
 from ConfigSpace.hyperparameters import CategoricalHyperparameter, \
@@ -149,7 +148,7 @@ def build_forbidden(clause):
                         "'%s', got '%s'" %
                         (AbstractForbiddenComponent, type(clause)))
                         
-    retval = six.StringIO()
+    retval = StringIO()
     retval.write("{")
     # Really simple because everything is an AND-conjunction of equals
     # conditions
@@ -392,8 +391,8 @@ def write(configuration_space):
                         "you provided '%s'" % (ConfigurationSpace,
                         type(configuration_space)))
 
-    param_lines = six.StringIO()
-    condition_lines = six.StringIO()
+    param_lines = StringIO()
+    condition_lines = StringIO()
     forbidden_lines = []
     for hyperparameter in configuration_space.get_hyperparameters():
         # Check if the hyperparameter names are valid SMAC names!

@@ -40,8 +40,6 @@ class ExampleSearchSpacesTest(unittest.TestCase):
 
 def generate(configuration_space_path):
     def run_test(self):
-        # if 'autoweka' in configuration_space_path:
-        #     return
         with open(configuration_space_path) as fh:
             cs = pcs_parser.read(fh)
 
