@@ -286,9 +286,6 @@ def write(configuration_space):
     output_fh.write(forbidden_lines_write.getvalue())
     output_fh.close()
 
-
-    # Check if the default configuration is a valid configuration!
-
     # overwrite param_lines with split_params which contains lines with conditions
     param_lines = io.StringIO()
     for l in splitted_params:
