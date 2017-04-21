@@ -67,18 +67,17 @@ def build_continuous(param):
     if param.log:
         lower = np.log(param.lower)
         upper = np.log(param.upper)
-        default = np.log(param.default)
+        # default = np.log(param.default)
 
     else:
         lower = param.lower
         upper = param.upper
-        default = param.default
+        # default = param.default
 
-    if param.q is not None:
-        q_prefix = "Q%d_" % (int(param.q),)
-    else:
-        q_prefix = ""
-
+    # if param.q is not None
+    #     q_prefix = "Q%d_" % (int(param.q),)
+    # else:
+    #     q_prefix = ""
 
     if isinstance(param, IntegerHyperparameter):
         return int_template % (param.name, param.name, int(lower),
@@ -107,8 +106,6 @@ def build_condition(condition):
 
     # Check if IRACE can handle the condition
     if isinstance(condition, OrConjunction):
-        # raise NotImplementedError("IRACE cannot handle OR conditions: %s" %
-        #                           (condition))
         logic = " || "
         conditions = condition.components
 
@@ -122,16 +119,25 @@ def build_condition(condition):
     for clause in conditions:
         child = clause.child.name
         # Findout type of parent
-        pType = "i"
-        if clause.parent.__class__.__name__ == 'CategoricalHyperparameter':
-            pType = 'c'
-        elif clause.parent.__class__.__name__ == 'UniformFloatHyperparameter':
+        if isinstance(clause.parent, UniformIntegerHyperparameter) or isinstance(clause.parent,
+                                                                               NormalIntegerHyperparameter):
+            pType = 'i'
+        elif isinstance(clause.parent, UniformFloatHyperparameter) or isinstance(clause.parent,
+                                                                                 NormalFloatHyperparameter):
             pType = 'r'
-        elif clause.parent.__class__.__name__ == 'OrdinalHyperparameter':
+        elif isinstance(clause.parent, CategoricalHyperparameter):
+            pType = 'c'
+        elif isinstance(clause.parent, OrdinalHyperparameter):
             pType = 'o'
+        else:
+            raise TypeError("Parent Type of Condition is unknown")
 
+        # check if  parent type is log integer, if it is then convert it to log manually
+        # this conversion of log is needed because irace doesnt natively support params of type log
         if pType == "i" or pType == "r":
             if clause.parent.log:
+                # unlike other condition types which have variable called 'value'
+                # the InCondition has array called 'values'
                 if hasattr(clause, 'values'):
                     clause.values = np.log(clause.values)
                 else:
@@ -254,7 +260,7 @@ def write(configuration_space):
         else:
             forbidden_lines.append(build_forbidden(forbidden_clause))
 
-    # Add condtions: first conver param_lines to array then search first part of condition in that array
+    # Add conditions: first convert param_lines to array then search first part of condition in that array
     # if found append second part of condition to that array part
     splitted_params = param_lines.getvalue().split("\n")
     if condition_lines.tell() > 0:
@@ -270,10 +276,8 @@ def write(configuration_space):
     for i, j in enumerate(splitted_params):
         if j[-1] != "\n":
             splitted_params[i] += "\n"
-    # print splitted_params
 
     forbidden_lines_write = io.StringIO()
-    # TODO: check if irace supports forbidden lines
     if len(forbidden_lines) > 0:
         for forbidden in forbidden_lines:
             forbidden_lines_write.write(forbidden + '\n')
@@ -285,7 +289,7 @@ def write(configuration_space):
 
     # Check if the default configuration is a valid configuration!
 
-    # overwrite param_lines with splitted_params which contains lines with conditions
+    # overwrite param_lines with split_params which contains lines with conditions
     param_lines = io.StringIO()
     for l in splitted_params:
         param_lines.write(l)
