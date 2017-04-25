@@ -98,6 +98,18 @@ class AbstractCondition(ConditionComponent):
                              "different hyperparameters.")
         self.child = child
         self.parent = parent
+        self.child_vector_id = None
+        self.parent_vector_id = None
+
+    def set_vector_idx(self, hyperparameter_to_idx):
+        self.child_vector_id = hyperparameter_to_idx[self.child.name]
+        self.parent_vector_id = hyperparameter_to_idx[self.parent.name]
+
+    def get_children_vector(self) -> List[int]:
+        return [self.child_vector_id]
+
+    def get_parents_vector(self) -> List[int]:
+        return [self.parent_vector_id]
 
     def get_children(self) -> List[Hyperparameter]:
         return [self.child]
@@ -111,6 +123,11 @@ class AbstractCondition(ConditionComponent):
     def evaluate(self, instantiated_parent_hyperparameter: Hyperparameter) -> bool:
         hp_name = self.parent.name
         return self._evaluate(instantiated_parent_hyperparameter[hp_name])
+
+    def evaluate_vector(self, instantiated_vector: List[float]) -> bool:
+        if self.parent_vector_id == None:
+            raise ValueError("Parent vector id should not be None when calling evaluate vector")
+        return self._evaluate_vector(instantiated_vector[self.parent_vector_id])
 
     @abstractmethod
     def _evaluate(self, instantiated_parent_hyperparameter: Union[str, int, float]) -> bool:
@@ -145,6 +162,22 @@ class AbstractConjunction(ConditionComponent):
                 children.append(component)
         return children
 
+    def set_vector_idx(self, hyperparameter_to_idx):
+        for component in self.components:
+            component.set_vector_idx(hyperparameter_to_idx)
+
+    def get_children_vector(self) -> List[int]:
+        children_vector = []
+        for component in self.components:
+            children_vector.extend(component.get_children_vector())
+        return children_vector
+
+    def get_parents_vector(self) -> List[int]:
+        parents_vector = []
+        for component in self.components:
+            parents_vector.extend(component.get_parents_vector())
+        return parents_vector
+
     def get_children(self) -> List[ConditionComponent]:
         children = []  # type: List[ConditionComponent]
         for component in self.components:
@@ -176,6 +209,25 @@ class AbstractConjunction(ConditionComponent):
 
         return self._evaluate(evaluations)
 
+    def evaluate_vector(self, instantiated_vector: List[int]) -> bool:
+        # Then, check if all parents were passed
+        conditions = self.get_descendant_literal_conditions()
+        for condition in conditions:
+            if condition.parent_vector_id not in range(len(instantiated_vector)):
+                raise ValueError("Evaluate must be called with all "
+                                 "instanstatiated parent vector idx in "
+                                 "the conjunction; you are (at least) missing "
+                                 "'%s'" % condition.parent_vector_id)
+
+        # Finally, call evaluate for all direct descendents and combine the
+        # outcomes
+        evaluations = []
+        for component in self.components:
+            e = component.evaluate_vector(instantiated_vector)
+            evaluations.append(e)
+
+        return self._evaluate(evaluations)
+
     @abstractmethod
     def _evaluate(self, evaluations: List[bool]) -> bool:
         pass
@@ -190,6 +242,7 @@ class EqualsCondition(AbstractCondition):
                              "its parent hyperparameter '%s'" %
                              (child.name, value, parent.name))
         self.value = value
+        self.vector_value = self.parent._inverse_transform(self.value)
 
     def __repr__(self) -> str:
         return "%s | %s == %s" % (self.child.name, self.parent.name,
@@ -205,6 +258,16 @@ class EqualsCondition(AbstractCondition):
         else:
             return False
 
+    def _evaluate_vector(self, value: Union[float, int]) -> bool:
+        if not self.parent.is_legal_vector(value):
+            return False
+
+        cmp = self.parent.compare(value, self.vector_value)
+        if cmp == 0:
+            return True
+        else:
+            return False
+
 
 class NotEqualsCondition(AbstractCondition):
     def __init__(self, child: Hyperparameter, parent: Hyperparameter, value: Union[str, float, int]) -> None:
@@ -215,6 +278,7 @@ class NotEqualsCondition(AbstractCondition):
                              "its parent hyperparameter '%s'" %
                              (child.name, value, parent.name))
         self.value = value
+        self.vector_value = self.parent._inverse_transform(self.value)
 
     def __repr__(self) -> str:
         return "%s | %s != %s" % (self.child.name, self.parent.name,
@@ -225,6 +289,16 @@ class NotEqualsCondition(AbstractCondition):
             return False
 
         cmp = self.parent.compare(value, self.value)
+        if cmp != 0:
+            return True
+        else:
+            return False
+
+    def _evaluate_vector(self, value: Union[str, float, int]) -> bool:
+        if not self.parent.is_legal_vector(value):
+            return False
+
+        cmp = self.parent.compare(value, self.vector_value)
         if cmp != 0:
             return True
         else:
@@ -241,6 +315,7 @@ class LessThanCondition(AbstractCondition):
                              "its parent hyperparameter '%s'" %
                              (child.name, value, parent.name))
         self.value = value
+        self.vector_value = self.parent._inverse_transform(self.value)
 
     def __repr__(self) -> str:
         return "%s | %s < %s" % (self.child.name, self.parent.name,
@@ -251,6 +326,16 @@ class LessThanCondition(AbstractCondition):
             return False
 
         cmp = self.parent.compare(value, self.value)
+        if cmp == -1:
+            return True
+        else:
+            return False
+
+    def _evaluate_vector(self, value: Union[str, float, int]) -> bool:
+        if not self.parent.is_legal_vector(value):
+            return False
+
+        cmp = self.parent.compare(value, self.vector_value)
         if cmp == -1:
             return True
         else:
@@ -267,6 +352,7 @@ class GreaterThanCondition(AbstractCondition):
                              "its parent hyperparameter '%s'" %
                              (child.name, value, parent.name))
         self.value = value
+        self.vector_value = self.parent._inverse_transform(self.value)
 
     def __repr__(self) -> str:
         return "%s | %s > %s" % (self.child.name, self.parent.name,
@@ -282,6 +368,16 @@ class GreaterThanCondition(AbstractCondition):
         else:
             return False
 
+    def _evaluate_vector(self, value: Union[str, float, int]) -> bool:
+        if not self.parent.is_legal_vector(value):
+            return False
+
+        cmp = self.parent.compare(value, self.vector_value)
+        if cmp == 1:
+            return True
+        else:
+            return False
+
 class InCondition(AbstractCondition):
     def __init__(self, child: Hyperparameter, parent: Hyperparameter, values: List[Union[str, float, int]]) -> None:
         super(InCondition, self).__init__(child, parent)
@@ -292,6 +388,7 @@ class InCondition(AbstractCondition):
                                  "its parent hyperparameter '%s'" %
                                  (child.name, value, parent.name))
         self.values = values
+        self.vector_values = [self.parent._inverse_transform(value) for value in self.values]
 
     def __repr__(self) -> str:
         return "%s | %s in {%s}" % (self.child.name, self.parent.name,
@@ -300,6 +397,9 @@ class InCondition(AbstractCondition):
 
     def _evaluate(self, value: Union[str, float, int]) -> bool:
         return value in self.values
+
+    def _evaluate_vector(self, value: Union[float, int]) -> bool:
+        return value in self.vector_values
 
 
 class AndConjunction(AbstractConjunction):
