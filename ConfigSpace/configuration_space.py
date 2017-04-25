@@ -310,6 +310,10 @@ class ConfigurationSpace(object):
         for condition in self.get_conditions():
             condition.set_vector_idx(self._hyperparameter_idx)
 
+        # forbidden clauses
+        for clause in self.forbidden_clauses:
+            clause.set_vector_idx(self._hyperparameter_idx)
+
     def _create_tmp_dag(self) -> ConfigSpace.nx.DiGraph:
         tmp_dag = ConfigSpace.nx.DiGraph()
         for hp_name in self._hyperparameters:
@@ -335,12 +339,14 @@ class ConfigurationSpace(object):
             raise TypeError("The method add_forbidden_clause must be called "
                             "with an instance of "
                             "ConfigSpace.forbidden.AbstractForbiddenComponent.")
+        clause.set_vector_idx(self._hyperparameter_idx)
         self.forbidden_clauses.append(clause)
         self._check_default_configuration()
         return clause
 
     def add_forbidden_clauses(self, clauses: List[AbstractForbiddenComponent]) -> List[AbstractForbiddenComponent]:
         for clause in clauses:
+            clause.set_vector_idx(self._hyperparameter_idx)
             if not isinstance(clause, AbstractForbiddenComponent):
                 raise TypeError("Forbidden '%s' is not an instance of "
                                 "ConfigSpace.forbidden.AbstractForbiddenComponent." %
@@ -638,6 +644,12 @@ class ConfigurationSpace(object):
                 raise ValueError("%sviolates forbidden clause %s" % (
                     str(configuration), str(clause)))
 
+    def _check_forbidden_vector(self, vector: List[float]) -> None:
+        for clause in self.forbidden_clauses:
+            if clause.is_forbidden_vector(vector, strict=False):
+                raise ValueError("Vector violates forbidden clause %s" % (
+                    str(clause)))
+
     # http://stackoverflow.com/a/25176504/4636294
     def __eq__(self, other: Any) -> bool:
         """Override the default Equals behavior"""
@@ -839,21 +851,45 @@ class ConfigurationSpace(object):
                             continue_while = True
                             break
 
-                        # parents = {parent_name: self._hyperparameters[parent_name]._transform(vector[i][
-                        #                                                                          self._hyperparameter_idx[
-                        #                                                                              parent_name]])
-                        #           for parent_name in parent_names}
-
-                        parent_vector_ids = condition.get_parents_vector()
+                        parents = {parent_name: self._hyperparameters[parent_name]._transform(vector[i][
+                                                                                                  self._hyperparameter_idx[
+                                                                                                      parent_name]])
+                                   for parent_name in parent_names}
 
                         # A parent condition is not fulfilled
-                        if np.sum([vector_id in inactive
-                                   for vector_id in parent_vector_ids]) > 0:
+                        if np.sum([parent_name in inactive
+                                   for parent_name in parent_names]) > 0:
                             add = False
                             break
-                        if not condition.evaluate_vector(vector[i]):
+                        if not condition.evaluate(parents):
                             add = False
                             break
+                        # parent_names = [c.parent.name for c in
+                        #                 condition.get_descendant_literal_conditions()]
+                        #
+                        # # Not all parents visited so far
+                        # if np.sum([parent_name in visited
+                        #            for parent_name in parent_names]) != \
+                        #         len(parent_names):
+                        #     to_visit.appendleft(hp_name)
+                        #     continue_while = True
+                        #     break
+                        #
+                        # # parents = {parent_name: self._hyperparameters[parent_name]._transform(vector[i][
+                        # #                                                                          self._hyperparameter_idx[
+                        # #                                                                              parent_name]])
+                        # #           for parent_name in parent_names}
+                        #
+                        # parent_vector_ids = condition.get_parents_vector()
+                        #
+                        # # A parent condition is not fulfilled
+                        # if np.sum([vector_id in inactive
+                        #            for vector_id in parent_vector_ids]) > 0:
+                        #     add = False
+                        #     break
+                        # if not condition.evaluate_vector(vector[i]):
+                        #     add = False
+                        #     break
 
                     if continue_while:
                         continue
@@ -861,13 +897,14 @@ class ConfigurationSpace(object):
                     if not add:
                         hyperparameter_idx = self._hyperparameter_idx[hp_name]
                         vector[i][hyperparameter_idx] = np.NaN
-                        inactive.add(hyperparameter_idx)
+                        #inactive.add(hyperparameter_idx)
+                        inactive.add(hp_name)
                     visited.add(hp_name)
 
             for i in range(missing):
                 try:
+                    self._check_forbidden_vector(vector[i])
                     configuration = Configuration(self, vector=vector[i])
-                    self._check_forbidden(configuration)
                     accepted_configurations.append(configuration)
                 except ValueError as e:
                     iteration += 1
