@@ -70,6 +70,10 @@ class Hyperparameter(object, metaclass=ABCMeta):
     def is_legal(self, value):
         raise NotImplementedError()
 
+    @abstractmethod
+    def is_legal_vector(self, value):
+        raise NotImplementedError()
+
     def sample(self, rs):
         vector = self._sample(rs)
         return self._transform(vector)
@@ -111,6 +115,7 @@ class Constant(Hyperparameter):
                             (type(value), allowed_types))  # type: ignore
 
         self.value = value
+        self.value_vector = 0.
         self.default = value
 
     def __repr__(self) -> str:
@@ -121,6 +126,9 @@ class Constant(Hyperparameter):
 
     def is_legal(self, value: Union[str, int, float]) -> bool:
         return value == self.value
+
+    def is_legal_vector(self, value: Union[int, float]) -> bool:
+        return value == self.value_vector
 
     def _sample(self, rs: None, size: int = None) -> Union[int, np.ndarray]:
         return 0 if size == 1 else np.zeros((size,))
@@ -183,6 +191,10 @@ class FloatHyperparameter(NumericalHyperparameter):
         raise NotImplemented
 
     @abstractmethod
+    def is_legal_vector(self, value: Union[int, float]) -> bool:
+        raise NotImplemented
+
+    @abstractmethod
     def check_default(self, default: Union[int, float]) -> float:
         raise NotImplemented
 
@@ -193,6 +205,10 @@ class IntegerHyperparameter(NumericalHyperparameter):
 
     @abstractmethod
     def is_legal(self, value: int) -> bool:
+        raise NotImplemented
+
+    @abstractmethod
+    def is_legal_vector(self, value: int) -> bool:
         raise NotImplemented
 
     @abstractmethod
@@ -275,6 +291,14 @@ class UniformFloatHyperparameter(FloatHyperparameter):
         if not (isinstance(value, float) or isinstance(value, int)):
             return False
         elif (self.upper + 0.00001) >= value >= (self.lower - 0.0000000001):
+            return True
+        else:
+            return False
+
+    def is_legal_vector(self, value: Union[float]) -> bool:
+        if not (isinstance(value, float) or isinstance(value, int)):
+            return False
+        elif 1.0 >= value >= 0.0:
             return True
         else:
             return False
@@ -398,6 +422,9 @@ class NormalFloatHyperparameter(FloatHyperparameter):
     def is_legal(self, value: Union[float]) -> bool:
         return isinstance(value, float) or isinstance(value, int)
 
+    def is_legal_vector(self, value: Union[float]) -> bool:
+        return isinstance(value, float) or isinstance(value, int)
+
     def _sample(self, rs: np.random.RandomState, size: Union[None, int] = None) -> np.ndarray:
         mu = self.mu
         sigma = self.sigma
@@ -506,6 +533,14 @@ class UniformIntegerHyperparameter(IntegerHyperparameter):
         if not (isinstance(value, (int, np.int, np.int32, np.int64))):
             return False
         elif self.upper >= value >= (self.lower - 0.0000000001):
+            return True
+        else:
+            return False
+
+    def is_legal_vector(self, value: float) -> bool:
+        if not (isinstance(value, float)):
+            return False
+        elif 1.0 >= value >= 0.0:
             return True
         else:
             return False
@@ -628,6 +663,9 @@ class NormalIntegerHyperparameter(IntegerHyperparameter):
     def is_legal(self, value: int) -> bool:
         return isinstance(value, (int, np.int, np.int32, np.int64))
 
+    def is_legal_vector(self, value: float) -> bool:
+        return isinstance(value, float)
+
     def check_default(self, default: int) -> int:
         if default is None:
             return self.mu
@@ -692,6 +730,7 @@ class CategoricalHyperparameter(Hyperparameter):
         # TODO check that there is no bullshit in the choices!
         self.choices = choices
         self._num_choices = len(choices)
+        self.choices_vector = range(self._num_choices)
         self.default = self.check_default(default)
 
     def __repr__(self) -> str:
@@ -718,6 +757,9 @@ class CategoricalHyperparameter(Hyperparameter):
             return True
         else:
             return False
+
+    def is_legal_vector(self, value: Union[None, float, int]) -> bool:
+        return value in self.choices_vector
 
     def check_default(self, default: Union[None, str, float, int]) -> Union[str, float, int]:
         if default is None:
@@ -805,6 +847,7 @@ class OrdinalHyperparameter(Hyperparameter):
         super(OrdinalHyperparameter, self).__init__(name)
         self.sequence = sequence
         self._num_elements = len(sequence)
+        self.sequence_vector = range(self._num_elements)
         self.default = self.check_default(default)
         self.value_dict = OrderedDict()  # type: OrderedDict[Union[int, float, str], int]
         counter = 1
@@ -841,6 +884,9 @@ class OrdinalHyperparameter(Hyperparameter):
         checks if a certain value is represented in the sequence
         """
         return value in self.sequence
+
+    def is_legal_vector(self, value: Union[None, float, int]) -> bool:
+        return value in self.sequence_vector
 
     def check_default(self, default: Union[int, float, str, None]) -> Union[int, float, str]:
         """
