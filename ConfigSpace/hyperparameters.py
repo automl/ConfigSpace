@@ -71,7 +71,20 @@ class Hyperparameter(object, metaclass=ABCMeta):
         raise NotImplementedError()
 
     @abstractmethod
-    def is_legal_vector(self, value):
+    def is_legal_vector(self, value) -> bool:
+        """
+        Checks wether the given value is a legal value for the vector
+        representation of this hyperparameter
+
+        Parameters
+        ----------
+        value : the vector value to check
+
+        Returns
+        -------
+        True if the given value is a legal vector value, otherwise False
+
+        """
         raise NotImplementedError()
 
     def sample(self, rs):
@@ -177,6 +190,9 @@ class NumericalHyperparameter(Hyperparameter):
         elif value == value2:
             return 0
 
+    def compare_vector(self, value: Union[int, float], value2: Union[int, float]) -> int:
+        return self.compare(value, value2)
+
     def allow_greater_less_comparison(self) -> bool:
         return True
 
@@ -208,7 +224,7 @@ class IntegerHyperparameter(NumericalHyperparameter):
         raise NotImplemented
 
     @abstractmethod
-    def is_legal_vector(self, value: int) -> bool:
+    def is_legal_vector(self, value: float) -> bool:
         raise NotImplemented
 
     @abstractmethod
@@ -538,7 +554,7 @@ class UniformIntegerHyperparameter(IntegerHyperparameter):
             return False
 
     def is_legal_vector(self, value: float) -> bool:
-        if not (isinstance(value, float)):
+        if not (isinstance(value, float) or isinstance(value, int)):
             return False
         elif 1.0 >= value >= 0.0:
             return True
@@ -664,7 +680,7 @@ class NormalIntegerHyperparameter(IntegerHyperparameter):
         return isinstance(value, (int, np.int, np.int32, np.int64))
 
     def is_legal_vector(self, value: float) -> bool:
-        return isinstance(value, float)
+        return isinstance(value, float) or isinstance(value, int)
 
     def check_default(self, default: int) -> int:
         if default is None:
@@ -751,6 +767,9 @@ class CategoricalHyperparameter(Hyperparameter):
             return 0
         else:
             return 1
+
+    def compare_vector(self, value: Union[int, float], value2: Union[int, float]) -> int:
+        return self.compare(value, value2)
 
     def is_legal(self, value: Union[None, str, float, int]) -> bool:
         if value in self.choices:
@@ -877,6 +896,14 @@ class OrdinalHyperparameter(Hyperparameter):
         elif self.value_dict[value] > self.value_dict[value2]:
             return 1
         elif self.value_dict[value] == self.value_dict[value2]:
+            return 0
+
+    def compare_vector(self, value: Union[int, float], value2: Union[int, float]) -> int:
+        if value < value2:
+            return -1
+        elif value > value2:
+            return 1
+        elif value == value2:
             return 0
 
     def is_legal(self, value: Union[int, float, str]) -> bool:
