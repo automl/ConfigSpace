@@ -593,59 +593,6 @@ class TestConfigurationSpace(unittest.TestCase):
                 for j in range(100):
                     self.assertEqual(samples[-1][j], samples[-2][j])
 
-    def test_sample_configuration_vector_checking(self):
-        cs = ConfigurationSpace()
-        hp1 = CategoricalHyperparameter("parent", [0, 1])
-        cs.add_hyperparameter(hp1)
-        hp2 = UniformIntegerHyperparameter("child", 0, 10)
-        cs.add_hyperparameter(hp2)
-        cond1 = EqualsCondition(hp2, hp1, 0)
-        cs.add_condition(cond1)
-        # This automatically checks the configuration!
-        Configuration(cs, dict(parent=0, child=5))
-
-        # and now for something more complicated
-        cs = ConfigurationSpace(seed=1)
-        hp1 = CategoricalHyperparameter("input1", [0, 1])
-        cs.add_hyperparameter(hp1)
-        hp2 = CategoricalHyperparameter("input2", [0, 1])
-        cs.add_hyperparameter(hp2)
-        hp3 = CategoricalHyperparameter("input3", [0, 1])
-        cs.add_hyperparameter(hp3)
-        hp4 = CategoricalHyperparameter("input4", [0, 1])
-        cs.add_hyperparameter(hp4)
-        hp5 = CategoricalHyperparameter("input5", [0, 1])
-        cs.add_hyperparameter(hp5)
-        hp6 = Constant("AND", "True")
-        cs.add_hyperparameter(hp6)
-
-        cond1 = EqualsCondition(hp6, hp1, 1)
-        cond2 = NotEqualsCondition(hp6, hp2, 1)
-        cond3 = InCondition(hp6, hp3, [1])
-        cond4 = EqualsCondition(hp5, hp3, 1)
-        cond5 = EqualsCondition(hp4, hp5, 1)
-        cond6 = EqualsCondition(hp6, hp4, 1)
-        cond7 = EqualsCondition(hp6, hp5, 1)
-
-        conj1 = AndConjunction(cond1, cond2)
-        conj2 = OrConjunction(conj1, cond3)
-        conj3 = AndConjunction(conj2, cond6, cond7)
-        cs.add_condition(cond4)
-        cs.add_condition(cond5)
-        cs.add_condition(conj3)
-
-        samples = []
-        for i in range(5):
-            cs.seed(1)
-            samples.append([])
-            for j in range(100):
-                sample = cs.sample_configuration_vector_checking()
-                samples[-1].append(sample)
-
-            if i > 0:
-                for j in range(100):
-                    self.assertEqual(samples[-1][j], samples[-2][j])
-
     def test_sample_wrong_argument(self):
         cs = ConfigurationSpace()
         self.assertRaisesRegex(TypeError,
