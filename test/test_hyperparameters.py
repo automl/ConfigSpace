@@ -136,6 +136,16 @@ class TestHyperparameters(unittest.TestCase):
         self.assertFalse(f1.is_legal("AAA"))
         self.assertFalse(f1.is_legal(dict()))
 
+        # Test legal vector values
+        self.assertTrue(f1.is_legal_vector(1.0))
+        self.assertTrue(f1.is_legal_vector(0.0))
+        self.assertTrue(f1.is_legal_vector(0))
+        self.assertTrue(f1.is_legal_vector(0.3))
+        self.assertFalse(f1.is_legal_vector(-0.1))
+        self.assertFalse(f1.is_legal_vector(1.1))
+        self.assertFalse(f1.is_legal_vector("Hahaha"))
+
+
     def test_uniformfloat_illegal_bounds(self):
         self.assertRaisesRegexp(ValueError,
             "Negative lower bound \(0.000000\) for log-scale hyperparameter "
@@ -200,6 +210,15 @@ class TestHyperparameters(unittest.TestCase):
         self.assertTrue(f1.is_legal(3.0))
         self.assertTrue(f1.is_legal(2))
         self.assertFalse(f1.is_legal("Hahaha"))
+
+        # Test legal vector values
+        self.assertTrue(f1.is_legal_vector(1.0))
+        self.assertTrue(f1.is_legal_vector(0.0))
+        self.assertTrue(f1.is_legal_vector(0))
+        self.assertTrue(f1.is_legal_vector(0.3))
+        self.assertTrue(f1.is_legal_vector(-0.1))
+        self.assertTrue(f1.is_legal_vector(1.1))
+        self.assertFalse(f1.is_legal_vector("Hahaha"))
 
     def test_normalfloat_to_integer(self):
         f1 = NormalFloatHyperparameter("param", 0, 10)
@@ -349,6 +368,15 @@ class TestHyperparameters(unittest.TestCase):
         self.assertTrue(f1.is_legal(2))
         self.assertTrue(f1.is_legal(-15))
 
+        # Test is legal vector
+        self.assertTrue(f1.is_legal_vector(1.0))
+        self.assertTrue(f1.is_legal_vector(0.0))
+        self.assertTrue(f1.is_legal_vector(0))
+        self.assertTrue(f1.is_legal_vector(0.3))
+        self.assertTrue(f1.is_legal_vector(-0.1))
+        self.assertTrue(f1.is_legal_vector(1.1))
+        self.assertFalse(f1.is_legal_vector("Hahaha"))
+
     def test_categorical(self):
         # TODO test for inequality
         f1 = CategoricalHyperparameter("param", [0, 1])
@@ -396,6 +424,14 @@ class TestHyperparameters(unittest.TestCase):
         self.assertTrue(f1.is_legal(u"a"))
         self.assertFalse(f1.is_legal("c"))
         self.assertFalse(f1.is_legal(3))
+
+        # Test is legal vector
+        self.assertTrue(f1.is_legal_vector(1.0))
+        self.assertTrue(f1.is_legal_vector(0.0))
+        self.assertTrue(f1.is_legal_vector(0))
+        self.assertFalse(f1.is_legal_vector(0.3))
+        self.assertFalse(f1.is_legal_vector(-0.1))
+        self.assertFalse(f1.is_legal_vector("Hahaha"))
 
     def test_sample_UniformFloatHyperparameter(self):
         # This can sample four distributions
@@ -578,6 +614,14 @@ class TestHyperparameters(unittest.TestCase):
         self.assertFalse(f1.is_legal("chill"))
         self.assertFalse(f1.is_legal(2.5))
         self.assertFalse(f1.is_legal("3"))
+
+        # Test is legal vector
+        self.assertTrue(f1.is_legal_vector(1.0))
+        self.assertTrue(f1.is_legal_vector(0.0))
+        self.assertTrue(f1.is_legal_vector(0))
+        self.assertTrue(f1.is_legal_vector(3))
+        self.assertFalse(f1.is_legal_vector(-0.1))
+        self.assertFalse(f1.is_legal_vector("Hahaha"))
         
     def test_ordinal_check_order(self):
         f1 = OrdinalHyperparameter("temp", 
