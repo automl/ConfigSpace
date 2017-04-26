@@ -868,11 +868,6 @@ class ConfigurationSpace(object):
                             continue_while = True
                             break
 
-                        # parents = {parent_name: self._hyperparameters[parent_name]._transform(vector[i][
-                        #                                                                          self._hyperparameter_idx[
-                        #                                                                              parent_name]])
-                        #           for parent_name in parent_names}
-
                         parent_vector_ids = condition.get_parents_vector()
 
                         # A parent condition is not fulfilled
