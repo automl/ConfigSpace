@@ -31,6 +31,8 @@ from itertools import combinations
 from typing import Any, List, Union
 import operator
 
+import numpy as np
+
 import io
 from functools import reduce
 from ConfigSpace.hyperparameters import Hyperparameter, \
@@ -46,6 +48,17 @@ class ConditionComponent(object):
 
     @abstractmethod
     def __repr__(self) -> str:
+        pass
+    @abstractmethod
+    def set_vector_idx(self, hyperparameter_to_idx) -> None:
+        pass
+
+    @abstractmethod
+    def get_children_vector(self) -> List[int]:
+        pass
+
+    @abstractmethod
+    def get_parents_vector(self) -> List[int]:
         pass
 
     @abstractmethod
@@ -124,8 +137,8 @@ class AbstractCondition(ConditionComponent):
         hp_name = self.parent.name
         return self._evaluate(instantiated_parent_hyperparameter[hp_name])
 
-    def evaluate_vector(self, instantiated_vector: List[float]) -> bool:
-        if self.parent_vector_id == None:
+    def evaluate_vector(self, instantiated_vector: np.ndarray) -> bool:
+        if self.parent_vector_id is None:
             raise ValueError("Parent vector id should not be None when calling evaluate vector")
         return self._evaluate_vector(instantiated_vector[self.parent_vector_id])
 
@@ -209,15 +222,12 @@ class AbstractConjunction(ConditionComponent):
 
         return self._evaluate(evaluations)
 
-    def evaluate_vector(self, instantiated_vector: List[int]) -> bool:
+    def evaluate_vector(self, instantiated_vector: np.ndarray) -> bool:
         # Then, check if all parents were passed
         conditions = self.get_descendant_literal_conditions()
         for condition in conditions:
-            if condition.parent_vector_id not in range(len(instantiated_vector)):
-                raise ValueError("Evaluate must be called with all "
-                                 "instanstatiated parent vector idx in "
-                                 "the conjunction; you are (at least) missing "
-                                 "'%s'" % condition.parent_vector_id)
+            if condition.parent_vector_id is None:
+                raise ValueError("Parent vector id should not be None when calling evaluate vector")
 
         # Finally, call evaluate for all direct descendents and combine the
         # outcomes
@@ -262,7 +272,7 @@ class EqualsCondition(AbstractCondition):
         if not self.parent.is_legal_vector(value):
             return False
 
-        cmp = self.parent.compare(value, self.vector_value)
+        cmp = self.parent.compare_vector(value, self.vector_value)
         if cmp == 0:
             return True
         else:
@@ -298,7 +308,7 @@ class NotEqualsCondition(AbstractCondition):
         if not self.parent.is_legal_vector(value):
             return False
 
-        cmp = self.parent.compare(value, self.vector_value)
+        cmp = self.parent.compare_vector(value, self.vector_value)
         if cmp != 0:
             return True
         else:
@@ -335,7 +345,7 @@ class LessThanCondition(AbstractCondition):
         if not self.parent.is_legal_vector(value):
             return False
 
-        cmp = self.parent.compare(value, self.vector_value)
+        cmp = self.parent.compare_vector(value, self.vector_value)
         if cmp == -1:
             return True
         else:
@@ -372,7 +382,7 @@ class GreaterThanCondition(AbstractCondition):
         if not self.parent.is_legal_vector(value):
             return False
 
-        cmp = self.parent.compare(value, self.vector_value)
+        cmp = self.parent.compare_vector(value, self.vector_value)
         if cmp == 1:
             return True
         else:
