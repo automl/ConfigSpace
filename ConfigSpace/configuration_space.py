@@ -716,6 +716,11 @@ class ConfigurationSpace(object):
             for i in range(missing):
                 hps = deque()
                 hps.extendleft(unconditional_hyperparameters)
+                active = np.ndarray((num_hyperparameters, 1))
+                active[:] = 0
+                for ch in conditional_hyperparameters:
+                    active[self._hyperparameter_idx[ch]] = np.NaN
+
                 inactive = set()
 
                 while len(hps) > 0:
@@ -725,52 +730,68 @@ class ConfigurationSpace(object):
                         continue
                     else:
                         for child in children:
-                            # if child.name not in inactive:
-                            parents = self.get_parents_of(child)
-                            parent_names = set(p.name for p in parents)
-                            if len(parents) == 1:
-                                conditions = self._get_parent_conditions_of(child.name)
-                                add = True
-                                parent = {parent_name: self._hyperparameters[parent_name]._transform(vector[i][
-                                                   self._hyperparameter_idx[
-                                                      parent_name]])
-                                           for parent_name in parent_names}
-                                # when len(parents)==1 then all conditions must have same parent
-                                for condition in conditions:
-                                    if not condition.evaluate(parent):
-                                        add = False
-                                        hyperparameter_idx = self._hyperparameter_idx[child.name]
-                                        vector[i][hyperparameter_idx] = np.NaN
-                                        inactive.add(child.name)
-                                        break
-                                if add == True:
-                                    hps.appendleft(child.name)
+                            if child.name not in inactive:
+                                parents = self.get_parents_of(child)
+                                parent_names = set(p.name for p in parents)
+                                # if len(parents) == 1:
+                                #     conditions = self._get_parent_conditions_of(child.name)
+                                #     add = True
+                                #     parent = {parent_name: self._hyperparameters[parent_name]._transform(vector[i][
+                                #                        self._hyperparameter_idx[
+                                #                           parent_name]])
+                                #                for parent_name in parent_names}
+                                #     # when len(parents)==1 then all conditions must have same parent
+                                #     for condition in conditions:
+                                #         # parents_in_conditions = [c.parent.name for c in
+                                #         #                          condition.get_descendant_literal_conditions()]
+                                #         #
+                                #         # parent = {parent_name: self._hyperparameters[parent_name]._transform(vector[i][
+                                #         #                                                                          self._hyperparameter_idx[
+                                #         #                                                                              parent_name]])
+                                #         #           for parent_name in parents_in_conditions}
+                                #
+                                #         if not condition.evaluate(parent):
+                                #             add = False
+                                #             hyperparameter_idx = self._hyperparameter_idx[child.name]
+                                #             vector[i][hyperparameter_idx] = np.NaN
+                                #             inactive.add(child.name)
+                                #             break
+                                #     if add == True:
+                                #         hyperparameter_idx = self._hyperparameter_idx[child.name]
+                                #         active[hyperparameter_idx] = 1
+                                #         hps.appendleft(child.name)
 
-                            else:
-                                if not parent_names <= set(hps): # make sure no parents are still unvisited
-                                    conditions = self._get_parent_conditions_of(child.name)
-                                    add = True
-                                    for condition in conditions:
-                                        parents_in_conditions = [c.parent.name for c in
-                                                                 condition.get_descendant_literal_conditions()]
+                                if True:
+                                    if not parent_names <= set(hps): # make sure no parents are still unvisited
+                                        conditions = self._get_parent_conditions_of(child.name)
+                                        add = True
+                                        for condition in conditions:
+                                            parents_in_conditions = [c.parent.name for c in
+                                                                     condition.get_descendant_literal_conditions()]
 
-                                        parent = {parent_name: self._hyperparameters[parent_name]._transform(vector[i][
-                                                   self._hyperparameter_idx[
-                                                      parent_name]])
-                                                    for parent_name in parents_in_conditions}
+                                            parent = {parent_name: self._hyperparameters[parent_name]._transform(vector[i][
+                                                       self._hyperparameter_idx[
+                                                          parent_name]])
+                                                        for parent_name in parents_in_conditions}
 
-                                        if not condition.evaluate(parent):
-                                            add = False
+                                            if not condition.evaluate(parent):
+                                                add = False
+                                                hyperparameter_idx = self._hyperparameter_idx[child.name]
+                                                vector[i][hyperparameter_idx] = np.NaN
+                                                inactive.add(child.name)
+                                                break
+
+                                        if add == True:
                                             hyperparameter_idx = self._hyperparameter_idx[child.name]
-                                            vector[i][hyperparameter_idx] = np.NaN
-                                            inactive.add(child.name)
-                                            break
+                                            active[hyperparameter_idx] = 1
+                                            hps.appendleft(child.name)
 
-                                    if add == True:
-                                        hps.appendleft(child.name)
+                                    else:
+                                        continue
 
-                                else:
-                                    continue
+                for j in range(num_hyperparameters):
+                    if np.isnan(active[j]):
+                        vector[i][j] = np.NaN
                         # if len(ch.parents) == 1:
                         #     if ch.
 
