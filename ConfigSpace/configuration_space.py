@@ -38,6 +38,7 @@ from ConfigSpace.conditions import ConditionComponent, \
     AbstractCondition, AbstractConjunction, EqualsCondition
 from ConfigSpace.forbidden import AbstractForbiddenComponent
 from typing import Union, List, Any, Dict, Iterable, Set, Tuple
+from ConfigSpace.exceptions import ForbiddenValueError
 
 
 class ConfigurationSpace(object):
@@ -631,7 +632,7 @@ class ConfigurationSpace(object):
     def _check_forbidden(self, configuration: 'Configuration') -> None:
         for clause in self.forbidden_clauses:
             if clause.is_forbidden(configuration, strict=False):
-                raise ValueError("%sviolates forbidden clause %s" % (
+                raise ForbiddenValueError("%sviolates forbidden clause %s" % (
                     str(configuration), str(clause)))
 
     # http://stackoverflow.com/a/25176504/4636294
@@ -769,11 +770,11 @@ class ConfigurationSpace(object):
                     configuration = Configuration(self, vector=vector[i])
                     self._check_forbidden(configuration)
                     accepted_configurations.append(configuration)
-                except ValueError as e:
+                except ForbiddenValueError as e:
                     iteration += 1
 
                     if iteration == size * 100:
-                        raise ValueError(
+                        raise ForbiddenValueError(
                             "Cannot sample valid configuration for "
                             "%s" % self)
 
