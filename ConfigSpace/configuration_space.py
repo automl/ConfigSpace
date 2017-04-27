@@ -723,11 +723,10 @@ class ConfigurationSpace(object):
             for i in range(missing):
                 hps = deque()
                 hps.extendleft(non_childless_hyperparameters)
-                active = np.ndarray((num_hyperparameters, 1))
-                active[:] = 0
+                active = np.zeros((num_hyperparameters, ), dtype=bool)
 
-                for ch in conditional_hyperparameters:
-                    active[self._hyperparameter_idx[ch]] = np.NaN
+                for ch in unconditional_hyperparameters:
+                    active[self._hyperparameter_idx[ch]] = 1
 
                 inactive = set()
 
@@ -786,8 +785,10 @@ class ConfigurationSpace(object):
                                 else:
                                     continue
 
+                # Surprisingly, the vector update wasn't faster
+                #vector[i][~active] = np.NaN
                 for j in range(num_hyperparameters):
-                    if np.isnan(active[j]):
+                    if not active[j]:
                         vector[i][j] = np.NaN
 
 
