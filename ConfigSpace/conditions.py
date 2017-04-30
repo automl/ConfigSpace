@@ -114,7 +114,7 @@ class AbstractCondition(ConditionComponent):
         self.child_vector_id = None
         self.parent_vector_id = None
 
-    def set_vector_idx(self, hyperparameter_to_idx):
+    def set_vector_idx(self, hyperparameter_to_idx: dict):
         self.child_vector_id = hyperparameter_to_idx[self.child.name]
         self.parent_vector_id = hyperparameter_to_idx[self.parent.name]
 
@@ -175,7 +175,7 @@ class AbstractConjunction(ConditionComponent):
                 children.append(component)
         return children
 
-    def set_vector_idx(self, hyperparameter_to_idx):
+    def set_vector_idx(self, hyperparameter_to_idx: dict):
         for component in self.components:
             component.set_vector_idx(hyperparameter_to_idx)
 

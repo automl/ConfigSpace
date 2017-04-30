@@ -38,6 +38,7 @@ from ConfigSpace.conditions import ConditionComponent, \
     AbstractCondition, AbstractConjunction, EqualsCondition
 from ConfigSpace.forbidden import AbstractForbiddenComponent
 from typing import Union, List, Any, Dict, Iterable, Set, Tuple
+from ConfigSpace.exceptions import ForbiddenValueError
 
 
 class ConfigurationSpace(object):
@@ -687,7 +688,7 @@ class ConfigurationSpace(object):
     def _check_forbidden(self, configuration: 'Configuration') -> None:
         for clause in self.forbidden_clauses:
             if clause.is_forbidden(configuration, strict=False):
-                raise ValueError("%sviolates forbidden clause %s" % (
+                raise ForbiddenValueError("%sviolates forbidden clause %s" % (
                     str(configuration), str(clause)))
 
     def _check_forbidden_vector(self, vector: List[float]) -> None:
@@ -764,6 +765,12 @@ class ConfigurationSpace(object):
 
         unconditional_hyperparameters = self.get_all_unconditional_hyperparameters()
         conditional_hyperparameters = self.get_all_conditional_hyperparameters()
+        non_childless_hyperparameters = list()
+
+        for uhp in unconditional_hyperparameters:
+            children = self.get_children_of(uhp)
+            if len(children) > 0:
+                non_childless_hyperparameters.append(uhp)
 
         while len(accepted_configurations) < size:
             if missing != size:
@@ -776,63 +783,73 @@ class ConfigurationSpace(object):
                 vector[:, i] = hyperparameter._sample(self.random, missing)
 
             for i in range(missing):
-                inactive = set()  # type: Set['str']
-                visited = set()
-                visited.update(unconditional_hyperparameters)
-                to_visit = deque()  # type: deque[str]
-                to_visit.extendleft(conditional_hyperparameters)
-                infiniteloopcounter = 0
-                while len(to_visit) > 0:
-                    infiniteloopcounter += 1
-                    if infiniteloopcounter >= 100000:
-                        raise ValueError("Probably an infinite loop...")
+                hps = deque()
+                hps.extendleft(non_childless_hyperparameters)
+                active = np.zeros((num_hyperparameters,), dtype=bool)
 
-                    hp_name = to_visit.pop()
-                    conditions = self._get_parent_conditions_of(hp_name)
-                    add = True
-                    continue_while = False
-                    for condition in conditions:
-                        parent_names = [c.parent.name for c in
-                                        condition.get_descendant_literal_conditions()]
+                for ch in unconditional_hyperparameters:
+                    active[self._hyperparameter_idx[ch]] = 1
 
-                        # Not all parents visited so far
-                        if np.sum([parent_name in visited
-                                   for parent_name in parent_names]) != \
-                                len(parent_names):
-                            to_visit.appendleft(hp_name)
-                            continue_while = True
-                            break
+                inactive = set()
 
-                        parent_vector_ids = condition.get_parents_vector()
+                while len(hps) > 0:
+                    hp = hps.pop()
+                    children = self.get_children_of(hp)
+                    for child in children:
+                        if child.name not in inactive:
+                            parents = self.get_parents_of(child)
+                            parent_names = set(p.name for p in parents)
+                            if len(parents) == 1:
+                                conditions = self._get_parent_conditions_of(child.name)
+                                add = True
+                                for condition in conditions:
+                                    if not condition.evaluate_vector(vector[i]):
+                                        add = False
+                                        hyperparameter_idx = self._hyperparameter_idx[child.name]
+                                        vector[i][hyperparameter_idx] = np.NaN
+                                        inactive.add(child.name)
+                                        break
+                                if add == True:
+                                    hyperparameter_idx = self._hyperparameter_idx[child.name]
+                                    active[hyperparameter_idx] = 1
+                                    hps.appendleft(child.name)
 
-                        # A parent condition is not fulfilled
-                        if np.sum([vector_id in inactive
-                                   for vector_id in parent_vector_ids]) > 0:
-                            add = False
-                            break
-                        if not condition.evaluate_vector(vector[i]):
-                            add = False
-                            break
+                            else:
+                                if not parent_names <= set(hps):  # make sure no parents are still unvisited
+                                    conditions = self._get_parent_conditions_of(child.name)
+                                    add = True
+                                    for condition in conditions:
+                                        if not condition.evaluate_vector(vector[i]):
+                                            add = False
+                                            hyperparameter_idx = self._hyperparameter_idx[child.name]
+                                            vector[i][hyperparameter_idx] = np.NaN
+                                            inactive.add(child.name)
+                                            break
 
-                    if continue_while:
-                        continue
+                                    if add == True:
+                                        hyperparameter_idx = self._hyperparameter_idx[child.name]
+                                        active[hyperparameter_idx] = 1
+                                        hps.appendleft(child.name)
 
-                    if not add:
-                        hyperparameter_idx = self._hyperparameter_idx[hp_name]
-                        vector[i][hyperparameter_idx] = np.NaN
-                        inactive.add(hyperparameter_idx)
-                    visited.add(hp_name)
+                                else:
+                                    continue
+
+                # Surprisingly, the vector update wasn't faster
+                # vector[i][~active] = np.NaN
+                for j in range(num_hyperparameters):
+                    if not active[j]:
+                        vector[i][j] = np.NaN
 
             for i in range(missing):
                 try:
                     configuration = Configuration(self, vector=vector[i])
                     self._check_forbidden(configuration)
                     accepted_configurations.append(configuration)
-                except ValueError as e:
+                except ForbiddenValueError as e:
                     iteration += 1
 
                     if iteration == size * 100:
-                        raise ValueError(
+                        raise ForbiddenValueError(
                             "Cannot sample valid configuration for "
                             "%s" % self)
 

@@ -1,3 +1,7 @@
+# Version 0.3.3
+
+* Improve sampling speed for highly conditional configuration spaces
+
 # Version 0.3.2
 
 * FIX: do not store `None` when calling `populate_values` on a Configuration
