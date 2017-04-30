@@ -95,7 +95,7 @@ class AbstractForbiddenClause(AbstractForbiddenComponent):
     def get_descendant_literal_clauses(self) -> List[AbstractForbiddenComponent]:
         return [self]
 
-    def set_vector_idx(self, hyperparameter_to_idx):
+    def set_vector_idx(self, hyperparameter_to_idx: dict):
         self.vector_id = hyperparameter_to_idx[self.hyperparameter.name]
 
 
@@ -123,7 +123,7 @@ class SingleValueForbiddenClause(AbstractForbiddenClause):
 
         return self._is_forbidden(value)
 
-    def is_forbidden_vector(self, instantiated_vector: List[float],
+    def is_forbidden_vector(self, instantiated_vector: np.ndarray,
                             strict: bool = True) -> bool:
         value = instantiated_vector[self.vector_id]
 
@@ -173,7 +173,7 @@ class MultipleValueForbiddenClause(AbstractForbiddenClause):
 
         return self._is_forbidden(value)
 
-    def is_forbidden_vector(self, instantiated_vector: List[float],
+    def is_forbidden_vector(self, instantiated_vector: np.ndarray,
                             strict: bool = True) -> bool:
         value = instantiated_vector[self.vector_id]
 
@@ -245,7 +245,7 @@ class AbstractForbiddenConjunction(AbstractForbiddenComponent):
     def __repr__(self):
         pass
 
-    def set_vector_idx(self, hyperparameter_to_idx):
+    def set_vector_idx(self, hyperparameter_to_idx: dict):
         for component in self.components:
             component.set_vector_idx(hyperparameter_to_idx)
 
@@ -283,7 +283,7 @@ class AbstractForbiddenConjunction(AbstractForbiddenComponent):
             evaluations.append(e)
         return self._is_forbidden(evaluations)
 
-    def is_forbidden_vector(self, instantiated_vector: List[float],
+    def is_forbidden_vector(self, instantiated_vector: np.ndarray,
                             strict: bool = True) -> bool:
         dlcs = self.get_descendant_literal_clauses()
         for dlc in dlcs:
