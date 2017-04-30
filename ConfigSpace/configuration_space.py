@@ -695,7 +695,7 @@ class ConfigurationSpace(object):
         """ Allows to iterate over the hyperparameter names in (hopefully?) the right order."""
         return iter(self._hyperparameters.keys())
 
-    def sample_configuration(self, size: int=1) -> Union['Configuration', List['Configuration']]:
+    def sample_configuration(self, size: int = 1) -> Union['Configuration', List['Configuration']]:
         if not isinstance(size, int):
             raise TypeError('Argument size must be of type int, but is %s'
                             % type(size))
@@ -714,7 +714,6 @@ class ConfigurationSpace(object):
             if len(children) > 0:
                 non_childless_hyperparameters.append(uhp)
 
-
         while len(accepted_configurations) < size:
             if missing != size:
                 missing = int(1.1 * missing)
@@ -728,7 +727,7 @@ class ConfigurationSpace(object):
             for i in range(missing):
                 hps = deque()
                 hps.extendleft(non_childless_hyperparameters)
-                active = np.zeros((num_hyperparameters, ), dtype=bool)
+                active = np.zeros((num_hyperparameters,), dtype=bool)
 
                 for ch in unconditional_hyperparameters:
                     active[self._hyperparameter_idx[ch]] = 1
@@ -745,13 +744,8 @@ class ConfigurationSpace(object):
                             if len(parents) == 1:
                                 conditions = self._get_parent_conditions_of(child.name)
                                 add = True
-                                parent = {parent_name: self._hyperparameters[parent_name]._transform(vector[i][
-                                                   self._hyperparameter_idx[
-                                                      parent_name]])
-                                           for parent_name in parent_names}
-                                # when len(parents)==1 then all conditions must have same parent
                                 for condition in conditions:
-                                    if not condition.evaluate(parent):
+                                    if not condition.evaluate_vector(vector[i]):
                                         add = False
                                         hyperparameter_idx = self._hyperparameter_idx[child.name]
                                         vector[i][hyperparameter_idx] = np.NaN
@@ -763,19 +757,11 @@ class ConfigurationSpace(object):
                                     hps.appendleft(child.name)
 
                             else:
-                                if not parent_names <= set(hps): # make sure no parents are still unvisited
+                                if not parent_names <= set(hps):  # make sure no parents are still unvisited
                                     conditions = self._get_parent_conditions_of(child.name)
                                     add = True
                                     for condition in conditions:
-                                        parents_in_conditions = [c.parent.name for c in
-                                                                 condition.get_descendant_literal_conditions()]
-
-                                        parent = {parent_name: self._hyperparameters[parent_name]._transform(vector[i][
-                                                   self._hyperparameter_idx[
-                                                      parent_name]])
-                                                    for parent_name in parents_in_conditions}
-
-                                        if not condition.evaluate(parent):
+                                        if not condition.evaluate_vector(vector[i]):
                                             add = False
                                             hyperparameter_idx = self._hyperparameter_idx[child.name]
                                             vector[i][hyperparameter_idx] = np.NaN
@@ -791,11 +777,10 @@ class ConfigurationSpace(object):
                                     continue
 
                 # Surprisingly, the vector update wasn't faster
-                #vector[i][~active] = np.NaN
+                # vector[i][~active] = np.NaN
                 for j in range(num_hyperparameters):
                     if not active[j]:
                         vector[i][j] = np.NaN
-
 
             for i in range(missing):
                 try:
@@ -807,97 +792,6 @@ class ConfigurationSpace(object):
 
                     if iteration == size * 100:
                         raise ForbiddenValueError(
-                            "Cannot sample valid configuration for "
-                            "%s" % self)
-
-            missing = size - len(accepted_configurations)
-
-        if size <= 1:
-            return accepted_configurations[0]
-        else:
-            return accepted_configurations
-
-    def sample_configuration_vector_checking(self, size: int = 1) -> Union['Configuration', List['Configuration']]:
-        if not isinstance(size, int):
-            raise TypeError('Argument size must be of type int, but is %s'
-                            % type(size))
-
-        iteration = 0
-        missing = size
-        accepted_configurations = []  # type: List['Configuration']
-        num_hyperparameters = len(self._hyperparameters)
-
-        unconditional_hyperparameters = self.get_all_unconditional_hyperparameters()
-        conditional_hyperparameters = self.get_all_conditional_hyperparameters()
-
-        while len(accepted_configurations) < size:
-            if missing != size:
-                missing = int(1.1 * missing)
-            vector = np.ndarray((missing, num_hyperparameters),
-                                dtype=np.float64)
-
-            for i, hp_name in enumerate(self._hyperparameters):
-                hyperparameter = self._hyperparameters[hp_name]
-                vector[:, i] = hyperparameter._sample(self.random, missing)
-
-            for i in range(missing):
-                inactive = set()  # type: Set['str']
-                visited = set()
-                visited.update(unconditional_hyperparameters)
-                to_visit = deque()  # type: deque[str]
-                to_visit.extendleft(conditional_hyperparameters)
-                infiniteloopcounter = 0
-                while len(to_visit) > 0:
-                    infiniteloopcounter += 1
-                    if infiniteloopcounter >= 100000:
-                        raise ValueError("Probably an infinite loop...")
-
-                    hp_name = to_visit.pop()
-                    conditions = self._get_parent_conditions_of(hp_name)
-                    add = True
-                    continue_while = False
-                    for condition in conditions:
-                        parent_names = [c.parent.name for c in
-                                        condition.get_descendant_literal_conditions()]
-
-                        # Not all parents visited so far
-                        if np.sum([parent_name in visited
-                                   for parent_name in parent_names]) != \
-                                len(parent_names):
-                            to_visit.appendleft(hp_name)
-                            continue_while = True
-                            break
-
-                        parent_vector_ids = condition.get_parents_vector()
-
-                        # A parent condition is not fulfilled
-                        if np.sum([vector_id in inactive
-                                   for vector_id in parent_vector_ids]) > 0:
-                            add = False
-                            break
-                        if not condition.evaluate_vector(vector[i]):
-                            add = False
-                            break
-
-                    if continue_while:
-                        continue
-
-                    if not add:
-                        hyperparameter_idx = self._hyperparameter_idx[hp_name]
-                        vector[i][hyperparameter_idx] = np.NaN
-                        inactive.add(hyperparameter_idx)
-                    visited.add(hp_name)
-
-            for i in range(missing):
-                try:
-                    configuration = Configuration(self, vector=vector[i])
-                    self._check_forbidden(configuration)
-                    accepted_configurations.append(configuration)
-                except ValueError as e:
-                    iteration += 1
-
-                    if iteration == size * 100:
-                        raise ValueError(
                             "Cannot sample valid configuration for "
                             "%s" % self)
 
