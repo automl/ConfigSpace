@@ -225,7 +225,6 @@ class ForbiddenInClause(MultipleValueForbiddenClause):
         return value in self.values
 
     def _is_forbidden_vector(self, value: Any) -> bool:
-        print(value, self.vector_values)
         return value in self.vector_values
 
 
