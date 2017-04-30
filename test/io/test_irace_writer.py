@@ -215,7 +215,7 @@ class TestIraceWriter(unittest.TestCase):
         hp4 = UniformIntegerHyperparameter("child3", 0, 2)
         hp5 = CategoricalHyperparameter("child4", [4,5,6,7])
 
-        cs.add_hyperparameters([hp1, hp2, hp3, hp4])
+        cs.add_hyperparameters([hp1, hp2, hp3, hp4, hp5])
 
         forb2 = ForbiddenEqualsClause(hp1, 1)
         forb3 = ForbiddenInClause(hp2, range(2, 3))

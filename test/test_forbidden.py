@@ -135,7 +135,8 @@ class TestForbidden(unittest.TestCase):
         forb1.set_vector_idx(hyperparameter_idx)
         self.assertFalse(forb1.is_forbidden_vector([np.NaN, np.NaN], strict=False))
         self.assertFalse(forb1.is_forbidden_vector([np.NaN, 0]))
-        self.assertTrue(forb1.is_forbidden_vector([np.NaN, 6]))
+        correct_vector_value = hp2._inverse_transform(6)
+        self.assertTrue(forb1.is_forbidden_vector([np.NaN, correct_vector_value]))
 
 
     def test_and_conjunction(self):
