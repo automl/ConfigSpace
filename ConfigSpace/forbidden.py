@@ -213,6 +213,7 @@ class ForbiddenInClause(MultipleValueForbiddenClause):
     def __init__(self, hyperparameter: Dict[str, Union[None, str, float, int]], values: Any) -> None:
         super(ForbiddenInClause, self).__init__(hyperparameter, values)
         self.values = set(self.values)
+        self.vector_values = set(self.vector_values)
 
     def __repr__(self) -> str:
         return "Forbidden: %s in %s" % (
@@ -224,6 +225,7 @@ class ForbiddenInClause(MultipleValueForbiddenClause):
         return value in self.values
 
     def _is_forbidden_vector(self, value: Any) -> bool:
+        print(value, self.vector_values)
         return value in self.vector_values
 
 
