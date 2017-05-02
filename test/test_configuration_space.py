@@ -93,9 +93,7 @@ class TestConfigurationSpace(unittest.TestCase):
         forb2 = ForbiddenEqualsClause(hp2, "l1")
         forb3 = ForbiddenAndConjunction(forb1, forb2)
         # cs.add_forbidden_clause(forb3)
-        self.assertRaisesRegexp(ValueError, "Configuration:\n"
-            "  loss, Value: \'l1\'\n  penalty, Value: \'l1\'\n"
-            "violates forbidden clause \(Forbidden: loss == \'l1\' && "
+        self.assertRaisesRegexp(ValueError, "Given vector violates forbidden clause \(Forbidden: loss == \'l1\' && "
             "Forbidden: penalty == \'l1\'\)", cs.add_forbidden_clause, forb3)
 
     def test_add_non_condition(self):
@@ -489,7 +487,7 @@ class TestConfigurationSpace(unittest.TestCase):
         configuration = Configuration(cs,
             vector=np.ones(1, dtype=float))
         self.assertRaisesRegexp(ValueError, "violates forbidden clause",
-                                cs._check_forbidden, configuration)
+                                cs._check_forbidden, configuration.get_array())
 
     def test_eq(self):
         # Compare empty configuration spaces

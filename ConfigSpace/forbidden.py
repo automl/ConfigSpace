@@ -29,6 +29,8 @@
 from abc import ABCMeta, abstractmethod
 import operator
 
+import numpy as np
+
 import io
 from functools import reduce
 
@@ -69,27 +71,43 @@ class AbstractForbiddenComponent(object):
         pass
 
     @abstractmethod
+    def set_vector_idx(self, hyperparameter_to_idx):
+        pass
+
+    @abstractmethod
     def is_forbidden(self, instantiated_hyperparameters, strict):
+        pass
+
+    @abstractmethod
+    def is_forbidden_vector(self, instantiated_hyperparameters, strict):
         pass
 
 
 class AbstractForbiddenClause(AbstractForbiddenComponent):
+
+    def __init__(self, hyperparameter: Hyperparameter):
+        if not isinstance(hyperparameter, Hyperparameter):
+            raise TypeError("Argument 'hyperparameter' is not of type %s." %
+                            Hyperparameter)
+        self.hyperparameter = hyperparameter
+        self.vector_id = None
+
     def get_descendant_literal_clauses(self) -> List[AbstractForbiddenComponent]:
         return [self]
+
+    def set_vector_idx(self, hyperparameter_to_idx: dict):
+        self.vector_id = hyperparameter_to_idx[self.hyperparameter.name]
 
 
 class SingleValueForbiddenClause(AbstractForbiddenClause):
     def __init__(self, hyperparameter: Hyperparameter, value: Any) -> None:
-        super(SingleValueForbiddenClause, self).__init__()
-        if not isinstance(hyperparameter, Hyperparameter):
-            raise TypeError("'%s' is not of type %s." %
-                            (str(hyperparameter), Hyperparameter))
-        self.hyperparameter = hyperparameter
-        if not hyperparameter.is_legal(value):
+        super(SingleValueForbiddenClause, self).__init__(hyperparameter)
+        if not self.hyperparameter.is_legal(value):
             raise ValueError("Forbidden clause must be instantiated with a "
                              "legal hyperparameter value for '%s', but got "
-                             "'%s'" % (hyperparameter, str(value)))
+                             "'%s'" % (self.hyperparameter, str(value)))
         self.value = value
+        self.vector_value = self.hyperparameter._inverse_transform(self.value)
 
     def is_forbidden(self, instantiated_hyperparameters: Dict[str, Union[None, str, float, int]], strict: bool=True) -> bool:
         value = instantiated_hyperparameters.get(self.hyperparameter.name)
@@ -105,24 +123,41 @@ class SingleValueForbiddenClause(AbstractForbiddenClause):
 
         return self._is_forbidden(value)
 
+    def is_forbidden_vector(self, instantiated_vector: np.ndarray,
+                            strict: bool = True) -> bool:
+        value = instantiated_vector[self.vector_id]
+
+        if value is np.NaN:
+            if strict:
+                raise ValueError("Is_forbidden must be called with the "
+                                 "instanstatiated vector id in the "
+                                 "forbidden clause; you are missing "
+                                 "'%s'" % self.vector_id)
+            else:
+                return False
+
+        return self._is_forbidden_vector(value)
+
     @abstractmethod
     def _is_forbidden(self, target_instantiated_hyperparameter):
+        pass
+
+    @abstractmethod
+    def _is_forbidden_vector(self, target_instantiated_vector):
         pass
 
 
 class MultipleValueForbiddenClause(AbstractForbiddenClause):
     def __init__(self, hyperparameter: Hyperparameter, values: Any) -> None:
-        super(MultipleValueForbiddenClause, self).__init__()
-        if not isinstance(hyperparameter, Hyperparameter):
-            raise TypeError("Argument 'hyperparameter' is not of type %s." %
-                            Hyperparameter)
-        self.hyperparameter = hyperparameter
+        super(MultipleValueForbiddenClause, self).__init__(hyperparameter)
+
         for value in values:
-            if not hyperparameter.is_legal(value):
+            if not self.hyperparameter.is_legal(value):
                 raise ValueError("Forbidden clause must be instantiated with a "
                                  "legal hyperparameter value for '%s', but got "
-                                 "'%s'" % (hyperparameter, str(value)))
+                                 "'%s'" % (self.hyperparameter, str(value)))
         self.values = values
+        self.vector_values = [self.hyperparameter._inverse_transform(value) for value in self.values]
 
     def is_forbidden(self, instantiated_hyperparameters: Dict[str, Union[None, str, float, int]], strict: bool=True) -> bool:
         value = instantiated_hyperparameters.get(self.hyperparameter.name)
@@ -138,8 +173,27 @@ class MultipleValueForbiddenClause(AbstractForbiddenClause):
 
         return self._is_forbidden(value)
 
+    def is_forbidden_vector(self, instantiated_vector: np.ndarray,
+                            strict: bool = True) -> bool:
+        value = instantiated_vector[self.vector_id]
+
+        if value is np.NaN:
+            if strict:
+                raise ValueError("Is_forbidden must be called with the "
+                                 "instanstatiated vector id in the "
+                                 "forbidden clause; you are missing "
+                                 "'%s'" % self.vector_id)
+            else:
+                return False
+
+        return self._is_forbidden_vector(value)
+
     @abstractmethod
     def _is_forbidden(self, target_instantiated_hyperparameter):
+        pass
+
+    @abstractmethod
+    def _is_forbidden_vector(self, target_instantiated_vector):
         pass
 
 
@@ -151,11 +205,15 @@ class ForbiddenEqualsClause(SingleValueForbiddenClause):
     def _is_forbidden(self, value: Any) -> bool:
         return value == self.value
 
+    def _is_forbidden_vector(self, value: Any) -> bool:
+        return value == self.vector_value
+
 
 class ForbiddenInClause(MultipleValueForbiddenClause):
     def __init__(self, hyperparameter: Dict[str, Union[None, str, float, int]], values: Any) -> None:
         super(ForbiddenInClause, self).__init__(hyperparameter, values)
         self.values = set(self.values)
+        self.vector_values = set(self.vector_values)
 
     def __repr__(self) -> str:
         return "Forbidden: %s in %s" % (
@@ -165,6 +223,9 @@ class ForbiddenInClause(MultipleValueForbiddenClause):
 
     def _is_forbidden(self, value: Any) -> bool:
         return value in self.values
+
+    def _is_forbidden_vector(self, value: Any) -> bool:
+        return value in self.vector_values
 
 
 class AbstractForbiddenConjunction(AbstractForbiddenComponent):
@@ -183,6 +244,10 @@ class AbstractForbiddenConjunction(AbstractForbiddenComponent):
     @abstractmethod
     def __repr__(self):
         pass
+
+    def set_vector_idx(self, hyperparameter_to_idx: dict):
+        for component in self.components:
+            component.set_vector_idx(hyperparameter_to_idx)
 
     # todo:recheck is return type should be AbstractForbiddenComponent or AbstractForbiddenConjunction or Hyperparameter
     def get_descendant_literal_clauses(self) -> List[AbstractForbiddenComponent]:
@@ -215,6 +280,29 @@ class AbstractForbiddenConjunction(AbstractForbiddenComponent):
         for component in self.components:
             e = component.is_forbidden(instantiated_hyperparameters,
                                        strict=strict)
+            evaluations.append(e)
+        return self._is_forbidden(evaluations)
+
+    def is_forbidden_vector(self, instantiated_vector: np.ndarray,
+                            strict: bool = True) -> bool:
+        dlcs = self.get_descendant_literal_clauses()
+        for dlc in dlcs:
+            if dlc.vector_id not in range(len(instantiated_vector)):
+                if strict:
+                    raise ValueError("Is_forbidden must be called with all "
+                                     "instanstatiated hyperparameters in the "
+                                     "and conjunction of forbidden clauses; "
+                                     "you are (at least) missing "
+                                     "'%s'" % dlc.vector_id)
+                else:
+                    return False
+
+        # Finally, call is_forbidden for all direct descendents and combine the
+        # outcomes
+        evaluations = []
+        for component in self.components:
+            e = component.is_forbidden_vector(instantiated_vector,
+                                              strict=strict)
             evaluations.append(e)
         return self._is_forbidden(evaluations)
 

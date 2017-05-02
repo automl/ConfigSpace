@@ -30,6 +30,8 @@ from itertools import product
 import unittest
 import warnings
 
+import numpy as np
+
 from ConfigSpace.hyperparameters import \
     UniformIntegerHyperparameter, CategoricalHyperparameter
 from ConfigSpace.forbidden import ForbiddenEqualsClause, \
@@ -42,7 +44,7 @@ class TestForbidden(unittest.TestCase):
         hp1 = CategoricalHyperparameter("parent", [0, 1])
         hp2 = UniformIntegerHyperparameter("child", 0, 10)
 
-        self.assertRaisesRegexp(TypeError, "HP1' is not of"
+        self.assertRaisesRegexp(TypeError, "Argument 'hyperparameter' is not of"
             " type <class 'ConfigSpace.hyperparameters.Hyperparameter'>.",
                                 ForbiddenEqualsClause, "HP1", 1)
 
@@ -73,6 +75,17 @@ class TestForbidden(unittest.TestCase):
         self.assertFalse(forb1.is_forbidden({'child': 1}, strict=False))
         self.assertFalse(forb1.is_forbidden({'parent': 0}))
         self.assertTrue(forb1.is_forbidden({'parent': 1}))
+
+        # Test forbidden on vector values
+        hyperparameter_idx = {
+            hp1.name: 0,
+            hp2.name: 1
+        }
+        forb1.set_vector_idx(hyperparameter_idx)
+        self.assertFalse(forb1.is_forbidden_vector([np.NaN, np.NaN], strict=False))
+        self.assertFalse(forb1.is_forbidden_vector([0., np.NaN]))
+        self.assertTrue(forb1.is_forbidden_vector([1., np.NaN]))
+
 
     def test_in_condition(self):
         hp1 = CategoricalHyperparameter("parent", [0, 1])
@@ -113,6 +126,17 @@ class TestForbidden(unittest.TestCase):
 
         for i in range(5, 10):
             self.assertTrue(forb1.is_forbidden({'child': i}))
+
+        # Test forbidden on vector values
+        hyperparameter_idx = {
+            hp1.name: 0,
+            hp2.name: 1
+        }
+        forb1.set_vector_idx(hyperparameter_idx)
+        self.assertFalse(forb1.is_forbidden_vector([np.NaN, np.NaN], strict=False))
+        self.assertFalse(forb1.is_forbidden_vector([np.NaN, 0]))
+        correct_vector_value = hp2._inverse_transform(6)
+        self.assertTrue(forb1.is_forbidden_vector([np.NaN, correct_vector_value]))
 
 
     def test_and_conjunction(self):

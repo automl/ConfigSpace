@@ -311,6 +311,10 @@ class ConfigurationSpace(object):
         for condition in self.get_conditions():
             condition.set_vector_idx(self._hyperparameter_idx)
 
+        # forbidden clauses
+        for clause in self.forbidden_clauses:
+            clause.set_vector_idx(self._hyperparameter_idx)
+
     def _create_tmp_dag(self) -> ConfigSpace.nx.DiGraph:
         tmp_dag = ConfigSpace.nx.DiGraph()
         for hp_name in self._hyperparameters:
@@ -336,12 +340,14 @@ class ConfigurationSpace(object):
             raise TypeError("The method add_forbidden_clause must be called "
                             "with an instance of "
                             "ConfigSpace.forbidden.AbstractForbiddenComponent.")
+        clause.set_vector_idx(self._hyperparameter_idx)
         self.forbidden_clauses.append(clause)
         self._check_default_configuration()
         return clause
 
     def add_forbidden_clauses(self, clauses: List[AbstractForbiddenComponent]) -> List[AbstractForbiddenComponent]:
         for clause in clauses:
+            clause.set_vector_idx(self._hyperparameter_idx)
             if not isinstance(clause, AbstractForbiddenComponent):
                 raise TypeError("Forbidden '%s' is not an instance of "
                                 "ConfigSpace.forbidden.AbstractForbiddenComponent." %
@@ -651,13 +657,12 @@ class ConfigurationSpace(object):
                 raise ValueError("Inactive hyperparameter '%s' must not be "
                                  "specified, but has the value: '%s'." %
                                  (hp_name, hp_value))
-        self._check_forbidden(configuration)
+        self._check_forbidden(configuration.get_array())
 
-    def _check_forbidden(self, configuration: 'Configuration') -> None:
+    def _check_forbidden(self, vector: np.ndarray) -> None:
         for clause in self.forbidden_clauses:
-            if clause.is_forbidden(configuration, strict=False):
-                raise ForbiddenValueError("%sviolates forbidden clause %s" % (
-                    str(configuration), str(clause)))
+            if clause.is_forbidden_vector(vector, strict=False):
+                raise ForbiddenValueError("Given vector violates forbidden clause %s" % (str(clause)))
 
     # http://stackoverflow.com/a/25176504/4636294
     def __eq__(self, other: Any) -> bool:
@@ -804,8 +809,8 @@ class ConfigurationSpace(object):
 
             for i in range(missing):
                 try:
+                    self._check_forbidden(vector[i])
                     configuration = Configuration(self, vector=vector[i])
-                    self._check_forbidden(configuration)
                     accepted_configurations.append(configuration)
                 except ForbiddenValueError as e:
                     iteration += 1
@@ -890,8 +895,7 @@ class Configuration(object):
                                      '%s' % key)
 
             self._query_values = True
-            self.is_valid_configuration()
-            self._vector = np.ndarray((self._num_hyperparameters, ),
+            self._vector = np.ndarray((self._num_hyperparameters,),
                                       dtype=np.float)
 
             # Populate the vector
@@ -899,7 +903,9 @@ class Configuration(object):
             for key in configuration_space._hyperparameters:
                 self._vector[self.configuration_space._hyperparameter_idx[
                     key]] = self.configuration_space.get_hyperparameter(key). \
-                        _inverse_transform(self[key])
+                    _inverse_transform(self[key])
+            self.is_valid_configuration()
+
 
         elif vector is not None:
             self._values = dict()
