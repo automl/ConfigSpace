@@ -39,7 +39,6 @@ setup(
                       'typing'],
     keywords=keywords,
     packages=find_packages(),
-    scripts=['scripts/HPOlib-convert'],
     classifiers=[
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
