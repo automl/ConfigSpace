@@ -746,7 +746,7 @@ class CategoricalHyperparameter(Hyperparameter):
         # TODO check that there is no bullshit in the choices!
         self.choices = choices
         self._num_choices = len(choices)
-        self.choices_vector = range(self._num_choices)
+        self.choices_vector = list(range(self._num_choices))
         self.default = self.check_default(default)
 
     def __repr__(self) -> str:

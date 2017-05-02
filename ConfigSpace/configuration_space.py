@@ -477,9 +477,16 @@ class ConfigurationSpace(object):
 
         return conditions
 
-    def get_children_of(self, name: Hyperparameter) -> List[Hyperparameter]:
+    def get_children_of(self, name: Union[str, Hyperparameter]) -> List[Hyperparameter]:
         conditions = self.get_child_conditions_of(name)
         parents = [] # type: List[Hyperparameter]
+        for condition in conditions:
+            parents.extend(condition.get_children())
+        return parents
+
+    def _get_children_of(self, name: str) -> List[Hyperparameter]:
+        conditions = self._get_child_conditions_of(name)
+        parents = []  # type: List[Hyperparameter]
         for condition in conditions:
             parents.extend(condition.get_children())
         return parents
@@ -490,14 +497,9 @@ class ConfigurationSpace(object):
 
         # This raises an exception if the hyperparameter does not exist
         self.get_hyperparameter(name)
+        return self._get_child_conditions_of(name)
 
-        #conditions = []
-        #for child_name in self._children[name]:
-        #    if child_name == "__HPOlib_configuration_space_root__":
-        #        continue
-        #    condition = self._children[name][child_name]
-        #    conditions.append(condition)
-
+    def _get_child_conditions_of(self, name: str) -> List[AbstractCondition]:
         children = self._children[name]
         conditions = [children[child_name] for child_name in children
                       if child_name != "__HPOlib_configuration_space_root__"]
@@ -519,6 +521,24 @@ class ConfigurationSpace(object):
         """
         conditions = self.get_parent_conditions_of(name)
         parents = [] # type: List[Hyperparameter]
+        for condition in conditions:
+            parents.extend(condition.get_parents())
+        return parents
+
+    def _get_parents_of(self, name: str) -> List[Hyperparameter]:
+        """Return the parent hyperparameters of a given hyperparameter.
+
+        Parameters
+        ----------
+        name : str
+
+        Returns
+        -------
+        list
+            List with all parent hyperparameters.
+        """
+        conditions = self._get_parent_conditions_of(name)
+        parents = []  # type: List[Hyperparameter]
         for condition in conditions:
             parents.extend(condition.get_parents())
         return parents
@@ -710,7 +730,7 @@ class ConfigurationSpace(object):
         non_childless_hyperparameters = list()
 
         for uhp in unconditional_hyperparameters:
-            children = self.get_children_of(uhp)
+            children = self._get_children_of(uhp)
             if len(children) > 0:
                 non_childless_hyperparameters.append(uhp)
 
@@ -736,10 +756,10 @@ class ConfigurationSpace(object):
 
                 while len(hps) > 0:
                     hp = hps.pop()
-                    children = self.get_children_of(hp)
+                    children = self._get_children_of(hp)
                     for child in children:
                         if child.name not in inactive:
-                            parents = self.get_parents_of(child)
+                            parents = self._get_parents_of(child.name)
                             parent_names = set(p.name for p in parents)
                             if len(parents) == 1:
                                 conditions = self._get_parent_conditions_of(child.name)
