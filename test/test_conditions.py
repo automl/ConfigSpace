@@ -27,6 +27,7 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import unittest
+import numpy as np
 import warnings
 
 from ConfigSpace.hyperparameters import Constant, \
@@ -45,6 +46,10 @@ class TestConditions(unittest.TestCase):
         hp2 = UniformIntegerHyperparameter("child", 0, 10)
         cond = EqualsCondition(hp2, hp1, 0)
         cond_ = EqualsCondition(hp2, hp1, 0)
+
+        # Test vector value:
+        self.assertEqual(cond.vector_value, hp1._inverse_transform(0))
+        self.assertEqual(cond.vector_value, cond_.vector_value)
 
         # Test invalid conditions:
         self.assertRaisesRegexp(ValueError, "Argument 'parent' is not an "
@@ -86,6 +91,10 @@ class TestConditions(unittest.TestCase):
         cond_ = NotEqualsCondition(hp2, hp1, 0)
         self.assertEqual(cond, cond_)
 
+        # Test vector value:
+        self.assertEqual(cond.vector_value, hp1._inverse_transform(0))
+        self.assertEqual(cond.vector_value, cond_.vector_value)
+
         cond_reverse = NotEqualsCondition(hp1, hp2, 0)
         self.assertNotEqual(cond, cond_reverse)
 
@@ -112,6 +121,10 @@ class TestConditions(unittest.TestCase):
         cond_ = InCondition(hp2, hp1, [0, 1, 2, 3, 4, 5])
         self.assertEqual(cond, cond_)
 
+        # Test vector value:
+        self.assertEqual(cond.vector_values, [hp1._inverse_transform(i) for i in [0, 1, 2, 3, 4, 5]])
+        self.assertEqual(cond.vector_values, cond_.vector_values)
+
         cond_reverse = InCondition(hp1, hp2, [0, 1, 2, 3, 4, 5])
         self.assertNotEqual(cond, cond_reverse)
 
@@ -126,15 +139,34 @@ class TestConditions(unittest.TestCase):
         hp3 = OrdinalHyperparameter("ord", list(range(6)))
 
         for hp in [hp1, hp2, hp3]:
+            hyperparameter_idx = {
+                child.name: 0,
+                hp.name: 1
+            }
+
             gt = GreaterThanCondition(child, hp, 1)
+            gt.set_vector_idx(hyperparameter_idx)
             self.assertFalse(gt.evaluate({hp.name: 0}))
             self.assertTrue(gt.evaluate({hp.name: 2}))
             self.assertFalse(gt.evaluate({hp.name: None}))
 
+            # Evaluate vector
+            test_value = hp._inverse_transform(2)
+            self.assertFalse(gt.evaluate_vector(np.array([np.NaN, 0])))
+            self.assertTrue(gt.evaluate_vector(np.array([np.NaN, test_value])))
+            self.assertFalse(gt.evaluate_vector(np.array([np.NaN, np.NaN])))
+
             lt = LessThanCondition(child, hp, 1)
+            lt.set_vector_idx(hyperparameter_idx)
             self.assertTrue(lt.evaluate({hp.name: 0}))
             self.assertFalse(lt.evaluate({hp.name: 2}))
             self.assertFalse(lt.evaluate({hp.name: None}))
+
+            # Evaluate vector
+            test_value = hp._inverse_transform(2)
+            self.assertTrue(lt.evaluate_vector(np.array([np.NaN, 0, 0, 0])))
+            self.assertFalse(lt.evaluate_vector(np.array([np.NaN, test_value])))
+            self.assertFalse(lt.evaluate_vector(np.array([np.NaN, np.NaN])))
 
         hp4 = CategoricalHyperparameter("cat", list(range(6)))
         self.assertRaisesRegexp(ValueError, "Parent hyperparameter in a > or < "
@@ -152,13 +184,25 @@ class TestConditions(unittest.TestCase):
 
         hp5 = OrdinalHyperparameter("ord", ['cold', 'luke warm', 'warm', 'hot'])
 
+        hyperparameter_idx = {
+            child.name: 0,
+            hp5.name: 1
+        }
         gt = GreaterThanCondition(child, hp5, 'warm')
+        gt.set_vector_idx(hyperparameter_idx)
         self.assertTrue(gt.evaluate({hp5.name: 'hot'}))
         self.assertFalse(gt.evaluate({hp5.name: 'cold'}))
 
+        self.assertTrue(gt.evaluate_vector(np.array([np.NaN, 3])))
+        self.assertFalse(gt.evaluate_vector(np.array([np.NaN, 0])))
+
         lt = LessThanCondition(child, hp5, 'warm')
+        lt.set_vector_idx(hyperparameter_idx)
         self.assertTrue(lt.evaluate({hp5.name: 'luke warm'}))
         self.assertFalse(lt.evaluate({hp5.name: 'warm'}))
+
+        self.assertTrue(lt.evaluate_vector(np.array([np.NaN, 1])))
+        self.assertFalse(lt.evaluate_vector(np.array([np.NaN, 2])))
 
     def test_in_condition_illegal_value(self):
         epsilon = UniformFloatHyperparameter("epsilon", 1e-5, 1e-1,
@@ -191,6 +235,17 @@ class TestConditions(unittest.TestCase):
         andconj1_ = AndConjunction(cond1, cond2)
         self.assertEqual(andconj1, andconj1_)
 
+        # Test setting vector idx
+        hyperparameter_idx = {
+            hp1.name: 0,
+            hp2.name: 1,
+            hp3.name: 2,
+            hp4.name: 3
+        }
+        andconj1.set_vector_idx(hyperparameter_idx)
+        self.assertEqual(andconj1.get_parents_vector(), [0, 1])
+        self.assertEqual(andconj1.get_children_vector(), [3, 3])
+
         andconj2 = AndConjunction(cond2, cond3)
         self.assertNotEqual(andconj1, andconj2)
 
@@ -219,6 +274,17 @@ class TestConditions(unittest.TestCase):
         andconj1 = OrConjunction(cond1, cond2)
         andconj1_ = OrConjunction(cond1, cond2)
         self.assertEqual(andconj1, andconj1_)
+
+        # Test setting vector idx
+        hyperparameter_idx = {
+            hp1.name: 0,
+            hp2.name: 1,
+            hp3.name: 2,
+            hp4.name: 3
+        }
+        andconj1.set_vector_idx(hyperparameter_idx)
+        self.assertEqual(andconj1.get_parents_vector(), [0, 1])
+        self.assertEqual(andconj1.get_children_vector(), [3, 3])
 
         andconj2 = OrConjunction(cond2, cond3)
         self.assertNotEqual(andconj1, andconj2)

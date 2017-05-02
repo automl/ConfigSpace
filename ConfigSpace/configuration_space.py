@@ -307,6 +307,10 @@ class ConfigurationSpace(object):
             self._hyperparameter_idx[hp] = i
             self._idx_to_hyperparameter[i] = hp
 
+        # update conditions
+        for condition in self.get_conditions():
+            condition.set_vector_idx(self._hyperparameter_idx)
+
     def _create_tmp_dag(self) -> ConfigSpace.nx.DiGraph:
         tmp_dag = ConfigSpace.nx.DiGraph()
         for hp_name in self._hyperparameters:
@@ -691,7 +695,7 @@ class ConfigurationSpace(object):
         """ Allows to iterate over the hyperparameter names in (hopefully?) the right order."""
         return iter(self._hyperparameters.keys())
 
-    def sample_configuration(self, size: int=1) -> Union['Configuration', List['Configuration']]:
+    def sample_configuration(self, size: int = 1) -> Union['Configuration', List['Configuration']]:
         if not isinstance(size, int):
             raise TypeError('Argument size must be of type int, but is %s'
                             % type(size))
@@ -710,7 +714,6 @@ class ConfigurationSpace(object):
             if len(children) > 0:
                 non_childless_hyperparameters.append(uhp)
 
-
         while len(accepted_configurations) < size:
             if missing != size:
                 missing = int(1.1 * missing)
@@ -724,7 +727,7 @@ class ConfigurationSpace(object):
             for i in range(missing):
                 hps = deque()
                 hps.extendleft(non_childless_hyperparameters)
-                active = np.zeros((num_hyperparameters, ), dtype=bool)
+                active = np.zeros((num_hyperparameters,), dtype=bool)
 
                 for ch in unconditional_hyperparameters:
                     active[self._hyperparameter_idx[ch]] = 1
@@ -741,13 +744,8 @@ class ConfigurationSpace(object):
                             if len(parents) == 1:
                                 conditions = self._get_parent_conditions_of(child.name)
                                 add = True
-                                parent = {parent_name: self._hyperparameters[parent_name]._transform(vector[i][
-                                                   self._hyperparameter_idx[
-                                                      parent_name]])
-                                           for parent_name in parent_names}
-                                # when len(parents)==1 then all conditions must have same parent
                                 for condition in conditions:
-                                    if not condition.evaluate(parent):
+                                    if not condition.evaluate_vector(vector[i]):
                                         add = False
                                         hyperparameter_idx = self._hyperparameter_idx[child.name]
                                         vector[i][hyperparameter_idx] = np.NaN
@@ -759,19 +757,11 @@ class ConfigurationSpace(object):
                                     hps.appendleft(child.name)
 
                             else:
-                                if not parent_names <= set(hps): # make sure no parents are still unvisited
+                                if not parent_names <= set(hps):  # make sure no parents are still unvisited
                                     conditions = self._get_parent_conditions_of(child.name)
                                     add = True
                                     for condition in conditions:
-                                        parents_in_conditions = [c.parent.name for c in
-                                                                 condition.get_descendant_literal_conditions()]
-
-                                        parent = {parent_name: self._hyperparameters[parent_name]._transform(vector[i][
-                                                   self._hyperparameter_idx[
-                                                      parent_name]])
-                                                    for parent_name in parents_in_conditions}
-
-                                        if not condition.evaluate(parent):
+                                        if not condition.evaluate_vector(vector[i]):
                                             add = False
                                             hyperparameter_idx = self._hyperparameter_idx[child.name]
                                             vector[i][hyperparameter_idx] = np.NaN
@@ -787,11 +777,10 @@ class ConfigurationSpace(object):
                                     continue
 
                 # Surprisingly, the vector update wasn't faster
-                #vector[i][~active] = np.NaN
+                # vector[i][~active] = np.NaN
                 for j in range(num_hyperparameters):
                     if not active[j]:
                         vector[i][j] = np.NaN
-
 
             for i in range(missing):
                 try:
