@@ -110,7 +110,7 @@ def get_one_exchange_neighbourhood(configuration: Configuration, seed: int) -> L
             while True:
                 hp = configuration.configuration_space.get_hyperparameter(hp_name)
                 configuration._populate_values()
-                num_neighbors = hp.get_num_neighbors()
+                num_neighbors = hp.get_num_neighbors(configuration.get(hp_name))
 
                 # Obtain neigbors differently for different possible numbers of
                 # neighbors

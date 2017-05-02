@@ -32,6 +32,7 @@ import unittest
 import ConfigSpace
 import ConfigSpace.util
 import ConfigSpace.io.pcs as pcs_parser
+import ConfigSpace.io.pcs_new as pcs_new_parser
 
 
 class ExampleSearchSpacesTest(unittest.TestCase):
@@ -40,8 +41,14 @@ class ExampleSearchSpacesTest(unittest.TestCase):
 
 def generate(configuration_space_path):
     def run_test(self):
-        with open(configuration_space_path) as fh:
-            cs = pcs_parser.read(fh)
+        if 'ordinal' in configuration_space_path:
+            return
+        try:
+            with open(configuration_space_path) as fh:
+                cs = pcs_parser.read(fh)
+        except:
+            with open(configuration_space_path) as fh:
+                cs = pcs_new_parser.read(fh)
 
         # Sample a little bit
         for i in range(10):
