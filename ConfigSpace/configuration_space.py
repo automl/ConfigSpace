@@ -607,20 +607,29 @@ class ConfigurationSpace(object):
         # configuration is forbidden!
         return Configuration(self, instantiated_hyperparameters)
 
+    # For backward compatibility
     def check_configuration(self, configuration: 'Configuration') -> None:
         if not isinstance(configuration, Configuration):
             raise TypeError("The method check_configuration must be called "
                             "with an instance of %s. "
                             "Your input was of type %s"% (Configuration, type(configuration)))
-        self._check_configuration(configuration)
+        self._check_configuration(configuration.get_array())
 
-    def _check_configuration(self, configuration: 'Configuration',
-                             allow_inactive_with_values: bool=False) -> None:
+    def check_configuration_vector_representation(self, vector: np.ndarray) -> None:
+        if not isinstance(vector, np.ndarray):
+            raise TypeError("The method check_configuration must be called "
+                            "with an instance of np.ndarray "
+                            "Your input was of type %s" % (type(vector)))
+        self._check_configuration(vector)
+
+    def _check_configuration(self, vector: np.ndarray,
+                            allow_inactive_with_values: bool = False) -> None:
+
         for hp_name in self._hyperparameters:
             hyperparameter = self._hyperparameters[hp_name]
-            hp_value = configuration.get(hp_name)
+            hp_value = vector[self._hyperparameter_idx[hp_name]]
 
-            if hp_value is not None and not hyperparameter.is_legal(hp_value):
+            if not np.isnan(hp_value) and not hyperparameter.is_legal_vector(hp_value):
                 raise ValueError("Hyperparameter instantiation '%s' "
                                  "(type: %s) is illegal for hyperparameter %s" %
                                  (hp_value, str(type(hp_value)),
@@ -630,34 +639,30 @@ class ConfigurationSpace(object):
 
             active = True
             for condition in conditions:
-                parent_names = [c.parent.name for c in
-                                condition.get_descendant_literal_conditions()]
 
-                parents = {parent_name: configuration.get(parent_name) for
-                           parent_name in parent_names}
+                parent_vector_idx = condition.get_parents_vector()
 
                 # if one of the parents is None, the hyperparameter cannot be
                 # active! Else we have to check this
-                if any([parent_value is None for parent_value in
-                        parents.values()]):
+                if any([np.isnan(vector[i]) for i in parent_vector_idx]):
                     active = False
                     break
 
                 else:
-                    if not condition.evaluate(parents):
+                    if not condition.evaluate_vector(vector):
                         active = False
                         break
 
-            if active and hp_value is None:
+            if active and np.isnan(hp_value):
                 raise ValueError("Active hyperparameter '%s' not specified!" %
                                  hyperparameter.name)
 
             if not allow_inactive_with_values and not active and \
-                    hp_value is not None:
+                            not np.isnan(hp_value):
                 raise ValueError("Inactive hyperparameter '%s' must not be "
-                                 "specified, but has the value: '%s'." %
+                                 "specified, but has the vector value: '%s'." %
                                  (hp_name, hp_value))
-        self._check_forbidden(configuration.get_array())
+        self._check_forbidden(vector)
 
     def _check_forbidden(self, vector: np.ndarray) -> None:
         for clause in self.forbidden_clauses:
@@ -940,7 +945,7 @@ class Configuration(object):
 
     def is_valid_configuration(self) -> None:
         self.configuration_space._check_configuration(
-            self, allow_inactive_with_values=self.allow_inactive_with_values)
+            self._vector, allow_inactive_with_values=self.allow_inactive_with_values)
 
     def __getitem__(self, item: str) -> Any:
         if self._query_values or item in self._values:
