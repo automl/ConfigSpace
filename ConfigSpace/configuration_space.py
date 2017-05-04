@@ -688,7 +688,7 @@ class ConfigurationSpace(object):
 
     def __hash__(self) -> int:
         """Override the default hash behavior (that returns the id or the object)"""
-        return hash(tuple(sorted(self.__dict__.items())))
+        return hash(self.__repr__())
 
     def __repr__(self) -> str:
         retval = io.StringIO()
