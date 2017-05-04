@@ -138,6 +138,11 @@ class ConfigurationSpace(object):
                              "configuration space." % hyperparameter.name)
         self._hyperparameters[hyperparameter.name] = hyperparameter
         self._children[hyperparameter.name] = OrderedDict()
+
+        # TODO remove __HPOlib_configuration_space_root__, it is only used in
+        # to check for cyclic configuration spaces. If it is only added when
+        # cycles are checked, the code can become much easier (e.g. the parent
+        # caching can be more or less removed).
         self._children['__HPOlib_configuration_space_root__'][
             hyperparameter.name] = None
         self._parents[hyperparameter.name] = OrderedDict()
@@ -371,14 +376,6 @@ class ConfigurationSpace(object):
             self.forbidden_clauses.append(clause)
         self._check_default_configuration()
         return clauses
-
-    # def print_configuration_space(self):
-    #     HPOlibConfigSpace.nx.write_dot(self._dg, "hyperparameters.dot")
-    #     import matplotlib.pyplot as plt
-    #     plt.title("draw_networkx")
-    #     pos = HPOlibConfigSpace.nx.graphviz_layout(DG, prog='dot')
-    #     HPOlibConfigSpace.nx.draw(self._dg, pos, with_labels=True)
-    #     plt.savefig('nx_test.png')
 
     def add_configuration_space(self, prefix: str, configuration_space: 'ConfigurationSpace',
                                 delimiter: str=":", parent_hyperparameter: Hyperparameter=None) -> 'ConfigurationSpace':
