@@ -1,3 +1,8 @@
+# Version 0.3.5
+
+* Even more speed improvements for highly conditional configurations
+* Speed improvements for retrieving neighbor configurations
+
 # Version 0.3.4
 
 * Further improve sampling speed for highly conditional configuration spaces
