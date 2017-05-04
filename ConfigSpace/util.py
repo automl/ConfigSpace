@@ -86,6 +86,7 @@ def get_one_exchange_neighbourhood(configuration: Configuration, seed: int) -> L
     neighbors_to_return = dict()
     hyperparameters_used = list()
     number_of_usable_hyperparameters = sum(np.isfinite(configuration.get_array()))
+    configuration_space = configuration.configuration_space
 
     while len(hyperparameters_used) != number_of_usable_hyperparameters:
         index = random.randint(hyperparameters_list_length)
@@ -108,7 +109,7 @@ def get_one_exchange_neighbourhood(configuration: Configuration, seed: int) -> L
 
             iteration = 0
             while True:
-                hp = configuration.configuration_space.get_hyperparameter(hp_name)
+                hp = configuration_space.get_hyperparameter(hp_name)
                 configuration._populate_values()
                 num_neighbors = hp.get_num_neighbors(configuration.get(hp_name))
 
@@ -137,8 +138,7 @@ def get_one_exchange_neighbourhood(configuration: Configuration, seed: int) -> L
                     neighbor_value = hp._transform(neighbor)
 
                     # Activate hyperparameters if their parent node got activated
-                    children = configuration.configuration_space.get_children_of(
-                        hp_name)
+                    children = configuration_space._children_of[hp_name]
                     if len(children) > 0:
                         to_visit = deque()  #type: deque
                         to_visit.extendleft(children)
@@ -150,8 +150,7 @@ def get_one_exchange_neighbourhood(configuration: Configuration, seed: int) -> L
                                 continue
                             visited.add(current.name)
 
-                            current_idx = configuration.configuration_space. \
-                                get_idx_by_hyperparameter_name(current.name)
+                            current_idx = configuration_space.get_idx_by_hyperparameter_name(current.name)
                             current_value = new_array[current_idx]
 
                             conditions = configuration.configuration_space.\
@@ -160,7 +159,7 @@ def get_one_exchange_neighbourhood(configuration: Configuration, seed: int) -> L
                             active = True
                             for condition in conditions:
                                 parent_names = [parent.name for parent in
-                                                configuration.configuration_space._parents_of[current.name]]
+                                                configuration_space._parents_of[current.name]]
                                 parents = {parent_name: configuration[parent_name] for
                                            parent_name in parent_names}
 
@@ -196,8 +195,7 @@ def get_one_exchange_neighbourhood(configuration: Configuration, seed: int) -> L
                                            not np.isfinite(current_value)):
                                 default = current._inverse_transform(current.default)
                                 new_array[current_idx] = default
-                                children = configuration.configuration_space.get_children_of(
-                                    current.name)
+                                children = configuration_space._children_of[current.name]
                                 if len(children) > 0:
                                     to_visit.extendleft(children)
                                 activated_values[current.name] = current.default
@@ -209,8 +207,7 @@ def get_one_exchange_neighbourhood(configuration: Configuration, seed: int) -> L
                     try:
                         # Populating a configuration from an array does not check
                         #  if it is a legal configuration - check this (slow)
-                        new_configuration = Configuration(
-                            configuration.configuration_space, vector=new_array)
+                        new_configuration = Configuration(configuration_space, vector=new_array)
                         new_configuration.is_valid_configuration()
                         neighbourhood.append(new_configuration)
                         number_of_sampled_neighbors += 1

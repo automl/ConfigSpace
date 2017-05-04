@@ -665,7 +665,7 @@ class ConfigurationSpace(object):
                                  (hp_value, str(type(hp_value)),
                                   hyperparameter))
 
-            children = self._get_children_of(hp_name)
+            children = self._children_of[hp_name]
             for child in children:
                 if child.name not in inactive:
                     parents = self._parents_of[child.name]
@@ -848,7 +848,7 @@ class ConfigurationSpace(object):
                 forbidden_clauses_unconditionals.append(clause)
 
         for uhp in unconditional_hyperparameters:
-            children = self._get_children_of(uhp)
+            children = self._children_of[uhp]
             if len(children) > 0:
                 hyperparameters_with_children.append(uhp)
 
@@ -881,7 +881,7 @@ class ConfigurationSpace(object):
 
                     while len(hps) > 0:
                         hp = hps.pop()
-                        children = self._get_children_of(hp)
+                        children = self._children_of[hp]
                         for child in children:
                             if child.name not in inactive:
                                 parents = self._parents_of[child.name]
