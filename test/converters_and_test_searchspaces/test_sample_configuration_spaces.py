@@ -56,11 +56,13 @@ def generate(configuration_space_path):
             configurations = cs.sample_configuration(size=5)
             for j, c in enumerate(configurations):
                 c.is_valid_configuration()
+                cs._check_configuration_rigorous(c)
                 neighborhood = ConfigSpace.util.get_one_exchange_neighbourhood(
                     c, seed=i)
 
                 for shuffle, n in enumerate(neighborhood):
                     n.is_valid_configuration()
+                    cs._check_configuration_rigorous(n)
                     if shuffle == 10:
                         break
     return run_test
