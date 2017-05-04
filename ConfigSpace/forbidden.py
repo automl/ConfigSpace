@@ -127,7 +127,7 @@ class SingleValueForbiddenClause(AbstractForbiddenClause):
                             strict: bool = True) -> bool:
         value = instantiated_vector[self.vector_id]
 
-        if value is np.NaN:
+        if value != value:
             if strict:
                 raise ValueError("Is_forbidden must be called with the "
                                  "instanstatiated vector id in the "
