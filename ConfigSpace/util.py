@@ -195,9 +195,9 @@ def get_one_exchange_neighbourhood(configuration: Configuration, seed: int) -> L
                                            not np.isfinite(current_value)):
                                 default = current._inverse_transform(current.default)
                                 new_array[current_idx] = default
-                                children = configuration_space._children_of[current.name]
-                                if len(children) > 0:
-                                    to_visit.extendleft(children)
+                                children_ = configuration_space._children_of[current.name]
+                                if len(children_) > 0:
+                                    to_visit.extendleft(children_)
                                 activated_values[current.name] = current.default
 
                             if not active and (current_value is not None
