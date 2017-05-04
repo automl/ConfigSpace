@@ -625,8 +625,7 @@ class ConfigurationSpace(object):
     def _check_configuration(self, vector: np.ndarray,
                             allow_inactive_with_values: bool = False) -> None:
 
-        for hp_name in self._hyperparameters:
-            hyperparameter = self._hyperparameters[hp_name]
+        for hp_name, hyperparameter in self._hyperparameters.items():
             hp_value = vector[self._hyperparameter_idx[hp_name]]
 
             if not np.isnan(hp_value) and not hyperparameter.is_legal_vector(hp_value):
