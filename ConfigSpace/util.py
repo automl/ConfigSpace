@@ -159,9 +159,8 @@ def get_one_exchange_neighbourhood(configuration: Configuration, seed: int) -> L
 
                             active = True
                             for condition in conditions:
-                                parent_names = [c.parent.name for c in
-                                                condition.get_descendant_literal_conditions()]
-
+                                parent_names = [parent.name for parent in
+                                                configuration.configuration_space._parents_of[current.name]]
                                 parents = {parent_name: configuration[parent_name] for
                                            parent_name in parent_names}
 

@@ -75,6 +75,8 @@ class ConfigurationSpace(object):
         # caching
         self._parent_conditions_of = dict()
         self._child_conditions_of = dict()
+        self._parents_of = dict()
+        self._children_of = dict()
 
     def generate_all_continuous_from_bounds(self, bounds: List[List[Any]]) -> None:
         for i, (l, u) in enumerate(bounds):
@@ -331,10 +333,14 @@ class ConfigurationSpace(object):
     def _update_cache(self):
         self._parent_conditions_of = dict()
         self._child_conditions_of = dict()
+        self._parents_of = dict()
+        self._children_of = dict()
 
         for hp_name in self._hyperparameters:
             self._parent_conditions_of[hp_name] = self._get_parent_conditions_of(hp_name)
             self._child_conditions_of[hp_name] = self._get_child_conditions_of(hp_name)
+            self._parents_of[hp_name] = self.get_parents_of(hp_name)
+            self._children_of[hp_name] = self.get_children_of(hp_name)
 
     def _create_tmp_dag(self) -> ConfigSpace.nx.DiGraph:
         tmp_dag = ConfigSpace.nx.DiGraph()
@@ -662,7 +668,7 @@ class ConfigurationSpace(object):
             children = self._get_children_of(hp_name)
             for child in children:
                 if child.name not in inactive:
-                    parents = self._get_parents_of(child.name)
+                    parents = self._parents_of[child.name]
                     if len(parents) == 1:
                         conditions = self._parent_conditions_of[child.name]
                         add = True
@@ -878,7 +884,7 @@ class ConfigurationSpace(object):
                         children = self._get_children_of(hp)
                         for child in children:
                             if child.name not in inactive:
-                                parents = self._get_parents_of(child.name)
+                                parents = self._parents_of[child.name]
                                 parent_names = set(p.name for p in parents)
                                 if len(parents) == 1:
                                     conditions = self._parent_conditions_of[child.name]
