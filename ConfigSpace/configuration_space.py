@@ -72,6 +72,10 @@ class ConfigurationSpace(object):
 
         self._children['__HPOlib_configuration_space_root__'] = OrderedDict()
 
+        # caching
+        self._parent_conditions_of = dict()
+        self._child_conditions_of = dict()
+
     def generate_all_continuous_from_bounds(self, bounds: List[List[Any]]) -> None:
         for i, (l, u) in enumerate(bounds):
             hp = ConfigSpace.UniformFloatHyperparameter('x%d' % i, l, u)
@@ -99,6 +103,7 @@ class ConfigurationSpace(object):
         for hyperparameter in hyperparameters:
             self._add_hyperparameter(hyperparameter)
 
+        self._update_cache()
         self._check_default_configuration()
         self._sort_hyperparameters()
         return hyperparameters
@@ -119,6 +124,7 @@ class ConfigurationSpace(object):
                             "ConfigSpace.hyperparameters.Hyperparameter.")
 
         self._add_hyperparameter(hyperparameter)
+        self._update_cache()
         self._check_default_configuration()
         self._sort_hyperparameters()
 
@@ -177,6 +183,7 @@ class ConfigurationSpace(object):
             raise Exception("This should never happen!")
 
         self._sort_hyperparameters()
+        self._update_cache()
         return condition
 
     def add_conditions(self, conditions: List[ConditionComponent]) -> List[ConditionComponent]:
@@ -204,6 +211,7 @@ class ConfigurationSpace(object):
             self._add_edge(edge[0], edge[1], condition)
 
         self._sort_hyperparameters()
+        self._update_cache()
         return conditions
 
     def _add_edge(self, parent_node: str, child_node: str, condition: ConditionComponent) -> None:
@@ -314,6 +322,14 @@ class ConfigurationSpace(object):
         # forbidden clauses
         for clause in self.forbidden_clauses:
             clause.set_vector_idx(self._hyperparameter_idx)
+
+    def _update_cache(self):
+        self._parent_conditions_of = dict()
+        self._child_conditions_of = dict()
+
+        for hp_name in self._hyperparameters:
+            self._parent_conditions_of[hp_name] = self._get_parent_conditions_of(hp_name)
+            self._child_conditions_of[hp_name] = self._get_child_conditions_of(hp_name)
 
     def _create_tmp_dag(self) -> ConfigSpace.nx.DiGraph:
         tmp_dag = ConfigSpace.nx.DiGraph()
@@ -634,7 +650,7 @@ class ConfigurationSpace(object):
                                  (hp_value, str(type(hp_value)),
                                   hyperparameter))
 
-            conditions = self._get_parent_conditions_of(hyperparameter.name)
+            conditions = self._parent_conditions_of[hyperparameter.name]
 
             active = True
             for condition in conditions:
@@ -643,7 +659,9 @@ class ConfigurationSpace(object):
 
                 # if one of the parents is None, the hyperparameter cannot be
                 # active! Else we have to check this
-                if any([np.isnan(vector[i]) for i in parent_vector_idx]):
+                # Note from trying to optimize this - this is faster than using
+                # dedicated numpy functions and indexing
+                if any([vector[i] != vector[i] for i in parent_vector_idx]):
                     active = False
                     break
 
@@ -790,7 +808,7 @@ class ConfigurationSpace(object):
                                 parents = self._get_parents_of(child.name)
                                 parent_names = set(p.name for p in parents)
                                 if len(parents) == 1:
-                                    conditions = self._get_parent_conditions_of(child.name)
+                                    conditions = self._parent_conditions_of[child.name]
                                     add = True
                                     for condition in conditions:
                                         if not condition.evaluate_vector(vector[i]):
@@ -806,7 +824,7 @@ class ConfigurationSpace(object):
 
                                 else:
                                     if not parent_names <= set(hps):  # make sure no parents are still unvisited
-                                        conditions = self._get_parent_conditions_of(child.name)
+                                        conditions = self._parent_conditions_of[child.name]
                                         add = True
                                         for condition in conditions:
                                             if not condition.evaluate_vector(vector[i]):

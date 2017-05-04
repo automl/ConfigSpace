@@ -155,7 +155,7 @@ def get_one_exchange_neighbourhood(configuration: Configuration, seed: int) -> L
                             current_value = new_array[current_idx]
 
                             conditions = configuration.configuration_space.\
-                                _get_parent_conditions_of(current.name)
+                                _parent_conditions_of[current.name]
 
                             active = True
                             for condition in conditions:
