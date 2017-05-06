@@ -1,3 +1,7 @@
+# Version 0.3.6
+
+* Minor speed improvements when checking forbidden clauses
+
 # Version 0.3.5
 
 * Even more speed improvements for highly conditional configurations
