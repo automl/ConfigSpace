@@ -130,11 +130,13 @@ def get_one_exchange_neighbourhood(configuration: Configuration, seed: int) -> L
                         break
                     neighbors = hp.get_neighbors(array[index], random)
 
+
                 # Check all newly obtained neigbors
                 for neighbor in neighbors:
                     new_array = array.copy()
                     new_array[index] = neighbor
                     neighbor_value = hp._transform(neighbor)
+                    disabled = []
 
                     # Activate hyperparameters if their parent node got activated
                     children = configuration.configuration_space.get_children_of(
@@ -149,6 +151,8 @@ def get_one_exchange_neighbourhood(configuration: Configuration, seed: int) -> L
                             if current.name in visited:
                                 continue
                             visited.add(current.name)
+                            if current.name in disabled:
+                                continue
 
                             current_idx = configuration.configuration_space. \
                                 get_idx_by_hyperparameter_name(current.name)
@@ -203,10 +207,32 @@ def get_one_exchange_neighbourhood(configuration: Configuration, seed: int) -> L
                                     to_visit.extendleft(children)
                                 activated_values[current.name] = current.default
 
+                            # todo: improve the bug fix
+                            # bug was that all decendants werent disabled
                             if not active and (current_value is not None
                                                or np.isfinite(current_value)):
                                 new_array[current_idx] = np.NaN
 
+                                children = configuration.configuration_space.get_children_of(
+                                    current.name)
+
+                                if len(children) > 0:
+                                    all_children = set()
+                                    for ch in children:
+                                        all_children.add(ch.name)
+                                    while len(all_children) > 0:
+                                        child = all_children.pop()
+                                        child_idx = configuration.configuration_space. \
+                                            get_idx_by_hyperparameter_name(child)
+                                        # new_array[child_idx] = np.NaN
+                                        disabled.append(child_idx)
+                                        children = configuration.configuration_space.get_children_of(child)
+
+                                        for ch in children:
+                                            all_children.add(ch.name)
+
+                    for idx in disabled:
+                        new_array[idx] = np.NaN
                     try:
                         # Populating a configuration from an array does not check
                         #  if it is a legal configuration - check this (slow)
@@ -216,7 +242,7 @@ def get_one_exchange_neighbourhood(configuration: Configuration, seed: int) -> L
                         neighbourhood.append(new_configuration)
                         number_of_sampled_neighbors += 1
                     # todo: investigate why tests fail when ForbiddenValueError is caught here
-                    except ValueError as e:
+                    except ForbiddenValueError as e:
                         pass
 
                     # Count iterations to not run into an infinite loop when

@@ -654,6 +654,7 @@ class ConfigurationSpace(object):
 
             if not allow_inactive_with_values and not active and \
                     hp_value is not None:
+                print("value error")
                 raise ValueError("Inactive hyperparameter '%s' must not be "
                                  "specified, but has the value: '%s'." %
                                  (hp_name, hp_value))
