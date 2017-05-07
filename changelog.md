@@ -1,3 +1,12 @@
+# Version 0.3.6
+
+* Minor speed improvements when checking forbidden clauses
+
+# Version 0.3.5
+
+* Even more speed improvements for highly conditional configurations
+* Speed improvements for retrieving neighbor configurations
+
 # Version 0.3.4
 
 * Further improve sampling speed for highly conditional configuration spaces

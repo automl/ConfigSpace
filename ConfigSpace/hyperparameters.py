@@ -747,6 +747,7 @@ class CategoricalHyperparameter(Hyperparameter):
         self.choices = choices
         self._num_choices = len(choices)
         self.choices_vector = list(range(self._num_choices))
+        self._choices_set = set(self.choices_vector)
         self.default = self.check_default(default)
 
     def __repr__(self) -> str:
@@ -778,7 +779,7 @@ class CategoricalHyperparameter(Hyperparameter):
             return False
 
     def is_legal_vector(self, value: Union[None, float, int]) -> bool:
-        return value in self.choices_vector
+        return value in self._choices_set
 
     def check_default(self, default: Union[None, str, float, int]) -> Union[str, float, int]:
         if default is None:

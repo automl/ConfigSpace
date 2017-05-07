@@ -370,10 +370,15 @@ class TestConfigurationSpace(unittest.TestCase):
 
     def test_check_configuration_input_checking(self):
         cs = ConfigurationSpace()
+        self.assertRaisesRegexp(TypeError, "The method check_configuration must be called "
+                                            "with an instance of %s. "
+                                            "Your input was of type %s"% (Configuration, type("String")),
+                                cs.check_configuration, "String")
+        # For the check configuration method with vector representation
         self.assertRaisesRegexp(TypeError, "The method check_configuration must"
                                            " be called with an instance of "
-                                           "%s." % Configuration,
-                                cs.check_configuration, "String")
+                                           "np.ndarray Your input was of type %s" % (type("String")),
+                                cs.check_configuration_vector_representation, "String")
 
     def test_check_configuration(self):
         # TODO this is only a smoke test
@@ -437,8 +442,8 @@ class TestConfigurationSpace(unittest.TestCase):
             if evaluation == False:
                 self.assertRaisesRegexp(ValueError,
                                         "Inactive hyperparameter 'AND' must "
-                                        "not be specified, but has the value: "
-                                        "'True'.",
+                                        "not be specified, but has the vector value: "
+                                        "'0.0'.",
                                         Configuration, cs, values={
                                         "input1": values[0],
                                         "input2": values[1],
@@ -476,6 +481,9 @@ class TestConfigurationSpace(unittest.TestCase):
         cs.add_forbidden_clause(forbidden)
 
         configuration = Configuration(cs, dict(classifier="extra_trees"))
+
+        # check backward compatibility with checking configurations instead of vectors
+        cs.check_configuration(configuration)
 
     def test_check_forbidden_with_sampled_vector_configuration(self):
         cs = ConfigurationSpace()

@@ -75,11 +75,11 @@ class AbstractForbiddenComponent(object):
         pass
 
     @abstractmethod
-    def is_forbidden(self, instantiated_hyperparameters, strict):
+    def is_forbidden(self, instantiated_hyperparameters, strict) -> bool:
         pass
 
     @abstractmethod
-    def is_forbidden_vector(self, instantiated_hyperparameters, strict):
+    def is_forbidden_vector(self, instantiated_hyperparameters, strict) -> bool:
         pass
 
 
@@ -127,7 +127,7 @@ class SingleValueForbiddenClause(AbstractForbiddenClause):
                             strict: bool = True) -> bool:
         value = instantiated_vector[self.vector_id]
 
-        if value is np.NaN:
+        if value != value:
             if strict:
                 raise ValueError("Is_forbidden must be called with the "
                                  "instanstatiated vector id in the "
@@ -189,11 +189,11 @@ class MultipleValueForbiddenClause(AbstractForbiddenClause):
         return self._is_forbidden_vector(value)
 
     @abstractmethod
-    def _is_forbidden(self, target_instantiated_hyperparameter):
+    def _is_forbidden(self, target_instantiated_hyperparameter) -> bool:
         pass
 
     @abstractmethod
-    def _is_forbidden_vector(self, target_instantiated_vector):
+    def _is_forbidden_vector(self, target_instantiated_vector) -> bool:
         pass
 
 
@@ -298,12 +298,12 @@ class AbstractForbiddenConjunction(AbstractForbiddenComponent):
                     return False
 
         # Finally, call is_forbidden for all direct descendents and combine the
-        # outcomes
-        evaluations = []
-        for component in self.components:
-            e = component.is_forbidden_vector(instantiated_vector,
+        # outcomes. Check only as many forbidden clauses as the actual
+        # evaluation function queries for (e.g. and conditions are False
+        # if only one of the components evaluates to False).
+        evaluations = (component.is_forbidden_vector(instantiated_vector,
                                               strict=strict)
-            evaluations.append(e)
+                       for component in self.components)
         return self._is_forbidden(evaluations)
 
     @abstractmethod
@@ -323,4 +323,8 @@ class ForbiddenAndConjunction(AbstractForbiddenConjunction):
         return retval.getvalue()
 
     def _is_forbidden(self, evaluations: List[bool]) -> bool:
-        return reduce(operator.and_, evaluations)
+        # Return False if one of the components evaluates to False
+        for evaluation in evaluations:
+            if not evaluation:
+                return False
+        return True

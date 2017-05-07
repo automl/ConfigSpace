@@ -259,8 +259,8 @@ class EqualsCondition(AbstractCondition):
                                   repr(self.value))
 
     def _evaluate(self, value: Union[str, float, int]) -> bool:
-        if not self.parent.is_legal(value):
-            return False
+        # No need to check if the value to compare is a legal value; either it
+        # is equal (and thus legal), or it would evaluate to False anyway
 
         cmp = self.parent.compare(value, self.value)
         if cmp == 0:
@@ -269,8 +269,8 @@ class EqualsCondition(AbstractCondition):
             return False
 
     def _evaluate_vector(self, value: Union[float, int]) -> bool:
-        if not self.parent.is_legal_vector(value):
-            return False
+        # No need to check if the value to compare is a legal value; either it
+        # is equal (and thus legal), or it would evaluate to False anyway
 
         cmp = self.parent.compare_vector(value, self.vector_value)
         if cmp == 0:
