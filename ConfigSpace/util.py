@@ -137,6 +137,7 @@ def get_one_exchange_neighbourhood(configuration: Configuration, seed: int) -> L
                     new_array = array.copy()
                     new_array[index] = neighbor
                     neighbor_value = hp._transform(neighbor)
+                    # Hyperparameters which are going to be set to inactive
                     disabled = []
 
                     # Activate hyperparameters if their parent node got activated
@@ -204,29 +205,27 @@ def get_one_exchange_neighbourhood(configuration: Configuration, seed: int) -> L
                                     to_visit.extendleft(children_)
                                 activated_values[current.name] = current.default
 
-                            # todo: improve the bug fix
-                            # bug was that all decendants werent disabled
+                            # If the hyperparameter was made inactive,
+                            # all its children need to be deactivade as well
                             if not active and (current_value is not None
                                                or np.isfinite(current_value)):
                                 new_array[current_idx] = np.NaN
 
-                                children = configuration.configuration_space.get_children_of(
-                                    current.name)
+                                children = configuration.configuration_space._children_of[current.name]
 
                                 if len(children) > 0:
-                                    all_children = set()
+                                    to_disable = set()
                                     for ch in children:
-                                        all_children.add(ch.name)
-                                    while len(all_children) > 0:
-                                        child = all_children.pop()
+                                        to_disable.add(ch.name)
+                                    while len(to_disable) > 0:
+                                        child = to_disable.pop()
                                         child_idx = configuration.configuration_space. \
                                             get_idx_by_hyperparameter_name(child)
-                                        # new_array[child_idx] = np.NaN
                                         disabled.append(child_idx)
-                                        children = configuration.configuration_space.get_children_of(child)
+                                        children = configuration.configuration_space._children_of[child]
 
                                         for ch in children:
-                                            all_children.add(ch.name)
+                                            to_disable.add(ch.name)
 
                     for idx in disabled:
                         new_array[idx] = np.NaN
