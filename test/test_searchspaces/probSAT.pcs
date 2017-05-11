@@ -1,0 +1,15 @@
+cb1 [2,6][2.3]
+cb2 [0.75,1.5][1]
+fct {0,1}[1]
+eps [0.75,1.25][1]
+caching {0,1}[1]
+randomc {0,1}[1]
+xor {0,1}[1]
+luby {0,1}[0]
+base [1000,100000000][500000] il
+
+eps | fct in {0}
+cb2 | caching in {0}
+cb2 | fct in {1}
+xor | caching in {1}
+base | luby in {1}
