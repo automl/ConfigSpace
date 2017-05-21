@@ -561,7 +561,7 @@ class Graph(object):
         [{}, {}, {}]
         """
         if data:
-            return iter(self.node.items())
+            return iter(list(self.node.items()))
         return iter(self.node)
 
     def nodes(self, data=False):
@@ -1096,12 +1096,12 @@ class Graph(object):
         """
         seen = collections.OrderedDict()  # helper dict to keep track of multiply stored edges
         if nbunch is None:
-            nodes_nbrs = self.adj.items()
+            nodes_nbrs = list(self.adj.items())
         else:
             nodes_nbrs = ((n, self.adj[n]) for n in self.nbunch_iter(nbunch))
         if data:
             for n, nbrs in nodes_nbrs:
-                for nbr, data in nbrs.items():
+                for nbr, data in list(nbrs.items()):
                     if nbr not in seen:
                         yield (n, nbr, data)
                 seen[n] = 1
@@ -1186,7 +1186,7 @@ class Graph(object):
         [[1], [0, 2], [1, 3], [2]]
 
         """
-        return list(map(list, iter(self.adj.values())))
+        return list(map(list, iter(list(self.adj.values()))))
 
     def adjacency_iter(self):
         """Return an iterator of (node, adjacency dict) tuples for all nodes.
@@ -1212,7 +1212,7 @@ class Graph(object):
         [(0, {1: {}}), (1, {0: {}, 2: {}}), (2, {1: {}, 3: {}}), (3, {2: {}})]
 
         """
-        return iter(self.adj.items())
+        return iter(list(self.adj.items()))
 
     def degree(self, nbunch=None, weight=None):
         """Return the degree of a node or nodes.
@@ -1289,7 +1289,7 @@ class Graph(object):
 
         """
         if nbunch is None:
-            nodes_nbrs = self.adj.items()
+            nodes_nbrs = list(self.adj.items())
         else:
             nodes_nbrs = ((n, self.adj[n]) for n in self.nbunch_iter(nbunch))
 
@@ -1404,7 +1404,7 @@ class Graph(object):
         G.add_nodes_from(self)
         G.add_edges_from(((u, v, deepcopy(data))
                           for u, nbrs in self.adjacency_iter()
-                          for v, data in nbrs.items()))
+                          for v, data in list(nbrs.items())))
         G.graph = deepcopy(self.graph)
         G.node = deepcopy(self.node)
         return G
@@ -1498,7 +1498,7 @@ class Graph(object):
         for n in H.node:
             Hnbrs = collections.OrderedDict()
             H_adj[n] = Hnbrs
-            for nbr, d in self_adj[n].items():
+            for nbr, d in list(self_adj[n].items()):
                 if nbr in H_adj:
                     # add both representations of edge: n-nbr and nbr-n
                     Hnbrs[nbr] = d
@@ -1530,7 +1530,7 @@ class Graph(object):
         >>> G.nodes_with_selfloops()
         [1]
         """
-        return [n for n, nbrs in self.adj.items() if n in nbrs]
+        return [n for n, nbrs in list(self.adj.items()) if n in nbrs]
 
     def selfloop_edges(self, data=False):
         """Return a list of selfloop edges.
@@ -1564,10 +1564,10 @@ class Graph(object):
         """
         if data:
             return [(n, n, nbrs[n])
-                    for n, nbrs in self.adj.items() if n in nbrs]
+                    for n, nbrs in list(self.adj.items()) if n in nbrs]
         else:
             return [(n, n)
-                    for n, nbrs in self.adj.items() if n in nbrs]
+                    for n, nbrs in list(self.adj.items()) if n in nbrs]
 
 
     def number_of_selfloops(self):
@@ -1724,7 +1724,7 @@ class Graph(object):
 
         """
         nlist = list(nodes)
-        edges = zip(nlist[:-1], nlist[1:])
+        edges = list(zip(nlist[:-1], nlist[1:]))
         self.add_edges_from(edges, **attr)
 
     def add_cycle(self, nodes, **attr):
@@ -1750,7 +1750,7 @@ class Graph(object):
 
         """
         nlist = list(nodes)
-        edges = zip(nlist, nlist[1:] + [nlist[0]])
+        edges = list(zip(nlist, nlist[1:] + [nlist[0]]))
         self.add_edges_from(edges, **attr)
 
 
@@ -1796,7 +1796,7 @@ class Graph(object):
         nbunch is not hashable, a NetworkXError is raised.
         """
         if nbunch is None:  # include all nodes via iterator
-            bunch = iter(self.adj.keys())
+            bunch = iter(list(self.adj.keys()))
         elif nbunch in self:  # if nbunch is a single node
             bunch = iter([nbunch])
         else:  # if nbunch is a sequence of nodes

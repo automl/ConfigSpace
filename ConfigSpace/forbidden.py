@@ -31,15 +31,14 @@ import operator
 
 import numpy as np
 
-import io
+from . import io
 from functools import reduce
 
 
 from ConfigSpace.hyperparameters import Hyperparameter
 from typing import List, Dict, Any, Union
 
-class AbstractForbiddenComponent(object):
-    __metaclass__ = ABCMeta
+class AbstractForbiddenComponent(object, metaclass=ABCMeta):
     hyperparameter = None  # type: Hyperparameter
     @abstractmethod
     def __init__(self):
@@ -287,7 +286,7 @@ class AbstractForbiddenConjunction(AbstractForbiddenComponent):
                             strict: bool = True) -> bool:
         dlcs = self.get_descendant_literal_clauses()
         for dlc in dlcs:
-            if dlc.vector_id not in range(len(instantiated_vector)):
+            if dlc.vector_id not in list(range(len(instantiated_vector))):
                 if strict:
                     raise ValueError("Is_forbidden must be called with all "
                                      "instanstatiated hyperparameters in the "

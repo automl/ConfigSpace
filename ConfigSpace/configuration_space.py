@@ -30,7 +30,7 @@ from collections import defaultdict, deque, OrderedDict
 import copy
 
 import numpy as np
-import io
+from . import io
 
 import ConfigSpace.nx
 from ConfigSpace.hyperparameters import Hyperparameter, Constant, FloatHyperparameter
@@ -719,7 +719,7 @@ class ConfigurationSpace(object):
                                       allow_inactive_with_values: bool = False) -> None:
         vector = configuration.get_array()
 
-        for hp_name, hyperparameter in self._hyperparameters.items():
+        for hp_name, hyperparameter in list(self._hyperparameters.items()):
             hp_value = vector[self._hyperparameter_idx[hp_name]]
 
             if not np.isnan(hp_value) and not hyperparameter.is_legal_vector(hp_value):
@@ -818,7 +818,7 @@ class ConfigurationSpace(object):
 
     def __iter__(self) -> Iterable:
         """ Allows to iterate over the hyperparameter names in (hopefully?) the right order."""
-        return iter(self._hyperparameters.keys())
+        return iter(list(self._hyperparameters.keys()))
 
     def sample_configuration(self, size: int = 1) -> Union['Configuration', List['Configuration']]:
         if not isinstance(size, int):
@@ -1121,7 +1121,7 @@ class Configuration(object):
         return representation.getvalue()
 
     def __iter__(self) -> Iterable:
-        return iter(self.keys())
+        return iter(list(self.keys()))
 
     def keys(self) -> List[str]:
         # Cache the keys to speed up the process of retrieving the keys

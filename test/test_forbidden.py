@@ -146,9 +146,9 @@ class TestForbidden(unittest.TestCase):
         hp4 = UniformIntegerHyperparameter("child3", 0, 2)
 
         forb2 = ForbiddenEqualsClause(hp1, 1)
-        forb3 = ForbiddenInClause(hp2, range(2, 3))
-        forb4 = ForbiddenInClause(hp3, range(2, 3))
-        forb5 = ForbiddenInClause(hp4, range(2, 3))
+        forb3 = ForbiddenInClause(hp2, list(range(2, 3)))
+        forb4 = ForbiddenInClause(hp3, list(range(2, 3)))
+        forb5 = ForbiddenInClause(hp4, list(range(2, 3)))
 
         and1 = ForbiddenAndConjunction(forb2, forb3)
         and2 = ForbiddenAndConjunction(forb2, forb4)
@@ -172,8 +172,8 @@ class TestForbidden(unittest.TestCase):
                    False, False, False, False, False,
                    False, False, False, True]
 
-        for i, values in enumerate(product(range(2), range(3), range(3),
-                                           range(3))):
+        for i, values in enumerate(product(list(range(2)), list(range(3)), list(range(3)),
+                                           list(range(3)))):
             is_forbidden = total_and.is_forbidden(
                 {"parent": values[0],
                  "child": values[1],

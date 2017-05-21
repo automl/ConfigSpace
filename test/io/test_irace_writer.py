@@ -218,9 +218,9 @@ class TestIraceWriter(unittest.TestCase):
         cs.add_hyperparameters([hp1, hp2, hp3, hp4, hp5])
 
         forb2 = ForbiddenEqualsClause(hp1, 1)
-        forb3 = ForbiddenInClause(hp2, range(2, 3))
-        forb4 = ForbiddenInClause(hp3, range(2, 3))
-        forb5 = ForbiddenInClause(hp4, range(2, 3))
+        forb3 = ForbiddenInClause(hp2, list(range(2, 3)))
+        forb4 = ForbiddenInClause(hp3, list(range(2, 3)))
+        forb5 = ForbiddenInClause(hp4, list(range(2, 3)))
         forb6 = ForbiddenInClause(hp5, [6,7])
 
         and1 = ForbiddenAndConjunction(forb2, forb3)
