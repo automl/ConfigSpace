@@ -385,18 +385,18 @@ class TestHyperparameters(unittest.TestCase):
         self.assertEqual("param, Type: Categorical, Choices: {0, 1}, Default: 0",
                          str(f1))
 
-        f2 = CategoricalHyperparameter("param", range(0, 1000))
-        f2_ = CategoricalHyperparameter("param", range(0, 1000))
+        f2 = CategoricalHyperparameter("param", list(range(0, 1000)))
+        f2_ = CategoricalHyperparameter("param", list(range(0, 1000)))
         self.assertEqual(f2, f2_)
         self.assertEqual(
             "param, Type: Categorical, Choices: {%s}, Default: 0" %
             ", ".join([str(choice) for choice in range(0, 1000)]),
             str(f2))
 
-        f3 = CategoricalHyperparameter("param", range(0, 999))
+        f3 = CategoricalHyperparameter("param", list(range(0, 999)))
         self.assertNotEqual(f2, f3)
 
-        f4 = CategoricalHyperparameter("param_", range(0, 1000))
+        f4 = CategoricalHyperparameter("param_", list(range(0, 1000)))
         self.assertNotEqual(f2, f4)
 
         f5 = CategoricalHyperparameter("param", list(range(0, 999)) + [1001])
@@ -421,7 +421,7 @@ class TestHyperparameters(unittest.TestCase):
     def test_categorical_is_legal(self):
         f1 = CategoricalHyperparameter("param", ["a", "b"])
         self.assertTrue(f1.is_legal("a"))
-        self.assertTrue(f1.is_legal(u"a"))
+        self.assertTrue(f1.is_legal("a"))
         self.assertFalse(f1.is_legal("c"))
         self.assertFalse(f1.is_legal(3))
 
@@ -579,7 +579,7 @@ class TestHyperparameters(unittest.TestCase):
         self.assertEqual(len(np.unique(values)), 5)
 
     def test_sample_CategoricalHyperparameter(self):
-        hp = CategoricalHyperparameter("chp", [0, 2, "Bla", u"Blub"])
+        hp = CategoricalHyperparameter("chp", [0, 2, "Bla", "Blub"])
 
         def actual_test():
             rs = np.random.RandomState(1)
@@ -589,8 +589,8 @@ class TestHyperparameters(unittest.TestCase):
                 counts_per_bin[value] += 1
 
             self.assertEqual(
-                {0: 2456, 2: 2485, 'Bla': 2550, u'Blub': 2509},
-                dict(counts_per_bin.items()))
+                {0: 2456, 2: 2485, 'Bla': 2550, 'Blub': 2509},
+                dict(list(counts_per_bin.items())))
             return counts_per_bin
 
         self.assertEqual(actual_test(), actual_test())
@@ -610,7 +610,7 @@ class TestHyperparameters(unittest.TestCase):
         f1 = OrdinalHyperparameter("temp", 
                                    ["freezing", "cold", "warm", "hot"])
         self.assertTrue(f1.is_legal("warm"))
-        self.assertTrue(f1.is_legal(u"freezing"))
+        self.assertTrue(f1.is_legal("freezing"))
         self.assertFalse(f1.is_legal("chill"))
         self.assertFalse(f1.is_legal(2.5))
         self.assertFalse(f1.is_legal("3"))

@@ -188,7 +188,7 @@ def get_one_exchange_neighbourhood(configuration: Configuration, seed: int) -> L
                                 # if one of the parents is None, the hyperparameter cannot be
                                 # active! Else we have to check this
                                 if any([parent_value is None for parent_value in
-                                        parents.values()]):
+                                        list(parents.values())]):
                                     active = False
                                     break
                                 else:

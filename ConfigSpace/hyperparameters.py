@@ -31,7 +31,7 @@ import warnings
 
 from collections import OrderedDict
 from typing import List, Any, Dict, Union, Tuple
-import io
+from . import io
 import numpy as np
 
 
@@ -867,7 +867,7 @@ class OrdinalHyperparameter(Hyperparameter):
         super(OrdinalHyperparameter, self).__init__(name)
         self.sequence = sequence
         self._num_elements = len(sequence)
-        self.sequence_vector = range(self._num_elements)
+        self.sequence_vector = list(range(self._num_elements))
         self.default = self.check_default(default)
         self.value_dict = OrderedDict()  # type: OrderedDict[Union[int, float, str], int]
         counter = 1

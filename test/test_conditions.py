@@ -115,7 +115,7 @@ class TestConditions(unittest.TestCase):
                                 NotEqualsCondition, epsilon, loss, "huber")
 
     def test_in_condition(self):
-        hp1 = CategoricalHyperparameter("parent", range(0, 11))
+        hp1 = CategoricalHyperparameter("parent", list(range(0, 11)))
         hp2 = UniformIntegerHyperparameter("child", 0, 10)
         cond = InCondition(hp2, hp1, [0, 1, 2, 3, 4, 5])
         cond_ = InCondition(hp2, hp1, [0, 1, 2, 3, 4, 5])

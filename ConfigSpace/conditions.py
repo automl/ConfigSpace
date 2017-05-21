@@ -33,15 +33,13 @@ import operator
 
 import numpy as np
 
-import io
+from . import io
 from functools import reduce
 from ConfigSpace.hyperparameters import Hyperparameter, \
     NumericalHyperparameter, OrdinalHyperparameter
 
 
-class ConditionComponent(object):
-    __metaclass__ = ABCMeta
-
+class ConditionComponent(object, metaclass=ABCMeta):
     @abstractmethod
     def __init__(self) -> None:
         pass

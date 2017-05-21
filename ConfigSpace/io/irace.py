@@ -268,7 +268,7 @@ def write(configuration_space):
         param_lines.write("\n\n")
         for line in condition_lines:
             param_lines.write(line)
-            t = filter(lambda x: line.split(" ")[0] in x, splitted_params)
+            t = [x for x in splitted_params if line.split(" ")[0] in x]
             index = splitted_params.index(next(t))
             splitted_params[index] = splitted_params[index] + "  ".join(line.split(" ")[1:])
 

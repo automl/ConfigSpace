@@ -43,17 +43,17 @@ from ConfigSpace.hyperparameters import NormalFloatHyperparameter
 
 
 def byteify(input):
-    print(sys.version)
+    print((sys.version))
     if sys.version_info >= (3, 0):
         return input
 
     # From http://stackoverflow.com/a/13105359/4636294
     if isinstance(input, dict):
         return {byteify(key): byteify(value)
-                for key, value in input.iteritems()}
+                for key, value in input.items()}
     elif isinstance(input, list):
         return [byteify(element) for element in input]
-    elif isinstance(input, unicode):
+    elif isinstance(input, str):
         return input.encode('utf-8')
     else:
         return input
@@ -291,9 +291,9 @@ class TestConfigurationSpace(unittest.TestCase):
 
             cs.add_condition(conj3)
             hps = cs.get_hyperparameters()
-            print(hps, hyperparameters)
+            print((hps, hyperparameters))
             for hp, idx in zip(hyperparameters, [0, 1, 2, 5, 4, 6, 3]):
-                print(hp, idx)
+                print((hp, idx))
                 self.assertEqual(hps.index(hp), idx)
                 self.assertEqual(cs._hyperparameter_idx[hp.name], idx)
             self.assertEqual(cs._idx_to_hyperparameter[idx], hp.name)
