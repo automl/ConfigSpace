@@ -41,8 +41,6 @@ class ExampleSearchSpacesTest(unittest.TestCase):
 
 def generate(configuration_space_path):
     def run_test(self):
-        if 'ordinal' in configuration_space_path:
-            return
         try:
             with open(configuration_space_path) as fh:
                 cs = pcs_parser.read(fh)

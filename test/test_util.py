@@ -32,10 +32,11 @@ import unittest
 import numpy as np
 
 from ConfigSpace import ConfigurationSpace, UniformIntegerHyperparameter, \
-    UniformFloatHyperparameter, CategoricalHyperparameter, Constant
+    UniformFloatHyperparameter, CategoricalHyperparameter, Constant, \
+    EqualsCondition, AndConjunction
 from ConfigSpace.io.pcs import read
 from ConfigSpace.util import impute_inactive_values, get_random_neighbor, \
-    get_one_exchange_neighbourhood
+    get_one_exchange_neighbourhood, deactivate_inactive_hyperparameters
 
 
 class UtilTest(unittest.TestCase):
@@ -175,3 +176,37 @@ class UtilTest(unittest.TestCase):
             neighborhood = get_one_exchange_neighbourhood(configuration, i)
             for new_config in neighborhood:
                 self.assertNotEqual(configuration, new_config)
+
+    def test_deactivate_inactive_hyperparameters(self):
+        diamond = ConfigurationSpace()
+        head = CategoricalHyperparameter('head', [0, 1])
+        left = CategoricalHyperparameter('left', [0, 1])
+        right = CategoricalHyperparameter('right', [0, 1])
+        bottom = CategoricalHyperparameter('bottom', [0, 1])
+        diamond.add_hyperparameters([head, left, right, bottom])
+        diamond.add_condition(EqualsCondition(left, head, 0))
+        diamond.add_condition(EqualsCondition(right, head, 0))
+        diamond.add_condition(AndConjunction(EqualsCondition(bottom, left, 0),
+                                             EqualsCondition(bottom, right, 0)))
+
+        c = deactivate_inactive_hyperparameters({'head': 0, 'left': 0,
+                                                 'right': 0, 'bottom': 0},
+                                                 diamond)
+        diamond._check_configuration_rigorous(c)
+
+        c = deactivate_inactive_hyperparameters({'head': 1, 'left': 0,
+                                                 'right': 0, 'bottom': 0},
+                                                diamond)
+        diamond._check_configuration_rigorous(c)
+
+        c = deactivate_inactive_hyperparameters({'head': 0, 'left': 1,
+                                                 'right': 0, 'bottom': 0},
+                                                diamond)
+        diamond._check_configuration_rigorous(c)
+
+        plain = ConfigurationSpace()
+        a = UniformIntegerHyperparameter('a', 0, 10)
+        b = UniformIntegerHyperparameter('b', 0, 10)
+        plain.add_hyperparameters([a, b])
+        c = deactivate_inactive_hyperparameters({'a': 5, 'b': 6}, plain)
+        plain.check_configuration(c)

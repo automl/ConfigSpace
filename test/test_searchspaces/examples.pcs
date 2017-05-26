@@ -7,14 +7,14 @@ x3 | x4 > yellow
 
 ################################################################################
 # Diamond pattern with and connection
-#diamond_head integer [0, 10] [0]
-#diamond_left integer [0, 10] [0]
-#diamond_right integer [0, 10] [0]
-#diamond_child integer [0, 10] [0]
+diamond_head integer [0, 10] [0]
+diamond_left integer [0, 10] [0]
+diamond_right integer [0, 10] [0]
+diamond_child integer [0, 10] [0]
 
-#diamond_left | diamond_head > 5
-#diamond_right | diamond_head > 5
-#diamond_child | diamond_right > 5 && diamond_left > 5
+diamond_left | diamond_head > 5
+diamond_right | diamond_head > 5
+diamond_child | diamond_right > 5 && diamond_left > 5
 
 ################################################################################
 # Diamond pattern with or connection

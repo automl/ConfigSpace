@@ -31,7 +31,7 @@ import copy
 from typing import Union, List, Any, Dict
 
 import numpy as np  # type: ignore
-from ConfigSpace import Configuration, Constant
+from ConfigSpace import Configuration, ConfigurationSpace
 from ConfigSpace.exceptions import ForbiddenValueError
 
 def impute_inactive_values(configuration: Configuration, strategy: Union[str, float]='default') -> Configuration:
@@ -332,5 +332,74 @@ def get_random_neighbor(configuration: Configuration, seed: int) -> Configuratio
     return new_configuration
 
 
+def deactivate_inactive_hyperparameters(configuration: dict,
+                                        configuration_space: ConfigurationSpace):
+    hyperparameters = configuration_space.get_hyperparameters()
+
+    hps = deque()
+    active = dict()
+
+    unconditional_hyperparameters = configuration_space.get_all_unconditional_hyperparameters()
+    hyperparameters_with_children = list()
+    for uhp in unconditional_hyperparameters:
+        children = configuration_space._children_of[uhp]
+        if len(children) > 0:
+            hyperparameters_with_children.append(uhp)
+
+    for hp_name in unconditional_hyperparameters:
+        active[hp_name] = True
+    hps.extendleft(hyperparameters_with_children)
+
+    inactive = set()
+
+    while len(hps) > 0:
+        hp = hps.pop()
+        children = configuration_space._children_of[hp]
+        for child in children:
+            if child.name not in inactive:
+                parents = configuration_space._parents_of[child.name]
+                if len(parents) == 1:
+                    conditions = configuration_space._parent_conditions_of[child.name]
+                    add = True
+                    for condition in conditions:
+                        if not condition.evaluate(configuration):
+                            add = False
+                            del configuration[child.name]
+                            inactive.add(child.name)
+                            break
+                    if add == True:
+                        active[child.name] = True
+                        hps.appendleft(child.name)
+
+                else:
+                    parent_names = set(p.name for p in parents)
+                    if not parent_names <= set(
+                            hps):  # make sure no parents are still unvisited
+                        conditions = configuration_space._parent_conditions_of[child.name]
+                        add = True
+                        for condition in conditions:
+                            if not condition.evaluate(configuration):
+                                add = False
+                                del configuration[child.name]
+                                inactive.add(child.name)
+                                break
+
+                        if add == True:
+                            active[child.name] = True
+                            hps.appendleft(child.name)
+
+                    else:
+                        continue
+
+    # Surprisingly, the vector update wasn't faster
+    # vector[i][~active] = np.NaN
+    for hp in hyperparameters:
+        if not active.get(hp.name):
+            try:
+                del configuration[hp.name]
+            except KeyError:
+                pass
+
+    return Configuration(configuration_space, values=configuration)
 
 
