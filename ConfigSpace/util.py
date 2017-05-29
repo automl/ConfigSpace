@@ -335,9 +335,11 @@ def get_random_neighbor(configuration: Configuration, seed: int) -> Configuratio
 def deactivate_inactive_hyperparameters(configuration: dict,
                                         configuration_space: ConfigurationSpace):
     hyperparameters = configuration_space.get_hyperparameters()
+    configuration = Configuration(configuration_space=configuration_space,
+                                  values=configuration,
+                                  allow_inactive_with_values=True)
 
     hps = deque()
-    active = dict()
 
     unconditional_hyperparameters = configuration_space.get_all_unconditional_hyperparameters()
     hyperparameters_with_children = list()
@@ -345,9 +347,6 @@ def deactivate_inactive_hyperparameters(configuration: dict,
         children = configuration_space._children_of[uhp]
         if len(children) > 0:
             hyperparameters_with_children.append(uhp)
-
-    for hp_name in unconditional_hyperparameters:
-        active[hp_name] = True
     hps.extendleft(hyperparameters_with_children)
 
     inactive = set()
@@ -356,50 +355,36 @@ def deactivate_inactive_hyperparameters(configuration: dict,
         hp = hps.pop()
         children = configuration_space._children_of[hp]
         for child in children:
-            if child.name not in inactive:
-                parents = configuration_space._parents_of[child.name]
-                if len(parents) == 1:
-                    conditions = configuration_space._parent_conditions_of[child.name]
-                    add = True
-                    for condition in conditions:
-                        if not condition.evaluate(configuration):
-                            add = False
-                            del configuration[child.name]
-                            inactive.add(child.name)
-                            break
-                    if add == True:
-                        active[child.name] = True
-                        hps.appendleft(child.name)
-
-                else:
-                    parent_names = set(p.name for p in parents)
-                    if not parent_names <= set(
-                            hps):  # make sure no parents are still unvisited
-                        conditions = configuration_space._parent_conditions_of[child.name]
-                        add = True
-                        for condition in conditions:
-                            if not condition.evaluate(configuration):
-                                add = False
-                                del configuration[child.name]
-                                inactive.add(child.name)
-                                break
-
-                        if add == True:
-                            active[child.name] = True
-                            hps.appendleft(child.name)
-
-                    else:
+            conditions = configuration_space._parent_conditions_of[child.name]
+            for condition in conditions:
+                if not condition.evaluate_vector(configuration.get_array()):
+                    dic = configuration.get_dictionary()
+                    try:
+                        del dic[child.name]
+                    except KeyError:
                         continue
+                    configuration = Configuration(
+                        configuration_space=configuration_space,
+                        values=dic,
+                        allow_inactive_with_values=True)
+                    inactive.add(child.name)
+                hps.appendleft(child.name)
 
     # Surprisingly, the vector update wasn't faster
     # vector[i][~active] = np.NaN
     for hp in hyperparameters:
-        if not active.get(hp.name):
+        if hp.name in inactive:
+            dic = configuration.get_dictionary()
             try:
-                del configuration[hp.name]
+                del dic[hp.name]
             except KeyError:
-                pass
+                continue
+            configuration = Configuration(
+                configuration_space=configuration_space,
+                values=dic,
+                allow_inactive_with_values=True)
 
-    return Configuration(configuration_space, values=configuration)
+    print(configuration.get_dictionary())
+    return Configuration(configuration_space, values=configuration.get_dictionary())
 
 
