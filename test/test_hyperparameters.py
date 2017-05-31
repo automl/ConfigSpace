@@ -634,27 +634,31 @@ class TestHyperparameters(unittest.TestCase):
     def test_ordinal_get_value(self):
         f1 = OrdinalHyperparameter("temp", 
                                    ["freezing", "cold", "warm", "hot"])
-        self.assertEqual(f1.get_value(3), "warm")
+        self.assertEqual(f1.get_value(3), "hot")
         self.assertNotEqual(f1.get_value(1), "warm")
         
     def test_ordinal_get_order(self):
         f1 = OrdinalHyperparameter("temp", 
                                    ["freezing", "cold", "warm", "hot"])
-        self.assertEqual(f1.get_order("warm"),3)
-        self.assertNotEqual(f1.get_order("freezing"), 4)
+        self.assertEqual(f1.get_order("warm"),2)
+        self.assertNotEqual(f1.get_order("freezing"), 3)
     
     def test_ordinal_get_seq_order(self):
         f1 = OrdinalHyperparameter("temp", 
                                    ["freezing", "cold", "warm", "hot"])
-        self.assertEqual(tuple(f1.get_seq_order()), tuple([1,2,3,4]))
+        self.assertEqual(tuple(f1.get_seq_order()), tuple([0,1,2,3]))
     
     def test_ordinal_get_neighbors(self):
         f1 = OrdinalHyperparameter("temp", 
                                    ["freezing", "cold", "warm", "hot"])
-        self.assertEqual(f1.get_neighbors("freezing", rs=None), [2])
-        self.assertEqual(f1.get_neighbors("cold", transform=True, rs=None), ["freezing", "warm"])
-        self.assertEqual(f1.get_neighbors("hot", rs=None), [3])
-        self.assertEqual(f1.get_neighbors("hot", transform =True, rs=None), ["warm"])
+        # self.assertEqual(f1.get_neighbors("freezing", rs=None), [2])
+        # self.assertEqual(f1.get_neighbors("cold", transform=True, rs=None), ["freezing", "warm"])
+        # self.assertEqual(f1.get_neighbors("hot", rs=None), [3])
+        # self.assertEqual(f1.get_neighbors("hot", transform =True, rs=None), ["warm"])
+        self.assertEqual(f1.get_neighbors(0, rs=None), [1])
+        self.assertEqual(f1.get_neighbors(1, transform=False, rs=None), [0, 2])
+        self.assertEqual(f1.get_neighbors(3, rs=None), [2])
+        self.assertEqual(f1.get_neighbors(3, transform =True, rs=None), [2])
         
     def test_get_num_neighbors(self):
         f1 = OrdinalHyperparameter("temp", 
