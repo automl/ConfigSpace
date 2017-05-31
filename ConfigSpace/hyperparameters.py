@@ -1011,6 +1011,7 @@ class OrdinalHyperparameter(Hyperparameter):
             neighbor_idx1 = index - 1
             neighbor_idx2 = index + 1
             seq = self.get_seq_order()
+            # todo: check if transform is needed
             # if transform:
             #     if neighbor_idx1 >= seq[0]:
             #         candidate1 = self.get_value(neighbor_idx1)
