@@ -870,7 +870,7 @@ class OrdinalHyperparameter(Hyperparameter):
         self.sequence_vector = range(self._num_elements)
         self.default = self.check_default(default)
         self.value_dict = OrderedDict()  # type: OrderedDict[Union[int, float, str], int]
-        counter = 1
+        counter = 0
         for element in self.sequence:
             self.value_dict[element] = counter
             counter += 1
@@ -949,7 +949,7 @@ class OrdinalHyperparameter(Hyperparameter):
         returns the ordinal sequence as numeric sequence
         (according to the the ordering) from 1 to length of our sequence.
         """
-        return np.arange(1, self._num_elements + 1)
+        return np.arange(0, self._num_elements)
 
     def get_order(self, value: Union[None, int, str, float]) -> int:
         """
@@ -991,37 +991,42 @@ class OrdinalHyperparameter(Hyperparameter):
         """
         returns the number of existing neighbors in the sequence
         """
-        if value == self.sequence[0] or value == self.sequence[-1]:
+        if value == self.sequence[0] and value == self.sequence[-1]:# check if there is only one value
+            return 0
+        elif value == self.sequence[0] or value == self.sequence[-1]:
             return 1
         else:
             return 2
 
-    def get_neighbors(self, value: Union[int, str, float], rs: None, number: int = 2, transform: bool = False) \
+    def get_neighbors(self, value: Union[int, str, float], rs: None, number: int = 0, transform: bool = False) \
             -> List[Union[str, float, int]]:
         """
         Returns the neighbors of a given value.
+        Value must be in vector form. Ordinal name will not work.
         """
         neighbors = []
-        if number < len(self.sequence):
-            index = self.get_order(value)
+        if self.get_num_neighbors(self.get_value(value)) < len(self.sequence):
+            # index = self.get_order(value)
+            index = value
             neighbor_idx1 = index - 1
             neighbor_idx2 = index + 1
             seq = self.get_seq_order()
-            if transform:
-                if neighbor_idx1 >= seq[0]:
-                    candidate1 = self.get_value(neighbor_idx1)
-                    if self.check_order(candidate1, value):
-                        neighbors.append(candidate1)
-                if neighbor_idx2 <= self._num_elements:
-                    candidate2 = self.get_value(neighbor_idx2)
-                    if self.check_order(value, candidate2):
-                        neighbors.append(candidate2)
-            else:
-                if neighbor_idx1 < index and neighbor_idx1 >= seq[0]:
-                    neighbors.append(neighbor_idx1)
-                if neighbor_idx2 > index and neighbor_idx2 <= self._num_elements:
-                    neighbors.append(neighbor_idx2)
+            # if transform:
+            #     if neighbor_idx1 >= seq[0]:
+            #         candidate1 = self.get_value(neighbor_idx1)
+            #         if self.check_order(candidate1, value):
+            #             neighbors.append(candidate1)
+            #     if neighbor_idx2 <= self._num_elements:
+            #         candidate2 = self.get_value(neighbor_idx2)
+            #         if self.check_order(value, candidate2):
+            #             neighbors.append(candidate2)
+            # else:
+            if neighbor_idx1 < index and neighbor_idx1 >= seq[0]:
+                neighbors.append(neighbor_idx1)
+            if neighbor_idx2 > index and neighbor_idx2 < self._num_elements:
+                neighbors.append(neighbor_idx2)
 
+        # todo: is there a scenario where empty neighbors array is returned or there should be a check for it?
         return neighbors
 
     def allow_greater_less_comparison(self) -> bool:
