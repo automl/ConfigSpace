@@ -23,38 +23,14 @@ x_right | x_head in {red}
 ################################################################################
 #Diamond pattern with or connection
 
-diamond_head_2 integer [0, 10] [0]
-diamond_left_2 integer [0, 10] [0]
-diamond_right_2 integer [0, 10] [0]
-diamond_child_2 integer [0, 10] [0]
+#diamond_head_2 integer [0, 10] [0]
+#diamond_left_2 integer [0, 10] [0]
+#diamond_right_2 integer [0, 10] [0]
+#diamond_child_2 integer [0, 10] [0]
 
-diamond_left_2 | diamond_head_2 > 5
-diamond_right_2 | diamond_head_2 > 5
-diamond_child_2 | diamond_right_2 > 5 && diamond_left_2 > 5
-
-################################################################################
-# Diamond pattern with ordinals
-
-x_head categorical {red, green} [green]
-x_left categorical {green, yellow} [yellow]
-x_right categorical {blue, green, yellow, pink} [green]
-x_child categorical {red, pink} [pink]
-
-x_child | x_left in {yellow} && x_right in {green}
-x_left | x_head in {red}
-x_right | x_head in {red}
-
-################################################################################
-#Diamond pattern with or connection
-
-diamond_head_2 integer [0, 10] [0]
-diamond_left_2 integer [0, 10] [0]
-diamond_right_2 integer [0, 10] [0]
-diamond_child_2 integer [0, 10] [0]
-
-diamond_left_2 | diamond_head_2 > 5
-diamond_right_2 | diamond_head_2 > 5
-diamond_child_2 | diamond_right_2 > 5 && diamond_left_2 > 5
+#diamond_left_2 | diamond_head_2 > 5
+#diamond_right_2 | diamond_head_2 > 5
+#diamond_child_2 | diamond_right_2 > 5 && diamond_left_2 > 5
 
 ################################################################################
 
@@ -73,7 +49,7 @@ novnoise | adaptive in {0}
 
 #Example for integer comparison
 
-int_parent integer [0, 3] [0]
-int_child integer [0, 3] [0]
+#int_parent integer [0, 3] [0]
+#int_child integer [0, 3] [0]
 
-int_child | int_parent > 1
+#int_child | int_parent > 1
