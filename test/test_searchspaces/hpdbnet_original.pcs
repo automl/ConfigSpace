@@ -1,0 +1,77 @@
+preproc {0, 1} [0]
+pca_energy [0.5, 1] [0.75]
+pca_energy | preproc in {1}
+
+iseed {0, 1, 2, 3} [0]
+
+# First hidden layer
+LOG_Q16_n_hid_0 [4.85203026392, 8.31776616672] [6.58489821532]
+LOG_Q16_n_hid_0 | depth in {1, 2, 3}
+W_idist_0 {0, 1} [0]
+W_idist_0 | depth in {1, 2, 3}
+W_ialgo_0 {0, 1} [0]
+W_ialgo_0 | depth in {1, 2, 3}
+LOG_W_imult_0 [-3, 3] [0]
+LOG_W_imult_0 | depth in {1, 2, 3}
+LOG_W_imult_0 | W_ialgo_0 in {0}
+LOG_cd_lr_0 [-10.605170186, 1.39482981401] [-4.60517018599]
+LOG_cd_lr_0 | depth in {1, 2, 3}
+cd_seed_0 {0, 1, 2, 3, 4, 5, 6, 7, 8, 9} [0]
+cd_seed_0 | depth in {1, 2, 3}
+LOG_Q1_cd_epochs_0 [0.0, 8.00636756765] [4.00318378383]
+LOG_Q1_cd_epochs_0 | depth in {1, 2, 3}
+sample_v0s_0 {0, 1} [0]
+sample_v0s_0 | depth in {1, 2, 3}
+LOG_Q1_lr_anneal_0 [2.30258509299, 9.21034037198] [5.75646273249]
+LOG_Q1_lr_anneal_0 | depth in {1, 2, 3}
+
+# Second hidden layer
+LOG_Q16_n_hid_1 [4.85203026392, 8.31776616672] [6.58489821532]
+LOG_Q16_n_hid_1 | depth in {2, 3}
+W_idist_1 {0, 1} [0]
+W_idist_1 | depth in {2, 3}
+W_ialgo_1 {0, 1} [0]
+W_ialgo_1 | depth in {2, 3}
+LOG_W_imult_1 [-3, 3] [0]
+LOG_W_imult_1 | depth in {2, 3}
+LOG_W_imult_1 | W_ialgo_1 in {0}
+LOG_cd_lr_1 [-10.605170186, 1.39482981401] [-4.60517018599]
+LOG_cd_lr_1 | depth in {2, 3}
+cd_seed_1 {0, 1, 2, 3, 4, 5, 6, 7, 8, 9} [0]
+cd_seed_1 | depth in {2, 3}
+LOG_Q1_cd_epochs_1 [0.0, 7.60090245954] [3.80045122977]
+LOG_Q1_cd_epochs_1 | depth in {2, 3}
+sample_v0s_1 {0, 1} [0]
+sample_v0s_1 | depth in {2, 3}
+LOG_Q1_lr_anneal_1 [2.30258509299, 9.21034037198] [5.75646273249]
+LOG_Q1_lr_anneal_1 | depth in {2, 3}
+
+# Third hidden layer
+LOG_Q16_n_hid_2 [4.85203026392, 8.31776616672] [6.58489821532]
+LOG_Q16_n_hid_2 | depth in {3}
+W_idist_2 {0, 1} [0]
+W_idist_2 | depth in {3}
+W_ialgo_2 {0, 1} [0]
+W_ialgo_2 | depth in {3}
+LOG_W_imult_2 [-3, 3] [0]
+LOG_W_imult_2 | depth in {3}
+LOG_W_imult_2 | W_ialgo_2 in {0}
+LOG_cd_lr_2 [-10.605170186, 1.39482981401] [-4.60517018599]
+LOG_cd_lr_2 | depth in {3}
+cd_seed_2 {0, 1, 2, 3, 4, 5, 6, 7, 8, 9} [0]
+cd_seed_2 | depth in {3}
+LOG_Q1_cd_epochs_2 [0.0, 7.31322038709] [3.65661019355]
+LOG_Q1_cd_epochs_2 | depth in {3}
+sample_v0s_2 {0, 1} [0]
+sample_v0s_2 | depth in {3}
+LOG_Q1_lr_anneal_2 [2.30258509299, 9.21034037198] [5.75646273249]
+LOG_Q1_lr_anneal_2 | depth in {3}
+
+depth {0, 1, 2, 3} [0]
+batch_size {0, 1} [0]
+LOG_lr [-13.605170186, 4.39482981401] [-4.60517018599]
+LOG_Q1_lr_anneal_start [4.60517018599, 9.21034037198] [6.90775527898]
+l2_penalty {0, 1} [0]
+LOG_l2_penalty_nz [-19.815510558, -7.81551055796] [-13.815510558]
+# LOG_l2_penalty_nz [-22.815510558, -4.81551055796] [-13.815510558]
+LOG_l2_penalty_nz | l2_penalty in {1}

@@ -1,0 +1,4 @@
+x3 integer [0,10] [0]
+x4 ordinal {yellow,green,red,blue} [red]
+
+x3 | x4 > yellow

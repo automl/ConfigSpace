@@ -23,24 +23,57 @@ x_right | x_head in {red}
 ################################################################################
 #Diamond pattern with or connection
 
-#diamond_head_2 integer [0, 10] [0]
-#diamond_left_2 integer [0, 10] [0]
-#diamond_right_2 integer [0, 10] [0]
-#diamond_child_2 integer [0, 10] [0]
+diamond_head_2 integer [0, 10] [0]
+diamond_left_2 integer [0, 10] [0]
+diamond_right_2 integer [0, 10] [0]
+diamond_child_2 integer [0, 10] [0]
 
-#diamond_left_2 | diamond_head_2 > 5
-#diamond_right_2 | diamond_head_2 > 5
-#diamond_child_2 | diamond_right_2 > 5 && diamond_left_2 > 5
+diamond_left_2 | diamond_head_2 > 5
+diamond_right_2 | diamond_head_2 > 5
+diamond_child_2 | diamond_right_2 > 5 && diamond_left_2 > 5
+
+################################################################################
+# Diamond pattern with ordinals
+
+x_head categorical {red, green} [green]
+x_left categorical {green, yellow} [yellow]
+x_right categorical {blue, green, yellow, pink} [green]
+x_child categorical {red, pink} [pink]
+
+x_child | x_left in {yellow} && x_right in {green}
+x_left | x_head in {red}
+x_right | x_head in {red}
+
+################################################################################
+#Diamond pattern with or connection
+
+diamond_head_2 integer [0, 10] [0]
+diamond_left_2 integer [0, 10] [0]
+diamond_right_2 integer [0, 10] [0]
+diamond_child_2 integer [0, 10] [0]
+
+diamond_left_2 | diamond_head_2 > 5
+diamond_right_2 | diamond_head_2 > 5
+diamond_child_2 | diamond_right_2 > 5 && diamond_left_2 > 5
 
 ################################################################################
 
-#adaptive {0, 1} [1] #uniform # untouched
-#heuristic {1,2,3,4,5,6,7,8,9,10,11,12,13} [2]
-#novnoise [0.1, 0.8] [0.5]
-#singleclause {0, 1} [1] # most important difference
+adaptive {0, 1} [1] #uniform # untouched
+heuristic {1,2,3,4,5,6,7,8,9,10,11,12,13} [2]
+novnoise [0.1, 0.8] [0.5]
+singleclause {0, 1} [1] # most important difference
 
 
 #Conditionals:
-#heuristic | singleclause in {1}  #
-#novnoise | heuristic in {1,2,3,4,5,6,10,11,12,13}
-#novnoise | adaptive in {0}
+heuristic | singleclause in {1}  #
+novnoise | heuristic in {1,2,3,4,5,6,10,11,12,13}
+novnoise | adaptive in {0}
+
+###########################################################################
+
+#Example for integer comparison
+
+int_parent integer [0, 3] [0]
+int_child integer [0, 3] [0]
+
+int_child | int_parent > 1
