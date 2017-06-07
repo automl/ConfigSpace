@@ -65,7 +65,11 @@ pp_cont_param = pp_param_name + pp_param_type + "[" + pp_number + "," + pp_numbe
 pp_cat_param = pp_param_name + pp_param_type + "{" + pp_choices + "}" + "[" + pp_param_name + "]"
 pp_condition = pp_param_name + "|" +  pp_param_name + pp_param_operation + \
     pyparsing.Optional('{') + pp_param_val + pyparsing.Optional('}') + \
-    pyparsing.Optional(pyparsing.OneOrMore(pp_connective  + pp_param_name + pp_param_operation + pp_param_val))
+    pyparsing.Optional(
+        pyparsing.OneOrMore(
+            pp_connective  + pp_param_name + pp_param_operation + pyparsing.Optional('{') + pp_param_val + pyparsing.Optional('}')
+        )
+    )
 pp_forbidden_clause = "{" + pp_param_name + "=" + pp_numberorname + \
     pyparsing.Optional(pyparsing.OneOrMore("," + pp_param_name + "=" + pp_numberorname)) + "}"
 
