@@ -865,6 +865,8 @@ class OrdinalHyperparameter(Hyperparameter):
         numeric sequence according to their order/position.
         """
         super(OrdinalHyperparameter, self).__init__(name)
+        if len(sequence) > len(set(sequence)):
+            raise ValueError("Ordinal Hyperparameter Sequence %s contain duplicate values." % sequence)
         self.sequence = sequence
         self._num_elements = len(sequence)
         self.sequence_vector = range(self._num_elements)
