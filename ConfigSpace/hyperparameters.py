@@ -1007,16 +1007,33 @@ class OrdinalHyperparameter(Hyperparameter):
         Value must be in vector form. Ordinal name will not work.
         """
         neighbors = []
-        if self.get_num_neighbors(self.get_value(value)) < len(self.sequence):
-            index = value
-            neighbor_idx1 = index - 1
-            neighbor_idx2 = index + 1
-            seq = self.get_seq_order()
+        if transform:
+            if self.get_num_neighbors(value) < len(self.sequence):
+                index = self.get_order(value)
+                neighbor_idx1 = index - 1
+                neighbor_idx2 = index + 1
+                seq = self.get_seq_order()
 
-            if neighbor_idx1 < index and neighbor_idx1 >= seq[0]:
-                neighbors.append(neighbor_idx1)
-            if neighbor_idx2 > index and neighbor_idx2 < self._num_elements:
-                neighbors.append(neighbor_idx2)
+                if neighbor_idx1 >= seq[0]:
+                    candidate1 = self.get_value(neighbor_idx1)
+                    if self.check_order(candidate1, value):
+                        neighbors.append(candidate1)
+                if neighbor_idx2 < self._num_elements:
+                    candidate2 = self.get_value(neighbor_idx2)
+                    if self.check_order(value, candidate2):
+                        neighbors.append(candidate2)
+
+        else:
+            if self.get_num_neighbors(self.get_value(value)) < len(self.sequence):
+                index = value
+                neighbor_idx1 = index - 1
+                neighbor_idx2 = index + 1
+                seq = self.get_seq_order()
+
+                if neighbor_idx1 < index and neighbor_idx1 >= seq[0]:
+                    neighbors.append(neighbor_idx1)
+                if neighbor_idx2 > index and neighbor_idx2 < self._num_elements:
+                    neighbors.append(neighbor_idx2)
 
         return neighbors
 
