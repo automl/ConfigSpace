@@ -870,6 +870,7 @@ class ConfigurationSpace(object):
                                 str(clause)))
 
                     hps = deque()
+                    visited = set()
                     hps.extendleft(hyperparameters_with_children)
                     active = np.zeros((num_hyperparameters,), dtype=bool)
 
@@ -880,6 +881,7 @@ class ConfigurationSpace(object):
 
                     while len(hps) > 0:
                         hp = hps.pop()
+                        visited.add(hp)
                         children = self._children_of[hp]
                         for child in children:
                             if child.name not in inactive:
@@ -900,7 +902,8 @@ class ConfigurationSpace(object):
 
                                 else:
                                     parent_names = set(p.name for p in parents)
-                                    if not parent_names <= set(hps):  # make sure no parents are still unvisited
+                                    # if not parent_names <= set(hps):  # make sure no parents are still unvisited
+                                    if parent_names.issubset(visited):  # make sure no parents are still unvisited
                                         conditions = self._parent_conditions_of[child.name]
                                         add = True
                                         for condition in conditions:
