@@ -1,28 +1,22 @@
 ################################################################################
 # Example of ordinal hyperparameters
+
 x3 integer [0,10] [0]
-x4 ordinal {yellow,green,red,blue} [red]
+x4 ordinal {red, blue, green, yellow} [red]
+x5 categorical {yellow} [yellow]
 
 x3 | x4 > yellow
+x4 | x5 in {yellow}
 
 ################################################################################
-# Diamond pattern with and connection
-diamond_head integer [0, 10] [0]
-diamond_left integer [0, 10] [0]
-diamond_right integer [0, 10] [0]
-diamond_child integer [0, 10] [0]
 
-diamond_left | diamond_head > 5
-diamond_right | diamond_head > 5
-diamond_child | diamond_right > 5 && diamond_left > 5
+#adaptive {0, 1} [1] #uniform # untouched
+#heuristic {1,2,3,4,5,6,7,8,9,10,11,12,13} [2]
+#novnoise [0.1, 0.8] [0.5]
+#singleclause {0, 1} [1] # most important difference
 
-################################################################################
-# Diamond pattern with or connection
-diamond_head_2 integer [0, 10] [0]
-diamond_left_2 integer [0, 10] [0]
-diamond_right_2 integer [0, 10] [0]
-diamond_child_2 integer [0, 10] [0]
 
-diamond_left_2 | diamond_head_2 > 5
-diamond_right_2 | diamond_head_2 > 5
-diamond_child_2 | diamond_right_2 > 5 || diamond_left_2 > 5
+#Conditionals:
+#heuristic | singleclause in {1}  #
+#novnoise | heuristic in {1,2,3,4,5,6,10,11,12,13}
+#novnoise | adaptive in {0}
