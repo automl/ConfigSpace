@@ -31,7 +31,7 @@ import copy
 from typing import Union, List, Any, Dict
 
 import numpy as np  # type: ignore
-from ConfigSpace import Configuration, Constant
+from ConfigSpace import Configuration, ConfigurationSpace
 from ConfigSpace.exceptions import ForbiddenValueError
 
 def impute_inactive_values(configuration: Configuration, strategy: Union[str, float]='default') -> Configuration:
@@ -332,5 +332,59 @@ def get_random_neighbor(configuration: Configuration, seed: int) -> Configuratio
     return new_configuration
 
 
+def deactivate_inactive_hyperparameters(configuration: dict,
+                                        configuration_space: ConfigurationSpace):
+    hyperparameters = configuration_space.get_hyperparameters()
+    configuration = Configuration(configuration_space=configuration_space,
+                                  values=configuration,
+                                  allow_inactive_with_values=True)
+
+    hps = deque()
+
+    unconditional_hyperparameters = configuration_space.get_all_unconditional_hyperparameters()
+    hyperparameters_with_children = list()
+    for uhp in unconditional_hyperparameters:
+        children = configuration_space._children_of[uhp]
+        if len(children) > 0:
+            hyperparameters_with_children.append(uhp)
+    hps.extendleft(hyperparameters_with_children)
+
+    inactive = set()
+
+    while len(hps) > 0:
+        hp = hps.pop()
+        children = configuration_space._children_of[hp]
+        for child in children:
+            conditions = configuration_space._parent_conditions_of[child.name]
+            for condition in conditions:
+                if not condition.evaluate_vector(configuration.get_array()):
+                    dic = configuration.get_dictionary()
+                    try:
+                        del dic[child.name]
+                    except KeyError:
+                        continue
+                    configuration = Configuration(
+                        configuration_space=configuration_space,
+                        values=dic,
+                        allow_inactive_with_values=True)
+                    inactive.add(child.name)
+                hps.appendleft(child.name)
+
+    # Surprisingly, the vector update wasn't faster
+    # vector[i][~active] = np.NaN
+    for hp in hyperparameters:
+        if hp.name in inactive:
+            dic = configuration.get_dictionary()
+            try:
+                del dic[hp.name]
+            except KeyError:
+                continue
+            configuration = Configuration(
+                configuration_space=configuration_space,
+                values=dic,
+                allow_inactive_with_values=True)
+
+    print(configuration.get_dictionary())
+    return Configuration(configuration_space, values=configuration.get_dictionary())
 
 
