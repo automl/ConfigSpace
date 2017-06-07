@@ -108,7 +108,7 @@ class Hyperparameter(object, metaclass=ABCMeta):
         raise NotImplementedError()
 
     @abstractmethod
-    def get_neighbors(self, value, rs, number):
+    def get_neighbors(self, value, rs, number, transform=False):
         raise NotImplementedError()
 
     @abstractmethod
@@ -162,7 +162,7 @@ class Constant(Hyperparameter):
     def get_num_neighbors(self, value=None) -> int:
         return 0
 
-    def get_neighbors(self, value: Any, rs: np.random.RandomState, number: int) -> List:
+    def get_neighbors(self, value: Any, rs: np.random.RandomState, number: int, transform: bool = False) -> List:
         return []
 
 
@@ -361,13 +361,16 @@ class UniformFloatHyperparameter(FloatHyperparameter):
             vector = np.log(vector)
         return (vector - self._lower) / (self._upper - self._lower)
 
-    def get_neighbors(self, value: Any, rs: np.random.RandomState, number: int = 4) -> List[float]:
+    def get_neighbors(self, value: Any, rs: np.random.RandomState, number: int = 4, transform: bool = False) -> List[float]:
         neighbors = []  # type: List[float]
         while len(neighbors) < number:
             neighbor = rs.normal(value, 0.2)
             if neighbor < 0 or neighbor > 1:
                 continue
-            neighbors.append(neighbor)
+            if transform:
+                neighbors.append(self._transform(neighbor))
+            else:
+                neighbors.append(neighbor)
         return neighbors
 
 
@@ -460,7 +463,7 @@ class NormalFloatHyperparameter(FloatHyperparameter):
             vector = np.log(vector)
         return vector
 
-    def get_neighbors(self, value: float, rs: np.random.RandomState, number: int = 4) -> List[float]:
+    def get_neighbors(self, value: float, rs: np.random.RandomState, number: int = 4, transform: bool = False) -> List[float]:
         neighbors = []
         for i in range(number):
             neighbors.append(rs.normal(value, self.sigma))
@@ -585,7 +588,7 @@ class UniformIntegerHyperparameter(IntegerHyperparameter):
         else:
             return False
 
-    def get_neighbors(self, value: Union[int, float], rs: np.random.RandomState, number: int = 4) -> List[
+    def get_neighbors(self, value: Union[int, float], rs: np.random.RandomState, number: int = 4, transform: bool = False) -> List[
         int]:
         neighbors = []  # type: List[int]
         while len(neighbors) < number:
@@ -601,7 +604,10 @@ class UniformIntegerHyperparameter(IntegerHyperparameter):
                 elif iteration > 100000:
                     raise ValueError('Probably caught in an infinite loop.')
 
-            neighbors.append(new_value)
+            if transform:
+                neighbors.append(self._transform(new_value))
+            else:
+                neighbors.append(new_value)
 
         return neighbors
 
@@ -709,7 +715,7 @@ class NormalIntegerHyperparameter(IntegerHyperparameter):
     def has_neighbors(self) -> bool:
         return True
 
-    def get_neighbors(self, value: Union[int, float], rs: np.random.RandomState, number: int = 4) -> \
+    def get_neighbors(self, value: Union[int, float], rs: np.random.RandomState, number: int = 4, transform: bool = False) -> \
             List[Union[np.ndarray, float, int]]:
         neighbors = []  # type: List[Union[np.ndarray, float, int]]
         while len(neighbors) < number:
@@ -725,7 +731,10 @@ class NormalIntegerHyperparameter(IntegerHyperparameter):
                 elif iteration > 100000:
                     raise ValueError('Probably caught in an infinite loop.')
 
-            neighbors.append(new_value)
+            if transform:
+                neighbors.append(self._transform(new_value))
+            else:
+                neighbors.append(new_value)
         return neighbors
 
 
@@ -804,7 +813,7 @@ class CategoricalHyperparameter(Hyperparameter):
     def get_num_neighbors(self, value=None) -> int:
         return len(self.choices) - 1
 
-    def get_neighbors(self, value: int, rs: np.random.RandomState, number: Union[int, float] = np.inf) -> \
+    def get_neighbors(self, value: int, rs: np.random.RandomState, number: Union[int, float] = np.inf, transform: bool = False) -> \
             List[Union[float, int, str]]:
         neighbors = []  # type: List[Union[float, int, str]]
         if number < len(self.choices):
@@ -816,7 +825,10 @@ class CategoricalHyperparameter(Hyperparameter):
                     if neighbor_idx != index:
                         rejected = False
 
-                candidate = float(neighbor_idx)
+                if transform:
+                    candidate = self._transform(neighbor_idx)
+                else:
+                    candidate = float(neighbor_idx)
 
                 if candidate in neighbors:
                     continue
@@ -827,7 +839,10 @@ class CategoricalHyperparameter(Hyperparameter):
                 if int(value) == candidate_idx:
                     continue
                 else:
-                    candidate = float(candidate_idx)
+                    if transform:
+                        candidate = self._transform(candidate_idx)
+                    else:
+                        candidate = float(candidate_idx)
 
                     neighbors.append(candidate)
 
@@ -850,6 +865,8 @@ class OrdinalHyperparameter(Hyperparameter):
         numeric sequence according to their order/position.
         """
         super(OrdinalHyperparameter, self).__init__(name)
+        if len(sequence) > len(set(sequence)):
+            raise ValueError("Ordinal Hyperparameter Sequence %s contain duplicate values." % sequence)
         self.sequence = sequence
         self._num_elements = len(sequence)
         self.sequence_vector = range(self._num_elements)
@@ -983,23 +1000,40 @@ class OrdinalHyperparameter(Hyperparameter):
         else:
             return 2
 
-    def get_neighbors(self, value: Union[int, str, float], rs: None, number: int = 0) \
+    def get_neighbors(self, value: Union[int, str, float], rs: None, number: int = 0, transform: bool = False) \
             -> List[Union[str, float, int]]:
         """
         Returns the neighbors of a given value.
         Value must be in vector form. Ordinal name will not work.
         """
         neighbors = []
-        if self.get_num_neighbors(self.get_value(value)) < len(self.sequence):
-            index = value
-            neighbor_idx1 = index - 1
-            neighbor_idx2 = index + 1
-            seq = self.get_seq_order()
+        if transform:
+            if self.get_num_neighbors(value) < len(self.sequence):
+                index = self.get_order(value)
+                neighbor_idx1 = index - 1
+                neighbor_idx2 = index + 1
+                seq = self.get_seq_order()
 
-            if neighbor_idx1 < index and neighbor_idx1 >= seq[0]:
-                neighbors.append(neighbor_idx1)
-            if neighbor_idx2 > index and neighbor_idx2 < self._num_elements:
-                neighbors.append(neighbor_idx2)
+                if neighbor_idx1 >= seq[0]:
+                    candidate1 = self.get_value(neighbor_idx1)
+                    if self.check_order(candidate1, value):
+                        neighbors.append(candidate1)
+                if neighbor_idx2 < self._num_elements:
+                    candidate2 = self.get_value(neighbor_idx2)
+                    if self.check_order(value, candidate2):
+                        neighbors.append(candidate2)
+
+        else:
+            if self.get_num_neighbors(self.get_value(value)) < len(self.sequence):
+                index = value
+                neighbor_idx1 = index - 1
+                neighbor_idx2 = index + 1
+                seq = self.get_seq_order()
+
+                if neighbor_idx1 < index and neighbor_idx1 >= seq[0]:
+                    neighbors.append(neighbor_idx1)
+                if neighbor_idx2 > index and neighbor_idx2 < self._num_elements:
+                    neighbors.append(neighbor_idx2)
 
         return neighbors
 
