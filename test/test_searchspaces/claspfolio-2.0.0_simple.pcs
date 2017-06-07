@@ -1,0 +1,10 @@
+@1:separator {W}[W] 
+@1:solver {/home/lindauer/workspace/claspfolio-2.0/src/trainer/main_train.py}[/home/lindauer/workspace/claspfolio-2.0/src/trainer/main_train.py]
+# ---
+ha {REGRESSION, CLASSVOTER, CLASSMULTI, NN, kNN, CLUSTERING, SBS, ENSEMBLE, ASPEED}[CLASSVOTER]
+hb {no,yes}[yes]
+hc {yes,no}[no]
+
+hb | ha in {REGRESSION, CLASSVOTER, CLASSMULTI, NN, kNN, CLUSTERING, SBS, ENSEMBLE}
+hc | hb in {yes}
+hc | ha in {ASPEED}
