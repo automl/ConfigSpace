@@ -1,36 +1,24 @@
 ################################################################################
 # Example of ordinal hyperparameters
 
-#x3 integer [0,10] [0]
-#x4 ordinal {red, blue, green, yellow} [red]
-#x5 categorical {yellow} [yellow]
+x3 integer [0,10] [0]
+x4 ordinal {red, blue, green, yellow} [red]
+x5 categorical {yellow} [yellow]
 
-#x3 | x4 > yellow
-#x4 | x5 in {yellow}
+x3 | x4 > yellow
+x4 | x5 in {yellow}
+
 ################################################################################
 # Diamond pattern with ordinals
 
-#x_head categorical {red, green} [green]
-#x_left categorical {green, yellow} [yellow]
-#x_right categorical {blue, green, yellow, pink} [green]
-#x_child categorical {red, pink} [pink]
+x_head categorical {red, green} [green]
+x_left categorical {green, yellow} [yellow]
+x_right categorical {blue, green, yellow, pink} [green]
+x_child categorical {red, pink} [pink]
 
-#x_left | x_head in {red}
-#x_right | x_head in {red}
-#x_child | x_left in {yellow} && x_right in {green}
-
-
-################################################################################
-#Diamond pattern with and connection
-
-#diamond_head integer [0, 10] [0]
-#diamond_left integer [0, 10] [0]
-#diamond_right integer [0, 10] [0]
-#diamond_child integer [0, 10] [0]
-
-#diamond_left | diamond_head > 5
-#diamond_right | diamond_head > 5
-#diamond_child | diamond_right > 5
+x_child | x_left in {yellow} && x_right in {green}
+x_left | x_head in {red}
+x_right | x_head in {red}
 
 ################################################################################
 #Diamond pattern with or connection
@@ -42,18 +30,17 @@
 
 #diamond_left_2 | diamond_head_2 > 5
 #diamond_right_2 | diamond_head_2 > 5
-#diamond_child_2 | diamond_right_2 > 5&& diamond_left_2 > 5
-
+#diamond_child_2 | diamond_right_2 > 5 && diamond_left_2 > 5
 
 ################################################################################
 
-adaptive {0, 1} [1] #uniform # untouched
-heuristic {1,2,3,4,5,6,7,8,9,10,11,12,13} [2]
-novnoise [0.1, 0.8] [0.5]
-singleclause {0, 1} [1] # most important difference
+#adaptive {0, 1} [1] #uniform # untouched
+#heuristic {1,2,3,4,5,6,7,8,9,10,11,12,13} [2]
+#novnoise [0.1, 0.8] [0.5]
+#singleclause {0, 1} [1] # most important difference
 
 
-Conditionals:
-heuristic | singleclause in {1}  #
-novnoise | heuristic in {1,2,3,4,5,6,10,11,12,13}
-novnoise | adaptive in {0}
+#Conditionals:
+#heuristic | singleclause in {1}  #
+#novnoise | heuristic in {1,2,3,4,5,6,10,11,12,13}
+#novnoise | adaptive in {0}
