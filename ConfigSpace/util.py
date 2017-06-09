@@ -467,8 +467,6 @@ def deactivate_inactive_hyperparameters(configuration: dict,
                     inactive.add(child.name)
                 hps.appendleft(child.name)
 
-    # Surprisingly, the vector update wasn't faster
-    # vector[i][~active] = np.NaN
     for hp in hyperparameters:
         if hp.name in inactive:
             dic = configuration.get_dictionary()
@@ -481,7 +479,6 @@ def deactivate_inactive_hyperparameters(configuration: dict,
                 values=dic,
                 allow_inactive_with_values=True)
 
-    print(configuration.get_dictionary())
     return Configuration(configuration_space, values=configuration.get_dictionary())
 
 

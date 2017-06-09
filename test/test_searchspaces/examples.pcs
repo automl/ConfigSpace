@@ -39,7 +39,6 @@ heuristic categorical {1,2,3,4,5,6,7,8,9,10,11,12,13} [2]
 novnoise real [0.1, 0.8] [0.5]
 singleclause categorical {0, 1} [1]
 
-
 #Conditionals:
 heuristic | singleclause in {1}
 novnoise | heuristic in {1,2,3,4,5,6,10,11,12,13} && adaptive in {0}

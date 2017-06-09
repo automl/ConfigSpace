@@ -607,6 +607,8 @@ class UniformIntegerHyperparameter(IntegerHyperparameter):
             if transform:
                 neighbors.append(self._transform(new_value))
             else:
+                new_value = self._transform(new_value)
+                new_value = self._inverse_transform(new_value)
                 neighbors.append(new_value)
 
         return neighbors
