@@ -78,3 +78,9 @@ for pcs_file in pcs_files:
         full_path = os.path.join(configuration_space_path, pcs_file)
         setattr(ExampleSearchSpacesTest, 'test_%s' % pcs_file.replace('.', '_'),
                 generate(full_path))
+
+if __name__ == '__main__':
+    suite = unittest.TestSuite()
+    suite.addTest(ExampleSearchSpacesTest(
+        methodName='test_auto-sklearn_2017_04_pcs'))
+    runner = unittest.TextTestRunner().run(suite)

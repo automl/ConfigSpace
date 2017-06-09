@@ -652,7 +652,6 @@ class ConfigurationSpace(object):
         for ch in unconditional_hyperparameters:
             active[self._hyperparameter_idx[ch]] = 1
 
-        #for hp_name, hyperparameter in self._hyperparameters.items():
         while len(to_visit) > 0:
             hp_name = to_visit.pop()
             hp_idx = self._hyperparameter_idx[hp_name]
@@ -669,7 +668,6 @@ class ConfigurationSpace(object):
             for child in children:
                 if child.name not in inactive:
                     parents = self._parents_of[child.name]
-                    hyperparameter_idx = self._hyperparameter_idx[child.name]
                     if len(parents) == 1:
                         conditions = self._parent_conditions_of[child.name]
                         add = True
@@ -678,7 +676,9 @@ class ConfigurationSpace(object):
                                 add = False
                                 inactive.add(child.name)
                                 break
-                        if add == True:
+                        if add:
+                            hyperparameter_idx = self._hyperparameter_idx[
+                                child.name]
                             active[hyperparameter_idx] = 1
                             to_visit.appendleft(child.name)
 
@@ -693,7 +693,9 @@ class ConfigurationSpace(object):
                                     inactive.add(child.name)
                                     break
 
-                            if add == True:
+                            if add:
+                                hyperparameter_idx = self._hyperparameter_idx[
+                                    child.name]
                                 active[hyperparameter_idx] = 1
                                 to_visit.appendleft(child.name)
 
@@ -886,47 +888,43 @@ class ConfigurationSpace(object):
                         visited.add(hp)
                         children = self._children_of[hp]
                         for child in children:
-                            if child.name not in inactive:
-                                parents = self._parents_of[child.name]
-                                hyperparameter_idx = self._hyperparameter_idx[child.name]
+                            child_name = child.name
+                            if child_name not in inactive:
+                                parents = self._parents_of[child_name]
+                                hyperparameter_idx = self._hyperparameter_idx[child_name]
                                 if len(parents) == 1:
-                                    conditions = self._parent_conditions_of[child.name]
+                                    conditions = self._parent_conditions_of[child_name]
                                     add = True
                                     for condition in conditions:
                                         if not condition.evaluate_vector(vector[i]):
                                             add = False
                                             vector[i][hyperparameter_idx] = np.NaN
-                                            inactive.add(child.name)
+                                            inactive.add(child_name)
                                             break
                                     if add == True:
                                         active[hyperparameter_idx] = 1
-                                        hps.appendleft(child.name)
+                                        hps.appendleft(child_name)
 
                                 else:
                                     parent_names = set(p.name for p in parents)
-                                    # if not parent_names <= set(hps):  # make sure no parents are still unvisited
                                     if parent_names.issubset(visited):  # make sure no parents are still unvisited
-                                        conditions = self._parent_conditions_of[child.name]
+                                        conditions = self._parent_conditions_of[child_name]
                                         add = True
                                         for condition in conditions:
                                             if not condition.evaluate_vector(vector[i]):
                                                 add = False
                                                 vector[i][hyperparameter_idx] = np.NaN
-                                                inactive.add(child.name)
+                                                inactive.add(child_name)
                                                 break
 
                                         if add == True:
                                             active[hyperparameter_idx] = 1
-                                            hps.appendleft(child.name)
+                                            hps.appendleft(child_name)
 
                                     else:
                                         continue
 
-                    # Surprisingly, the vector update wasn't faster
-                    # vector[i][~active] = np.NaN
-                    for j in range(num_hyperparameters):
-                        if not active[j]:
-                            vector[i][j] = np.NaN
+                    vector[i][~active] = np.NaN
 
                     for clause in forbidden_clauses_conditionals:
                         if clause.is_forbidden_vector(vector[i], strict=False):
