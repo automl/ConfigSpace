@@ -72,7 +72,8 @@ def impute_inactive_values(configuration: Configuration, strategy: Union[str, fl
     return new_configuration
 
 
-def check_neighbouring_config(configuration, new_array, neighbor_value, hp_name):
+def check_neighbouring_config(configuration: Configuration, new_array: np.array, neighbor_value: Union[int, float, str],
+                              hp_name: str) -> np.array:
     configuration_space = configuration.configuration_space
     # Hyperparameters which are going to be set to inactive
     disabled = []
