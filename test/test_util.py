@@ -259,4 +259,4 @@ class UtilTest(unittest.TestCase):
         new_array = check_neighbouring_config(config, array, neighbor_value, hp_name)
         expected_array = np.array([1, np.nan, np.nan, np.nan])
 
-        assert np.array_equal(new_array.astype(int), expected_array.astype(int))
+        np.testing.assert_almost_equal(new_array, expected_array)
