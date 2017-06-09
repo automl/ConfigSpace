@@ -71,6 +71,102 @@ def impute_inactive_values(configuration: Configuration, strategy: Union[str, fl
                                       allow_inactive_with_values=True)
     return new_configuration
 
+def check_neighbouring_config(configuration, new_array, neighbor_value, hp_name):
+    configuration_space = configuration.configuration_space
+    # Hyperparameters which are going to be set to inactive
+    disabled = []
+
+    # Activate hyperparameters if their parent node got activated
+    children = configuration_space._children_of[hp_name]
+    if len(children) > 0:
+        to_visit = deque()  # type: deque
+        to_visit.extendleft(children)
+        visited = set()  # type: Set[str]
+        activated_values = dict()  # type: Dict[str, Union[int, float, str]]
+        while len(to_visit) > 0:
+            current = to_visit.pop()
+            if current.name in visited:
+                continue
+            visited.add(current.name)
+            if current.name in disabled:
+                continue
+
+            current_idx = configuration_space.get_idx_by_hyperparameter_name(current.name)
+            current_value = new_array[current_idx]
+
+            conditions = configuration.configuration_space. \
+                _parent_conditions_of[current.name]
+
+            active = True
+            for condition in conditions:
+                parent_names = [parent.name for parent in
+                                configuration_space._parents_of[current.name]]
+                parents = {parent_name: configuration[parent_name] for
+                           parent_name in parent_names}
+
+                # parents come from the original configuration.
+                # We change at least one parameter. In order set
+                # other parameters which are conditional on this,
+                #  we have to activate this
+                if hp_name in parents:
+                    parents[hp_name] = neighbor_value
+                # Hyperparameters which are in depth 1 of the
+                # hyperparameter tree might have children which
+                # have to be activated as well. Once we set hp in
+                #  level 1 to active, it's value changes from the
+                #  value of the original configuration and this
+                # must be done here
+                for parent_name in parent_names:
+                    if parent_name in activated_values:
+                        parents[parent_name] = activated_values[
+                            parent_name]
+
+                # if one of the parents is None, the hyperparameter cannot be
+                # active! Else we have to check this
+                if any([parent_value is None for parent_value in
+                        parents.values()]):
+                    active = False
+                    break
+                else:
+                    if not condition.evaluate(parents):
+                        active = False
+                        break
+
+            if active and (current_value is None or
+                               not np.isfinite(current_value)):
+                default = current._inverse_transform(current.default)
+                new_array[current_idx] = default
+                children_ = configuration_space._children_of[current.name]
+                if len(children_) > 0:
+                    to_visit.extendleft(children_)
+                activated_values[current.name] = current.default
+
+            # If the hyperparameter was made inactive,
+            # all its children need to be deactivade as well
+            if not active and (current_value is not None
+                               or np.isfinite(current_value)):
+                new_array[current_idx] = np.NaN
+
+                children = configuration.configuration_space._children_of[current.name]
+
+                if len(children) > 0:
+                    to_disable = set()
+                    for ch in children:
+                        to_disable.add(ch.name)
+                    while len(to_disable) > 0:
+                        child = to_disable.pop()
+                        child_idx = configuration.configuration_space. \
+                            get_idx_by_hyperparameter_name(child)
+                        disabled.append(child_idx)
+                        children = configuration.configuration_space._children_of[child]
+
+                        for ch in children:
+                            to_disable.add(ch.name)
+
+    for idx in disabled:
+        new_array[idx] = np.NaN
+
+    return new_array
 
 def get_one_exchange_neighbourhood(configuration: Configuration, seed: int) -> List[Configuration]:
     """Return all configurations in a one-exchange neighborhood.
@@ -137,98 +233,99 @@ def get_one_exchange_neighbourhood(configuration: Configuration, seed: int) -> L
                     new_array = array.copy()
                     new_array[index] = neighbor
                     neighbor_value = hp._transform(neighbor)
-                    # Hyperparameters which are going to be set to inactive
-                    disabled = []
-
-                    # Activate hyperparameters if their parent node got activated
-                    children = configuration_space._children_of[hp_name]
-                    if len(children) > 0:
-                        to_visit = deque()  #type: deque
-                        to_visit.extendleft(children)
-                        visited = set()  #type: Set[str]
-                        activated_values = dict()  #type: Dict[str, Union[int, float, str]]
-                        while len(to_visit) > 0:
-                            current = to_visit.pop()
-                            if current.name in visited:
-                                continue
-                            visited.add(current.name)
-                            if current.name in disabled:
-                                continue
-
-                            current_idx = configuration_space.get_idx_by_hyperparameter_name(current.name)
-                            current_value = new_array[current_idx]
-
-                            conditions = configuration.configuration_space.\
-                                _parent_conditions_of[current.name]
-
-                            active = True
-                            for condition in conditions:
-                                parent_names = [parent.name for parent in
-                                                configuration_space._parents_of[current.name]]
-                                parents = {parent_name: configuration[parent_name] for
-                                           parent_name in parent_names}
-
-                                # parents come from the original configuration.
-                                # We change at least one parameter. In order set
-                                # other parameters which are conditional on this,
-                                #  we have to activate this
-                                if hp_name in parents:
-                                    parents[hp_name] = neighbor_value
-                                # Hyperparameters which are in depth 1 of the
-                                # hyperparameter tree might have children which
-                                # have to be activated as well. Once we set hp in
-                                #  level 1 to active, it's value changes from the
-                                #  value of the original configuration and this
-                                # must be done here
-                                for parent_name in parent_names:
-                                    if parent_name in activated_values:
-                                        parents[parent_name] = activated_values[
-                                            parent_name]
-
-                                # if one of the parents is None, the hyperparameter cannot be
-                                # active! Else we have to check this
-                                if any([parent_value is None for parent_value in
-                                        parents.values()]):
-                                    active = False
-                                    break
-                                else:
-                                    if not condition.evaluate(parents):
-                                        active = False
-                                        break
-
-                            if active and (current_value is None or
-                                           not np.isfinite(current_value)):
-                                default = current._inverse_transform(current.default)
-                                new_array[current_idx] = default
-                                children_ = configuration_space._children_of[current.name]
-                                if len(children_) > 0:
-                                    to_visit.extendleft(children_)
-                                activated_values[current.name] = current.default
-
-                            # If the hyperparameter was made inactive,
-                            # all its children need to be deactivade as well
-                            if not active and (current_value is not None
-                                               or np.isfinite(current_value)):
-                                new_array[current_idx] = np.NaN
-
-                                children = configuration.configuration_space._children_of[current.name]
-
-                                if len(children) > 0:
-                                    to_disable = set()
-                                    for ch in children:
-                                        to_disable.add(ch.name)
-                                    while len(to_disable) > 0:
-                                        child = to_disable.pop()
-                                        child_idx = configuration.configuration_space. \
-                                            get_idx_by_hyperparameter_name(child)
-                                        disabled.append(child_idx)
-                                        children = configuration.configuration_space._children_of[child]
-
-                                        for ch in children:
-                                            to_disable.add(ch.name)
-
-                    for idx in disabled:
-                        new_array[idx] = np.NaN
+                    new_array = check_neighbouring_config(configuration, new_array, neighbor_value, hp_name)
+                    # # Hyperparameters which are going to be set to inactive
+                    # disabled = []
+                    #
+                    # # Activate hyperparameters if their parent node got activated
+                    # children = configuration_space._children_of[hp_name]
+                    # if len(children) > 0:
+                    #     to_visit = deque()  #type: deque
+                    #     to_visit.extendleft(children)
+                    #     visited = set()  #type: Set[str]
+                    #     activated_values = dict()  #type: Dict[str, Union[int, float, str]]
+                    #     while len(to_visit) > 0:
+                    #         current = to_visit.pop()
+                    #         if current.name in visited:
+                    #             continue
+                    #         visited.add(current.name)
+                    #         if current.name in disabled:
+                    #             continue
+                    #
+                    #         current_idx = configuration_space.get_idx_by_hyperparameter_name(current.name)
+                    #         current_value = new_array[current_idx]
+                    #
+                    #         conditions = configuration.configuration_space.\
+                    #             _parent_conditions_of[current.name]
+                    #
+                    #         active = True
+                    #         for condition in conditions:
+                    #             parent_names = [parent.name for parent in
+                    #                             configuration_space._parents_of[current.name]]
+                    #             parents = {parent_name: configuration[parent_name] for
+                    #                        parent_name in parent_names}
+                    #
+                    #             # parents come from the original configuration.
+                    #             # We change at least one parameter. In order set
+                    #             # other parameters which are conditional on this,
+                    #             #  we have to activate this
+                    #             if hp_name in parents:
+                    #                 parents[hp_name] = neighbor_value
+                    #             # Hyperparameters which are in depth 1 of the
+                    #             # hyperparameter tree might have children which
+                    #             # have to be activated as well. Once we set hp in
+                    #             #  level 1 to active, it's value changes from the
+                    #             #  value of the original configuration and this
+                    #             # must be done here
+                    #             for parent_name in parent_names:
+                    #                 if parent_name in activated_values:
+                    #                     parents[parent_name] = activated_values[
+                    #                         parent_name]
+                    #
+                    #             # if one of the parents is None, the hyperparameter cannot be
+                    #             # active! Else we have to check this
+                    #             if any([parent_value is None for parent_value in
+                    #                     parents.values()]):
+                    #                 active = False
+                    #                 break
+                    #             else:
+                    #                 if not condition.evaluate(parents):
+                    #                     active = False
+                    #                     break
+                    #
+                    #         if active and (current_value is None or
+                    #                        not np.isfinite(current_value)):
+                    #             default = current._inverse_transform(current.default)
+                    #             new_array[current_idx] = default
+                    #             children_ = configuration_space._children_of[current.name]
+                    #             if len(children_) > 0:
+                    #                 to_visit.extendleft(children_)
+                    #             activated_values[current.name] = current.default
+                    #
+                    #         # If the hyperparameter was made inactive,
+                    #         # all its children need to be deactivade as well
+                    #         if not active and (current_value is not None
+                    #                            or np.isfinite(current_value)):
+                    #             new_array[current_idx] = np.NaN
+                    #
+                    #             children = configuration.configuration_space._children_of[current.name]
+                    #
+                    #             if len(children) > 0:
+                    #                 to_disable = set()
+                    #                 for ch in children:
+                    #                     to_disable.add(ch.name)
+                    #                 while len(to_disable) > 0:
+                    #                     child = to_disable.pop()
+                    #                     child_idx = configuration.configuration_space. \
+                    #                         get_idx_by_hyperparameter_name(child)
+                    #                     disabled.append(child_idx)
+                    #                     children = configuration.configuration_space._children_of[child]
+                    #
+                    #                     for ch in children:
+                    #                         to_disable.add(ch.name)
+                    #
+                    # for idx in disabled:
+                    #     new_array[idx] = np.NaN
                     try:
                         # Populating a configuration from an array does not check
                         #  if it is a legal configuration - check this (slow)
