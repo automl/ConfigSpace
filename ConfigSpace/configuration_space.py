@@ -704,12 +704,14 @@ class ConfigurationSpace(object):
                 raise ValueError("Active hyperparameter '%s' not specified!" %
                                  hyperparameter.name)
 
-        for hp_name in self._hyperparameters:
-            hp_idx = self._hyperparameter_idx[hp_name]
-            hp_value = vector[hp_idx]
+        for hp_idx in self._idx_to_hyperparameter:
 
             if not allow_inactive_with_values and not active[hp_idx] and \
-                            not np.isnan(hp_value):
+                    not np.isnan(vector[hp_idx]):
+                    # Only look up the value (in the line above) if the
+                    # hyperparameter is inactive!
+                hp_name = self._idx_to_hyperparameter[hp_idx]
+                hp_value = vector[hp_idx]
                 raise ValueError("Inactive hyperparameter '%s' must not be "
                                  "specified, but has the vector value: '%s'." %
                                  (hp_name, hp_value))
