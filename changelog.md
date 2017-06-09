@@ -1,3 +1,13 @@
+# Version 0.3.7
+
+* Faster checking of valid configurations
+* Fixes a bug in sampling configurations for SatenStein
+* Fixes a bug getting neighbors from OrdinalHyperparameter
+* Fixes a bug getting neighbors from a UniformIntegerHyperparameter
+* Utility function to deactivate inactive, but specified hyperparameters
+* Fixes a bug in retrieving the one exchange neighborhood, i.e. it could not
+  change the value of parent parameters
+
 # Version 0.3.6
 
 * Minor speed improvements when checking forbidden clauses
