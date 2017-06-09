@@ -20,3 +20,9 @@ x4 | x5 in {yellow}
 #heuristic | singleclause in {1}  #
 #novnoise | heuristic in {1,2,3,4,5,6,10,11,12,13}
 #novnoise | adaptive in {0}
+
+################################################################################
+int_parent integer [0, 3] [0]
+int_child integer [0, 3] [0]
+
+int_child | int_parent > 1
