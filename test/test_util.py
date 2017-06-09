@@ -31,12 +31,13 @@ import unittest
 
 import numpy as np
 
-from ConfigSpace import ConfigurationSpace, UniformIntegerHyperparameter, \
+from ConfigSpace import Configuration, ConfigurationSpace, UniformIntegerHyperparameter, \
     UniformFloatHyperparameter, CategoricalHyperparameter, Constant, \
     EqualsCondition, AndConjunction, OrConjunction
 from ConfigSpace.io.pcs import read
 from ConfigSpace.util import impute_inactive_values, get_random_neighbor, \
-    get_one_exchange_neighbourhood, deactivate_inactive_hyperparameters
+    get_one_exchange_neighbourhood, deactivate_inactive_hyperparameters, \
+    check_neighbouring_config
 
 
 class UtilTest(unittest.TestCase):
@@ -176,6 +177,28 @@ class UtilTest(unittest.TestCase):
             neighborhood = get_one_exchange_neighbourhood(configuration, i)
             for new_config in neighborhood:
                 self.assertNotEqual(configuration, new_config)
+
+    def test_check_neighbouring_config_diamond(self):
+        diamond = ConfigurationSpace()
+        head = CategoricalHyperparameter('head', [0, 1])
+        left = CategoricalHyperparameter('left', [0, 1])
+        right = CategoricalHyperparameter('right', [0, 1, 2, 3])
+        bottom = CategoricalHyperparameter('bottom', [0, 1])
+        diamond.add_hyperparameters([head, left, right, bottom])
+        diamond.add_condition(EqualsCondition(left, head, 0))
+        diamond.add_condition(EqualsCondition(right, head, 0))
+        diamond.add_condition(AndConjunction(EqualsCondition(bottom, left, 1),
+                                             EqualsCondition(bottom, right, 1)))
+
+        config = Configuration(diamond, {'bottom': 0, 'head': 0, 'left': 1, 'right': 1})
+        array = np.array([1., 1., 1., 0.])
+        hp_name = "head"
+        neighbor_value = 1
+
+        new_array = check_neighbouring_config(config, array, neighbor_value, hp_name)
+        expected_array = np.array([1, np.nan, np.nan, np.nan])
+
+        assert np.array_equal(new_array.astype(int), expected_array.astype(int))
 
     def test_deactivate_inactive_hyperparameters(self):
         diamond = ConfigurationSpace()
