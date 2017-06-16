@@ -33,6 +33,9 @@ from typing import Union, List, Any, Dict
 import numpy as np  # type: ignore
 from ConfigSpace import Configuration, ConfigurationSpace
 from ConfigSpace.exceptions import ForbiddenValueError
+from ConfigSpace.hyperparameters import CategoricalHyperparameter, \
+    UniformFloatHyperparameter, UniformIntegerHyperparameter, Constant, \
+    OrdinalHyperparameter
 
 def impute_inactive_values(configuration: Configuration, strategy: Union[str, float]='default') -> Configuration:
     """Impute inactive parameters.
@@ -392,4 +395,41 @@ def deactivate_inactive_hyperparameters(configuration: dict,
 
     return Configuration(configuration_space, values=configuration.get_dictionary())
 
-
+def fix_types(configuration: dict,
+              configuration_space: ConfigurationSpace):
+    '''
+        iterates over all hyperparameters in the ConfigSpace
+        and fixes the types of the parameter values in configuration.
+    
+        Arguments
+        ---------
+        configuration: dict
+            param name -> param value
+        configuration_space: ConfigurationSpace
+            Configuration space which knows the types for all parameter values
+            
+        Returns
+        -------
+        configuration: dict
+            with fixed types of parameter values
+    '''
+    
+    for param in configuration_space.get_hyperparameters():
+        param_name = param.name
+        if configuration.get(param_name) is not None:
+            if isinstance(param, (CategoricalHyperparameter)):
+                # should be unnecessary, but to be on the safe param_name:
+                configuration[param_name] = str(configuration[param_name])
+            elif isinstance(param, (OrdinalHyperparameter)):
+                # should be unnecessary, but to be on the safe side:
+                configuration[param_name] = str(configuration[param_name])
+            elif isinstance(param, Constant):
+                # should be unnecessary, but to be on the safe side:
+                configuration[param_name] = str(configuration[param_name])
+            elif isinstance(param, UniformFloatHyperparameter):         # Are sampled on the unit hypercube thus the bounds
+                configuration[param_name] = float(configuration[param_name])
+            elif isinstance(param, UniformIntegerHyperparameter):
+                configuration[param_name] = int(configuration[param_name])
+            else:
+                raise TypeError("Unknown hyperparameter type %s" % type(param))
+    return configuration
