@@ -426,7 +426,7 @@ def fix_types(configuration: dict,
             elif isinstance(param, Constant):
                 # should be unnecessary, but to be on the safe side:
                 configuration[param_name] = str(configuration[param_name])
-            elif isinstance(param, UniformFloatHyperparameter):         # Are sampled on the unit hypercube thus the bounds
+            elif isinstance(param, UniformFloatHyperparameter):
                 configuration[param_name] = float(configuration[param_name])
             elif isinstance(param, UniformIntegerHyperparameter):
                 configuration[param_name] = int(configuration[param_name])
