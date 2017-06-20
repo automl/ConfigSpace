@@ -114,7 +114,8 @@ def check_neighbouring_config_vector(configuration: Configuration, new_array: np
 
                 parent_ids = [configuration_space.get_idx_by_hyperparameter_name(parent_name) for
                               parent_name in parent_names]
-                parents_vector[parent_ids] = new_array[parent_ids]
+                # parents_vector[parent_ids] = new_array[parent_ids]
+
                 # parents come from the original configuration.
                 # We change at least one parameter. In order set
                 # other parameters which are conditional on this,
@@ -135,10 +136,10 @@ def check_neighbouring_config_vector(configuration: Configuration, new_array: np
                 #         parents[parent_name] = activated_values[
                 #             parent_name]
 
-                for parent_name in parent_ids:
-                    if parent_name in activated_values:
-                        parents_vector[parent_name] = activated_values[
-                            parent_name]
+                # for ids in parent_ids:
+                #     if ids in activated_values:
+                #         # parents_vector[ids] = activated_values[ids]
+                #         new_array[ids] = activated_values[ids]
 
                 # if one of the parents is None, the hyperparameter cannot be
                 # active! Else we have to check this
@@ -148,13 +149,16 @@ def check_neighbouring_config_vector(configuration: Configuration, new_array: np
                 #     active = False
                 #     break
 
-                if np.isnan(np.sum(parents_vector[parent_ids])):
+                # if np.isnan(np.sum(parents_vector[parent_ids])):
+                #     active = False
+                #     break
+                if any([np.isnan(x) for x in new_array[parent_ids]]):
                     active = False
                     break
 
                 else:
                     # if not condition.evaluate(parents):
-                    if not condition.evaluate_vector(parents_vector):
+                    if not condition.evaluate_vector(new_array):
                         active = False
                         break
 
@@ -165,7 +169,7 @@ def check_neighbouring_config_vector(configuration: Configuration, new_array: np
                 children_ = configuration_space._children_of[current.name]
                 if len(children_) > 0:
                     to_visit.extendleft(children_)
-                activated_values[current_idx] = default
+                # activated_values[current_idx] = default
                 # activated_values[current.name] = current.default
 
             # If the hyperparameter was made inactive,
