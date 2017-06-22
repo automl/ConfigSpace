@@ -107,13 +107,14 @@ def check_neighbouring_config_vector(configuration: Configuration, new_array: np
 
             active = True
             for condition in conditions:
-                parent_names = [parent.name for parent in
-                                configuration_space._parents_of[current.name]]
+                #parent_names = [parent.name for parent in
+                #                configuration_space._parents_of[current.name]]
                 # parents = {parent_name: configuration[parent_name] for
                 #            parent_name in parent_names}
 
-                parent_ids = [configuration_space.get_idx_by_hyperparameter_name(parent_name) for
-                              parent_name in parent_names]
+                #parent_ids = [
+                # configuration_space.get_idx_by_hyperparameter_name(parent_name) for
+                #              parent_name in parent_names]
                 # parents_vector[parent_ids] = new_array[parent_ids]
 
                 # parents come from the original configuration.
@@ -152,15 +153,15 @@ def check_neighbouring_config_vector(configuration: Configuration, new_array: np
                 # if np.isnan(np.sum(parents_vector[parent_ids])):
                 #     active = False
                 #     break
-                if any([np.isnan(x) for x in new_array[parent_ids]]):
+                #if any([np.isnan(x) for x in new_array[parent_ids]]):
+                #    active = False
+                #    break
+
+                #else:
+                #    # if not condition.evaluate(parents):
+                if not condition.evaluate_vector(new_array):
                     active = False
                     break
-
-                else:
-                    # if not condition.evaluate(parents):
-                    if not condition.evaluate_vector(new_array):
-                        active = False
-                        break
 
             if active and (current_value is None or
                                not np.isfinite(current_value)):
@@ -363,8 +364,10 @@ def get_one_exchange_neighbourhood(configuration: Configuration, seed: int) -> L
                     new_array = array.copy()
                     new_array[index] = neighbor
                     neighbor_value = hp._transform(neighbor)
-                    # new_array = check_neighbouring_config(configuration, new_array, neighbor_value, hp_name)
-                    new_array = check_neighbouring_config_vector(configuration, new_array, neighbor_value, hp_name)
+                    #new_array = check_neighbouring_config(configuration,
+                    # new_array, neighbor_value, hp_name)
+                    new_array = check_neighbouring_config_vector(
+                     configuration, new_array, neighbor_value, hp_name)
 
                     try:
                         # Populating a configuration from an array does not check
