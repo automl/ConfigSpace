@@ -88,9 +88,6 @@ def check_neighbouring_config_vector(configuration: Configuration, new_array: np
         visited = set()  # type: Set[str]
         activated_values = dict()  # type: Dict[str, Union[int, float, str]]
 
-        parents_vector = np.empty(configuration._num_hyperparameters)
-        parents_vector.fill(np.NaN)
-
         while len(to_visit) > 0:
             current = to_visit.pop()
             if current.name in visited:
