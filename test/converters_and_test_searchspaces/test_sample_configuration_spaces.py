@@ -48,6 +48,18 @@ def generate(configuration_space_path):
             with open(configuration_space_path) as fh:
                 cs = pcs_new_parser.read(fh)
 
+        default = cs.get_default_configuration()
+        cs._check_configuration_rigorous(default)
+        for i in range(10):
+            neighborhood = ConfigSpace.util.get_one_exchange_neighbourhood(
+                default, seed=i)
+    
+            for shuffle, n in enumerate(neighborhood):
+                n.is_valid_configuration()
+                cs._check_configuration_rigorous(n)
+                if shuffle == 10:
+                    break
+
         # Sample a little bit
         for i in range(10):
             cs.seed(i)
