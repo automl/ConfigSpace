@@ -37,7 +37,7 @@ from ConfigSpace import Configuration, ConfigurationSpace, UniformIntegerHyperpa
 from ConfigSpace.io.pcs import read
 from ConfigSpace.util import impute_inactive_values, get_random_neighbor, \
     get_one_exchange_neighbourhood, deactivate_inactive_hyperparameters, \
-    check_neighbouring_config, check_neighbouring_config_vector
+    check_neighbouring_config_vector
 
 
 class UtilTest(unittest.TestCase):
@@ -279,7 +279,6 @@ class UtilTest(unittest.TestCase):
         neighbor_value = 'green'
 
         new_array = check_neighbouring_config_vector(config, array, neighbor_value, hp_name)
-        # new_array = check_neighbouring_config(config, array, neighbor_value, hp_name)
         expected_array = np.array([1, np.nan, np.nan, np.nan])
 
         np.testing.assert_almost_equal(new_array, expected_array)
