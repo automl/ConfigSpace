@@ -216,7 +216,13 @@ def get_one_exchange_neighbourhood(configuration: Configuration, seed: int) -> L
                         # Populating a configuration from an array does not check
                         #  if it is a legal configuration - check this (slow)
                         new_configuration = Configuration(configuration_space, vector=new_array)
-                        new_configuration.is_valid_configuration()
+                        # Only rigorously check every tenth configuration (
+                        # because moving around in the neighborhood should
+                        # just work!)
+                        if np.random.random() > 0.9:
+                            new_configuration.is_valid_configuration()
+                        else:
+                            configuration_space._check_forbidden(new_array)
                         neighbourhood.append(new_configuration)
                         number_of_sampled_neighbors += 1
                     # todo: investigate why tests fail when ForbiddenValueError is caught here
