@@ -74,8 +74,7 @@ def impute_inactive_values(configuration: Configuration, strategy: Union[str, fl
                                       allow_inactive_with_values=True)
     return new_configuration
 
-
-def check_neighbouring_config(configuration: Configuration, new_array: np.array, neighbor_value: Union[int, float, str],
+def check_neighbouring_config_vector(configuration: Configuration, new_array: np.array, neighbor_value: Union[int, float, str],
                               hp_name: str) -> np.array:
     configuration_space = configuration.configuration_space
     # Hyperparameters which are going to be set to inactive
@@ -88,6 +87,7 @@ def check_neighbouring_config(configuration: Configuration, new_array: np.array,
         to_visit.extendleft(children)
         visited = set()  # type: Set[str]
         activated_values = dict()  # type: Dict[str, Union[int, float, str]]
+
         while len(to_visit) > 0:
             current = to_visit.pop()
             if current.name in visited:
@@ -104,38 +104,9 @@ def check_neighbouring_config(configuration: Configuration, new_array: np.array,
 
             active = True
             for condition in conditions:
-                parent_names = [parent.name for parent in
-                                configuration_space._parents_of[current.name]]
-                parents = {parent_name: configuration[parent_name] for
-                           parent_name in parent_names}
-
-                # parents come from the original configuration.
-                # We change at least one parameter. In order set
-                # other parameters which are conditional on this,
-                #  we have to activate this
-                if hp_name in parents:
-                    parents[hp_name] = neighbor_value
-                # Hyperparameters which are in depth 1 of the
-                # hyperparameter tree might have children which
-                # have to be activated as well. Once we set hp in
-                #  level 1 to active, it's value changes from the
-                #  value of the original configuration and this
-                # must be done here
-                for parent_name in parent_names:
-                    if parent_name in activated_values:
-                        parents[parent_name] = activated_values[
-                            parent_name]
-
-                # if one of the parents is None, the hyperparameter cannot be
-                # active! Else we have to check this
-                if any([parent_value is None for parent_value in
-                        parents.values()]):
+                if not condition.evaluate_vector(new_array):
                     active = False
                     break
-                else:
-                    if not condition.evaluate(parents):
-                        active = False
-                        break
 
             if active and (current_value is None or
                                not np.isfinite(current_value)):
@@ -144,7 +115,6 @@ def check_neighbouring_config(configuration: Configuration, new_array: np.array,
                 children_ = configuration_space._children_of[current.name]
                 if len(children_) > 0:
                     to_visit.extendleft(children_)
-                activated_values[current.name] = current.default
 
             # If the hyperparameter was made inactive,
             # all its children need to be deactivade as well
@@ -172,6 +142,7 @@ def check_neighbouring_config(configuration: Configuration, new_array: np.array,
         new_array[idx] = np.NaN
 
     return new_array
+
 
 def get_one_exchange_neighbourhood(configuration: Configuration, seed: int) -> List[Configuration]:
     """Return all configurations in a one-exchange neighborhood.
@@ -238,7 +209,8 @@ def get_one_exchange_neighbourhood(configuration: Configuration, seed: int) -> L
                     new_array = array.copy()
                     new_array[index] = neighbor
                     neighbor_value = hp._transform(neighbor)
-                    new_array = check_neighbouring_config(configuration, new_array, neighbor_value, hp_name)
+                    new_array = check_neighbouring_config_vector(
+                     configuration, new_array, neighbor_value, hp_name)
 
                     try:
                         # Populating a configuration from an array does not check

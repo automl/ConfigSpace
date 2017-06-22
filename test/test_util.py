@@ -37,7 +37,7 @@ from ConfigSpace import Configuration, ConfigurationSpace, UniformIntegerHyperpa
 from ConfigSpace.io.pcs import read
 from ConfigSpace.util import impute_inactive_values, get_random_neighbor, \
     get_one_exchange_neighbourhood, deactivate_inactive_hyperparameters, \
-    check_neighbouring_config
+    check_neighbouring_config_vector
 
 
 class UtilTest(unittest.TestCase):
@@ -256,7 +256,29 @@ class UtilTest(unittest.TestCase):
         hp_name = "head"
         neighbor_value = 1
 
-        new_array = check_neighbouring_config(config, array, neighbor_value, hp_name)
+        new_array = check_neighbouring_config_vector(config, array, neighbor_value, hp_name)
+        expected_array = np.array([1, np.nan, np.nan, np.nan])
+
+        np.testing.assert_almost_equal(new_array, expected_array)
+
+    def test_check_neighbouring_config_diamond_str(self):
+        diamond = ConfigurationSpace()
+        head = CategoricalHyperparameter('head', ['red', 'green'])
+        left = CategoricalHyperparameter('left', ['red', 'green'])
+        right = CategoricalHyperparameter('right', ['red', 'green', 'blue', 'yellow'])
+        bottom = CategoricalHyperparameter('bottom', ['red', 'green'])
+        diamond.add_hyperparameters([head, left, right, bottom])
+        diamond.add_condition(EqualsCondition(left, head, 'red'))
+        diamond.add_condition(EqualsCondition(right, head, 'red'))
+        diamond.add_condition(AndConjunction(EqualsCondition(bottom, left, 'green'),
+                                             EqualsCondition(bottom, right, 'green')))
+
+        config = Configuration(diamond, {'bottom': 'red', 'head': 'red', 'left': 'green', 'right': 'green'})
+        array = np.array([1., 1., 1., 0.])
+        hp_name = "head"
+        neighbor_value = 'green'
+
+        new_array = check_neighbouring_config_vector(config, array, neighbor_value, hp_name)
         expected_array = np.array([1, np.nan, np.nan, np.nan])
 
         np.testing.assert_almost_equal(new_array, expected_array)
