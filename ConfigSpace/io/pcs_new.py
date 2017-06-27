@@ -32,7 +32,8 @@ from ConfigSpace.configuration_space import ConfigurationSpace
 from ConfigSpace.hyperparameters import CategoricalHyperparameter, \
     UniformIntegerHyperparameter, UniformFloatHyperparameter, \
     NumericalHyperparameter, IntegerHyperparameter, FloatHyperparameter, \
-    NormalIntegerHyperparameter, NormalFloatHyperparameter, OrdinalHyperparameter
+    NormalIntegerHyperparameter, NormalFloatHyperparameter, OrdinalHyperparameter,\
+    Constant
 from ConfigSpace.conditions import EqualsCondition, NotEqualsCondition,\
     InCondition, AndConjunction, OrConjunction, ConditionComponent,\
     GreaterThanCondition, LessThanCondition
@@ -85,6 +86,11 @@ def build_ordinal(param):
     return ordinal_template % (param.name, 
                                ", ".join([str(value) for value in param.sequence]),
                                 str(param.default))
+
+def build_constant(param):
+    const_template = '%s categorical {%s} [%s]'
+    return const_template % (param.name,
+                             param.value, param.value)
                                 
 def build_continuous(param):
     if type(param) in (NormalIntegerHyperparameter,
@@ -260,7 +266,8 @@ def read(pcs_string, debug=False):
         create = {"int": UniformIntegerHyperparameter,
                   "float": UniformFloatHyperparameter,
                   "categorical": CategoricalHyperparameter,
-                  "ordinal": OrdinalHyperparameter}
+                  "ordinal": OrdinalHyperparameter
+                  }
 
         try:
             param_list = pp_cont_param.parseString(line)
@@ -415,6 +422,8 @@ def write(configuration_space):
             param_lines.write(build_categorical(hyperparameter))
         elif isinstance(hyperparameter, OrdinalHyperparameter):
             param_lines.write(build_ordinal(hyperparameter))
+        elif isinstance(hyperparameter, Constant):
+            param_lines.write(build_constant(hyperparameter))
         else:
             raise TypeError("Unknown type: %s (%s)" % (
                 type(hyperparameter), hyperparameter))

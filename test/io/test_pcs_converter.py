@@ -339,7 +339,65 @@ class TestPCSConverter(unittest.TestCase):
         cs.add_forbidden_clause(fb)
         value = pcs_new.write(cs)
         self.assertIn(expected, value)
-    
+
+    def test_build_new_GreaterThanFloatCondition(self):
+        expected = "b integer [0, 10] [5]\n" \
+                   "a real [0.0, 1.0] [0.5]\n\n" \
+                   "a | b > 5"
+        cs = ConfigurationSpace()
+        a = UniformFloatHyperparameter("a", 0, 1, 0.5)
+        b = UniformIntegerHyperparameter("b", 0, 10, 5)
+        cs.add_hyperparameter(a)
+        cs.add_hyperparameter(b)
+        cond = GreaterThanCondition(a, b, 5)
+        cs.add_condition(cond)
+
+        value = pcs_new.write(cs)
+        self.assertIn(expected, value)
+
+        expected = "b real [0.0, 10.0] [5.0]\n" \
+                   "a real [0.0, 1.0] [0.5]\n\n" \
+                   "a | b > 5"
+        cs = ConfigurationSpace()
+        a = UniformFloatHyperparameter("a", 0, 1, 0.5)
+        b = UniformFloatHyperparameter("b", 0, 10, 5)
+        cs.add_hyperparameter(a)
+        cs.add_hyperparameter(b)
+        cond = GreaterThanCondition(a, b, 5)
+        cs.add_condition(cond)
+
+        value = pcs_new.write(cs)
+        self.assertIn(expected, value)
+
+    def test_build_new_GreaterThanIntCondition(self):
+        expected = "a real [0.0, 1.0] [0.5]\n" \
+                   "b integer [0, 10] [5]\n\n" \
+                   "b | a > 0.5"
+        cs = ConfigurationSpace()
+        a = UniformFloatHyperparameter("a", 0, 1, 0.5)
+        b = UniformIntegerHyperparameter("b", 0, 10, 5)
+        cs.add_hyperparameter(a)
+        cs.add_hyperparameter(b)
+        cond = GreaterThanCondition(b, a, 0.5)
+        cs.add_condition(cond)
+
+        value = pcs_new.write(cs)
+        self.assertIn(expected, value)
+
+        expected = "a integer [0, 10] [5]\n" \
+                   "b integer [0, 10] [5]\n\n" \
+                   "b | a > 5"
+        cs = ConfigurationSpace()
+        a = UniformIntegerHyperparameter("a", 0, 10, 5)
+        b = UniformIntegerHyperparameter("b", 0, 10, 5)
+        cs.add_hyperparameter(a)
+        cs.add_hyperparameter(b)
+        cond = GreaterThanCondition(b, a, 5)
+        cs.add_condition(cond)
+
+        value = pcs_new.write(cs)
+        self.assertIn(expected, value)
+
     def test_read_new_configuration_space_complex_conditionals(self):
         classi = OrdinalHyperparameter("classi", ["random_forest","extra_trees","k_nearest_neighbors","something"])
         knn_weights = CategoricalHyperparameter("knn_weights", ["uniform", "distance"])
@@ -436,5 +494,5 @@ class TestPCSConverter(unittest.TestCase):
             fh.write(pcs_string)
         with open(name, 'r') as fh:
             pcs_new = pcs.read(fh)
-        assert (pcs_new, cs)
+        self.assertTrue(pcs_new, cs)
 
