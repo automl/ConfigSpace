@@ -1,3 +1,10 @@
+# Version 3.8
+
+* Fix issue #25. Parents and children are now sorted topologically in the
+  underlying datastructure.
+* The reader and writer for the new pcs format can now handle Constants.
+* Speed improvements for one exchange neighborhood
+
 # Version 0.3.7
 
 * Faster checking of valid configurations
