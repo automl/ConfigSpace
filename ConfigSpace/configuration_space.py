@@ -28,6 +28,7 @@
 
 from collections import defaultdict, deque, OrderedDict
 import copy
+from itertools import chain
 
 import numpy as np
 import io
@@ -321,6 +322,36 @@ class ConfigurationSpace(object):
         for i, hp in enumerate(self._hyperparameters):
             self._hyperparameter_idx[hp] = i
             self._idx_to_hyperparameter[i] = hp
+
+        # Update order of _children
+        new_order = OrderedDict()
+        new_order['__HPOlib_configuration_space_root__'] = self._children['__HPOlib_configuration_space_root__']
+        for hp in chain(['__HPOlib_configuration_space_root__'], self._hyperparameters):
+            # Also resort the children dict
+            children_sorting = [(self._hyperparameter_idx[child_name], child_name)
+                                for child_name in self._children[hp]]
+            children_sorting.sort()
+            children_order = OrderedDict()
+            for _, child_name in children_sorting:
+                children_order[child_name] = self._children[hp][child_name]
+            new_order[hp] = children_order
+        self._children = new_order
+
+        # Update order of _parents
+        new_order = OrderedDict()
+        for hp in self._hyperparameters:
+            # Also resort the parent's dict
+            if '__HPOlib_configuration_space_root__' in self._parents[hp]:
+                parent_sorting = [(-1, '__HPOlib_configuration_space_root__')]
+            else:
+                parent_sorting = [(self._hyperparameter_idx[parent_name], parent_name)
+                                  for parent_name in self._parents[hp]]
+            parent_sorting.sort()
+            parent_order = OrderedDict()
+            for _, parent_name in parent_sorting:
+                parent_order[parent_name] = self._parents[hp][parent_name]
+            new_order[hp] = parent_order
+        self._parents = new_order
 
         # update conditions
         for condition in self.get_conditions():
