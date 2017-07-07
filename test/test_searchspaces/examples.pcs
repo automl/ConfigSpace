@@ -1,28 +1,19 @@
 ################################################################################
-# Example of ordinal hyperparameters
+# Example of ordinal hyperparameter with greater condition
 
-x3 integer [0,10] [0]
-x4 ordinal {red, blue, green, yellow} [red]
-x5 categorical {yellow} [yellow]
+x1 ordinal {red, blue, green, yellow} [red]
+x2 categorical {yellow} [yellow]
 
-x3 | x4 > yellow
-x4 | x5 in {yellow}
+x2 | x1 > yellow
 
 ################################################################################
-
-#adaptive {0, 1} [1] #uniform # untouched
-#heuristic {1,2,3,4,5,6,7,8,9,10,11,12,13} [2]
-#novnoise [0.1, 0.8] [0.5]
-#singleclause {0, 1} [1] # most important difference
-
-
-#Conditionals:
-#heuristic | singleclause in {1}  #
-#novnoise | heuristic in {1,2,3,4,5,6,10,11,12,13}
-#novnoise | adaptive in {0}
-
-################################################################################
+# Example of integer hyperparameter with greater condition
 int_parent integer [0, 3] [0]
 int_child integer [0, 3] [0]
 
 int_child | int_parent > 1
+
+################################################################################
+# Super-huge integer and float hyperparameters
+huge_integer integer [900000000,18000000000] [9000000000]
+huge_float real [900000000,18000000000] [9000000000]
