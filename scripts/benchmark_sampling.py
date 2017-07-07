@@ -8,6 +8,9 @@ import ConfigSpace.util
 import ConfigSpace.io.pcs as pcs_parser
 
 
+n_configs = 100
+
+
 def run_test(configuration_space_path):
     if not '2017' in configuration_space_path:
         return
@@ -26,12 +29,12 @@ def run_test(configuration_space_path):
     for i in range(10):
         cs.seed(i)
         start_time = time.time()
-        configurations = cs.sample_configuration(size=100)
+        configurations = cs.sample_configuration(size=n_configs)
         end_time = time.time()
         sampling_time.append(end_time - start_time)
 
         for j, c in enumerate(configurations):
-            c.is_valid_configuration()
+            #c.is_valid_configuration()
 
             if i == 0:
                 neighborhood = ConfigSpace.util.get_one_exchange_neighbourhood(
@@ -50,7 +53,7 @@ def run_test(configuration_space_path):
                 neighborhood_time.append(end_time - start_time - np.sum(validation_time))
                 validation_times.extend(validation_time)
 
-    print('Average time sampling 100 configurations', np.mean(sampling_time))
+    print('Average time sampling %d configurations' % n_configs, np.mean(sampling_time))
     print('Average time retrieving a nearest neighbor', np.mean(neighborhood_time))
     print('Average time checking one configuration', np.mean(validation_times))
 
