@@ -604,6 +604,7 @@ class TestConfigurationSpace(unittest.TestCase):
         self.assertRaisesRegex(TypeError,
                                "Argument size must be of type int, but is "
                                "<class 'float'>", cs.sample_configuration, 1.2)
+                               
 
 
 class ConfigurationTest(unittest.TestCase):
@@ -675,7 +676,47 @@ class ConfigurationTest(unittest.TestCase):
             saved_value = json.loads(string)
             saved_value = byteify(saved_value)
             self.assertEqual(values_dict, saved_value)
-
+            
+    def test_setitem(self):
+        '''
+        Checks overriding a sampled configuration
+        '''
+        pcs = ConfigurationSpace()
+        pcs.add_hyperparameter(UniformIntegerHyperparameter('x0', 1, 5))
+        pcs.add_hyperparameter(UniformFloatHyperparameter('x1', 0.5, 2.55))
+        pcs.add_hyperparameter(CategoricalHyperparameter('x2',['ab', 'bc', 'cd', 'de']))
+        
+        conf = pcs.sample_configuration()
+        
+        # failed because it's a invalid configuration
+        with self.assertRaisesRegex(ValueError, 'Illegal value 0 for hyperparameter x1'):
+            conf['x1'] = 0
+            
+        with self.assertRaisesRegex(ValueError, 'Illegal value 2.5 for hyperparameter x0'):
+            conf['x0'] = 2.5
+        
+        # failed because the variable didn't exists
+        with self.assertRaisesRegex(KeyError, "Hyperparameter 'x_0' does not exist in this configuration space."):
+            conf['x_0'] = 1
+        
+        # successful operation 1
+        x1_old = conf['x1']
+        if x1_old == 1.5:
+            conf['x1'] = 2.1
+        else:
+            conf['x1'] = 1.5
+        x1_new = conf['x1']
+        self.assertNotEqual(x1_old, x1_new)
+        
+        # successful operation 2
+        x2_old = conf['x2']
+        if x2_old == 'ab':
+            conf['x2'] = 'cd'
+        else:
+            conf['x2'] = 'ab'
+        x2_new = conf['x2']
+        self.assertNotEqual(x2_old, x2_new)
+        
 
 
 
