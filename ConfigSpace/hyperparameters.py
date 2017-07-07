@@ -306,7 +306,7 @@ class UniformFloatHyperparameter(FloatHyperparameter):
     def is_legal(self, value: Union[float]) -> bool:
         if not (isinstance(value, float) or isinstance(value, int)):
             return False
-        elif (self.upper + 0.00001) >= value >= (self.lower - 0.0000000001):
+        elif self.upper >= value >= self.lower:
             return True
         else:
             return False
@@ -352,6 +352,8 @@ class UniformFloatHyperparameter(FloatHyperparameter):
             vector = np.exp(vector)
         if self.q is not None:
             vector = int(np.round(vector / self.q, 0)) * self.q
+        vector = np.minimum(self.upper, vector)
+        vector = np.maximum(self.lower, vector)
         return vector
 
     def _inverse_transform(self, vector: Union[np.ndarray, None]) -> Union[float, np.ndarray]:
@@ -359,7 +361,10 @@ class UniformFloatHyperparameter(FloatHyperparameter):
             return np.NaN
         if self.log:
             vector = np.log(vector)
-        return (vector - self._lower) / (self._upper - self._lower)
+        vector = (vector - self._lower) / (self._upper - self._lower)
+        vector = np.minimum(1.0, vector)
+        vector = np.maximum(0.0, vector)
+        return vector
 
     def get_neighbors(self, value: Any, rs: np.random.RandomState, number: int = 4, transform: bool = False) -> List[float]:
         neighbors = []  # type: List[float]
@@ -548,7 +553,7 @@ class UniformIntegerHyperparameter(IntegerHyperparameter):
     def is_legal(self, value: int) -> bool:
         if not (isinstance(value, (int, np.int, np.int32, np.int64))):
             return False
-        elif self.upper >= value >= (self.lower - 0.0000000001):
+        elif self.upper >= value >= self.lower:
             return True
         else:
             return False

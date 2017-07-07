@@ -1,4 +1,10 @@
-x3 integer [0,10] [0]
-x4 ordinal {yellow,green,red,blue} [red]
+# ordinal with greater condition
+#x3 integer [0,10] [0]
+#x4 ordinal {yellow,green,red,blue} [red]
 
-x3 | x4 > yellow
+#x3 | x4 > yellow
+
+# Super-huge integer and float hyperparameters
+huge_integer integer [900000000,18000000000] [9000000000]
+huge_float real [900000000,18000000000] [9000000000]
+
