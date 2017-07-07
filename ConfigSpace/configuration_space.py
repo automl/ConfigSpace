@@ -1100,7 +1100,15 @@ class Configuration(object):
             return self[item]
         except:
             return default
-
+            
+    def __setitem__(self, key, value):
+        param = self.configuration_space.get_hyperparameter(key)
+        if param.is_legal(value):
+            self._values[key] = value
+            self._vector[self.configuration_space._hyperparameter_idx[key]] = self.configuration_space.get_hyperparameter(key)._inverse_transform(self[key])
+        else:
+            raise ValueError("Illegal value %s for hyperparameter %s" %(str(value), key))
+        
     def __contains__(self, item: str) -> bool:
         self._populate_values()
         return item in self._values
