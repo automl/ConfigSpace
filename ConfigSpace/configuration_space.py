@@ -1103,11 +1103,19 @@ class Configuration(object):
             
     def __setitem__(self, key, value):
         param = self.configuration_space.get_hyperparameter(key)
-        if param.is_legal(value):
-            self._values[key] = value
-            self._vector[self.configuration_space._hyperparameter_idx[key]] = self.configuration_space.get_hyperparameter(key)._inverse_transform(self[key])
-        else:
-            raise ValueError("Illegal value %s for hyperparameter %s" %(str(value), key))
+        if not param.is_legal(value):
+            raise ValueError(
+                "Illegal value '%s' for hyperparameter %s" % (str(value), key))
+        self._values[key] = value
+        idx = self.configuration_space.get_idx_by_hyperparameter_name(key)
+        vector_value = param._inverse_transform(value)
+        from ConfigSpace.util import change_hp_value
+        new_array = change_hp_value(self.configuration_space, self.get_array(),
+                                    param.name, vector_value, idx)
+        self._vector = new_array
+        self._values = dict()
+        self._query_values = False
+        self.configuration_space.check_configuration(self)
         
     def __contains__(self, item: str) -> bool:
         self._populate_values()
