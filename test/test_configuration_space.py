@@ -40,6 +40,7 @@ from ConfigSpace import ConfigurationSpace, \
     AndConjunction, OrConjunction, ForbiddenEqualsClause, \
     ForbiddenAndConjunction, UniformFloatHyperparameter
 from ConfigSpace.hyperparameters import NormalFloatHyperparameter
+from ConfigSpace.exceptions import ForbiddenValueError
 
 
 def byteify(input):
@@ -688,6 +689,10 @@ class ConfigurationTest(unittest.TestCase):
         # Condition
         x2 = pcs.add_hyperparameter(CategoricalHyperparameter('x2', [1, 2]))
         pcs.add_condition(EqualsCondition(x2, x1, 'ab'))
+
+        # Forbidden
+        x3 = pcs.add_hyperparameter(CategoricalHyperparameter('x3', [1, 2]))
+        pcs.add_forbidden_clause(ForbiddenEqualsClause(x3, 2))
         
         conf = pcs.get_default_configuration()
         
@@ -698,6 +703,10 @@ class ConfigurationTest(unittest.TestCase):
         # failed because the variable didn't exists
         with self.assertRaisesRegex(KeyError, "Hyperparameter 'x_0' does not exist in this configuration space."):
             conf['x_0'] = 1
+
+        # failed because forbidden clause is violated
+        with self.assertRaisesRegex(ForbiddenValueError, "Given vector violates forbidden clause Forbidden: x3 == 2"):
+            conf['x3'] = 2
         
         # successful operation 1
         x0_old = conf['x0']
@@ -720,7 +729,10 @@ class ConfigurationTest(unittest.TestCase):
         self.assertNotEqual(x1_old, x1_new)
         pcs._check_configuration_rigorous(conf)
         self.assertRaises(KeyError, conf.__getitem__, 'x2')
-        # TODO check forbidden configurations
+
+
+
+
         
 
 
