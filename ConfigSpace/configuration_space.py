@@ -1106,7 +1106,6 @@ class Configuration(object):
         if not param.is_legal(value):
             raise ValueError(
                 "Illegal value '%s' for hyperparameter %s" % (str(value), key))
-        self._values[key] = value
         idx = self.configuration_space.get_idx_by_hyperparameter_name(key)
         vector_value = param._inverse_transform(value)
         from ConfigSpace.util import change_hp_value
@@ -1117,7 +1116,6 @@ class Configuration(object):
         self._vector = new_array
         self._values = dict()
         self._query_values = False
-        #self.configuration_space.check_configuration(self)
         
     def __contains__(self, item: str) -> bool:
         self._populate_values()

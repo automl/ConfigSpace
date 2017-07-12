@@ -707,6 +707,7 @@ class ConfigurationTest(unittest.TestCase):
         # failed because forbidden clause is violated
         with self.assertRaisesRegex(ForbiddenValueError, "Given vector violates forbidden clause Forbidden: x3 == 2"):
             conf['x3'] = 2
+        self.assertEqual(conf['x3'], 1)
         
         # successful operation 1
         x0_old = conf['x0']
