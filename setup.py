@@ -30,7 +30,7 @@ setup(
     author=', '.join(["Matthias Feurer", "Katharina Eggensperger",
                       "Syed Mohsin Ali", "Christina Hernandez Wunsch",
                       "Julien-Charles Levesque", "Jost Tobias Springenberg",
-                      "Marius Lindauer"]),
+                      "Marius Lindauer", "Jorn Tuyls"]),
     author_email='feurerm@informatik.uni-freiburg.de',
     test_suite="nose.collector",
     install_requires=['argparse',

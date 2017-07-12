@@ -1,3 +1,11 @@
+# Version 3.9
+
+* Fix issue #53. Functionality for retrieving a one exchange neighborhood does
+  no longer create illegal configurations when hyperparameters have extreme
+  ranges.
+* New functionality `__setitem__` for `Configuration`. Allows dictionary syntax
+  to change the value of one hyperparameter in a configuration.
+
 # Version 3.8
 
 * Fix issue #25. Parents and children are now sorted topologically in the
