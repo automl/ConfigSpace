@@ -37,7 +37,7 @@ from ConfigSpace import Configuration, ConfigurationSpace, UniformIntegerHyperpa
 from ConfigSpace.io.pcs import read
 from ConfigSpace.util import impute_inactive_values, get_random_neighbor, \
     get_one_exchange_neighbourhood, deactivate_inactive_hyperparameters, \
-    check_neighbouring_config_vector
+    change_hp_value
 
 
 class UtilTest(unittest.TestCase):
@@ -252,11 +252,12 @@ class UtilTest(unittest.TestCase):
                                              EqualsCondition(bottom, right, 1)))
 
         config = Configuration(diamond, {'bottom': 0, 'head': 0, 'left': 1, 'right': 1})
-        array = np.array([1., 1., 1., 0.])
         hp_name = "head"
+        index = diamond.get_idx_by_hyperparameter_name(hp_name)
         neighbor_value = 1
 
-        new_array = check_neighbouring_config_vector(config, array, neighbor_value, hp_name)
+        new_array = change_hp_value(diamond, config.get_array(), hp_name,
+                                    neighbor_value, index)
         expected_array = np.array([1, np.nan, np.nan, np.nan])
 
         np.testing.assert_almost_equal(new_array, expected_array)
@@ -274,11 +275,12 @@ class UtilTest(unittest.TestCase):
                                              EqualsCondition(bottom, right, 'green')))
 
         config = Configuration(diamond, {'bottom': 'red', 'head': 'red', 'left': 'green', 'right': 'green'})
-        array = np.array([1., 1., 1., 0.])
         hp_name = "head"
-        neighbor_value = 'green'
+        index = diamond.get_idx_by_hyperparameter_name(hp_name)
+        neighbor_value = 1
 
-        new_array = check_neighbouring_config_vector(config, array, neighbor_value, hp_name)
+        new_array = change_hp_value(diamond, config.get_array(), hp_name,
+                                    neighbor_value, index)
         expected_array = np.array([1, np.nan, np.nan, np.nan])
 
         np.testing.assert_almost_equal(new_array, expected_array)

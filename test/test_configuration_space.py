@@ -40,6 +40,7 @@ from ConfigSpace import ConfigurationSpace, \
     AndConjunction, OrConjunction, ForbiddenEqualsClause, \
     ForbiddenAndConjunction, UniformFloatHyperparameter
 from ConfigSpace.hyperparameters import NormalFloatHyperparameter
+from ConfigSpace.exceptions import ForbiddenValueError
 
 
 def byteify(input):
@@ -604,6 +605,7 @@ class TestConfigurationSpace(unittest.TestCase):
         self.assertRaisesRegex(TypeError,
                                "Argument size must be of type int, but is "
                                "<class 'float'>", cs.sample_configuration, 1.2)
+                               
 
 
 class ConfigurationTest(unittest.TestCase):
@@ -675,7 +677,64 @@ class ConfigurationTest(unittest.TestCase):
             saved_value = json.loads(string)
             saved_value = byteify(saved_value)
             self.assertEqual(values_dict, saved_value)
+            
+    def test_setitem(self):
+        '''
+        Checks overriding a sampled configuration
+        '''
+        pcs = ConfigurationSpace()
+        pcs.add_hyperparameter(UniformIntegerHyperparameter('x0', 1, 5, default=1))
+        x1 = pcs.add_hyperparameter(CategoricalHyperparameter('x1', ['ab', 'bc', 'cd', 'de'], default='ab'))
 
+        # Condition
+        x2 = pcs.add_hyperparameter(CategoricalHyperparameter('x2', [1, 2]))
+        pcs.add_condition(EqualsCondition(x2, x1, 'ab'))
+
+        # Forbidden
+        x3 = pcs.add_hyperparameter(CategoricalHyperparameter('x3', [1, 2]))
+        pcs.add_forbidden_clause(ForbiddenEqualsClause(x3, 2))
+        
+        conf = pcs.get_default_configuration()
+        
+        # failed because it's a invalid configuration
+        with self.assertRaisesRegex(ValueError, "Illegal value '0' for hyperparameter x0"):
+            conf['x0'] = 0
+        
+        # failed because the variable didn't exists
+        with self.assertRaisesRegex(KeyError, "Hyperparameter 'x_0' does not exist in this configuration space."):
+            conf['x_0'] = 1
+
+        # failed because forbidden clause is violated
+        with self.assertRaisesRegex(ForbiddenValueError, "Given vector violates forbidden clause Forbidden: x3 == 2"):
+            conf['x3'] = 2
+        self.assertEqual(conf['x3'], 1)
+        
+        # successful operation 1
+        x0_old = conf['x0']
+        if x0_old == 1:
+            conf['x0'] = 2
+        else:
+            conf['x0'] = 1
+        x0_new = conf['x0']
+        self.assertNotEqual(x0_old, x0_new)
+        pcs._check_configuration_rigorous(conf)
+        self.assertEqual(conf['x2'], 1)
+        
+        # successful operation 2
+        x1_old = conf['x1']
+        if x1_old == 'ab':
+            conf['x1'] = 'cd'
+        else:
+            conf['x1'] = 'ab'
+        x1_new = conf['x1']
+        self.assertNotEqual(x1_old, x1_new)
+        pcs._check_configuration_rigorous(conf)
+        self.assertRaises(KeyError, conf.__getitem__, 'x2')
+
+
+
+
+        
 
 
 

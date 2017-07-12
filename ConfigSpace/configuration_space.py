@@ -1100,7 +1100,23 @@ class Configuration(object):
             return self[item]
         except:
             return default
-
+            
+    def __setitem__(self, key, value):
+        param = self.configuration_space.get_hyperparameter(key)
+        if not param.is_legal(value):
+            raise ValueError(
+                "Illegal value '%s' for hyperparameter %s" % (str(value), key))
+        idx = self.configuration_space.get_idx_by_hyperparameter_name(key)
+        vector_value = param._inverse_transform(value)
+        from ConfigSpace.util import change_hp_value
+        new_array = change_hp_value(self.configuration_space,
+                                    self.get_array().copy(),
+                                    param.name, vector_value, idx)
+        self.configuration_space._check_configuration(new_array)
+        self._vector = new_array
+        self._values = dict()
+        self._query_values = False
+        
     def __contains__(self, item: str) -> bool:
         self._populate_values()
         return item in self._values

@@ -74,9 +74,34 @@ def impute_inactive_values(configuration: Configuration, strategy: Union[str, fl
                                       allow_inactive_with_values=True)
     return new_configuration
 
-def check_neighbouring_config_vector(configuration: Configuration, new_array: np.array, neighbor_value: Union[int, float, str],
-                              hp_name: str) -> np.array:
-    configuration_space = configuration.configuration_space
+def change_hp_value(configuration_space: ConfigurationSpace,
+                    configuration_array: np.ndarray,
+                    hp_name: str, hp_value: float, index: int) -> np.ndarray:
+    """Change hyperparameter value in configuration array to given value.
+    
+    Does not check if the new value is legal. Activates and deactivates other 
+    hyperparameters if necessary. Does not check if new hyperparameter value 
+    results in the violation of any forbidden clauses.
+    
+    Parameters
+    ----------
+    configuration_space : ConfigurationSpace
+    
+    configuration_array : np.ndarray
+    
+    hp_name : str
+    
+    hp_value : float
+    
+    index : int
+    
+    Returns
+    -------
+    np.ndarray
+    """
+
+    configuration_array[index] = hp_value
+
     # Hyperparameters which are going to be set to inactive
     disabled = []
 
@@ -97,21 +122,20 @@ def check_neighbouring_config_vector(configuration: Configuration, new_array: np
                 continue
 
             current_idx = configuration_space.get_idx_by_hyperparameter_name(current.name)
-            current_value = new_array[current_idx]
+            current_value = configuration_array[current_idx]
 
-            conditions = configuration.configuration_space. \
-                _parent_conditions_of[current.name]
+            conditions = configuration_space._parent_conditions_of[current.name]
 
             active = True
             for condition in conditions:
-                if not condition.evaluate_vector(new_array):
+                if not condition.evaluate_vector(configuration_array):
                     active = False
                     break
 
             if active and (current_value is None or
                                not np.isfinite(current_value)):
                 default = current._inverse_transform(current.default)
-                new_array[current_idx] = default
+                configuration_array[current_idx] = default
                 children_ = configuration_space._children_of[current.name]
                 if len(children_) > 0:
                     to_visit.extendleft(children_)
@@ -120,9 +144,9 @@ def check_neighbouring_config_vector(configuration: Configuration, new_array: np
             # all its children need to be deactivade as well
             if not active and (current_value is not None
                                or np.isfinite(current_value)):
-                new_array[current_idx] = np.NaN
+                configuration_array[current_idx] = np.NaN
 
-                children = configuration.configuration_space._children_of[current.name]
+                children = configuration_space._children_of[current.name]
 
                 if len(children) > 0:
                     to_disable = set()
@@ -130,18 +154,18 @@ def check_neighbouring_config_vector(configuration: Configuration, new_array: np
                         to_disable.add(ch.name)
                     while len(to_disable) > 0:
                         child = to_disable.pop()
-                        child_idx = configuration.configuration_space. \
+                        child_idx = configuration_space. \
                             get_idx_by_hyperparameter_name(child)
                         disabled.append(child_idx)
-                        children = configuration.configuration_space._children_of[child]
+                        children = configuration_space._children_of[child]
 
                         for ch in children:
                             to_disable.add(ch.name)
 
     for idx in disabled:
-        new_array[idx] = np.NaN
+        configuration_array[idx] = np.NaN
 
-    return new_array
+    return configuration_array
 
 
 def get_one_exchange_neighbourhood(configuration: Configuration, seed: int) -> List[Configuration]:
@@ -207,10 +231,9 @@ def get_one_exchange_neighbourhood(configuration: Configuration, seed: int) -> L
                 # Check all newly obtained neigbors
                 for neighbor in neighbors:
                     new_array = array.copy()
-                    new_array[index] = neighbor
-                    neighbor_value = hp._transform(neighbor)
-                    new_array = check_neighbouring_config_vector(
-                     configuration, new_array, neighbor_value, hp_name)
+                    new_array = change_hp_value(configuration_space,
+                                                new_array, hp_name, neighbor,
+                                                index)
 
                     try:
                         # Populating a configuration from an array does not check
@@ -247,7 +270,6 @@ def get_one_exchange_neighbourhood(configuration: Configuration, seed: int) -> L
                         del neighbors_to_return[hp_name]
                         hyperparameters_used.append(hp_name)
                     yield n_
-    # return neighbourhood
 
 
 def get_random_neighbor(configuration: Configuration, seed: int) -> Configuration:
