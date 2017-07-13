@@ -40,7 +40,6 @@ from ConfigSpace.conditions import EqualsCondition, NotEqualsCondition,\
 from ConfigSpace.forbidden import ForbiddenEqualsClause, \
     ForbiddenAndConjunction, ForbiddenInClause, AbstractForbiddenComponent, MultipleValueForbiddenClause
 
-
 # Build pyparsing expressions for params
 pp_param_name = pyparsing.Word(pyparsing.alphanums + "_" + "-" + "@" + "." + ":" + ";" + "\\" + "/" + "?" + "!" +
                                "$" + "%" + "&" + "*" + "+" + "<" + ">")
@@ -81,17 +80,20 @@ def build_categorical(param):
                            ", ".join([str(value) for value in param.choices]),
                            str(param.default))
 
+
 def build_ordinal(param):
     ordinal_template = '%s ordinal {%s} [%s]'
     return ordinal_template % (param.name, 
                                ", ".join([str(value) for value in param.sequence]),
                                 str(param.default))
 
+
 def build_constant(param):
     const_template = '%s categorical {%s} [%s]'
     return const_template % (param.name,
                              param.value, param.value)
-                                
+
+
 def build_continuous(param):
     if type(param) in (NormalIntegerHyperparameter,
                        NormalFloatHyperparameter):
@@ -117,18 +119,19 @@ def build_continuous(param):
         return float_template % (q_prefix, param.name,  str(param.lower),
                                  str(param.upper), str(default))
 
+
 def build_condition(condition):
     if not isinstance(condition, ConditionComponent):
         raise TypeError("build_condition must be called with an instance of "
                         "'%s', got '%s'" %
                         (ConditionComponent, type(condition)))
-
     # Now handle the conditions SMAC can handle
     in_template = "%s | %s in {%s}"
     less_template = "%s | %s < %s"
     greater_template = "%s | %s > %s"
     notequal_template = "%s | %s != %s"
-    equal_template = "%s | %s == %s"    
+    equal_template = "%s | %s == %s"
+
     if isinstance(condition, NotEqualsCondition):
         return notequal_template % (condition.child.name,
                                     condition.parent.name,
@@ -152,6 +155,25 @@ def build_condition(condition):
                                  condition.parent.name,
                                  condition.value)
 
+
+def build_conjunction(conjunction):
+    line = conjunction.get_children()[0].name + " | "
+
+    cond_list = list()
+    for component in conjunction.components:
+        tmp = build_condition(component.get_descendant_literal_conditions()[0])
+
+        # This is somehow hacky, but should work for now
+        tmp = tmp.split("|")[1].strip()
+
+        cond_list.append(tmp)
+    if isinstance(conjunction, AndConjunction):
+        line += " && ".join(cond_list)
+    elif isinstance(conjunction, OrConjunction):
+        line += " || ".join(cond_list)
+    return line
+
+
 def build_forbidden(clause):
     if not isinstance(clause, AbstractForbiddenComponent):
         raise TypeError("build_forbidden must be called with an instance of "
@@ -170,7 +192,8 @@ def build_forbidden(clause):
     retval.write("}")
     retval.seek(0)
     return retval.getvalue()
-    
+
+
 def condition_specification(child_name, condition, configuration_space):
     # specifies the condition type
     child = configuration_space.get_hyperparameter(child_name)
@@ -218,7 +241,6 @@ def condition_specification(child_name, condition, configuration_space):
             elif operation == '>':
                 condition = GreaterThanCondition(child, parent, restrictions)
         return condition
-                                
 
 
 def read(pcs_string, debug=False):
@@ -395,7 +417,8 @@ def read(pcs_string, debug=False):
                     configuration_space.add_condition(normal_condition)
    
     return configuration_space
-    
+
+
 def write(configuration_space):
     if not isinstance(configuration_space, ConfigurationSpace):
         raise TypeError("pcs_parser.write expects an instance of %s, "
@@ -430,10 +453,7 @@ def write(configuration_space):
 
     for condition in configuration_space.get_conditions():
         if isinstance(condition, AndConjunction) or isinstance(condition, OrConjunction):
-            vals = condition.__repr__()
-            condition_lines.write("\n")
-            condition_lines.write(vals)
-            
+            condition_lines.write(build_conjunction(condition) + "\n")
         else:
             if condition_lines.tell() > 0:
                 condition_lines.write("\n")

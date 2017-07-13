@@ -473,6 +473,22 @@ class TestPCSConverter(unittest.TestCase):
 
         pcs_new.read(s.split('\n'))
 
+    def test_write_restrictions(self):
+        s = "c integer [0, 2] [0]\n" + \
+            "d ordinal {cold, luke-warm, hot} [cold]\n" + \
+            "e real [0.0, 1.0] [0.0]\n" + \
+            "b real [0.0, 1.0] [0.0]\n" + \
+            "a real [0.0, 1.0] [0.0]\n" + \
+            "\n" + \
+            "b | d in {luke-warm, hot} || c > 1\n" + \
+            "a | b == 0.5 && e > 0.5\n"
+
+        a = pcs_new.read(s.split('\n'))
+        out = pcs_new.write(a)
+        print(s)
+        print(out)
+        self.assertEqual(out, s)
+
     def test_read_write(self):
         # Some smoke tests whether reading, writing, reading alters makes the
         #  configspace incomparable
