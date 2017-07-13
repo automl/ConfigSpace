@@ -452,13 +452,12 @@ def write(configuration_space):
                 type(hyperparameter), hyperparameter))
 
     for condition in configuration_space.get_conditions():
-        if isinstance(condition, AndConjunction) or isinstance(condition, OrConjunction):
-            condition_lines.write(build_conjunction(condition) + "\n")
-        else:
-            if condition_lines.tell() > 0:
+        if condition_lines.tell() > 0:
                 condition_lines.write("\n")
+        if isinstance(condition, AndConjunction) or isinstance(condition, OrConjunction):
+            condition_lines.write(build_conjunction(condition))
+        else:
             condition_lines.write(build_condition(condition))
-
 
     for forbidden_clause in configuration_space.forbidden_clauses:
         # Convert in-statement into two or more equals statements
