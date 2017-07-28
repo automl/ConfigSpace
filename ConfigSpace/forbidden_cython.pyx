@@ -31,13 +31,8 @@ def say_hello_to(name):
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from abc import ABCMeta, abstractmethod
-import operator
-
 import numpy as np
-
-import io
-from functools import reduce
-
+import io.io as io
 
 from ConfigSpace.hyperparameters import Hyperparameter
 from typing import List, Dict, Any, Union

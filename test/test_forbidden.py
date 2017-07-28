@@ -34,14 +34,16 @@ import numpy as np
 
 from ConfigSpace.hyperparameters import \
     UniformIntegerHyperparameter, CategoricalHyperparameter
-from ConfigSpace.forbidden import ForbiddenEqualsClause, \
-    ForbiddenInClause, ForbiddenAndConjunction
-from ConfigSpace.forbidden_cython import say_hello_to
+
+# from ConfigSpace.forbidden import ForbiddenEqualsClause, \
+#     ForbiddenInClause, ForbiddenAndConjunction
+from ConfigSpace.forbidden_cython import ForbiddenEqualsClause, \
+    ForbiddenInClause, ForbiddenAndConjunction, say_hello_to
 
 
 class TestForbidden(unittest.TestCase):
     # TODO: return only copies of the objects!
-    def test_forbidden_cythopn(self):
+    def test_forbidden_cython(self):
         say_hello_to("world")
 
     def test_forbidden_equals_clause(self):

@@ -35,7 +35,9 @@ from ConfigSpace.hyperparameters import CategoricalHyperparameter, \
     NormalIntegerHyperparameter, NormalFloatHyperparameter
 from ConfigSpace.conditions import EqualsCondition, NotEqualsCondition,\
     InCondition, AndConjunction, OrConjunction, ConditionComponent
-from ConfigSpace.forbidden import ForbiddenEqualsClause, \
+# from ConfigSpace.forbidden import ForbiddenEqualsClause, \
+#     ForbiddenAndConjunction, ForbiddenInClause, AbstractForbiddenComponent, MultipleValueForbiddenClause
+from ConfigSpace.forbidden_cython import ForbiddenEqualsClause, \
     ForbiddenAndConjunction, ForbiddenInClause, AbstractForbiddenComponent, MultipleValueForbiddenClause
 
 
