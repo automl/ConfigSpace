@@ -36,10 +36,14 @@ from ConfigSpace.hyperparameters import \
     UniformIntegerHyperparameter, CategoricalHyperparameter
 from ConfigSpace.forbidden import ForbiddenEqualsClause, \
     ForbiddenInClause, ForbiddenAndConjunction
+from ConfigSpace.forbidden_cython import say_hello_to
 
 
 class TestForbidden(unittest.TestCase):
     # TODO: return only copies of the objects!
+    def test_forbidden_cythopn(self):
+        say_hello_to("world")
+
     def test_forbidden_equals_clause(self):
         hp1 = CategoricalHyperparameter("parent", [0, 1])
         hp2 = UniformIntegerHyperparameter("child", 0, 10)
