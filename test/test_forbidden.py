@@ -114,22 +114,27 @@ class TestForbidden(unittest.TestCase):
         forb2 = ForbiddenInClause(hp2, [5, 6, 7, 8])
         forb3 = ForbiddenInClause(hp3, [5, 6, 7, 8, 9])
 
+        print("\nTest1:")
         self.assertEqual(forb1, forb1_)
+        print("\nTest2:")
         self.assertNotEqual(forb1, forb2)
+        print("\nTest3:")
         self.assertNotEqual(forb1, forb3)
+        print("\nTest4:")
         self.assertEqual("Forbidden: child in {5, 6, 7, 8, 9}", str(forb1))
-
+        print("\nTest5:")
         self.assertRaisesRegexp(ValueError,
                                 "Is_forbidden must be called with the "
                                 "instanstatiated hyperparameter in the "
                                 "forbidden clause; you are missing "
                                 "'child'", forb1.is_forbidden,
-                                {'parent': 1})
+                                {'parent': 1}, False)
+        print("\nTest6:")
         self.assertFalse(forb1.is_forbidden({'parent': 1}, strict=False))
-
+        print("\nTest7:")
         for i in range(0, 5):
             self.assertFalse(forb1.is_forbidden({'child': i}))
-
+        print("\nTest8:")
         for i in range(5, 10):
             self.assertTrue(forb1.is_forbidden({'child': i}))
 
@@ -139,11 +144,14 @@ class TestForbidden(unittest.TestCase):
             hp2.name: 1
         }
         forb1.set_vector_idx(hyperparameter_idx)
+        print("\nTest9:")
         self.assertFalse(forb1.is_forbidden_vector([np.NaN, np.NaN], strict=False))
+        print("\nTest10:")
         self.assertFalse(forb1.is_forbidden_vector([np.NaN, 0]))
         correct_vector_value = hp2._inverse_transform(6)
+        print("\nTest11:")
         self.assertTrue(forb1.is_forbidden_vector([np.NaN, correct_vector_value]))
-
+        print("\nfinished:")
 
     def test_and_conjunction(self):
         hp1 = CategoricalHyperparameter("parent", [0, 1])
