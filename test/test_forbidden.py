@@ -128,7 +128,7 @@ class TestForbidden(unittest.TestCase):
                                 "instanstatiated hyperparameter in the "
                                 "forbidden clause; you are missing "
                                 "'child'", forb1.is_forbidden,
-                                {'parent': 1}, False)
+                                {'parent': 1})
         print("\nTest6:")
         self.assertFalse(forb1.is_forbidden({'parent': 1}, strict=False))
         print("\nTest7:")
