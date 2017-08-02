@@ -56,43 +56,40 @@ cdef class AbstractForbiddenComponent(object):
 
     # http://stackoverflow.com/a/25176504/4636294
     def __richcmp__(self, other: Any, int op):
-        """Override the default Equals behavior"""
-        # print("richcmp")
-        # print(self, other, op, self.hyperparameter.name)
+        """Override the default Equals behavior
+
+        There are no separate methods for the individual rich comparison operations (__eq__(), __le__(), etc.).
+         Instead there is a single method __richcmp__() which takes an integer indicating which operation is to be performed, as follows:
+        < 	0
+        == 	2
+        > 	4
+        <= 	1
+        != 	3
+        >= 	5
+        """
         if isinstance(other, self.__class__):
-            # print("is instance of class")
-            if op == 2:
+            if op == 2: # "=="
                 if self.value is not None:
-                    # print(op, self.value == other.value
-                    #   and self.hyperparameter.name == other.hyperparameter.name)
+                    # some hyperparam types have their "value" and some have "values"
+                    # for some reason hasattr(self, "value") is not working
+
+                    # todo: chk if all methods and variables of hyperparameter variable should be checked for equality. right now only two vars are checked for variables.
                     return (self.value == other.value
                          and self.hyperparameter.name == other.hyperparameter.name)
                 else:
                     return (self.values == other.values
                          and self.hyperparameter.name == other.hyperparameter.name)
 
-
-            # if op == 3:
-            #     return self.__dict__ != other.__dict__
-            elif op == 3:
-                # print(op, hasattr(self, "value"))
+            elif op == 3: # "!="
                 if self.value is not None:
-                    # print("trying", other.value)
                     return False == (self.value == other.value
                          and self.hyperparameter.name == other.hyperparameter.name)
                 else:
-                    # print("else:", self.values)
                     return False == (self.values == other.values
                          and self.hyperparameter.name == other.hyperparameter.name)
 
 
         return NotImplemented
-
-    # def __ne__(self, other: Any) -> bool:
-    #     """Define a non-equality test"""
-    #     if isinstance(other, self.__class__):
-    #         return not self.__eq__(other)
-    #     return NotImplemented
 
     def __hash__(self) -> int:
         """Override the default hash behavior (that returns the id or the object)"""
