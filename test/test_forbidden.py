@@ -35,10 +35,10 @@ import numpy as np
 from ConfigSpace.hyperparameters import \
     UniformIntegerHyperparameter, CategoricalHyperparameter
 
-# from ConfigSpace.forbidden import ForbiddenEqualsClause, \
-#     ForbiddenInClause, ForbiddenAndConjunction
-from ConfigSpace.forbidden_cython import ForbiddenEqualsClause, \
-    ForbiddenInClause, ForbiddenAndConjunction, say_hello_to
+from ConfigSpace.forbidden import ForbiddenEqualsClause, \
+    ForbiddenInClause, ForbiddenAndConjunction
+# from ConfigSpace.forbidden_cython import ForbiddenEqualsClause, \
+#     ForbiddenInClause, ForbiddenAndConjunction, say_hello_to
 
 
 class TestForbidden(unittest.TestCase):
@@ -66,20 +66,31 @@ class TestForbidden(unittest.TestCase):
         forb1__ = ForbiddenEqualsClause(hp1, 0)
         forb2 = ForbiddenEqualsClause(hp2, 10)
 
+        # print("\eq0:", 1, 1)
+        # self.assertEqual(1, 1)
+        print("\neq1:", forb1, forb1_)
         self.assertEqual(forb1, forb1_)
+        print("\nneq2:", forb1, "forb1")
         self.assertNotEqual(forb1, "forb1")
+        print("\nneq3:", forb1, forb2)
         self.assertNotEqual(forb1, forb2)
+        print("\nneq4:", forb1_, forb1)
         self.assertNotEqual(forb1__, forb1)
+        print("\neq5:", "Forbidden: parent == 1", str(forb1))
         self.assertEqual("Forbidden: parent == 1", str(forb1))
 
+        print("\nraisereg6:")
         self.assertRaisesRegexp(ValueError,
                                 "Is_forbidden must be called with the "
                                 "instanstatiated hyperparameter in the "
                                 "forbidden clause; you are missing "
                                 "'parent'", forb1.is_forbidden,
                                 {1: hp2})
+        print("\nneq7:")
         self.assertFalse(forb1.is_forbidden({'child': 1}, strict=False))
+        print("\nneq8:")
         self.assertFalse(forb1.is_forbidden({'parent': 0}))
+        print("\nneq9:")
         self.assertTrue(forb1.is_forbidden({'parent': 1}))
 
         # Test forbidden on vector values
@@ -88,8 +99,11 @@ class TestForbidden(unittest.TestCase):
             hp2.name: 1
         }
         forb1.set_vector_idx(hyperparameter_idx)
+        print("\nneq10:")
         self.assertFalse(forb1.is_forbidden_vector([np.NaN, np.NaN], strict=False))
+        print("\nneq11:")
         self.assertFalse(forb1.is_forbidden_vector([0., np.NaN]))
+        print("\nneq12:")
         self.assertTrue(forb1.is_forbidden_vector([1., np.NaN]))
 
 

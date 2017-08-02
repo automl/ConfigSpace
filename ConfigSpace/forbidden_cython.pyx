@@ -55,16 +55,16 @@ cdef class AbstractForbiddenComponent(object):
         pass
 
     # http://stackoverflow.com/a/25176504/4636294
-    def __richcmp__(self, other: Any, op: int) -> bool:
+    def __richcmp__(self, other: Any, int op):
         """Override the default Equals behavior"""
-        print("richcmp")
-        print(self, other, op, self.hyperparameter.name)
+        # print("richcmp")
+        # print(self, other, op, self.hyperparameter.name)
         if isinstance(other, self.__class__):
-            print("is instance of class")
+            # print("is instance of class")
             if op == 2:
                 if self.value is not None:
-                    print(op, self.value == other.value
-                      and self.hyperparameter.name == other.hyperparameter.name)
+                    # print(op, self.value == other.value
+                    #   and self.hyperparameter.name == other.hyperparameter.name)
                     return (self.value == other.value
                          and self.hyperparameter.name == other.hyperparameter.name)
                 else:
@@ -75,13 +75,13 @@ cdef class AbstractForbiddenComponent(object):
             # if op == 3:
             #     return self.__dict__ != other.__dict__
             elif op == 3:
-                print(op, hasattr(self, "value"))
+                # print(op, hasattr(self, "value"))
                 if self.value is not None:
-                    print("trying", other.value)
+                    # print("trying", other.value)
                     return False == (self.value == other.value
                          and self.hyperparameter.name == other.hyperparameter.name)
                 else:
-                    print("else:", self.values)
+                    # print("else:", self.values)
                     return False == (self.values == other.values
                          and self.hyperparameter.name == other.hyperparameter.name)
 
@@ -109,13 +109,13 @@ cdef class AbstractForbiddenComponent(object):
  #   @abstractmethod
  #    def is_forbidden(self, instantiated_hyperparameters, strict) -> bool:
     def is_forbidden(self, instantiated_hyperparameters, strict=True):
-        print("in abs is_forbidden")
+        # print("in abs is_forbidden")
         pass
 
  #   @abstractmethod
  #    def is_forbidden_vector(self, instantiated_hyperparameters, strict) -> bool:
     def is_forbidden_vector(self, instantiated_hyperparameters, strict=True):
-        print("in abs _is_forbidden")
+        # print("in abs _is_forbidden")
         pass
 
 
@@ -128,10 +128,12 @@ cdef class AbstractForbiddenClause(AbstractForbiddenComponent):
         self.hyperparameter = hyperparameter
         self.vector_id = None
 
-    def get_descendant_literal_clauses(self) -> List[AbstractForbiddenComponent]:
+    # def get_descendant_literal_clauses(self) -> List[AbstractForbiddenComponent]:
+    def get_descendant_literal_clauses(self):
         return [self]
 
-    def set_vector_idx(self, hyperparameter_to_idx: dict):
+    # def set_vector_idx(self, hyperparameter_to_idx: dict):
+    def set_vector_idx(self, hyperparameter_to_idx):
         self.vector_id = hyperparameter_to_idx[self.hyperparameter.name]
 
 
@@ -147,9 +149,9 @@ cdef class SingleValueForbiddenClause(AbstractForbiddenClause):
 
     # def is_forbidden(self, instantiated_hyperparameters: Dict[str, Union[None, str, float, int]], strict: bool=True) -> bool:
     def is_forbidden(self, instantiated_hyperparameters, strict = True):
-        print("here1")
+        # print("here1")
         value = instantiated_hyperparameters.get(self.hyperparameter.name)
-        print("is_singval_fobidden:", value, instantiated_hyperparameters)
+        # print("is_singval_fobidden:", value, instantiated_hyperparameters)
         if value is None:
             if strict:
                 raise ValueError("Is_forbidden must be called with the "
@@ -177,12 +179,12 @@ cdef class SingleValueForbiddenClause(AbstractForbiddenClause):
 
     # @abstractmethod
     def _is_forbidden(self, target_instantiated_hyperparameter):
-        print("heeer")
+        # print("heeer")
         pass
 
  #   @abstractmethod
     def _is_forbidden_vector(self, target_instantiated_vector):
-        print("heeeeer")
+        # print("heeeeer")
         pass
 
 
@@ -271,22 +273,6 @@ cdef class ForbiddenInClause(MultipleValueForbiddenClause):
     def _is_forbidden(self, value):
         return value in self.values
 
-    # cdef is_forbidden(self, instantiated_hyperparameters, strict=True):
-    #     print("here2")
-    #     value = instantiated_hyperparameters.get(self.hyperparameter.name)
-    #     print("is_multval_fobidden:", value, instantiated_hyperparameters)
-    #     if value is None:
-    #         if strict:
-    #             raise ValueError("Is_forbidden must be called with the "
-    #                              "instanstatiated hyperparameter in the "
-    #                              "forbidden clause; you are missing "
-    #                              "'%s'." % self.hyperparameter.name)
-    #         else:
-    #             return False
-    #
-    #     return self._is_forbidden(value)
-
-    # cdef _is_forbidden_vector(self, value: Any) -> bool:
     def _is_forbidden_vector(self, value):
         return value in self.vector_values
 
@@ -308,12 +294,14 @@ cdef class AbstractForbiddenConjunction(AbstractForbiddenComponent):
     def __repr__(self):
         pass
 
-    def set_vector_idx(self, hyperparameter_to_idx: dict):
+    # cdef def set_vector_idx(self, hyperparameter_to_idx: dict):
+    def  set_vector_idx(self, hyperparameter_to_idx):
         for component in self.components:
             component.set_vector_idx(hyperparameter_to_idx)
 
     # todo:recheck is return type should be AbstractForbiddenComponent or AbstractForbiddenConjunction or Hyperparameter
-    def get_descendant_literal_clauses(self) -> List[AbstractForbiddenComponent]:
+    #  def get_descendant_literal_clauses(self) -> List[AbstractForbiddenComponent]:
+    def get_descendant_literal_clauses(self):
         children = []
         for component in self.components:
             if isinstance(component, AbstractForbiddenConjunction):
