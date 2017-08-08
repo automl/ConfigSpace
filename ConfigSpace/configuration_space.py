@@ -1034,7 +1034,9 @@ class Configuration(object):
                 if value is None:
                     continue
                 hyperparameter = configuration_space.get_hyperparameter(key)
-                hyperparameter.is_legal(value)
+                if not hyperparameter.is_legal(value):
+                    raise ValueError("Trying to set illegal value '%s' for"
+                                     "hyperparameter %s." % (str(value), hyperparameter))
                 # Truncate the representation of the float to be of constant
                 # length for a python version
                 if isinstance(hyperparameter, FloatHyperparameter):

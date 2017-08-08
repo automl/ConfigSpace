@@ -731,7 +731,11 @@ class ConfigurationTest(unittest.TestCase):
         pcs._check_configuration_rigorous(conf)
         self.assertRaises(KeyError, conf.__getitem__, 'x2')
 
-
+    def test_setting_illegal_value(self):
+        cs = ConfigurationSpace()
+        cs.add_hyperparameter(UniformFloatHyperparameter('x', 0, 1))
+        configuration = {'x': 2}
+        self.assertRaises(ValueError, Configuration, cs, configuration)
 
 
         
