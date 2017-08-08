@@ -1,3 +1,9 @@
+# Version 3.10
+* Fix issue #56. The writer for the new pcs format can now write correct
+  conjunctions of forbidden parameters.
+* The class `Configuration` now raises an exception if trying to instantiate it
+  with an illegal value for a hyperparameter
+
 # Version 3.9
 
 * Fix issue #53. Functionality for retrieving a one exchange neighborhood does
