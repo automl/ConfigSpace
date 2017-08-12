@@ -232,15 +232,15 @@ cdef class SingleValueForbiddenClause(AbstractForbiddenClause):
     # def is_forbidden(self, instantiated_hyperparameters: Dict[str, Union[None, str, float, int]], strict: bool=True) -> bool:
     cpdef is_forbidden(self, instantiated_hyperparameters, strict = True):
         # print("here1")
-        cdef char *self_name = self.hyperparameter.name
-        value = instantiated_hyperparameters.get(self_name)
+        # cdef char *self_name = self.hyperparameter.name
+        value = instantiated_hyperparameters.get(self.hyperparameter.name)
         # print("is_singval_fobidden:", value, instantiated_hyperparameters)
         if value is None:
             if strict:
                 raise ValueError("Is_forbidden must be called with the "
                                  "instanstatiated hyperparameter in the "
                                  "forbidden clause; you are missing "
-                                 "'%s'" % self_name)
+                                 "'%s'" % self.hyperparameter.name)
             else:
                 return False
 
