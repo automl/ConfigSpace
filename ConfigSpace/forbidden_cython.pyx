@@ -34,7 +34,6 @@ from abc import ABCMeta, abstractmethod
 import numpy as np
 cimport numpy as np
 import io.io as io
-# from libcpp cimport bool
 from ConfigSpace.hyperparameters import Hyperparameter
 from typing import List, Dict, Any, Union
 
@@ -55,38 +54,73 @@ cdef class AbstractForbiddenComponent(object):
     def __repr__(self):
         pass
 
+
     def __richcmp__(self, other: Any, int op):
-        """Override the default Equals behavior"""
-        # print("richcmp")
-        # print(self, other, op, self.hyperparameter.name)
+        """Override the default Equals behavior
+         There are no separate methods for the individual rich comparison operations (__eq__(), __le__(), etc.).
+          Instead there is a single method __richcmp__() which takes an integer indicating which operation is to be performed, as follows:
+         < 	0
+         == 2
+         > 	4
+         <=	1
+         !=	3
+         >=	5
+         """
+        if self.value is None:
+            self.value = self.values
+            other.value = other.values
+
+        # cdef char *self_name = self.hyperparameter.name
+        # cdef char *other_name = other.hyperparameter.name
+        #
+        # cdef bint same_name = (self_name == other_name)
+
         if isinstance(other, self.__class__):
-            # print("is instance of class")
             if op == 2:
-                if self.value is not None:
-                    # print(op, self.value == other.value
-                    #   and self.hyperparameter.name == other.hyperparameter.name)
-                    return (self.value == other.value
-                         and self.hyperparameter.name == other.hyperparameter.name)
-                else:
-                    return (self.values == other.values
+                return (self.value == other.value
                          and self.hyperparameter.name == other.hyperparameter.name)
 
-
-            # if op == 3:
-            #     return self.__dict__ != other.__dict__
             elif op == 3:
-                # print(op, hasattr(self, "value"))
-                if self.value is not None:
-                    # print("trying", other.value)
-                    return False == (self.value == other.value
-                         and self.hyperparameter.name == other.hyperparameter.name)
-                else:
-                    # print("else:", self.values)
-                    return False == (self.values == other.values
+                return False == (self.value == other.value
                          and self.hyperparameter.name == other.hyperparameter.name)
 
 
         return NotImplemented
+    #
+    # def __richcmp__(self, other: Any, int op):
+    #     """Override the default Equals behavior"""
+    #     #print("richcmp")
+    #     # print(self, other, op, self.hyperparameter.name)
+    #     if isinstance(other, self.__class__):
+    #         # print("is instance of class")
+    #         if op == 2:
+    #             if self.value is not None:
+    #                 # print(op, self.value == other.value
+    #                 #   and self.hyperparameter.name == other.hyperparameter.name)
+    #                 return (self.value == other.value
+    #                      and self.hyperparameter.name == other.hyperparameter.name)
+    #             else:
+    #                 return (self.values == other.values
+    #                      and self.hyperparameter.name == other.hyperparameter.name)
+    #
+    #
+    #         # if op == 3:
+    #         #     return self.__dict__ != other.__dict__
+    #         elif op == 3:
+    #             # print(op, hasattr(self, "value"))
+    #             if self.value is not None:
+    #                 # print("trying", other.value)
+    #                 return False == (self.value == other.value
+    #                      and self.hyperparameter.name == other.hyperparameter.name)
+    #             else:
+    #                 # print("else:", self.values)
+    #                 return False == (self.values == other.values
+    #                      and self.hyperparameter.name == other.hyperparameter.name)
+    #
+    #
+    #     return NotImplemented
+
+
     # http://stackoverflow.com/a/25176504/4636294
     # def __richcmp__2(self, AbstractForbiddenComponent other, int op):
     #     """Override the default Equals behavior
@@ -198,14 +232,15 @@ cdef class SingleValueForbiddenClause(AbstractForbiddenClause):
     # def is_forbidden(self, instantiated_hyperparameters: Dict[str, Union[None, str, float, int]], strict: bool=True) -> bool:
     cpdef is_forbidden(self, instantiated_hyperparameters, strict = True):
         # print("here1")
-        value = instantiated_hyperparameters.get(self.hyperparameter.name)
+        cdef char *self_name = self.hyperparameter.name
+        value = instantiated_hyperparameters.get(self_name)
         # print("is_singval_fobidden:", value, instantiated_hyperparameters)
         if value is None:
             if strict:
                 raise ValueError("Is_forbidden must be called with the "
                                  "instanstatiated hyperparameter in the "
                                  "forbidden clause; you are missing "
-                                 "'%s'" % self.hyperparameter.name)
+                                 "'%s'" % self_name)
             else:
                 return False
 

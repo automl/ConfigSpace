@@ -35,10 +35,10 @@ import numpy as np
 from ConfigSpace.hyperparameters import \
     UniformIntegerHyperparameter, CategoricalHyperparameter
 
-# from ConfigSpace.forbidden import ForbiddenEqualsClause, \
-#     ForbiddenInClause, ForbiddenAndConjunction
-from ConfigSpace.forbidden_cython import ForbiddenEqualsClause, \
-    ForbiddenInClause, ForbiddenAndConjunction, say_hello_to
+from ConfigSpace.forbidden import ForbiddenEqualsClause, \
+    ForbiddenInClause, ForbiddenAndConjunction
+# from ConfigSpace.forbidden_cython import ForbiddenEqualsClause, \
+#     ForbiddenInClause, ForbiddenAndConjunction, say_hello_to
 
 
 class TestForbidden(unittest.TestCase):

@@ -21,7 +21,7 @@ cs.add_forbidden_clause(ForbiddenEqualsClause(hp1, 5))
 
 times = []
 
-for i in range(30):
+for i in range(20):
     start_time = time.time()
     configs = cs.sample_configuration(500000)
     end_time = time.time()
