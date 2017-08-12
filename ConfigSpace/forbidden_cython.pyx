@@ -33,7 +33,7 @@ def say_hello_to(name):
 from abc import ABCMeta, abstractmethod
 import numpy as np
 import io.io as io
-
+# from libcpp cimport bool
 from ConfigSpace.hyperparameters import Hyperparameter
 from typing import List, Dict, Any, Union
 
@@ -55,7 +55,7 @@ cdef class AbstractForbiddenComponent(object):
         pass
 
     # http://stackoverflow.com/a/25176504/4636294
-    def __richcmp__(self, other: Any, int op):
+    def __richcmp__(self, AbstractForbiddenComponent other, int op):
         """Override the default Equals behavior
 
         There are no separate methods for the individual rich comparison operations (__eq__(), __le__(), etc.).
@@ -67,6 +67,24 @@ cdef class AbstractForbiddenComponent(object):
         != 	3
         >= 	5
         """
+        cdef int numberOfvals
+        if self.value is not None:
+            numberOfvals = 1
+        else:
+            numberOfvals = len(self.values)
+        cdef float selfVal
+        cdef float otherVal
+
+        cdef char* selfName = self.hyperparameter.name
+        cdef char* otherName = other.hyperparameter.name
+
+        if self.value is not None:
+            selfVal = self.value
+            otherVal = other.value
+        else:
+            selfVal = self.values
+            otherVal = other.values
+
         if isinstance(other, self.__class__):
             if op == 2: # "=="
                 if self.value is not None:
@@ -330,6 +348,7 @@ cdef class AbstractForbiddenConjunction(AbstractForbiddenComponent):
             e = component.is_forbidden(instantiated_hyperparameters,
                                        strict=strict)
             evaluations.append(e)
+        print("hello:", evaluations)
         return self._is_forbidden(evaluations)
 
     # cpdef is_forbidden_vector(self, instantiated_vector: np.ndarray, strict: bool = True) -> bool:
@@ -356,7 +375,7 @@ cdef class AbstractForbiddenConjunction(AbstractForbiddenComponent):
         return self._is_forbidden(evaluations)
 
  #   @abstractmethod
-    cpdef _is_forbidden(self, evaluations):
+    cpdef _is_forbidden(self, char evaluations):
         pass
 
 
@@ -372,9 +391,12 @@ cdef class ForbiddenAndConjunction(AbstractForbiddenConjunction):
         return retval.getvalue()
 
     # cpdef _is_forbidden(self, evaluations: List[bool]) -> bool:
-    cpdef _is_forbidden(self, evaluations: List[bool]):
+    cpdef _is_forbidden(self,  char evaluations):
         # Return False if one of the components evaluates to False
-        for evaluation in evaluations:
-            if not evaluation:
-                return False
+        # for evaluation in evaluations:
+        #     if not evaluation:
+        #         return False
+        print("hello")
+        # for i in range(evaluations):
+        #     print("eval ", evaluations)
         return True

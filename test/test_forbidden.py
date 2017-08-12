@@ -43,12 +43,13 @@ from ConfigSpace.forbidden_cython import ForbiddenEqualsClause, \
 
 class TestForbidden(unittest.TestCase):
     # TODO: return only copies of the objects!
-    def test_forbidden_cython(self):
-        say_hello_to("world")
+    # def test_forbidden_cython(self):
+    #     say_hello_to("world")
 
     def test_forbidden_equals_clause(self):
         hp1 = CategoricalHyperparameter("parent", [0, 1])
         hp2 = UniformIntegerHyperparameter("child", 0, 10)
+        hp3 = CategoricalHyperparameter("grandchild", ["hot", "cold"])
 
         self.assertRaisesRegexp(TypeError, "Argument 'hyperparameter' is not of"
             " type <class 'ConfigSpace.hyperparameters.Hyperparameter'>.",
@@ -65,7 +66,10 @@ class TestForbidden(unittest.TestCase):
         forb1_ = ForbiddenEqualsClause(hp1, 1)
         forb1__ = ForbiddenEqualsClause(hp1, 0)
         forb2 = ForbiddenEqualsClause(hp2, 10)
+        forb3 = ForbiddenEqualsClause(hp3, "hot")
+        forb3_ = ForbiddenEqualsClause(hp3, "hot")
 
+        self.assertEqual(forb3, forb3_)
         # print("\eq0:", 1, 1)
         # self.assertEqual(1, 1)
         print("\neq1:", forb1, forb1_)
@@ -108,9 +112,10 @@ class TestForbidden(unittest.TestCase):
 
 
     def test_in_condition(self):
-        hp1 = CategoricalHyperparameter("parent", [0, 1])
+        hp1 = CategoricalHyperparameter("parent", [0, 1, 2, 3, 4])
         hp2 = UniformIntegerHyperparameter("child", 0, 10)
         hp3 = UniformIntegerHyperparameter("child2", 0, 10)
+        hp4 = CategoricalHyperparameter("grandchild", ["hot", "cold", "warm"])
 
         self.assertRaisesRegexp(TypeError, "Argument 'hyperparameter' is not of"
                                 " type <class 'ConfigSpace.hyperparameters.Hyperparameter'>.",
@@ -119,14 +124,21 @@ class TestForbidden(unittest.TestCase):
         self.assertRaisesRegexp(ValueError,
                                 "Forbidden clause must be instantiated with a "
                                 "legal hyperparameter value for "
-                                "'parent, Type: Categorical, Choices: {0, 1}, "
-                                "Default: 0', but got '2'",
-                                ForbiddenInClause, hp1, [2])
+                                "'parent, Type: Categorical, Choices: {0, 1, 2, 3, 4}, "
+                                "Default: 0', but got '5'",
+                                ForbiddenInClause, hp1, [5])
 
         forb1 = ForbiddenInClause(hp2, [5, 6, 7, 8, 9])
         forb1_ = ForbiddenInClause(hp2, [9, 8, 7, 6, 5])
         forb2 = ForbiddenInClause(hp2, [5, 6, 7, 8])
         forb3 = ForbiddenInClause(hp3, [5, 6, 7, 8, 9])
+        forb4 = ForbiddenInClause(hp4, ["hot", "cold"])
+        forb4_ = ForbiddenInClause(hp4, ["hot", "cold"])
+        forb5 = ForbiddenInClause(hp1, [3, 4])
+        forb5_ = ForbiddenInClause(hp1, [3, 4])
+
+        self.assertEqual(forb5, forb5_)
+        self.assertEqual(forb4, forb4_)
 
         print("\nTest1:")
         self.assertEqual(forb1, forb1_)
