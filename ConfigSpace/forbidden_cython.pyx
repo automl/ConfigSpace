@@ -32,6 +32,7 @@ def say_hello_to(name):
 
 from abc import ABCMeta, abstractmethod
 import numpy as np
+cimport numpy as np
 import io.io as io
 # from libcpp cimport bool
 from ConfigSpace.hyperparameters import Hyperparameter
@@ -54,60 +55,92 @@ cdef class AbstractForbiddenComponent(object):
     def __repr__(self):
         pass
 
-    # http://stackoverflow.com/a/25176504/4636294
-    def __richcmp__(self, AbstractForbiddenComponent other, int op):
-        """Override the default Equals behavior
-
-        There are no separate methods for the individual rich comparison operations (__eq__(), __le__(), etc.).
-         Instead there is a single method __richcmp__() which takes an integer indicating which operation is to be performed, as follows:
-        < 	0
-        == 	2
-        > 	4
-        <= 	1
-        != 	3
-        >= 	5
-        """
-        cdef int numberOfvals
-        if self.value is not None:
-            numberOfvals = 1
-        else:
-            numberOfvals = len(self.values)
-        cdef float selfVal
-        cdef float otherVal
-
-        cdef char* selfName = self.hyperparameter.name
-        cdef char* otherName = other.hyperparameter.name
-
-        if self.value is not None:
-            selfVal = self.value
-            otherVal = other.value
-        else:
-            selfVal = self.values
-            otherVal = other.values
-
+    def __richcmp__(self, other: Any, int op):
+        """Override the default Equals behavior"""
+        # print("richcmp")
+        # print(self, other, op, self.hyperparameter.name)
         if isinstance(other, self.__class__):
-            if op == 2: # "=="
+            # print("is instance of class")
+            if op == 2:
                 if self.value is not None:
-                    # some hyperparam types have their "value" and some have "values"
-                    # for some reason hasattr(self, "value") is not working
-
-                    # todo: chk if all methods and variables of hyperparameter variable should be checked for equality. right now only two vars are checked for variables.
+                    # print(op, self.value == other.value
+                    #   and self.hyperparameter.name == other.hyperparameter.name)
                     return (self.value == other.value
                          and self.hyperparameter.name == other.hyperparameter.name)
                 else:
                     return (self.values == other.values
                          and self.hyperparameter.name == other.hyperparameter.name)
 
-            elif op == 3: # "!="
+
+            # if op == 3:
+            #     return self.__dict__ != other.__dict__
+            elif op == 3:
+                # print(op, hasattr(self, "value"))
                 if self.value is not None:
+                    # print("trying", other.value)
                     return False == (self.value == other.value
                          and self.hyperparameter.name == other.hyperparameter.name)
                 else:
+                    # print("else:", self.values)
                     return False == (self.values == other.values
                          and self.hyperparameter.name == other.hyperparameter.name)
 
 
         return NotImplemented
+    # http://stackoverflow.com/a/25176504/4636294
+    # def __richcmp__2(self, AbstractForbiddenComponent other, int op):
+    #     """Override the default Equals behavior
+    #
+    #     There are no separate methods for the individual rich comparison operations (__eq__(), __le__(), etc.).
+    #      Instead there is a single method __richcmp__() which takes an integer indicating which operation is to be performed, as follows:
+    #     < 	0
+    #     == 	2
+    #     > 	4
+    #     <= 	1
+    #     != 	3
+    #     >= 	5
+    #     """
+    #     cdef int numberOfvals
+    #     if self.value is not None:
+    #         numberOfvals = 1
+    #     else:
+    #         numberOfvals = len(self.values)
+    #     cdef float selfVal
+    #     cdef float otherVal
+    #
+    #     cdef char* selfName = self.hyperparameter.name
+    #     cdef char* otherName = other.hyperparameter.name
+    #
+    #     if self.value is not None:
+    #         selfVal = self.value
+    #         otherVal = other.value
+    #     else:
+    #         selfVal = self.values
+    #         otherVal = other.values
+    #
+    #     if isinstance(other, self.__class__):
+    #         if op == 2: # "=="
+    #             if self.value is not None:
+    #                 # some hyperparam types have their "value" and some have "values"
+    #                 # for some reason hasattr(self, "value") is not working
+    #
+    #                 # todo: chk if all methods and variables of hyperparameter variable should be checked for equality. right now only two vars are checked for variables.
+    #                 return (self.value == other.value
+    #                      and self.hyperparameter.name == other.hyperparameter.name)
+    #             else:
+    #                 return (self.values == other.values
+    #                      and self.hyperparameter.name == other.hyperparameter.name)
+    #
+    #         elif op == 3: # "!="
+    #             if self.value is not None:
+    #                 return False == (self.value == other.value
+    #                      and self.hyperparameter.name == other.hyperparameter.name)
+    #             else:
+    #                 return False == (self.values == other.values
+    #                      and self.hyperparameter.name == other.hyperparameter.name)
+    #
+    #
+    #     return NotImplemented
 
     def __hash__(self) -> int:
         """Override the default hash behavior (that returns the id or the object)"""
@@ -343,13 +376,18 @@ cdef class AbstractForbiddenConjunction(AbstractForbiddenComponent):
 
         # Finally, call is_forbidden for all direct descendents and combine the
         # outcomes
-        evaluations = []
+        # evaluations = []
+        cdef np.ndarray np_evaluations = np.zeros(len(self.components), dtype=bool)
+        np_index = 0
         for component in self.components:
             e = component.is_forbidden(instantiated_hyperparameters,
                                        strict=strict)
-            evaluations.append(e)
-        print("hello:", evaluations)
-        return self._is_forbidden(evaluations)
+            np_evaluations[np_index] = e
+            np_index += 1
+            # evaluations.append(e)
+        # print("hello:", evaluations)
+        # return self._is_forbidden(evaluations)
+        return self._is_forbidden(np_evaluations)
 
     # cpdef is_forbidden_vector(self, instantiated_vector: np.ndarray, strict: bool = True) -> bool:
     def is_forbidden_vector(self, instantiated_vector: np.ndarray, strict: bool = True):
@@ -369,13 +407,29 @@ cdef class AbstractForbiddenConjunction(AbstractForbiddenComponent):
         # outcomes. Check only as many forbidden clauses as the actual
         # evaluation function queries for (e.g. and conditions are False
         # if only one of the components evaluates to False).
-        evaluations = (component.is_forbidden_vector(instantiated_vector,
-                                              strict=strict)
-                       for component in self.components)
-        return self._is_forbidden(evaluations)
+
+        # evaluations = (component.is_forbidden_vector(instantiated_vector,
+        #                                       strict=strict)
+        #                for component in self.components)
+
+        ###########################
+
+        cdef np.ndarray np_evaluations = np.zeros(len(self.components), dtype=bool)
+        np_index = 0
+        for component in self.components:
+            e = component.is_forbidden_vector(instantiated_vector,
+                                       strict=strict)
+            np_evaluations[np_index] = e
+            np_index += 1
+
+
+        ###########################
+
+        return self._is_forbidden(np_evaluations)
+        # return self._is_forbidden(evaluations)
 
  #   @abstractmethod
-    cpdef _is_forbidden(self, char evaluations):
+    cpdef _is_forbidden(self, np.ndarray evaluations):
         pass
 
 
@@ -391,12 +445,17 @@ cdef class ForbiddenAndConjunction(AbstractForbiddenConjunction):
         return retval.getvalue()
 
     # cpdef _is_forbidden(self, evaluations: List[bool]) -> bool:
-    cpdef _is_forbidden(self,  char evaluations):
+    cpdef _is_forbidden(self, np.ndarray evaluations):
         # Return False if one of the components evaluates to False
+
         # for evaluation in evaluations:
         #     if not evaluation:
         #         return False
-        print("hello")
-        # for i in range(evaluations):
-        #     print("eval ", evaluations)
-        return True
+
+        if np.all(evaluations):
+            return True
+        return False
+        #
+        # if np.sum(evaluations) != np.size(evaluations):
+        #     return False
+        # return True

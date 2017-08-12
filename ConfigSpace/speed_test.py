@@ -21,13 +21,13 @@ cs.add_forbidden_clause(ForbiddenEqualsClause(hp1, 5))
 
 times = []
 
-for i in range(10):
+for i in range(30):
     start_time = time.time()
     configs = cs.sample_configuration(500000)
     end_time = time.time()
     times.append(end_time - start_time)
-
-print('Sampling 500 configurations took on average:', np.mean(times))
+print("all times:", times)
+print('Sampling 500000 configurations took on average:', np.mean(times))
 
 times = []
 for config in configs[:100]:
