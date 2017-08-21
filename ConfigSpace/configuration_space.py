@@ -457,7 +457,8 @@ class ConfigurationSpace(object):
 
         forbiddens_to_add = []
         for forbidden_clause in configuration_space.forbidden_clauses:
-            new_forbidden = copy.deepcopy(forbidden_clause)
+            # new_forbidden = copy.deepcopy(forbidden_clause)
+            new_forbidden = forbidden_clause
             dlcs = new_forbidden.get_descendant_literal_clauses()
             for dlc in dlcs:
                 if dlc.hyperparameter.name == prefix or \
