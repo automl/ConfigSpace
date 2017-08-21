@@ -31,7 +31,7 @@ def say_hello_to(name):
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import numpy as np
-cimport numpy as np
+# cimport numpy as np
 import io.io as io
 from ConfigSpace.hyperparameters import Hyperparameter
 from typing import List, Dict, Any, Union
@@ -411,7 +411,8 @@ cdef class AbstractForbiddenConjunction(AbstractForbiddenComponent):
         # Finally, call is_forbidden for all direct descendents and combine the
         # outcomes
         # evaluations = []
-        cdef np.ndarray np_evaluations = np.zeros(len(self.components), dtype=bool)
+        # cdef np.ndarray
+        np_evaluations = np.zeros(len(self.components), dtype=bool)
         np_index = 0
         for component in self.components:
             e = component.is_forbidden(instantiated_hyperparameters,
@@ -448,7 +449,8 @@ cdef class AbstractForbiddenConjunction(AbstractForbiddenComponent):
 
         ###########################
 
-        cdef np.ndarray np_evaluations = np.zeros(len(self.components), dtype=bool)
+        # cdef np.ndarray
+        np_evaluations = np.zeros(len(self.components), dtype=bool)
         np_index = 0
         for component in self.components:
             e = component.is_forbidden_vector(instantiated_vector,
@@ -463,7 +465,8 @@ cdef class AbstractForbiddenConjunction(AbstractForbiddenComponent):
         # return self._is_forbidden(evaluations)
 
  #   @abstractmethod
-    cpdef _is_forbidden(self, np.ndarray evaluations):
+    cpdef _is_forbidden(self,  evaluations):
+    # cpdef _is_forbidden(self, np.ndarray evaluations):
         pass
 
 
@@ -479,7 +482,8 @@ cdef class ForbiddenAndConjunction(AbstractForbiddenConjunction):
         return retval.getvalue()
 
     # cpdef _is_forbidden(self, evaluations: List[bool]) -> bool:
-    cpdef _is_forbidden(self, np.ndarray evaluations):
+    cpdef _is_forbidden(self, evaluations):
+    # cpdef _is_forbidden(self, np.ndarray evaluations):
         # Return False if one of the components evaluates to False
 
         # for evaluation in evaluations:
