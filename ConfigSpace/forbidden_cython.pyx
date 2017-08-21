@@ -410,7 +410,7 @@ cdef class AbstractForbiddenConjunction(AbstractForbiddenComponent):
 
         # Finally, call is_forbidden for all direct descendents and combine the
         # outcomes
-        # evaluations = []
+        # evaluations  []
         cdef np.ndarray np_evaluations = np.zeros(len(self.components), dtype=bool)
         np_index = 0
         for component in self.components:
@@ -448,8 +448,7 @@ cdef class AbstractForbiddenConjunction(AbstractForbiddenComponent):
 
         ###########################
 
-        # cdef np.ndarray
-        np_evaluations = np.zeros(len(self.components), dtype=bool)
+        cdef np.ndarray np_evaluations = np.zeros(len(self.components), dtype=bool)
         np_index = 0
         for component in self.components:
             e = component.is_forbidden_vector(instantiated_vector,
