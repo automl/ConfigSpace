@@ -30,7 +30,6 @@ def say_hello_to(name):
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from abc import ABCMeta, abstractmethod
 import numpy as np
 cimport numpy as np
 import io.io as io
