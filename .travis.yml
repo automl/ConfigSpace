@@ -30,6 +30,7 @@ install:
   - pip install nose
   - pip install codecov
   - pip install typing
+  - pip install cython
   - python setup.py install
 
 # command to run tests, e.g. python setup.py test
