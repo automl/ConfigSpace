@@ -70,29 +70,29 @@ class TestForbidden(unittest.TestCase):
         self.assertEqual(forb3, forb3_)
         # print("\eq0:", 1, 1)
         # self.assertEqual(1, 1)
-        print("\neq1:", forb1, forb1_)
+        # print("\neq1:", forb1, forb1_)
         self.assertEqual(forb1, forb1_)
-        print("\nneq2:", forb1, "forb1")
+        # print("\nneq2:", forb1, "forb1")
         self.assertNotEqual(forb1, "forb1")
-        print("\nneq3:", forb1, forb2)
+        # print("\nneq3:", forb1, forb2)
         self.assertNotEqual(forb1, forb2)
-        print("\nneq4:", forb1_, forb1)
+        # print("\nneq4:", forb1_, forb1)
         self.assertNotEqual(forb1__, forb1)
-        print("\neq5:", "Forbidden: parent == 1", str(forb1))
+        # print("\neq5:", "Forbidden: parent == 1", str(forb1))
         self.assertEqual("Forbidden: parent == 1", str(forb1))
 
-        print("\nraisereg6:")
+        # print("\nraisereg6:")
         self.assertRaisesRegexp(ValueError,
                                 "Is_forbidden must be called with the "
                                 "instanstatiated hyperparameter in the "
                                 "forbidden clause; you are missing "
                                 "'parent'", forb1.is_forbidden,
                                 {1: hp2})
-        print("\nneq7:")
+        # print("\nneq7:")
         self.assertFalse(forb1.is_forbidden({'child': 1}, strict=False))
-        print("\nneq8:")
+        # print("\nneq8:")
         self.assertFalse(forb1.is_forbidden({'parent': 0}))
-        print("\nneq9:")
+        # print("\nneq9:")
         self.assertTrue(forb1.is_forbidden({'parent': 1}))
 
         # Test forbidden on vector values
@@ -101,11 +101,11 @@ class TestForbidden(unittest.TestCase):
             hp2.name: 1
         }
         forb1.set_vector_idx(hyperparameter_idx)
-        print("\nneq10:")
+        # print("\nneq10:")
         self.assertFalse(forb1.is_forbidden_vector([np.NaN, np.NaN], strict=False))
-        print("\nneq11:")
+        # print("\nneq11:")
         self.assertFalse(forb1.is_forbidden_vector([0., np.NaN]))
-        print("\nneq12:")
+        # print("\nneq12:")
         self.assertTrue(forb1.is_forbidden_vector([1., np.NaN]))
 
 
@@ -138,27 +138,27 @@ class TestForbidden(unittest.TestCase):
         self.assertEqual(forb5, forb5_)
         self.assertEqual(forb4, forb4_)
 
-        print("\nTest1:")
+        # print("\nTest1:")
         self.assertEqual(forb1, forb1_)
-        print("\nTest2:")
+        # print("\nTest2:")
         self.assertNotEqual(forb1, forb2)
-        print("\nTest3:")
+        # print("\nTest3:")
         self.assertNotEqual(forb1, forb3)
-        print("\nTest4:")
+        # print("\nTest4:")
         self.assertEqual("Forbidden: child in {5, 6, 7, 8, 9}", str(forb1))
-        print("\nTest5:")
+        # print("\nTest5:")
         self.assertRaisesRegexp(ValueError,
                                 "Is_forbidden must be called with the "
                                 "instanstatiated hyperparameter in the "
                                 "forbidden clause; you are missing "
                                 "'child'", forb1.is_forbidden,
                                 {'parent': 1})
-        print("\nTest6:")
+        # print("\nTest6:")
         self.assertFalse(forb1.is_forbidden({'parent': 1}, strict=False))
-        print("\nTest7:")
+        # print("\nTest7:")
         for i in range(0, 5):
             self.assertFalse(forb1.is_forbidden({'child': i}))
-        print("\nTest8:")
+        # print("\nTest8:")
         for i in range(5, 10):
             self.assertTrue(forb1.is_forbidden({'child': i}))
 
@@ -168,14 +168,14 @@ class TestForbidden(unittest.TestCase):
             hp2.name: 1
         }
         forb1.set_vector_idx(hyperparameter_idx)
-        print("\nTest9:")
+        # print("\nTest9:")
         self.assertFalse(forb1.is_forbidden_vector([np.NaN, np.NaN], strict=False))
-        print("\nTest10:")
+        # print("\nTest10:")
         self.assertFalse(forb1.is_forbidden_vector([np.NaN, 0]))
         correct_vector_value = hp2._inverse_transform(6)
-        print("\nTest11:")
+        # print("\nTest11:")
         self.assertTrue(forb1.is_forbidden_vector([np.NaN, correct_vector_value]))
-        print("\nfinished:")
+        # print("\nfinished:")
 
     def test_and_conjunction(self):
         hp1 = CategoricalHyperparameter("parent", [0, 1])
