@@ -14,9 +14,9 @@ keywords = 'algorithm configuration hyperparameter optimization empirical ' \
            'evaluation black box'
 
 extensions = cythonize(
-    [Extension('forbidden_cython',
+    [Extension('ConfigSpace.forbidden_cython',
                sources=['ConfigSpace/forbidden_cython.pyx'],
-               language='c',
+               # language='c',
                include_dirs=[np.get_include()])
      ])
 
