@@ -1,5 +1,8 @@
 from setuptools import setup, find_packages
+from setuptools.extension import Extension
 import os
+from Cython.Build import cythonize
+import numpy as np
 
 # Read http://peterdowns.com/posts/first-time-with-pypi.html to figure out how
 # to publish the package on PyPI
@@ -10,6 +13,12 @@ desc = 'Creation and manipulation of parameter configuration spaces for ' \
 keywords = 'algorithm configuration hyperparameter optimization empirical ' \
            'evaluation black box'
 
+extensions = cythonize(
+    [Extension('ConfigSpace.forbidden_cython',
+               sources=['ConfigSpace/forbidden_cython.pyx'],
+               # language='c',
+               include_dirs=[np.get_include()])
+     ])
 
 def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
@@ -24,6 +33,7 @@ setup(
     version=version,
     url='https://github.com/automl/ConfigSpace',
     description=desc,
+    ext_modules=extensions,
     long_description=read("README.rst"),
     license='BSD 3-clause',
     platforms=['Linux'],

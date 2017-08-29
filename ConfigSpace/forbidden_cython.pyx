@@ -30,7 +30,6 @@ def say_hello_to(name):
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from abc import ABCMeta, abstractmethod
 import numpy as np
 cimport numpy as np
 import io.io as io
@@ -411,7 +410,7 @@ cdef class AbstractForbiddenConjunction(AbstractForbiddenComponent):
 
         # Finally, call is_forbidden for all direct descendents and combine the
         # outcomes
-        # evaluations = []
+        # evaluations  []
         cdef np.ndarray np_evaluations = np.zeros(len(self.components), dtype=bool)
         np_index = 0
         for component in self.components:
