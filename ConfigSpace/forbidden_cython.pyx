@@ -36,13 +36,16 @@ import io.io as io
 from ConfigSpace.hyperparameters import Hyperparameter
 from typing import List, Dict, Any, Union
 
+ctypedef np.int_t DTYPE_t
+
+
 cdef class AbstractForbiddenComponent(object):
     # __metaclass__ = ABCMeta
 
     cdef public hyperparameter # type: Hyperparameter
     cdef public vector_id
     cdef public value
-    cdef public vector_value
+    cdef public float vector_value
     cdef dict __dict__
 
  #   @abstractmethod
@@ -246,8 +249,8 @@ cdef class SingleValueForbiddenClause(AbstractForbiddenClause):
         return self._is_forbidden(value)
 
     # def is_forbidden_vector(self, instantiated_vector: np.ndarray, strict: bool = True) -> bool:
-    def is_forbidden_vector(self, instantiated_vector, strict = True):
-        value = instantiated_vector[self.vector_id]
+    cpdef is_forbidden_vector(self, np.ndarray instantiated_vector, strict = True):
+        cdef float value = instantiated_vector[self.vector_id]
         if value != value:
             if strict:
                 raise ValueError("Is_forbidden must be called with the "
@@ -260,7 +263,7 @@ cdef class SingleValueForbiddenClause(AbstractForbiddenClause):
         return self._is_forbidden_vector(value)
 
     # @abstractmethod
-    cpdef _is_forbidden(self, target_instantiated_hyperparameter):
+    cdef _is_forbidden(self, target_instantiated_hyperparameter):
         # print("heeer")
         pass
 
@@ -299,7 +302,7 @@ cdef class MultipleValueForbiddenClause(AbstractForbiddenClause):
         return self._is_forbidden(value)
 
     # def is_forbidden_vector(self, instantiated_vector: np.ndarray, strict: bool = True) -> bool:
-    def is_forbidden_vector(self, instantiated_vector, strict=True):
+    cpdef is_forbidden_vector(self, np.ndarray instantiated_vector, strict=True):
         value = instantiated_vector[self.vector_id]
 
         if value is np.NaN:
@@ -315,7 +318,7 @@ cdef class MultipleValueForbiddenClause(AbstractForbiddenClause):
 
  #   @abstractmethod
  #    def _is_forbidden(self, target_instantiated_hyperparameter) -> bool:
-    cpdef _is_forbidden(self, target_instantiated_hyperparameter):
+    cdef _is_forbidden(self, target_instantiated_hyperparameter):
         pass
 
  #   @abstractmethod
@@ -331,11 +334,11 @@ cdef class ForbiddenEqualsClause(SingleValueForbiddenClause):
                                         repr(self.value))
 
     # cdef _is_forbidden(self, value: Any) -> bool:
-    cpdef _is_forbidden(self, value: Any):
+    cdef _is_forbidden(self, value: Any):
         return value == self.value
 
     # cdef bool _is_forbidden_vector(self, value: Any) -> bool:
-    def _is_forbidden_vector(self, value: Any):
+    cdef bint _is_forbidden_vector(self, float value):
         return value == self.vector_value
 
 
@@ -352,10 +355,10 @@ cdef class ForbiddenInClause(MultipleValueForbiddenClause):
                              for value in sorted(self.values))) + "}")
 
     # cdef _is_forbidden(self, value: Any) -> bool:
-    cpdef _is_forbidden(self, value):
+    cdef _is_forbidden(self, value):
         return value in self.values
 
-    def _is_forbidden_vector(self, value):
+    cdef bint _is_forbidden_vector(self, double value):
         return value in self.vector_values
 
 
@@ -423,8 +426,8 @@ cdef class AbstractForbiddenConjunction(AbstractForbiddenComponent):
         # return self._is_forbidden(evaluations)
         return self._is_forbidden(np_evaluations)
 
-    # cpdef is_forbidden_vector(self, instantiated_vector: np.ndarray, strict: bool = True) -> bool:
-    def is_forbidden_vector(self, instantiated_vector: np.ndarray, strict: bool = True):
+    # cpdef is_forbidden_vector(self, instantiated_vector: np.ndarray, bool strict) -> bool:
+    cpdef is_forbidden_vector(self, np.ndarray instantiated_vector, strict: bool = True):
         dlcs = self.get_descendant_literal_clauses()
         for dlc in dlcs:
             if dlc.vector_id not in range(len(instantiated_vector)):
@@ -463,7 +466,7 @@ cdef class AbstractForbiddenConjunction(AbstractForbiddenComponent):
         # return self._is_forbidden(evaluations)
 
  #   @abstractmethod
-    cpdef _is_forbidden(self, np.ndarray evaluations):
+    cdef _is_forbidden(self, np.ndarray evaluations):
         pass
 
 
@@ -478,18 +481,12 @@ cdef class ForbiddenAndConjunction(AbstractForbiddenConjunction):
         retval.write(")")
         return retval.getvalue()
 
-    # cpdef _is_forbidden(self, evaluations: List[bool]) -> bool:
-    cpdef _is_forbidden(self, np.ndarray evaluations):
+    cdef _is_forbidden(self, np.ndarray evaluations):
         # Return False if one of the components evaluates to False
 
-        # for evaluation in evaluations:
-        #     if not evaluation:
-        #         return False
+        cdef int I = evaluations.shape[0]
 
-        if np.all(evaluations):
-            return True
-        return False
-        #
-        # if np.sum(evaluations) != np.size(evaluations):
-        #     return False
-        # return True
+        for i in range(I):
+            if evaluations[i] == False:
+                return False
+        return True
