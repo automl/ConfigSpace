@@ -72,11 +72,6 @@ cdef class AbstractForbiddenComponent(object):
             self.value = self.values
             other.value = other.values
 
-        # cdef char *self_name = self.hyperparameter.name
-        # cdef char *other_name = other.hyperparameter.name
-        #
-        # cdef bint same_name = (self_name == other_name)
-
         if isinstance(other, self.__class__):
             if op == 2:
                 return (self.value == other.value
@@ -88,118 +83,21 @@ cdef class AbstractForbiddenComponent(object):
 
 
         return NotImplemented
-    #
-    # def __richcmp__(self, other: Any, int op):
-    #     """Override the default Equals behavior"""
-    #     #print("richcmp")
-    #     # print(self, other, op, self.hyperparameter.name)
-    #     if isinstance(other, self.__class__):
-    #         # print("is instance of class")
-    #         if op == 2:
-    #             if self.value is not None:
-    #                 # print(op, self.value == other.value
-    #                 #   and self.hyperparameter.name == other.hyperparameter.name)
-    #                 return (self.value == other.value
-    #                      and self.hyperparameter.name == other.hyperparameter.name)
-    #             else:
-    #                 return (self.values == other.values
-    #                      and self.hyperparameter.name == other.hyperparameter.name)
-    #
-    #
-    #         # if op == 3:
-    #         #     return self.__dict__ != other.__dict__
-    #         elif op == 3:
-    #             # print(op, hasattr(self, "value"))
-    #             if self.value is not None:
-    #                 # print("trying", other.value)
-    #                 return False == (self.value == other.value
-    #                      and self.hyperparameter.name == other.hyperparameter.name)
-    #             else:
-    #                 # print("else:", self.values)
-    #                 return False == (self.values == other.values
-    #                      and self.hyperparameter.name == other.hyperparameter.name)
-    #
-    #
-    #     return NotImplemented
-
-
-    # http://stackoverflow.com/a/25176504/4636294
-    # def __richcmp__2(self, AbstractForbiddenComponent other, int op):
-    #     """Override the default Equals behavior
-    #
-    #     There are no separate methods for the individual rich comparison operations (__eq__(), __le__(), etc.).
-    #      Instead there is a single method __richcmp__() which takes an integer indicating which operation is to be performed, as follows:
-    #     < 	0
-    #     == 	2
-    #     > 	4
-    #     <= 	1
-    #     != 	3
-    #     >= 	5
-    #     """
-    #     cdef int numberOfvals
-    #     if self.value is not None:
-    #         numberOfvals = 1
-    #     else:
-    #         numberOfvals = len(self.values)
-    #     cdef float selfVal
-    #     cdef float otherVal
-    #
-    #     cdef char* selfName = self.hyperparameter.name
-    #     cdef char* otherName = other.hyperparameter.name
-    #
-    #     if self.value is not None:
-    #         selfVal = self.value
-    #         otherVal = other.value
-    #     else:
-    #         selfVal = self.values
-    #         otherVal = other.values
-    #
-    #     if isinstance(other, self.__class__):
-    #         if op == 2: # "=="
-    #             if self.value is not None:
-    #                 # some hyperparam types have their "value" and some have "values"
-    #                 # for some reason hasattr(self, "value") is not working
-    #
-    #                 # todo: chk if all methods and variables of hyperparameter variable should be checked for equality. right now only two vars are checked for variables.
-    #                 return (self.value == other.value
-    #                      and self.hyperparameter.name == other.hyperparameter.name)
-    #             else:
-    #                 return (self.values == other.values
-    #                      and self.hyperparameter.name == other.hyperparameter.name)
-    #
-    #         elif op == 3: # "!="
-    #             if self.value is not None:
-    #                 return False == (self.value == other.value
-    #                      and self.hyperparameter.name == other.hyperparameter.name)
-    #             else:
-    #                 return False == (self.values == other.values
-    #                      and self.hyperparameter.name == other.hyperparameter.name)
-    #
-    #
-    #     return NotImplemented
 
     def __hash__(self) -> int:
         """Override the default hash behavior (that returns the id or the object)"""
         return hash(tuple(sorted(self.__dict__.items())))
 
- #   @abstractmethod
     cpdef get_descendant_literal_clauses(self):
         pass
 
- #   @abstractmethod
     cpdef set_vector_idx(self, hyperparameter_to_idx):
         pass
 
- #   @abstractmethod
- #    def is_forbidden(self, instantiated_hyperparameters, strict) -> bool:
     cpdef is_forbidden(self, instantiated_hyperparameters, strict=True):
-        # print("in abs is_forbidden")
         pass
 
- #   @abstractmethod
- #    def is_forbidden_vector(self, instantiated_hyperparameters, strict) -> bool:
     def is_forbidden_vector(self, instantiated_hyperparameters, strict=True):
-        # print("in abs _is_forbidden")
         pass
 
 
@@ -212,11 +110,9 @@ cdef class AbstractForbiddenClause(AbstractForbiddenComponent):
         self.hyperparameter = hyperparameter
         self.vector_id = None
 
-    # def get_descendant_literal_clauses(self) -> List[AbstractForbiddenComponent]:
     cpdef get_descendant_literal_clauses(self):
         return [self]
 
-    # def set_vector_idx(self, hyperparameter_to_idx: dict):
     cpdef set_vector_idx(self, hyperparameter_to_idx):
         self.vector_id = hyperparameter_to_idx[self.hyperparameter.name]
 
@@ -231,12 +127,8 @@ cdef class SingleValueForbiddenClause(AbstractForbiddenClause):
         self.value = value
         self.vector_value = self.hyperparameter._inverse_transform(self.value)
 
-    # def is_forbidden(self, instantiated_hyperparameters: Dict[str, Union[None, str, float, int]], strict: bool=True) -> bool:
     cpdef is_forbidden(self, instantiated_hyperparameters, strict = True):
-        # print("here1")
-        # cdef char *self_name = self.hyperparameter.name
         value = instantiated_hyperparameters.get(self.hyperparameter.name)
-        # print("is_singval_fobidden:", value, instantiated_hyperparameters)
         if value is None:
             if strict:
                 raise ValueError("Is_forbidden must be called with the "
@@ -248,9 +140,8 @@ cdef class SingleValueForbiddenClause(AbstractForbiddenClause):
 
         return self._is_forbidden(value)
 
-    # def is_forbidden_vector(self, instantiated_vector: np.ndarray, strict: bool = True) -> bool:
-    cpdef is_forbidden_vector(self, np.ndarray instantiated_vector, strict = True):
-        cdef float value = instantiated_vector[self.vector_id]
+    def is_forbidden_vector(self, instantiated_vector, strict = True):
+        value = instantiated_vector[self.vector_id]
         if value != value:
             if strict:
                 raise ValueError("Is_forbidden must be called with the "
@@ -262,14 +153,10 @@ cdef class SingleValueForbiddenClause(AbstractForbiddenClause):
 
         return self._is_forbidden_vector(value)
 
-    # @abstractmethod
-    cdef _is_forbidden(self, target_instantiated_hyperparameter):
-        # print("heeer")
+    cpdef _is_forbidden(self, target_instantiated_hyperparameter):
         pass
 
- #   @abstractmethod
     def _is_forbidden_vector(self, target_instantiated_vector):
-        # print("heeeeer")
         pass
 
 
@@ -285,11 +172,8 @@ cdef class MultipleValueForbiddenClause(AbstractForbiddenClause):
         self.values = values
         self.vector_values = [self.hyperparameter._inverse_transform(value) for value in self.values]
 
-    # def is_forbidden(self, instantiated_hyperparameters: Dict[str, Union[None, str, float, int]], strict: bool=True) -> bool:
     cpdef is_forbidden(self, instantiated_hyperparameters, strict=True):
-        # print("here2")
         value = instantiated_hyperparameters.get(self.hyperparameter.name)
-        # print("is_multval_fobidden:", value, instantiated_hyperparameters)
         if value is None:
             if strict:
                 raise ValueError("Is_forbidden must be called with the "
@@ -301,8 +185,7 @@ cdef class MultipleValueForbiddenClause(AbstractForbiddenClause):
 
         return self._is_forbidden(value)
 
-    # def is_forbidden_vector(self, instantiated_vector: np.ndarray, strict: bool = True) -> bool:
-    cpdef is_forbidden_vector(self, np.ndarray instantiated_vector, strict=True):
+    def is_forbidden_vector(self, instantiated_vector, strict=True):
         value = instantiated_vector[self.vector_id]
 
         if value is np.NaN:
@@ -316,29 +199,22 @@ cdef class MultipleValueForbiddenClause(AbstractForbiddenClause):
 
         return self._is_forbidden_vector(value)
 
- #   @abstractmethod
- #    def _is_forbidden(self, target_instantiated_hyperparameter) -> bool:
-    cdef _is_forbidden(self, target_instantiated_hyperparameter):
+    cpdef _is_forbidden(self, target_instantiated_hyperparameter):
         pass
 
- #   @abstractmethod
- #    def _is_forbidden_vector(self, target_instantiated_vector) -> bool:
     def _is_forbidden_vector(self, target_instantiated_vector):
         pass
 
 
 cdef class ForbiddenEqualsClause(SingleValueForbiddenClause):
-    # cdef __repr__(self) -> str:
     def __repr__(self):
         return "Forbidden: %s == %s" % (self.hyperparameter.name,
                                         repr(self.value))
 
-    # cdef _is_forbidden(self, value: Any) -> bool:
-    cdef _is_forbidden(self, value: Any):
+    cpdef _is_forbidden(self, value: Any):
         return value == self.value
 
-    # cdef bool _is_forbidden_vector(self, value: Any) -> bool:
-    cdef bint _is_forbidden_vector(self, float value):
+    def _is_forbidden_vector(self, value: Any):
         return value == self.vector_value
 
 
@@ -354,11 +230,10 @@ cdef class ForbiddenInClause(MultipleValueForbiddenClause):
             "{" + ", ".join((repr(value)
                              for value in sorted(self.values))) + "}")
 
-    # cdef _is_forbidden(self, value: Any) -> bool:
-    cdef _is_forbidden(self, value):
+    cpdef _is_forbidden(self, value):
         return value in self.values
 
-    cdef bint _is_forbidden_vector(self, double value):
+    def _is_forbidden_vector(self, value):
         return value in self.vector_values
 
 
@@ -375,17 +250,14 @@ cdef class AbstractForbiddenConjunction(AbstractForbiddenComponent):
 
         self.components = args
 
- #   @abstractmethod
     def __repr__(self):
         pass
 
-    # cdef def set_vector_idx(self, hyperparameter_to_idx: dict):
     cpdef  set_vector_idx(self, hyperparameter_to_idx):
         for component in self.components:
             component.set_vector_idx(hyperparameter_to_idx)
 
     # todo:recheck is return type should be AbstractForbiddenComponent or AbstractForbiddenConjunction or Hyperparameter
-    #  def get_descendant_literal_clauses(self) -> List[AbstractForbiddenComponent]:
     cpdef get_descendant_literal_clauses(self):
         children = []
         for component in self.components:
@@ -395,7 +267,6 @@ cdef class AbstractForbiddenConjunction(AbstractForbiddenComponent):
                 children.append(component)
         return children
 
-    # cpdef is_forbidden(self, instantiated_hyperparameters, strict: bool=True) -> bool:
     cpdef is_forbidden(self, instantiated_hyperparameters, strict: bool=True):
         ihp_names = list(instantiated_hyperparameters.keys())
 
@@ -413,7 +284,6 @@ cdef class AbstractForbiddenConjunction(AbstractForbiddenComponent):
 
         # Finally, call is_forbidden for all direct descendents and combine the
         # outcomes
-        # evaluations  []
         cdef np.ndarray np_evaluations = np.zeros(len(self.components), dtype=bool)
         np_index = 0
         for component in self.components:
@@ -421,13 +291,10 @@ cdef class AbstractForbiddenConjunction(AbstractForbiddenComponent):
                                        strict=strict)
             np_evaluations[np_index] = e
             np_index += 1
-            # evaluations.append(e)
-        # print("hello:", evaluations)
-        # return self._is_forbidden(evaluations)
+
         return self._is_forbidden(np_evaluations)
 
-    # cpdef is_forbidden_vector(self, instantiated_vector: np.ndarray, bool strict) -> bool:
-    cpdef is_forbidden_vector(self, np.ndarray instantiated_vector, strict: bool = True):
+    def is_forbidden_vector(self, instantiated_vector: np.ndarray, strict: bool = True):
         dlcs = self.get_descendant_literal_clauses()
         for dlc in dlcs:
             if dlc.vector_id not in range(len(instantiated_vector)):
@@ -445,12 +312,6 @@ cdef class AbstractForbiddenConjunction(AbstractForbiddenComponent):
         # evaluation function queries for (e.g. and conditions are False
         # if only one of the components evaluates to False).
 
-        # evaluations = (component.is_forbidden_vector(instantiated_vector,
-        #                                       strict=strict)
-        #                for component in self.components)
-
-        ###########################
-
         cdef np.ndarray np_evaluations = np.zeros(len(self.components), dtype=bool)
         np_index = 0
         for component in self.components:
@@ -459,14 +320,10 @@ cdef class AbstractForbiddenConjunction(AbstractForbiddenComponent):
             np_evaluations[np_index] = e
             np_index += 1
 
-
-        ###########################
-
         return self._is_forbidden(np_evaluations)
-        # return self._is_forbidden(evaluations)
 
  #   @abstractmethod
-    cdef _is_forbidden(self, np.ndarray evaluations):
+    cpdef _is_forbidden(self, np.ndarray evaluations):
         pass
 
 
@@ -481,7 +338,7 @@ cdef class ForbiddenAndConjunction(AbstractForbiddenConjunction):
         retval.write(")")
         return retval.getvalue()
 
-    cdef _is_forbidden(self, np.ndarray evaluations):
+    cpdef _is_forbidden(self, np.ndarray evaluations):
         # Return False if one of the components evaluates to False
 
         cdef int I = evaluations.shape[0]
