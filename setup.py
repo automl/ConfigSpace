@@ -13,12 +13,19 @@ desc = 'Creation and manipulation of parameter configuration spaces for ' \
 keywords = 'algorithm configuration hyperparameter optimization empirical ' \
            'evaluation black box'
 
+# These do not really change the speed of the benchmarks
+compiler_directives = {
+    'boundscheck': False,
+    'wraparound': False,
+}
+
 extensions = cythonize(
     [Extension('ConfigSpace.forbidden_cython',
                sources=['ConfigSpace/forbidden_cython.pyx'],
-               # language='c',
                include_dirs=[np.get_include()])
-     ])
+     ],
+    compiler_directives=compiler_directives,
+)
 
 def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()

@@ -1,7 +1,3 @@
-def say_hello_to(name):
-    print("Hello  %s!" % name)
-
-
 # Copyright (c) 2014-2016, ConfigSpace developers
 # Matthias Feurer
 # Katharina Eggensperger
@@ -36,23 +32,29 @@ import io.io as io
 from ConfigSpace.hyperparameters import Hyperparameter
 from typing import List, Dict, Any, Union
 
-ctypedef np.int_t DTYPE_t
+from libc.stdlib cimport malloc, free
+
+# We now need to fix a datatype for our arrays. I've used the variable
+# DTYPE for this, which is assigned to the usual NumPy runtime
+# type info object.
+DTYPE = np.float
+# "ctypedef" assigns a corresponding compile-time type to DTYPE_t. For
+# every type in the numpy module there's a corresponding compile-time
+# type with a _t-suffix.
+ctypedef np.float_t DTYPE_t
 
 
 cdef class AbstractForbiddenComponent(object):
-    # __metaclass__ = ABCMeta
 
-    cdef public hyperparameter # type: Hyperparameter
-    cdef public vector_id
+    cdef public hyperparameter
+    cdef public int vector_id
     cdef public value
-    cdef public float vector_value
+    cdef public DTYPE_t vector_value
     cdef dict __dict__
 
- #   @abstractmethod
     def __init__(self):
         pass
 
- #   @abstractmethod
     def __repr__(self):
         pass
 
@@ -97,7 +99,10 @@ cdef class AbstractForbiddenComponent(object):
     cpdef is_forbidden(self, instantiated_hyperparameters, strict=True):
         pass
 
-    def is_forbidden_vector(self, instantiated_hyperparameters, strict=True):
+    def is_forbidden_vector(self, instantiated_hyperparameters, strict):
+        return bool(self.c_is_forbidden_vector(instantiated_hyperparameters, strict))
+
+    cdef int c_is_forbidden_vector(self, np.ndarray[DTYPE_t, ndim=1] instantiated_hyperparameters, int strict):
         pass
 
 
@@ -108,10 +113,10 @@ cdef class AbstractForbiddenClause(AbstractForbiddenComponent):
             raise TypeError("Argument 'hyperparameter' is not of type %s." %
                             Hyperparameter)
         self.hyperparameter = hyperparameter
-        self.vector_id = None
+        self.vector_id = -1
 
     cpdef get_descendant_literal_clauses(self):
-        return [self]
+        return (self, )
 
     cpdef set_vector_idx(self, hyperparameter_to_idx):
         self.vector_id = hyperparameter_to_idx[self.hyperparameter.name]
@@ -140,8 +145,8 @@ cdef class SingleValueForbiddenClause(AbstractForbiddenClause):
 
         return self._is_forbidden(value)
 
-    def is_forbidden_vector(self, instantiated_vector, strict = True):
-        value = instantiated_vector[self.vector_id]
+    cdef int c_is_forbidden_vector(self, np.ndarray[DTYPE_t, ndim=1] instantiated_vector, int strict):
+        cdef DTYPE_t value = instantiated_vector[self.vector_id]
         if value != value:
             if strict:
                 raise ValueError("Is_forbidden must be called with the "
@@ -153,10 +158,10 @@ cdef class SingleValueForbiddenClause(AbstractForbiddenClause):
 
         return self._is_forbidden_vector(value)
 
-    cpdef _is_forbidden(self, target_instantiated_hyperparameter):
+    cdef int _is_forbidden(self, float value):
         pass
 
-    def _is_forbidden_vector(self, target_instantiated_vector):
+    cdef int _is_forbidden_vector(self, DTYPE_t value):
         pass
 
 
@@ -185,10 +190,10 @@ cdef class MultipleValueForbiddenClause(AbstractForbiddenClause):
 
         return self._is_forbidden(value)
 
-    def is_forbidden_vector(self, instantiated_vector, strict=True):
-        value = instantiated_vector[self.vector_id]
+    cdef int c_is_forbidden_vector(self, np.ndarray[DTYPE_t, ndim=1] instantiated_vector, int strict):
+        cdef DTYPE_t value = instantiated_vector[self.vector_id]
 
-        if value is np.NaN:
+        if value != value:
             if strict:
                 raise ValueError("Is_forbidden must be called with the "
                                  "instanstatiated vector id in the "
@@ -199,10 +204,10 @@ cdef class MultipleValueForbiddenClause(AbstractForbiddenClause):
 
         return self._is_forbidden_vector(value)
 
-    cpdef _is_forbidden(self, target_instantiated_hyperparameter):
+    cdef int _is_forbidden(self, float value):
         pass
 
-    def _is_forbidden_vector(self, target_instantiated_vector):
+    cdef int _is_forbidden_vector(self, DTYPE_t value):
         pass
 
 
@@ -211,10 +216,10 @@ cdef class ForbiddenEqualsClause(SingleValueForbiddenClause):
         return "Forbidden: %s == %s" % (self.hyperparameter.name,
                                         repr(self.value))
 
-    cpdef _is_forbidden(self, value: Any):
+    cdef int _is_forbidden(self, float value):
         return value == self.value
 
-    def _is_forbidden_vector(self, value: Any):
+    cdef int _is_forbidden_vector(self, DTYPE_t value):
         return value == self.vector_value
 
 
@@ -230,14 +235,18 @@ cdef class ForbiddenInClause(MultipleValueForbiddenClause):
             "{" + ", ".join((repr(value)
                              for value in sorted(self.values))) + "}")
 
-    cpdef _is_forbidden(self, value):
+    cdef int _is_forbidden(self, float value):
         return value in self.values
 
-    def _is_forbidden_vector(self, value):
+    cdef int _is_forbidden_vector(self, DTYPE_t value):
         return value in self.vector_values
 
 
 cdef class AbstractForbiddenConjunction(AbstractForbiddenComponent):
+    cdef tuple components
+    cdef tuple dlcs
+    cdef int n_components
+
     def __init__(self, *args: AbstractForbiddenComponent) -> None:
         super(AbstractForbiddenConjunction, self).__init__()
         # Test the classes
@@ -249,15 +258,16 @@ cdef class AbstractForbiddenConjunction(AbstractForbiddenComponent):
                                     type(component)))
 
         self.components = args
+        self.n_components = len(self.components)
+        self.dlcs = self.get_descendant_literal_clauses()
 
     def __repr__(self):
         pass
 
-    cpdef  set_vector_idx(self, hyperparameter_to_idx):
+    cpdef set_vector_idx(self, hyperparameter_to_idx):
         for component in self.components:
             component.set_vector_idx(hyperparameter_to_idx)
 
-    # todo:recheck is return type should be AbstractForbiddenComponent or AbstractForbiddenConjunction or Hyperparameter
     cpdef get_descendant_literal_clauses(self):
         children = []
         for component in self.components:
@@ -265,13 +275,12 @@ cdef class AbstractForbiddenConjunction(AbstractForbiddenComponent):
                 children.extend(component.get_descendant_literal_clauses())
             else:
                 children.append(component)
-        return children
+        return tuple(children)
 
     cpdef is_forbidden(self, instantiated_hyperparameters, strict: bool=True):
         ihp_names = list(instantiated_hyperparameters.keys())
 
-        dlcs = self.get_descendant_literal_clauses()
-        for dlc in dlcs:
+        for dlc in self.dlcs:
             if dlc.hyperparameter.name not in ihp_names:
                 if strict:
                     raise ValueError("Is_forbidden must be called with all "
@@ -282,48 +291,45 @@ cdef class AbstractForbiddenConjunction(AbstractForbiddenComponent):
                 else:
                     return False
 
+        cdef int* arrptr
+        arrptr = <int*> malloc(sizeof(int) * self.n_components)
+
         # Finally, call is_forbidden for all direct descendents and combine the
         # outcomes
-        cdef np.ndarray np_evaluations = np.zeros(len(self.components), dtype=bool)
         np_index = 0
         for component in self.components:
             e = component.is_forbidden(instantiated_hyperparameters,
                                        strict=strict)
-            np_evaluations[np_index] = e
+            arrptr[np_index] = e
             np_index += 1
 
-        return self._is_forbidden(np_evaluations)
+        rval = self._is_forbidden(self.n_components, arrptr)
+        free(arrptr)
+        return rval
 
-    def is_forbidden_vector(self, instantiated_vector: np.ndarray, strict: bool = True):
-        dlcs = self.get_descendant_literal_clauses()
-        for dlc in dlcs:
-            if dlc.vector_id not in range(len(instantiated_vector)):
-                if strict:
-                    raise ValueError("Is_forbidden must be called with all "
-                                     "instanstatiated hyperparameters in the "
-                                     "and conjunction of forbidden clauses; "
-                                     "you are (at least) missing "
-                                     "'%s'" % dlc.vector_id)
-                else:
-                    return False
+    cdef int c_is_forbidden_vector(self, np.ndarray[DTYPE_t, ndim=1] instantiated_vector, int strict):
+        cdef int e = 0
+        cdef int rval
+        cdef AbstractForbiddenComponent component
+
+        cdef int* arrptr
+        arrptr = <int*> malloc(sizeof(int) * self.n_components)
 
         # Finally, call is_forbidden for all direct descendents and combine the
         # outcomes. Check only as many forbidden clauses as the actual
         # evaluation function queries for (e.g. and conditions are False
         # if only one of the components evaluates to False).
 
-        cdef np.ndarray np_evaluations = np.zeros(len(self.components), dtype=bool)
-        np_index = 0
-        for component in self.components:
-            e = component.is_forbidden_vector(instantiated_vector,
-                                       strict=strict)
-            np_evaluations[np_index] = e
-            np_index += 1
+        for i in range(self.n_components):
+            component = self.components[i]
+            e = component.c_is_forbidden_vector(instantiated_vector, strict)
+            arrptr[i] = e
 
-        return self._is_forbidden(np_evaluations)
+        rval = self._is_forbidden(self.n_components, arrptr)
+        free(arrptr)
+        return rval
 
- #   @abstractmethod
-    cpdef _is_forbidden(self, np.ndarray evaluations):
+    cdef int _is_forbidden(self, int I, int* evaluations):
         pass
 
 
@@ -338,12 +344,10 @@ cdef class ForbiddenAndConjunction(AbstractForbiddenConjunction):
         retval.write(")")
         return retval.getvalue()
 
-    cpdef _is_forbidden(self, np.ndarray evaluations):
+    cdef int _is_forbidden(self, int I, int* evaluations):
         # Return False if one of the components evaluates to False
 
-        cdef int I = evaluations.shape[0]
-
         for i in range(I):
-            if evaluations[i] == False:
-                return False
-        return True
+            if evaluations[i] == 0:
+                return 0
+        return 1

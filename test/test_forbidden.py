@@ -102,11 +102,11 @@ class TestForbidden(unittest.TestCase):
         }
         forb1.set_vector_idx(hyperparameter_idx)
         # print("\nneq10:")
-        self.assertFalse(forb1.is_forbidden_vector([np.NaN, np.NaN], strict=False))
+        self.assertFalse(forb1.is_forbidden_vector(np.array([np.NaN, np.NaN]), strict=False))
         # print("\nneq11:")
-        self.assertFalse(forb1.is_forbidden_vector([0., np.NaN]))
+        self.assertFalse(forb1.is_forbidden_vector(np.array([0., np.NaN]), strict=False))
         # print("\nneq12:")
-        self.assertTrue(forb1.is_forbidden_vector([1., np.NaN]))
+        self.assertTrue(forb1.is_forbidden_vector(np.array([1., np.NaN]), strict=False))
 
 
     def test_in_condition(self):
@@ -169,12 +169,13 @@ class TestForbidden(unittest.TestCase):
         }
         forb1.set_vector_idx(hyperparameter_idx)
         # print("\nTest9:")
-        self.assertFalse(forb1.is_forbidden_vector([np.NaN, np.NaN], strict=False))
+        self.assertFalse(forb1.is_forbidden_vector(np.array([np.NaN, np.NaN]), strict=False))
         # print("\nTest10:")
-        self.assertFalse(forb1.is_forbidden_vector([np.NaN, 0]))
+        self.assertFalse(forb1.is_forbidden_vector(np.array([np.NaN, 0]), strict=False))
         correct_vector_value = hp2._inverse_transform(6)
         # print("\nTest11:")
-        self.assertTrue(forb1.is_forbidden_vector([np.NaN, correct_vector_value]))
+        print(correct_vector_value, np.array([np.NaN, correct_vector_value]))
+        self.assertTrue(forb1.is_forbidden_vector(np.array([np.NaN, correct_vector_value]), strict=False))
         # print("\nfinished:")
 
     def test_and_conjunction(self):
