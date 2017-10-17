@@ -36,6 +36,15 @@ from libc.stdlib cimport malloc, free
 import numpy as np
 cimport numpy as np
 
+# We now need to fix a datatype for our arrays. I've used the variable
+# DTYPE for this, which is assigned to the usual NumPy runtime
+# type info object.
+DTYPE = np.float
+# "ctypedef" assigns a corresponding compile-time type to DTYPE_t. For
+# every type in the numpy module there's a corresponding compile-time
+# type with a _t-suffix.
+ctypedef np.float_t DTYPE_t
+
 import io.io as io
 from functools import reduce
 from ConfigSpace.hyperparameters import Hyperparameter, \
@@ -164,7 +173,7 @@ cdef class AbstractCondition(ConditionComponent):
     def _evaluate(self, instantiated_parent_hyperparameter: Union[str, int, float]) -> bool:
         pass
 
-    cdef int _inner_evaluate_vector(self, float value):
+    cdef int _inner_evaluate_vector(self, DTYPE_t value):
         pass
 
 
@@ -336,7 +345,7 @@ cdef class EqualsCondition(AbstractCondition):
         else:
             return False
 
-    cdef int _inner_evaluate_vector(self, float value):
+    cdef int _inner_evaluate_vector(self, DTYPE_t value):
         # No need to check if the value to compare is a legal value; either it
         # is equal (and thus legal), or it would evaluate to False anyway
 
@@ -372,7 +381,7 @@ cdef class NotEqualsCondition(AbstractCondition):
         else:
             return False
 
-    cdef int _inner_evaluate_vector(self, float value):
+    cdef int _inner_evaluate_vector(self, DTYPE_t value):
         if not self.parent.is_legal_vector(value):
             return False
 
@@ -409,7 +418,7 @@ cdef class LessThanCondition(AbstractCondition):
         else:
             return False
 
-    cdef int _inner_evaluate_vector(self, float value):
+    cdef int _inner_evaluate_vector(self, DTYPE_t value):
         if not self.parent.is_legal_vector(value):
             return False
 
@@ -446,7 +455,7 @@ cdef class GreaterThanCondition(AbstractCondition):
         else:
             return False
 
-    cdef int _inner_evaluate_vector(self, float value):
+    cdef int _inner_evaluate_vector(self, DTYPE_t value):
         if not self.parent.is_legal_vector(value):
             return False
 
@@ -508,7 +517,7 @@ cdef class InCondition(AbstractCondition):
     def _evaluate(self, value: Union[str, float, int]) -> bool:
         return value in self.values
 
-    cdef int _inner_evaluate_vector(self, float value):
+    cdef int _inner_evaluate_vector(self, DTYPE_t value):
         return value in self.vector_values
 
 
