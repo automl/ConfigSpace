@@ -102,7 +102,7 @@ cdef class AbstractForbiddenComponent(object):
     def is_forbidden_vector(self, instantiated_hyperparameters, strict):
         return bool(self.c_is_forbidden_vector(instantiated_hyperparameters, strict))
 
-    cdef int c_is_forbidden_vector(self, np.ndarray[DTYPE_t, ndim=1] instantiated_hyperparameters, int strict):
+    cdef int c_is_forbidden_vector(self, np.ndarray instantiated_hyperparameters, int strict):
         pass
 
 
@@ -145,7 +145,7 @@ cdef class SingleValueForbiddenClause(AbstractForbiddenClause):
 
         return self._is_forbidden(value)
 
-    cdef int c_is_forbidden_vector(self, np.ndarray[DTYPE_t, ndim=1] instantiated_vector, int strict):
+    cdef int c_is_forbidden_vector(self, np.ndarray instantiated_vector, int strict):
         cdef DTYPE_t value = instantiated_vector[self.vector_id]
         if value != value:
             if strict:
@@ -190,7 +190,7 @@ cdef class MultipleValueForbiddenClause(AbstractForbiddenClause):
 
         return self._is_forbidden(value)
 
-    cdef int c_is_forbidden_vector(self, np.ndarray[DTYPE_t, ndim=1] instantiated_vector, int strict):
+    cdef int c_is_forbidden_vector(self, np.ndarray instantiated_vector, int strict):
         cdef DTYPE_t value = instantiated_vector[self.vector_id]
 
         if value != value:
@@ -307,7 +307,7 @@ cdef class AbstractForbiddenConjunction(AbstractForbiddenComponent):
         free(arrptr)
         return rval
 
-    cdef int c_is_forbidden_vector(self, np.ndarray[DTYPE_t, ndim=1] instantiated_vector, int strict):
+    cdef int c_is_forbidden_vector(self, np.ndarray instantiated_vector, int strict):
         cdef int e = 0
         cdef int rval
         cdef AbstractForbiddenComponent component

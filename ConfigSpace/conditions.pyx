@@ -71,6 +71,9 @@ cdef class ConditionComponent(object):
     def evaluate(self, instantiated_parent_hyperparameter: Hyperparameter) -> bool:
         pass
 
+    def evaluate_vector(self, instantiated_vector):
+        return bool(self._evaluate_vector(instantiated_vector))
+
     cdef int _evaluate_vector(self, np.ndarray value):
         pass
 
@@ -152,9 +155,6 @@ cdef class AbstractCondition(ConditionComponent):
     def evaluate(self, instantiated_parent_hyperparameter: Hyperparameter) -> bool:
         hp_name = self.parent.name
         return self._evaluate(instantiated_parent_hyperparameter[hp_name])
-
-    def evaluate_vector(self, instantiated_vector):
-        return bool(self._evaluate_vector(instantiated_vector))
 
     cdef int _evaluate_vector(self, np.ndarray instantiated_vector):
         if self.parent_vector_id is None:
