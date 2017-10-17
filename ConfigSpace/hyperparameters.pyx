@@ -1,3 +1,4 @@
+# cython: profile=True
 # Copyright (c) 2014-2016, ConfigSpace developers
 # Matthias Feurer
 # Katharina Eggensperger
@@ -29,15 +30,28 @@
 from abc import ABCMeta, abstractmethod
 import warnings
 
+from hyperparameters cimport Hyperparameter
+
 from collections import OrderedDict
 from typing import List, Any, Dict, Union, Tuple
 import io
 import numpy as np
+cimport numpy as np
+
+# We now need to fix a datatype for our arrays. I've used the variable
+# DTYPE for this, which is assigned to the usual NumPy runtime
+# type info object.
+#DTYPE = np.float
+# "ctypedef" assigns a corresponding compile-time type to DTYPE_t. For
+# every type in the numpy module there's a corresponding compile-time
+# type with a _t-suffix.
+#ctypedef np.float_t DTYPE_t
 
 
-class Hyperparameter(object, metaclass=ABCMeta):
+cdef class Hyperparameter(object):
+    #cdef public str name
+    #cdef public default_value
 
-    @abstractmethod
     def __init__(self, name: str) -> None:
         if not isinstance(name, str):
             raise TypeError(
@@ -45,33 +59,13 @@ class Hyperparameter(object, metaclass=ABCMeta):
                 " %s, but is %s." % (str(str), type(name)))
         self.name = name # type : str
 
-    # http://stackoverflow.com/a/25176504/4636294
-    def __eq__(self, other: Any) -> bool:
-        """Override the default Equals behavior"""
-        if isinstance(other, self.__class__):
-            return self.__dict__ == other.__dict__
-        return NotImplemented
-
-    def __ne__(self, other: Any) -> bool:
-        """Define a non-equality test"""
-        if isinstance(other, self.__class__):
-            return not self.__eq__(other)
-        return NotImplemented
-
-    def __hash__(self) -> int:
-        """Override the default hash behavior (that returns the id or the object)"""
-        return hash(tuple(sorted(self.__dict__.items())))
-
-    @abstractmethod
     def __repr__(self):
         raise NotImplementedError()
 
-    @abstractmethod
     def is_legal(self, value):
         raise NotImplementedError()
 
-    @abstractmethod
-    def is_legal_vector(self, value) -> bool:
+    cpdef bint is_legal_vector(self, DTYPE_t value):
         """
         Checks wether the given value is a legal value for the vector
         representation of this hyperparameter
@@ -91,32 +85,33 @@ class Hyperparameter(object, metaclass=ABCMeta):
         vector = self._sample(rs)
         return self._transform(vector)
 
-    @abstractmethod
     def _sample(self, rs, size):
         raise NotImplementedError()
 
-    @abstractmethod
     def _transform(self, vector):
         raise NotImplementedError()
 
-    @abstractmethod
     def _inverse_transform(self, vector):
         raise NotImplementedError()
 
-    @abstractmethod
     def has_neighbors(self):
         raise NotImplementedError()
 
-    @abstractmethod
     def get_neighbors(self, value, rs, number, transform=False):
         raise NotImplementedError()
 
-    @abstractmethod
     def get_num_neighbors(self, value):
         raise NotImplementedError()
 
+    cpdef int compare_vector(self, DTYPE_t value, DTYPE_t value2):
+        raise NotImplementedError()
 
-class Constant(Hyperparameter):
+
+
+cdef class Constant(Hyperparameter):
+    cdef public value
+    cdef DTYPE_t value_vector
+
     def __init__(self, name: str, value: Union[str, int, float]) -> None:
         super(Constant, self).__init__(name)
         allowed_types = (int, float, str)
@@ -129,7 +124,7 @@ class Constant(Hyperparameter):
 
         self.value = value
         self.value_vector = 0.
-        self.default = value
+        self.default_value = value
 
     def __repr__(self) -> str:
         repr_str = ["%s" % self.name,
@@ -137,10 +132,34 @@ class Constant(Hyperparameter):
                     "Value: %s" % self.value]
         return ", ".join(repr_str)
 
+    def __richcmp__(self, other: Any, int op):
+        """Override the default Equals behavior
+         There are no separate methods for the individual rich comparison operations (__eq__(), __le__(), etc.).
+          Instead there is a single method __richcmp__() which takes an integer indicating which operation is to be performed, as follows:
+         < 	0
+         == 2
+         > 	4
+         <=	1
+         !=	3
+         >=	5
+         """
+
+        if isinstance(other, self.__class__):
+            if op == 2:
+                return self.value == other.value and self.name == other.name
+
+            elif op == 3:
+                return self.value != other.value or self.name != other.name
+
+        return NotImplemented
+
+    def __hash__(self):
+        return hash(tuple(self.name, self.value))
+
     def is_legal(self, value: Union[str, int, float]) -> bool:
         return value == self.value
 
-    def is_legal_vector(self, value: Union[int, float]) -> bool:
+    cpdef bint is_legal_vector(self, DTYPE_t value):
         return value == self.value_vector
 
     def _sample(self, rs: None, size: int = None) -> Union[int, np.ndarray]:
@@ -166,14 +185,21 @@ class Constant(Hyperparameter):
         return []
 
 
-class UnParametrizedHyperparameter(Constant):
+cdef class UnParametrizedHyperparameter(Constant):
     pass
 
 
-class NumericalHyperparameter(Hyperparameter):
-    def __init__(self, name: str, default: Any) -> None:
+cdef class NumericalHyperparameter(Hyperparameter):
+    cdef public lower
+    cdef public upper
+    cdef public q
+    cdef public log
+    cdef public _lower
+    cdef public _upper
+
+    def __init__(self, name: str, default_value: Any) -> None:
         super(NumericalHyperparameter, self).__init__(name)
-        self.default = default
+        self.default_value = default_value
 
     def has_neighbors(self) -> bool:
         return True
@@ -182,7 +208,7 @@ class NumericalHyperparameter(Hyperparameter):
 
         return np.inf
 
-    def compare(self, value: Union[int, float, str], value2: Union[int, float, str]) -> int:
+    cpdef int compare(self, value: Union[int, float, str], value2: Union[int, float, str]):
         if value < value2:
             return -1
         elif value > value2:
@@ -190,45 +216,81 @@ class NumericalHyperparameter(Hyperparameter):
         elif value == value2:
             return 0
 
-    def compare_vector(self, value: Union[int, float], value2: Union[int, float]) -> int:
-        return self.compare(value, value2)
+    cpdef int compare_vector(self, DTYPE_t value, DTYPE_t value2):
+        if value < value2:
+            return -1
+        elif value > value2:
+            return 1
+        elif value == value2:
+            return 0
 
     def allow_greater_less_comparison(self) -> bool:
         return True
 
+    def __richcmp__(self, other: Any, int op):
+        """Override the default Equals behavior
+         There are no separate methods for the individual rich comparison operations (__eq__(), __le__(), etc.).
+          Instead there is a single method __richcmp__() which takes an integer indicating which operation is to be performed, as follows:
+         < 	0
+         == 2
+         > 	4
+         <=	1
+         !=	3
+         >=	5
+         """
+
+        if isinstance(other, self.__class__):
+            if op == 2:
+                return (
+                    self.name == other.name and
+                    self.lower == other.lower and
+                    self.upper == other.upper and
+                    self.log == other.log and
+                    self.q == other.q
+                )
+
+            elif op == 3:
+                return (
+                    self.name != other.name or
+                    self.lower != other.lower or
+                    self.upper != other.upper or
+                    self.log != other.log or
+                    self.q != other.q
+                )
+
+        return NotImplemented
+
+    def __hash__(self):
+        return hash(tuple(self.name, self.lower, self.upper, self.log, self.q))
 
 
-class FloatHyperparameter(NumericalHyperparameter):
-    def __init__(self, name: str, default: Union[int, float]) -> None:
-        super(FloatHyperparameter, self).__init__(name, default)
+cdef class FloatHyperparameter(NumericalHyperparameter):
+    def __init__(self, name: str, default_value: Union[int, float]) -> None:
+        super(FloatHyperparameter, self).__init__(name, default_value)
 
-    @abstractmethod
     def is_legal(self, value: Union[int, float]) -> bool:
         raise NotImplemented
 
-    @abstractmethod
-    def is_legal_vector(self, value: Union[int, float]) -> bool:
+    cpdef bint is_legal_vector(self, DTYPE_t value):
         raise NotImplemented
 
-    @abstractmethod
-    def check_default(self, default: Union[int, float]) -> float:
+    def check_default(self, default_value: Union[int, float]) -> float:
         raise NotImplemented
 
 
-class IntegerHyperparameter(NumericalHyperparameter):
-    def __init__(self, name: str, default: int) -> None:
-        super(IntegerHyperparameter, self).__init__(name, default)
+cdef class IntegerHyperparameter(NumericalHyperparameter):
+    cdef ufhp
 
-    @abstractmethod
+    def __init__(self, name: str, default_value: int) -> None:
+        super(IntegerHyperparameter, self).__init__(name, default_value)
+
     def is_legal(self, value: int) -> bool:
         raise NotImplemented
 
-    @abstractmethod
-    def is_legal_vector(self, value: float) -> bool:
+    cpdef bint is_legal_vector(self, DTYPE_t value):
         raise NotImplemented
 
-    @abstractmethod
-    def check_default(self, default) -> int:
+    def check_default(self, default_value) -> int:
         raise NotImplemented
 
     def check_int(self, parameter: int, name: str) -> int:
@@ -240,11 +302,11 @@ class IntegerHyperparameter(NumericalHyperparameter):
         return int(parameter)
 
 
-class UniformFloatHyperparameter(FloatHyperparameter):
+cdef class UniformFloatHyperparameter(FloatHyperparameter):
     def __init__(self, name: str, lower: Union[int, float], upper: Union[int, float],
-                 default: Union[int, float, None] = None, q: Union[int, float, None] = None, log: bool = False) -> None:
+                 default_value: Union[int, float, None] = None, q: Union[int, float, None] = None, log: bool = False) -> None:
 
-        super(UniformFloatHyperparameter, self).__init__(name, default)
+        super(UniformFloatHyperparameter, self).__init__(name, default_value)
         self.lower = float(lower)
         self.upper = float(upper)
         self.q = float(q) if q is not None else None
@@ -260,7 +322,7 @@ class UniformFloatHyperparameter(FloatHyperparameter):
                              "hyperparameter %s is forbidden." %
                              (self.lower, name))
 
-        self.default = self.check_default(default)
+        self.default_value = self.check_default(default_value)
 
         if self.log:
             if self.q is not None:
@@ -283,25 +345,13 @@ class UniformFloatHyperparameter(FloatHyperparameter):
         repr_str = io.StringIO()
         repr_str.write("%s, Type: UniformFloat, Range: [%s, %s], Default: %s" %
                        (self.name, repr(self.lower), repr(self.upper),
-                        repr(self.default)))
+                        repr(self.default_value)))
         if self.log:
             repr_str.write(", on log-scale")
         if self.q is not None:
             repr_str.write(", Q: %s" % str(self.q))
         repr_str.seek(0)
         return repr_str.getvalue()
-
-    def __eq__(self, other: Any) -> bool:
-        if isinstance(other, self.__class__):
-            return all([self.name == other.name,
-                        abs(self.lower - other.lower) < 0.00000001,
-                        abs(self.upper - other.upper) < 0.00000001,
-                        self.log == other.log,
-                        self.q is None and other.q is None or
-                        self.q is not None and other.q is not None and
-                        abs(self.q - other.q) < 0.00000001])
-        else:
-            return False
 
     def is_legal(self, value: Union[float]) -> bool:
         if not (isinstance(value, float) or isinstance(value, int)):
@@ -311,33 +361,31 @@ class UniformFloatHyperparameter(FloatHyperparameter):
         else:
             return False
 
-    def is_legal_vector(self, value: Union[float]) -> bool:
-        if not (isinstance(value, float) or isinstance(value, int)):
-            return False
-        elif 1.0 >= value >= 0.0:
+    cpdef bint is_legal_vector(self, DTYPE_t value):
+        if 1.0 >= value >= 0.0:
             return True
         else:
             return False
 
-    def check_default(self, default: float) -> Union[int, float]:
-        if default is None:
+    def check_default(self, default_value: float) -> Union[int, float]:
+        if default_value is None:
             if self.log:
-                default = np.exp((np.log(self.lower) + np.log(self.upper)) / 2.)
+                default_value = np.exp((np.log(self.lower) + np.log(self.upper)) / 2.)
             else:
-                default = (self.lower + self.upper) / 2.
-        default = np.round(float(default), 10)
+                default_value = (self.lower + self.upper) / 2.
+        default_value = np.round(float(default_value), 10)
 
-        if self.is_legal(default):
-            return default
+        if self.is_legal(default_value):
+            return default_value
         else:
-            raise ValueError("Illegal default value %s" % str(default))
+            raise ValueError("Illegal default value %s" % str(default_value))
 
     def to_integer(self) -> 'UniformIntegerHyperparameter':
         # TODO check if conversion makes sense at all (at least two integer values possible!)
         # todo check if params should be converted to int while class initialization or inside class itself
         return UniformIntegerHyperparameter(self.name, int(self.lower),
                                             int(self.upper),
-                                            int(np.round(self.default)), int(self.q),
+                                            int(np.round(self.default_value)), int(self.q),
                                             self.log)
 
     def _sample(self, rs: np.random, size: Union[int, None] = None) -> float:
@@ -379,22 +427,25 @@ class UniformFloatHyperparameter(FloatHyperparameter):
         return neighbors
 
 
-class NormalFloatHyperparameter(FloatHyperparameter):
+cdef class NormalFloatHyperparameter(FloatHyperparameter):
+    cdef public mu
+    cdef public sigma
+
     def __init__(self, name: str, mu: Union[int, float], sigma: Union[int, float],
-                 default: Union[None, float] = None, q: Union[int, float, None] = None, log: bool = False) -> None:
-        super(NormalFloatHyperparameter, self).__init__(name, default)
+                 default_value: Union[None, float] = None, q: Union[int, float, None] = None, log: bool = False) -> None:
+        super(NormalFloatHyperparameter, self).__init__(name, default_value)
         self.mu = float(mu)
         self.sigma = float(sigma)
         self.q = float(q) if q is not None else None
         self.log = bool(log)
         self.name = name
-        self.default = self.check_default(default)
+        self.default_value = self.check_default(default_value)
 
     def __repr__(self) -> str:
         repr_str = io.StringIO()
         repr_str.write("%s, Type: NormalFloat, Mu: %s Sigma: %s, Default: %s" %
                        (self.name, repr(self.mu), repr(self.sigma),
-                        repr(self.default)))
+                        repr(self.default_value)))
         if self.log:
             repr_str.write(", on log-scale")
         if self.q is not None:
@@ -402,34 +453,58 @@ class NormalFloatHyperparameter(FloatHyperparameter):
         repr_str.seek(0)
         return repr_str.getvalue()
 
-    def __eq__(self, other: Any) -> bool:
+    def __richcmp__(self, other: Any, int op):
+        """Override the default Equals behavior
+         There are no separate methods for the individual rich comparison operations (__eq__(), __le__(), etc.).
+          Instead there is a single method __richcmp__() which takes an integer indicating which operation is to be performed, as follows:
+         < 	0
+         == 2
+         > 	4
+         <=	1
+         !=	3
+         >=	5
+         """
+
         if isinstance(other, self.__class__):
-            return all([self.name == other.name,
-                        abs(self.mu - other.mu) < 0.00000001,
-                        abs(self.sigma - other.sigma) < 0.00000001,
-                        self.log == other.log,
-                        self.q is None and other.q is None or
-                        self.q is not None and other.q is not None and
-                        abs(self.q - other.q) < 0.00000001])
-        else:
-            return False
+            if op == 2:
+                return (
+                    self.name == other.name and
+                    self.mu == other.mu and
+                    self.sigma == other.sigma and
+                    self.log == other.log and
+                    self.q == other.q
+                )
+
+            elif op == 3:
+                return (
+                    self.name != other.name or
+                    self.mu != other.mu or
+                    self.sigma != other.sigma or
+                    self.log != other.log or
+                    self.q != other.q
+                )
+
+        return NotImplemented
+
+    def __hash__(self):
+        return hash(tuple(self.name, self.mu, self.sigma, self.log, self.q))
 
     def to_uniform(self, z: int = 3) -> 'UniformFloatHyperparameter':
         return UniformFloatHyperparameter(self.name,
                                           self.mu - (z * self.sigma),
                                           self.mu + (z * self.sigma),
-                                          default=int(
-                                              np.round(self.default, 0)),
+                                          default_value=int(
+                                              np.round(self.default_value, 0)),
                                           q=self.q, log=self.log)
 
-    def check_default(self, default: Union[int, float]) -> Union[int, float]:
-        if default is None:
+    def check_default(self, default_value: Union[int, float]) -> Union[int, float]:
+        if default_value is None:
             return self.mu
 
-        elif self.is_legal(default):
-            return default
+        elif self.is_legal(default_value):
+            return default_value
         else:
-            raise ValueError("Illegal default value %s" % str(default))
+            raise ValueError("Illegal default value %s" % str(default_value))
 
     def to_integer(self) -> 'NormalIntegerHyperparameter':
         if self.q is None:
@@ -437,13 +512,13 @@ class NormalFloatHyperparameter(FloatHyperparameter):
         else:
             q_int = int(self.q)
         return NormalIntegerHyperparameter(self.name, int(self.mu), self.sigma,
-                                           default=int(np.round(self.default, 0)),
+                                           default_value=int(np.round(self.default_value, 0)),
                                            q=q_int, log=self.log)
 
     def is_legal(self, value: Union[float]) -> bool:
         return isinstance(value, float) or isinstance(value, int)
 
-    def is_legal_vector(self, value: Union[float]) -> bool:
+    cpdef bint is_legal_vector(self, DTYPE_t value):
         return isinstance(value, float) or isinstance(value, int)
 
     def _sample(self, rs: np.random.RandomState, size: Union[None, int] = None) -> np.ndarray:
@@ -475,15 +550,15 @@ class NormalFloatHyperparameter(FloatHyperparameter):
         return neighbors
 
 
-class UniformIntegerHyperparameter(IntegerHyperparameter):
-    def __init__(self, name: str, lower: int, upper: int, default: Union[int, None] = None,
+cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
+    def __init__(self, name: str, lower: int, upper: int, default_value: Union[int, None] = None,
                  q: Union[int, None] = None, log: bool = False) -> None:
-        super(UniformIntegerHyperparameter, self).__init__(name, default)
+        super(UniformIntegerHyperparameter, self).__init__(name, default_value)
         self.lower = self.check_int(lower, "lower")
         self.upper = self.check_int(upper, "upper")
         self.name = name
-        if default is not None:
-            default = self.check_int(default, name)
+        if default_value is not None:
+            default_value = self.check_int(default_value, name)
 
         if q is not None:
             if q < 1:
@@ -506,19 +581,19 @@ class UniformIntegerHyperparameter(IntegerHyperparameter):
                              "hyperparameter %s is forbidden." %
                              (self.lower, name))
 
-        self.default = self.check_default(default)
+        self.default_value = self.check_default(default_value)
 
         self.ufhp = UniformFloatHyperparameter(self.name,
                                                self.lower - 0.49999,
                                                self.upper + 0.49999,
                                                log=self.log, q=self.q,
-                                               default=self.default)
+                                               default_value=self.default_value)
 
     def __repr__(self) -> str:
         repr_str = io.StringIO()
         repr_str.write("%s, Type: UniformInteger, Range: [%s, %s], Default: %s"
                        % (self.name, repr(self.lower),
-                          repr(self.upper), repr(self.default)))
+                          repr(self.upper), repr(self.default_value)))
         if self.log:
             repr_str.write(", on log-scale")
         if self.q is not None:
@@ -558,26 +633,24 @@ class UniformIntegerHyperparameter(IntegerHyperparameter):
         else:
             return False
 
-    def is_legal_vector(self, value: float) -> bool:
-        if not (isinstance(value, float) or isinstance(value, int)):
-            return False
-        elif 1.0 >= value >= 0.0:
+    cpdef bint is_legal_vector(self, DTYPE_t value):
+        if 1.0 >= value >= 0.0:
             return True
         else:
             return False
 
-    def check_default(self, default: Union[int, float]) -> int:
-        if default is None:
+    def check_default(self, default_value: Union[int, float]) -> int:
+        if default_value is None:
             if self.log:
-                default = np.exp((np.log(self.lower) + np.log(self.upper)) / 2.)
+                default_value = np.exp((np.log(self.lower) + np.log(self.upper)) / 2.)
             else:
-                default = (self.lower + self.upper) / 2.
-        default = int(np.round(default, 0))
+                default_value = (self.lower + self.upper) / 2.
+        default_value = int(np.round(default_value, 0))
 
-        if self.is_legal(default):
-            return default
+        if self.is_legal(default_value):
+            return default_value
         else:
-            raise ValueError("Illegal default value %s" % str(default))
+            raise ValueError("Illegal default value %s" % str(default_value))
 
     def has_neighbors(self) -> bool:
         if self.log:
@@ -619,16 +692,20 @@ class UniformIntegerHyperparameter(IntegerHyperparameter):
         return neighbors
 
 
-class NormalIntegerHyperparameter(IntegerHyperparameter):
+cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
+    cdef public mu
+    cdef public sigma
+    cdef nfhp
+
     def __init__(self, name: str, mu: int, sigma: Union[int, float],
-                 default: Union[int, None] = None, q: Union[None, int] = None, log: bool = False) -> None:
-        super(NormalIntegerHyperparameter, self).__init__(name, default)
+                 default_value: Union[int, None] = None, q: Union[None, int] = None, log: bool = False) -> None:
+        super(NormalIntegerHyperparameter, self).__init__(name, default_value)
         self.mu = mu
         self.sigma = sigma
         self.name = name
 
-        if default is not None:
-            default = self.check_int(default, self.name)
+        if default_value is not None:
+            default_value = self.check_int(default_value, self.name)
 
         if q is not None:
             if q < 1:
@@ -642,20 +719,20 @@ class NormalIntegerHyperparameter(IntegerHyperparameter):
             self.q = None
         self.log = bool(log)
 
-        self.default = self.check_default(default)
+        self.default_value = self.check_default(default_value)
 
         self.nfhp = NormalFloatHyperparameter(self.name,
                                               self.mu,
                                               self.sigma,
                                               log=self.log,
                                               q=self.q,
-                                              default=self.default)
+                                              default_value=self.default_value)
 
     def __repr__(self) -> str:
         repr_str = io.StringIO()
         repr_str.write("%s, Type: NormalInteger, Mu: %s Sigma: %s, Default: "
                        "%s" % (self.name, repr(self.mu),
-                               repr(self.sigma), repr(self.default)))
+                               repr(self.sigma), repr(self.default_value)))
         if self.log:
             repr_str.write(", on log-scale")
         if self.q is not None:
@@ -663,40 +740,64 @@ class NormalIntegerHyperparameter(IntegerHyperparameter):
         repr_str.seek(0)
         return repr_str.getvalue()
 
-    def __eq__(self, other: Any) -> bool:
+    def __richcmp__(self, other: Any, int op):
+        """Override the default Equals behavior
+         There are no separate methods for the individual rich comparison operations (__eq__(), __le__(), etc.).
+          Instead there is a single method __richcmp__() which takes an integer indicating which operation is to be performed, as follows:
+         < 	0
+         == 2
+         > 	4
+         <=	1
+         !=	3
+         >=	5
+         """
+
         if isinstance(other, self.__class__):
-            return all([self.name == other.name,
-                        abs(self.mu - other.mu) < 0.00000001,
-                        abs(self.sigma - other.sigma) < 0.00000001,
-                        self.log == other.log,
-                        self.q is None and other.q is None or
-                        self.q is not None and other.q is not None and
-                        self.q == other.q])
-        else:
-            return False
+            if op == 2:
+                return (
+                    self.name == other.name and
+                    self.mu == other.mu and
+                    self.sigma == other.sigma and
+                    self.log == other.log and
+                    self.q == other.q
+                )
+
+            elif op == 3:
+                return (
+                    self.name != other.name or
+                    self.mu != other.mu or
+                    self.sigma != other.sigma or
+                    self.log != other.log or
+                    self.q != other.q
+                )
+
+        return NotImplemented
+
+    def __hash__(self):
+        return hash(tuple(self.name, self.mu, self.sigma, self.log, self.q))
 
     # todo check if conversion should be done in initiation call or inside class itsel
     def to_uniform(self, z: int = 3) -> 'UniformIntegerHyperparameter':
         return UniformIntegerHyperparameter(self.name,
                                             np.round(int(self.mu - (z * self.sigma))),
                                             np.round(int(self.mu + (z * self.sigma))),
-                                            default=self.default,
+                                            default_value=self.default_value,
                                             q=self.q, log=self.log)
 
     def is_legal(self, value: int) -> bool:
         return isinstance(value, (int, np.int, np.int32, np.int64))
 
-    def is_legal_vector(self, value: float) -> bool:
+    cpdef bint is_legal_vector(self, DTYPE_t value):
         return isinstance(value, float) or isinstance(value, int)
 
-    def check_default(self, default: int) -> int:
-        if default is None:
+    def check_default(self, default_value: int) -> int:
+        if default_value is None:
             return self.mu
 
-        elif self.is_legal(default):
-            return default
+        elif self.is_legal(default_value):
+            return default_value
         else:
-            raise ValueError("Illegal default value %s" % str(default))
+            raise ValueError("Illegal default value %s" % str(default_value))
 
     def _sample(self, rs: np.random.RandomState, size: Union[int, None] = None) -> np.ndarray:
         value = self.nfhp._sample(rs, size=size)
@@ -745,9 +846,14 @@ class NormalIntegerHyperparameter(IntegerHyperparameter):
         return neighbors
 
 
-class CategoricalHyperparameter(Hyperparameter):
+cdef class CategoricalHyperparameter(Hyperparameter):
+    cdef public list choices
+    cdef int _num_choices
+    cdef list choices_vector
+    cdef set _choices_set
+
     # TODO add more magic for automated type recognition
-    def __init__(self, name: str, choices: List[Union[str, float, int]], default: Union[int, float, str, None] = None) \
+    def __init__(self, name: str, choices: List[Union[str, float, int]], default_value: Union[int, float, str, None] = None) \
             -> None:
         super(CategoricalHyperparameter, self).__init__(name)
         # TODO check that there is no bullshit in the choices!
@@ -755,7 +861,7 @@ class CategoricalHyperparameter(Hyperparameter):
         self._num_choices = len(choices)
         self.choices_vector = list(range(self._num_choices))
         self._choices_set = set(self.choices_vector)
-        self.default = self.check_default(default)
+        self.default_value = self.check_default(default_value)
 
     def __repr__(self) -> str:
         repr_str = io.StringIO()
@@ -766,18 +872,51 @@ class CategoricalHyperparameter(Hyperparameter):
                 repr_str.write(", ")
         repr_str.write("}")
         repr_str.write(", Default: ")
-        repr_str.write(str(self.default))
+        repr_str.write(str(self.default_value))
         repr_str.seek(0)
         return repr_str.getvalue()
 
-    def compare(self, value: Union[int, float, str], value2: Union[int, float, str]) -> int:
+    def __richcmp__(self, other: Any, int op):
+        """Override the default Equals behavior
+         There are no separate methods for the individual rich comparison operations (__eq__(), __le__(), etc.).
+          Instead there is a single method __richcmp__() which takes an integer indicating which operation is to be performed, as follows:
+         < 	0
+         == 2
+         > 	4
+         <=	1
+         !=	3
+         >=	5
+         """
+
+        if isinstance(other, self.__class__):
+            if op == 2:
+                return (
+                    self.name == other.name and
+                    self.choices == other.choices
+                )
+
+            elif op == 3:
+                return (
+                    self.name != other.name or
+                    self.choices != other.choices
+                )
+
+        return NotImplemented
+
+    def __hash__(self):
+        return hash(tuple(self.name, self.choices))
+
+    cpdef int compare(self, value: Union[int, float, str], value2: Union[int, float, str]):
         if value == value2:
             return 0
         else:
             return 1
 
-    def compare_vector(self, value: Union[int, float], value2: Union[int, float]) -> int:
-        return self.compare(value, value2)
+    cpdef int compare_vector(self, DTYPE_t value, DTYPE_t value2):
+        if value == value2:
+            return 0
+        else:
+            return 1
 
     def is_legal(self, value: Union[None, str, float, int]) -> bool:
         if value in self.choices:
@@ -785,16 +924,16 @@ class CategoricalHyperparameter(Hyperparameter):
         else:
             return False
 
-    def is_legal_vector(self, value: Union[None, float, int]) -> bool:
+    cpdef bint is_legal_vector(self, DTYPE_t value):
         return value in self._choices_set
 
-    def check_default(self, default: Union[None, str, float, int]) -> Union[str, float, int]:
-        if default is None:
+    def check_default(self, default_value: Union[None, str, float, int]) -> Union[str, float, int]:
+        if default_value is None:
             return self.choices[0]
-        elif self.is_legal(default):
-            return default
+        elif self.is_legal(default_value):
+            return default_value
         else:
-            raise ValueError("Illegal default value %s" % str(default))
+            raise ValueError("Illegal default value %s" % str(default_value))
 
     def _sample(self, rs: np.random.RandomState, size: int = None) -> Union[int, np.ndarray]:
         return rs.randint(0, self._num_choices, size=size)
@@ -860,12 +999,17 @@ class CategoricalHyperparameter(Hyperparameter):
                          "condition must be a subclass of "
                          "NumericalHyperparameter or "
                          "OrdinalHyperparameter, but is "
-                         "<class 'ConfigSpace.hyperparameters.CategoricalHyperparameter'>")
+                         "<cdef class 'ConfigSpace.hyperparameters.CategoricalHyperparameter'>")
 
 
-class OrdinalHyperparameter(Hyperparameter):
+cdef class OrdinalHyperparameter(Hyperparameter):
+    cdef public sequence
+    cdef int _num_elements
+    cdef sequence_vector
+    cdef value_dict
+
     def __init__(self, name: str, sequence: List[Union[float, int, str]],
-                 default: Union[str, int, float, None] = None) -> None:
+                 default_value: Union[str, int, float, None] = None) -> None:
         """
         since the sequence can consist of elements from different types we
         store them into a dictionary in order to handle them as a
@@ -876,8 +1020,8 @@ class OrdinalHyperparameter(Hyperparameter):
             raise ValueError("Ordinal Hyperparameter Sequence %s contain duplicate values." % sequence)
         self.sequence = sequence
         self._num_elements = len(sequence)
-        self.sequence_vector = range(self._num_elements)
-        self.default = self.check_default(default)
+        self.sequence_vector = list(range(self._num_elements))
+        self.default_value = self.check_default(default_value)
         self.value_dict = OrderedDict()  # type: OrderedDict[Union[int, float, str], int]
         counter = 0
         for element in self.sequence:
@@ -896,11 +1040,38 @@ class OrdinalHyperparameter(Hyperparameter):
                 repr_str.write(", ")
         repr_str.write("}")
         repr_str.write(", Default: ")
-        repr_str.write(str(self.default))
+        repr_str.write(str(self.default_value))
         repr_str.seek(0)
         return repr_str.getvalue()
 
-    def compare(self, value: Union[int, float, str], value2: Union[int, float, str]) -> int:
+    def __richcmp__(self, other: Any, int op):
+        """Override the default Equals behavior
+         There are no separate methods for the individual rich comparison operations (__eq__(), __le__(), etc.).
+          Instead there is a single method __richcmp__() which takes an integer indicating which operation is to be performed, as follows:
+         < 	0
+         == 2
+         > 	4
+         <=	1
+         !=	3
+         >=	5
+         """
+
+        if isinstance(other, self.__class__):
+            if op == 2:
+                return (
+                    self.name == other.name and
+                    self.sequence == other.sequence
+                )
+
+            elif op == 3:
+                return (
+                    self.name != other.name or
+                    self.sequence != other.sequence
+                )
+
+        return NotImplemented
+
+    cpdef int compare(self, value: Union[int, float, str], value2: Union[int, float, str]):
         if self.value_dict[value] < self.value_dict[value2]:
             return -1
         elif self.value_dict[value] > self.value_dict[value2]:
@@ -908,7 +1079,7 @@ class OrdinalHyperparameter(Hyperparameter):
         elif self.value_dict[value] == self.value_dict[value2]:
             return 0
 
-    def compare_vector(self, value: Union[int, float], value2: Union[int, float]) -> int:
+    cpdef int compare_vector(self, DTYPE_t value, DTYPE_t value2):
         if value < value2:
             return -1
         elif value > value2:
@@ -922,21 +1093,21 @@ class OrdinalHyperparameter(Hyperparameter):
         """
         return value in self.sequence
 
-    def is_legal_vector(self, value: Union[None, float, int]) -> bool:
+    cpdef bint is_legal_vector(self, DTYPE_t value):
         return value in self.sequence_vector
 
-    def check_default(self, default: Union[int, float, str, None]) -> Union[int, float, str]:
+    def check_default(self, default_value: Union[int, float, str, None]) -> Union[int, float, str]:
         """
         checks if given default value is represented in the sequence.
         If there's no default value we simply choose the
         first element in our sequence as default.
         """
-        if default is None:
+        if default_value is None:
             return self.sequence[0]
-        elif self.is_legal(default):
-            return default
+        elif self.is_legal(default_value):
+            return default_value
         else:
-            raise ValueError("Illegal default value %s" % str(default))
+            raise ValueError("Illegal default value %s" % str(default_value))
 
     def _transform(self, vector: np.ndarray) -> Union[None, int, str, float]:
         if vector != vector:
@@ -1000,9 +1171,10 @@ class OrdinalHyperparameter(Hyperparameter):
         """
         returns the number of existing neighbors in the sequence
         """
-        if value == self.sequence[0] and value == self.sequence[-1]:# check if there is only one value
+        max_idx = len(self.sequence) - 1
+        if value == self.sequence[0] and value == self.sequence[max_idx]:# check if there is only one value
             return 0
-        elif value == self.sequence[0] or value == self.sequence[-1]:
+        elif value == self.sequence[0] or value == self.sequence[max_idx]:
             return 1
         else:
             return 2

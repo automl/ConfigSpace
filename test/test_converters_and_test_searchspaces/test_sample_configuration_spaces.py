@@ -31,8 +31,8 @@ import unittest
 
 import ConfigSpace
 import ConfigSpace.util
-import ConfigSpace.io.pcs as pcs_parser
-import ConfigSpace.io.pcs_new as pcs_new_parser
+import ConfigSpace.read_and_write.pcs as pcs_parser
+import ConfigSpace.read_and_write.pcs_new as pcs_new_parser
 
 
 class ExampleSearchSpacesTest(unittest.TestCase):

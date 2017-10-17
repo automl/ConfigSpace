@@ -57,7 +57,7 @@ def impute_inactive_values(configuration: Configuration, strategy: Union[str, fl
             if strategy == 'default':
                 hp = configuration.configuration_space.get_hyperparameter(
                     hp_name)
-                new_value = hp.default
+                new_value = hp.default_value
 
             elif isinstance(strategy, float):
                 new_value = strategy
@@ -134,8 +134,8 @@ def change_hp_value(configuration_space: ConfigurationSpace,
 
             if active and (current_value is None or
                                not np.isfinite(current_value)):
-                default = current._inverse_transform(current.default)
-                configuration_array[current_idx] = default
+                default_value = current._inverse_transform(current.default_value)
+                configuration_array[current_idx] = default_value
                 children_ = configuration_space._children_of[current.name]
                 if len(children_) > 0:
                     to_visit.extendleft(children_)

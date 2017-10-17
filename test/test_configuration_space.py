@@ -86,8 +86,8 @@ class TestConfigurationSpace(unittest.TestCase):
 
     def test_illegal_default_configuration(self):
         cs = ConfigurationSpace()
-        hp1 = CategoricalHyperparameter("loss", ["l1", "l2"], default='l1')
-        hp2 = CategoricalHyperparameter("penalty", ["l1", "l2"], default='l1')
+        hp1 = CategoricalHyperparameter("loss", ["l1", "l2"], default_value='l1')
+        hp2 = CategoricalHyperparameter("penalty", ["l1", "l2"], default_value='l1')
         cs.add_hyperparameter(hp1)
         cs.add_hyperparameter(hp2)
         forb1 = ForbiddenEqualsClause(hp1, "l1")
@@ -683,8 +683,8 @@ class ConfigurationTest(unittest.TestCase):
         Checks overriding a sampled configuration
         '''
         pcs = ConfigurationSpace()
-        pcs.add_hyperparameter(UniformIntegerHyperparameter('x0', 1, 5, default=1))
-        x1 = pcs.add_hyperparameter(CategoricalHyperparameter('x1', ['ab', 'bc', 'cd', 'de'], default='ab'))
+        pcs.add_hyperparameter(UniformIntegerHyperparameter('x0', 1, 5, default_value=1))
+        x1 = pcs.add_hyperparameter(CategoricalHyperparameter('x1', ['ab', 'bc', 'cd', 'de'], default_value='ab'))
 
         # Condition
         x2 = pcs.add_hyperparameter(CategoricalHyperparameter('x2', [1, 2]))

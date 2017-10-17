@@ -35,7 +35,7 @@ install:
 
 # command to run tests, e.g. python setup.py test
 script:
-  - nosetests -sv --with-coverage --cover-package=ConfigSpace
+  - nosetests -sv --with-coverage --cover-package=ConfigSpace test
 
 after_success:
   - codecov

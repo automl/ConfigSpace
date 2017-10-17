@@ -5,7 +5,7 @@ import numpy as np
 
 import ConfigSpace
 import ConfigSpace.util
-import ConfigSpace.io.pcs as pcs_parser
+import ConfigSpace.read_and_write.pcs as pcs_parser
 
 
 n_configs = 100

@@ -1,3 +1,4 @@
+# cython: profile=True
 # Copyright (c) 2014-2016, ConfigSpace developers
 # Matthias Feurer
 # Katharina Eggensperger
@@ -45,10 +46,10 @@ DTYPE = np.float
 # type with a _t-suffix.
 ctypedef np.float_t DTYPE_t
 
-import io.io as io
+import io
 from functools import reduce
-from ConfigSpace.hyperparameters import Hyperparameter, \
-    NumericalHyperparameter, OrdinalHyperparameter
+from ConfigSpace.hyperparameters import NumericalHyperparameter, OrdinalHyperparameter
+from ConfigSpace.hyperparameters cimport Hyperparameter
 
 
 cdef class ConditionComponent(object):
@@ -92,12 +93,12 @@ cdef class ConditionComponent(object):
 
 
 cdef class AbstractCondition(ConditionComponent):
-    cdef public child
-    cdef public parent
-    cdef public child_vector_id
-    cdef public parent_vector_id
+    cdef public Hyperparameter child
+    cdef public Hyperparameter parent
+    cdef public int child_vector_id
+    cdef public int parent_vector_id
     cdef public value
-    cdef public vector_value
+    cdef public DTYPE_t vector_value
 
     def __init__(self, child: Hyperparameter, parent: Hyperparameter) -> None:
         if not isinstance(child, Hyperparameter):
@@ -111,8 +112,8 @@ cdef class AbstractCondition(ConditionComponent):
                              "different hyperparameters.")
         self.child = child
         self.parent = parent
-        self.child_vector_id = None
-        self.parent_vector_id = None
+        self.child_vector_id = -1
+        self.parent_vector_id = -1
 
     def __richcmp__(self, other: Any, int op):
         """Override the default Equals behavior
@@ -349,7 +350,7 @@ cdef class EqualsCondition(AbstractCondition):
         # No need to check if the value to compare is a legal value; either it
         # is equal (and thus legal), or it would evaluate to False anyway
 
-        cdef bint cmp = self.parent.compare_vector(value, self.vector_value)
+        cdef int cmp = self.parent.compare_vector(value, self.vector_value)
         if cmp == 0:
             return True
         else:
@@ -385,7 +386,7 @@ cdef class NotEqualsCondition(AbstractCondition):
         if not self.parent.is_legal_vector(value):
             return False
 
-        cdef bint cmp = self.parent.compare_vector(value, self.vector_value)
+        cdef int cmp = self.parent.compare_vector(value, self.vector_value)
         if cmp != 0:
             return True
         else:

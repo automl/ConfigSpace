@@ -32,17 +32,14 @@ import tempfile
 import unittest
 
 from ConfigSpace.configuration_space import ConfigurationSpace
-import ConfigSpace.io.pcs as pcs
-import ConfigSpace.io.pcs_new as pcs_new
+import ConfigSpace.read_and_write.pcs as pcs
+import ConfigSpace.read_and_write.pcs_new as pcs_new
 from ConfigSpace.hyperparameters import CategoricalHyperparameter, \
     UniformIntegerHyperparameter, UniformFloatHyperparameter, OrdinalHyperparameter
 from ConfigSpace.conditions import EqualsCondition, InCondition, \
     AndConjunction, OrConjunction, NotEqualsCondition, \
-    LessThanCondition, GreaterThanCondition
-from ConfigSpace.forbidden import ForbiddenEqualsClause, \
-    ForbiddenInClause, ForbiddenAndConjunction
-from ConfigSpace.forbidden import ForbiddenEqualsClause, \
-    ForbiddenInClause, ForbiddenAndConjunction
+    GreaterThanCondition
+from ConfigSpace.forbidden import ForbiddenInClause, ForbiddenAndConjunction
 
 # More complex search space
 classifier = CategoricalHyperparameter("classifier", ["svm", "nn"])

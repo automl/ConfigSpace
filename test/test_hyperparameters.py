@@ -92,20 +92,20 @@ class TestHyperparameters(unittest.TestCase):
             "param, Type: UniformFloat, Range: [1e-05, 10.0], Default: 0.01, "
             "on log-scale", str(f3))
 
-        f4 = UniformFloatHyperparameter("param", 0, 10, default=1.0)
-        f4_ = UniformFloatHyperparameter("param", 0, 10, default=1.0)
+        f4 = UniformFloatHyperparameter("param", 0, 10, default_value=1.0)
+        f4_ = UniformFloatHyperparameter("param", 0, 10, default_value=1.0)
         # Test that a int default is converted to float
-        f4__ = UniformFloatHyperparameter("param", 0, 10, default=1)
+        f4__ = UniformFloatHyperparameter("param", 0, 10, default_value=1)
         self.assertEqual(f4, f4_)
-        self.assertEqual(type(f4.default), type(f4__.default))
+        self.assertEqual(type(f4.default_value), type(f4__.default_value))
         self.assertEqual(
             "param, Type: UniformFloat, Range: [0.0, 10.0], Default: 1.0",
             str(f4))
 
         f5 = UniformFloatHyperparameter("param", 0.1, 10, q=0.1, log=True,
-                                        default=1.0)
+                                        default_value=1.0)
         f5_ = UniformFloatHyperparameter("param", 0.1, 10, q=0.1, log=True,
-                                         default=1.0)
+                                         default_value=1.0)
         self.assertEqual(f5, f5_)
         self.assertEqual(
             "param, Type: UniformFloat, Range: [0.1, 10.0], Default: 1.0, "
@@ -143,7 +143,7 @@ class TestHyperparameters(unittest.TestCase):
         self.assertTrue(f1.is_legal_vector(0.3))
         self.assertFalse(f1.is_legal_vector(-0.1))
         self.assertFalse(f1.is_legal_vector(1.1))
-        self.assertFalse(f1.is_legal_vector("Hahaha"))
+        self.assertRaises(TypeError, f1.is_legal_vector, "Hahaha")
 
 
     def test_uniformfloat_illegal_bounds(self):
@@ -180,16 +180,16 @@ class TestHyperparameters(unittest.TestCase):
             "param, Type: NormalFloat, Mu: 0.0 Sigma: 10.0, Default: 0.0, "
             "on log-scale", str(f3))
 
-        f4 = NormalFloatHyperparameter("param", 0, 10, default=1.0)
-        f4_ = NormalFloatHyperparameter("param", 0, 10, default=1.0)
+        f4 = NormalFloatHyperparameter("param", 0, 10, default_value=1.0)
+        f4_ = NormalFloatHyperparameter("param", 0, 10, default_value=1.0)
         self.assertEqual(f4, f4_)
         self.assertEqual(
             "param, Type: NormalFloat, Mu: 0.0 Sigma: 10.0, Default: 1.0",
             str(f4))
 
-        f5 = NormalFloatHyperparameter("param", 0, 10, default=1.0,
+        f5 = NormalFloatHyperparameter("param", 0, 10, default_value=1.0,
                                        q=0.1, log=True)
-        f5_ = NormalFloatHyperparameter("param", 0, 10, default=1.0,
+        f5_ = NormalFloatHyperparameter("param", 0, 10, default_value=1.0,
                                         q=0.1, log=True)
         self.assertEqual(f5, f5_)
         self.assertEqual(
@@ -218,7 +218,7 @@ class TestHyperparameters(unittest.TestCase):
         self.assertTrue(f1.is_legal_vector(0.3))
         self.assertTrue(f1.is_legal_vector(-0.1))
         self.assertTrue(f1.is_legal_vector(1.1))
-        self.assertFalse(f1.is_legal_vector("Hahaha"))
+        self.assertRaises(TypeError, f1.is_legal_vector, "Hahaha")
 
     def test_normalfloat_to_integer(self):
         f1 = NormalFloatHyperparameter("param", 0, 10)
@@ -255,16 +255,16 @@ class TestHyperparameters(unittest.TestCase):
             "param, Type: UniformInteger, Range: [1, 10], Default: 3, "
             "on log-scale", str(f3))
 
-        f4 = UniformIntegerHyperparameter("param", 1, 10, default=1, log=True)
-        f4_ = UniformIntegerHyperparameter("param", 1, 10, default=1, log=True)
+        f4 = UniformIntegerHyperparameter("param", 1, 10, default_value=1, log=True)
+        f4_ = UniformIntegerHyperparameter("param", 1, 10, default_value=1, log=True)
         self.assertEqual(f4, f4_)
         self.assertEqual(
             "param, Type: UniformInteger, Range: [1, 10], Default: 1, "
             "on log-scale", str(f4))
 
-        f5 = UniformIntegerHyperparameter("param", 1, 10, default=1, q=0.1,\
+        f5 = UniformIntegerHyperparameter("param", 1, 10, default_value=1, q=0.1,\
                                                                      log=True)
-        f5_ = UniformIntegerHyperparameter("param", 1, 10, default=1, q=0.1,\
+        f5_ = UniformIntegerHyperparameter("param", 1, 10, default_value=1, q=0.1,\
                                                                       log=True)
         self.assertEqual(f5, f5_)
         self.assertEqual(
@@ -275,16 +275,16 @@ class TestHyperparameters(unittest.TestCase):
         self.assertNotEqual(f1, "UniformFloat")
 
     def test_uniformint_legal_float_values(self):
-        n_iter = UniformIntegerHyperparameter("n_iter", 5., 1000., default=20.0)
+        n_iter = UniformIntegerHyperparameter("n_iter", 5., 1000., default_value=20.0)
 
-        self.assertIsInstance(n_iter.default, int)
+        self.assertIsInstance(n_iter.default_value, int)
         self.assertRaisesRegexp(ValueError, "For the Integer parameter n_iter, "
                                             "the value must be an Integer, too."
                                             " Right now it is a <(type|class) "
                                             "'float'>"
                                             " with value 20.5.",
                                 UniformIntegerHyperparameter,"n_iter", 5.,
-                                1000., default=20.5)
+                                1000., default_value=20.5)
 
     def test_uniformint_illegal_bounds(self):
         self.assertRaisesRegexp(ValueError,
@@ -326,8 +326,8 @@ class TestHyperparameters(unittest.TestCase):
             "param, Type: NormalInteger, Mu: 0 Sigma: 10, Default: 0, "
             "on log-scale", str(f3))
 
-        f4 = NormalIntegerHyperparameter("param", 0, 10, default=1, log=True)
-        f4_ = NormalIntegerHyperparameter("param", 0, 10, default=1, log=True)
+        f4 = NormalIntegerHyperparameter("param", 0, 10, default_value=1, log=True)
+        f4_ = NormalIntegerHyperparameter("param", 0, 10, default_value=1, log=True)
         self.assertEqual(f4, f4_)
         self.assertEqual(
             "param, Type: NormalInteger, Mu: 0 Sigma: 10, Default: 1, "
@@ -344,15 +344,15 @@ class TestHyperparameters(unittest.TestCase):
         self.assertNotEqual(f1, "UniformFloat")
 
     def test_normalint_legal_float_values(self):
-        n_iter = NormalIntegerHyperparameter("n_iter", 0, 1., default=2.0)
-        self.assertIsInstance(n_iter.default, int)
+        n_iter = NormalIntegerHyperparameter("n_iter", 0, 1., default_value=2.0)
+        self.assertIsInstance(n_iter.default_value, int)
         self.assertRaisesRegexp(ValueError, "For the Integer parameter n_iter, "
                                             "the value must be an Integer, too."
                                             " Right now it is a "
                                             "<(type|class) 'float'>"
                                             " with value 0.5.",
                                 UniformIntegerHyperparameter, "n_iter", 0,
-                                1., default=0.5)
+                                1., default_value=0.5)
 
     def test_normalint_to_uniform(self):
         f1 = NormalIntegerHyperparameter("param", 0, 10, q=0.1)
@@ -375,7 +375,7 @@ class TestHyperparameters(unittest.TestCase):
         self.assertTrue(f1.is_legal_vector(0.3))
         self.assertTrue(f1.is_legal_vector(-0.1))
         self.assertTrue(f1.is_legal_vector(1.1))
-        self.assertFalse(f1.is_legal_vector("Hahaha"))
+        self.assertRaises(TypeError, f1.is_legal_vector, "Hahaha")
 
     def test_categorical(self):
         # TODO test for inequality
@@ -385,25 +385,25 @@ class TestHyperparameters(unittest.TestCase):
         self.assertEqual("param, Type: Categorical, Choices: {0, 1}, Default: 0",
                          str(f1))
 
-        f2 = CategoricalHyperparameter("param", range(0, 1000))
-        f2_ = CategoricalHyperparameter("param", range(0, 1000))
+        f2 = CategoricalHyperparameter("param", list(range(0, 1000)))
+        f2_ = CategoricalHyperparameter("param", list(range(0, 1000)))
         self.assertEqual(f2, f2_)
         self.assertEqual(
             "param, Type: Categorical, Choices: {%s}, Default: 0" %
             ", ".join([str(choice) for choice in range(0, 1000)]),
             str(f2))
 
-        f3 = CategoricalHyperparameter("param", range(0, 999))
+        f3 = CategoricalHyperparameter("param", list(range(0, 999)))
         self.assertNotEqual(f2, f3)
 
-        f4 = CategoricalHyperparameter("param_", range(0, 1000))
+        f4 = CategoricalHyperparameter("param_", list(range(0, 1000)))
         self.assertNotEqual(f2, f4)
 
         f5 = CategoricalHyperparameter("param", list(range(0, 999)) + [1001])
         self.assertNotEqual(f2, f5)
 
-        f6 = CategoricalHyperparameter("param", ["a", "b"], default="b")
-        f6_ = CategoricalHyperparameter("param", ["a", "b"], default="b")
+        f6 = CategoricalHyperparameter("param", ["a", "b"], default_value="b")
+        f6_ = CategoricalHyperparameter("param", ["a", "b"], default_value="b")
         self.assertEqual(f6, f6_)
         self.assertEqual("param, Type: Categorical, Choices: {a, b}, Default: b"
                          , str(f6))
@@ -431,7 +431,7 @@ class TestHyperparameters(unittest.TestCase):
         self.assertTrue(f1.is_legal_vector(0))
         self.assertFalse(f1.is_legal_vector(0.3))
         self.assertFalse(f1.is_legal_vector(-0.1))
-        self.assertFalse(f1.is_legal_vector("Hahaha"))
+        self.assertRaises(TypeError, f1.is_legal_vector, "Hahaha")
 
     def test_sample_UniformFloatHyperparameter(self):
         # This can sample four distributions
@@ -621,7 +621,7 @@ class TestHyperparameters(unittest.TestCase):
         self.assertTrue(f1.is_legal_vector(0))
         self.assertTrue(f1.is_legal_vector(3))
         self.assertFalse(f1.is_legal_vector(-0.1))
-        self.assertFalse(f1.is_legal_vector("Hahaha"))
+        self.assertRaises(TypeError, f1.is_legal_vector, "Hahaha")
         
     def test_ordinal_check_order(self):
         f1 = OrdinalHyperparameter("temp", 

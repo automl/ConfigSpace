@@ -1,3 +1,4 @@
+# cython: profile=True
 # Copyright (c) 2014-2016, ConfigSpace developers
 # Matthias Feurer
 # Katharina Eggensperger
@@ -28,8 +29,9 @@
 
 import numpy as np
 cimport numpy as np
-import io.io as io
+import io
 from ConfigSpace.hyperparameters import Hyperparameter
+from ConfigSpace.hyperparameters cimport Hyperparameter
 from typing import List, Dict, Any, Union
 
 from libc.stdlib cimport malloc, free

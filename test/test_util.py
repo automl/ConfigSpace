@@ -34,7 +34,7 @@ import numpy as np
 from ConfigSpace import Configuration, ConfigurationSpace, UniformIntegerHyperparameter, \
     UniformFloatHyperparameter, CategoricalHyperparameter, Constant, \
     EqualsCondition, AndConjunction, OrConjunction
-from ConfigSpace.io.pcs import read
+from ConfigSpace.read_and_write.pcs import read
 from ConfigSpace.util import impute_inactive_values, get_random_neighbor, \
     get_one_exchange_neighbourhood, deactivate_inactive_hyperparameters, \
     change_hp_value

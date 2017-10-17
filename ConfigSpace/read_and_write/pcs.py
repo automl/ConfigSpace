@@ -68,7 +68,7 @@ def build_categorical(param):
     cat_template = "%s {%s} [%s]"
     return cat_template % (param.name,
                            ", ".join([str(value) for value in param.choices]),
-                           str(param.default))
+                           str(param.default_value))
 
 
 def build_constant(param):
@@ -91,15 +91,15 @@ def build_continuous(param):
         q_prefix = "Q%d_" % (int(param.q),)
     else:
         q_prefix = ""
-    default = param.default
+    default_value = param.default_value
 
     if isinstance(param, IntegerHyperparameter):
-        default = int(default)
+        default_value = int(default_value)
         return int_template % (q_prefix, param.name, param.lower,
-                               param.upper, default)
+                               param.upper, default_value)
     else:
         return float_template % (q_prefix, param.name, str(param.lower),
-                                 str(param.upper), str(default))
+                                 str(param.upper), str(default_value))
 
 
 def build_condition(condition):
@@ -211,9 +211,9 @@ def read(pcs_string, debug=False):
             upper = float(param_list[4])
             paramtype = "int" if "i" in il else "float"
             log = True if "l" in il else False
-            default = float(param_list[7])
+            default_value = float(param_list[7])
             param = create[paramtype](name=name, lower=lower, upper=upper,
-                                      q=None, log=log, default=default)
+                                      q=None, log=log, default_value=default_value)
             cont_ct += 1
         except pyparsing.ParseException:
             pass
@@ -222,9 +222,9 @@ def read(pcs_string, debug=False):
             param_list = pp_cat_param.parseString(line)
             name = param_list[0]
             choices = [c for c in param_list[2:-4:2]]
-            default = param_list[-2]
+            default_value = param_list[-2]
             param = create["categorical"](name=name, choices=choices,
-                                          default=default)
+                                          default_value=default_value)
             cat_ct += 1
         except pyparsing.ParseException:
             pass

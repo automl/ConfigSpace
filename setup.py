@@ -20,7 +20,10 @@ compiler_directives = {
 }
 
 extensions = cythonize(
-    [Extension('ConfigSpace.forbidden',
+    [Extension('ConfigSpace.hyperparameters',
+               sources=['ConfigSpace/hyperparameters.pyx',],
+               include_dirs=[np.get_include()]),
+     Extension('ConfigSpace.forbidden',
                sources=['ConfigSpace/forbidden.pyx'],
                include_dirs=[np.get_include()]),
      Extension('ConfigSpace.conditions',

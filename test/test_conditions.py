@@ -75,10 +75,10 @@ class TestConditions(unittest.TestCase):
 
     def test_equals_condition_illegal_value(self):
         epsilon = UniformFloatHyperparameter("epsilon", 1e-5, 1e-1,
-                                             default=1e-4, log=True)
+                                             default_value=1e-4, log=True)
         loss = CategoricalHyperparameter("loss",
                                          ["hinge", "log", "modified_huber", "squared_hinge", "perceptron"],
-                                         default="hinge")
+                                         default_value="hinge")
         self.assertRaisesRegexp(ValueError, "Hyperparameter 'epsilon' is "
                                             "conditional on the illegal value 'huber' of "
                                             "its parent hyperparameter 'loss'",
@@ -104,18 +104,18 @@ class TestConditions(unittest.TestCase):
 
     def test_not_equals_condition_illegal_value(self):
         epsilon = UniformFloatHyperparameter("epsilon", 1e-5, 1e-1,
-                                             default=1e-4, log=True)
+                                             default_value=1e-4, log=True)
         loss = CategoricalHyperparameter("loss",
                                          ["hinge", "log", "modified_huber",
                                           "squared_hinge", "perceptron"],
-                                         default="hinge")
+                                         default_value="hinge")
         self.assertRaisesRegexp(ValueError, "Hyperparameter 'epsilon' is "
                                             "conditional on the illegal value 'huber' of "
                                             "its parent hyperparameter 'loss'",
                                 NotEqualsCondition, epsilon, loss, "huber")
 
     def test_in_condition(self):
-        hp1 = CategoricalHyperparameter("parent", range(0, 11))
+        hp1 = CategoricalHyperparameter("parent", list(range(0, 11)))
         hp2 = UniformIntegerHyperparameter("child", 0, 10)
         cond = InCondition(hp2, hp1, [0, 1, 2, 3, 4, 5])
         cond_ = InCondition(hp2, hp1, [0, 1, 2, 3, 4, 5])
@@ -173,13 +173,13 @@ class TestConditions(unittest.TestCase):
                                             "condition must be a subclass of "
                                             "NumericalHyperparameter or "
                                             "OrdinalHyperparameter, but is "
-                                            "<class 'ConfigSpace.hyperparameters.CategoricalHyperparameter'>",
+                                            "<cdef class 'ConfigSpace.hyperparameters.CategoricalHyperparameter'>",
                                 GreaterThanCondition, child, hp4, 1)
         self.assertRaisesRegexp(ValueError, "Parent hyperparameter in a > or < "
                                             "condition must be a subclass of "
                                             "NumericalHyperparameter or "
                                             "OrdinalHyperparameter, but is "
-                                            "<class 'ConfigSpace.hyperparameters.CategoricalHyperparameter'>",
+                                            "<cdef class 'ConfigSpace.hyperparameters.CategoricalHyperparameter'>",
                                 LessThanCondition, child, hp4, 1)
 
         hp5 = OrdinalHyperparameter("ord", ['cold', 'luke warm', 'warm', 'hot'])
@@ -206,11 +206,11 @@ class TestConditions(unittest.TestCase):
 
     def test_in_condition_illegal_value(self):
         epsilon = UniformFloatHyperparameter("epsilon", 1e-5, 1e-1,
-                                             default=1e-4, log=True)
+                                             default_value=1e-4, log=True)
         loss = CategoricalHyperparameter("loss",
                                          ["hinge", "log", "modified_huber",
                                           "squared_hinge", "perceptron"],
-                                         default="hinge")
+                                         default_value="hinge")
         self.assertRaisesRegexp(ValueError, "Hyperparameter 'epsilon' is "
                                             "conditional on the illegal value 'huber' of "
                                             "its parent hyperparameter 'loss'",
@@ -338,7 +338,7 @@ class TestConditions(unittest.TestCase):
                                 "the same child.", AndConjunction, cond1, cond4)
 
     def test_condition_from_cryptominisat(self):
-        parent = CategoricalHyperparameter('blkrest', ['0', '1'], default='1')
+        parent = CategoricalHyperparameter('blkrest', ['0', '1'], default_value='1')
         child = UniformIntegerHyperparameter('blkrestlen', 2000, 10000,
                                              log=True)
         condition = EqualsCondition(child, parent, '1')
@@ -352,7 +352,7 @@ class TestConditions(unittest.TestCase):
         _1_S_countercond = CategoricalHyperparameter('cony', ['yes', 'no'])
         _1_0_restarts = CategoricalHyperparameter('restarts', ['F', 'L', 'D',
                                                                'x', '+', 'no'],
-                                                  default='x')
+                                                  default_value='x')
 
         condition = EqualsCondition(counter, _1_S_countercond, 'yes')
         # All conditions inherit get_parents from abstractcondition

@@ -651,7 +651,7 @@ class ConfigurationSpace(object):
             elif isinstance(hp, Constant):
                 instantiated_hyperparameters[hp.name] = hp.value
             else:
-                instantiated_hyperparameters[hp.name] = hp.default
+                instantiated_hyperparameters[hp.name] = hp.default_value
 
                 # TODO copy paste from check configuration
 
