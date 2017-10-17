@@ -37,7 +37,7 @@ from ConfigSpace.hyperparameters import \
 
 # from ConfigSpace.forbidden import ForbiddenEqualsClause, \
 #     ForbiddenInClause, ForbiddenAndConjunction
-from ConfigSpace.forbidden_cython import ForbiddenEqualsClause, \
+from ConfigSpace.forbidden import ForbiddenEqualsClause, \
     ForbiddenInClause, ForbiddenAndConjunction
 
 

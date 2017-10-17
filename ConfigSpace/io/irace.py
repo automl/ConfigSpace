@@ -32,7 +32,7 @@ from ConfigSpace.conditions import EqualsCondition, NotEqualsCondition, \
     InCondition, AndConjunction, OrConjunction, ConditionComponent, GreaterThanCondition, LessThanCondition
 # from ConfigSpace.forbidden import ForbiddenEqualsClause, \
 #     ForbiddenAndConjunction, ForbiddenInClause, AbstractForbiddenComponent, MultipleValueForbiddenClause
-from ConfigSpace.forbidden_cython import ForbiddenEqualsClause, \
+from ConfigSpace.forbidden import ForbiddenEqualsClause, \
     ForbiddenAndConjunction, ForbiddenInClause, AbstractForbiddenComponent, MultipleValueForbiddenClause
 import sys
 import pyparsing

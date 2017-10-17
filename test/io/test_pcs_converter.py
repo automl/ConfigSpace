@@ -41,7 +41,7 @@ from ConfigSpace.conditions import EqualsCondition, InCondition, \
     LessThanCondition, GreaterThanCondition
 from ConfigSpace.forbidden import ForbiddenEqualsClause, \
     ForbiddenInClause, ForbiddenAndConjunction
-from ConfigSpace.forbidden_cython import ForbiddenEqualsClause, \
+from ConfigSpace.forbidden import ForbiddenEqualsClause, \
     ForbiddenInClause, ForbiddenAndConjunction
 
 # More complex search space

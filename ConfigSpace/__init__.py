@@ -39,5 +39,5 @@ from ConfigSpace.conditions import AndConjunction, OrConjunction, \
     EqualsCondition, NotEqualsCondition, InCondition, GreaterThanCondition, LessThanCondition
 # from ConfigSpace.forbidden import ForbiddenAndConjunction, \
 #     ForbiddenEqualsClause, ForbiddenInClause
-from ConfigSpace.forbidden_cython import ForbiddenAndConjunction, \
+from ConfigSpace.forbidden import ForbiddenAndConjunction, \
     ForbiddenEqualsClause, ForbiddenInClause

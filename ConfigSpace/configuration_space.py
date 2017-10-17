@@ -38,7 +38,7 @@ from ConfigSpace.hyperparameters import Hyperparameter, Constant, FloatHyperpara
 from ConfigSpace.conditions import ConditionComponent, \
     AbstractCondition, AbstractConjunction, EqualsCondition
 # from ConfigSpace.forbidden import AbstractForbiddenComponent
-from ConfigSpace.forbidden_cython import AbstractForbiddenComponent
+from ConfigSpace.forbidden import AbstractForbiddenComponent
 from typing import Union, List, Any, Dict, Iterable, Set, Tuple
 from ConfigSpace.exceptions import ForbiddenValueError
 

@@ -39,7 +39,7 @@ from ConfigSpace.conditions import EqualsCondition, NotEqualsCondition,\
     GreaterThanCondition, LessThanCondition
 # from ConfigSpace.forbidden import ForbiddenEqualsClause, \
 #     ForbiddenAndConjunction, ForbiddenInClause, AbstractForbiddenComponent, MultipleValueForbiddenClause
-from ConfigSpace.forbidden_cython import ForbiddenEqualsClause, \
+from ConfigSpace.forbidden import ForbiddenEqualsClause, \
     ForbiddenAndConjunction, ForbiddenInClause, AbstractForbiddenComponent, MultipleValueForbiddenClause
 
 # Build pyparsing expressions for params

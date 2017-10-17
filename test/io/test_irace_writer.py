@@ -42,7 +42,7 @@ from ConfigSpace.conditions import EqualsCondition, InCondition, \
     AndConjunction, OrConjunction, NotEqualsCondition, \
     LessThanCondition, GreaterThanCondition
 # from ConfigSpace.forbidden import ForbiddenInClause, ForbiddenEqualsClause, ForbiddenAndConjunction
-from ConfigSpace.forbidden_cython import ForbiddenInClause, ForbiddenEqualsClause, ForbiddenAndConjunction
+from ConfigSpace.forbidden import ForbiddenInClause, ForbiddenEqualsClause, ForbiddenAndConjunction
 
 
 # Copyright (c) 2014-2016, ConfigSpace developers

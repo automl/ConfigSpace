@@ -33,7 +33,7 @@ import operator
 
 import numpy as np
 
-import io
+import io.io as io
 from functools import reduce
 from ConfigSpace.hyperparameters import Hyperparameter, \
     NumericalHyperparameter, OrdinalHyperparameter
