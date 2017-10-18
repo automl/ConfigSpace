@@ -28,6 +28,7 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from abc import ABCMeta, abstractmethod
+import copy
 from itertools import combinations
 from typing import Any, List, Union, Tuple
 import operator
@@ -143,6 +144,13 @@ cdef class AbstractCondition(ConditionComponent):
 
         return NotImplemented
 
+    def __copy__(self):
+        return self.__class__(
+            child=copy.copy(self.child),
+            parent=copy.copy(self.parent),
+            value=copy.copy(self.value),
+        )
+
     def set_vector_idx(self, hyperparameter_to_idx: dict):
         self.child_vector_id = hyperparameter_to_idx[self.child.name]
         self.parent_vector_id = hyperparameter_to_idx[self.parent.name]
@@ -237,6 +245,9 @@ cdef class AbstractConjunction(ConditionComponent):
             return True
 
         return NotImplemented
+
+    def __copy__(self):
+        return self.__class__([copy(comp) for comp in self.components])
 
     def get_descendant_literal_conditions(self) -> Tuple[AbstractCondition]:
         children = []  # type: List[AbstractCondition]

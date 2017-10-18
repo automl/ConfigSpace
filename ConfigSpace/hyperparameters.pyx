@@ -33,6 +33,7 @@ import warnings
 from hyperparameters cimport Hyperparameter
 
 from collections import OrderedDict
+import copy
 from typing import List, Any, Dict, Union, Tuple
 import io
 import numpy as np
@@ -153,6 +154,9 @@ cdef class Constant(Hyperparameter):
 
         return NotImplemented
 
+    def __copy__(self):
+        return Constant(self.name, self.value)
+
     def __hash__(self):
         return hash(tuple(self.name, self.value))
 
@@ -243,6 +247,7 @@ cdef class NumericalHyperparameter(Hyperparameter):
             if op == 2:
                 return (
                     self.name == other.name and
+                    self.default_value == other.default_value and
                     self.lower == other.lower and
                     self.upper == other.upper and
                     self.log == other.log and
@@ -252,6 +257,7 @@ cdef class NumericalHyperparameter(Hyperparameter):
             elif op == 3:
                 return (
                     self.name != other.name or
+                    self.default_value != other.default_value or
                     self.lower != other.lower or
                     self.upper != other.upper or
                     self.log != other.log or
@@ -261,7 +267,25 @@ cdef class NumericalHyperparameter(Hyperparameter):
         return NotImplemented
 
     def __hash__(self):
-        return hash(tuple(self.name, self.lower, self.upper, self.log, self.q))
+        return hash(
+            tuple(
+                self.name,
+                self.lower,
+                self.upper,
+                self.log,
+                self.q
+            )
+        )
+
+    def __copy__(self):
+        return self.__class__(
+            name=self.name,
+            default_value=self.default_value,
+            lower=self.lower,
+            upper=self.upper,
+            log=self.log,
+            q=self.q
+        )
 
 
 cdef class FloatHyperparameter(NumericalHyperparameter):
@@ -469,6 +493,7 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
             if op == 2:
                 return (
                     self.name == other.name and
+                    self.default_value == other.default_value and
                     self.mu == other.mu and
                     self.sigma == other.sigma and
                     self.log == other.log and
@@ -478,6 +503,7 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
             elif op == 3:
                 return (
                     self.name != other.name or
+                    self.default_value != other.default_value or
                     self.mu != other.mu or
                     self.sigma != other.sigma or
                     self.log != other.log or
@@ -485,6 +511,16 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
                 )
 
         return NotImplemented
+
+    def __copy__(self):
+        return NormalFloatHyperparameter(
+            name=self.name,
+            default_value=self.default_value,
+            mu=self.mu,
+            sigma=self.sigma,
+            log=self.log,
+            q=self.q,
+        )
 
     def __hash__(self):
         return hash(tuple(self.name, self.mu, self.sigma, self.log, self.q))
@@ -776,6 +812,16 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
     def __hash__(self):
         return hash(tuple(self.name, self.mu, self.sigma, self.log, self.q))
 
+    def __copy__(self):
+        return NormalIntegerHyperparameter(
+            name=self.name,
+            default_value=self.default_value,
+            mu=self.mu,
+            sigma=self.sigma,
+            log=self.log,
+            q=self.q,
+        )
+
     # todo check if conversion should be done in initiation call or inside class itsel
     def to_uniform(self, z: int = 3) -> 'UniformIntegerHyperparameter':
         return UniformIntegerHyperparameter(self.name,
@@ -905,6 +951,13 @@ cdef class CategoricalHyperparameter(Hyperparameter):
 
     def __hash__(self):
         return hash(tuple(self.name, self.choices))
+
+    def __copy__(self):
+        return CategoricalHyperparameter(
+            name=self.name,
+            choices=copy.deepcopy(self.choices),
+            default_value=self.default_value,
+        )
 
     cpdef int compare(self, value: Union[int, float, str], value2: Union[int, float, str]):
         if value == value2:
@@ -1070,6 +1123,13 @@ cdef class OrdinalHyperparameter(Hyperparameter):
                 )
 
         return NotImplemented
+
+    def __copy__(self):
+        return OrdinalHyperparameter(
+                name=self.name,
+                sequence=copy.deepcopy(self.sequence),
+                default_value=self.default_value,
+            )
 
     cpdef int compare(self, value: Union[int, float, str], value2: Union[int, float, str]):
         if self.value_dict[value] < self.value_dict[value2]:

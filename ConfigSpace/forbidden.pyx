@@ -27,6 +27,7 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+import copy
 import numpy as np
 cimport numpy as np
 import io
@@ -85,12 +86,14 @@ cdef class AbstractForbiddenComponent(object):
                 return False == (self.value == other.value
                          and self.hyperparameter.name == other.hyperparameter.name)
 
-
         return NotImplemented
 
     def __hash__(self) -> int:
         """Override the default hash behavior (that returns the id or the object)"""
         return hash(tuple(sorted(self.__dict__.items())))
+
+    def __copy__(self):
+        raise NotImplementedError()
 
     cpdef get_descendant_literal_clauses(self):
         pass
@@ -133,6 +136,12 @@ cdef class SingleValueForbiddenClause(AbstractForbiddenClause):
                              "'%s'" % (self.hyperparameter, str(value)))
         self.value = value
         self.vector_value = self.hyperparameter._inverse_transform(self.value)
+
+    def __copy__(self):
+        return self.__class__(
+            hyperparameter=copy.copy(self.hyperparameter),
+            value=self.value
+        )
 
     cpdef is_forbidden(self, instantiated_hyperparameters, strict = True):
         value = instantiated_hyperparameters.get(self.hyperparameter.name)
@@ -178,6 +187,12 @@ cdef class MultipleValueForbiddenClause(AbstractForbiddenClause):
                                  "'%s'" % (self.hyperparameter, str(value)))
         self.values = values
         self.vector_values = [self.hyperparameter._inverse_transform(value) for value in self.values]
+
+    def __copy__(self):
+        return self.__class__(
+            hyperparameter=copy.copy(self.hyperparameter),
+            values=copy.deepcopy(self.values)
+        )
 
     cpdef is_forbidden(self, instantiated_hyperparameters, strict=True):
         value = instantiated_hyperparameters.get(self.hyperparameter.name)
@@ -265,6 +280,9 @@ cdef class AbstractForbiddenConjunction(AbstractForbiddenComponent):
 
     def __repr__(self):
         pass
+
+    def __copy__(self):
+        return self.__class__([copy(comp) for comp in self.components])
 
     cpdef set_vector_idx(self, hyperparameter_to_idx):
         for component in self.components:

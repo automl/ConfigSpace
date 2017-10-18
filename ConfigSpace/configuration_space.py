@@ -425,7 +425,7 @@ class ConfigurationSpace(object):
 
         new_parameters = []
         for hp in configuration_space.get_hyperparameters():
-            new_parameter = copy.deepcopy(hp)
+            new_parameter = copy.copy(hp)
             # Allow for an empty top-level parameter
             if new_parameter.name == '':
                 new_parameter.name = prefix
@@ -437,7 +437,7 @@ class ConfigurationSpace(object):
 
         conditions_to_add = []
         for condition in configuration_space.get_conditions():
-            new_condition = copy.deepcopy(condition)
+            new_condition = copy.copy(condition)
             dlcs = new_condition.get_descendant_literal_conditions()
             for dlc in dlcs:
                 if dlc.child.name == prefix or dlc.child.name == '':
