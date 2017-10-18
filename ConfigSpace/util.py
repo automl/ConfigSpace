@@ -1,3 +1,4 @@
+# cython: profile=True
 # Copyright (c) 2014-2016, ConfigSpace developers
 # Matthias Feurer
 # Katharina Eggensperger
