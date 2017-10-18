@@ -37,23 +37,19 @@ from typing import List, Dict, Any, Union
 
 from libc.stdlib cimport malloc, free
 
+from forbidden cimport AbstractForbiddenComponent
+
 # We now need to fix a datatype for our arrays. I've used the variable
 # DTYPE for this, which is assigned to the usual NumPy runtime
 # type info object.
-DTYPE = np.float
+#DTYPE = np.float
 # "ctypedef" assigns a corresponding compile-time type to DTYPE_t. For
 # every type in the numpy module there's a corresponding compile-time
 # type with a _t-suffix.
-ctypedef np.float_t DTYPE_t
+#ctypedef np.float_t DTYPE_t
 
 
 cdef class AbstractForbiddenComponent(object):
-
-    cdef public hyperparameter
-    cdef public int vector_id
-    cdef public value
-    cdef public DTYPE_t vector_value
-    cdef dict __dict__
 
     def __init__(self):
         pass
@@ -101,7 +97,7 @@ cdef class AbstractForbiddenComponent(object):
     cpdef set_vector_idx(self, hyperparameter_to_idx):
         pass
 
-    cpdef is_forbidden(self, instantiated_hyperparameters, strict=True):
+    cpdef is_forbidden(self, instantiated_hyperparameters, strict):
         pass
 
     def is_forbidden_vector(self, instantiated_hyperparameters, strict):
@@ -143,7 +139,7 @@ cdef class SingleValueForbiddenClause(AbstractForbiddenClause):
             value=self.value
         )
 
-    cpdef is_forbidden(self, instantiated_hyperparameters, strict = True):
+    cpdef is_forbidden(self, instantiated_hyperparameters, strict):
         value = instantiated_hyperparameters.get(self.hyperparameter.name)
         if value is None:
             if strict:
@@ -177,6 +173,9 @@ cdef class SingleValueForbiddenClause(AbstractForbiddenClause):
 
 
 cdef class MultipleValueForbiddenClause(AbstractForbiddenClause):
+    cdef public values
+    cdef public vector_values
+
     def __init__(self, hyperparameter: Hyperparameter, values: Any) -> None:
         super(MultipleValueForbiddenClause, self).__init__(hyperparameter)
 
@@ -194,7 +193,7 @@ cdef class MultipleValueForbiddenClause(AbstractForbiddenClause):
             values=copy.deepcopy(self.values)
         )
 
-    cpdef is_forbidden(self, instantiated_hyperparameters, strict=True):
+    cpdef is_forbidden(self, instantiated_hyperparameters, strict):
         value = instantiated_hyperparameters.get(self.hyperparameter.name)
         if value is None:
             if strict:
@@ -297,7 +296,7 @@ cdef class AbstractForbiddenConjunction(AbstractForbiddenComponent):
                 children.append(component)
         return tuple(children)
 
-    cpdef is_forbidden(self, instantiated_hyperparameters, strict: bool=True):
+    cpdef is_forbidden(self, instantiated_hyperparameters, strict):
         ihp_names = list(instantiated_hyperparameters.keys())
 
         for dlc in self.dlcs:

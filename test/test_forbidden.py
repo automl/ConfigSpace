@@ -87,13 +87,13 @@ class TestForbidden(unittest.TestCase):
                                 "instanstatiated hyperparameter in the "
                                 "forbidden clause; you are missing "
                                 "'parent'", forb1.is_forbidden,
-                                {1: hp2})
+                                {1: hp2}, True)
         # print("\nneq7:")
         self.assertFalse(forb1.is_forbidden({'child': 1}, strict=False))
         # print("\nneq8:")
-        self.assertFalse(forb1.is_forbidden({'parent': 0}))
+        self.assertFalse(forb1.is_forbidden({'parent': 0}, True))
         # print("\nneq9:")
-        self.assertTrue(forb1.is_forbidden({'parent': 1}))
+        self.assertTrue(forb1.is_forbidden({'parent': 1}, True))
 
         # Test forbidden on vector values
         hyperparameter_idx = {
@@ -152,15 +152,15 @@ class TestForbidden(unittest.TestCase):
                                 "instanstatiated hyperparameter in the "
                                 "forbidden clause; you are missing "
                                 "'child'", forb1.is_forbidden,
-                                {'parent': 1})
+                                {'parent': 1}, True)
         # print("\nTest6:")
         self.assertFalse(forb1.is_forbidden({'parent': 1}, strict=False))
         # print("\nTest7:")
         for i in range(0, 5):
-            self.assertFalse(forb1.is_forbidden({'child': i}))
+            self.assertFalse(forb1.is_forbidden({'child': i}, True))
         # print("\nTest8:")
         for i in range(5, 10):
-            self.assertTrue(forb1.is_forbidden({'child': i}))
+            self.assertTrue(forb1.is_forbidden({'child': i}, True))
 
         # Test forbidden on vector values
         hyperparameter_idx = {
@@ -217,7 +217,9 @@ class TestForbidden(unittest.TestCase):
                 {"parent": values[0],
                  "child": values[1],
                  "child2": values[2],
-                 "child3": values[3]})
+                 "child3": values[3]},
+                True,
+            )
 
             self.assertEqual(results[i], is_forbidden)
 

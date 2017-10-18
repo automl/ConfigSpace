@@ -30,6 +30,9 @@ extensions = cythonize(
      Extension('ConfigSpace.conditions',
                sources=['ConfigSpace/conditions.pyx'],
                include_dirs=[np.get_include()]),
+     Extension('ConfigSpace.c_util',
+               sources=['ConfigSpace/c_util.pyx'],
+               include_dirs=[np.get_include()]),
      ],
     compiler_directives=compiler_directives,
 )
