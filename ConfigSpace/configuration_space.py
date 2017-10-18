@@ -990,10 +990,13 @@ class Configuration(object):
                 "Illegal value '%s' for hyperparameter %s" % (str(value), key))
         idx = self.configuration_space.get_idx_by_hyperparameter_name(key)
         vector_value = param._inverse_transform(value)
-        from ConfigSpace.util import change_hp_value
-        new_array = change_hp_value(self.configuration_space,
-                                    self.get_array().copy(),
-                                    param.name, vector_value, idx)
+        new_array = ConfigSpace.c_util.change_hp_value(
+            self.configuration_space,
+            self.get_array().copy(),
+            param.name,
+            vector_value,
+            idx
+        )
         ConfigSpace.c_util.check_configuration(
             self.configuration_space,
             new_array,

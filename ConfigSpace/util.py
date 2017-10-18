@@ -37,6 +37,8 @@ from ConfigSpace.exceptions import ForbiddenValueError
 from ConfigSpace.hyperparameters import CategoricalHyperparameter, \
     UniformFloatHyperparameter, UniformIntegerHyperparameter, Constant, \
     OrdinalHyperparameter
+import ConfigSpace.c_util
+
 
 def impute_inactive_values(configuration: Configuration, strategy: Union[str, float]='default') -> Configuration:
     """Impute inactive parameters.
@@ -74,99 +76,6 @@ def impute_inactive_values(configuration: Configuration, strategy: Union[str, fl
                                       values=values,
                                       allow_inactive_with_values=True)
     return new_configuration
-
-def change_hp_value(configuration_space: ConfigurationSpace,
-                    configuration_array: np.ndarray,
-                    hp_name: str, hp_value: float, index: int) -> np.ndarray:
-    """Change hyperparameter value in configuration array to given value.
-    
-    Does not check if the new value is legal. Activates and deactivates other 
-    hyperparameters if necessary. Does not check if new hyperparameter value 
-    results in the violation of any forbidden clauses.
-    
-    Parameters
-    ----------
-    configuration_space : ConfigurationSpace
-    
-    configuration_array : np.ndarray
-    
-    hp_name : str
-    
-    hp_value : float
-    
-    index : int
-    
-    Returns
-    -------
-    np.ndarray
-    """
-
-    configuration_array[index] = hp_value
-
-    # Hyperparameters which are going to be set to inactive
-    disabled = []
-
-    # Activate hyperparameters if their parent node got activated
-    children = configuration_space._children_of[hp_name]
-    if len(children) > 0:
-        to_visit = deque()  # type: deque
-        to_visit.extendleft(children)
-        visited = set()  # type: Set[str]
-        activated_values = dict()  # type: Dict[str, Union[int, float, str]]
-
-        while len(to_visit) > 0:
-            current = to_visit.pop()
-            if current.name in visited:
-                continue
-            visited.add(current.name)
-            if current.name in disabled:
-                continue
-
-            current_idx = configuration_space.get_idx_by_hyperparameter_name(current.name)
-            current_value = configuration_array[current_idx]
-
-            conditions = configuration_space._parent_conditions_of[current.name]
-
-            active = True
-            for condition in conditions:
-                if not condition.evaluate_vector(configuration_array):
-                    active = False
-                    break
-
-            if active and (current_value is None or
-                               not np.isfinite(current_value)):
-                default_value = current._inverse_transform(current.default_value)
-                configuration_array[current_idx] = default_value
-                children_ = configuration_space._children_of[current.name]
-                if len(children_) > 0:
-                    to_visit.extendleft(children_)
-
-            # If the hyperparameter was made inactive,
-            # all its children need to be deactivade as well
-            if not active and (current_value is not None
-                               or np.isfinite(current_value)):
-                configuration_array[current_idx] = np.NaN
-
-                children = configuration_space._children_of[current.name]
-
-                if len(children) > 0:
-                    to_disable = set()
-                    for ch in children:
-                        to_disable.add(ch.name)
-                    while len(to_disable) > 0:
-                        child = to_disable.pop()
-                        child_idx = configuration_space. \
-                            get_idx_by_hyperparameter_name(child)
-                        disabled.append(child_idx)
-                        children = configuration_space._children_of[child]
-
-                        for ch in children:
-                            to_disable.add(ch.name)
-
-    for idx in disabled:
-        configuration_array[idx] = np.NaN
-
-    return configuration_array
 
 
 def get_one_exchange_neighbourhood(configuration: Configuration, seed: int) -> List[Configuration]:
@@ -228,13 +137,15 @@ def get_one_exchange_neighbourhood(configuration: Configuration, seed: int) -> L
                         break
                     neighbors = hp.get_neighbors(array[index], random)
 
-
                 # Check all newly obtained neigbors
                 for neighbor in neighbors:
                     new_array = array.copy()
-                    new_array = change_hp_value(configuration_space,
-                                                new_array, hp_name, neighbor,
-                                                index)
+                    new_array = ConfigSpace.c_util.change_hp_value(
+                        configuration_space=configuration_space,
+                        configuration_array=new_array,
+                        hp_name=hp_name,
+                        hp_value=neighbor,
+                        index=index)
 
                     try:
                         # Populating a configuration from an array does not check
@@ -243,13 +154,12 @@ def get_one_exchange_neighbourhood(configuration: Configuration, seed: int) -> L
                         # Only rigorously check every tenth configuration (
                         # because moving around in the neighborhood should
                         # just work!)
-                        if np.random.random() > 0.9:
+                        if np.random.random() > 0.95:
                             new_configuration.is_valid_configuration()
                         else:
                             configuration_space._check_forbidden(new_array)
                         neighbourhood.append(new_configuration)
                         number_of_sampled_neighbors += 1
-                    # todo: investigate why tests fail when ForbiddenValueError is caught here
                     except ForbiddenValueError as e:
                         pass
 

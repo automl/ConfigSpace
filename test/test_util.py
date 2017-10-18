@@ -36,8 +36,8 @@ from ConfigSpace import Configuration, ConfigurationSpace, UniformIntegerHyperpa
     EqualsCondition, AndConjunction, OrConjunction
 from ConfigSpace.read_and_write.pcs import read
 from ConfigSpace.util import impute_inactive_values, get_random_neighbor, \
-    get_one_exchange_neighbourhood, deactivate_inactive_hyperparameters, \
-    change_hp_value
+    get_one_exchange_neighbourhood, deactivate_inactive_hyperparameters
+import ConfigSpace.c_util
 
 
 class UtilTest(unittest.TestCase):
@@ -256,8 +256,13 @@ class UtilTest(unittest.TestCase):
         index = diamond.get_idx_by_hyperparameter_name(hp_name)
         neighbor_value = 1
 
-        new_array = change_hp_value(diamond, config.get_array(), hp_name,
-                                    neighbor_value, index)
+        new_array = ConfigSpace.c_util.change_hp_value(
+            diamond,
+            config.get_array(),
+            hp_name,
+            neighbor_value,
+            index
+        )
         expected_array = np.array([1, np.nan, np.nan, np.nan])
 
         np.testing.assert_almost_equal(new_array, expected_array)
@@ -279,8 +284,13 @@ class UtilTest(unittest.TestCase):
         index = diamond.get_idx_by_hyperparameter_name(hp_name)
         neighbor_value = 1
 
-        new_array = change_hp_value(diamond, config.get_array(), hp_name,
-                                    neighbor_value, index)
+        new_array = ConfigSpace.c_util.change_hp_value(
+            diamond,
+            config.get_array(),
+            hp_name,
+            neighbor_value,
+            index
+        )
         expected_array = np.array([1, np.nan, np.nan, np.nan])
 
         np.testing.assert_almost_equal(new_array, expected_array)

@@ -241,3 +241,116 @@ cpdef np.ndarray correct_sampled_array(
                     str(clause)))
 
     return vector
+
+
+cpdef np.ndarray change_hp_value(
+    configuration_space,
+    np.ndarray[DTYPE_t, ndim=1] configuration_array,
+    str hp_name,
+    DTYPE_t hp_value,
+    int index,
+):
+    """Change hyperparameter value in configuration array to given value.
+
+    Does not check if the new value is legal. Activates and deactivates other
+    hyperparameters if necessary. Does not check if new hyperparameter value
+    results in the violation of any forbidden clauses.
+
+    Parameters
+    ----------
+    configuration_space : ConfigurationSpace
+
+    configuration_array : np.ndarray
+
+    hp_name : str
+
+    hp_value : float
+
+    index : int
+
+    Returns
+    -------
+    np.ndarray
+    """
+    cdef Hyperparameter current
+    cdef str current_name
+    cdef list disabled
+    cdef set visited
+    cdef dict activated_values
+    cdef int active
+    cdef ConditionComponent condition
+    cdef int current_idx
+    cdef DTYPE_t current_value
+    cdef DTYPE_t default_value
+    cdef list children
+    cdef list children_
+    cdef Hyperparameter ch
+    cdef str child
+    cdef set to_disable
+    cdef DTYPE_t NaN = np.NaN
+    cdef dict children_of = configuration_space._children_of
+
+    configuration_array[index] = hp_value
+
+    # Hyperparameters which are going to be set to inactive
+    disabled = []
+
+    # Activate hyperparameters if their parent node got activated
+    children = children_of[hp_name]
+    if len(children) > 0:
+        to_visit = deque()  # type: deque
+        to_visit.extendleft(children)
+        visited = set()  # type: Set[str]
+        activated_values = dict()  # type: Dict[str, Union[int, float, str]]
+
+        while len(to_visit) > 0:
+            current = to_visit.pop()
+            current_name = current.name
+            if current_name in visited:
+                continue
+            visited.add(current_name)
+            if current_name in disabled:
+                continue
+
+            current_idx = configuration_space._hyperparameter_idx[current_name]
+            current_value = configuration_array[current_idx]
+
+            conditions = configuration_space._parent_conditions_of[current_name]
+
+            active = True
+            for condition in conditions:
+                if not condition._evaluate_vector(configuration_array):
+                    active = False
+                    break
+
+            if active and not current_value == current_value:
+                default_value = current._inverse_transform(current.default_value)
+                configuration_array[current_idx] = default_value
+                children_ = children_of[current_name]
+                if len(children_) > 0:
+                    to_visit.extendleft(children_)
+
+            # If the hyperparameter was made inactive,
+            # all its children need to be deactivade as well
+            if not active and current_value == current_value:
+                configuration_array[current_idx] = NaN
+
+                children = children_of[current_name]
+
+                if len(children) > 0:
+                    to_disable = set()
+                    for ch in children:
+                        to_disable.add(ch.name)
+                    while len(to_disable) > 0:
+                        child = to_disable.pop()
+                        child_idx = configuration_space._hyperparameter_idx[child]
+                        disabled.append(child_idx)
+                        children = children_of[child]
+
+                        for ch in children:
+                            to_disable.add(ch.name)
+
+    for idx in disabled:
+        configuration_array[idx] = NaN
+
+    return configuration_array
