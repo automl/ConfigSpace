@@ -827,72 +827,20 @@ class ConfigurationSpace(object):
 
             for i in range(missing):
                 try:
-                    for clause in forbidden_clauses_unconditionals:
-                        if clause.is_forbidden_vector(vector[i], strict=False):
-                            raise ForbiddenValueError(
-                                "Given vector violates forbidden clause %s" % (
-                                str(clause)))
-
-                    hps = deque()
-                    visited = set()
-                    hps.extendleft(hyperparameters_with_children)
-                    active = np.zeros((num_hyperparameters,), dtype=bool)
-
-                    for ch in unconditional_hyperparameters:
-                        active[self._hyperparameter_idx[ch]] = 1
-
-                    inactive = set()
-
-                    while len(hps) > 0:
-                        hp = hps.pop()
-                        visited.add(hp)
-                        children = self._children_of[hp]
-                        for child in children:
-                            child_name = child.name
-                            if child_name not in inactive:
-                                parents = self._parents_of[child_name]
-                                hyperparameter_idx = self._hyperparameter_idx[child_name]
-                                if len(parents) == 1:
-                                    conditions = self._parent_conditions_of[child_name]
-                                    add = True
-                                    for condition in conditions:
-                                        if not condition.evaluate_vector(vector[i]):
-                                            add = False
-                                            vector[i][hyperparameter_idx] = np.NaN
-                                            inactive.add(child_name)
-                                            break
-                                    if add == True:
-                                        active[hyperparameter_idx] = 1
-                                        hps.appendleft(child_name)
-
-                                else:
-                                    parent_names = set(p.name for p in parents)
-                                    if parent_names.issubset(visited):  # make sure no parents are still unvisited
-                                        conditions = self._parent_conditions_of[child_name]
-                                        add = True
-                                        for condition in conditions:
-                                            if not condition.evaluate_vector(vector[i]):
-                                                add = False
-                                                vector[i][hyperparameter_idx] = np.NaN
-                                                inactive.add(child_name)
-                                                break
-
-                                        if add == True:
-                                            active[hyperparameter_idx] = 1
-                                            hps.appendleft(child_name)
-
-                                    else:
-                                        continue
-
-                    vector[i][~active] = np.NaN
-
-                    for clause in forbidden_clauses_conditionals:
-                        if clause.is_forbidden_vector(vector[i], strict=False):
-                            raise ForbiddenValueError(
-                                "Given vector violates forbidden clause %s" % (
-                                    str(clause)))
-
-                    configuration = Configuration(self, vector=vector[i])
+                    configuration = Configuration(
+                        self,
+                        vector=ConfigSpace.c_util.correct_sampled_array(
+                            vector[i],
+                            forbidden_clauses_unconditionals,
+                            forbidden_clauses_conditionals,
+                            hyperparameters_with_children,
+                            num_hyperparameters,
+                            unconditional_hyperparameters,
+                            self._hyperparameter_idx,
+                            self._parent_conditions_of,
+                            self._parents_of,
+                            self._children_of,
+                        ))
                     accepted_configurations.append(configuration)
                 except ForbiddenValueError as e:
                     iteration += 1
