@@ -17,6 +17,7 @@ keywords = 'algorithm configuration hyperparameter optimization empirical ' \
 compiler_directives = {
     'boundscheck': False,
     'wraparound': False,
+    'annotation_typing': False,
 }
 
 extensions = cythonize(
