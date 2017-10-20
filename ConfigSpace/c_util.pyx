@@ -324,7 +324,7 @@ cpdef np.ndarray change_hp_value(
                     break
 
             if active and not current_value == current_value:
-                default_value = current._inverse_transform(current.default_value)
+                default_value = current.normalized_default_value
                 configuration_array[current_idx] = default_value
                 children_ = children_of[current_name]
                 if len(children_) > 0:

@@ -126,6 +126,7 @@ cdef class Constant(Hyperparameter):
         self.value = value
         self.value_vector = 0.
         self.default_value = value
+        self.normalized_default_value = 0.
 
     def __repr__(self) -> str:
         repr_str = ["%s" % self.name,
@@ -365,6 +366,8 @@ cdef class UniformFloatHyperparameter(FloatHyperparameter):
                 self._lower = self.lower
                 self._upper = self.upper
 
+        self.normalized_default_value = self._inverse_transform(self.default_value)
+
     def __repr__(self) -> str:
         repr_str = io.StringIO()
         repr_str.write("%s, Type: UniformFloat, Range: [%s, %s], Default: %s" %
@@ -464,6 +467,7 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
         self.log = bool(log)
         self.name = name
         self.default_value = self.check_default(default_value)
+        self.normalized_default_value = self._inverse_transform(self.default_value)
 
     def __repr__(self) -> str:
         repr_str = io.StringIO()
@@ -624,6 +628,7 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
                                                self.upper + 0.49999,
                                                log=self.log, q=self.q,
                                                default_value=self.default_value)
+        self.normalized_default_value = self._inverse_transform(self.default_value)
 
     def __repr__(self) -> str:
         repr_str = io.StringIO()
@@ -763,6 +768,8 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
                                               log=self.log,
                                               q=self.q,
                                               default_value=self.default_value)
+
+        self.normalized_default_value = self._inverse_transform(self.default_value)
 
     def __repr__(self) -> str:
         repr_str = io.StringIO()
@@ -908,6 +915,7 @@ cdef class CategoricalHyperparameter(Hyperparameter):
         self.choices_vector = list(range(self._num_choices))
         self._choices_set = set(self.choices_vector)
         self.default_value = self.check_default(default_value)
+        self.normalized_default_value = self._inverse_transform(self.default_value)
 
     def __repr__(self) -> str:
         repr_str = io.StringIO()
@@ -1075,6 +1083,7 @@ cdef class OrdinalHyperparameter(Hyperparameter):
         self._num_elements = len(sequence)
         self.sequence_vector = list(range(self._num_elements))
         self.default_value = self.check_default(default_value)
+        self.normalized_default_value = self._inverse_transform(self.default_value)
         self.value_dict = OrderedDict()  # type: OrderedDict[Union[int, float, str], int]
         counter = 0
         for element in self.sequence:

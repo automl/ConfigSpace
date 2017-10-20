@@ -14,6 +14,7 @@ ctypedef np.float_t DTYPE_t
 cdef class Hyperparameter(object):
     cdef public str name
     cdef public default_value
+    cdef public DTYPE_t normalized_default_value
 
     cpdef int compare_vector(self, DTYPE_t value, DTYPE_t value2)
     cpdef bint is_legal_vector(self, DTYPE_t value)
