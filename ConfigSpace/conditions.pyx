@@ -144,13 +144,6 @@ cdef class AbstractCondition(ConditionComponent):
 
         return NotImplemented
 
-    def __copy__(self):
-        return self.__class__(
-            child=copy.copy(self.child),
-            parent=copy.copy(self.parent),
-            value=copy.copy(self.value),
-        )
-
     def set_vector_idx(self, hyperparameter_to_idx: dict):
         self.child_vector_id = hyperparameter_to_idx[self.child.name]
         self.parent_vector_id = hyperparameter_to_idx[self.parent.name]
@@ -347,6 +340,13 @@ cdef class EqualsCondition(AbstractCondition):
         return "%s | %s == %s" % (self.child.name, self.parent.name,
                                   repr(self.value))
 
+    def __copy__(self):
+            return self.__class__(
+                child=copy.copy(self.child),
+                parent=copy.copy(self.parent),
+                value=copy.copy(self.value),
+            )
+
     def _evaluate(self, value: Union[str, float, int]) -> bool:
         # No need to check if the value to compare is a legal value; either it
         # is equal (and thus legal), or it would evaluate to False anyway
@@ -382,6 +382,13 @@ cdef class NotEqualsCondition(AbstractCondition):
     def __repr__(self) -> str:
         return "%s | %s != %s" % (self.child.name, self.parent.name,
                                   repr(self.value))
+
+    def __copy__(self):
+            return self.__class__(
+                child=copy.copy(self.child),
+                parent=copy.copy(self.parent),
+                value=copy.copy(self.value),
+            )
 
     def _evaluate(self, value: Union[str, float, int]) -> bool:
         if not self.parent.is_legal(value):
@@ -420,6 +427,13 @@ cdef class LessThanCondition(AbstractCondition):
         return "%s | %s < %s" % (self.child.name, self.parent.name,
                                  repr(self.value))
 
+    def __copy__(self):
+            return self.__class__(
+                child=copy.copy(self.child),
+                parent=copy.copy(self.parent),
+                value=copy.copy(self.value),
+            )
+
     def _evaluate(self, value: Union[str, float, int]) -> bool:
         if not self.parent.is_legal(value):
             return False
@@ -456,6 +470,13 @@ cdef class GreaterThanCondition(AbstractCondition):
     def __repr__(self) -> str:
         return "%s | %s > %s" % (self.child.name, self.parent.name,
                                  repr(self.value))
+
+    def __copy__(self):
+            return self.__class__(
+                child=copy.copy(self.child),
+                parent=copy.copy(self.parent),
+                value=copy.copy(self.value),
+            )
 
     def _evaluate(self, value: Union[str, float, int]) -> bool:
         if not self.parent.is_legal(value):
