@@ -27,21 +27,18 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from io import StringIO
-import os
-import tempfile
 import unittest
 
 from ConfigSpace.configuration_space import ConfigurationSpace
-import ConfigSpace.io.irace as irace
+import ConfigSpace.read_and_write.irace as irace
 
 from ConfigSpace.hyperparameters import CategoricalHyperparameter, \
-    UniformIntegerHyperparameter, UniformFloatHyperparameter, OrdinalHyperparameter, \
-    NormalIntegerHyperparameter
+    UniformIntegerHyperparameter, UniformFloatHyperparameter, \
+    OrdinalHyperparameter
 from ConfigSpace.conditions import EqualsCondition, InCondition, \
-    AndConjunction, OrConjunction, NotEqualsCondition, \
-    LessThanCondition, GreaterThanCondition
-from ConfigSpace.forbidden import ForbiddenInClause, ForbiddenEqualsClause, ForbiddenAndConjunction
+    AndConjunction, OrConjunction
+from ConfigSpace.forbidden import ForbiddenInClause, ForbiddenEqualsClause, \
+    ForbiddenAndConjunction
 
 
 # Copyright (c) 2014-2016, ConfigSpace developers

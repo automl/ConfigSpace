@@ -1,5 +1,8 @@
 from setuptools import setup, find_packages
+from setuptools.extension import Extension
 import os
+from Cython.Build import cythonize
+import numpy as np
 
 # Read http://peterdowns.com/posts/first-time-with-pypi.html to figure out how
 # to publish the package on PyPI
@@ -10,6 +13,35 @@ desc = 'Creation and manipulation of parameter configuration spaces for ' \
 keywords = 'algorithm configuration hyperparameter optimization empirical ' \
            'evaluation black box'
 
+# These do not really change the speed of the benchmarks
+compiler_directives = {
+    'boundscheck': False,
+    'wraparound': False,
+    'annotation_typing': False,
+}
+
+extensions = cythonize(
+    [Extension('ConfigSpace.hyperparameters',
+               sources=['ConfigSpace/hyperparameters.pyx',],
+               include_dirs=[np.get_include()]),
+     Extension('ConfigSpace.forbidden',
+               sources=['ConfigSpace/forbidden.pyx'],
+               include_dirs=[np.get_include()]),
+     Extension('ConfigSpace.conditions',
+               sources=['ConfigSpace/conditions.pyx'],
+               include_dirs=[np.get_include()]),
+     Extension('ConfigSpace.c_util',
+               sources=['ConfigSpace/c_util.pyx'],
+               include_dirs=[np.get_include()]),
+     Extension('ConfigSpace.util',
+               sources=['ConfigSpace/util.py'],
+               include_dirs=[np.get_include()]),
+     Extension('ConfigSpace.configuration_space',
+               sources=['ConfigSpace/configuration_space.py'],
+               include_dirs=[np.get_include()]),
+     ],
+    compiler_directives=compiler_directives,
+)
 
 def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
@@ -24,6 +56,7 @@ setup(
     version=version,
     url='https://github.com/automl/ConfigSpace',
     description=desc,
+    ext_modules=extensions,
     long_description=read("README.rst"),
     license='BSD 3-clause',
     platforms=['Linux'],

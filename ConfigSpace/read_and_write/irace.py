@@ -30,6 +30,8 @@ from ConfigSpace.hyperparameters import CategoricalHyperparameter, \
     NormalIntegerHyperparameter, NormalFloatHyperparameter, OrdinalHyperparameter
 from ConfigSpace.conditions import EqualsCondition, NotEqualsCondition, \
     InCondition, AndConjunction, OrConjunction, ConditionComponent, GreaterThanCondition, LessThanCondition
+# from ConfigSpace.forbidden import ForbiddenEqualsClause, \
+#     ForbiddenAndConjunction, ForbiddenInClause, AbstractForbiddenComponent, MultipleValueForbiddenClause
 from ConfigSpace.forbidden import ForbiddenEqualsClause, \
     ForbiddenAndConjunction, ForbiddenInClause, AbstractForbiddenComponent, MultipleValueForbiddenClause
 import sys

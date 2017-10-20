@@ -37,6 +37,8 @@ from ConfigSpace.hyperparameters import CategoricalHyperparameter, \
 from ConfigSpace.conditions import EqualsCondition, NotEqualsCondition,\
     InCondition, AndConjunction, OrConjunction, ConditionComponent,\
     GreaterThanCondition, LessThanCondition
+# from ConfigSpace.forbidden import ForbiddenEqualsClause, \
+#     ForbiddenAndConjunction, ForbiddenInClause, AbstractForbiddenComponent, MultipleValueForbiddenClause
 from ConfigSpace.forbidden import ForbiddenEqualsClause, \
     ForbiddenAndConjunction, ForbiddenInClause, AbstractForbiddenComponent, MultipleValueForbiddenClause
 
@@ -78,14 +80,14 @@ def build_categorical(param):
     cat_template = "%s categorical {%s} [%s]"
     return cat_template % (param.name,
                            ", ".join([str(value) for value in param.choices]),
-                           str(param.default))
+                           str(param.default_value))
 
 
 def build_ordinal(param):
     ordinal_template = '%s ordinal {%s} [%s]'
     return ordinal_template % (param.name, 
                                ", ".join([str(value) for value in param.sequence]),
-                                str(param.default))
+                                str(param.default_value))
 
 
 def build_constant(param):
@@ -109,15 +111,15 @@ def build_continuous(param):
         q_prefix = "Q%d_" % (int(param.q),)
     else:
         q_prefix = ""
-    default = param.default
+    default_value = param.default_value
 
     if isinstance(param, IntegerHyperparameter):
-        default = int(default)
+        default_value = int(default_value)
         return int_template % (q_prefix, param.name, param.lower,
-                               param.upper, default)
+                               param.upper, default_value)
     else:
         return float_template % (q_prefix, param.name,  str(param.lower),
-                                 str(param.upper), str(default))
+                                 str(param.upper), str(default_value))
 
 
 def build_condition(condition):
@@ -309,9 +311,9 @@ def read(pcs_string, debug=False):
                 lower = float(param_list[3])
                 upper = float(param_list[5])
                 log_on = True if "log" in log else False
-                default = float(param_list[8])
+                default_value = float(param_list[8])
                 param = create[paramtype](name=name, lower=lower, upper=upper,
-                                          q=None, log=log_on, default=default)
+                                          q=None, log=log_on, default_value=default_value)
                 cont_ct += 1
 
         except pyparsing.ParseException:
@@ -322,16 +324,16 @@ def read(pcs_string, debug=False):
                 param_list = pp_cat_param.parseString(line)
                 name = param_list[0]
                 choices = [choice for choice in param_list[3:-4:2]]
-                default = param_list[-2]
-                param = create["categorical"](name=name, choices=choices, default=default)
+                default_value = param_list[-2]
+                param = create["categorical"](name=name, choices=choices, default_value=default_value)
                 cat_ct += 1
 
             elif "ordinal" in line:
                 param_list = pp_ord_param.parseString(line)
                 name = param_list[0]
                 sequence = [seq for seq in param_list[3:-4:2]]
-                default = param_list[-2]
-                param = create["ordinal"](name=name, sequence=sequence, default=default)
+                default_value = param_list[-2]
+                param = create["ordinal"](name=name, sequence=sequence, default_value=default_value)
                 ord_ct += 1
 
         except pyparsing.ParseException:

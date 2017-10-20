@@ -1,3 +1,4 @@
+# cython: profile=True
 # Copyright (c) 2014-2016, ConfigSpace developers
 # Matthias Feurer
 # Katharina Eggensperger
@@ -27,78 +28,79 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from abc import ABCMeta, abstractmethod
+import copy
 from itertools import combinations
-from typing import Any, List, Union
+from typing import Any, List, Union, Tuple
 import operator
 
+from libc.stdlib cimport malloc, free
+
 import numpy as np
+cimport numpy as np
+
+# We now need to fix a datatype for our arrays. I've used the variable
+# DTYPE for this, which is assigned to the usual NumPy runtime
+# type info object.
+#DTYPE = np.float
+# "ctypedef" assigns a corresponding compile-time type to DTYPE_t. For
+# every type in the numpy module there's a corresponding compile-time
+# type with a _t-suffix.
+#ctypedef np.float_t DTYPE_t
 
 import io
 from functools import reduce
-from ConfigSpace.hyperparameters import Hyperparameter, \
-    NumericalHyperparameter, OrdinalHyperparameter
+from ConfigSpace.hyperparameters import NumericalHyperparameter, OrdinalHyperparameter
+from ConfigSpace.hyperparameters cimport Hyperparameter
 
 
-class ConditionComponent(object):
-    __metaclass__ = ABCMeta
+cdef class ConditionComponent(object):
 
-    @abstractmethod
     def __init__(self) -> None:
         pass
 
-    @abstractmethod
     def __repr__(self) -> str:
         pass
-    @abstractmethod
+
     def set_vector_idx(self, hyperparameter_to_idx) -> None:
         pass
 
-    @abstractmethod
     def get_children_vector(self) -> List[int]:
         pass
 
-    @abstractmethod
     def get_parents_vector(self) -> List[int]:
         pass
 
-    @abstractmethod
     def get_children(self) -> List['ConditionComponent']:
         pass
 
-    @abstractmethod
     def get_parents(self) -> List['ConditionComponent']:
         pass
 
-    @abstractmethod
     def get_descendant_literal_conditions(self) ->List['AbstractCondition']:
         pass
 
-    @abstractmethod
     def evaluate(self, instantiated_parent_hyperparameter: Hyperparameter) -> bool:
         pass
 
-    # http://stackoverflow.com/a/25176504/4636294
-    def __eq__(self, other: Any) -> bool:
-        """Override the default Equals behavior"""
-        if isinstance(other, self.__class__):
-            return self.__dict__ == other.__dict__
-        return NotImplemented
+    def evaluate_vector(self, instantiated_vector):
+        return bool(self._evaluate_vector(instantiated_vector))
 
-    def __ne__(self, other: Any) -> bool:
-        """Define a non-equality test"""
-        if isinstance(other, self.__class__):
-            return not self.__eq__(other)
-        return NotImplemented
+    cdef int _evaluate_vector(self, np.ndarray value):
+        pass
 
     def __hash__(self) -> int:
         """Override the default hash behavior (that returns the id or the object)"""
         return hash(tuple(sorted(self.__dict__.items())))
 
 
-class AbstractCondition(ConditionComponent):
-    # TODO create a condition evaluator!
+cdef class AbstractCondition(ConditionComponent):
+    cdef public Hyperparameter child
+    cdef public Hyperparameter parent
+    cdef public int child_vector_id
+    cdef public int parent_vector_id
+    cdef public value
+    cdef public DTYPE_t vector_value
 
-    @abstractmethod
     def __init__(self, child: Hyperparameter, parent: Hyperparameter) -> None:
         if not isinstance(child, Hyperparameter):
             raise ValueError("Argument 'child' is not an instance of "
@@ -111,8 +113,36 @@ class AbstractCondition(ConditionComponent):
                              "different hyperparameters.")
         self.child = child
         self.parent = parent
-        self.child_vector_id = None
-        self.parent_vector_id = None
+        self.child_vector_id = -1
+        self.parent_vector_id = -1
+
+    def __richcmp__(self, other: Any, int op):
+        """Override the default Equals behavior
+        There are no separate methods for the individual rich comparison operations (__eq__(), __le__(), etc.).
+         Instead there is a single method __richcmp__() which takes an integer indicating which operation is to be performed, as follows:
+        < 	0
+        == 2
+        > 	4
+        <=	1
+        !=	3
+        >=	5
+        """
+        if isinstance(other, self.__class__):
+
+            if op == 2:
+                if self.child != other.child:
+                    return False
+                elif self.parent != other.parent:
+                    return False
+                return self.value == other.value
+
+            elif op == 3:
+                if self.child != other.child or self.parent != other.parent or self.value != other.value:
+                    return True
+                else:
+                    return False
+
+        return NotImplemented
 
     def set_vector_idx(self, hyperparameter_to_idx: dict):
         self.child_vector_id = hyperparameter_to_idx[self.child.name]
@@ -137,20 +167,28 @@ class AbstractCondition(ConditionComponent):
         hp_name = self.parent.name
         return self._evaluate(instantiated_parent_hyperparameter[hp_name])
 
-    def evaluate_vector(self, instantiated_vector: np.ndarray) -> bool:
+    cdef int _evaluate_vector(self, np.ndarray instantiated_vector):
         if self.parent_vector_id is None:
             raise ValueError("Parent vector id should not be None when calling evaluate vector")
-        return self._evaluate_vector(instantiated_vector[self.parent_vector_id])
+        return self._inner_evaluate_vector(instantiated_vector[self.parent_vector_id])
 
-    @abstractmethod
     def _evaluate(self, instantiated_parent_hyperparameter: Union[str, int, float]) -> bool:
         pass
 
+    cdef int _inner_evaluate_vector(self, DTYPE_t value):
+        pass
 
-class AbstractConjunction(ConditionComponent):
+
+cdef class AbstractConjunction(ConditionComponent):
+    cdef public tuple components
+    cdef int n_components
+    cdef tuple dlcs
+
     def __init__(self, *args: AbstractCondition) -> None:
         super(AbstractConjunction, self).__init__()
         self.components = args
+        self.n_components = len(self.components)
+        self.dlcs = self.get_descendant_literal_conditions()
 
         # Test the classes
         for idx, component in enumerate(self.components):
@@ -166,14 +204,52 @@ class AbstractConjunction(ConditionComponent):
                 raise ValueError("All Conjunctions and Conditions must have "
                                  "the same child.")
 
-    def get_descendant_literal_conditions(self) -> List[AbstractCondition]:
+    def __richcmp__(self, other: Any, int op):
+        """Override the default Equals behavior
+        There are no separate methods for the individual rich comparison operations (__eq__(), __le__(), etc.).
+         Instead there is a single method __richcmp__() which takes an integer indicating which operation is to be performed, as follows:
+        < 	0
+        == 2
+        > 	4
+        <=	1
+        !=	3
+        >=	5
+        """
+        if isinstance(other, self.__class__):
+            if len(self.components) != len(other.components):
+                if op == 2:
+                    return False
+                if op == 3:
+                    return True
+                else:
+                    return NotImplemented
+
+            for component, other_component in \
+                    zip(self.components, other.components):
+                eq = component == other_component
+                if op == 2:
+                    if not eq:
+                        return False
+                elif op == 3:
+                    if eq:
+                        return False
+                else:
+                    raise NotImplemented
+            return True
+
+        return NotImplemented
+
+    def __copy__(self):
+        return self.__class__([copy(comp) for comp in self.components])
+
+    def get_descendant_literal_conditions(self) -> Tuple[AbstractCondition]:
         children = []  # type: List[AbstractCondition]
         for component in self.components:
             if isinstance(component, AbstractConjunction):
                 children.extend(component.get_descendant_literal_conditions())
             else:
                 children.append(component)
-        return children
+        return tuple(children)
 
     def set_vector_idx(self, hyperparameter_to_idx: dict):
         for component in self.components:
@@ -204,8 +280,11 @@ class AbstractConjunction(ConditionComponent):
         return parents
 
     def evaluate(self, instantiated_hyperparameters: Hyperparameter) -> bool:
+        cdef int* arrptr
+        arrptr = <int*> malloc(sizeof(int) * self.n_components)
+
         # Then, check if all parents were passed
-        conditions = self.get_descendant_literal_conditions()
+        conditions = self.dlcs
         for condition in conditions:
             if condition.parent.name not in instantiated_hyperparameters:
                 raise ValueError("Evaluate must be called with all "
@@ -215,35 +294,38 @@ class AbstractConjunction(ConditionComponent):
 
         # Finally, call evaluate for all direct descendents and combine the
         # outcomes
-        evaluations = []
-        for component in self.components:
+        for i, component in enumerate(self.components):
             e = component.evaluate(instantiated_hyperparameters)
-            evaluations.append(e)
+            arrptr[i] = (e)
 
-        return self._evaluate(evaluations)
+        rval = self._evaluate(self.n_components, arrptr)
+        free(arrptr)
+        return rval
 
-    def evaluate_vector(self, instantiated_vector: np.ndarray) -> bool:
-        # Then, check if all parents were passed
-        conditions = self.get_descendant_literal_conditions()
-        for condition in conditions:
-            if condition.parent_vector_id is None:
-                raise ValueError("Parent vector id should not be None when calling evaluate vector")
+    cdef int _evaluate_vector(self, np.ndarray instantiated_vector):
+        cdef ConditionComponent component
+        cdef int e
+        cdef int rval
+        cdef int* arrptr
+        arrptr = <int*> malloc(sizeof(int) * self.n_components)
 
         # Finally, call evaluate for all direct descendents and combine the
         # outcomes
-        evaluations = []
-        for component in self.components:
-            e = component.evaluate_vector(instantiated_vector)
-            evaluations.append(e)
+        for i in range(self.n_components):
+            component = self.components[i]
+            e = component._evaluate_vector(instantiated_vector)
+            arrptr[i] = e
 
-        return self._evaluate(evaluations)
+        rval = self._evaluate(self.n_components, arrptr)
+        free(arrptr)
+        return rval
 
-    @abstractmethod
-    def _evaluate(self, evaluations: List[bool]) -> bool:
+    cdef int _evaluate(self, int I, int* evaluations):
         pass
 
 
-class EqualsCondition(AbstractCondition):
+cdef class EqualsCondition(AbstractCondition):
+
     def __init__(self, child: Hyperparameter, parent: Hyperparameter, value: Union[str, float, int]) -> None:
         super(EqualsCondition, self).__init__(child, parent)
         if not parent.is_legal(value):
@@ -258,6 +340,13 @@ class EqualsCondition(AbstractCondition):
         return "%s | %s == %s" % (self.child.name, self.parent.name,
                                   repr(self.value))
 
+    def __copy__(self):
+            return self.__class__(
+                child=copy.copy(self.child),
+                parent=copy.copy(self.parent),
+                value=copy.copy(self.value),
+            )
+
     def _evaluate(self, value: Union[str, float, int]) -> bool:
         # No need to check if the value to compare is a legal value; either it
         # is equal (and thus legal), or it would evaluate to False anyway
@@ -268,18 +357,18 @@ class EqualsCondition(AbstractCondition):
         else:
             return False
 
-    def _evaluate_vector(self, value: Union[float, int]) -> bool:
+    cdef int _inner_evaluate_vector(self, DTYPE_t value):
         # No need to check if the value to compare is a legal value; either it
         # is equal (and thus legal), or it would evaluate to False anyway
 
-        cmp = self.parent.compare_vector(value, self.vector_value)
+        cdef int cmp = self.parent.compare_vector(value, self.vector_value)
         if cmp == 0:
             return True
         else:
             return False
 
 
-class NotEqualsCondition(AbstractCondition):
+cdef class NotEqualsCondition(AbstractCondition):
     def __init__(self, child: Hyperparameter, parent: Hyperparameter, value: Union[str, float, int]) -> None:
         super(NotEqualsCondition, self).__init__(child, parent)
         if not parent.is_legal(value):
@@ -294,6 +383,13 @@ class NotEqualsCondition(AbstractCondition):
         return "%s | %s != %s" % (self.child.name, self.parent.name,
                                   repr(self.value))
 
+    def __copy__(self):
+            return self.__class__(
+                child=copy.copy(self.child),
+                parent=copy.copy(self.parent),
+                value=copy.copy(self.value),
+            )
+
     def _evaluate(self, value: Union[str, float, int]) -> bool:
         if not self.parent.is_legal(value):
             return False
@@ -304,18 +400,18 @@ class NotEqualsCondition(AbstractCondition):
         else:
             return False
 
-    def _evaluate_vector(self, value: Union[str, float, int]) -> bool:
+    cdef int _inner_evaluate_vector(self, DTYPE_t value):
         if not self.parent.is_legal_vector(value):
             return False
 
-        cmp = self.parent.compare_vector(value, self.vector_value)
+        cdef int cmp = self.parent.compare_vector(value, self.vector_value)
         if cmp != 0:
             return True
         else:
             return False
 
 
-class LessThanCondition(AbstractCondition):
+cdef class LessThanCondition(AbstractCondition):
     def __init__(self, child: Hyperparameter, parent: Hyperparameter, value: Union[str, float, int]) -> None:
         super(LessThanCondition, self).__init__(child, parent)
         self.parent.allow_greater_less_comparison()
@@ -331,6 +427,13 @@ class LessThanCondition(AbstractCondition):
         return "%s | %s < %s" % (self.child.name, self.parent.name,
                                  repr(self.value))
 
+    def __copy__(self):
+            return self.__class__(
+                child=copy.copy(self.child),
+                parent=copy.copy(self.parent),
+                value=copy.copy(self.value),
+            )
+
     def _evaluate(self, value: Union[str, float, int]) -> bool:
         if not self.parent.is_legal(value):
             return False
@@ -341,18 +444,18 @@ class LessThanCondition(AbstractCondition):
         else:
             return False
 
-    def _evaluate_vector(self, value: Union[str, float, int]) -> bool:
+    cdef int _inner_evaluate_vector(self, DTYPE_t value):
         if not self.parent.is_legal_vector(value):
             return False
 
-        cmp = self.parent.compare_vector(value, self.vector_value)
+        cdef int cmp = self.parent.compare_vector(value, self.vector_value)
         if cmp == -1:
             return True
         else:
             return False
 
 
-class GreaterThanCondition(AbstractCondition):
+cdef class GreaterThanCondition(AbstractCondition):
     def __init__(self, child: Hyperparameter, parent: Hyperparameter, value: Union[str, float, int]) -> None:
         super(GreaterThanCondition, self).__init__(child, parent)
         self.parent.allow_greater_less_comparison()
@@ -368,6 +471,13 @@ class GreaterThanCondition(AbstractCondition):
         return "%s | %s > %s" % (self.child.name, self.parent.name,
                                  repr(self.value))
 
+    def __copy__(self):
+            return self.__class__(
+                child=copy.copy(self.child),
+                parent=copy.copy(self.parent),
+                value=copy.copy(self.value),
+            )
+
     def _evaluate(self, value: Union[str, float, int]) -> bool:
         if not self.parent.is_legal(value):
             return False
@@ -378,17 +488,20 @@ class GreaterThanCondition(AbstractCondition):
         else:
             return False
 
-    def _evaluate_vector(self, value: Union[str, float, int]) -> bool:
+    cdef int _inner_evaluate_vector(self, DTYPE_t value):
         if not self.parent.is_legal_vector(value):
             return False
 
-        cmp = self.parent.compare_vector(value, self.vector_value)
+        cdef int cmp = self.parent.compare_vector(value, self.vector_value)
         if cmp == 1:
             return True
         else:
             return False
 
-class InCondition(AbstractCondition):
+cdef class InCondition(AbstractCondition):
+    cdef public values
+    cdef public vector_values
+
     def __init__(self, child: Hyperparameter, parent: Hyperparameter, values: List[Union[str, float, int]]) -> None:
         super(InCondition, self).__init__(child, parent)
         for value in values:
@@ -400,6 +513,35 @@ class InCondition(AbstractCondition):
         self.values = values
         self.vector_values = [self.parent._inverse_transform(value) for value in self.values]
 
+    def __richcmp__(self, other: Any, int op):
+        """Override the default Equals behavior
+        There are no separate methods for the individual rich comparison operations (__eq__(), __le__(), etc.).
+         Instead there is a single method __richcmp__() which takes an integer indicating which operation is to be performed, as follows:
+        < 	0
+        == 2
+        > 	4
+        <=	1
+        !=	3
+        >=	5
+        """
+        if isinstance(other, self.__class__):
+
+
+            if op == 2:
+                if self.child != other.child:
+                    return False
+                elif self.parent != other.parent:
+                    return False
+                return self.values == other.values
+
+            elif op == 3:
+                if self.child != other.child or self.parent != other.parent or self.values != other.values:
+                    return True
+                else:
+                    return False
+
+        return NotImplemented
+
     def __repr__(self) -> str:
         return "%s | %s in {%s}" % (self.child.name, self.parent.name,
                                     ", ".join(
@@ -408,11 +550,11 @@ class InCondition(AbstractCondition):
     def _evaluate(self, value: Union[str, float, int]) -> bool:
         return value in self.values
 
-    def _evaluate_vector(self, value: Union[float, int]) -> bool:
+    cdef int _inner_evaluate_vector(self, DTYPE_t value):
         return value in self.vector_values
 
 
-class AndConjunction(AbstractConjunction):
+cdef class AndConjunction(AbstractConjunction):
     # TODO: test if an AndConjunction results in an illegal state or a
     # Tautology! -> SAT solver
     def __init__(self, *args: AbstractCondition) -> None:
@@ -431,11 +573,14 @@ class AndConjunction(AbstractConjunction):
         retval.write(")")
         return retval.getvalue()
 
-    def _evaluate(self, evaluations: Any) -> bool:
-        return reduce(operator.and_, evaluations)
+    cdef int _evaluate(self, int I, int* evaluations):
+        for i in range(I):
+            if evaluations[i] == 0:
+                return 0
+        return 1
 
 
-class OrConjunction(AbstractConjunction):
+cdef class OrConjunction(AbstractConjunction):
     def __init__(self, *args: AbstractCondition) -> None:
         if len(args) < 2:
             raise ValueError("OrConjunction must at least have two "
@@ -452,5 +597,8 @@ class OrConjunction(AbstractConjunction):
         retval.write(")")
         return retval.getvalue()
 
-    def _evaluate(self, evaluations: Any) -> bool:
-        return reduce(operator.or_, evaluations)
+    cdef int _evaluate(self, int I, int* evaluations):
+        for i in range(I):
+            if evaluations[i] == 1:
+                return 1
+        return 0

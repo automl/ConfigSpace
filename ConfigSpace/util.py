@@ -1,3 +1,4 @@
+# cython: profile=True
 # Copyright (c) 2014-2016, ConfigSpace developers
 # Matthias Feurer
 # Katharina Eggensperger
@@ -36,6 +37,8 @@ from ConfigSpace.exceptions import ForbiddenValueError
 from ConfigSpace.hyperparameters import CategoricalHyperparameter, \
     UniformFloatHyperparameter, UniformIntegerHyperparameter, Constant, \
     OrdinalHyperparameter
+import ConfigSpace.c_util
+
 
 def impute_inactive_values(configuration: Configuration, strategy: Union[str, float]='default') -> Configuration:
     """Impute inactive parameters.
@@ -57,7 +60,7 @@ def impute_inactive_values(configuration: Configuration, strategy: Union[str, fl
             if strategy == 'default':
                 hp = configuration.configuration_space.get_hyperparameter(
                     hp_name)
-                new_value = hp.default
+                new_value = hp.default_value
 
             elif isinstance(strategy, float):
                 new_value = strategy
@@ -74,99 +77,6 @@ def impute_inactive_values(configuration: Configuration, strategy: Union[str, fl
                                       allow_inactive_with_values=True)
     return new_configuration
 
-def change_hp_value(configuration_space: ConfigurationSpace,
-                    configuration_array: np.ndarray,
-                    hp_name: str, hp_value: float, index: int) -> np.ndarray:
-    """Change hyperparameter value in configuration array to given value.
-    
-    Does not check if the new value is legal. Activates and deactivates other 
-    hyperparameters if necessary. Does not check if new hyperparameter value 
-    results in the violation of any forbidden clauses.
-    
-    Parameters
-    ----------
-    configuration_space : ConfigurationSpace
-    
-    configuration_array : np.ndarray
-    
-    hp_name : str
-    
-    hp_value : float
-    
-    index : int
-    
-    Returns
-    -------
-    np.ndarray
-    """
-
-    configuration_array[index] = hp_value
-
-    # Hyperparameters which are going to be set to inactive
-    disabled = []
-
-    # Activate hyperparameters if their parent node got activated
-    children = configuration_space._children_of[hp_name]
-    if len(children) > 0:
-        to_visit = deque()  # type: deque
-        to_visit.extendleft(children)
-        visited = set()  # type: Set[str]
-        activated_values = dict()  # type: Dict[str, Union[int, float, str]]
-
-        while len(to_visit) > 0:
-            current = to_visit.pop()
-            if current.name in visited:
-                continue
-            visited.add(current.name)
-            if current.name in disabled:
-                continue
-
-            current_idx = configuration_space.get_idx_by_hyperparameter_name(current.name)
-            current_value = configuration_array[current_idx]
-
-            conditions = configuration_space._parent_conditions_of[current.name]
-
-            active = True
-            for condition in conditions:
-                if not condition.evaluate_vector(configuration_array):
-                    active = False
-                    break
-
-            if active and (current_value is None or
-                               not np.isfinite(current_value)):
-                default = current._inverse_transform(current.default)
-                configuration_array[current_idx] = default
-                children_ = configuration_space._children_of[current.name]
-                if len(children_) > 0:
-                    to_visit.extendleft(children_)
-
-            # If the hyperparameter was made inactive,
-            # all its children need to be deactivade as well
-            if not active and (current_value is not None
-                               or np.isfinite(current_value)):
-                configuration_array[current_idx] = np.NaN
-
-                children = configuration_space._children_of[current.name]
-
-                if len(children) > 0:
-                    to_disable = set()
-                    for ch in children:
-                        to_disable.add(ch.name)
-                    while len(to_disable) > 0:
-                        child = to_disable.pop()
-                        child_idx = configuration_space. \
-                            get_idx_by_hyperparameter_name(child)
-                        disabled.append(child_idx)
-                        children = configuration_space._children_of[child]
-
-                        for ch in children:
-                            to_disable.add(ch.name)
-
-    for idx in disabled:
-        configuration_array[idx] = np.NaN
-
-    return configuration_array
-
 
 def get_one_exchange_neighbourhood(configuration: Configuration, seed: int) -> List[Configuration]:
     """Return all configurations in a one-exchange neighborhood.
@@ -179,21 +89,21 @@ def get_one_exchange_neighbourhood(configuration: Configuration, seed: int) -> L
     random = np.random.RandomState(seed)
     hyperparameters_list = list(configuration.keys())
     hyperparameters_list_length = len(hyperparameters_list)
-    neighbors_to_return = dict()
-    hyperparameters_used = list()
+    hyperparameters_used = [hp.name for hp in configuration.configuration_space.get_hyperparameters()
+                            if hp.get_num_neighbors(configuration.get(hp.name)) == 0 and configuration.get(hp.name) is not None]
     number_of_usable_hyperparameters = sum(np.isfinite(configuration.get_array()))
+    n_neighbors_per_hp = {
+        hp.name: 4 if np.isinf(hp.get_num_neighbors(configuration.get(hp.name))) else hp.get_num_neighbors(configuration.get(hp.name))
+        for hp in configuration.configuration_space.get_hyperparameters()
+    }
+    finite_neighbors_stack = {}
     configuration_space = configuration.configuration_space
 
-    while len(hyperparameters_used) != number_of_usable_hyperparameters:
+    while len(hyperparameters_used) < number_of_usable_hyperparameters:
         index = random.randint(hyperparameters_list_length)
         hp_name = hyperparameters_list[index]
-        if hp_name in neighbors_to_return:
-            random.shuffle(neighbors_to_return[hp_name])
-            n_ = neighbors_to_return[hp_name].pop()
-            if len(neighbors_to_return[hp_name]) == 0:
-                del neighbors_to_return[hp_name]
-                hyperparameters_used.append(hp_name)
-            yield n_
+        if n_neighbors_per_hp[hp_name] == 0:
+            continue
 
         else:
             neighbourhood = []
@@ -204,11 +114,9 @@ def get_one_exchange_neighbourhood(configuration: Configuration, seed: int) -> L
                 continue
 
             iteration = 0
+            hp = configuration_space.get_hyperparameter(hp_name)
+            num_neighbors = hp.get_num_neighbors(configuration.get(hp_name))
             while True:
-                hp = configuration_space.get_hyperparameter(hp_name)
-                configuration._populate_values()
-                num_neighbors = hp.get_num_neighbors(configuration.get(hp_name))
-
                 # Obtain neigbors differently for different possible numbers of
                 # neighbors
                 if num_neighbors == 0:
@@ -217,57 +125,60 @@ def get_one_exchange_neighbourhood(configuration: Configuration, seed: int) -> L
                 elif iteration > 100:
                     break
                 elif np.isinf(num_neighbors):
-                    if number_of_sampled_neighbors >= 4:
+                    if number_of_sampled_neighbors >= 1:
                         break
-                    num_samples_to_go = 4 - number_of_sampled_neighbors
-                    neighbors = hp.get_neighbors(array[index], random,
-                                                 number=num_samples_to_go)
+                    neighbor = hp.get_neighbors(array[index], random,
+                                                number=1)[0]
                 else:
                     if iteration > 0:
                         break
-                    neighbors = hp.get_neighbors(array[index], random)
-
+                    if hp_name not in finite_neighbors_stack:
+                        neighbors = hp.get_neighbors(array[index], random)
+                        random.shuffle(neighbors)
+                        finite_neighbors_stack[hp_name] = neighbors
+                    else:
+                        neighbors = finite_neighbors_stack[hp_name]
+                    neighbor = neighbors.pop()
 
                 # Check all newly obtained neigbors
-                for neighbor in neighbors:
-                    new_array = array.copy()
-                    new_array = change_hp_value(configuration_space,
-                                                new_array, hp_name, neighbor,
-                                                index)
+                new_array = array.copy()
+                new_array = ConfigSpace.c_util.change_hp_value(
+                    configuration_space=configuration_space,
+                    configuration_array=new_array,
+                    hp_name=hp_name,
+                    hp_value=neighbor,
+                    index=index)
+                try:
+                    # Populating a configuration from an array does not check
+                    #  if it is a legal configuration - check this (slow)
+                    new_configuration = Configuration(configuration_space,
+                                                      vector=new_array)
+                    # Only rigorously check every tenth configuration (
+                    # because moving around in the neighborhood should
+                    # just work!)
+                    if np.random.random() > 0.95:
+                        new_configuration.is_valid_configuration()
+                    else:
+                        configuration_space._check_forbidden(new_array)
+                    neighbourhood.append(new_configuration)
+                except ForbiddenValueError as e:
+                    pass
 
-                    try:
-                        # Populating a configuration from an array does not check
-                        #  if it is a legal configuration - check this (slow)
-                        new_configuration = Configuration(configuration_space, vector=new_array)
-                        # Only rigorously check every tenth configuration (
-                        # because moving around in the neighborhood should
-                        # just work!)
-                        if np.random.random() > 0.9:
-                            new_configuration.is_valid_configuration()
-                        else:
-                            configuration_space._check_forbidden(new_array)
-                        neighbourhood.append(new_configuration)
-                        number_of_sampled_neighbors += 1
-                    # todo: investigate why tests fail when ForbiddenValueError is caught here
-                    except ForbiddenValueError as e:
-                        pass
+                iteration += 1
+                if len(neighbourhood) > 0:
+                    number_of_sampled_neighbors += 1
 
-                    # Count iterations to not run into an infinite loop when
-                    # sampling floats/ints and there is large amount of forbidden
-                    #  values; also to find out if we tried to get a neighbor for
-                    #  a categorical hyperparameter, and the only possible
-                    # neighbor is forbidden together with another active
-                    # value/default hyperparameter
-                    iteration += 1
+            # Some infinite loop happened and no valid neighbor was found OR
+            # no valid neighbor is available for a categorical
             if len(neighbourhood) == 0:
+                hyperparameters_used.append(hp_name)
+                n_neighbors_per_hp[hp_name] = 0
                 hyperparameters_used.append(hp_name)
             else:
                 if hp_name not in hyperparameters_used:
-                    neighbors_to_return[hp_name] = neighbourhood
-                    random.shuffle(neighbors_to_return[hp_name])
-                    n_ = neighbors_to_return[hp_name].pop()
-                    if len(neighbors_to_return[hp_name]) == 0:
-                        del neighbors_to_return[hp_name]
+                    n_ = neighbourhood.pop()
+                    n_neighbors_per_hp[hp_name] -= 1
+                    if n_neighbors_per_hp[hp_name] == 0:
                         hyperparameters_used.append(hp_name)
                     yield n_
 
