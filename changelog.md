@@ -1,10 +1,16 @@
-# Version 3.10
+# Version 0.4.1
+
+* Rewrite of major functions in Cython
+* Attribute `default` of class Hyperparameter is renamed to `default_value`.
+* Package `io` is renamed to `read_and_write`.
+
+# Version 0.3.10
 * Fix issue #56. The writer for the new pcs format can now write correct
   conjunctions of forbidden parameters.
 * The class `Configuration` now raises an exception if trying to instantiate it
   with an illegal value for a hyperparameter
 
-# Version 3.9
+# Version 0.3.9
 
 * Fix issue #53. Functionality for retrieving a one exchange neighborhood does
   no longer create illegal configurations when hyperparameters have extreme
@@ -12,7 +18,7 @@
 * New functionality `__setitem__` for `Configuration`. Allows dictionary syntax
   to change the value of one hyperparameter in a configuration.
 
-# Version 3.8
+# Version 0.3.8
 
 * Fix issue #25. Parents and children are now sorted topologically in the
   underlying datastructure.

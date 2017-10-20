@@ -10,8 +10,3 @@ under a BSD license.
 
 .. image:: https://travis-ci.org/automl/ConfigSpace.svg?branch=master
   :target: https://travis-ci.org/automl/ConfigSpace
-.. image:: https://landscape.io/github/automl/ConfigSpace/master/landscape.svg?style=flat
-   :target: https://landscape.io/github/automl/ConfigSpace/master
-   :alt: Code Health
-.. image:: https://codecov.io/gh/automl/ConfigSpace/branch/master/graph/badge.svg
-  :target: https://codecov.io/gh/automl/ConfigSpace

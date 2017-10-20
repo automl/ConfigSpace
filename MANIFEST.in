@@ -1,1 +1,5 @@
 include *.md
+recursive-include ConfigSpace *.c *.pyx *.pxd
+include COPYING
+include AUTHORS.rst
+include README.rst
