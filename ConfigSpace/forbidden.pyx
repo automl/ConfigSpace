@@ -397,3 +397,24 @@ cdef class ForbiddenAndConjunction(AbstractForbiddenConjunction):
             if evaluations[i] == 0:
                 return 0
         return 1
+
+    cdef int c_is_forbidden_vector(self, np.ndarray instantiated_vector, int strict):
+        # Copy from above to have early stopping of the evaluation of clauses -
+        # gave only very modest improvements of ~5%; should probably be reworked
+        # if adding more conjunctions in order to use better software design to
+        # avoid code duplication.
+        cdef int e = 0
+        cdef AbstractForbiddenComponent component
+
+        # Finally, call is_forbidden for all direct descendents and combine the
+        # outcomes. Check only as many forbidden clauses as the actual
+        # evaluation function queries for (e.g. and conditions are False
+        # if only one of the components evaluates to False).
+
+        for i in range(self.n_components):
+            component = self.components[i]
+            e = component.c_is_forbidden_vector(instantiated_vector, strict)
+            if e == 0:
+                return 0
+
+        return 1

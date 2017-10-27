@@ -179,151 +179,6 @@ cdef class AbstractCondition(ConditionComponent):
         pass
 
 
-cdef class AbstractConjunction(ConditionComponent):
-    cdef public tuple components
-    cdef int n_components
-    cdef tuple dlcs
-
-    def __init__(self, *args: AbstractCondition) -> None:
-        super(AbstractConjunction, self).__init__()
-        self.components = args
-        self.n_components = len(self.components)
-        self.dlcs = self.get_descendant_literal_conditions()
-
-        # Test the classes
-        for idx, component in enumerate(self.components):
-            if not isinstance(component, ConditionComponent):
-                raise TypeError("Argument #%d is not an instance of %s, "
-                                "but %s" % (
-                                    idx, ConditionComponent, type(component)))
-
-        # Test that all conjunctions and conditions have the same child!
-        children = self.get_children()
-        for c1, c2 in combinations(children, 2):
-            if c1 != c2:
-                raise ValueError("All Conjunctions and Conditions must have "
-                                 "the same child.")
-
-    def __richcmp__(self, other: Any, int op):
-        """Override the default Equals behavior
-        There are no separate methods for the individual rich comparison operations (__eq__(), __le__(), etc.).
-         Instead there is a single method __richcmp__() which takes an integer indicating which operation is to be performed, as follows:
-        < 	0
-        == 2
-        > 	4
-        <=	1
-        !=	3
-        >=	5
-        """
-        if isinstance(other, self.__class__):
-            if len(self.components) != len(other.components):
-                if op == 2:
-                    return False
-                if op == 3:
-                    return True
-                else:
-                    return NotImplemented
-
-            for component, other_component in \
-                    zip(self.components, other.components):
-                eq = component == other_component
-                if op == 2:
-                    if not eq:
-                        return False
-                elif op == 3:
-                    if eq:
-                        return False
-                else:
-                    raise NotImplemented
-            return True
-
-        return NotImplemented
-
-    def __copy__(self):
-        return self.__class__([copy(comp) for comp in self.components])
-
-    def get_descendant_literal_conditions(self) -> Tuple[AbstractCondition]:
-        children = []  # type: List[AbstractCondition]
-        for component in self.components:
-            if isinstance(component, AbstractConjunction):
-                children.extend(component.get_descendant_literal_conditions())
-            else:
-                children.append(component)
-        return tuple(children)
-
-    def set_vector_idx(self, hyperparameter_to_idx: dict):
-        for component in self.components:
-            component.set_vector_idx(hyperparameter_to_idx)
-
-    def get_children_vector(self) -> List[int]:
-        children_vector = []
-        for component in self.components:
-            children_vector.extend(component.get_children_vector())
-        return children_vector
-
-    def get_parents_vector(self) -> List[int]:
-        parents_vector = []
-        for component in self.components:
-            parents_vector.extend(component.get_parents_vector())
-        return parents_vector
-
-    def get_children(self) -> List[ConditionComponent]:
-        children = []  # type: List[ConditionComponent]
-        for component in self.components:
-            children.extend(component.get_children())
-        return children
-
-    def get_parents(self) -> List[ConditionComponent]:
-        parents = []  # type: List[ConditionComponent]
-        for component in self.components:
-            parents.extend(component.get_parents())
-        return parents
-
-    def evaluate(self, instantiated_hyperparameters: Hyperparameter) -> bool:
-        cdef int* arrptr
-        arrptr = <int*> malloc(sizeof(int) * self.n_components)
-
-        # Then, check if all parents were passed
-        conditions = self.dlcs
-        for condition in conditions:
-            if condition.parent.name not in instantiated_hyperparameters:
-                raise ValueError("Evaluate must be called with all "
-                                 "instanstatiated parent hyperparameters in "
-                                 "the conjunction; you are (at least) missing "
-                                 "'%s'" % condition.parent.name)
-
-        # Finally, call evaluate for all direct descendents and combine the
-        # outcomes
-        for i, component in enumerate(self.components):
-            e = component.evaluate(instantiated_hyperparameters)
-            arrptr[i] = (e)
-
-        rval = self._evaluate(self.n_components, arrptr)
-        free(arrptr)
-        return rval
-
-    cdef int _evaluate_vector(self, np.ndarray instantiated_vector):
-        cdef ConditionComponent component
-        cdef int e
-        cdef int rval
-        cdef int* arrptr
-        arrptr = <int*> malloc(sizeof(int) * self.n_components)
-
-        # Finally, call evaluate for all direct descendents and combine the
-        # outcomes
-        for i in range(self.n_components):
-            component = self.components[i]
-            e = component._evaluate_vector(instantiated_vector)
-            arrptr[i] = e
-
-        rval = self._evaluate(self.n_components, arrptr)
-        free(arrptr)
-        return rval
-
-    cdef int _evaluate(self, int I, int* evaluations):
-        pass
-
-
 cdef class EqualsCondition(AbstractCondition):
 
     def __init__(self, child: Hyperparameter, parent: Hyperparameter, value: Union[str, float, int]) -> None:
@@ -554,6 +409,151 @@ cdef class InCondition(AbstractCondition):
         return value in self.vector_values
 
 
+cdef class AbstractConjunction(ConditionComponent):
+    cdef public tuple components
+    cdef int n_components
+    cdef tuple dlcs
+
+    def __init__(self, *args: AbstractCondition) -> None:
+        super(AbstractConjunction, self).__init__()
+        self.components = args
+        self.n_components = len(self.components)
+        self.dlcs = self.get_descendant_literal_conditions()
+
+        # Test the classes
+        for idx, component in enumerate(self.components):
+            if not isinstance(component, ConditionComponent):
+                raise TypeError("Argument #%d is not an instance of %s, "
+                                "but %s" % (
+                                    idx, ConditionComponent, type(component)))
+
+        # Test that all conjunctions and conditions have the same child!
+        children = self.get_children()
+        for c1, c2 in combinations(children, 2):
+            if c1 != c2:
+                raise ValueError("All Conjunctions and Conditions must have "
+                                 "the same child.")
+
+    def __richcmp__(self, other: Any, int op):
+        """Override the default Equals behavior
+        There are no separate methods for the individual rich comparison operations (__eq__(), __le__(), etc.).
+         Instead there is a single method __richcmp__() which takes an integer indicating which operation is to be performed, as follows:
+        < 	0
+        == 2
+        > 	4
+        <=	1
+        !=	3
+        >=	5
+        """
+        if isinstance(other, self.__class__):
+            if len(self.components) != len(other.components):
+                if op == 2:
+                    return False
+                if op == 3:
+                    return True
+                else:
+                    return NotImplemented
+
+            for component, other_component in \
+                    zip(self.components, other.components):
+                eq = component == other_component
+                if op == 2:
+                    if not eq:
+                        return False
+                elif op == 3:
+                    if eq:
+                        return False
+                else:
+                    raise NotImplemented
+            return True
+
+        return NotImplemented
+
+    def __copy__(self):
+        return self.__class__([copy(comp) for comp in self.components])
+
+    def get_descendant_literal_conditions(self) -> Tuple[AbstractCondition]:
+        children = []  # type: List[AbstractCondition]
+        for component in self.components:
+            if isinstance(component, AbstractConjunction):
+                children.extend(component.get_descendant_literal_conditions())
+            else:
+                children.append(component)
+        return tuple(children)
+
+    def set_vector_idx(self, hyperparameter_to_idx: dict):
+        for component in self.components:
+            component.set_vector_idx(hyperparameter_to_idx)
+
+    def get_children_vector(self) -> List[int]:
+        children_vector = []
+        for component in self.components:
+            children_vector.extend(component.get_children_vector())
+        return children_vector
+
+    def get_parents_vector(self) -> List[int]:
+        parents_vector = []
+        for component in self.components:
+            parents_vector.extend(component.get_parents_vector())
+        return parents_vector
+
+    def get_children(self) -> List[ConditionComponent]:
+        children = []  # type: List[ConditionComponent]
+        for component in self.components:
+            children.extend(component.get_children())
+        return children
+
+    def get_parents(self) -> List[ConditionComponent]:
+        parents = []  # type: List[ConditionComponent]
+        for component in self.components:
+            parents.extend(component.get_parents())
+        return parents
+
+    def evaluate(self, instantiated_hyperparameters: Hyperparameter) -> bool:
+        cdef int* arrptr
+        arrptr = <int*> malloc(sizeof(int) * self.n_components)
+
+        # Then, check if all parents were passed
+        conditions = self.dlcs
+        for condition in conditions:
+            if condition.parent.name not in instantiated_hyperparameters:
+                raise ValueError("Evaluate must be called with all "
+                                 "instanstatiated parent hyperparameters in "
+                                 "the conjunction; you are (at least) missing "
+                                 "'%s'" % condition.parent.name)
+
+        # Finally, call evaluate for all direct descendents and combine the
+        # outcomes
+        for i, component in enumerate(self.components):
+            e = component.evaluate(instantiated_hyperparameters)
+            arrptr[i] = (e)
+
+        rval = self._evaluate(self.n_components, arrptr)
+        free(arrptr)
+        return rval
+
+    cdef int _evaluate_vector(self, np.ndarray instantiated_vector):
+        cdef ConditionComponent component
+        cdef int e
+        cdef int rval
+        cdef int* arrptr
+        arrptr = <int*> malloc(sizeof(int) * self.n_components)
+
+        # Finally, call evaluate for all direct descendents and combine the
+        # outcomes
+        for i in range(self.n_components):
+            component = self.components[i]
+            e = component._evaluate_vector(instantiated_vector)
+            arrptr[i] = e
+
+        rval = self._evaluate(self.n_components, arrptr)
+        free(arrptr)
+        return rval
+
+    cdef int _evaluate(self, int I, int* evaluations):
+        pass
+
+
 cdef class AndConjunction(AbstractConjunction):
     # TODO: test if an AndConjunction results in an illegal state or a
     # Tautology! -> SAT solver
@@ -572,6 +572,18 @@ cdef class AndConjunction(AbstractConjunction):
                 retval.write(" && ")
         retval.write(")")
         return retval.getvalue()
+
+    cdef int _evaluate_vector(self, np.ndarray instantiated_vector):
+        cdef ConditionComponent component
+        cdef int e
+
+        for i in range(self.n_components):
+            component = self.components[i]
+            e = component._evaluate_vector(instantiated_vector)
+            if e == 0:
+                return 0
+
+        return 1
 
     cdef int _evaluate(self, int I, int* evaluations):
         for i in range(I):
@@ -601,4 +613,16 @@ cdef class OrConjunction(AbstractConjunction):
         for i in range(I):
             if evaluations[i] == 1:
                 return 1
+        return 0
+
+    cdef int _evaluate_vector(self, np.ndarray instantiated_vector):
+        cdef ConditionComponent component
+        cdef int e
+
+        for i in range(self.n_components):
+            component = self.components[i]
+            e = component._evaluate_vector(instantiated_vector)
+            if e == 1:
+                return 1
+
         return 0
