@@ -1,3 +1,7 @@
+# Version 0.4.2
+
+* Fix a bug which caused a segfault when trying to sample zero configurations.
+
 # Version 0.4.1
 
 * Rewrite of major functions in Cython

@@ -788,6 +788,8 @@ class ConfigurationSpace(object):
         if not isinstance(size, int):
             raise TypeError('Argument size must be of type int, but is %s'
                             % type(size))
+        elif size < 1:
+            return []
 
         iteration = 0
         missing = size

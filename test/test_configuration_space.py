@@ -605,7 +605,11 @@ class TestConfigurationSpace(unittest.TestCase):
         self.assertRaisesRegex(TypeError,
                                "Argument size must be of type int, but is "
                                "<class 'float'>", cs.sample_configuration, 1.2)
-                               
+
+    def test_sample_no_configuration(self):
+        cs = ConfigurationSpace()
+        rval = cs.sample_configuration(size=0)
+        self.assertEqual(len(rval), 0)
 
 
 class ConfigurationTest(unittest.TestCase):
