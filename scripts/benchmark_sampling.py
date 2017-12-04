@@ -12,7 +12,7 @@ n_configs = 100
 
 
 def run_test(configuration_space_path):
-    if not '2017' in configuration_space_path:
+    if not '2017_11' in configuration_space_path:
         return
 
     with open(configuration_space_path) as fh:
