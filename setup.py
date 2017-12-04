@@ -66,10 +66,13 @@ setup(
                       "Marius Lindauer", "Jorn Tuyls"]),
     author_email='feurerm@informatik.uni-freiburg.de',
     test_suite="nose.collector",
-    install_requires=['argparse',
-                      'numpy',
-                      'pyparsing',
-                      'typing'],
+    install_requires=[
+        'argparse',
+        'numpy',
+        'pyparsing',
+        'typing',
+        'Cython',
+    ],
     keywords=keywords,
     packages=find_packages(),
     classifiers=[
