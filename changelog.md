@@ -1,3 +1,7 @@
+# Version 0.4.3
+
+* Fix a memory leak when repeatedly sampling a large amount of configurations.
+
 # Version 0.4.2
 
 * Fix a bug which caused a segfault when trying to sample zero configurations.
