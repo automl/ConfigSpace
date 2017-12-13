@@ -832,7 +832,7 @@ class ConfigurationSpace(object):
                     configuration = Configuration(
                         self,
                         vector=ConfigSpace.c_util.correct_sampled_array(
-                            vector[i],
+                            vector[i].copy(),
                             forbidden_clauses_unconditionals,
                             forbidden_clauses_conditionals,
                             hyperparameters_with_children,

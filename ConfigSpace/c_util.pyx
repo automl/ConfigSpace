@@ -172,6 +172,7 @@ cpdef np.ndarray correct_sampled_array(
     for j in range(len(forbidden_clauses_unconditionals)):
         clause = forbidden_clauses_unconditionals[j]
         if clause.c_is_forbidden_vector(vector, strict=False):
+            free(active)
             raise ForbiddenValueError(
                 "Given vector violates forbidden clause %s" % (
                 str(clause)))
