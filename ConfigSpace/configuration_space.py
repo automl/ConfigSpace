@@ -322,7 +322,6 @@ class ConfigurationSpace(object):
 
         # Update to reflect sorting
         for i, hp in enumerate(self._hyperparameters):
-            self._hyperparameters[hp].index = i
             self._hyperparameter_idx[hp] = i
             self._idx_to_hyperparameter[i] = hp
 

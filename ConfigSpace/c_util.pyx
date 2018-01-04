@@ -51,21 +51,17 @@ cpdef int check_configuration(
     cdef list conditions
     cdef list parents
     cdef list children
+    cdef set inactive
 
     cdef int* active
     active = <int*> malloc(sizeof(int) * len(vector))
     for i in range(len(vector)):
         active[i] = 0
 
-    cdef int* inactive
-    inactive = <int*> malloc(sizeof(int) * len(vector))
-    for i in range(len(vector)):
-        inactive[i] = 0
-    #cdef set inactive = set()
-
     unconditional_hyperparameters = self.get_all_unconditional_hyperparameters()
     to_visit = deque()
     to_visit.extendleft(unconditional_hyperparameters)
+    inactive = set()
 
     for ch in unconditional_hyperparameters:
         active[self._hyperparameter_idx[ch]] = 1
@@ -78,7 +74,6 @@ cpdef int check_configuration(
 
         if not np.isnan(hp_value) and not hyperparameter.is_legal_vector(hp_value):
             free(active)
-            free(inactive)
             raise ValueError("Hyperparameter instantiation '%s' "
                              "(type: %s) is illegal for hyperparameter %s" %
                              (hp_value, str(type(hp_value)),
@@ -86,7 +81,7 @@ cpdef int check_configuration(
 
         children = self._children_of[hp_name]
         for child in children:
-            if inactive[child.index] == 0:
+            if child.name not in inactive:
                 parents = self._parents_of[child.name]
                 if len(parents) == 1:
                     conditions = self._parent_conditions_of[child.name]
@@ -94,7 +89,7 @@ cpdef int check_configuration(
                     for condition in conditions:
                         if not condition._evaluate_vector(vector):
                             add = False
-                            inactive[child.index] = 1
+                            inactive.add(child.name)
                             break
                     if add:
                         hyperparameter_idx = self._hyperparameter_idx[
@@ -110,7 +105,7 @@ cpdef int check_configuration(
                         for condition in conditions:
                             if not condition._evaluate_vector(vector):
                                 add = False
-                                inactive[child.index] = 1
+                                inactive.add(child.name)
                                 break
 
                         if add:
@@ -124,7 +119,6 @@ cpdef int check_configuration(
 
         if active[hp_idx] and np.isnan(hp_value):
             free(active)
-            free(inactive)
             raise ValueError("Active hyperparameter '%s' not specified!" %
                              hyperparameter.name)
 
@@ -137,12 +131,10 @@ cpdef int check_configuration(
             hp_name = self._idx_to_hyperparameter[hp_idx]
             hp_value = vector[hp_idx]
             free(active)
-            free(inactive)
             raise ValueError("Inactive hyperparameter '%s' must not be "
                              "specified, but has the vector value: '%s'." %
                              (hp_name, hp_value))
     free(active)
-    free(inactive)
     self._check_forbidden(vector)
 
 

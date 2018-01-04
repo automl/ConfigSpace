@@ -15,7 +15,6 @@ cdef class Hyperparameter(object):
     cdef public str name
     cdef public default_value
     cdef public DTYPE_t normalized_default_value
-    cdef public int index
 
     cpdef int compare_vector(self, DTYPE_t value, DTYPE_t value2)
     cpdef bint is_legal_vector(self, DTYPE_t value)

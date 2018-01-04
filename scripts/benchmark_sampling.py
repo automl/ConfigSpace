@@ -43,10 +43,9 @@ def run_test(configuration_space_path):
                 start_time = time.time()
                 validation_time = []
                 for shuffle, n in enumerate(neighborhood):
-                    for k in range(10):
-                        v_start_time = time.time()
-                        n.is_valid_configuration()
-                        v_end_time = time.time()
+                    v_start_time = time.time()
+                    n.is_valid_configuration()
+                    v_end_time = time.time()
                     validation_time.append(v_end_time - v_start_time)
                     if shuffle == 10:
                         break
