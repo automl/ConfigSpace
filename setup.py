@@ -67,7 +67,6 @@ setup(
     author_email='feurerm@informatik.uni-freiburg.de',
     test_suite="nose.collector",
     install_requires=[
-        'argparse',
         'numpy',
         'pyparsing',
         'typing',
