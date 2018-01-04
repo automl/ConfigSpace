@@ -50,8 +50,6 @@ cimport numpy as np
 
 
 cdef class Hyperparameter(object):
-    #cdef public str name
-    #cdef public default_value
 
     def __init__(self, name: str) -> None:
         if not isinstance(name, str):
