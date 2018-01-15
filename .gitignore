@@ -31,9 +31,7 @@ htmlcov
 .coverage
 .tox
 nosetests.xml
-
-# Translations
-*.mo
+*.pstats
 
 # Mr Developer
 .mr.developer.cfg
