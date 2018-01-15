@@ -1,3 +1,8 @@
+# Version 0.4.4
+
+* Fixes issue #49. The `Configuration` object no longer iterates over inactive
+  hyperparameters which resulted in an unintuitive API.
+
 # Version 0.4.3
 
 * Fix a memory leak when repeatedly sampling a large amount of configurations.
