@@ -3,17 +3,9 @@ docs/build/*
 
 *.py[cod]
 
-# Optimizers
-*_src*
-
-# Runsolver
-runsolver/src/*
-
-# benchmark runs
-HPOlib/benchmarks/*/*_*/*
-
 # C extensions
 *.so
+*.c
 
 # Packages
 *.egg
@@ -53,3 +45,5 @@ nosetests.xml
 
 # Others
 *~
+*.orig
+*.html
