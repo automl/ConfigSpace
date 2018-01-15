@@ -53,13 +53,11 @@ def impute_inactive_values(configuration: Configuration, strategy: Union[str, fl
           which should be able to be splitted apart by a tree-based model.
     """
     values = dict()
-    for hp_name in configuration:
-        value = configuration.get(hp_name)
+    for hp in configuration.configuration_space.get_hyperparameters():
+        value = configuration.get(hp.name)
         if value is None:
 
             if strategy == 'default':
-                hp = configuration.configuration_space.get_hyperparameter(
-                    hp_name)
                 new_value = hp.default_value
 
             elif isinstance(strategy, float):
@@ -70,7 +68,7 @@ def impute_inactive_values(configuration: Configuration, strategy: Union[str, fl
 
             value = new_value
 
-        values[hp_name] = value
+        values[hp.name] = value
 
     new_configuration = Configuration(configuration.configuration_space,
                                       values=values,
@@ -87,7 +85,9 @@ def get_one_exchange_neighbourhood(configuration: Configuration, seed: int) -> L
     In: Proceedings of the conference on Learning and Intelligent OptimizatioN (LION 5)
     """
     random = np.random.RandomState(seed)
-    hyperparameters_list = list(configuration.keys())
+    hyperparameters_list = list(
+        list(configuration.configuration_space._hyperparameters.keys())
+    )
     hyperparameters_list_length = len(hyperparameters_list)
     hyperparameters_used = [hp.name for hp in configuration.configuration_space.get_hyperparameters()
                             if hp.get_num_neighbors(configuration.get(hp.name)) == 0 and configuration.get(hp.name) is not None]

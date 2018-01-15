@@ -741,26 +741,22 @@ class ConfigurationTest(unittest.TestCase):
         configuration = {'x': 2}
         self.assertRaises(ValueError, Configuration, cs, configuration)
 
+    def test_keys(self):
+        # A regression test to make sure issue #49 does no longer pop up. By
+        # iterating over the configuration in the for loop, it should not raise
+        # a KeyError if the child hyperparameter is inactive.
+        cs = ConfigurationSpace()
+        shrinkage = CategoricalHyperparameter(
+            "shrinkage", ["None", "auto", "manual"], default_value="None",
+        )
+        shrinkage_factor = UniformFloatHyperparameter(
+            "shrinkage_factor", 0., 1., 0.5,
+        )
+        cs.add_hyperparameters([shrinkage, shrinkage_factor])
 
-        
+        cs.add_condition(EqualsCondition(shrinkage_factor, shrinkage, "manual"))
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        for i in range(10):
+            config = cs.sample_configuration()
+            d = {hp_name: config[hp_name] for hp_name in
+                 config if config[hp_name] is not None}

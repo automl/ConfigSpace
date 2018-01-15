@@ -1067,7 +1067,12 @@ class Configuration(object):
     def keys(self) -> List[str]:
         # Cache the keys to speed up the process of retrieving the keys
         if self._keys is None:
-            self._keys = list(self.configuration_space._hyperparameters.keys())
+            keys = list(self.configuration_space._hyperparameters.keys())
+            keys = [
+                key for i, key in enumerate(keys) if
+                    np.isfinite(self._vector[i])
+            ]
+            self._keys = keys
         return self._keys
 
     def get_dictionary(self) -> Dict[str, Union[str, float, int]]:
