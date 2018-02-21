@@ -1,4 +1,3 @@
-# cython: profile=True
 # Copyright (c) 2014-2016, ConfigSpace developers
 # Matthias Feurer
 # Katharina Eggensperger
@@ -34,7 +33,7 @@ from hyperparameters cimport Hyperparameter
 
 from collections import OrderedDict
 import copy
-from typing import List, Any, Dict, Union, Tuple
+from typing import List, Any, Dict, Union, Tuple, Optional
 import io
 import numpy as np
 cimport numpy as np
@@ -89,7 +88,7 @@ cdef class Hyperparameter(object):
     def _sample(self, rs, size):
         raise NotImplementedError()
 
-    def _transform(self, vector):
+    def _transform(self, vector: Union[np.ndarray, float, int]) -> Optional[Union[np.ndarray, float, int]]:
         raise NotImplementedError()
 
     def _inverse_transform(self, vector):
@@ -167,15 +166,15 @@ cdef class Constant(Hyperparameter):
     cpdef bint is_legal_vector(self, DTYPE_t value):
         return value == self.value_vector
 
-    def _sample(self, rs: None, size: int = None) -> Union[int, np.ndarray]:
+    def _sample(self, rs: None, size: Optional[int]=None) -> Union[int, np.ndarray]:
         return 0 if size == 1 else np.zeros((size,))
 
-    def _transform(self, vector: np.ndarray) -> Union[None, int, float, str]:
+    def _transform(self, vector: Union[np.ndarray, float, int]) -> Optional[Union[np.ndarray, float, int]]:
         if not np.isfinite(vector):
             return None
         return self.value
 
-    def _inverse_transform(self, vector: np.ndarray) -> Union[int, float]:
+    def _inverse_transform(self, vector: Union[np.ndarray, float, int]) -> Union[np.ndarray, int, float]:
         if vector != self.value:
             return np.NaN
         return 0
@@ -394,7 +393,7 @@ cdef class UniformFloatHyperparameter(FloatHyperparameter):
         else:
             return False
 
-    def check_default(self, default_value: float) -> Union[int, float]:
+    def check_default(self, default_value: Optional[float]) -> float:
         if default_value is None:
             if self.log:
                 default_value = np.exp((np.log(self.lower) + np.log(self.upper)) / 2.)
@@ -415,10 +414,10 @@ cdef class UniformFloatHyperparameter(FloatHyperparameter):
                                             int(np.round(self.default_value)), int(self.q),
                                             self.log)
 
-    def _sample(self, rs: np.random, size: Union[int, None] = None) -> float:
+    def _sample(self, rs: np.random, size: Optional[int]=None) -> Union[float, np.ndarray]:
         return rs.uniform(size=size)
 
-    def _transform(self, vector: np.ndarray) -> Union[np.ndarray, None]:
+    def _transform(self, vector: Union[np.ndarray, float, int]) -> Optional[Union[np.ndarray, float, int]]:
         if np.any(np.isnan(vector)):
             return None
         vector *= (self._upper - self._lower)
@@ -431,7 +430,7 @@ cdef class UniformFloatHyperparameter(FloatHyperparameter):
         vector = np.maximum(self.lower, vector)
         return vector
 
-    def _inverse_transform(self, vector: Union[np.ndarray, None]) -> Union[float, np.ndarray]:
+    def _inverse_transform(self, vector: Union[np.ndarray, None]) -> Union[np.ndarray, float, int]:
         if vector is None:
             return np.NaN
         if self.log:
@@ -561,12 +560,12 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
     cpdef bint is_legal_vector(self, DTYPE_t value):
         return isinstance(value, float) or isinstance(value, int)
 
-    def _sample(self, rs: np.random.RandomState, size: Union[None, int] = None) -> np.ndarray:
+    def _sample(self, rs: np.random.RandomState, size: Optional[int]=None) -> Union[np.ndarray, float]:
         mu = self.mu
         sigma = self.sigma
         return rs.normal(mu, sigma, size=size)
 
-    def _transform(self, vector: Union[None, np.ndarray]) -> np.ndarray:
+    def _transform(self, vector: Union[np.ndarray, float, int]) -> Optional[Union[np.ndarray, float, int]]:
         if np.isnan(vector):
             return None
         if self.log:
@@ -575,7 +574,7 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
             vector = int(np.round(vector / self.q, 0)) * self.q
         return vector
 
-    def _inverse_transform(self, vector: Union[None, np.ndarray]) -> Union[float, np.ndarray]:
+    def _inverse_transform(self, vector: Optional[np.ndarray]) -> Union[float, np.ndarray]:
         if vector is None:
             return np.NaN
 
@@ -642,7 +641,7 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
         repr_str.seek(0)
         return repr_str.getvalue()
 
-    def _sample(self, rs: np.random.RandomState, size: Union[int, None] = None) -> np.ndarray:
+    def _sample(self, rs: np.random.RandomState, size: Optional[int]=None) -> Union[np.ndarray, float]:
         value = self.ufhp._sample(rs, size=size)
         # Map all floats which belong to the same integer value to the same
         # float value by first transforming it to an integer and then
@@ -651,7 +650,7 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
         value = self._inverse_transform(value)
         return value
 
-    def _transform(self, vector: np.ndarray) -> np.ndarray:
+    def _transform(self, vector: Union[np.ndarray, float, int]) -> Optional[Union[np.ndarray, float, int]]:
         if np.any(np.isnan(vector)):
             return None
         vector = self.ufhp._transform(vector)
@@ -663,7 +662,7 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
             vector = int(vector)
         return vector
 
-    def _inverse_transform(self, vector: np.ndarray) -> np.ndarray:
+    def _inverse_transform(self, vector: Union[np.ndarray, float, int]) -> Union[np.ndarray, float, int]:
         return self.ufhp._inverse_transform(vector)
 
     def is_legal(self, value: int) -> bool:
@@ -852,7 +851,7 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
         else:
             raise ValueError("Illegal default value %s" % str(default_value))
 
-    def _sample(self, rs: np.random.RandomState, size: Union[int, None] = None) -> np.ndarray:
+    def _sample(self, rs: np.random.RandomState, size: Optional[int]=None) -> Union[np.ndarray, float]:
         value = self.nfhp._sample(rs, size=size)
         # Map all floats which belong to the same integer value to the same
         # float value by first transforming it to an integer and then
@@ -861,7 +860,7 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
         value = self._inverse_transform(value)
         return value
 
-    def _transform(self, vector: np.ndarray) -> Union[None, np.ndarray]:
+    def _transform(self, vector: Union[np.ndarray, float, int]) -> Optional[Union[np.ndarray, int]]:
         if np.isnan(vector):
             return None
         vector = self.nfhp._transform(vector)
@@ -870,7 +869,7 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
             vector = int(vector)
         return vector
 
-    def _inverse_transform(self, vector: np.ndarray) -> np.ndarray:
+    def _inverse_transform(self, vector: Union[np.ndarray, float, int]) -> Union[np.ndarray, float]:
         return self.nfhp._inverse_transform(vector)
 
     def has_neighbors(self) -> bool:
@@ -996,10 +995,10 @@ cdef class CategoricalHyperparameter(Hyperparameter):
         else:
             raise ValueError("Illegal default value %s" % str(default_value))
 
-    def _sample(self, rs: np.random.RandomState, size: int = None) -> Union[int, np.ndarray]:
+    def _sample(self, rs: np.random.RandomState, size: Optional[int]=None) -> Union[int, np.ndarray]:
         return rs.randint(0, self._num_choices, size=size)
 
-    def _transform(self, vector: np.ndarray) -> Union[None, str, int, float]:
+    def _transform(self, vector: Union[np.ndarray, float, int]) -> Optional[Union[str, int, float]]:
         if not np.isfinite(vector):
             return None
         if np.equal(np.mod(vector, 1), 0):
@@ -1165,7 +1164,7 @@ cdef class OrdinalHyperparameter(Hyperparameter):
     cpdef bint is_legal_vector(self, DTYPE_t value):
         return value in self.sequence_vector
 
-    def check_default(self, default_value: Union[int, float, str, None]) -> Union[int, float, str]:
+    def check_default(self, default_value: Optional[Union[int, float, str]]) -> Union[int, float, str]:
         """
         checks if given default value is represented in the sequence.
         If there's no default value we simply choose the
@@ -1178,7 +1177,7 @@ cdef class OrdinalHyperparameter(Hyperparameter):
         else:
             raise ValueError("Illegal default value %s" % str(default_value))
 
-    def _transform(self, vector: np.ndarray) -> Union[None, int, str, float]:
+    def _transform(self, vector: Union[np.ndarray, float, int]) -> Optional[Union[np.ndarray, float, int]]:
         if vector != vector:
             return None
         if np.equal(np.mod(vector, 1), 0):
@@ -1188,7 +1187,7 @@ cdef class OrdinalHyperparameter(Hyperparameter):
                              'hyperparameter %s with an integer, but provided '
                              'the following float: %f' % (self, vector))
 
-    def _inverse_transform(self, vector: np.ndarray) -> Union[float, List[int], List[str], List[float]]:
+    def _inverse_transform(self, vector: Optional[Union[np.ndarray, List, int, str, float]]) -> Union[float, List[int], List[str], List[float]]:
         if vector is None:
             return np.NaN
         return self.sequence.index(vector)
@@ -1200,7 +1199,7 @@ cdef class OrdinalHyperparameter(Hyperparameter):
         """
         return np.arange(0, self._num_elements)
 
-    def get_order(self, value: Union[None, int, str, float]) -> int:
+    def get_order(self, value: Optional[Union[int, str, float]]) -> int:
         """
         returns the seuence position/order of a certain value from the sequence
         """
@@ -1223,7 +1222,7 @@ cdef class OrdinalHyperparameter(Hyperparameter):
         else:
             return False
 
-    def _sample(self, rs: np.random.RandomState, size: Union[int, None] = None) -> int:
+    def _sample(self, rs: np.random.RandomState, size: Optional[int]=None) -> int:
         """
         returns a random sample from our sequence as order/position index
         """

@@ -1,4 +1,3 @@
-# cython: profile=True
 # Copyright (c) 2014-2016, ConfigSpace developers
 # Matthias Feurer
 # Katharina Eggensperger
@@ -30,7 +29,7 @@
 from abc import ABCMeta, abstractmethod
 import copy
 from itertools import combinations
-from typing import Any, List, Union, Tuple
+from typing import Any, List, Union, Tuple, Dict, Optional
 import operator
 
 from libc.stdlib cimport malloc, free
@@ -79,7 +78,7 @@ cdef class ConditionComponent(object):
     def get_descendant_literal_conditions(self) ->List['AbstractCondition']:
         pass
 
-    def evaluate(self, instantiated_parent_hyperparameter: Hyperparameter) -> bool:
+    def evaluate(self, instantiated_parent_hyperparameter: Dict[str, Union[None, int, float, str]]) -> bool:
         pass
 
     def evaluate_vector(self, instantiated_vector):
@@ -163,7 +162,7 @@ cdef class AbstractCondition(ConditionComponent):
     def get_descendant_literal_conditions(self) -> List['AbstractCondition']:
         return [self]
 
-    def evaluate(self, instantiated_parent_hyperparameter: Hyperparameter) -> bool:
+    def evaluate(self, instantiated_parent_hyperparameter: Dict[str, Union[int, float, str]]) -> bool:
         hp_name = self.parent.name
         return self._evaluate(instantiated_parent_hyperparameter[hp_name])
 
@@ -509,7 +508,7 @@ cdef class AbstractConjunction(ConditionComponent):
             parents.extend(component.get_parents())
         return parents
 
-    def evaluate(self, instantiated_hyperparameters: Hyperparameter) -> bool:
+    def evaluate(self, instantiated_hyperparameters: Dict[str, Union[None, int, float, str]]) -> bool:
         cdef int* arrptr
         arrptr = <int*> malloc(sizeof(int) * self.n_components)
 

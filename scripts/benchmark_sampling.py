@@ -1,3 +1,8 @@
+# /home/feurerm/projects/ConfigSpace/test/test_searchspaces/auto-sklearn_2017_11_17.pcs
+# Average time sampling 100 configurations 0.0115247011185
+# Average time retrieving a nearest neighbor 0.00251974105835
+# Average time checking one configuration 0.000194481347553
+
 import os
 import time
 

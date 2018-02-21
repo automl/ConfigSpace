@@ -39,7 +39,7 @@ from ConfigSpace.conditions import ConditionComponent, \
     AbstractCondition, AbstractConjunction, EqualsCondition
 # from ConfigSpace.forbidden import AbstractForbiddenComponent
 from ConfigSpace.forbidden import AbstractForbiddenComponent
-from typing import Union, List, Any, Dict, Iterable, Set, Tuple
+from typing import Union, List, Any, Dict, Iterable, Set, Tuple, Optional
 from ConfigSpace.exceptions import ForbiddenValueError
 import ConfigSpace.c_util
 
@@ -630,7 +630,7 @@ class ConfigurationSpace(object):
 
     def _check_default_configuration(self) -> 'Configuration':
         # Check if adding that hyperparameter leads to an illegal default configuration
-        instantiated_hyperparameters = {} # type: Dict[str, Union[None, int, float, str]]
+        instantiated_hyperparameters = {} # type: Dict[str, Optional[Union[int, float, str]]]
         for hp in self.get_hyperparameters():
             conditions = self._get_parent_conditions_of(hp.name)
             active = True

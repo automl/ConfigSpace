@@ -52,17 +52,9 @@ class TestConditions(unittest.TestCase):
         self.assertEqual(cond.vector_value, cond_.vector_value)
 
         # Test invalid conditions:
-        self.assertRaisesRegexp(ValueError, "Argument 'parent' is not an "
-                                            "instance of HPOlibConfigSpace.hyperparameter."
-                                            "Hyperparameter.", EqualsCondition, hp2,
-                                "parent", 0)
-        self.assertRaisesRegexp(ValueError, "Argument 'child' is not an "
-                                            "instance of HPOlibConfigSpace.hyperparameter."
-                                            "Hyperparameter.", EqualsCondition, "child",
-                                hp1, 0)
-        self.assertRaisesRegexp(ValueError, "The child and parent hyperparameter "
-                                            "must be different hyperparameters.",
-                                EqualsCondition, hp1, hp1, 0)
+        self.assertRaises(TypeError, EqualsCondition, hp2, "parent", 0)
+        self.assertRaises(TypeError, EqualsCondition, "child", hp1, 0)
+        self.assertRaises(ValueError, EqualsCondition, hp1, hp1, 0)
 
         self.assertEqual(cond, cond_)
 

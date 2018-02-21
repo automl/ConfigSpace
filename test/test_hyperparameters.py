@@ -500,12 +500,13 @@ class TestHyperparameters(unittest.TestCase):
             counts_per_bin = [0 for i in range(11)]
             for i in range(100000):
                 value = hp.sample(rs)
-                index = min(max(int((round(value + 0.5)) + 5), 0), 9)
+                index = min(max(int((np.round(value + 0.5)) + 5), 0), 9)
                 counts_per_bin[index] += 1
 
             self.assertEqual([0, 4, 138, 2113, 13394, 34104, 34282, 13683,
                               2136, 146, 0], counts_per_bin)
 
+            self.assertIsInstance(value, float)
             return counts_per_bin
 
         self.assertEqual(actual_test(), actual_test())
@@ -523,6 +524,8 @@ class TestHyperparameters(unittest.TestCase):
                 index = int(float(value - hp.lower) /
                             (hp.upper - hp.lower) * 20)
                 counts_per_bin[index] += 1
+
+            self.assertIsInstance(value, int)
             return counts_per_bin
 
         # Quantized Uniform
@@ -560,6 +563,7 @@ class TestHyperparameters(unittest.TestCase):
                 index = int((sample - lower) / (upper - lower) * 20)
                 counts_per_bin[index] += 1
 
+            self.assertIsInstance(value, int)
             return counts_per_bin
 
         hp = NormalIntegerHyperparameter("nihp", 0, 10)

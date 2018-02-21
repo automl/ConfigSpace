@@ -49,16 +49,18 @@ class TestForbidden(unittest.TestCase):
         hp2 = UniformIntegerHyperparameter("child", 0, 10)
         hp3 = CategoricalHyperparameter("grandchild", ["hot", "cold"])
 
-        self.assertRaisesRegexp(TypeError, "Argument 'hyperparameter' is not of"
-            " type <class 'ConfigSpace.hyperparameters.Hyperparameter'>.",
-                                ForbiddenEqualsClause, "HP1", 1)
+        self.assertRaisesRegexp(
+            TypeError,
+            "Argument 'hyperparameter' has incorrect type \(expected ConfigSpace.hyperparameters.Hyperparameter, got str\)",
+            ForbiddenEqualsClause, "HP1", 1,
+        )
 
-        self.assertRaisesRegexp(ValueError,
-                                "Forbidden clause must be instantiated with a "
-                                "legal hyperparameter value for "
-                                "'parent, Type: Categorical, Choices: \{0, "
-                                "1\}, Default: 0', but got '2'",
-                                ForbiddenEqualsClause, hp1, 2)
+        self.assertRaisesRegexp(
+            ValueError,
+            "Forbidden clause must be instantiated with a legal hyperparameter value for "
+            "'parent, Type: Categorical, Choices: \{0, 1\}, Default: 0', but got '2'",
+            ForbiddenEqualsClause, hp1, 2,
+        )
 
         forb1 = ForbiddenEqualsClause(hp1, 1)
         forb1_ = ForbiddenEqualsClause(hp1, 1)
@@ -115,16 +117,20 @@ class TestForbidden(unittest.TestCase):
         hp3 = UniformIntegerHyperparameter("child2", 0, 10)
         hp4 = CategoricalHyperparameter("grandchild", ["hot", "cold", "warm"])
 
-        self.assertRaisesRegexp(TypeError, "Argument 'hyperparameter' is not of"
-                                " type <class 'ConfigSpace.hyperparameters.Hyperparameter'>.",
-                                ForbiddenInClause, "HP1", 1)
+        self.assertRaisesRegexp(
+            TypeError,
+            "Argument 'hyperparameter' has incorrect type \(expected ConfigSpace.hyperparameters.Hyperparameter, got str\)",
+            ForbiddenInClause, "HP1", 1,
+        )
 
-        self.assertRaisesRegexp(ValueError,
-                                "Forbidden clause must be instantiated with a "
-                                "legal hyperparameter value for "
-                                "'parent, Type: Categorical, Choices: {0, 1, 2, 3, 4}, "
-                                "Default: 0', but got '5'",
-                                ForbiddenInClause, hp1, [5])
+        self.assertRaisesRegexp(
+            ValueError,
+            "Forbidden clause must be instantiated with a "
+            "legal hyperparameter value for "
+            "'parent, Type: Categorical, Choices: {0, 1, 2, 3, 4}, "
+            "Default: 0', but got '5'",
+            ForbiddenInClause, hp1, [5],
+        )
 
         forb1 = ForbiddenInClause(hp2, [5, 6, 7, 8, 9])
         forb1_ = ForbiddenInClause(hp2, [9, 8, 7, 6, 5])
