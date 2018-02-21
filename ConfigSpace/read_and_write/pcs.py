@@ -119,7 +119,9 @@ def build_condition(condition):
     # Now handle the conditions SMAC can handle
     condition_template = "%s | %s in {%s}"
     if isinstance(condition, AndConjunction):
-        raise NotImplementedError("This is not yet implemented!")
+        return '\n'.join([
+            build_condition(cond) for cond in condition.components
+        ])
     elif isinstance(condition, InCondition):
         return condition_template % (condition.child.name,
                                      condition.parent.name,
@@ -128,6 +130,8 @@ def build_condition(condition):
         return condition_template % (condition.child.name,
                                      condition.parent.name,
                                      condition.value)
+    else:
+        raise NotImplementedError(condition)
 
 
 def build_forbidden(clause):
