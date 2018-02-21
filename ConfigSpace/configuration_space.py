@@ -53,7 +53,13 @@ class ConfigurationSpace(object):
     """Represent a configuration space.
     """
 
-    def __init__(self, seed: Union[int, None] = None) -> None:
+    def __init__(
+            self,
+            name: Union[str, None] = None,
+            seed: Union[int, None] = None,
+    ) -> None:
+        self.name = name
+
         self._hyperparameters = OrderedDict()  # type: OrderedDict[str, Hyperparameter]
         self._hyperparameter_idx = dict()  # type: Dict[str, int]
         self._idx_to_hyperparameter = dict()  # type: Dict[int, str]
@@ -496,8 +502,12 @@ class ConfigurationSpace(object):
         hp = self._hyperparameters.get(name)
 
         if hp is None:
-            raise KeyError("Hyperparameter '%s' does not exist in this "
-                           "configuration space." % name)
+            if self.name is None:
+                raise KeyError("Hyperparameter '%s' does not exist in this "
+                               "configuration space." % name)
+            else:
+                raise KeyError("Hyperparameter '%s' does not exist in  "
+                               "configuration space %s." % (name, self.name))
         else:
             return hp
 
@@ -505,8 +515,12 @@ class ConfigurationSpace(object):
         hp = self._idx_to_hyperparameter.get(idx)
 
         if hp is None:
-            raise KeyError("Hyperparameter #'%d' does not exist in this "
-                           "configuration space." % idx)
+            if self.name is None:
+                raise KeyError("Hyperparameter #'%d' does not exist in this "
+                               "configuration space." % idx)
+            else:
+                raise KeyError("Hyperparameter #'%d' does not exist in  "
+                               "configuration space %s." % (idx, self.name))
         else:
             return hp
 
@@ -514,8 +528,12 @@ class ConfigurationSpace(object):
         idx = self._hyperparameter_idx.get(name)
 
         if idx is None:
-            raise KeyError("Hyperparameter '%s' does not exist in this "
-                           "configuration space." % name)
+            if self.name is None:
+                raise KeyError("Hyperparameter '%s' does not exist in this "
+                               "configuration space." % name)
+            else:
+                raise KeyError("Hyperparameter '%s' does not exist in  "
+                               "configuration space %s." % (name, self.name))
         else:
             return idx
 
@@ -752,6 +770,10 @@ class ConfigurationSpace(object):
     def __repr__(self) -> str:
         retval = io.StringIO()
         retval.write("Configuration space object:\n  Hyperparameters:\n")
+
+        if self.name is not None:
+            retval.write(self.name)
+            retval.write('\n')
 
         hyperparameters = sorted(self.get_hyperparameters(),
                                  key=lambda t: t.name)
