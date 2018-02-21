@@ -10,3 +10,5 @@ under a BSD license.
 
 .. image:: https://travis-ci.org/automl/ConfigSpace.svg?branch=master
   :target: https://travis-ci.org/automl/ConfigSpace
+
+Examples usage can be found in the [SMAC documentation](https://automl.github.io/SMAC3/stable/quickstart.html#using-smac-in-python-svm).
