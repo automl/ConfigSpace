@@ -29,7 +29,7 @@
 
 from collections import deque
 import copy
-from typing import Union, List, Any, Dict
+from typing import Union, List, Dict
 
 import numpy as np  # type: ignore
 from ConfigSpace import Configuration, ConfigurationSpace
@@ -254,8 +254,10 @@ def get_random_neighbor(configuration: Configuration, seed: int) -> Configuratio
     return new_configuration
 
 
-def deactivate_inactive_hyperparameters(configuration: dict,
-                                        configuration_space: ConfigurationSpace):
+def deactivate_inactive_hyperparameters(
+        configuration: Dict,
+        configuration_space: ConfigurationSpace,
+):
     hyperparameters = configuration_space.get_hyperparameters()
     configuration = Configuration(configuration_space=configuration_space,
                                   values=configuration,
