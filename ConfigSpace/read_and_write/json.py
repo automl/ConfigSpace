@@ -324,7 +324,10 @@ def write(configuration_space):
 ################################################################################
 def read(jason_string):
     jason = json.loads(jason_string)
-    configuration_space = ConfigurationSpace(name=jason['name'])
+    if 'name' in jason:
+        configuration_space = ConfigurationSpace(name=jason['name'])
+    else:
+        configuration_space = ConfigurationSpace()
 
     for hyperparameter in jason['hyperparameters']:
         configuration_space.add_hyperparameter(_construct_hyperparameter(
