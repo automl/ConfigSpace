@@ -76,7 +76,7 @@ class ConfigurationSpace(object):
         # changing this to a normal dict will break sampling because there is
         #  no guarantee that the parent of a condition was evaluated before
         self._conditionals = set()   # type: Set[str]
-        self._forbidden_clauses = []  # type: List['AbstractForbiddenComponent']
+        self.forbidden_clauses = []  # type: List['AbstractForbiddenComponent']
         self.random = np.random.RandomState(seed)
 
         self._children['__HPOlib_configuration_space_root__'] = OrderedDict()
@@ -417,7 +417,7 @@ class ConfigurationSpace(object):
             condition.set_vector_idx(self._hyperparameter_idx)
 
         # forbidden clauses
-        for clause in self._forbidden_clauses:
+        for clause in self.get_forbiddens():
             clause.set_vector_idx(self._hyperparameter_idx)
 
     def _update_cache(self):
@@ -458,7 +458,7 @@ class ConfigurationSpace(object):
                             "with an instance of "
                             "ConfigSpace.forbidden.AbstractForbiddenComponent.")
         clause.set_vector_idx(self._hyperparameter_idx)
-        self._forbidden_clauses.append(clause)
+        self.forbidden_clauses.append(clause)
         self._check_default_configuration()
         return clause
 
@@ -469,7 +469,7 @@ class ConfigurationSpace(object):
                 raise TypeError("Forbidden '%s' is not an instance of "
                                 "ConfigSpace.forbidden.AbstractForbiddenComponent." %
                                 str(clause))
-            self._forbidden_clauses.append(clause)
+            self.forbidden_clauses.append(clause)
         self._check_default_configuration()
         return clauses
 
@@ -514,7 +514,7 @@ class ConfigurationSpace(object):
         self.add_conditions(conditions_to_add)
 
         forbiddens_to_add = []
-        for forbidden_clause in configuration_space._forbidden_clauses:
+        for forbidden_clause in configuration_space.forbidden_clauses:
             # new_forbidden = copy.deepcopy(forbidden_clause)
             new_forbidden = forbidden_clause
             dlcs = new_forbidden.get_descendant_literal_clauses()
@@ -609,7 +609,7 @@ class ConfigurationSpace(object):
         return conditions
 
     def get_forbiddens(self) -> List[AbstractForbiddenComponent]:
-        return self._forbidden_clauses
+        return self.forbidden_clauses
 
     def get_children_of(self, name: Union[str, Hyperparameter]) -> List[Hyperparameter]:
         conditions = self.get_child_conditions_of(name)
@@ -797,8 +797,8 @@ class ConfigurationSpace(object):
         self._check_forbidden(vector)
 
     def _check_forbidden(self, vector: np.ndarray) -> None:
-        ConfigSpace.c_util.check_forbidden(self._forbidden_clauses, vector)
-        #for clause in self._forbidden_clauses:
+        ConfigSpace.c_util.check_forbidden(self.forbidden_clauses, vector)
+        #for clause in self.forbidden_clauses:
         #    if clause.is_forbidden_vector(vector, strict=False):
         #        raise ForbiddenValueError("Given vector violates forbidden
     # clause %s" % (str(clause)))
@@ -849,11 +849,11 @@ class ConfigurationSpace(object):
                 [str(condition) for condition in conditions]))
             retval.write("\n")
 
-        if self._forbidden_clauses:
+        if self.get_forbiddens():
             retval.write("  Forbidden Clauses:\n")
             retval.write("    ")
             retval.write("\n    ".join(
-                [str(clause) for clause in self._forbidden_clauses]))
+                [str(clause) for clause in self.get_forbiddens()]))
             retval.write("\n")
 
         retval.seek(0)
@@ -880,7 +880,7 @@ class ConfigurationSpace(object):
 
         _forbidden_clauses_unconditionals = []
         _forbidden_clauses_conditionals = []
-        for clause in self._forbidden_clauses:
+        for clause in self.get_forbiddens():
             based_on_conditionals = False
             for subclause in clause.get_descendant_literal_clauses():
                 if subclause.hyperparameter.name not in unconditional_hyperparameters:
