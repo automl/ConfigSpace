@@ -286,6 +286,7 @@ class ConfigurationSpace(object):
                     "Child hyperparameter '%s' not in configuration "
                     "space." % child_node.name)
             if child_node != self._hyperparameters[child_node.name]:
+                # TODO test this
                 raise ValueError(
                     "Child hyperparameter '%s' different to hyperparameter "
                     "with the same name in configuration space: '%s'." %
@@ -296,12 +297,14 @@ class ConfigurationSpace(object):
                     "Parent hyperparameter '%s' not in configuration "
                     "space." % parent_node.name)
             if parent_node != self._hyperparameters[parent_node.name]:
+                # TODO test this
                 raise ValueError(
                     "Parent hyperparameter '%s' different to hyperparameter "
                     "with the same name in configuration space: '%s'." %
                     (parent_node, self._hyperparameters[parent_node.name])
                 )
             if isinstance(value, list):
+                # TODO test this
                 for v in value:
                     if not self._hyperparameters[parent_node.name].is_legal(v):
                         raise ValueError(
@@ -1024,6 +1027,19 @@ class Configuration(object):
             self._values = dict()
             if not isinstance(vector, np.ndarray):
                 vector = np.array(vector, dtype=float)
+            if len(vector.shape) > 1:
+                if len(vector.shape) == 2 and vector.shape[1] == 1:
+                    vector = vector.flatten()
+                else:
+                    raise ValueError(
+                        'Only 1d arrays can be converted to a Configuration, '
+                        'you passed an array of shape %s.' % str(vector.shape)
+                    )
+            if len(vector) != len(self.configuration_space.get_hyperparameters()):
+                raise ValueError(
+                    'Expected array of length %d, got %d' %
+                    (len(self.configuration_space.get_hyperparameters()), len(vector))
+                )
             self._vector = vector
         else:
             raise ValueError('Configuration neither specified as dictionary '
@@ -1167,23 +1183,4 @@ class Configuration(object):
             continuous values are scaled between zero and one.
         """
         return self._vector
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
