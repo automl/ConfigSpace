@@ -178,22 +178,31 @@ class ConfigurationSpace(object):
                             "ConfigSpace.condition.ConditionComponent.")
 
         if isinstance(condition, AbstractCondition):
-            self._check_edges([(condition.parent.name, condition.child.name)])
-            self._check_condition(condition.child.name, condition)
-            self._add_edge(condition.parent.name, condition.child.name,
-                           condition)
+            self._check_edges(
+                [(condition.parent, condition.child)],
+                [condition.value],
+            )
+            self._check_condition(condition.child, condition)
+            self._add_edge(
+                condition.parent,
+                condition.child,
+                condition,
+            )
 
         # Loop over the Conjunctions to find out the conditions we must add!
         elif isinstance(condition, AbstractConjunction):
             dlcs = condition.get_descendant_literal_conditions()
-            edges = [(dlc.parent.name, dlc.child.name) for dlc in dlcs]
-            self._check_edges(edges)
+            edges = [(dlc.parent, dlc.child) for dlc in dlcs]
+            values = [dlc.value for dlc in dlcs]
+            self._check_edges(edges, values)
 
-            for dlc in condition.get_descendant_literal_conditions():
-                self._check_condition(dlc.child.name, condition)
-                self._add_edge(dlc.parent.name,
-                               dlc.child.name,
-                               condition=condition)
+            for dlc in dlcs:
+                self._check_condition(dlc.child, condition)
+                self._add_edge(
+                    dlc.parent,
+                    dlc.child,
+                    condition=condition,
+                )
 
         else:
             raise Exception("This should never happen!")
@@ -210,19 +219,23 @@ class ConfigurationSpace(object):
                                 str(condition))
 
         edges = []
+        values = []
         conditions_to_add = []
         for condition in conditions:
             if isinstance(condition, AbstractCondition):
-                edges.append((condition.parent.name, condition.child.name))
+                edges.append((condition.parent, condition.child))
+                values.append(condition.value)
                 conditions_to_add.append(condition)
             elif isinstance(condition, AbstractConjunction):
                 dlcs = condition.get_descendant_literal_conditions()
-                edges = [(dlc.parent.name, dlc.child.name) for dlc in dlcs]
+                edges.extend(
+                    [(dlc.parent, dlc.child) for dlc in dlcs])
+                values.extend([dlc.value for dlc in dlcs])
                 conditions_to_add.extend(dlcs)
 
         for edge, condition in zip(edges, conditions_to_add):
             self._check_condition(edge[1], condition)
-        self._check_edges(edges)
+        self._check_edges(edges, values)
         for edge, condition in zip(edges, conditions_to_add):
             self._add_edge(edge[0], edge[1], condition)
 
@@ -230,25 +243,30 @@ class ConfigurationSpace(object):
         self._update_cache()
         return conditions
 
-    def _add_edge(self, parent_node: str, child_node: str, condition: ConditionComponent) -> None:
+    def _add_edge(
+            self,
+            parent_node: Hyperparameter,
+            child_node: Hyperparameter,
+            condition: ConditionComponent,
+    ) -> None:
         try:
             # TODO maybe this has to be done more carefully
-            del self._children['__HPOlib_configuration_space_root__'][
-                child_node]
+            del self._children['__HPOlib_configuration_space_root__'][child_node.name]
         except Exception:
             pass
 
         try:
-            del self._parents[child_node]['__HPOlib_configuration_space_root__']
+            del self._parents[child_node.name]['__HPOlib_configuration_space_root__']
         except Exception:
             pass
 
-        self._children[parent_node][child_node] = condition
-        self._parents[child_node][parent_node] = condition
-        self._conditionals.add(child_node)
+        self._children[parent_node.name][child_node.name] = condition
+        self._parents[child_node.name][parent_node.name] = condition
+        self._conditionals.add(child_node.name)
 
-    def _check_condition(self, child_node: str, condition: ConditionComponent) -> None:
-        for other_condition in self._get_parent_conditions_of(child_node):
+    def _check_condition(self, child_node: Hyperparameter, condition: ConditionComponent) \
+            -> None:
+        for other_condition in self._get_parent_conditions_of(child_node.name):
             if other_condition != condition:
                 raise ValueError("Adding a second condition (different) for a "
                                  "hyperparameter is ambigouos and "
@@ -256,25 +274,58 @@ class ConfigurationSpace(object):
                                  "instead!\nAlready inserted: %s\nNew one: "
                                  "%s" % (str(other_condition), str(condition)))
 
-    def _check_edges(self, edges: List[Tuple[str, str]]) -> None:
-        for parent_node, child_node in edges:
+    def _check_edges(
+            self,
+            edges: List[Tuple[Hyperparameter, Hyperparameter]],
+            values: List[Union[float, str, int]]
+    ) -> None:
+        for (parent_node, child_node), value in zip(edges, values):
             # check if both nodes are already inserted into the graph
-            if child_node not in self._hyperparameters:
-                raise ValueError("Child hyperparameter '%s' not in configuration "
-                                 "space." % child_node)
-            if parent_node not in self._hyperparameters:
-                raise ValueError("Parent hyperparameter '%s' not in configuration "
-                                 "space." % parent_node)
+            if child_node.name not in self._hyperparameters:
+                raise ValueError(
+                    "Child hyperparameter '%s' not in configuration "
+                    "space." % child_node.name)
+            if child_node != self._hyperparameters[child_node.name]:
+                raise ValueError(
+                    "Child hyperparameter '%s' different to hyperparameter "
+                    "with the same name in configuration space: '%s'." %
+                    (child_node, self._hyperparameters[child_node.name])
+                )
+            if parent_node.name not in self._hyperparameters:
+                raise ValueError(
+                    "Parent hyperparameter '%s' not in configuration "
+                    "space." % parent_node.name)
+            if parent_node != self._hyperparameters[parent_node.name]:
+                raise ValueError(
+                    "Parent hyperparameter '%s' different to hyperparameter "
+                    "with the same name in configuration space: '%s'." %
+                    (parent_node, self._hyperparameters[parent_node.name])
+                )
+            if isinstance(value, list):
+                for v in value:
+                    if not self._hyperparameters[parent_node.name].is_legal(v):
+                        raise ValueError(
+                            "Value '%s' is not legal for hyperparameter %s." %
+                            (v, self._hyperparameters[parent_node])
+                        )
+            else:
+                if not self._hyperparameters[parent_node.name].is_legal(value):
+                    raise ValueError(
+                        "Value '%s' is not legal for hyperparameter %s." %
+                        (value, self._hyperparameters[parent_node])
+                    )
 
         # TODO: recursively check everything which is inside the conditions,
         # this means we have to recursively traverse the condition
 
         tmp_dag = self._create_tmp_dag()
         for parent_node, child_node in edges:
-            tmp_dag.add_edge(parent_node, child_node)
+            tmp_dag.add_edge(parent_node.name, child_node.name)
 
         if not ConfigSpace.nx.is_directed_acyclic_graph(tmp_dag):
-            cycles = list(ConfigSpace.nx.simple_cycles(tmp_dag))  # type: List[List[str]]
+            cycles = list(
+                ConfigSpace.nx.simple_cycles(tmp_dag)
+            )  # type: List[List[str]]
             for cycle in cycles:
                 cycle.sort()
             cycles.sort()
