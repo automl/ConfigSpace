@@ -365,6 +365,7 @@ cdef class InCondition(AbstractCondition):
                                  "its parent hyperparameter '%s'" %
                                  (child.name, value, parent.name))
         self.values = values
+        self.value = values
         self.vector_values = [self.parent._inverse_transform(value) for value in self.values]
 
     def __richcmp__(self, other: Any, int op):

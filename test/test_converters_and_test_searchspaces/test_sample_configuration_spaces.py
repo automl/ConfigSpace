@@ -83,7 +83,7 @@ this_directory = os.path.dirname(this_file)
 configuration_space_path = os.path.join(this_directory,
                                         "..", "test_searchspaces")
 configuration_space_path = os.path.abspath(configuration_space_path)
-pcs_files = os.listdir(configuration_space_path)
+pcs_files = sorted(os.listdir(configuration_space_path))
 
 for pcs_file in pcs_files:
     if '.pcs' in pcs_file:

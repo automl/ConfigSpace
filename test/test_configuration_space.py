@@ -220,7 +220,7 @@ class TestConfigurationSpace(unittest.TestCase):
     Forbidden: prefix__input1 == 1
 ''')
 
-    def test_get_hyperparameters(self):
+    def test_get_hyperparamforbidden_clauseseters(self):
         cs = ConfigurationSpace()
         self.assertEqual(0, len(cs.get_hyperparameters()))
         hp1 = CategoricalHyperparameter("parent", [0, 1])

@@ -236,7 +236,7 @@ def write(configuration_space):
             condition_lines.write("\n")
         condition_lines.write(build_condition(condition))
 
-    for forbidden_clause in configuration_space.forbidden_clauses:
+    for forbidden_clause in configuration_space.get_forbiddens():
         # Convert in-statement into two or more equals statements
         dlcs = forbidden_clause.get_descendant_literal_clauses()
         # First, get all in statements and convert them to equal statements

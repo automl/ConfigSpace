@@ -306,7 +306,7 @@ def write(configuration_space):
     for condition in configuration_space.get_conditions():
         conditions.append(_build_condition(condition))
 
-    for forbidden_clause in configuration_space.forbidden_clauses:
+    for forbidden_clause in configuration_space.get_forbiddens():
         forbiddens.append(_build_forbidden(forbidden_clause))
 
     rval = {}
