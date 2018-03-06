@@ -158,7 +158,7 @@ cdef class Constant(Hyperparameter):
         return Constant(self.name, self.value)
 
     def __hash__(self):
-        return hash(tuple(self.name, self.value))
+        return hash((self.name, self.value))
 
     def is_legal(self, value: Union[str, int, float]) -> bool:
         return value == self.value
@@ -268,7 +268,7 @@ cdef class NumericalHyperparameter(Hyperparameter):
 
     def __hash__(self):
         return hash(
-            tuple(
+            (
                 self.name,
                 self.lower,
                 self.upper,
@@ -526,7 +526,7 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
         )
 
     def __hash__(self):
-        return hash(tuple(self.name, self.mu, self.sigma, self.log, self.q))
+        return hash((self.name, self.mu, self.sigma, self.log, self.q))
 
     def to_uniform(self, z: int = 3) -> 'UniformFloatHyperparameter':
         return UniformFloatHyperparameter(self.name,
@@ -816,7 +816,7 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
         return NotImplemented
 
     def __hash__(self):
-        return hash(tuple(self.name, self.mu, self.sigma, self.log, self.q))
+        return hash((self.name, self.mu, self.sigma, self.log, self.q))
 
     def __copy__(self):
         return NormalIntegerHyperparameter(
@@ -899,17 +899,18 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
 
 
 cdef class CategoricalHyperparameter(Hyperparameter):
-    cdef public list choices
+    cdef public tuple choices
     cdef int _num_choices
     cdef list choices_vector
     cdef set _choices_set
 
     # TODO add more magic for automated type recognition
+    # TODO move from list to tuple for choices argument
     def __init__(self, name: str, choices: List[Union[str, float, int]], default_value: Union[int, float, str, None] = None) \
             -> None:
         super(CategoricalHyperparameter, self).__init__(name)
         # TODO check that there is no bullshit in the choices!
-        self.choices = choices
+        self.choices = tuple(choices)
         self._num_choices = len(choices)
         self.choices_vector = list(range(self._num_choices))
         self._choices_set = set(self.choices_vector)
@@ -957,7 +958,7 @@ cdef class CategoricalHyperparameter(Hyperparameter):
         return NotImplemented
 
     def __hash__(self):
-        return hash(tuple(self.name, self.choices))
+        return hash((self.name, self.choices))
 
     def __copy__(self):
         return CategoricalHyperparameter(
@@ -1063,7 +1064,7 @@ cdef class CategoricalHyperparameter(Hyperparameter):
 
 
 cdef class OrdinalHyperparameter(Hyperparameter):
-    cdef public sequence
+    cdef public tuple sequence
     cdef int _num_elements
     cdef sequence_vector
     cdef value_dict
@@ -1078,7 +1079,7 @@ cdef class OrdinalHyperparameter(Hyperparameter):
         super(OrdinalHyperparameter, self).__init__(name)
         if len(sequence) > len(set(sequence)):
             raise ValueError("Ordinal Hyperparameter Sequence %s contain duplicate values." % sequence)
-        self.sequence = sequence
+        self.sequence = tuple(sequence)
         self._num_elements = len(sequence)
         self.sequence_vector = list(range(self._num_elements))
         self.default_value = self.check_default(default_value)
@@ -1088,6 +1089,9 @@ cdef class OrdinalHyperparameter(Hyperparameter):
         for element in self.sequence:
             self.value_dict[element] = counter
             counter += 1
+
+    def __hash__(self):
+            return hash((self.name, self.sequence))
 
     def __repr__(self) -> str:
         """
