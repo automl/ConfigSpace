@@ -56,7 +56,7 @@ setup(
     url='https://github.com/automl/ConfigSpace',
     description=desc,
     ext_modules=extensions,
-    long_description=read("README.rst"),
+    long_description=read("README.md"),
     license='BSD 3-clause',
     platforms=['Linux'],
     author=', '.join(["Matthias Feurer", "Katharina Eggensperger",
