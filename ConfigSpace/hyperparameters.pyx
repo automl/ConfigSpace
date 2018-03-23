@@ -906,8 +906,12 @@ cdef class CategoricalHyperparameter(Hyperparameter):
 
     # TODO add more magic for automated type recognition
     # TODO move from list to tuple for choices argument
-    def __init__(self, name: str, choices: List[Union[str, float, int]], default_value: Union[int, float, str, None] = None) \
-            -> None:
+    def __init__(
+        self,
+        name: str,
+        choices: Union[List[Union[str, float, int]], Tuple[Union[float, int, str]]],
+        default_value: Union[int, float, str, None]=None
+    ) -> None:
         super(CategoricalHyperparameter, self).__init__(name)
         # TODO check that there is no bullshit in the choices!
         self.choices = tuple(choices)
@@ -1069,8 +1073,12 @@ cdef class OrdinalHyperparameter(Hyperparameter):
     cdef sequence_vector
     cdef value_dict
 
-    def __init__(self, name: str, sequence: List[Union[float, int, str]],
-                 default_value: Union[str, int, float, None] = None) -> None:
+    def __init__(
+        self,
+        name: str,
+        sequence: Union[List[Union[float, int, str]], Tuple[Union[float, int, str]]],
+        default_value: Union[str, int, float, None]=None
+    ) -> None:
         """
         since the sequence can consist of elements from different types we
         store them into a dictionary in order to handle them as a
