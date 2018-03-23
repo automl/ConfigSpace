@@ -1,3 +1,13 @@
+# Version 0.4.5
+
+* Stricter typechecking by using a new Cython features which automatically
+  transfers type annotations into type checks at compilation time.
+* New attribute of the ConfigSpace object: name
+* Added JSON as a new, experimental serialization format for configuration
+  spaces.
+* Fixed a bug writing AND-conjunctions in the pcs writer.
+* Fixed a lot of hash functions which broke during the conversion to Cython
+
 # Version 0.4.4
 
 * Fixes issue #49. The `Configuration` object no longer iterates over inactive
