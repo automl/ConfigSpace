@@ -1,5 +1,4 @@
-ConfigSpace
-~~~~~~~~~~~
+# ConfigSpace
 
 A simple python module to manage configuration spaces for algorithm configuration
 and hyperparameter optimization tasks. Includes various scripts to translate 
