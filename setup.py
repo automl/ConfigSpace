@@ -73,6 +73,7 @@ setup(
     ],
     keywords=keywords,
     packages=find_packages(),
+    python_requires='>=3.4.*',
     classifiers=[
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
