@@ -303,19 +303,19 @@ class ConfigurationSpace(object):
                     "with the same name in configuration space: '%s'." %
                     (parent_node, self._hyperparameters[parent_node.name])
                 )
-            if isinstance(value, list):
+            if isinstance(value, (tuple, list)):
                 # TODO test this
                 for v in value:
                     if not self._hyperparameters[parent_node.name].is_legal(v):
                         raise ValueError(
                             "Value '%s' is not legal for hyperparameter %s." %
-                            (v, self._hyperparameters[parent_node])
+                            (v, self._hyperparameters[parent_node.name])
                         )
             else:
                 if not self._hyperparameters[parent_node.name].is_legal(value):
                     raise ValueError(
                         "Value '%s' is not legal for hyperparameter %s." %
-                        (value, self._hyperparameters[parent_node])
+                        (value, self._hyperparameters[parent_node.name])
                     )
 
         # TODO: recursively check everything which is inside the conditions,
