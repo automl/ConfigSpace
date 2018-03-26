@@ -1,3 +1,7 @@
+# Version 0.4.6
+
+* Fixe a bug which caused a `KeyError` on the usage of tuples in `InCondition`.
+
 # Version 0.4.5
 
 * Stricter typechecking by using a new Cython features which automatically
