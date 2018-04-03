@@ -946,7 +946,6 @@ class ConfigurationSpace(object):
 
 
 class Configuration(object):
-    # TODO add a method to eliminate inactive hyperparameters from a configuration
     def __init__(self, configuration_space: ConfigurationSpace, values: Union[None,  Dict[str, Union[str, float, int]]] = None,
                  vector: Union[None, np.ndarray]=None, allow_inactive_with_values: bool=False, origin: Any=None)\
             -> None:
