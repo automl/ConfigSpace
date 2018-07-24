@@ -23,7 +23,7 @@ It can be installed using pip::
    :caption: Contents:
 		
    quickstart.rst
-   Hyperparmaters.rst
+   Hyperparameters.rst
    Save_ConfigSpace_to_file.rst
 
 
