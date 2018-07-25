@@ -1,8 +1,7 @@
 from setuptools import setup, find_packages
 from setuptools.extension import Extension
+from setuptools.command.build_ext import build_ext as _build_ext
 import os
-from Cython.Build import cythonize
-import numpy as np
 
 # Read http://peterdowns.com/posts/first-time-with-pypi.html to figure out how
 # to publish the package on PyPI
@@ -13,34 +12,34 @@ desc = 'Creation and manipulation of parameter configuration spaces for ' \
 keywords = 'algorithm configuration hyperparameter optimization empirical ' \
            'evaluation black box'
 
-# These do not really change the speed of the benchmarks
-compiler_directives = {
-    'boundscheck': False,
-    'wraparound': False,
-}
+class build_ext(_build_ext):
+    def finalize_options(self):
+        _build_ext.finalize_options(self)
+        __builtins__.__NUMPY_SETUP__ = False
+        import numpy
+        self.include_dirs.append(numpy.get_include())
 
-extensions = cythonize(
-    [Extension('ConfigSpace.hyperparameters',
-               sources=['ConfigSpace/hyperparameters.pyx',],
-               include_dirs=[np.get_include()]),
-     Extension('ConfigSpace.forbidden',
-               sources=['ConfigSpace/forbidden.pyx'],
-               include_dirs=[np.get_include()]),
-     Extension('ConfigSpace.conditions',
-               sources=['ConfigSpace/conditions.pyx'],
-               include_dirs=[np.get_include()]),
-     Extension('ConfigSpace.c_util',
-               sources=['ConfigSpace/c_util.pyx'],
-               include_dirs=[np.get_include()]),
-     Extension('ConfigSpace.util',
-               sources=['ConfigSpace/util.py'],
-               include_dirs=[np.get_include()]),
-     Extension('ConfigSpace.configuration_space',
-               sources=['ConfigSpace/configuration_space.py'],
-               include_dirs=[np.get_include()]),
-     ],
-    compiler_directives=compiler_directives,
-)
+compiler_directives = {'boundscheck': False, 'wraparound':False}
+
+extensions = [
+  Extension('ConfigSpace.hyperparameters',
+            sources=['ConfigSpace/hyperparameters.pyx',],
+            compiler_directives=compiler_directives),
+  Extension('ConfigSpace.forbidden',
+            sources=['ConfigSpace/forbidden.pyx'],
+            compiler_directives=compiler_directives),
+  Extension('ConfigSpace.conditions',
+            sources=['ConfigSpace/conditions.pyx'],
+            compiler_directives=compiler_directives),
+  Extension('ConfigSpace.c_util',
+            sources=['ConfigSpace/c_util.pyx'],
+            compiler_directives=compiler_directives),
+  Extension('ConfigSpace.util',
+            sources=['ConfigSpace/util.py'],
+            compiler_directives=compiler_directives),
+  Extension('ConfigSpace.configuration_space',
+            sources=['ConfigSpace/configuration_space.py'],
+            compiler_directives=compiler_directives)]
 
 def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
@@ -65,6 +64,11 @@ setup(
                       "Marius Lindauer", "Jorn Tuyls"]),
     author_email='feurerm@informatik.uni-freiburg.de',
     test_suite="nose.collector",
+    cmdclass={'build_ext':build_ext},
+    setup_requires=[
+        'Cython', 
+        'numpy'
+    ],
     install_requires=[
         'numpy',
         'pyparsing',
