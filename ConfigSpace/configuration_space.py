@@ -755,19 +755,10 @@ class ConfigurationSpace(object):
                             "Your input was of type %s" % (type(vector)))
         ConfigSpace.c_util.check_configuration(self, vector, False)
 
-    def _check_configuration_rigorous(self, configuration: 'Configuration',
-                                      allow_inactive_with_values: bool = False) -> None:
+    def get_active_hyperparameters(self, configuration: 'Configuration') -> Set:
         vector = configuration.get_array()
-
+        active_hyperparameters = set()
         for hp_name, hyperparameter in self._hyperparameters.items():
-            hp_value = vector[self._hyperparameter_idx[hp_name]]
-
-            if not np.isnan(hp_value) and not hyperparameter.is_legal_vector(hp_value):
-                raise ValueError("Hyperparameter instantiation '%s' "
-                                 "(type: %s) is illegal for hyperparameter %s" %
-                                 (hp_value, str(type(hp_value)),
-                                  hyperparameter))
-
             conditions = self._parent_conditions_of[hyperparameter.name]
 
             active = True
@@ -787,6 +778,25 @@ class ConfigurationSpace(object):
                     if not condition.evaluate_vector(vector):
                         active = False
                         break
+
+            if active:
+                active_hyperparameters.add(hp_name)
+        return active_hyperparameters
+
+    def _check_configuration_rigorous(self, configuration: 'Configuration',
+                                      allow_inactive_with_values: bool = False) -> None:
+        vector = configuration.get_array()
+        active_hyperparameters = self.get_active_hyperparameters(configuration)
+
+        for hp_name, hyperparameter in self._hyperparameters.items():
+            hp_value = vector[self._hyperparameter_idx[hp_name]]
+            active = hp_name in active_hyperparameters
+
+            if not np.isnan(hp_value) and not hyperparameter.is_legal_vector(hp_value):
+                raise ValueError("Hyperparameter instantiation '%s' "
+                                 "(type: %s) is illegal for hyperparameter %s" %
+                                 (hp_value, str(type(hp_value)),
+                                  hyperparameter))
 
             if active and np.isnan(hp_value):
                 raise ValueError("Active hyperparameter '%s' not specified!" %
