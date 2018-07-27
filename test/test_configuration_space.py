@@ -97,6 +97,13 @@ class TestConfigurationSpace(unittest.TestCase):
         self.assertRaisesRegexp(ValueError, "Given vector violates forbidden clause \(Forbidden: loss == \'l1\' && "
             "Forbidden: penalty == \'l1\'\)", cs.add_forbidden_clause, forb3)
 
+    def test_meta_data_stored(self):
+        meta_data = {'additional': 'meta-data',
+                     'useful': 'for integrations',
+                     'input_id': 42}
+        cs = ConfigurationSpace(meta=dict(meta_data))
+        self.assertEqual(cs.meta, meta_data)
+
     def test_add_non_condition(self):
         cs = ConfigurationSpace()
         non_cond = unittest.TestSuite()

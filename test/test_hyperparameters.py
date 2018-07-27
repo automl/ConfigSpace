@@ -39,6 +39,12 @@ from ConfigSpace.hyperparameters import Constant, \
 
 
 class TestHyperparameters(unittest.TestCase):
+
+    def setUp(self):
+        self.meta_data = {'additional': 'meta-data',
+                          'useful': 'for integrations',
+                          'input_id': 42}
+
     def test_constant(self):
         # Test construction
         c1 = Constant("value", 1)
@@ -67,6 +73,10 @@ class TestHyperparameters(unittest.TestCase):
         self.assertRaises(TypeError, Constant, dict(), "value")
         self.assertRaises(TypeError, Constant, None, "value")
         self.assertRaises(TypeError, Constant, True, "value")
+
+        # test that meta-data is stored correctly
+        c1_meta = Constant("value", 1, dict(self.meta_data))
+        self.assertEqual(c1_meta.meta, self.meta_data)
 
     def test_uniformfloat(self):
         # TODO test non-equality
@@ -113,6 +123,11 @@ class TestHyperparameters(unittest.TestCase):
 
         self.assertNotEqual(f1, f2)
         self.assertNotEqual(f1, "UniformFloat")
+
+        # test that meta-data is stored correctly
+        f_meta = UniformFloatHyperparameter("param", 0.1, 10, q=0.1, log=True,
+                                            default_value=1.0, meta=dict(self.meta_data))
+        self.assertEqual(f_meta.meta, self.meta_data)
 
     def test_uniformfloat_to_integer(self):
         f1 = UniformFloatHyperparameter("param", 1, 10, q=0.1, log=True)
@@ -199,6 +214,11 @@ class TestHyperparameters(unittest.TestCase):
         self.assertNotEqual(f1, f2)
         self.assertNotEqual(f1, "UniformFloat")
 
+        # test that meta-data is stored correctly
+        f_meta = NormalFloatHyperparameter("param", 0.1, 10, q=0.1, log=True,
+                                           default_value=1.0, meta=dict(self.meta_data))
+        self.assertEqual(f_meta.meta, self.meta_data)
+
     def test_normalfloat_to_uniformfloat(self):
         f1 = NormalFloatHyperparameter("param", 0, 10, q=0.1)
         f1_expected = UniformFloatHyperparameter("param", -30, 30, q=0.1)
@@ -274,6 +294,11 @@ class TestHyperparameters(unittest.TestCase):
         #self.assertNotEqual(f2, f2_large_q)
         self.assertNotEqual(f1, "UniformFloat")
 
+        # test that meta-data is stored correctly
+        f_meta = UniformIntegerHyperparameter("param", 1, 10, q=0.1, log=True,
+                                              default_value=1, meta=dict(self.meta_data))
+        self.assertEqual(f_meta.meta, self.meta_data)
+
     def test_uniformint_legal_float_values(self):
         n_iter = UniformIntegerHyperparameter("n_iter", 5., 1000., default_value=20.0)
 
@@ -343,6 +368,11 @@ class TestHyperparameters(unittest.TestCase):
         self.assertNotEqual(f1, f2)
         self.assertNotEqual(f1, "UniformFloat")
 
+        # test that meta-data is stored correctly
+        f_meta = NormalIntegerHyperparameter("param", 0, 10, default_value=1, log=True,
+                                             meta=dict(self.meta_data))
+        self.assertEqual(f_meta.meta, self.meta_data)
+
     def test_normalint_legal_float_values(self):
         n_iter = NormalIntegerHyperparameter("n_iter", 0, 1., default_value=2.0)
         self.assertIsInstance(n_iter.default_value, int)
@@ -410,6 +440,11 @@ class TestHyperparameters(unittest.TestCase):
 
         self.assertNotEqual(f1, f2)
         self.assertNotEqual(f1, "UniformFloat")
+
+        # test that meta-data is stored correctly
+        f_meta = CategoricalHyperparameter("param", ["a", "b"], default_value="a",
+                                           meta=dict(self.meta_data))
+        self.assertEqual(f_meta.meta, self.meta_data)
 
     def test_categorical_strings(self):
         f1 = CategoricalHyperparameter("param", ["a", "b"])
