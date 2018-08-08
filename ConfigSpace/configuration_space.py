@@ -57,7 +57,7 @@ class ConfigurationSpace(object):
             self,
             name: Union[str, None] = None,
             seed: Union[int, None] = None,
-            meta: Union[dict, None] = None,
+            meta: Optional[Dict] = None,
     ) -> None:
         self.name = name
         self.meta = meta

@@ -52,7 +52,7 @@ cdef class Hyperparameter(object):
     #cdef public str name
     #cdef public default_value
 
-    def __init__(self, name: str, meta: Union[Dict, None]) -> None:
+    def __init__(self, name: str, meta: Optional[Dict]) -> None:
         if not isinstance(name, str):
             raise TypeError(
                 "The name of a hyperparameter must be an instance of"
@@ -113,7 +113,7 @@ cdef class Constant(Hyperparameter):
     cdef public value
     cdef DTYPE_t value_vector
 
-    def __init__(self, name: str, value: Union[str, int, float], meta: Union[Dict, None]=None) -> None:
+    def __init__(self, name: str, value: Union[str, int, float], meta: Optional[Dict]=None) -> None:
         super(Constant, self).__init__(name, meta)
         allowed_types = (int, float, str)
 
@@ -202,7 +202,7 @@ cdef class NumericalHyperparameter(Hyperparameter):
     cdef public _lower
     cdef public _upper
 
-    def __init__(self, name: str, default_value: Any, meta: Union[Dict, None]) -> None:
+    def __init__(self, name: str, default_value: Any, meta: Optional[Dict]) -> None:
         super(NumericalHyperparameter, self).__init__(name, meta)
         self.default_value = default_value
 
@@ -290,7 +290,7 @@ cdef class NumericalHyperparameter(Hyperparameter):
 
 
 cdef class FloatHyperparameter(NumericalHyperparameter):
-    def __init__(self, name: str, default_value: Union[int, float], meta: Union[Dict, None]=None) -> None:
+    def __init__(self, name: str, default_value: Union[int, float], meta: Optional[Dict]=None) -> None:
         super(FloatHyperparameter, self).__init__(name, default_value, meta)
 
     def is_legal(self, value: Union[int, float]) -> bool:
@@ -306,7 +306,7 @@ cdef class FloatHyperparameter(NumericalHyperparameter):
 cdef class IntegerHyperparameter(NumericalHyperparameter):
     cdef ufhp
 
-    def __init__(self, name: str, default_value: int, meta: Union[Dict, None]=None) -> None:
+    def __init__(self, name: str, default_value: int, meta: Optional[Dict]=None) -> None:
         super(IntegerHyperparameter, self).__init__(name, default_value, meta)
 
     def is_legal(self, value: int) -> bool:
@@ -330,7 +330,7 @@ cdef class IntegerHyperparameter(NumericalHyperparameter):
 cdef class UniformFloatHyperparameter(FloatHyperparameter):
     def __init__(self, name: str, lower: Union[int, float], upper: Union[int, float],
                  default_value: Union[int, float, None] = None, q: Union[int, float, None] = None, log: bool = False,
-                 meta: Union[Dict, None]=None) -> None:
+                 meta: Optional[Dict]=None) -> None:
 
         super(UniformFloatHyperparameter, self).__init__(name, default_value, meta)
         self.lower = float(lower)
@@ -461,7 +461,7 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
 
     def __init__(self, name: str, mu: Union[int, float], sigma: Union[int, float],
                  default_value: Union[None, float] = None, q: Union[int, float, None] = None, log: bool = False,
-                 meta: Union[Dict, None]=None) -> None:
+                 meta: Optional[Dict]=None) -> None:
         super(NormalFloatHyperparameter, self).__init__(name, default_value, meta)
         self.mu = float(mu)
         self.sigma = float(sigma)
@@ -594,7 +594,7 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
 
 cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
     def __init__(self, name: str, lower: int, upper: int, default_value: Union[int, None] = None,
-                 q: Union[int, None] = None, log: bool = False, meta: Union[Dict, None]=None) -> None:
+                 q: Union[int, None] = None, log: bool = False, meta: Optional[Dict]=None) -> None:
         super(UniformIntegerHyperparameter, self).__init__(name, default_value, meta)
         self.lower = self.check_int(lower, "lower")
         self.upper = self.check_int(upper, "upper")
@@ -742,7 +742,7 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
 
     def __init__(self, name: str, mu: int, sigma: Union[int, float],
                  default_value: Union[int, None] = None, q: Union[None, int] = None, log: bool = False,
-                 meta: Union[Dict, None]=None) -> None:
+                 meta: Optional[Dict]=None) -> None:
         super(NormalIntegerHyperparameter, self).__init__(name, default_value, meta)
         self.mu = mu
         self.sigma = sigma
@@ -915,7 +915,7 @@ cdef class CategoricalHyperparameter(Hyperparameter):
         name: str,
         choices: Union[List[Union[str, float, int]], Tuple[Union[float, int, str]]],
         default_value: Union[int, float, str, None]=None,
-        meta: Union[Dict, None]=None
+        meta: Optional[Dict]=None
     ) -> None:
         super(CategoricalHyperparameter, self).__init__(name, meta)
         # TODO check that there is no bullshit in the choices!
@@ -1083,7 +1083,7 @@ cdef class OrdinalHyperparameter(Hyperparameter):
         name: str,
         sequence: Union[List[Union[float, int, str]], Tuple[Union[float, int, str]]],
         default_value: Union[str, int, float, None]=None,
-        meta: Union[Dict, None]=None
+        meta: Optional[Dict]=None
     ) -> None:
         """
         since the sequence can consist of elements from different types we
