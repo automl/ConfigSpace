@@ -57,8 +57,10 @@ class ConfigurationSpace(object):
             self,
             name: Union[str, None] = None,
             seed: Union[int, None] = None,
+            meta: Optional[Dict] = None,
     ) -> None:
         self.name = name
+        self.meta = meta
 
         self._hyperparameters = OrderedDict()  # type: OrderedDict[str, Hyperparameter]
         self._hyperparameter_idx = dict()  # type: Dict[str, int]
