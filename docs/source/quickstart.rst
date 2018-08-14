@@ -70,8 +70,3 @@ Now, lets create the condition, that *num_units_2* is only active if *num_hidden
 
    cond = CS.GreaterThanCondition(num_units_2, num_hidden_layers, 1)
    cs.add_condition(cond)
-	
-
-   
-   
-   

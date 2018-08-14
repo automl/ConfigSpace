@@ -7,7 +7,7 @@
 # http://www.sphinx-doc.org/en/master/config
 
 import shlex
-import sphinx_rtd_theme
+import sphinx_bootstrap_theme
 
 # -- Path setup --------------------------------------------------------------
 
@@ -87,7 +87,7 @@ todo_include_todos = False
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'sphinx_rtd_theme'
+html_theme = 'bootstrap'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -95,16 +95,72 @@ html_theme = 'sphinx_rtd_theme'
 #
 html_theme_options = {
 # Insert options
-  'collapse_navigation': False
+    # Navigation bar title. (Default: ``project`` value)
+    # 'navbar_title': "Title",
+
+    # Tab name for entire site. (Default: "Site")
+    # 'navbar_site_name': "Site",
+
+    # A list of tuples containting pages to link to.  The value should
+    # be in the form [(name, page), ..]
+    'navbar_links': [
+        ('Start', 'index'),
+        ('Basic Usage', 'quickstart'),
+        ('Hyperparameters', 'Hyperparameters'),
+        ('How to store', 'Save_ConfigSpace_to_file')
+    ],
+    # Render the next and previous page links in navbar. (Default: true)
+    'navbar_sidebarrel': False,
+
+    # Render the current pages TOC in the navbar. (Default: true)
+    'navbar_pagenav': False,
+
+    # Tab name for the current pages TOC. (Default: "Page")
+    'navbar_pagenav_name': "On this page",
+
+    # Global TOC depth for "site" navbar tab. (Default: 1)
+    # Switching to -1 shows all levels.
+    'globaltoc_depth': 2,
+
+    # Include hidden TOCs in Site navbar?
+    #
+    # Note: If this is "false", you cannot have mixed ``:hidden:`` and
+    # non-hidden ``toctree`` directives in the same page, or else the build
+    # will break.
+    #
+    # Values: "true" (default) or "false"
+    'globaltoc_includehidden': "false",
+
+    # HTML navbar class (Default: "navbar") to attach to <div> element.
+    # For black navbar, do "navbar navbar-inverse"
+    'navbar_class': "navbar",
+
+    # Fix navigation bar to top of page?
+    # Values: "true" (default) or "false"
+    'navbar_fixed_top': "true",
+
+    # Location of link to source.
+    # Options are "nav" (default), "footer" or anything else to exclude.
+    'source_link_position': "footer",
+
+    # Bootswatch (http://bootswatch.com/) theme.
+    #
+    # Options are nothing with "" (default) or the name of a valid theme
+    # such as "amelia" or "cosmo".
+    'bootswatch_theme': "cosmo",
+
+    # Choose Bootstrap version.
+    # Values: "3" (default) or "2" (in quotes)
+    'bootstrap_version': "3",
 }
 
-html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
-using_rtd_theme = True
+html_theme_path = sphinx_bootstrap_theme.get_html_theme_path()
+# using_rtd_theme = True
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = []
+html_static_path = ['_static']
 
 
 # The name of an image file (relative to this directory) to place at the top
