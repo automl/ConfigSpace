@@ -4,8 +4,9 @@ Constraints and Forbidden clauses
 Constraints
 -----------
 
-ConfigSpace is able to realize constraints in the *configuration space*.
-This is often necessary, because some hyperparameters necessitate some more hyperparameters.
+| ConfigSpace is able to realize constraints in the *configuration space*.
+| This is often necessary, because some hyperparameters necessitate some other hyperparameters.
+| We will explain you the conditions by showing you a simple example.
 
 ConfigSpace contains the following conditions:
 
@@ -15,12 +16,12 @@ ConfigSpace contains the following conditions:
 4) GreaterThanCondition
 5) InCondition
 
-For more powerful conditions, it is possible to use the conjunction "AND" and "OR":
+To build even more powerful conditions, it is possible to combine conditions by using conjunction "AND" and "OR":
 
 6) AndConjunction
 7) OrConjunction
 
-For demonstratrion purpose we create a ConfigSpace with the following hyperparameters:
+For demonstration purpose we create a ConfigSpace with the following hyperparameters:
 
 +------------------------+---------------+----------+---------------------------+
 | Parameter              | Type          | values   |  condition                |
@@ -36,7 +37,7 @@ For demonstratrion purpose we create a ConfigSpace with the following hyperparam
 | e                      | uniform int   | 10-100   | c in {25,26,27} || a == 2 |
 +------------------------+---------------+----------+---------------------------+
 
-First lets create a ConfigSpace and add the hyperparameters a, b, c, then add the constraints::
+First, let's create a ConfigSpace and add the hyperparameters a, b, c::
 
    import ConfigSpace as CS
    import ConfigSpace.hyperparameters as CSH
