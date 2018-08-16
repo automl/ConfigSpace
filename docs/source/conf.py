@@ -6,8 +6,9 @@
 # full list see the documentation:
 # http://www.sphinx-doc.org/en/master/config
 
-import shlex
 import sphinx_bootstrap_theme
+import ConfigSpace
+
 
 # -- Path setup --------------------------------------------------------------
 
@@ -106,8 +107,9 @@ html_theme_options = {
     'navbar_links': [
         ('Start', 'index'),
         ('Basic Usage', 'quickstart'),
-        ('Hyperparameters', 'Hyperparameters'),
-        ('How to store', 'Save_ConfigSpace_to_file')
+        ('Hyperparameters', 'hyperparameter'),
+        ('Constraints', 'constraints'),
+        ('How to store', 'serialization')
     ],
     # Render the next and previous page links in navbar. (Default: true)
     'navbar_sidebarrel': False,
