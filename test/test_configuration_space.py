@@ -227,6 +227,30 @@ class TestConfigurationSpace(unittest.TestCase):
     Forbidden: prefix__input1 == 1
 ''')
 
+    def test_add_conditions(self):
+        cs1 = ConfigurationSpace()
+        cs2 = ConfigurationSpace()
+
+        hp1 = cs1.add_hyperparameter(CategoricalHyperparameter("input1", [0, 1]))
+        cs2.add_hyperparameter(hp1)
+        hp2 = cs1.add_hyperparameter(CategoricalHyperparameter("input2", [0, 1]))
+        cs2.add_hyperparameter(hp2)
+        hp3 = cs1.add_hyperparameter(UniformIntegerHyperparameter("child1", 0, 10))
+        cs2.add_hyperparameter(hp3)
+        hp4 = cs1.add_hyperparameter(UniformIntegerHyperparameter("child2", 0, 10))
+        cs2.add_hyperparameter(hp4)
+
+        cond1 = EqualsCondition(hp2, hp3, 0)
+        cond2 = EqualsCondition(hp1, hp3, 5)
+        cond3 = EqualsCondition(hp1, hp4, 1)
+        andCond = AndConjunction(cond2, cond3)
+
+        cs1.add_conditions([cond1, andCond])
+        cs2.add_condition(cond1)
+        cs2.add_condition(andCond)
+
+        self.assertEqual(str(cs1), str(cs2))
+
     def test_get_hyperparamforbidden_clauseseters(self):
         cs = ConfigurationSpace()
         self.assertEqual(0, len(cs.get_hyperparameters()))
