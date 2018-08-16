@@ -67,7 +67,7 @@ Categorical hyperparameters
     Creates a categorical-hyperparameter
 
     :param str name: Name of the hyperparameter, with which it can be accessed.
-    :param List[Union[str,float,int]],Tuple[Union[float,int,str]]] choises:
+    :param List[Union[str,float,int]],Tuple[Union[float,int,str]]] choises: set of values to sample hyperparameter from.
     :param int,float,None default_value: Sets the default value of a hyperparameter to a given value.
 
 
@@ -79,5 +79,5 @@ OrdinalHyperparameters
     Creates a ordinal-hyperparameter
 
     :param str name: Name of the hyperparameter, with which it can be accessed.
-    :param List[Union[str,float,int]],Tuple[Union[float,int,str]]] choises:
+    :param List[Union[str,float,int]],Tuple[Union[float,int,str]]] choises: set of values to sample hyperparameter from.
     :param int,float,None default_value: Sets the default value of a hyperparameter to a given value.
