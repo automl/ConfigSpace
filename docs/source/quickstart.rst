@@ -1,5 +1,5 @@
-How to use ConfigSpace
-======================
+Quickstart
+==========
 
 A ConfigSpace-Object is equal to a container holding all different kinds of hyperparameters.
 For example it is able to distinguish between numerical, and categorical hyperparameters.
@@ -10,7 +10,7 @@ The usage of this will be shown in the following short examples.
 First lets create a ConfigSpace::
 
    import ConfigSpace as CS
-   cs = CS.ConfigSpace()
+   cs = CS.ConfigurationSpace()
    
 Later, we can add all our hyperparameters and conditions to this object.
 

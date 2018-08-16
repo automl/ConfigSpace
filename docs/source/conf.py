@@ -106,7 +106,7 @@ html_theme_options = {
     # be in the form [(name, page), ..]
     'navbar_links': [
         ('Start', 'index'),
-        ('Basic Usage', 'quickstart'),
+        ('Quickstart', 'quickstart'),
         ('Hyperparameters', 'hyperparameter'),
         ('Constraints', 'constraints'),
         ('How to store', 'serialization')
