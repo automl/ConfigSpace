@@ -16,6 +16,7 @@ ConfigSpace contains the following conditions:
 5) InCondition
 
 For more powerful conditions, it is possible to use the conjunction "AND" and "OR":
+
 6) AndConjunction
 7) OrConjunction
 
@@ -114,5 +115,42 @@ one after the other to the configspace, use the **ConfigSpace.AndConjunction**::
 Forbidden Clauses
 -----------------
 
+In addition to the conditions, it's also possible to add forbidden clauses to the configuration space.
+They allow us to make some more restrictions to the configuration space.
+
+Mainly they are realised by using:
+
+1) ConfigSpace.ForbiddenAndConjunction
+2) ConfigSpace.ForbiddenEqualsClause
+3) ConfigSpace.ForbiddenInClause
+
+Their usage is shown in the following example.
+
+Our configuration space is defined as:
+
++------------------------+---------------+----------+---------------------------+
+| Parameter              | Type          | values   |  condition                |
++========================+===============+==========+===========================+
+| a                      | categorical   | 1, 2, 3  |  None                     |
++------------------------+---------------+----------+---------------------------+
+| b                      | categorical   | 2, 5, 6  |  None                     |
++------------------------+---------------+----------+---------------------------+
+
+We have two hyperparameter *a* and *b* and we want to forbid the case, where *a and b is 2 at the same time*::
+
+    import ConfigSpace as CS
+    import ConfigSpace.hyperparameters as CSH
+
+    cs = CS.ConfigurationSpace()
+    a = CSH.CategoricalHyperparameter('a', [1,2,3])
+    b = CSH.CategoricalHyperparameter('b', [2,5,6])
+    cs.add_hyperparameters([a, b])
+
+    forbidden_clause_a = CS.ForbiddenEqualsClause(a, 2)
+    forbidden_clause_b = CS.ForbiddenInClause(b, [2])
+
+    forbidden_clause = CS.ForbiddenAndConjunction(forbidden_clause_a, forbidden_clause_b)
+
+    cs.add_forbidden_clause(forbidden_clause)
 
 
