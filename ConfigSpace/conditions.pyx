@@ -470,7 +470,7 @@ cdef class AbstractConjunction(ConditionComponent):
         return NotImplemented
 
     def __copy__(self):
-        return self.__class__([copy(comp) for comp in self.components])
+        return self.__class__(*[copy.copy(comp) for comp in self.components])
 
     def get_descendant_literal_conditions(self) -> Tuple[AbstractCondition]:
         children = []  # type: List[AbstractCondition]

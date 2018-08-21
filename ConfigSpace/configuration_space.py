@@ -233,7 +233,7 @@ class ConfigurationSpace(object):
                 edges.extend(
                     [(dlc.parent, dlc.child) for dlc in dlcs])
                 values.extend([dlc.value for dlc in dlcs])
-                conditions_to_add.extend(dlcs)
+                conditions_to_add.extend([condition] * len(dlcs))
 
         for edge, condition in zip(edges, conditions_to_add):
             self._check_condition(edge[1], condition)
