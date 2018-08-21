@@ -1,6 +1,22 @@
+# Version 0.4.7
+
+* Tests Python3.7.
+* Fixes #87: better handling of Conjunctions when adding them to the 
+  configuration space.
+* MAINT: Improved type annotation in `util.py` which results in improved
+  performance (due to better Cython optimization).
+* MAINT: `util.get_one_exchange_neighborhood` now accepts two arguments 
+  `num_neighbors` and `stdev` which govern the neighborhood creation behaviour 
+  of several continuous hyperparameters.
+* NEW #85: Add function to obtain active hyperparameters
+* NEW #84: Add field for meta-data to the configuration space object.
+* MAINT: json serialization now has an argument to control indentation
+
+  
+
 # Version 0.4.6
 
-* Fixe a bug which caused a `KeyError` on the usage of tuples in `InCondition`.
+* Fixes a bug which caused a `KeyError` on the usage of tuples in `InCondition`.
 
 # Version 0.4.5
 
