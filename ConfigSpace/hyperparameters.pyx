@@ -442,10 +442,17 @@ cdef class UniformFloatHyperparameter(FloatHyperparameter):
         vector = np.maximum(0.0, vector)
         return vector
 
-    def get_neighbors(self, value: Any, rs: np.random.RandomState, number: int = 4, transform: bool = False) -> List[float]:
+    def get_neighbors(
+        self,
+        value: Any,
+        rs: np.random.RandomState,
+        number: int=4,
+        transform: bool=False,
+        std: float=0.2
+    ) -> List[float]:
         neighbors = []  # type: List[float]
         while len(neighbors) < number:
-            neighbor = rs.normal(value, 0.2)
+            neighbor = rs.normal(value, std)  # type: float
             if neighbor < 0 or neighbor > 1:
                 continue
             if transform:
@@ -709,14 +716,21 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
         else:
             return False
 
-    def get_neighbors(self, value: Union[int, float], rs: np.random.RandomState, number: int = 4, transform: bool = False) -> List[
+    def get_neighbors(
+        self,
+        value: Union[int, float],
+        rs: np.random.RandomState,
+        number: int=4,
+        transform: bool=False,
+        std: float=0.2,
+    ) -> List[
         int]:
         neighbors = []  # type: List[int]
         while len(neighbors) < number:
-            rejected = True
-            iteration = 0
+            rejected = True  # type: bool
+            iteration = 0  # type: int
             while rejected:
-                new_min_value = np.min([1, rs.normal(loc=value, scale=0.2)])
+                new_min_value = np.min([1, rs.normal(loc=value, scale=std)])
                 new_value = np.max((0, new_min_value))
                 int_value = self._transform(value)
                 new_int_value = self._transform(new_value)
@@ -879,8 +893,13 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
     def has_neighbors(self) -> bool:
         return True
 
-    def get_neighbors(self, value: Union[int, float], rs: np.random.RandomState, number: int = 4, transform: bool = False) -> \
-            List[Union[np.ndarray, float, int]]:
+    def get_neighbors(
+        self,
+        value: Union[int, float],
+        rs: np.random.RandomState,
+        number: int=4,
+        transform: bool=False,
+    ) -> List[Union[np.ndarray, float, int]]:
         neighbors = []  # type: List[Union[np.ndarray, float, int]]
         while len(neighbors) < number:
             rejected = True

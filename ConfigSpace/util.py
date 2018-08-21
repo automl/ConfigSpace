@@ -76,7 +76,12 @@ def impute_inactive_values(configuration: Configuration, strategy: Union[str, fl
     return new_configuration
 
 
-def get_one_exchange_neighbourhood(configuration: Configuration, seed: int) -> List[Configuration]:
+def get_one_exchange_neighbourhood(
+        configuration: Configuration,
+        seed: int,
+        num_neighbors: int=4,
+        stdev: float=0.2,
+    ) -> List[Configuration]:
     """Return all configurations in a one-exchange neighborhood.
 
     The method is implemented as defined by:
@@ -93,7 +98,7 @@ def get_one_exchange_neighbourhood(configuration: Configuration, seed: int) -> L
                             if hp.get_num_neighbors(configuration.get(hp.name)) == 0 and configuration.get(hp.name) is not None]
     number_of_usable_hyperparameters = sum(np.isfinite(configuration.get_array()))
     n_neighbors_per_hp = {
-        hp.name: 4 if np.isinf(hp.get_num_neighbors(configuration.get(hp.name))) else hp.get_num_neighbors(configuration.get(hp.name))
+        hp.name: num_neighbors if np.isinf(hp.get_num_neighbors(configuration.get(hp.name))) else hp.get_num_neighbors(configuration.get(hp.name))
         for hp in configuration.configuration_space.get_hyperparameters()
     }
     finite_neighbors_stack = {}
@@ -127,8 +132,13 @@ def get_one_exchange_neighbourhood(configuration: Configuration, seed: int) -> L
                 elif np.isinf(num_neighbors):
                     if number_of_sampled_neighbors >= 1:
                         break
-                    neighbor = hp.get_neighbors(array[index], random,
-                                                number=1)[0]
+                    # TODO if code becomes slow remove the isinstance!
+                    if isinstance(hp, (UniformFloatHyperparameter, UniformIntegerHyperparameter)):
+                        neighbor = hp.get_neighbors(array[index], random,
+                                                    number=1, std=stdev)[0]
+                    else:
+                        neighbor = hp.get_neighbors(array[index], random,
+                                                    number=1)[0]
                 else:
                     if iteration > 0:
                         break
