@@ -19,15 +19,6 @@ sudo: false
 before_cache:
   - rm -f $HOME/.cache/pip/log/debug.log
 
-# command to install dependencies
-addons:
-  apt:
-    packages:
-    - libatlas-dev
-    - liblapack-dev
-    - libatlas-base-dev
-    - gfortran
-
 install:
   - pip install pip --upgrade
   - pip install numpy
