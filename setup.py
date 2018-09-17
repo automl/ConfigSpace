@@ -2,6 +2,7 @@ from setuptools import setup, find_packages
 from setuptools.extension import Extension
 import os
 from Cython.Build import cythonize
+from Cython.Distutils import build_ext
 import numpy as np
 
 # Read http://peterdowns.com/posts/first-time-with-pypi.html to figure out how
@@ -42,6 +43,9 @@ extensions = cythonize(
     compiler_directives=compiler_directives,
 )
 
+for e in extensions:
+    e.cython_directives = {"embedsignature": True}
+
 def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
@@ -55,6 +59,7 @@ setup(
     version=version,
     url='https://github.com/automl/ConfigSpace',
     description=desc,
+    cmdclass={'build_ext': build_ext},
     ext_modules=extensions,
     long_description=read("README.md"),
     license='BSD 3-clause',
