@@ -31,9 +31,11 @@ Contents
    :maxdepth: 2
 		
    quickstart.rst
+   AdvancedExample.rst
    hyperparameter.rst
    constraints.rst
    serialization.rst
+   auto_examples/index.rst
 
 
 Indices and tables

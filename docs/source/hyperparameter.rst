@@ -1,5 +1,5 @@
-Hyperparameters
-===============
+Hyperparameters [API]
+=====================
 
 In this section, the different types of hyperparameters are introduced. ConfigSpace is able to handle integer, float, categorical as well as ordinal hyperparameters.
 Float and integer hyperparameters are available as **uniform** or **normal distributed** ones.
@@ -21,6 +21,16 @@ Integer hyperparameters
     :param None,int q:
     :param bool log: If *bool* is true, the values of the hyperparameter will be sampled on a logarithmic scale.
 
+**Example**::
+
+    import ConfigSpace as CS
+    import ConfigSpace.hyperparameters as CSH
+
+    cs = CS.ConfigurationSpace()
+    uniform_integer_hp = CSH.UniformIntegerHyperparameter('uni_int', lower=10, upper=100, log=False)
+
+    cs.add_hyperparameter(uniform_integer_hp)
+
 .. py:class:: ConfigSpace.hyperparameters.NormalIntegerHyperparameter(name: str, mu: int, sigma: Union[int, float], default_value: Union[int, None]=None, q: Union[None, int]=None, log: bool=False) -> None:
 
     Creates a integer-hyperparameter with values sampled from a normal distribution :math:`\mathcal{N}(\mu, \sigma^2)`
@@ -31,6 +41,16 @@ Integer hyperparameters
     :param int,None default_value: Sets the default value of a hyperparameter to a given value.
     :param None,int q:
     :param bool log: If *bool* is true, the values of the hyperparameter will be sampled on a logarithmic scale.
+
+**Example**::
+
+    import ConfigSpace as CS
+    import ConfigSpace.hyperparameters as CSH
+
+    cs = CS.ConfigurationSpace()
+    normal_int_hp = CSH.NormalIntegerHyperparameter('uni_int', mu=0, sigma=1, log=False)
+    cs.add_hyperparameter(normal_int_hp)
+
 
 
 Float hyperparameters
@@ -47,6 +67,16 @@ Float hyperparameters
     :param None,int,float q:
     :param bool log: If *bool* is true, the values of the hyperparameter will be sampled on a logarithmic scale.
 
+**Example:**::
+
+    import ConfigSpace as CS
+    import ConfigSpace.hyperparameters as CSH
+
+    cs = CS.ConfigurationSpace()
+    uniform_float_hp = CSH.UniformFloatHyperparameter('uni_float', lower=10, upper=100, log=False)
+
+    cs.add_hyperparameter(uniform_float_hp)
+
 .. py:class:: ConfigSpace.hyperparameters.NormalFloatHyperparameter(name: str, mu: Union[int, float], sigma: Union[int, float], default_value: Union[float, None]=None, q: Union[None, int, float]=None, log: bool=False) -> None:
 
     Creates a float-hyperparameter with values sampled from a normal distribution :math:`\mathcal{N}(\mu, \sigma^2)`
@@ -58,6 +88,17 @@ Float hyperparameters
     :param None,int,float q:
     :param bool log: If *bool* is true, the values of the hyperparameter will be sampled on a logarithmic scale.
 
+**Example:**::
+
+    import ConfigSpace as CS
+    import ConfigSpace.hyperparameters as CSH
+
+    cs = CS.ConfigurationSpace()
+    normal_float_hp = CSH.NormalFloatHyperparameter('normal_float', mu=0, sigma=1, log=False)
+
+    cs.add_hyperparameter(normal_float_hp)
+
+
 
 Categorical hyperparameters
 ---------------------------
@@ -67,8 +108,19 @@ Categorical hyperparameters
     Creates a categorical-hyperparameter
 
     :param str name: Name of the hyperparameter, with which it can be accessed.
-    :param List[Union[str,float,int]],Tuple[Union[float,int,str]]] choises: set of values to sample hyperparameter from.
+    :param List[Union[str,float,int]],Tuple[Union[float,int,str]]] choices: set of values to sample hyperparameter from.
     :param int,float,None default_value: Sets the default value of a hyperparameter to a given value.
+
+**Example:**::
+
+    import ConfigSpace as CS
+    import ConfigSpace.hyperparameters as CSH
+
+    cs = CS.ConfigurationSpace()
+    cat_hp = CSH.CategoricalHyperparameter('cat_hp', choices=['red', 'green', 'blue'])
+
+    cs.add_hyperparameter(cat_hp)
+
 
 
 OrdinalHyperparameters
@@ -79,5 +131,15 @@ OrdinalHyperparameters
     Creates a ordinal-hyperparameter
 
     :param str name: Name of the hyperparameter, with which it can be accessed.
-    :param List[Union[str,float,int]],Tuple[Union[float,int,str]]] choises: set of values to sample hyperparameter from.
+    :param List[Union[str,float,int]],Tuple[Union[float,int,str]]] sequence: set of values to sample hyperparameter from.
     :param int,float,None default_value: Sets the default value of a hyperparameter to a given value.
+
+**Example:**::
+
+    import ConfigSpace as CS
+    import ConfigSpace.hyperparameters as CSH
+
+    cs = CS.ConfigurationSpace()
+    ord_hp = CSH.OrdinalHyperparameter('ordinal_hp', sequence=['10', '20', '30'])
+
+    cs.add_hyperparameter(ord_hp)
