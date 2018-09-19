@@ -37,6 +37,10 @@ For demonstration purpose we create a ConfigSpace with the following hyperparame
 | e                      | uniform int   | 10-100   | c in {25,26,27} OR a == 2 |
 +------------------------+---------------+----------+---------------------------+
 
+.. note::
+
+    The code of this example can be found here: :math:`\rightarrow` :doc:`auto_examples/AdvancedExample`
+
 First, let's create a ConfigSpace and add the hyperparameters a, b, c::
 
    import ConfigSpace as CS
