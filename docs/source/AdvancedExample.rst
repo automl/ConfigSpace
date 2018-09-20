@@ -1,12 +1,12 @@
-Advanced Example - Constraints and forbidden clauses
-====================================================
+Advanced Example - conditions and forbidden clauses
+===================================================
 
-Constraints
------------
+conditions
+----------
 
-| ConfigSpace is able to realize constraints in the *configuration space*.
+| ConfigSpace is able to realize conditions in the *configuration space*.
 | This is often necessary, because some hyperparameters necessitate some other hyperparameters.
-| We will explain you the conditions by showing you a simple example.
+| We will explain the concepts of them in an advanced example.
 
 ConfigSpace contains the following conditions:
 
@@ -89,6 +89,10 @@ Now, we allow c only to be active, if a is not equal 2.
     greater_cond = CS.GreaterThanCondition(d, b, 2)
     cs.add_condition(greater_cond)
 
+.. note::
+
+    Adding a second condition for a hyperparameter is ambigouos and therefore forbidden, so this will cause an error.
+    However, this works by using the and-conjunction (see *below*).
 
 5) InCondition
 ++++++++++++++
@@ -101,8 +105,7 @@ Now, we allow c only to be active, if a is not equal 2.
 6) AndConjunction
 +++++++++++++++++
 
-We can instead of adding the conditions *less_cond* and *greater_cond*
-one after the other to the configspace, use the **ConfigSpace.AndConjunction**::
+To combine two conditions, we have to use an and-conjunction.
 
     less_cond = CS.LessThanCondition(d, b, 5)
     greater_cond = CS.GreaterThanCondition(d, b, 2)
@@ -121,7 +124,7 @@ one after the other to the configspace, use the **ConfigSpace.AndConjunction**::
 Forbidden Clauses
 -----------------
 
-In addition to the conditions, it's also possible to add forbidden clauses to the configuration space.
+In addition to conditions, it's also possible to add forbidden clauses to the configuration space.
 They allow us to make some more restrictions to the configuration space.
 
 Mainly they are realised by using:
@@ -130,9 +133,9 @@ Mainly they are realised by using:
 2) ConfigSpace.ForbiddenEqualsClause
 3) ConfigSpace.ForbiddenInClause
 
-Their usage is shown in the following example.
+Their usage is shown in the following short example.
 
-Our configuration space is defined as:
+Our configuration space is defined as follows:
 
 +------------------------+---------------+----------+---------------------------+
 | Parameter              | Type          | values   |  condition                |
@@ -142,7 +145,7 @@ Our configuration space is defined as:
 | g                      | categorical   | 2, 5, 6  |  None                     |
 +------------------------+---------------+----------+---------------------------+
 
-We have two hyperparameter *f* and *g* and we want to forbid the case, where *f and g is 2 at the same time*::
+We have two hyperparameter *f* and *g* and we want to forbid the case, where *f* and *g* is 2 at the same time::
 
     import ConfigSpace as CS
     import ConfigSpace.hyperparameters as CSH
@@ -158,5 +161,3 @@ We have two hyperparameter *f* and *g* and we want to forbid the case, where *f 
     forbidden_clause = CS.ForbiddenAndConjunction(forbidden_clause_f, forbidden_clause_g)
 
     cs.add_forbidden_clause(forbidden_clause)
-
-
