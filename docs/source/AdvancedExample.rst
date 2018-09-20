@@ -5,7 +5,7 @@ conditions
 ----------
 
 | ConfigSpace is able to realize conditions in the *configuration space*.
-| This is often necessary, because some hyperparameters necessitate some other hyperparameters.
+  This is often necessary, because some hyperparameters necessitate some other hyperparameters.
 | We will explain the concepts of them in an advanced example.
 
 ConfigSpace contains the following conditions:

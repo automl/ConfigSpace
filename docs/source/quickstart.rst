@@ -15,7 +15,7 @@ To accomplish this task, we need to:
 - Add the hyperparameters to the ConfigSpace
 - (Optional) Add constraints to the ConfigSpace
 
-We will show those steps in an exemplary way, by creating a ConfigSpace for a Softmargin Classifier.
+We will show those steps in an exemplary way, by creating a ConfigSpace for a soft-margin SVM classifier and a neural network.
 
 1. Example: Basic Usage and Conditional Hyperparameter
 ------------------------------------------------------
@@ -115,7 +115,7 @@ And now, let's create the condition, that *num_units_2* is only active if *num_h
 
 
 | In this example, we used a greater-than-condition. It remains to say, that
-  ConfigSpace is able to realize more conditions, like not-equal- or less-than-conditions.
+  ConfigSpace is able to realize more kinds of conditions, like not-equal- or less-than-conditions.
 | To read more about constraints, please take a look at the `constraints-documentation [API] <constraints>`_  or the :doc:`auto_examples/AdvancedExample`
 | For more information about the different hyperparameter types, visit the `hyperparameter-documentation [API] <hyperparameter>`_.
 
