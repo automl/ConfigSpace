@@ -28,11 +28,11 @@ if ! [[ -z ${DOCPUSH+x} ]]; then
         mkdir $1
 
         # get previous documentation from github
-        git clone https://github.com/openml/openml-python.git --branch gh-pages --single-branch
+        git clone https://github.com/automl/ConfigSpace.git --branch gh-pages --single-branch
 
         # copy previous documentation
-        cp -r openml-python/. $1
-        rm -rf openml-python
+        cp -r ConfigSpace/. $1
+        rm -rf ConfigSpace
 
         # if the documentation for the branch exists, remove it
         if [ -d $1/$1 ]; then
