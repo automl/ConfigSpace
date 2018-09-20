@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Conditions and Forbidden clauses [API] &#8212; ConfigSpace  documentation</title>
+    <link rel="stylesheet" href="_static/bootstrap-sphinx.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/gallery.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="_static/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="_static/js/jquery-fix.js"></script>
+    <script type="text/javascript" src="_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="_static/bootstrap-sphinx.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Serialization" href="serialization.html" />
+    <link rel="prev" title="Hyperparameters [API]" href="hyperparameter.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+  </head><body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="index.html">
+          ConfigSpace</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.4.6</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+                <li><a href="index.html">Start</a></li>
+                <li><a href="quickstart.html">Quickstart</a></li>
+                <li><a href="AdvancedExample.html">Advanced Example</a></li>
+                <li><a href="serialization.html">Serialization</a></li>
+                <li><a href="hyperparameter.html">Hyperparameters</a></li>
+                <li><a href="#">Constraints</a></li>
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#example-basic-usage-and-conditional-hyperparameter">1. Example: Basic Usage and Conditional Hyperparameter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#example-integerhyperparameters-and-floathyperparameters">2. Example: IntegerHyperparameters and FloatHyperparameters:</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#example-conditionalhyperparameters">3. Example: ConditionalHyperparameters:</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="AdvancedExample.html">Advanced Example - conditions and forbidden clauses</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="AdvancedExample.html#conditions">conditions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="AdvancedExample.html#forbidden-clauses">Forbidden Clauses</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="hyperparameter.html">Hyperparameters [API]</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="hyperparameter.html#integer-hyperparameters">Integer hyperparameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hyperparameter.html#float-hyperparameters">Float hyperparameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hyperparameter.html#categorical-hyperparameters">Categorical hyperparameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hyperparameter.html#ordinalhyperparameters">OrdinalHyperparameters</a></li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Conditions and Forbidden clauses [API]</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#constraints">Constraints</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#forbidden-clauses">Forbidden Clauses</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="serialization.html">Serialization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="auto_examples/index.html">Examples - ConfigSpace</a></li>
+</ul>
+</ul>
+</li>
+              
+            
+            
+            
+            
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+      <div class="col-md-3">
+        <div id="sidebar" class="bs-sidenav" role="complementary"><ul>
+<li><a class="reference internal" href="#">Conditions and Forbidden clauses [API]</a><ul>
+<li><a class="reference internal" href="#constraints">Constraints</a><ul>
+<li><a class="reference internal" href="#equalscondition">1) EqualsCondition</a></li>
+<li><a class="reference internal" href="#notequalscondition">2) NotEqualsCondition</a></li>
+<li><a class="reference internal" href="#lessthancondition">3) LessThanCondition</a></li>
+<li><a class="reference internal" href="#greaterthancondition">4) GreaterThanCondition</a></li>
+<li><a class="reference internal" href="#incondition">5) InCondition</a></li>
+<li><a class="reference internal" href="#andconjunction">6) AndConjunction</a></li>
+<li><a class="reference internal" href="#orconjunction">7) OrConjunction</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#forbidden-clauses">Forbidden Clauses</a><ul>
+<li><a class="reference internal" href="#forbiddenequalsclause">1) ForbiddenEqualsClause</a></li>
+<li><a class="reference internal" href="#forbiddeninclause">2) ForbiddenInClause</a></li>
+<li><a class="reference internal" href="#forbiddenandconjunction">3) ForbiddenAndConjunction</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    <div class="col-md-9 content">
+      
+  <div class="section" id="conditions-and-forbidden-clauses-api">
+<h1>Conditions and Forbidden clauses [API]<a class="headerlink" href="#conditions-and-forbidden-clauses-api" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="constraints">
+<h2>Constraints<a class="headerlink" href="#constraints" title="Permalink to this headline">¶</a></h2>
+<div class="line-block">
+<div class="line">It is often necessary to make some constraint on hyperparameters. For example we have one hyperparameter, which decides whether</div>
+<div class="line">we use methodA or methodB, and each method has additional unique hyperparameter.</div>
+<div class="line">Those depending hyperparameters are called <em>child</em> hyperparameter.</div>
+<div class="line">It is desired, that they should only be “active”, if their <em>parent</em> hyperparameter</div>
+<div class="line">has the right value.</div>
+<div class="line">This can be accomplished, using <strong>conditions</strong>.</div>
+</div>
+<p>To see an example of how to use conditions, please take a look at the <a class="reference internal" href="AdvancedExample.html"><span class="doc">advanced example</span></a></p>
+<div class="section" id="equalscondition">
+<h3>1) EqualsCondition<a class="headerlink" href="#equalscondition" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="ConfigSpace.conditions.EqualsCondition">
+<em class="property">class </em><code class="descclassname">ConfigSpace.conditions.</code><code class="descname">EqualsCondition</code><span class="sig-paren">(</span><em>child: Hyperparameter, parent: Hyperparameter, value: Union[str,float,int]</em><span class="sig-paren">)</span> &#x2192; None:<a class="headerlink" href="#ConfigSpace.conditions.EqualsCondition" title="Permalink to this definition">¶</a></dt>
+<dd><p>The equal-condition adds the <em>child</em>-hyperparameter to the configuration space if and only if the <em>parent</em>-hyperparameter’s value is equal to <em>value</em></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>child</strong> (<em>Hyperparameter</em>) – This hyperparameter will be sampled in the configspace, if the equal-condition is satisfied</li>
+<li><strong>parent</strong> (<em>Hyperparameter</em>) – The hyperparameter, which has to satisfy the equal-condition</li>
+<li><strong>value</strong> (<em>str</em><em>,</em><em>float</em><em>,</em><em>int</em>) – value, which the parent is compared to</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">ConfigSpace</span> <span class="k">as</span> <span class="nn">CS</span>
+<span class="kn">import</span> <span class="nn">ConfigSpace.hyperparameters</span> <span class="k">as</span> <span class="nn">CSH</span>
+
+<span class="n">cs</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">ConfigurationSpace</span><span class="p">()</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">CSH</span><span class="o">.</span><span class="n">CategoricalHyperparameter</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="n">choices</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">])</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">CSH</span><span class="o">.</span><span class="n">UniformFloatHyperparameter</span><span class="p">(</span><span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="mf">1.</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="mf">8.</span><span class="p">,</span> <span class="n">log</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">cs</span><span class="o">.</span><span class="n">add_hyperparameters</span><span class="p">([</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">])</span>
+
+<span class="c1"># makes &#39;b&#39; an active hyperparameter if &#39;a&#39; has the value 1</span>
+<span class="n">cond</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">EqualsCondition</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">cs</span><span class="o">.</span><span class="n">add_condition</span><span class="p">(</span><span class="n">cond</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="notequalscondition">
+<h3>2) NotEqualsCondition<a class="headerlink" href="#notequalscondition" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="ConfigSpace.conditions.NotEqualsCondition">
+<em class="property">class </em><code class="descclassname">ConfigSpace.conditions.</code><code class="descname">NotEqualsCondition</code><span class="sig-paren">(</span><em>child: Hyperparameter, parent: Hyperparameter, value: Union[str, float, int]</em><span class="sig-paren">)</span> &#x2192; None:<a class="headerlink" href="#ConfigSpace.conditions.NotEqualsCondition" title="Permalink to this definition">¶</a></dt>
+<dd><p>The not-equals-condition adds the <em>child</em>-hyperparameter to the configuration space if and only if the <em>parent</em>-hyperparameter’s value is not equal to <em>value</em></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>child</strong> (<em>Hyperparameter</em>) – This hyperparameter will be sampled in the configspace, if the not-equals-condition is satisfied</li>
+<li><strong>parent</strong> (<em>Hyperparameter</em>) – The hyperparameter, which has to satisfy the not-equal-condition</li>
+<li><strong>value</strong> (<em>str</em><em>,</em><em>float</em><em>,</em><em>int</em>) – value, which the parent is compared to</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">ConfigSpace</span> <span class="k">as</span> <span class="nn">CS</span>
+<span class="kn">import</span> <span class="nn">ConfigSpace.hyperparameters</span> <span class="k">as</span> <span class="nn">CSH</span>
+
+<span class="n">cs</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">ConfigurationSpace</span><span class="p">()</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">CSH</span><span class="o">.</span><span class="n">CategoricalHyperparameter</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="n">choices</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">])</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">CSH</span><span class="o">.</span><span class="n">UniformFloatHyperparameter</span><span class="p">(</span><span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="mf">1.</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="mf">8.</span><span class="p">,</span> <span class="n">log</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">cs</span><span class="o">.</span><span class="n">add_hyperparameters</span><span class="p">([</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">])</span>
+
+<span class="c1"># makes &#39;b&#39; an active hyperparameter if &#39;a&#39; has **not** the value 1</span>
+<span class="n">cond</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">NotEqualsCondition</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">cs</span><span class="o">.</span><span class="n">add_condition</span><span class="p">(</span><span class="n">cond</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="lessthancondition">
+<h3>3) LessThanCondition<a class="headerlink" href="#lessthancondition" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="ConfigSpace.conditions.LessThanCondition">
+<em class="property">class </em><code class="descclassname">ConfigSpace.conditions.</code><code class="descname">LessThanCondition</code><span class="sig-paren">(</span><em>child: Hyperparameter, parent: Hyperparameter, value: Union[str, float, int]</em><span class="sig-paren">)</span> &#x2192; None:<a class="headerlink" href="#ConfigSpace.conditions.LessThanCondition" title="Permalink to this definition">¶</a></dt>
+<dd><p>The less-than-condition adds the <em>child</em>-hyperparameter to the configuration space if and only if the <em>parent</em>-hyperparameter’s value is less than <em>value</em></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>child</strong> (<em>Hyperparameter</em>) – This hyperparameter will be sampled in the configspace, if the less-than-condition is satisfied</li>
+<li><strong>parent</strong> (<em>Hyperparameter</em>) – The hyperparameter, which has to satisfy the less-than-condition</li>
+<li><strong>value</strong> (<em>str</em><em>,</em><em>float</em><em>,</em><em>int</em>) – value, which the parent is compared to</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">ConfigSpace</span> <span class="k">as</span> <span class="nn">CS</span>
+<span class="kn">import</span> <span class="nn">ConfigSpace.hyperparameters</span> <span class="k">as</span> <span class="nn">CSH</span>
+
+<span class="n">cs</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">ConfigurationSpace</span><span class="p">()</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">CSH</span><span class="o">.</span><span class="n">UniformFloatHyperparameter</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="mf">10.</span><span class="p">)</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">CSH</span><span class="o">.</span><span class="n">UniformFloatHyperparameter</span><span class="p">(</span><span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="mf">1.</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="mf">8.</span><span class="p">,</span> <span class="n">log</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">cs</span><span class="o">.</span><span class="n">add_hyperparameters</span><span class="p">([</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">])</span>
+
+<span class="c1"># makes &#39;b&#39; an active hyperparameter if &#39;a&#39; is less than 5</span>
+<span class="n">cond</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">LessThanCondition</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="mf">5.</span><span class="p">)</span>
+<span class="n">cs</span><span class="o">.</span><span class="n">add_condition</span><span class="p">(</span><span class="n">cond</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="greaterthancondition">
+<h3>4) GreaterThanCondition<a class="headerlink" href="#greaterthancondition" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="ConfigSpace.conditions.GreaterThanCondition">
+<em class="property">class </em><code class="descclassname">ConfigSpace.conditions.</code><code class="descname">GreaterThanCondition</code><span class="sig-paren">(</span><em>child: Hyperparameter, parent: Hyperparameter, value: Union[str, float, int]</em><span class="sig-paren">)</span> &#x2192; None:<a class="headerlink" href="#ConfigSpace.conditions.GreaterThanCondition" title="Permalink to this definition">¶</a></dt>
+<dd><p>The greater-than-condition adds the <em>child</em>-hyperparameter to the configuration space if and only if the <em>parent</em>-hyperparameter’s value is greater than <em>value</em></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>child</strong> (<em>Hyperparameter</em>) – This hyperparameter will be sampled in the configspace, if the greater-than-condition is satisfied</li>
+<li><strong>parent</strong> (<em>Hyperparameter</em>) – The hyperparameter, which has to satisfy the greater-than-condition</li>
+<li><strong>value</strong> (<em>str</em><em>,</em><em>float</em><em>,</em><em>int</em>) – value, which the parent is compared to</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">ConfigSpace</span> <span class="k">as</span> <span class="nn">CS</span>
+<span class="kn">import</span> <span class="nn">ConfigSpace.hyperparameters</span> <span class="k">as</span> <span class="nn">CSH</span>
+
+<span class="n">cs</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">ConfigurationSpace</span><span class="p">()</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">CSH</span><span class="o">.</span><span class="n">UniformFloatHyperparameter</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="mf">10.</span><span class="p">)</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">CSH</span><span class="o">.</span><span class="n">UniformFloatHyperparameter</span><span class="p">(</span><span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="mf">1.</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="mf">8.</span><span class="p">,</span> <span class="n">log</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">cs</span><span class="o">.</span><span class="n">add_hyperparameters</span><span class="p">([</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">])</span>
+
+<span class="c1"># makes &#39;b&#39; an active hyperparameter if &#39;a&#39; is greater than 5</span>
+<span class="n">cond</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">GreaterThanCondition</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="mf">5.</span><span class="p">)</span>
+<span class="n">cs</span><span class="o">.</span><span class="n">add_condition</span><span class="p">(</span><span class="n">cond</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="incondition">
+<h3>5) InCondition<a class="headerlink" href="#incondition" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="ConfigSpace.conditions.InCondition">
+<em class="property">class </em><code class="descclassname">ConfigSpace.conditions.</code><code class="descname">InCondition</code><span class="sig-paren">(</span><em>child: Hyperparameter, parent: Hyperparameter, values: List[Union[str, float, int]]</em><span class="sig-paren">)</span> &#x2192; None:<a class="headerlink" href="#ConfigSpace.conditions.InCondition" title="Permalink to this definition">¶</a></dt>
+<dd><p>The in-condition adds the <em>child</em>-hyperparameter to the configuration space if and only if the <em>parent</em>-hyperparameter’s value is in the subset <em>values</em></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>child</strong> (<em>Hyperparameter</em>) – This hyperparameter will be sampled in the configspace, if the in-condition is satisfied</li>
+<li><strong>parent</strong> (<em>Hyperparameter</em>) – The hyperparameter, which has to satisfy the in-condition</li>
+<li><strong>value</strong> (<em>List</em><em>[</em><em>str</em><em>,</em><em>float</em><em>,</em><em>int</em><em>]</em>) – subset of values, which the parent is compared to</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">ConfigSpace</span> <span class="k">as</span> <span class="nn">CS</span>
+<span class="kn">import</span> <span class="nn">ConfigSpace.hyperparameters</span> <span class="k">as</span> <span class="nn">CSH</span>
+
+<span class="n">cs</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">ConfigurationSpace</span><span class="p">()</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">CSH</span><span class="o">.</span><span class="n">UniformIntegerHyperparameter</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">CSH</span><span class="o">.</span><span class="n">UniformFloatHyperparameter</span><span class="p">(</span><span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="mf">1.</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="mf">8.</span><span class="p">,</span> <span class="n">log</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">cs</span><span class="o">.</span><span class="n">add_hyperparameters</span><span class="p">([</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">])</span>
+
+<span class="c1"># makes &#39;b&#39; an active hyperparameter if &#39;a&#39; is in the set [1, 2, 3, 4]</span>
+<span class="n">cond</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">InCondition</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">])</span>
+<span class="n">cs</span><span class="o">.</span><span class="n">add_condition</span><span class="p">(</span><span class="n">cond</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="andconjunction">
+<h3>6) AndConjunction<a class="headerlink" href="#andconjunction" title="Permalink to this headline">¶</a></h3>
+<p>By using the <em>and</em>-conjunction, we can easily connect constraints.</p>
+<dl class="class">
+<dt id="ConfigSpace.conditions.AndConjunction">
+<em class="property">class </em><code class="descclassname">ConfigSpace.conditions.</code><code class="descname">AndConjunction</code><span class="sig-paren">(</span><em>*args: AbstractCondition</em><span class="sig-paren">)</span> &#x2192; None:<a class="headerlink" href="#ConfigSpace.conditions.AndConjunction" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>args</strong> (<em>AbstractCondition</em>) – conditions, which will be combined with an and-conjunction</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<p>The following example shows how we can combine two constraints with an <em>and</em>-conjunction.
+Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">ConfigSpace</span> <span class="k">as</span> <span class="nn">CS</span>
+<span class="kn">import</span> <span class="nn">ConfigSpace.hyperparameters</span> <span class="k">as</span> <span class="nn">CSH</span>
+
+<span class="n">cs</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">ConfigurationSpace</span><span class="p">()</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">CSH</span><span class="o">.</span><span class="n">UniformIntegerHyperparameter</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="mi">15</span><span class="p">)</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">CSH</span><span class="o">.</span><span class="n">UniformIntegerHyperparameter</span><span class="p">(</span><span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+<span class="n">c</span> <span class="o">=</span> <span class="n">CSH</span><span class="o">.</span><span class="n">UniformFloatHyperparameter</span><span class="p">(</span><span class="s1">&#39;c&#39;</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="mf">1.</span><span class="p">)</span>
+<span class="n">cs</span><span class="o">.</span><span class="n">add_hyperparameters</span><span class="p">([</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span><span class="p">])</span>
+
+<span class="n">less_cond</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">LessThanCondition</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+<span class="n">greater_cond</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">GreaterThanCondition</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+
+<span class="n">cs</span><span class="o">.</span><span class="n">add_condition</span><span class="p">(</span><span class="n">CS</span><span class="o">.</span><span class="n">AndConjunction</span><span class="p">(</span><span class="n">less_cond</span><span class="p">,</span> <span class="n">greater_cond</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="orconjunction">
+<h3>7) OrConjunction<a class="headerlink" href="#orconjunction" title="Permalink to this headline">¶</a></h3>
+<p>Similar to the <em>and</em>-conjunction, new constraints can be combined by using the <em>or</em>-conjunction.</p>
+<dl class="class">
+<dt id="ConfigSpace.conditions.OrConjunction">
+<em class="property">class </em><code class="descclassname">ConfigSpace.conditions.</code><code class="descname">OrConjunction</code><span class="sig-paren">(</span><em>*args: AbstractCondition</em><span class="sig-paren">)</span> &#x2192; None:<a class="headerlink" href="#ConfigSpace.conditions.OrConjunction" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>args</strong> (<em>AbstractCondition</em>) – conditions, which will be combined with an or-conjunction</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<p>The following example shows how we can combine two constraints with an <em>or</em>-conjunction.
+Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">ConfigSpace</span> <span class="k">as</span> <span class="nn">CS</span>
+<span class="kn">import</span> <span class="nn">ConfigSpace.hyperparameters</span> <span class="k">as</span> <span class="nn">CSH</span>
+
+<span class="n">cs</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">ConfigurationSpace</span><span class="p">()</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">CSH</span><span class="o">.</span><span class="n">UniformIntegerHyperparameter</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="mi">15</span><span class="p">)</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">CSH</span><span class="o">.</span><span class="n">UniformIntegerHyperparameter</span><span class="p">(</span><span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+<span class="n">c</span> <span class="o">=</span> <span class="n">CSH</span><span class="o">.</span><span class="n">UniformFloatHyperparameter</span><span class="p">(</span><span class="s1">&#39;c&#39;</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="mf">1.</span><span class="p">)</span>
+<span class="n">cs</span><span class="o">.</span><span class="n">add_hyperparameters</span><span class="p">([</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span><span class="p">])</span>
+
+<span class="n">less_cond</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">LessThanCondition</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+<span class="n">greater_cond</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">GreaterThanCondition</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+
+<span class="n">cs</span><span class="o">.</span><span class="n">add_condition</span><span class="p">(</span><span class="n">CS</span><span class="o">.</span><span class="n">OrConjunction</span><span class="p">(</span><span class="n">less_cond</span><span class="p">,</span> <span class="n">greater_cond</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="forbidden-clauses">
+<h2>Forbidden Clauses<a class="headerlink" href="#forbidden-clauses" title="Permalink to this headline">¶</a></h2>
+<p>In addition to the conditions, it’s also possible to add forbidden clauses to the configuration space.
+They allow us to make some more restrictions to the configuration space.</p>
+<p>The forbidden clauses are also captured in the examples. Please take a look at the <a class="reference internal" href="AdvancedExample.html"><span class="doc">advanced example</span></a></p>
+<div class="section" id="forbiddenequalsclause">
+<h3>1) ForbiddenEqualsClause<a class="headerlink" href="#forbiddenequalsclause" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="ConfigSpace.ForbiddenEqualsClause">
+<em class="property">class </em><code class="descclassname">ConfigSpace.</code><code class="descname">ForbiddenEqualsClause</code><span class="sig-paren">(</span><em>hyperparameter: Hyperparameter</em>, <em>value: Any</em><span class="sig-paren">)</span> &#x2192; None:<a class="headerlink" href="#ConfigSpace.ForbiddenEqualsClause" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>hyperparameter</strong> (<em>Hyperparameter</em>) – hyperparameter on which a restriction will be made</li>
+<li><strong>value</strong> (<em>Any</em>) – This value will be forbidden</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cs</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">ConfigurationSpace</span><span class="p">()</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">CSH</span><span class="o">.</span><span class="n">CategoricalHyperparameter</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">])</span>
+<span class="n">cs</span><span class="o">.</span><span class="n">add_hyperparameters</span><span class="p">([</span><span class="n">a</span><span class="p">])</span>
+
+<span class="c1"># It forbids the value 2 for the hyperparameter a</span>
+<span class="n">forbidden_clause_a</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">ForbiddenEqualsClause</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="n">cs</span><span class="o">.</span><span class="n">add_forbidden_clause</span><span class="p">(</span><span class="n">forbidden_clause_a</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="forbiddeninclause">
+<h3>2) ForbiddenInClause<a class="headerlink" href="#forbiddeninclause" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="ConfigSpace.ForbiddenInClause">
+<em class="property">class </em><code class="descclassname">ConfigSpace.</code><code class="descname">ForbiddenInClause</code><span class="sig-paren">(</span><em>hyperparameter: Dict[str, Union[None, str, float, int]], values: Any</em><span class="sig-paren">)</span> &#x2192; None:<a class="headerlink" href="#ConfigSpace.ForbiddenInClause" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>hyperparameter</strong> (<em>Hyperparameter</em>) – hyperparameter on which a restriction will be made</li>
+<li><strong>value</strong> (<em>Any</em>) – This value will be forbidden</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The forbidden values have to be a subset of the hyperparameter’s values.</p>
+</div>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cs</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">ConfigurationSpace</span><span class="p">()</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">CSH</span><span class="o">.</span><span class="n">CategoricalHyperparameter</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">])</span>
+<span class="n">cs</span><span class="o">.</span><span class="n">add_hyperparameters</span><span class="p">([</span><span class="n">a</span><span class="p">])</span>
+
+<span class="c1"># It forbids the values 2, 3, 4 for the hyperparameter &#39;a&#39;</span>
+<span class="n">forbidden_clause_a</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">ForbiddenInClause</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">])</span>
+
+<span class="n">cs</span><span class="o">.</span><span class="n">add_forbidden_clause</span><span class="p">(</span><span class="n">forbidden_clause_a</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="forbiddenandconjunction">
+<h3>3) ForbiddenAndConjunction<a class="headerlink" href="#forbiddenandconjunction" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="ConfigSpace.ForbiddenAndConjunction">
+<em class="property">class </em><code class="descclassname">ConfigSpace.</code><code class="descname">ForbiddenAndConjunction</code><span class="sig-paren">(</span><em>hyperparameter: Hyperparameter</em>, <em>value: Any</em><span class="sig-paren">)</span> &#x2192; None:<a class="headerlink" href="#ConfigSpace.ForbiddenAndConjunction" title="Permalink to this definition">¶</a></dt>
+<dd><p>The <em>ForbiddenAndConjunction</em> combines forbidden-clauses, which allows to build powerful constraints.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>hyperparameter</strong> (<em>Hyperparameter</em>) – hyperparameter on which a restriction will be made</li>
+<li><strong>value</strong> (<em>Any</em>) – This value will be forbidden</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cs</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">ConfigurationSpace</span><span class="p">()</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">CSH</span><span class="o">.</span><span class="n">CategoricalHyperparameter</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">])</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">CSH</span><span class="o">.</span><span class="n">CategoricalHyperparameter</span><span class="p">(</span><span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">6</span><span class="p">])</span>
+<span class="n">cs</span><span class="o">.</span><span class="n">add_hyperparameters</span><span class="p">([</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">])</span>
+
+<span class="n">forbidden_clause_a</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">ForbiddenEqualsClause</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="n">forbidden_clause_b</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">ForbiddenInClause</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+
+<span class="n">forbidden_clause</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">ForbiddenAndConjunction</span><span class="p">(</span><span class="n">forbidden_clause_a</span><span class="p">,</span> <span class="n">forbidden_clause_b</span><span class="p">)</span>
+
+<span class="n">cs</span><span class="o">.</span><span class="n">add_forbidden_clause</span><span class="p">(</span><span class="n">forbidden_clause</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+        <br/>
+        
+<div id="sourcelink">
+  <a href="_sources/constraints.rst.txt"
+     rel="nofollow">Source</a>
+</div>
+      
+    </p>
+    <p>
+        &copy; Copyright 2014-2016, Matthias Feurer, Katharina Eggensperger, Syed Mohsin Ali, Christina Hernandez Wunsch, Julien-Charles Levesque, Jost Tobias Springenberg, Marius Lindauer.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.6.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Advanced Example &#8212; ConfigSpace  documentation</title>
+    <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../_static/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="../_static/js/jquery-fix.js"></script>
+    <script type="text/javascript" src="../_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="../_static/bootstrap-sphinx.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="prev" title="Examples - ConfigSpace" href="index.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+  </head><body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../index.html">
+          ConfigSpace</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.4.6</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+                <li><a href="../index.html">Start</a></li>
+                <li><a href="../quickstart.html">Quickstart</a></li>
+                <li><a href="../AdvancedExample.html">Advanced Example</a></li>
+                <li><a href="../serialization.html">Serialization</a></li>
+                <li><a href="../hyperparameter.html">Hyperparameters</a></li>
+                <li><a href="../constraints.html">Constraints</a></li>
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><ul>
+<li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quickstart</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../quickstart.html#example-basic-usage-and-conditional-hyperparameter">1. Example: Basic Usage and Conditional Hyperparameter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../quickstart.html#example-integerhyperparameters-and-floathyperparameters">2. Example: IntegerHyperparameters and FloatHyperparameters:</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../quickstart.html#example-conditionalhyperparameters">3. Example: ConditionalHyperparameters:</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../AdvancedExample.html">Advanced Example - conditions and forbidden clauses</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../AdvancedExample.html#conditions">conditions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../AdvancedExample.html#forbidden-clauses">Forbidden Clauses</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../hyperparameter.html">Hyperparameters [API]</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../hyperparameter.html#integer-hyperparameters">Integer hyperparameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../hyperparameter.html#float-hyperparameters">Float hyperparameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../hyperparameter.html#categorical-hyperparameters">Categorical hyperparameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../hyperparameter.html#ordinalhyperparameters">OrdinalHyperparameters</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../constraints.html">Conditions and Forbidden clauses [API]</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../constraints.html#constraints">Constraints</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../constraints.html#forbidden-clauses">Forbidden Clauses</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../serialization.html">Serialization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="index.html">Examples - ConfigSpace</a></li>
+</ul>
+</ul>
+</li>
+              
+            
+            
+            
+            
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+      <div class="col-md-3">
+        <div id="sidebar" class="bs-sidenav" role="complementary"><ul>
+<li><a class="reference internal" href="#">Advanced Example</a></li>
+</ul>
+
+        </div>
+      </div>
+    <div class="col-md-9 content">
+      
+  <div class="sphx-glr-download-link-note admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Click <a class="reference internal" href="#sphx-glr-download-auto-examples-advancedexample-py"><span class="std std-ref">here</span></a> to download the full example code</p>
+</div>
+<div class="sphx-glr-example-title section" id="advanced-example">
+<span id="sphx-glr-auto-examples-advancedexample-py"></span><h1>Advanced Example<a class="headerlink" href="#advanced-example" title="Permalink to this headline">¶</a></h1>
+<div class="line-block">
+<div class="line">ConfigSpace is able to realize constraints as well as forbidden clauses in the <em>configuration space</em>.</div>
+<div class="line">This is often necessary, because some hyperparameters necessitate some other hyperparameters.</div>
+<div class="line">We will explain you the conditions by showing you a simple example.</div>
+</div>
+<div class="line-block">
+<div class="line">It captures the topics:</div>
+</div>
+<ol class="arabic simple">
+<li>EqualsCondition</li>
+<li>NotEqualsCondition</li>
+<li>LessThanCondition</li>
+<li>GreaterThanCondition</li>
+<li>InCondition</li>
+<li>AndConjunction</li>
+<li>OrConjunction</li>
+<li>ForbiddenEqualsClause</li>
+<li>ForbiddenInClause</li>
+<li>ForbiddenAndConjunction</li>
+</ol>
+<table border="1" class="docutils">
+<colgroup>
+<col width="32%" />
+<col width="20%" />
+<col width="13%" />
+<col width="36%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Parameter</th>
+<th class="head">Type</th>
+<th class="head">values</th>
+<th class="head">condition</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>a</td>
+<td>categorical</td>
+<td>1, 2, 3</td>
+<td>None</td>
+</tr>
+<tr class="row-odd"><td>b</td>
+<td>uniform float</td>
+<td>1.-8.</td>
+<td>a == 1</td>
+</tr>
+<tr class="row-even"><td>c</td>
+<td>uniform float</td>
+<td>10-100</td>
+<td>a != 2</td>
+</tr>
+<tr class="row-odd"><td>d</td>
+<td>uniform int</td>
+<td>10-100</td>
+<td>b &lt; 5 AND b &gt; 2</td>
+</tr>
+<tr class="row-even"><td>e</td>
+<td>uniform int</td>
+<td>10-100</td>
+<td>c in {25,26,27} OR a == 2</td>
+</tr>
+<tr class="row-odd"><td>f</td>
+<td>categorical</td>
+<td>1, 2, 3</td>
+<td>Forbidden: f = g = 2</td>
+</tr>
+<tr class="row-even"><td>g</td>
+<td>categorical</td>
+<td>2, 5, 6</td>
+<td>None</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">ConfigSpace</span> <span class="kn">as</span> <span class="nn">CS</span>
+<span class="kn">import</span> <span class="nn">ConfigSpace.hyperparameters</span> <span class="kn">as</span> <span class="nn">CSH</span>
+
+<span class="c1"># First, define the hyperparameter and add them to the configuration space</span>
+<span class="n">cs</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">ConfigurationSpace</span><span class="p">()</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">CSH</span><span class="o">.</span><span class="n">CategoricalHyperparameter</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="n">choices</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">])</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">CSH</span><span class="o">.</span><span class="n">UniformFloatHyperparameter</span><span class="p">(</span><span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="mf">1.</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="mf">8.</span><span class="p">,</span> <span class="n">log</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="n">c</span> <span class="o">=</span> <span class="n">CSH</span><span class="o">.</span><span class="n">UniformIntegerHyperparameter</span><span class="p">(</span><span class="s1">&#39;c&#39;</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">log</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="n">d</span> <span class="o">=</span> <span class="n">CSH</span><span class="o">.</span><span class="n">UniformIntegerHyperparameter</span><span class="p">(</span><span class="s1">&#39;d&#39;</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">log</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="n">e</span> <span class="o">=</span> <span class="n">CSH</span><span class="o">.</span><span class="n">UniformIntegerHyperparameter</span><span class="p">(</span><span class="s1">&#39;e&#39;</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">log</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="n">f</span> <span class="o">=</span> <span class="n">CSH</span><span class="o">.</span><span class="n">CategoricalHyperparameter</span><span class="p">(</span><span class="s1">&#39;f&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">])</span>
+<span class="n">g</span> <span class="o">=</span> <span class="n">CSH</span><span class="o">.</span><span class="n">CategoricalHyperparameter</span><span class="p">(</span><span class="s1">&#39;g&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">])</span>
+
+<span class="n">cs</span><span class="o">.</span><span class="n">add_hyperparameters</span><span class="p">([</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">e</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">g</span><span class="p">])</span>
+
+<span class="c1"># 1) EqualsCondition:</span>
+<span class="c1">#    &#39;b&#39; is only active if &#39;a&#39; is equal to 1</span>
+<span class="n">cond</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">EqualsCondition</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">cs</span><span class="o">.</span><span class="n">add_condition</span><span class="p">(</span><span class="n">cond</span><span class="p">)</span>
+
+<span class="c1"># 2) NotEqualsCondition:</span>
+<span class="c1">#    &#39;c&#39; is only active if &#39;a&#39; is not equal to 2</span>
+<span class="n">cond</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">NotEqualsCondition</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="n">cs</span><span class="o">.</span><span class="n">add_condition</span><span class="p">(</span><span class="n">cond</span><span class="p">)</span>
+
+<span class="c1"># 3) LessThanCondition:</span>
+<span class="c1">#    &#39;d&#39; is only active if &#39;b&#39; is less than 5</span>
+<span class="c1"># We do not add this condition here directly, because we will use it later in the and-conjunction.</span>
+<span class="n">less_cond</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">LessThanCondition</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+
+<span class="c1"># 4) GreaterThanCondition:</span>
+<span class="c1">#    &#39;d&#39; is only active if &#39;b&#39; is greater than 2</span>
+<span class="n">greater_cond</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">GreaterThanCondition</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+
+<span class="c1"># 5) InCondition:</span>
+<span class="c1">#    &#39;e&#39; is only active if &#39;c&#39; is in the set [25, 26, 27]</span>
+<span class="n">in_cond</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">InCondition</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="p">[</span><span class="mi">25</span><span class="p">,</span> <span class="mi">26</span><span class="p">,</span> <span class="mi">27</span><span class="p">])</span>
+
+<span class="c1"># 6) AndConjunction:</span>
+<span class="c1">#    The &#39;and-conjunction&#39; combines the conditions less_cond and greater_cond</span>
+<span class="n">cs</span><span class="o">.</span><span class="n">add_condition</span><span class="p">(</span><span class="n">CS</span><span class="o">.</span><span class="n">AndConjunction</span><span class="p">(</span><span class="n">less_cond</span><span class="p">,</span> <span class="n">greater_cond</span><span class="p">))</span>
+
+<span class="c1"># 7) OrConjunction:</span>
+<span class="c1">#    The &#39;or-conjunction&#39; works similar to the and-conjunction</span>
+<span class="n">equals_cond</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">EqualsCondition</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="n">cs</span><span class="o">.</span><span class="n">add_condition</span><span class="p">(</span><span class="n">CS</span><span class="o">.</span><span class="n">OrConjunction</span><span class="p">(</span><span class="n">in_cond</span><span class="p">,</span> <span class="n">equals_cond</span><span class="p">))</span>
+
+<span class="c1"># 8) ForbiddenEqualsClause:</span>
+<span class="c1">#    This clause forbids the value 2 for the hyperparameter f</span>
+<span class="n">forbidden_clause_f</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">ForbiddenEqualsClause</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+
+<span class="c1"># 9) ForbiddenInClause</span>
+<span class="c1">#    This clause forbids the value of the hyperparameter g to be in the set [2]</span>
+<span class="n">forbidden_clause_g</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">ForbiddenInClause</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+
+<span class="c1"># 10) ForbiddenAndConjunction</span>
+<span class="c1">#     Now, we combine them in an &#39;and-conjunction&#39; and add them to the configspace</span>
+<span class="n">forbidden_clause</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">ForbiddenAndConjunction</span><span class="p">(</span><span class="n">forbidden_clause_f</span><span class="p">,</span> <span class="n">forbidden_clause_g</span><span class="p">)</span>
+<span class="n">cs</span><span class="o">.</span><span class="n">add_forbidden_clause</span><span class="p">(</span><span class="n">forbidden_clause</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Total running time of the script:</strong> ( 0 minutes  0.000 seconds)</p>
+<div class="sphx-glr-footer class sphx-glr-footer-example docutils container" id="sphx-glr-download-auto-examples-advancedexample-py">
+<div class="sphx-glr-download docutils container">
+<a class="reference download internal" href="../_downloads/AdvancedExample.py" download=""><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">AdvancedExample.py</span></code></a></div>
+<div class="sphx-glr-download docutils container">
+<a class="reference download internal" href="../_downloads/AdvancedExample.ipynb" download=""><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">AdvancedExample.ipynb</span></code></a></div>
+</div>
+<p class="sphx-glr-signature"><a class="reference external" href="https://sphinx-gallery.readthedocs.io">Gallery generated by Sphinx-Gallery</a></p>
+</div>
+
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+        <br/>
+        
+<div id="sourcelink">
+  <a href="../_sources/auto_examples/AdvancedExample.rst.txt"
+     rel="nofollow">Source</a>
+</div>
+      
+    </p>
+    <p>
+        &copy; Copyright 2014-2016, Matthias Feurer, Katharina Eggensperger, Syed Mohsin Ali, Christina Hernandez Wunsch, Julien-Charles Levesque, Jost Tobias Springenberg, Marius Lindauer.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.6.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>
