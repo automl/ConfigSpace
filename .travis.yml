@@ -40,8 +40,8 @@ install:
   - source ci_scripts/install.sh
 
 # command to run tests, e.g. python setup.py test
-# script:
-# - nosetests -sv --with-coverage --cover-package=ConfigSpace test
+script:
+- nosetests -sv --with-coverage --cover-package=ConfigSpace test
 
 after_success:
   - source ci_scripts/create_doc.sh $TRAVIS_BRANCH "doc_result"
