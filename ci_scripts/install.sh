@@ -29,6 +29,6 @@ conda create -n testenv --yes python=$PYTHON_VERSION pip
 source activate testenv
 
 pip install pip --upgrade
-pip install numpy nose codecov typing cython sphinx sphinx_bootstrap_theme
+pip install numpy nose codecov typing cython matplotlib sphinx sphinx-gallery sphinx_bootstrap_theme
 
 python setup.py install
