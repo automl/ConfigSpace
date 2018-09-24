@@ -1,11 +1,16 @@
 language: python
-python:
-  - "3.4"
-  - "3.5"
-  - "3.6"
+# matrix:
+#   include:
+#     - python: 3.4
+#     - python: 3.5
+#     - python: 3.6
+#     - python: 3.7
+#       dist: xenial
+#       sudo: required
 
 
 cache:
+  apt: true
   directories:
     - $HOME/.cache/pip
   pip: true
@@ -24,26 +29,30 @@ addons:
     - libatlas-base-dev
     - gfortran
 
+env:
+  matrix:
+    - DISTRIB="conda" PYTHON_VERSION="3.4"
+    - DISTRIB="conda" PYTHON_VERSION="3.5"
+    - DISTRIB="conda" PYTHON_VERSION="3.6"
+    - DISTRIB="conda" PYTHON_VERSION="3.7" DOCPUSH="true"
+
 install:
-  - pip install pip --upgrade
-  - pip install numpy
-  - pip install nose
-  - pip install codecov
-  - pip install typing
-  - pip install cython
-  - pip install sphinx sphinx_bootstrap_theme
-  - python setup.py install
+  - source ci_scripts/install.sh
 
 # command to run tests, e.g. python setup.py test
-script:
-  - nosetests -sv --with-coverage --cover-package=ConfigSpace test
+# script:
+# - nosetests -sv --with-coverage --cover-package=ConfigSpace test
 
 after_success:
-  - codecov
   - source ci_scripts/create_doc.sh $TRAVIS_BRANCH "doc_result"
+  # - codecov
 
-deployment:
-  master:
+deploy:
+  provider: pages
+  skip-cleanup: true
+  github-token: $GITHUB_TOKEN  # Set in the settings page of your repository, as a secure variable
+  keep-history: true
+  committer-from-gh: true
+  on:
     branch: master
-    commands:
-      - bash ci_scripts/push_doc.sh 'stable'
+  local_dir: doc/$TRAVIS_BRANCH
