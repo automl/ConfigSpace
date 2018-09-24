@@ -45,7 +45,7 @@ script:
 
 after_success:
   - source ci_scripts/create_doc.sh $TRAVIS_BRANCH "doc_result"
-  # - codecov
+  - codecov
 
 deploy:
   provider: pages

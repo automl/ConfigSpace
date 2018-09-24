@@ -18,12 +18,12 @@ if ! [[ -z ${DOCPUSH+x} ]]; then
         fi
 
         # delete any previous documentation folder
-        if [ -d doc/$1 ]; then
-            rm -rf doc/$1
+        if [ -d docs/$1 ]; then
+            rm -rf docs/$1
         fi
 
         # create the documentation
-        cd doc && make html 2>&1
+        cd docs && make html 2>&1
 
         # create directory with branch name
         # the documentation for dev/stable from git will be stored here
