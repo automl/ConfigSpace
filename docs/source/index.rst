@@ -24,6 +24,23 @@ It can be installed using pip::
 
    pip install ConfigSpace
 
+Basic usage::
+
+    import ConfigSpace as CS
+    import ConfigSpace.hyperparameters as CSH
+
+    cs = CS.ConfigurationSpace()
+    a = CSH.UniformIntegerHyperparameter('a', lower=10, upper=100, log=False)
+    b = CSH.CategoricalHyperparameter('b', choices=['red', 'green', 'blue'])
+
+    cs.add_hyperparameters([a, b])
+    cs.sample_configuration()
+
+    # >>> Configuration:
+    # >>>   a, Value: 97
+    # >>>   b, Value: 'red'
+
+
 Contents
 ========
 
@@ -36,11 +53,3 @@ Contents
    constraints.rst
    serialization.rst
    auto_examples/index.rst
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`

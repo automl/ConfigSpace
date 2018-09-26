@@ -24,7 +24,7 @@ sys.path.insert(0, os.path.abspath('../..'))
 # -- Project information -----------------------------------------------------
 
 project = 'ConfigSpace'
-copyright = '2014-2016, Matthias Feurer, Katharina Eggensperger, Syed Mohsin Ali, Christina Hernandez Wunsch, Julien-Charles Levesque, Jost Tobias Springenberg, Marius Lindauer'
+copyright = '2014-2016, Matthias Feurer, Katharina Eggensperger, Syed Mohsin Ali, Christina Hernandez Wunsch, Julien-Charles Levesque, Jost Tobias Springenberg, Marius Lindauer, Philipp Müller'
 author = 'Matthias Feurer, Katharina Eggensperger, Syed Mohsin Ali, Christina Hernandez Wunsch, Julien-Charles Levesque, Jost Tobias Springenberg, Marius Lindauer'
 
 # The short X.Y version
@@ -112,12 +112,12 @@ html_theme = 'bootstrap'
 # documentation.
 #
 html_theme_options = {
-# Insert options
+    # Insert options
     # Navigation bar title. (Default: ``project`` value)
     # 'navbar_title': "Title",
 
     # Tab name for entire site. (Default: "Site")
-    # 'navbar_site_name': "Site",
+    'navbar_site_name': "Site",
 
     # A list of tuples containting pages to link to.  The value should
     # be in the form [(name, page), ..]
@@ -149,7 +149,7 @@ html_theme_options = {
     # will break.
     #
     # Values: "true" (default) or "false"
-    'globaltoc_includehidden': "false",
+    'globaltoc_includehidden': "True",
 
     # HTML navbar class (Default: "navbar") to attach to <div> element.
     # For black navbar, do "navbar navbar-inverse"
@@ -175,7 +175,6 @@ html_theme_options = {
 }
 
 html_theme_path = sphinx_bootstrap_theme.get_html_theme_path()
-# using_rtd_theme = True
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
@@ -185,7 +184,6 @@ html_static_path = []
 
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
-# html_logo = "BOHB.png"
 
 
 # Custom sidebar templates, must be a dictionary that maps document names
@@ -196,7 +194,7 @@ html_static_path = []
 # default: ``['localtoc.html', 'relations.html', 'sourcelink.html',
 # 'searchbox.html']``.
 #
-html_sidebars = {'**': ['localtoc.html']}
+html_sidebars = {'**': ['localtoc.html', 'searchbox.html']}
 
 
 # -- Options for HTMLHelp output ---------------------------------------------
