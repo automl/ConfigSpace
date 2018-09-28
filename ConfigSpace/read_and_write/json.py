@@ -266,7 +266,7 @@ def _build_forbidden_and_conjunction(clause: ForbiddenAndConjunction) -> Dict:
 
 
 ################################################################################
-def write(configuration_space):
+def write(configuration_space, indent=2):
     if not isinstance(configuration_space, ConfigurationSpace):
         raise TypeError("pcs_parser.write expects an instance of %s, "
                         "you provided '%s'" % (ConfigurationSpace,
@@ -318,7 +318,7 @@ def write(configuration_space):
     rval['python_module_version'] = __version__
     rval['json_format_version'] = JSON_FORMAT_VERSION
 
-    return json.dumps(rval, indent=2)
+    return json.dumps(rval, indent=indent)
 
 
 ################################################################################

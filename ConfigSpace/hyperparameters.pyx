@@ -52,12 +52,13 @@ cdef class Hyperparameter(object):
     #cdef public str name
     #cdef public default_value
 
-    def __init__(self, name: str) -> None:
+    def __init__(self, name: str, meta: Optional[Dict]) -> None:
         if not isinstance(name, str):
             raise TypeError(
                 "The name of a hyperparameter must be an instance of"
                 " %s, but is %s." % (str(str), type(name)))
         self.name = name # type : str
+        self.meta = meta
 
     def __repr__(self):
         raise NotImplementedError()
@@ -112,8 +113,8 @@ cdef class Constant(Hyperparameter):
     cdef public value
     cdef DTYPE_t value_vector
 
-    def __init__(self, name: str, value: Union[str, int, float]) -> None:
-        super(Constant, self).__init__(name)
+    def __init__(self, name: str, value: Union[str, int, float], meta: Optional[Dict]=None) -> None:
+        super(Constant, self).__init__(name, meta)
         allowed_types = (int, float, str)
 
         if not isinstance(value, allowed_types) or \
@@ -201,8 +202,8 @@ cdef class NumericalHyperparameter(Hyperparameter):
     cdef public _lower
     cdef public _upper
 
-    def __init__(self, name: str, default_value: Any) -> None:
-        super(NumericalHyperparameter, self).__init__(name)
+    def __init__(self, name: str, default_value: Any, meta: Optional[Dict]) -> None:
+        super(NumericalHyperparameter, self).__init__(name, meta)
         self.default_value = default_value
 
     def has_neighbors(self) -> bool:
@@ -289,8 +290,8 @@ cdef class NumericalHyperparameter(Hyperparameter):
 
 
 cdef class FloatHyperparameter(NumericalHyperparameter):
-    def __init__(self, name: str, default_value: Union[int, float]) -> None:
-        super(FloatHyperparameter, self).__init__(name, default_value)
+    def __init__(self, name: str, default_value: Union[int, float], meta: Optional[Dict]=None) -> None:
+        super(FloatHyperparameter, self).__init__(name, default_value, meta)
 
     def is_legal(self, value: Union[int, float]) -> bool:
         raise NotImplemented
@@ -305,8 +306,8 @@ cdef class FloatHyperparameter(NumericalHyperparameter):
 cdef class IntegerHyperparameter(NumericalHyperparameter):
     cdef ufhp
 
-    def __init__(self, name: str, default_value: int) -> None:
-        super(IntegerHyperparameter, self).__init__(name, default_value)
+    def __init__(self, name: str, default_value: int, meta: Optional[Dict]=None) -> None:
+        super(IntegerHyperparameter, self).__init__(name, default_value, meta)
 
     def is_legal(self, value: int) -> bool:
         raise NotImplemented
@@ -328,9 +329,10 @@ cdef class IntegerHyperparameter(NumericalHyperparameter):
 
 cdef class UniformFloatHyperparameter(FloatHyperparameter):
     def __init__(self, name: str, lower: Union[int, float], upper: Union[int, float],
-                 default_value: Union[int, float, None] = None, q: Union[int, float, None] = None, log: bool = False) -> None:
+                 default_value: Union[int, float, None] = None, q: Union[int, float, None] = None, log: bool = False,
+                 meta: Optional[Dict]=None) -> None:
 
-        super(UniformFloatHyperparameter, self).__init__(name, default_value)
+        super(UniformFloatHyperparameter, self).__init__(name, default_value, meta)
         self.lower = float(lower)
         self.upper = float(upper)
         self.q = float(q) if q is not None else None
@@ -440,10 +442,17 @@ cdef class UniformFloatHyperparameter(FloatHyperparameter):
         vector = np.maximum(0.0, vector)
         return vector
 
-    def get_neighbors(self, value: Any, rs: np.random.RandomState, number: int = 4, transform: bool = False) -> List[float]:
+    def get_neighbors(
+        self,
+        value: Any,
+        rs: np.random.RandomState,
+        number: int=4,
+        transform: bool=False,
+        std: float=0.2
+    ) -> List[float]:
         neighbors = []  # type: List[float]
         while len(neighbors) < number:
-            neighbor = rs.normal(value, 0.2)
+            neighbor = rs.normal(value, std)  # type: float
             if neighbor < 0 or neighbor > 1:
                 continue
             if transform:
@@ -458,8 +467,9 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
     cdef public sigma
 
     def __init__(self, name: str, mu: Union[int, float], sigma: Union[int, float],
-                 default_value: Union[None, float] = None, q: Union[int, float, None] = None, log: bool = False) -> None:
-        super(NormalFloatHyperparameter, self).__init__(name, default_value)
+                 default_value: Union[None, float] = None, q: Union[int, float, None] = None, log: bool = False,
+                 meta: Optional[Dict]=None) -> None:
+        super(NormalFloatHyperparameter, self).__init__(name, default_value, meta)
         self.mu = float(mu)
         self.sigma = float(sigma)
         self.q = float(q) if q is not None else None
@@ -591,8 +601,8 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
 
 cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
     def __init__(self, name: str, lower: int, upper: int, default_value: Union[int, None] = None,
-                 q: Union[int, None] = None, log: bool = False) -> None:
-        super(UniformIntegerHyperparameter, self).__init__(name, default_value)
+                 q: Union[int, None] = None, log: bool = False, meta: Optional[Dict]=None) -> None:
+        super(UniformIntegerHyperparameter, self).__init__(name, default_value, meta)
         self.lower = self.check_int(lower, "lower")
         self.upper = self.check_int(upper, "upper")
         self.name = name
@@ -706,14 +716,21 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
         else:
             return False
 
-    def get_neighbors(self, value: Union[int, float], rs: np.random.RandomState, number: int = 4, transform: bool = False) -> List[
+    def get_neighbors(
+        self,
+        value: Union[int, float],
+        rs: np.random.RandomState,
+        number: int=4,
+        transform: bool=False,
+        std: float=0.2,
+    ) -> List[
         int]:
         neighbors = []  # type: List[int]
         while len(neighbors) < number:
-            rejected = True
-            iteration = 0
+            rejected = True  # type: bool
+            iteration = 0  # type: int
             while rejected:
-                new_min_value = np.min([1, rs.normal(loc=value, scale=0.2)])
+                new_min_value = np.min([1, rs.normal(loc=value, scale=std)])
                 new_value = np.max((0, new_min_value))
                 int_value = self._transform(value)
                 new_int_value = self._transform(new_value)
@@ -738,8 +755,9 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
     cdef nfhp
 
     def __init__(self, name: str, mu: int, sigma: Union[int, float],
-                 default_value: Union[int, None] = None, q: Union[None, int] = None, log: bool = False) -> None:
-        super(NormalIntegerHyperparameter, self).__init__(name, default_value)
+                 default_value: Union[int, None] = None, q: Union[None, int] = None, log: bool = False,
+                 meta: Optional[Dict]=None) -> None:
+        super(NormalIntegerHyperparameter, self).__init__(name, default_value, meta)
         self.mu = mu
         self.sigma = sigma
         self.name = name
@@ -875,8 +893,13 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
     def has_neighbors(self) -> bool:
         return True
 
-    def get_neighbors(self, value: Union[int, float], rs: np.random.RandomState, number: int = 4, transform: bool = False) -> \
-            List[Union[np.ndarray, float, int]]:
+    def get_neighbors(
+        self,
+        value: Union[int, float],
+        rs: np.random.RandomState,
+        number: int=4,
+        transform: bool=False,
+    ) -> List[Union[np.ndarray, float, int]]:
         neighbors = []  # type: List[Union[np.ndarray, float, int]]
         while len(neighbors) < number:
             rejected = True
@@ -910,9 +933,10 @@ cdef class CategoricalHyperparameter(Hyperparameter):
         self,
         name: str,
         choices: Union[List[Union[str, float, int]], Tuple[Union[float, int, str]]],
-        default_value: Union[int, float, str, None]=None
+        default_value: Union[int, float, str, None]=None,
+        meta: Optional[Dict]=None
     ) -> None:
-        super(CategoricalHyperparameter, self).__init__(name)
+        super(CategoricalHyperparameter, self).__init__(name, meta)
         # TODO check that there is no bullshit in the choices!
         self.choices = tuple(choices)
         self._num_choices = len(choices)
@@ -1077,14 +1101,15 @@ cdef class OrdinalHyperparameter(Hyperparameter):
         self,
         name: str,
         sequence: Union[List[Union[float, int, str]], Tuple[Union[float, int, str]]],
-        default_value: Union[str, int, float, None]=None
+        default_value: Union[str, int, float, None]=None,
+        meta: Optional[Dict]=None
     ) -> None:
         """
         since the sequence can consist of elements from different types we
         store them into a dictionary in order to handle them as a
         numeric sequence according to their order/position.
         """
-        super(OrdinalHyperparameter, self).__init__(name)
+        super(OrdinalHyperparameter, self).__init__(name, meta)
         if len(sequence) > len(set(sequence)):
             raise ValueError("Ordinal Hyperparameter Sequence %s contain duplicate values." % sequence)
         self.sequence = tuple(sequence)

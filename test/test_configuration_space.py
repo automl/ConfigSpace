@@ -97,6 +97,13 @@ class TestConfigurationSpace(unittest.TestCase):
         self.assertRaisesRegexp(ValueError, "Given vector violates forbidden clause \(Forbidden: loss == \'l1\' && "
             "Forbidden: penalty == \'l1\'\)", cs.add_forbidden_clause, forb3)
 
+    def test_meta_data_stored(self):
+        meta_data = {'additional': 'meta-data',
+                     'useful': 'for integrations',
+                     'input_id': 42}
+        cs = ConfigurationSpace(meta=dict(meta_data))
+        self.assertEqual(cs.meta, meta_data)
+
     def test_add_non_condition(self):
         cs = ConfigurationSpace()
         non_cond = unittest.TestSuite()
@@ -219,6 +226,51 @@ class TestConfigurationSpace(unittest.TestCase):
   Forbidden Clauses:
     Forbidden: prefix__input1 == 1
 ''')
+
+    def test_add_configuration_space_conjunctions(self):
+        cs1 = ConfigurationSpace()
+        cs2 = ConfigurationSpace()
+
+        hp1 = cs1.add_hyperparameter(CategoricalHyperparameter("input1", [0, 1]))
+        hp2 = cs1.add_hyperparameter(CategoricalHyperparameter("input2", [0, 1]))
+        hp3 = cs1.add_hyperparameter(UniformIntegerHyperparameter("child1", 0, 10))
+        hp4 = cs1.add_hyperparameter(UniformIntegerHyperparameter("child2", 0, 10))
+
+        cond1 = EqualsCondition(hp2, hp3, 0)
+        cond2 = EqualsCondition(hp1, hp3, 5)
+        cond3 = EqualsCondition(hp1, hp4, 1)
+        andCond = AndConjunction(cond2, cond3)
+
+        cs1.add_conditions([cond1, andCond])
+        cs2.add_configuration_space(prefix='test', configuration_space=cs1)
+
+        self.assertEqual(str(cs2).count('test:'), 10)
+        # Check that they're equal except for the "test:" prefix
+        self.assertEqual(str(cs1), str(cs2).replace('test:', ''))
+
+    def test_add_conditions(self):
+        cs1 = ConfigurationSpace()
+        cs2 = ConfigurationSpace()
+
+        hp1 = cs1.add_hyperparameter(CategoricalHyperparameter("input1", [0, 1]))
+        cs2.add_hyperparameter(hp1)
+        hp2 = cs1.add_hyperparameter(CategoricalHyperparameter("input2", [0, 1]))
+        cs2.add_hyperparameter(hp2)
+        hp3 = cs1.add_hyperparameter(UniformIntegerHyperparameter("child1", 0, 10))
+        cs2.add_hyperparameter(hp3)
+        hp4 = cs1.add_hyperparameter(UniformIntegerHyperparameter("child2", 0, 10))
+        cs2.add_hyperparameter(hp4)
+
+        cond1 = EqualsCondition(hp2, hp3, 0)
+        cond2 = EqualsCondition(hp1, hp3, 5)
+        cond3 = EqualsCondition(hp1, hp4, 1)
+        andCond = AndConjunction(cond2, cond3)
+
+        cs1.add_conditions([cond1, andCond])
+        cs2.add_condition(cond1)
+        cs2.add_condition(andCond)
+
+        self.assertEqual(str(cs1), str(cs2))
 
     def test_get_hyperparamforbidden_clauseseters(self):
         cs = ConfigurationSpace()
