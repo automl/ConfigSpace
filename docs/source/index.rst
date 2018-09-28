@@ -13,7 +13,7 @@ ConfigSpace is often used in our frameworks, like `SMAC3`_, `BOHB`_ or `auto-skl
 
 | The purpose of this documentation is to explain how to use ConfigSpace and show you its abilities.
 | In the :doc:`quickstart` you will see how to set up a *configurations space* and *add hyperparameters* of different types.
-  Besides containing hyperparameters, *ConfigSpace* is able to realize constraints on the defined configurations space. (:math:`\rightarrow` :doc:`constraints`)
+  Besides containing hyperparameters, *ConfigSpace* is able to realize constraints on the defined configurations space. (:math:`\rightarrow` :doc:`AdvancedExample`)
 | Furthermore, in the :doc:`serialization chapter <serialization>`, it will be explained how to serialize a defined *configuration space* for later usage.
 
 .. _SMAC3: https://github.com/automl/SMAC3
@@ -49,7 +49,6 @@ Contents
 		
    quickstart.rst
    AdvancedExample.rst
-   hyperparameter.rst
-   constraints.rst
    serialization.rst
+   API-Doc.rst
    auto_examples/index.rst

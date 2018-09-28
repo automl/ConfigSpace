@@ -1,5 +1,5 @@
-Serialization
-=============
+Serialization example
+=====================
 
 | Sometimes, it can be useful to serialize the *configuration space*.
 | This can be achieved by using the classes **ConfigSpace.read_and_write.pcs**,
@@ -48,6 +48,8 @@ To write to pcs is similar to the example above.::
 
 3. Serialization with pcs
 -------------------------
+
+::
 
     import ConfigSpace as CS
     import ConfigSpace.hyperparameters as CSH

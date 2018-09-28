@@ -24,7 +24,7 @@ sys.path.insert(0, os.path.abspath('../..'))
 # -- Project information -----------------------------------------------------
 
 project = 'ConfigSpace'
-copyright = '2014-2016, Matthias Feurer, Katharina Eggensperger, Syed Mohsin Ali, Christina Hernandez Wunsch, Julien-Charles Levesque, Jost Tobias Springenberg, Marius Lindauer, Philipp Müller'
+copyright = '2014-2018, Matthias Feurer, Katharina Eggensperger, Syed Mohsin Ali, Christina Hernandez Wunsch, Julien-Charles Levesque, Jost Tobias Springenberg, Marius Lindauer, Philipp Müller'
 author = 'Matthias Feurer, Katharina Eggensperger, Syed Mohsin Ali, Christina Hernandez Wunsch, Julien-Charles Levesque, Jost Tobias Springenberg, Marius Lindauer'
 
 # The short X.Y version
@@ -125,9 +125,7 @@ html_theme_options = {
         ('Start', 'index'),
         ('Quickstart', 'quickstart'),
         ('Advanced Example', 'AdvancedExample'),
-        ('Serialization', 'serialization'),
-        ('Hyperparameters', 'hyperparameter'),
-        ('Constraints', 'constraints'),
+        ('API', 'API-Doc'),
     ],
     # Render the next and previous page links in navbar. (Default: true)
     'navbar_sidebarrel': False,
