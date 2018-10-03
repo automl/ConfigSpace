@@ -1,7 +1,6 @@
 from setuptools import setup, find_packages
 from setuptools.extension import Extension
 import os
-from Cython.Build import cythonize
 import numpy as np
 
 # Read http://peterdowns.com/posts/first-time-with-pypi.html to figure out how
@@ -19,28 +18,32 @@ compiler_directives = {
     'wraparound': False,
 }
 
-extensions = cythonize(
-    [Extension('ConfigSpace.hyperparameters',
+extensions = [
+    Extension('ConfigSpace.hyperparameters',
                sources=['ConfigSpace/hyperparameters.pyx',],
-               include_dirs=[np.get_include()]),
-     Extension('ConfigSpace.forbidden',
+               include_dirs=[np.get_include()],
+               compiler_directives=compiler_directives),
+    Extension('ConfigSpace.forbidden',
                sources=['ConfigSpace/forbidden.pyx'],
-               include_dirs=[np.get_include()]),
-     Extension('ConfigSpace.conditions',
+               include_dirs=[np.get_include()],
+               compiler_directives=compiler_directives),
+    Extension('ConfigSpace.conditions',
                sources=['ConfigSpace/conditions.pyx'],
-               include_dirs=[np.get_include()]),
-     Extension('ConfigSpace.c_util',
+               include_dirs=[np.get_include()],
+               compiler_directives=compiler_directives),
+    Extension('ConfigSpace.c_util',
                sources=['ConfigSpace/c_util.pyx'],
-               include_dirs=[np.get_include()]),
-     Extension('ConfigSpace.util',
+               include_dirs=[np.get_include()],
+               compiler_directives=compiler_directives),
+    Extension('ConfigSpace.util',
                sources=['ConfigSpace/util.py'],
-               include_dirs=[np.get_include()]),
-     Extension('ConfigSpace.configuration_space',
+               include_dirs=[np.get_include()],
+               compiler_directives=compiler_directives),
+    Extension('ConfigSpace.configuration_space',
                sources=['ConfigSpace/configuration_space.py'],
-               include_dirs=[np.get_include()]),
-     ],
-    compiler_directives=compiler_directives,
-)
+               include_dirs=[np.get_include()],
+               compiler_directives=compiler_directives),
+]
 
 def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
@@ -65,6 +68,10 @@ setup(
                       "Marius Lindauer", "Jorn Tuyls"]),
     author_email='feurerm@informatik.uni-freiburg.de',
     test_suite="pytest",
+    # https://stackoverflow.com/questions/24923003/organizing-a-package-with-cython
+    setup_requires=[
+        'Cython',
+    ],
     install_requires=[
         'numpy',
         'pyparsing',
@@ -78,6 +85,7 @@ setup(
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
         'Development Status :: 4 - Beta',
         'Natural Language :: English',
         'Intended Audience :: Developers',
