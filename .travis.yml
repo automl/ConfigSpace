@@ -23,7 +23,7 @@ install:
 
 # command to run tests, e.g. python setup.py test
 script:
-  - pytest -n 4 --timeout=600 --timeout-method=thread --cov=ConfigSpace -sv test
+  - pytest -sv --cov=ConfigSpace test
 
 after_success:
   - source ci_scripts/create_doc.sh $TRAVIS_BRANCH "doc_result"
