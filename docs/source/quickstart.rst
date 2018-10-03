@@ -1,85 +1,96 @@
 Quickstart
 ==========
 
-A ConfigSpace is equal to a container holding all different kinds of hyperparameters.
-For example numerical, categorical hyperparameters and condtional hyperparameters.
+A ``ConfigurationSpace`` is a data structure to describe the configuration space of an algorithm to tune.
+It contains numerical, categorical hyperparameters and condtional hyperparameters.
 As well as ordinal hyperparameters.
 
-Tools like `SMAC3`_, `BOHB`_ or `auto-sklearn`_ can sample hyperparameter-configurations from this ConfigSpace.
+Our tools `SMAC3`_ and `BOHB`_ are using the configuration space module to sample hyperparameter configurations.
+Also, `auto-sklearn`_, an automated machine learning toolkit, which frees the machine learning user from
+algorithm selection and hyperparameter tuning, works with defined a ``ConfigurationSpace``.
 
-This simple quickstart tutorial will show you, how to set up you own ConfigSpace, and what you can realize with it.
+This simple quickstart tutorial will show you, how to set up you own ``ConfigurationSpace``, and demonstrate what you can realize with it.
 To accomplish this task, we need to:
 
-- Create a ConfigSpace
+- Create a ``ConfigurationSpace``
 - Define hyperparameters and their value ranges
-- Add the hyperparameters to the ConfigSpace
-- (Optional) Add constraints to the ConfigSpace
+- Add the hyperparameters to the ``ConfigurationSpace``
+- (Optional) Add constraints to the ``ConfigurationSpace``
+- (Optional) Add :ref:`Forbidden clauses`
+- (Optional) Serialize the ``ConfigurationSpace``
 
-We will show those steps in an exemplary way, by creating a ConfigSpace for a soft-margin SVM classifier and a neural network.
+We will show those steps in an exemplary way, by creating a ``ConfigurationSpace`` for a support vector machine (=SVM) classifier
+and a neural network.
 
-1. Example: Basic Usage and Conditional Hyperparameter
-------------------------------------------------------
+1st Example: Basic Usage and Conditional Hyperparameter
+-------------------------------------------------------
 
-Assume, we want to train a soft-margin SVM classifier with a RBF-kernel. This classifier has at least two hyperparametrs.
-A regularization constant :math:`\mathcal{C}` and a kernel hyperparameter  :math:`\gamma` with
+Assume that we want to train a support vector machines (=SVM) classifier, but we are not sure, which kernel is the best for our dataset.
+Besides the hyperparameter kernel type, we are interested in results from varying a regularization constant :math:`\mathcal{C}`:
 
-- :math:`\mathcal{C} \in` {10, 100, 1000}
-- :math:`\gamma \in` {0.1, 0.2, 0.5, 1.0}
+- regularization constant :math:`\mathcal{C} \in \mathbb{R}_{\geq 0}` with 0 :math:`\geq \mathcal{C} \geq` 10
+- kernel type :math:`\in` {'linear', 'poly', 'rbf', 'sigmoid'}
 
-| How this classifier is implemented is not necessary in this example and thus not shown.
+The implementation of the classifier is out of scope for this example and thus not shown. But for further reading about
+support vector machines and the meaning of its hyperparameter, take a look `here <https://en.wikipedia.org/wiki/Support_vector_machine>`_.
+Or directly in the implementation of the SVM in
+`scikit-learn  <http://scikit-learn.org/stable/modules/generated/sklearn.svm.SVC.html#sklearn.svm.SVC>`_.
 
-The first step is always to create a ConfigSpace-object. All the hyperparameters and constraints will be added to this
+The first step is always to create a ``ConfigurationSpace`` object. All the hyperparameters and constraints will be added to this
 object.
 ::
 
    import ConfigSpace as CS
    cs = CS.ConfigurationSpace()
 
-Now, we have to define the hyperparameters :math:`\mathcal{C}` and :math:`\gamma`. Since each hyperparameter only can
-take on values from a given subset, we use categorical-hyperparameters in this case.
+Now, we have to define the hyperparameters :math:`\mathcal{C}` and kernel type. Since the kernel hyperparameter only can
+take on values from a given subset, we use for this a categorical hyperparameter. For the regularization constant
+we choose a floating hyperparameter.
 :: 
 
    import ConfigSpace.hyperparameters as CSH
-   c = CSH.CategoricalHyperparameter(name='C', choices=[10, 100, 1000])
-   gamma = CSH.CategoricalHyperparameter(name='gamma', choices=[0.1, 0.2, 0.5, 1.0])
+   c = CSH.UniformFloatHyperparameter(name='C', lower=0, upper=100)
+   kernel = CSH.CategoricalHyperparameter(name='kernel', choices=['linear', 'poly', 'rbf', 'sigmoid'])
 
-As last step in this first example, we only need to add them to the ConfigSpace::
+As last step in this example, we need to add them to the ``ConfigurationSpace`` object and sample a configuration from it::
 
    cs.add_hyperparameter(c)
-   cs.add_hyperparameter(gamma)
+   cs.add_hyperparameter(kernel)
+   cs.sample_configuration()
 
 And that's it.
-The ConfigSpace *cs* stores the hyperparameters :math:`\mathcal{C}` and :math:`\gamma` with their defined value-ranges.
+The ``ConfigurationSpace`` object *cs* stores the hyperparameters :math:`\mathcal{C}` and kernel with their defined value-ranges.
 
-2. Example: IntegerHyperparameters and FloatHyperparameters:
-------------------------------------------------------------
+2nd Example: Integer hyperparameters and float hyperparameters:
+---------------------------------------------------------------
 
-| As already mentioned, ConfigSpace is also able to distinguish between some other common types like integer- and float-hyperparameter.
-| In the next example, we will create a ConfigSpace for a simple neural network.
-| Assume this neural network model has a float-hyperparameter *learning_rate* and a integer-hyperparameter
+| As already mentioned, ConfigSpace is also able to distinguish between some other common types like integer- and float hyperparameter.
+| In the next example, we will create a ``ConfigurationSpace`` object for a simple neural network.
+| Assume this neural network model has a float hyperparameter *learning_rate* and an integer hyperparameter
   *number of units in the hidden layer*.
 | Since the learning rate should be sampled from a value range from 0.000001 to 0.1, we choose this hyperparameter to be
-  a float-hyperparameter.
+  a float hyperparameter.
 | Note, that the parameter *log* is set to True: This causes that the values of this hyperparameter
   is sampled from a logarithmic scale.
-  In hyperparameter-optimization this is sometimes useful, because a logarithmic scale enables us to search a bigger space quickly.
-  It could be also preferred, if a hyperparameter is not very sensitive. In this example here, it makes more sense to compare result from runs with
-  learning rates on a logarithmic scale with values 0.000001, 0.00001,..., 0.1 instead of 0.000001, 0.000002, ... .
+  In hyperparameter-optimization this is useful, because a logarithmic scale enables us to search a larger space quickly.
+  It basically states that a change from 0.01 to 0.1 is as important as a change from 0.001 to 0.01.
 
 ::
 
    lr = CSH.UniformFloatHyperparameter('lr', lower=1e-6, upper=1e-1, default_value='1e-2', log=True)
-   cs.add_hyperparameter(lr)
-   
-   num_hidden_units = CSH.UniformIntegerHyperparameter('num_hidden_units', lower=10, upper=150, default_value=100)
-   cs.add_hyperparameter(num_hidden_units)
- 
-3. Example: ConditionalHyperparameters:
----------------------------------------
 
-Sometimes it is necessary to integrate conditions in our ConfigSpace.
-We extend the neural network example from above by another hyperparameter, the *number of hidden layers*. Since
-each layer should have a independent *number of units*, we have to add for each layer a own hyperparameter: *number of hidden units 1*
+   num_hidden_units = CSH.UniformIntegerHyperparameter('num_hidden_units', lower=10, upper=150, default_value=100)
+   cs.add_hyperparameters([lr, num_hidden_units])
+ 
+3rd Example: Conditional Hyperparameters:
+-----------------------------------------
+
+In real world applications, hyperparameters are often dependent on the values of other hyperparameters.
+This means, that a hyperparameter, which is dependent on a parent hyperparameter should only be sampled if the parent satisfies a defined condition.
+
+To create a example, which has conditions,
+we extend the neural network example from above by another hyperparameter, the *number of hidden layers*. Since
+each layer should have an independent *number of units*, we have to add for each layer an own hyperparameter: *number of hidden units 1*
 and *number of hidden units 2*.
 
 +--------------------------+---------------+----------+---------------------------+
@@ -96,16 +107,16 @@ and *number of hidden units 2*.
 | Or intuitively spoken, the hyperparameter *num hidden units layer 2* should only be *active*, if we have two hidden layers.
 | ConfigSpace is capable of handling this situation.
 
-First, add the new hyperparameters to our ConfigSpace ::
+First, add the new hyperparameters to our ``ConfigurationSpace`` object ::
 
    num_hidden_layers = CSH.UniformIntegerHyperparameter('num_hidden_layers', lower=1, upper=2)
    cs.add_hyperparameter(num_hidden_layers)
    
    num_units_1 = CSH.UniformIntegerHyperparameter('num_units_1', lower=64, upper=128, default=64)
-   cs.add_hyperparameter(num_units_1)
-   
+
    num_units_2 = CSH.UniformIntegerHyperparameter('num_units_2', lower=64, upper=128, default=64)
-   cs.add_hyperparameter(num_units_2)
+   # you can also add them with one function call
+   cs.add_hyperparameters([num_units_1, num_units_2])
    
 
 And now, let's create the condition, that *num_units_2* is only active if *num_hidden_layers* is greater than one::
@@ -114,10 +125,11 @@ And now, let's create the condition, that *num_units_2* is only active if *num_h
    cs.add_condition(cond)
 
 
-| In this example, we used a greater-than-condition. It remains to say, that
-  ConfigSpace is able to realize more kinds of conditions, like not-equal- or less-than-conditions.
-| To read more about constraints, please take a look at the `constraints-documentation [API] <constraints>`_  or the :doc:`auto_examples/AdvancedExample`
-| For more information about the different hyperparameter types, visit the `hyperparameter-documentation [API] <hyperparameter>`_.
+| In this example, we used a ``GreaterThanCondition``. It remains to say, that
+  ConfigSpace is able to realize more kinds of conditions, like ``NotEqualCondition`` or ``LessThanCondition``.
+| To read more about conditions, please take a look at the :ref:`Conditions` or the :doc:`auto_examples/AdvancedExample`
+| For more information about the different hyperparameter types, visit the :ref:`hyperparameters`.
+  In the :doc:`Guide`, you will learn another powerful kind of restriction to the configuration space, the :ref:`Forbidden clauses`.
 
 
 .. _SMAC3: https://github.com/automl/SMAC3

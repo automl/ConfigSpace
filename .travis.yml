@@ -11,15 +11,6 @@ sudo: false
 before_cache:
   - rm -f $HOME/.cache/pip/log/debug.log
 
-# command to install dependencies
-addons:
-  apt:
-    packages:
-    - libatlas-dev
-    - liblapack-dev
-    - libatlas-base-dev
-    - gfortran
-
 env:
   matrix:
     - DISTRIB="conda" PYTHON_VERSION="3.4"
@@ -32,19 +23,19 @@ install:
 
 # command to run tests, e.g. python setup.py test
 script:
-- nosetests -sv --with-coverage --cover-package=ConfigSpace test
+  - pytest -n 4 --timeout=600 --timeout-method=thread --cov=ConfigSpace -sv test
 
 after_success:
   - source ci_scripts/create_doc.sh $TRAVIS_BRANCH "doc_result"
   - codecov
 
-deploy:
+depVIS_BRANCHloy:
   provider: pages
   skip-cleanup: true
-  github-token: $GITHUB_TOKEN  # Set in the settings page of your repository, as a secure variable
+  github-token: $GITHUB_TOKEN
   keep-history: true
   committer-from-gh: true
   on:
     branch: master
     condition: $doc_result = "success"
-  local_dir: docs/$TRAVIS_BRANCH
+  local_dir: docs/$TRA

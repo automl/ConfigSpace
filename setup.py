@@ -61,10 +61,10 @@ setup(
     platforms=['Linux'],
     author=', '.join(["Matthias Feurer", "Katharina Eggensperger",
                       "Syed Mohsin Ali", "Christina Hernandez Wunsch",
-                      "Julien-Charles Levesque", "Jost Tobias Springenberg",
+                      "Julien-Charles Levesque", "Jost Tobias Springenberg", "Philipp Mueller"
                       "Marius Lindauer", "Jorn Tuyls"]),
     author_email='feurerm@informatik.uni-freiburg.de',
-    test_suite="nose.collector",
+    test_suite="pytest",
     install_requires=[
         'numpy',
         'pyparsing',

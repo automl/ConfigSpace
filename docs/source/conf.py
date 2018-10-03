@@ -8,6 +8,7 @@
 
 import sphinx_bootstrap_theme
 import ConfigSpace
+from datetime import datetime
 
 
 # -- Path setup --------------------------------------------------------------
@@ -20,15 +21,16 @@ import os
 import sys
 sys.path.insert(0, os.path.abspath('../..'))
 
-
 # -- Project information -----------------------------------------------------
 
+
 project = 'ConfigSpace'
-copyright = '2014-2018, Matthias Feurer, Katharina Eggensperger, Syed Mohsin Ali, Christina Hernandez Wunsch, Julien-Charles Levesque, Jost Tobias Springenberg, Marius Lindauer, Philipp Müller'
-author = 'Matthias Feurer, Katharina Eggensperger, Syed Mohsin Ali, Christina Hernandez Wunsch, Julien-Charles Levesque, Jost Tobias Springenberg, Marius Lindauer'
+copyright = "2014-{}, ".format(datetime.now().year) + ", ".join(ConfigSpace.__authors__)
+author = ConfigSpace.__authors__
+
 
 # The short X.Y version
-version = '0.4.6'
+version = ConfigSpace.__version__
 # The full version, including alpha/beta/rc tags
 release = ''
 
@@ -124,7 +126,7 @@ html_theme_options = {
     'navbar_links': [
         ('Start', 'index'),
         ('Quickstart', 'quickstart'),
-        ('Advanced Example', 'AdvancedExample'),
+        ('Guide', 'Guide'),
         ('API', 'API-Doc'),
     ],
     # Render the next and previous page links in navbar. (Default: true)
@@ -226,7 +228,7 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
     (master_doc, 'ConfigSpace.tex', 'ConfigSpace Documentation',
-     'Matthias Feurer, Katharina Eggensperger, Syed Mohsin Ali, Christina Hernandez Wunsch, Julien-Charles Levesque, Jost Tobias Springenberg, Marius Lindauer', 'manual'),
+     [author], 'manual'),
 ]
 
 

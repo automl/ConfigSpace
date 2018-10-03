@@ -1,10 +1,13 @@
-Advanced Example - conditions and forbidden clauses
-===================================================
+Guide
+=====
+
+In this guide the topics conditions, forbidden clauses and serialization will be captured.
+They will be shown by explaining some more detailed examples.
 
 conditions
 ----------
 
-| ConfigSpace is able to realize conditions in the *configuration space*.
+| ConfigSpace is able to realize conditions in the ``ConfigurationSpace``.
   This is often necessary, because some hyperparameters necessitate some other hyperparameters.
 | We will explain the concepts of them in an advanced example.
 
@@ -21,7 +24,7 @@ To build even more powerful conditions, it is possible to combine conditions by 
 6) AndConjunction
 7) OrConjunction
 
-For demonstration purpose we create a ConfigSpace with the following hyperparameters:
+For demonstration purpose we create a ``ConfigurationSpace`` with the following hyperparameters:
 
 +------------------------+---------------+----------+---------------------------+
 | Parameter              | Type          | values   |  condition                |
@@ -30,7 +33,7 @@ For demonstration purpose we create a ConfigSpace with the following hyperparame
 +------------------------+---------------+----------+---------------------------+
 | b                      | uniform float | 1.-8.    |  a == 1                   |
 +------------------------+---------------+----------+---------------------------+
-| c                      | uniform float | 10-100   |  a != 2                   |
+| c                      | uniform int   | 10-100   |  a != 2                   |
 +------------------------+---------------+----------+---------------------------+
 | d                      | uniform int   | 10-100   |  b < 5 AND b > 2          |
 +------------------------+---------------+----------+---------------------------+
@@ -41,7 +44,7 @@ For demonstration purpose we create a ConfigSpace with the following hyperparame
 
     The code of this example can be found here: :math:`\rightarrow` :doc:`auto_examples/AdvancedExample`
 
-First, let's create a ConfigSpace and add the hyperparameters a, b, c::
+First, let's create a ``ConfigurationSpace`` and add the hyperparameters a, b, c::
 
    import ConfigSpace as CS
    import ConfigSpace.hyperparameters as CSH
@@ -58,7 +61,7 @@ First, let's create a ConfigSpace and add the hyperparameters a, b, c::
 1) EqualsCondition
 ++++++++++++++++++
 
-To realize the equal-condition on hyperparameter b, we can use the **ConfigSpace.EqualsCondition** function::
+To realize the equal-condition on hyperparameter b, we can use the ``ConfigSpace.EqualsCondition`` function::
 
     cond = CS.EqualsCondition(b, a, 1)
     cs.add_condition(cond)
@@ -92,7 +95,7 @@ Now, we allow c only to be active, if a is not equal 2.
 .. note::
 
     Adding a second condition for a hyperparameter is ambigouos and therefore forbidden, so this will cause an error.
-    However, this works by using the and-conjunction (see *below*).
+    However, this works by using the ``AndConjunction`` (see *below*).
 
 5) InCondition
 ++++++++++++++
@@ -105,7 +108,7 @@ Now, we allow c only to be active, if a is not equal 2.
 6) AndConjunction
 +++++++++++++++++
 
-To combine two conditions, we have to use an and-conjunction.
+To combine two conditions, we have to use an ``AndConjunction``.::
 
     less_cond = CS.LessThanCondition(d, b, 5)
     greater_cond = CS.GreaterThanCondition(d, b, 2)
@@ -161,3 +164,20 @@ We have two hyperparameter *f* and *g* and we want to forbid the case, where *f*
     forbidden_clause = CS.ForbiddenAndConjunction(forbidden_clause_f, forbidden_clause_g)
 
     cs.add_forbidden_clause(forbidden_clause)
+
+
+To serialize the defined ``ConfigurationSpace``, we can choose between different output formats, such as
+:ref:`json` or :ref:`pcs <pcs_new>`.
+In this case, we want to store the ``ConfigurationSpace`` object as json file::
+
+    from ConfigSpace.read_and_write import json
+    with open('configspace.json', 'w') as fh:
+        fh.write(json.write(cs))
+
+
+To read it again::
+
+    with open('configspace.json', 'r') as fh:
+        json_string = fh.read()
+        restored_conf = json.read(json_string)
+

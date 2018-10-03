@@ -41,6 +41,7 @@ Advanced Example
 
 import ConfigSpace as CS
 import ConfigSpace.hyperparameters as CSH
+from ConfigSpace.read_and_write import json
 
 # First, define the hyperparameter and add them to the configuration space
 cs = CS.ConfigurationSpace()
@@ -66,7 +67,7 @@ cs.add_condition(cond)
 
 # 3) LessThanCondition:
 #    'd' is only active if 'b' is less than 5
-# We do not add this condition here directly, because we will use it later in the and-conjunction.
+# We do not add this condition here directly, because we will use it later in the 'and-conjunction'.
 less_cond = CS.LessThanCondition(d, b, 5)
 
 # 4) GreaterThanCondition:
@@ -82,7 +83,7 @@ in_cond = CS.InCondition(e, c, [25, 26, 27])
 cs.add_condition(CS.AndConjunction(less_cond, greater_cond))
 
 # 7) OrConjunction:
-#    The 'or-conjunction' works similar to the and-conjunction
+#    The 'or-conjunction' works similar to the 'and-conjunction'
 equals_cond = CS.EqualsCondition(e, a, 2)
 cs.add_condition(CS.OrConjunction(in_cond, equals_cond))
 
@@ -95,6 +96,10 @@ forbidden_clause_f = CS.ForbiddenEqualsClause(f, 2)
 forbidden_clause_g = CS.ForbiddenInClause(g, [2])
 
 # 10) ForbiddenAndConjunction
-#     Now, we combine them in an 'and-conjunction' and add them to the configspace
+#     Now, we combine them with an 'and-conjunction' and add them to the ConfigurationSpace
 forbidden_clause = CS.ForbiddenAndConjunction(forbidden_clause_f, forbidden_clause_g)
 cs.add_forbidden_clause(forbidden_clause)
+
+# To end this example, we store the defined configuration space to a json file
+with open('configspace.json', 'w') as fh:
+    fh.write(json.write(cs))

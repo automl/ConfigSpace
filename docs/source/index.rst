@@ -7,14 +7,16 @@ Welcome to ConfigSpace's documentation!
 =======================================
 
 ConfigSpace is a simple python module to manage configuration spaces for algorithm configuration and hyperparameter optimization tasks.
-It includes various scripts to translate between different text formats for configuration space description.
+It includes various modules to translate between different text formats for configuration space description.
 
-ConfigSpace is often used in our frameworks, like `SMAC3`_, `BOHB`_ or `auto-sklearn`_.
+ConfigSpace is often used in our tools such as `SMAC3`_, `BOHB`_ or `auto-sklearn`_.
+To read more about our group and projects, visit our homepage `autoML.org <https://www.automl.org>`_.
 
-| The purpose of this documentation is to explain how to use ConfigSpace and show you its abilities.
-| In the :doc:`quickstart` you will see how to set up a *configurations space* and *add hyperparameters* of different types.
-  Besides containing hyperparameters, *ConfigSpace* is able to realize constraints on the defined configurations space. (:math:`\rightarrow` :doc:`AdvancedExample`)
-| Furthermore, in the :doc:`serialization chapter <serialization>`, it will be explained how to serialize a defined *configuration space* for later usage.
+| The purpose of this documentation is to explain how to use ``ConfigurationSpace`` and show you its abilities.
+| In the :doc:`quickstart` you will see how to set up a ``ConfigurationSpace`` and add hyperparameters of different types.
+  Besides containing hyperparameters, ``ConfigurationSpace`` is able to realize constraints such as conditions and forbidden clauses
+  on the defined configurations space. (:math:`\rightarrow` :doc:`Guide`)
+| Furthermore, in the :ref:`serialization chapter <Serialization>`, it will be explained how to serialize a defined *configuration space* for later usage.
 
 .. _SMAC3: https://github.com/automl/SMAC3
 .. _BOHB: https://github.com/automl/HpBandSter
@@ -48,7 +50,6 @@ Contents
    :maxdepth: 2
 		
    quickstart.rst
-   AdvancedExample.rst
-   serialization.rst
+   Guide.rst
    API-Doc.rst
    auto_examples/index.rst
