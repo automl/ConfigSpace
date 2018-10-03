@@ -29,7 +29,7 @@ after_success:
   - source ci_scripts/create_doc.sh $TRAVIS_BRANCH "doc_result"
   - codecov
 
-depVIS_BRANCHloy:
+deploy:
   provider: pages
   skip-cleanup: true
   github-token: $GITHUB_TOKEN
@@ -38,4 +38,4 @@ depVIS_BRANCHloy:
   on:
     branch: master
     condition: $doc_result = "success"
-  local_dir: docs/$TRA
+  local_dir: docs/$TRAVIS_BRANCH
