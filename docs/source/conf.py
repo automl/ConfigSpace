@@ -28,7 +28,6 @@ project = 'ConfigSpace'
 copyright = "2014-{}, ".format(datetime.now().year) + ", ".join(ConfigSpace.__authors__)
 author = ConfigSpace.__authors__
 
-
 # The short X.Y version
 version = ConfigSpace.__version__
 # The full version, including alpha/beta/rc tags
@@ -249,7 +248,7 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
     (master_doc, 'ConfigSpace', 'ConfigSpace Documentation',
-     author, 'ConfigSpace', 'One line description of project.',
+     [author], 'ConfigSpace', 'One line description of project.',
      'Miscellaneous'),
 ]
 

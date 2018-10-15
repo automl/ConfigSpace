@@ -1,3 +1,6 @@
+API-Documentation
++++++++++++++++++
+
 ConfigurationSpace
 ==================
 
@@ -156,8 +159,8 @@ So when a hyperparameter is sampled from the configuration space, its value is d
 
 Example usages are shown in the :doc:`quickstart <quickstart>`
 
-1) Integer hyperparameters
---------------------------
+3.1 Integer hyperparameters
+---------------------------
 
 .. py:class:: ConfigSpace.hyperparameters.UniformIntegerHyperparameter(name, lower, upper, default_value=None, q=None, log=False) -> None:
 
@@ -202,8 +205,8 @@ Example usages are shown in the :doc:`quickstart <quickstart>`
 
 
 
-2) Float hyperparameters
-------------------------
+3.2 Float hyperparameters
+-------------------------
 
 .. py:class:: ConfigSpace.hyperparameters.UniformFloatHyperparameter(name, lower, upper, default_value=None, q=None, log=False) -> None:
 
@@ -250,8 +253,8 @@ Example usages are shown in the :doc:`quickstart <quickstart>`
 
 .. _Categorical hyperparameters:
 
-3) Categorical hyperparameters
-------------------------------
+3.3 Categorical hyperparameters
+-------------------------------
 
 .. py:class:: ConfigSpace.hyperparameters.CategoricalHyperparameter(name, choices, default_value=None) -> None:
 
@@ -273,8 +276,8 @@ Example usages are shown in the :doc:`quickstart <quickstart>`
 
 
 
-4) OrdinalHyperparameters
--------------------------
+3.4 OrdinalHyperparameters
+--------------------------
 
 .. py:class:: ConfigSpace.hyperparameters.CategoricalHyperparameter(name, choices, default_value=None) -> None:
 
@@ -301,7 +304,7 @@ Conditions
 ==========
 
 It is often necessary to make some constraint on hyperparameters. For example we have one hyperparameter, which decides whether
-we use methodA or methodB, and each method has additional unique hyperparameter.
+we use method b or method b, and each method has additional unique hyperparameter.
 Those depending hyperparameters are called *child* hyperparameter.
 It is desired, that they should only be "active", if their *parent* hyperparameter
 has the right value.
@@ -309,8 +312,8 @@ This can be accomplished, using **conditions**.
 
 To see an example of how to use conditions, please take a look at the :doc:`Guide`
 
-1) EqualsCondition
-------------------
+4.1 EqualsCondition
+-------------------
 
 .. py:class:: ConfigSpace.conditions.EqualsCondition(child, parent, value) -> None:
 
@@ -334,8 +337,8 @@ Example::
     cond = CS.EqualsCondition(b, a, 1)
     cs.add_condition(cond)
 
-2) NotEqualsCondition
----------------------
+4.2 NotEqualsCondition
+----------------------
 
 .. py:class:: ConfigSpace.conditions.NotEqualsCondition(child, parent, value) -> None:
 
@@ -359,8 +362,8 @@ Example::
     cond = CS.NotEqualsCondition(b, a, 1)
     cs.add_condition(cond)
 
-3) LessThanCondition
---------------------
+4.3 LessThanCondition
+---------------------
 
 .. py:class:: ConfigSpace.conditions.LessThanCondition(child, parent, value) -> None:
 
@@ -385,8 +388,8 @@ Example::
     cs.add_condition(cond)
 
 
-4) GreaterThanCondition
------------------------
+4.4 GreaterThanCondition
+------------------------
 
 .. py:class:: ConfigSpace.conditions.GreaterThanCondition(child, parent, value) -> None:
 
@@ -410,8 +413,8 @@ Example::
     cond = CS.GreaterThanCondition(b, a, 5.)
     cs.add_condition(cond)
 
-5) InCondition
---------------
+4.5 InCondition
+---------------
 
 .. py:class:: ConfigSpace.conditions.InCondition(child, parent, values) -> None:
 
@@ -436,8 +439,8 @@ Example::
     cs.add_condition(cond)
 
 
-6) AndConjunction
------------------
+4.6 AndConjunction
+------------------
 
 By using the and conjunction, we can easily connect constraints.
 
@@ -463,8 +466,8 @@ Example::
 
     cs.add_condition(CS.AndConjunction(less_cond, greater_cond))
 
-7) OrConjunction
-----------------
+4.7 OrConjunction
+-----------------
 
 
 Similar to the ``AndConjunction``, new constraints can be combined by using the ``OrConjunction``.
@@ -543,8 +546,8 @@ It describes the configuration space for the linear support vector machine imple
 
 For a further example, please take a look in the :doc:`guide <Guide>`
 
-1) ForbiddenEqualsClause
-------------------------
+5.1 ForbiddenEqualsClause
+-------------------------
 .. py:class:: ConfigSpace.ForbiddenEqualsClause(hyperparameter, value) -> None:
 
     :param Hyperparameter hyperparameter: hyperparameter on which a restriction will be made
@@ -560,8 +563,8 @@ Example::
     forbidden_clause_a = CS.ForbiddenEqualsClause(a, 2)
     cs.add_forbidden_clause(forbidden_clause_a)
 
-2) ForbiddenInClause
---------------------
+5.2 ForbiddenInClause
+---------------------
 .. py:class:: ConfigSpace.ForbiddenInClause(hyperparameter, values) -> None:
 
     :param Hyperparameter hyperparameter: hyperparameter on which a restriction will be made
@@ -582,8 +585,8 @@ Example::
 
     cs.add_forbidden_clause(forbidden_clause_a)
 
-3) ForbiddenAndConjunction
---------------------------
+5.3 ForbiddenAndConjunction
+---------------------------
 .. py:class:: ConfigSpace.ForbiddenAndConjunction(*args) -> None:
 
     The *ForbiddenAndConjunction* combines forbidden-clauses, which allows to build powerful constraints.
@@ -618,8 +621,8 @@ Serialization
 
 .. _json:
 
-1) Serialization to JSON
-------------------------
+6.1 Serialization to JSON
+-------------------------
 
 .. automodule:: ConfigSpace.read_and_write.json
    :members:
@@ -645,8 +648,8 @@ This example shows how to write and read a configuration space in *json* file fo
 
 .. _pcs_new:
 
-2) Serialization with pcs-new
------------------------------
+6.2 Serialization with pcs-new
+------------------------------
 
 Pcs is a simple, human-readable file format for the description of an algorithm's configurable parameters, their possible values, as well as any
 parameter dependencies.
@@ -682,8 +685,8 @@ To write to a pcs file is similar to the example above.::
         restored_conf = pcs_new.read(fh)
 
 
-3) Serialization with pcs
--------------------------
+6.3 Serialization with pcs
+--------------------------
 
 .. automodule:: ConfigSpace.read_and_write.pcs
    :members: read, write
@@ -707,4 +710,15 @@ To write to a pcs file is similar to the example above.::
         restored_conf = pcs.read(fh)
 
 
+Utils
+=====
 
+Until now, all examples were designed to define a configuration space.
+However, there is also the application that you want to develop your own tool that creates configurations from
+a given configuration space. Or that you want to modify a given configuration space.
+
+The functionalities from the file util.py can be very useful.
+
+.. automodule:: ConfigSpace.util
+    :members:
+    :undoc-members:
