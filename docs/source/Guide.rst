@@ -1,174 +1,154 @@
 Guide
 =====
 
-In this guide the topics conditions, forbidden clauses and serialization will be captured.
-They will be shown by explaining some more detailed examples.
+In this guide the concepts of using different hyperparameters, applying conditions and forbidden clauses to
+a configuration space are captured.
 
-conditions
-----------
+They will be shown by explaining a more detailed example, a configuration space for a support vector machine.
 
-| ConfigSpace is able to realize conditions in the ``ConfigurationSpace``.
-  This is often necessary, because some hyperparameters necessitate some other hyperparameters.
-| We will explain the concepts of them in an advanced example.
 
-ConfigSpace contains the following conditions:
+1st Example: Integer hyperparameters and float hyperparameters:
+---------------------------------------------------------------
 
-1) EqualsCondition
-2) NotEqualsCondition
-3) LessThanCondition
-4) GreaterThanCondition
-5) InCondition
+Assume that we want to train a support vector machine (=SVM) for classification tasks with the hyperparameters:
 
-To build even more powerful conditions, it is possible to combine conditions by using conjunction "AND" and "OR":
+- :math:`\mathcal{C}`: regularization constant  with :math:`\mathcal{C} \in \mathbb{R}_{\geq 0}` and 0 :math:`\geq \mathcal{C} \geq` 1
+- ``max_iter``: the maximum number of iterations within the solver
 
-6) AndConjunction
-7) OrConjunction
+The implementation of the classifier is out of scope for this example and thus not shown. But for further reading about
+support vector machines and the meaning of its hyperparameter, take a look `here <https://en.wikipedia.org/wiki/Support_vector_machine>`_.
+Or directly in the implementation of the SVM in
+`scikit-learn  <http://scikit-learn.org/stable/modules/generated/sklearn.svm.SVC.html#sklearn.svm.SVC>`_.
 
-For demonstration purpose we create a ``ConfigurationSpace`` with the following hyperparameters:
-
-+------------------------+---------------+----------+---------------------------+
-| Parameter              | Type          | values   |  condition                |
-+========================+===============+==========+===========================+
-| a                      | categorical   | 1, 2, 3  |  None                     |
-+------------------------+---------------+----------+---------------------------+
-| b                      | uniform float | 1.-8.    |  a == 1                   |
-+------------------------+---------------+----------+---------------------------+
-| c                      | uniform int   | 10-100   |  a != 2                   |
-+------------------------+---------------+----------+---------------------------+
-| d                      | uniform int   | 10-100   |  b < 5 AND b > 2          |
-+------------------------+---------------+----------+---------------------------+
-| e                      | uniform int   | 10-100   | c in {25,26,27} OR a == 2 |
-+------------------------+---------------+----------+---------------------------+
-
-.. note::
-
-    The code of this example can be found here: :math:`\rightarrow` :doc:`auto_examples/AdvancedExample`
-
-First, let's create a ``ConfigurationSpace`` and add the hyperparameters a, b, c::
+The first step is always to create a ``ConfigurationSpace`` object. All the hyperparameters and constraints will be added to this
+object.
+::
 
    import ConfigSpace as CS
-   import ConfigSpace.hyperparameters as CSH
-
    cs = CS.ConfigurationSpace()
-   a = CSH.CategoricalHyperparameter('a', choices=[1, 2, 3])
-   b = CSH.UniformFloatHyperparameter('b', lower=1., upper=8., log=False)
-   c = CSH.UniformIntegerHyperparameter('c', lower=10, upper=100, log=False)
-   d = CSH.UniformIntegerHyperparameter('d', lower=10, upper=100, log=False)
-   e = CSH.UniformIntegerHyperparameter('e', lower=10, upper=100, log=False)
 
-   cs.add_hyperparameters([a, b, c, d, e])
-
-1) EqualsCondition
-++++++++++++++++++
-
-To realize the equal-condition on hyperparameter b, we can use the ``ConfigSpace.EqualsCondition`` function::
-
-    cond = CS.EqualsCondition(b, a, 1)
-    cs.add_condition(cond)
-
-2) NotEqualsCondition
-+++++++++++++++++++++
-
-Now, we allow c only to be active, if a is not equal 2.
+Now, we have to define the hyperparameters :math:`\mathcal{C}` and ``max_iter``. We choose :math:`\mathcal{C}` to be a float and
+``max_iter`` to be an integer hyperparameter.
 ::
 
-    cond = CS.NotEqualsCondition(c, a, 2)
-    cs.add_condition(cond)
+   import ConfigSpace.hyperparameters as CSH
+   c = CSH.UniformFloatHyperparameter(name='C', lower=0, upper=1)
+   max_iter = CSH.UniformIntegerHyperparameter(name='max_iter', lower=10, upper=100)
 
-3) LessThanCondition
-++++++++++++++++++++
+As last step in this example, we need to add them to the ``ConfigurationSpace`` and sample a configuration from it::
 
-::
+   cs.add_hyperparameter(c)
+   cs.add_hyperparameter(max_iter)
+   cs.sample_configuration()
 
-    less_cond = CS.LessThanCondition(d, b, 5)
-    cs.add_condition(less_cond)
+The ``ConfigurationSpace`` object *cs* stores now the hyperparameters :math:`\mathcal{C}` and ``max_iter`` with their defined value-ranges.
 
 
-4) GreaterThanCondition
-+++++++++++++++++++++++
+2nd Example: Categorical hyperparameters and conditions
+-------------------------------------------------------
 
-::
+The support vector machine from the sklearn implementation supports different kinds of kernels, such as a linear or a polynomial kernel.
+We want to include them in our configuration space.
+This is a new hyperparameter with a finite number of values.
+For this scenario, ConfigSpace offers the :ref:`categorical hyperparameters <Categorical hyperparameters>`.
 
-    greater_cond = CS.GreaterThanCondition(d, b, 2)
-    cs.add_condition(greater_cond)
+- ``kernel_type``: with values 'linear', 'poly', 'rbf', 'sigmoid'.
+
+If we take a closer look at the possible values of ``kernel_type``, we observe, that the kernel type 'poly' has an additional,
+unique hyperparameter, the degree of the polynomial kernel function.
+
+-- ``degree``: :math:`\in \mathbb{N}` - degree of polynomial kernel function.
+
+For demonstration purpose, we assume that if ``kernel_type`` is 'linear', we use the
+`LinearSVC  <http://scikit-learn.org/stable/modules/generated/sklearn.svm.LinearSVC.html#sklearn.svm.LinearSVC>`_
+sklearn implementation, which has more flexibility in the choice of penalties and loss functions.
+This gives us three new hyperparameters:
+
+- ``penalty``: Specifies the norm used in the penalization with values 'l1' or 'l2'
+- ``loss``: Specifies the loss function with values 'hinge' or 'squared_hinge'
+- ``dual``: Solve the optimization problem either in dual or simple form with values True or False
+
+To realize this example, we use :ref:`Conditions`.
+
+As you can see already in this simple example, the configuration space grows easily very fast and
+with it the number of possible configurations.
+It makes sense to limit the search space for hyperparameter optimizations in order to quickly find good configurations.
+For conditional hyperparameters this can be achieved by considering those hyperparameters only if their condition is met.
+
+To add conditions on hyperparameters to the configuration space, we first have to insert the new hyperparameters in the ``ConfigSpace``
+and in a second step the conditions on them. ::
+
+    kernel_type = CSH.CategoricalHyperparameter(name='kernel_type', choices=['linear', 'poly', 'rbf', 'sigmoid'])
+
+    degree = CSH.UniformIntegerHyperparameter('degree', lower=2, upper=4, default=2)
+
+    penalty = CSH.CategoricalHyperparameter(name="penalty", choices=["l1", "l2"], default_value="l2")
+    loss = CSH.CategoricalHyperparameter(name="loss", choices=["hinge", "squared_hinge"], default_value="squared_hinge")
+    dual = CSH.Constant("dual", "False")
+
+    cs.add_hyperparameters([kernel_type, degree, penalty, loss, dual])
+
+Now, define the conditions. ::
+
+    cond_1 = CS.EqualsCondition(degree, kernel_type, 'poly')
+
+    cond_2 = CS.EqualsCondition(penalty, kernel_type, 'linear')
+    cond_3 = CS.EqualsCondition(loss, kernel_type, 'linear')
+    cond_4 = CS.EqualsCondition(dual, kernel_type, 'linear')
+
+    # Add them to the configuration space
+    cs.add_conditions([cond_1, cond_2, cond_3, cond_4])
 
 .. note::
+    ConfigSpace offers a lot of different condition types. For example ``NotEqualsConditions``,
+    ``LessThanCondition``, or ``GreaterThanCondition``.
+    To read more about conditions, please take a look at the :ref:`Conditions` or the :doc:`auto_examples/AdvancedExample`
 
-    Adding a second condition for a hyperparameter is ambigouos and therefore forbidden, so this will cause an error.
-    However, this works by using the ``AndConjunction`` (see *below*).
-
-5) InCondition
-++++++++++++++
-
-::
-
-    in_cond = CS.InCondition(e, c, [25, 26, 27])
-    cs.add_condition(in_cond)
-
-6) AndConjunction
-+++++++++++++++++
-
-To combine two conditions, we have to use an ``AndConjunction``.::
-
-    less_cond = CS.LessThanCondition(d, b, 5)
-    greater_cond = CS.GreaterThanCondition(d, b, 2)
-    cs.add_condition(CS.AndConjunction(less_cond, greater_cond))
-
-7) OrConjunction
-++++++++++++++++
-
-::
-
-    in_cond = CS.InCondition(e, c, [25, 26, 27])
-    equals_cond = CS.EqualsCondition(e, a, 2)
-    cs.add_condition(CS.OrConjunction(in_cond, equals_cond))
+.. note::
+    Don't use neither the ``EqualsCondition`` nor the ``InCondition`` on float hyperparameter, since floating point
+    inaccuracy can cause inappropriate behaviour.
 
 
-Forbidden Clauses
------------------
+3rd Example: Forbidden clauses
+------------------------------
 
-In addition to conditions, it's also possible to add forbidden clauses to the configuration space.
-They allow us to make some more restrictions to the configuration space.
+It may occur, that some states in the configuration space are not allowed.
+In the above example, we forbid the cases that
 
-Mainly they are realised by using:
+- ``penalty`` is 'l1' and ``loss`` is 'hinge'
+- ``dual`` is False and ``penalty`` is 'l2' and ``loss`` is 'hinge'
+- ``dual`` is False and ``penalty`` is 'l1'
 
-1) ConfigSpace.ForbiddenAndConjunction
-2) ConfigSpace.ForbiddenEqualsClause
-3) ConfigSpace.ForbiddenInClause
+ConfigSpace supports this functionality by offering :ref:`Forbidden clauses`. ::
 
-Their usage is shown in the following short example.
+    penalty_and_loss = ForbiddenAndConjunction(
+            ForbiddenEqualsClause(penalty, "l1"),
+            ForbiddenEqualsClause(loss, "hinge")
+        )
+    constant_penalty_and_loss = ForbiddenAndConjunction(
+            ForbiddenEqualsClause(dual, "False"),
+            ForbiddenEqualsClause(penalty, "l2"),
+            ForbiddenEqualsClause(loss, "hinge")
+        )
+    penalty_and_dual = ForbiddenAndConjunction(
+            ForbiddenEqualsClause(dual, "False"),
+            ForbiddenEqualsClause(penalty, "l1")
+        )
 
-Our configuration space is defined as follows:
-
-+------------------------+---------------+----------+---------------------------+
-| Parameter              | Type          | values   |  condition                |
-+========================+===============+==========+===========================+
-| f                      | categorical   | 1, 2, 3  |  None                     |
-+------------------------+---------------+----------+---------------------------+
-| g                      | categorical   | 2, 5, 6  |  None                     |
-+------------------------+---------------+----------+---------------------------+
-
-We have two hyperparameter *f* and *g* and we want to forbid the case, where *f* and *g* is 2 at the same time::
-
-    import ConfigSpace as CS
-    import ConfigSpace.hyperparameters as CSH
-
-    cs = CS.ConfigurationSpace()
-    f = CSH.CategoricalHyperparameter('f', [1,2,3])
-    g = CSH.CategoricalHyperparameter('g', [2,5,6])
-    cs.add_hyperparameters([f, g])
-
-    forbidden_clause_f = CS.ForbiddenEqualsClause(f, 2)
-    forbidden_clause_g = CS.ForbiddenInClause(g, [2])
-
-    forbidden_clause = CS.ForbiddenAndConjunction(forbidden_clause_f, forbidden_clause_g)
-
-    cs.add_forbidden_clause(forbidden_clause)
+    # Add them to the configuration space
+    cs.add_forbidden_clause(penalty_and_loss)
+    cs.add_forbidden_clause(constant_penalty_and_loss)
+    cs.add_forbidden_clause(penalty_and_dual)
 
 
+4th Example Serialization:
+--------------------------
+
+If you want to use the configuration space in another tool, such as `CAVE <https://github.com/automl/CAVE>`_, it is useful to store it to file.
 To serialize the defined ``ConfigurationSpace``, we can choose between different output formats, such as
 :ref:`json` or :ref:`pcs <pcs_new>`.
-In this case, we want to store the ``ConfigurationSpace`` object as json file::
+
+In this case, we want to store the ``ConfigurationSpace`` object as json file ::
 
     from ConfigSpace.read_and_write import json
     with open('configspace.json', 'w') as fh:

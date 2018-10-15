@@ -31,4 +31,4 @@ source activate testenv
 pip install pip --upgrade
 pip install numpy pytest pytest-cov codecov typing cython
 
-python setup.py install
+pip install .

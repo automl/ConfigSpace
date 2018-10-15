@@ -248,6 +248,7 @@ Example usages are shown in the :doc:`quickstart <quickstart>`
     cs.add_hyperparameter(normal_float_hp)
 
 
+.. _Categorical hyperparameters:
 
 3) Categorical hyperparameters
 ------------------------------
