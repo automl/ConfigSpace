@@ -55,9 +55,12 @@ For this scenario, ConfigSpace offers the :ref:`categorical hyperparameters <Cat
 - ``kernel_type``: with values 'linear', 'poly', 'rbf', 'sigmoid'.
 
 If we take a closer look at the possible values of ``kernel_type``, we observe, that the kernel type 'poly' has an additional,
-unique hyperparameter, the degree of the polynomial kernel function.
+unique hyperparameter, the degree of the polynomial kernel function. There is also a hyperparameter ``coef0`` for the kernel
+types 'poly' and 'sigmoid', as well as ``gamma`` for 'rbf', 'poly' and 'sigmoid'
 
 -- ``degree``: :math:`\in \mathbb{N}` - degree of polynomial kernel function.
+-- ``coef0``: Independent term in kernel function. It is only significant in 'poly' and 'sigmoid'.
+-- ``gamma``: Kernel coefficient for 'rbf', 'poly' and 'sigmoid'.
 
 To realize this example, we use :ref:`Conditions`.
 
@@ -71,16 +74,25 @@ To add conditions on hyperparameters to the configuration space, we first have t
 and in a second step the conditions on them. ::
 
     kernel_type = CSH.CategoricalHyperparameter(name='kernel_type', choices=['linear', 'poly', 'rbf', 'sigmoid'])
-    degree = CSH.UniformIntegerHyperparameter('degree', lower=2, upper=4, default=2)
+    degree = CSH.UniformIntegerHyperparameter('degree', lower=2, upper=4, default_value=2)
+    coef0 = CSH.UniformFloatHyperparameter(name='coef0', lower=0, upper=1, default_value=0.0)
+    gamma = CSH.UniformFloatHyperparameter(name='gamma', lower=1e-5, upper=1e2, default_value=1, log=True)
 
-    cs.add_hyperparameters([kernel_type, degree])
+    cs.add_hyperparameters([kernel_type, degree, coef0, gamma])
 
 Now, define the condition. ::
 
-    cond = CS.EqualsCondition(degree, kernel_type, 'poly')
+    cond_1 = CS.EqualsCondition(degree, kernel_type, 'poly')
+
+    cond_2 = CS.AndConjunction(CS.EqualsCondition(coef0, kernel_type, 'poly'),
+                               CS.EqualsCondition(coef0, kernel_type, 'sigmoid'))
+
+    cond_3= CS.AndConjunction(CS.EqualsCondition(gamma, kernel_type, 'rbf'),
+                              CS.EqualsCondition(gamma, kernel_type, 'poly'),
+                              CS.EqualsCondition(gamma, kernel_type, 'sigmoid'))
 
     # Add it to the configuration space
-    cs.add_condition(cond)
+    cs.add_conditions([cond_1, cond_2, cond_3])
 
 .. note::
     ConfigSpace offers a lot of different condition types. For example ``NotEqualsConditions``,
@@ -88,8 +100,9 @@ Now, define the condition. ::
     To read more about conditions, please take a look at the :ref:`Conditions` or the :doc:`auto_examples/AdvancedExample`
 
 .. note::
-    Don't use neither the ``EqualsCondition`` nor the ``InCondition`` on float hyperparameter, since floating point
-    inaccuracy can cause inappropriate behaviour.
+    Don't use either the ``EqualsCondition`` or the ``InCondition`` on float hyperparameters. Due to floating-point
+    inaccuracy, it is very unlikely that, for example, the ``EqualsCondition`` is evaluated to True.
+
 
 
 3rd Example: Forbidden clauses

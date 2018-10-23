@@ -170,7 +170,7 @@ Example usages are shown in the :doc:`quickstart <quickstart>`
     :param int lower: lower bound of a range of values from which the hyperparameter will be sampled.
     :param int upper: upper bound.
     :param int,None default_value: Sets the default value of a hyperparameter to a given value.
-    :param None,int q:
+    :param None,int q: Quantization factor
     :param bool log: If ``True``, the values of the hyperparameter will be sampled on a logarithmic scale.
 
 **Example**::
@@ -191,7 +191,7 @@ Example usages are shown in the :doc:`quickstart <quickstart>`
     :param int mu: Mean of the distribution.
     :param int,float sigma: Standard deviation of the distribution.
     :param int,None default_value: Sets the default value of a hyperparameter to a given value.
-    :param None,int q:
+    :param None,int q: Quantization factor
     :param bool log: If ``True``, the values of the hyperparameter will be sampled on a logarithmic scale.
 
 **Example**::
@@ -216,7 +216,7 @@ Example usages are shown in the :doc:`quickstart <quickstart>`
     :param int,float lower: lower bound of a range of values from which the hyperparameter will be sampled.
     :param int,float upper: upper bound.
     :param int,float,None default_value: Sets the default value of a hyperparameter to a given value.
-    :param None,int,float q:
+    :param None,int,float q: Quantization factor
     :param bool log: If ``True``, the values of the hyperparameter will be sampled on a logarithmic scale.
 
 **Example:**::
@@ -237,7 +237,7 @@ Example usages are shown in the :doc:`quickstart <quickstart>`
     :param int,float mu: Mean of the distribution.
     :param int,float sigma: Standard deviation of the distribution.
     :param int,float,None default_value: Sets the default value of a hyperparameter to a given value.
-    :param None,int,float q:
+    :param None,int,float q: Quantization factor
     :param bool log: If ``True``, the values of the hyperparameter will be sampled on a logarithmic scale.
 
 **Example:**::
