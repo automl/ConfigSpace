@@ -172,7 +172,7 @@ Now we want to forbid some combinations in the configurations.
 
 If you want to use the configuration space in another tool, such as `CAVE <https://github.com/automl/CAVE>`_, it is useful to store it to file.
 To serialize the defined ``ConfigurationSpace``, we can choose between different output formats, such as
-:ref:`json` or :ref:`pcs <pcs_new>`.
+:ref:`json <json>` or :ref:`pcs <pcs_new>`.
 
 In this case, we want to store the ``ConfigurationSpace`` object as json file ::
 

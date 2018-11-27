@@ -6,7 +6,8 @@
 Welcome to ConfigSpace's documentation!
 =======================================
 
-ConfigSpace is a simple python module to manage configuration spaces for algorithm configuration and hyperparameter optimization tasks.
+ConfigSpace is a simple python package to manage configuration spaces for `algorithm configuration <https://ml.informatik.uni-freiburg.de/papers/09-JAIR-ParamILS.pdf>`_ and
+`hyperparameter optimization <https://en.wikipedia.org/wiki/Hyperparameter_optimization>`_ tasks.
 It includes various modules to translate between different text formats for configuration space description.
 
 ConfigSpace is often used in our tools such as `SMAC3`_, `BOHB`_ or `auto-sklearn`_.

@@ -37,7 +37,7 @@ Configurations can be sampled from this configuration space.
 
         This function adds a configuration space to another one. The added entries will receive the prefix ``prefix``.
 
-        :param str prefix: new hyperparameters will be renamed to ``prefix`` + 'old name'
+        :param str prefix: new hyperparameters will be renamed to ``prefix`` + '_' + old_name
         :param ConfigurationSpace configuration_space: the configuration space which should be added
         :param str(optional) delimiter: default ':'
         :param Hyperparameter(optional) parent_hyperparamter: adds for each new hyperparameter the condition, that ``parent_hyperparameter`` is active
@@ -656,7 +656,8 @@ parameter dependencies.
 
 It is part of the `Algorithm Configuration Library <http://aclib.net/#>`_. A detailed explanation of the pcs format can be
 found `here. <http://aclib.net/cssc2014/pcs-format.pdf>`_ or a short summary is also given in the
-`SMAC Documentation <https://automl.github.io/SMAC3/dev/options.html#paramcs>`_
+`SMAC Documentation <https://automl.github.io/SMAC3/dev/options.html#paramcs>`_.
+Examples are also provieded in the `pysmac documentation <https://pysmac.readthedocs.io/en/latest/pcs.html>`_
 
 .. note::
 

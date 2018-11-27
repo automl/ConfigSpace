@@ -237,7 +237,7 @@ latex_documents = [
 # (source start file, name, description, authors, manual section).
 man_pages = [
     (master_doc, 'configspace', 'ConfigSpace Documentation',
-     [author], 1)
+     ', '.join(author), 1)
 ]
 
 
@@ -248,7 +248,7 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
     (master_doc, 'ConfigSpace', 'ConfigSpace Documentation',
-     [author], 'ConfigSpace', 'One line description of project.',
+     ', '.join(author), 'ConfigSpace', 'One line description of project.',
      'Miscellaneous'),
 ]
 
