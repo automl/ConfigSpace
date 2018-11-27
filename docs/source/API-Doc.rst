@@ -689,6 +689,8 @@ To write to a pcs file is similar to the example above.::
 6.3 Serialization with pcs
 --------------------------
 
+An introduction to the old version of pcs is hosted in the `SMAC manual. <http://www.cs.ubc.ca/labs/beta/Projects/SMAC/v2.08.00/manual.pdf>`_
+
 .. automodule:: ConfigSpace.read_and_write.pcs
    :members: read, write
    :undoc-members:
