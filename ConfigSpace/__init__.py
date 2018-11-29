@@ -28,7 +28,9 @@
 
 from ConfigSpace.__version__ import __version__
 __authors__ = ["Matthias Feurer", "Katharina Eggensperger",
-               "Jost Tobias Springenberg", "Marius Lindauer"]
+                "Syed Mohsin Ali", "Christina Hernandez Wunsch",
+                "Julien-Charles Levesque", "Jost Tobias Springenberg", "Philipp Mueller",
+                "Marius Lindauer", "Jorn Tuyls"]
 
 from ConfigSpace.configuration_space import Configuration, \
     ConfigurationSpace

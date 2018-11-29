@@ -64,10 +64,10 @@ setup(
     platforms=['Linux'],
     author=', '.join(["Matthias Feurer", "Katharina Eggensperger",
                       "Syed Mohsin Ali", "Christina Hernandez Wunsch",
-                      "Julien-Charles Levesque", "Jost Tobias Springenberg",
+                      "Julien-Charles Levesque", "Jost Tobias Springenberg", "Philipp Mueller"
                       "Marius Lindauer", "Jorn Tuyls"]),
     author_email='feurerm@informatik.uni-freiburg.de',
-    test_suite="nose.collector",
+    test_suite="pytest",
     # https://stackoverflow.com/questions/24923003/organizing-a-package-with-cython
     setup_requires=[
         'Cython',
