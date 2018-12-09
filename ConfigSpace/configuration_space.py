@@ -1007,8 +1007,9 @@ class Configuration(object):
                     continue
                 hyperparameter = configuration_space.get_hyperparameter(key)
                 if not hyperparameter.is_legal(value):
-                    raise ValueError("Trying to set illegal value '%s' for"
-                                     "hyperparameter %s." % (str(value), hyperparameter))
+                    raise ValueError("Trying to set illegal value '%s' (type '%s') for "
+                                     "hyperparameter '%s' (default-value has type '%s')." % (
+                                       str(value), type(value), hyperparameter, type(hyperparameter.default_value)))
                 # Truncate the representation of the float to be of constant
                 # length for a python version
                 if isinstance(hyperparameter, FloatHyperparameter):
