@@ -13,19 +13,19 @@ It includes various modules to translate between different text formats for conf
 ConfigSpace is often used in our tools such as `SMAC3`_, `BOHB`_ or `auto-sklearn`_.
 To read more about our group and projects, visit our homepage `autoML.org <https://www.automl.org>`_.
 
-| The purpose of this documentation is to explain how to use ``ConfigurationSpace`` and show you its abilities.
-| In the :doc:`quickstart` you will see how to set up a ``ConfigurationSpace`` and add hyperparameters of different types.
-  Besides containing hyperparameters, ``ConfigurationSpace`` is able to realize constraints such as conditions and forbidden clauses
-  on the defined configurations space. (:math:`\rightarrow` :doc:`Guide`)
-| Furthermore, in the :ref:`serialization section <Serialization>`, it will be explained how to serialize a defined *configuration space* for later usage.
+The purpose of this documentation is to explain how to use
+``ConfigurationSpace`` and show you its abilities. In the :doc:`quickstart` you
+will see how to set up a ``ConfigurationSpace`` and add hyperparameters of
+different types.
+Besides containing hyperparameters, ``ConfigurationSpace`` is able to realize
+constraints such as conditions and forbidden clauses
+on the defined configurations space. (:math:`\rightarrow` :doc:`Guide`)
+Furthermore, in the :ref:`serialization section <Serialization>`, it will be
+explained how to serialize a defined *configuration space* for later usage.
 
 .. _SMAC3: https://github.com/automl/SMAC3
 .. _BOHB: https://github.com/automl/HpBandSter
 .. _auto-sklearn: https://github.com/automl/auto-sklearn
-
-It can be installed using pip::
-
-   pip install ConfigSpace
 
 Basic usage::
 
@@ -44,12 +44,38 @@ Basic usage::
     # >>>   b, Value: 'red'
 
 
+Installation
+============
+
+The *ConfigSpace* can be installed with *pip*:
+
+.. code:: bash
+
+    pip install auto-sklearn
+
+The *ConfigSpace* package requires *numpy*, *cython* and *pyparsing*. If you
+want to use it with Python3.4 it also requires the *typing* package.
+Additionally, a functioning C compiler is required.
+
+On Ubuntu, the required compiler tools can be installed with:
+
+.. code:: bash
+
+    sudo apt-get install build-essential
+
+When using Anaconda/Miniconda, the compiler has to be installed with:
+
+.. code:: bash
+
+    conda install gxx_linux-64 gcc_linux-64
+
+
 Contents
 ========
 
 .. toctree::
    :maxdepth: 2
-		
+
    quickstart.rst
    Guide.rst
    API-Doc.rst
