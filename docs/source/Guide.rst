@@ -80,14 +80,19 @@ and in a second step the conditions on them. ::
 
     cs.add_hyperparameters([kernel_type, degree, coef0, gamma])
 
-Now, define the condition. ::
+Now, we define the conditions. Conditions work by constraining a child hyperparameter (the first argument) on its parent hyperparameter (the second argument) 
+being in a certain relation to a value (the third argument).
+So ``CS.EqualsCondition(degree, kernel_type, 'poly')`` expresses that ``degree`` is constrained on ``kernel_type`` being equal to the value ``'poly'``. 
+To express constraints involving multiple parameters or values we can use conjunctions. For example ``cond_2`` in the
+following example expresses the fact, that ``coef0`` is a valid hyperparameter, if ``kernel_type`` either has the value
+``'poly'`` or ``'sigmoid'``::
 
     cond_1 = CS.EqualsCondition(degree, kernel_type, 'poly')
 
-    cond_2 = CS.AndConjunction(CS.EqualsCondition(coef0, kernel_type, 'poly'),
-                               CS.EqualsCondition(coef0, kernel_type, 'sigmoid'))
+    cond_2 = CS.OrConjunction(CS.EqualsCondition(coef0, kernel_type, 'poly'),
+                              CS.EqualsCondition(coef0, kernel_type, 'sigmoid'))
 
-    cond_3= CS.AndConjunction(CS.EqualsCondition(gamma, kernel_type, 'rbf'),
+    cond_3 = CS.OrConjunction(CS.EqualsCondition(gamma, kernel_type, 'rbf'),
                               CS.EqualsCondition(gamma, kernel_type, 'poly'),
                               CS.EqualsCondition(gamma, kernel_type, 'sigmoid'))
 
