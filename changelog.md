@@ -1,3 +1,11 @@
+# Version 0.4.8
+
+* Fixen an issue which made serialization of `ForbiddenInCondition` to json 
+  fail.
+* MAINT #101: Improved error message on setting illegal value in a 
+  configuration.
+* DOC #91: Added a documentation to automl.github.io/ConfigSpace
+
 # Version 0.4.7
 
 * Tests Python3.7.
@@ -11,8 +19,6 @@
 * NEW #85: Add function to obtain active hyperparameters
 * NEW #84: Add field for meta-data to the configuration space object.
 * MAINT: json serialization now has an argument to control indentation
-
-  
 
 # Version 0.4.6
 
