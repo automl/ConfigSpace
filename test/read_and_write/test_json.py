@@ -5,9 +5,20 @@ import unittest
 from ConfigSpace.read_and_write.json import read, write
 from ConfigSpace.read_and_write.pcs import read as read_pcs
 from ConfigSpace.read_and_write.pcs_new import read as read_pcs_new
+from ConfigSpace import (
+    ForbiddenInClause,
+    CategoricalHyperparameter,
+    ConfigurationSpace,
+)
 
 
 class TestJson(unittest.TestCase):
+
+    def test_serialize_forbidden_in_clause(self):
+        cs = ConfigurationSpace()
+        a = cs.add_hyperparameter(CategoricalHyperparameter('a', [0, 1, 2]))
+        cs.add_forbidden_clause(ForbiddenInClause(a, [1, 2]))
+        write(cs)
 
     def test_round_trip(self):
         this_file = os.path.abspath(__file__)
