@@ -169,7 +169,7 @@ def _build_or_conjunction(conjunction: OrConjunction) -> Dict:
 def _build_in_condition(condition: InCondition) -> Dict:
     child = condition.child.name
     parent = condition.parent.name
-    values = list(condition.values)
+    values = condition.values
     return {
         'child': child,
         'parent': parent,
@@ -251,8 +251,7 @@ def _build_forbidden_in_clause(clause: ForbiddenInClause) -> Dict:
     return {
         'name': clause.hyperparameter.name,
         'type': 'IN',
-        # The values are a set, but a set cannot be serialized to json
-        'values': list(clause.values),
+        'values': clause.values,
     }
 
 
@@ -268,6 +267,26 @@ def _build_forbidden_and_conjunction(clause: ForbiddenAndConjunction) -> Dict:
 
 ################################################################################
 def write(configuration_space, indent=2):
+    """
+    Writes a configuration space to a json file
+
+    **Examples**::
+
+        cs = ConfigurationSpace()
+        cs.add_hyperparameter(CSH.CategoricalHyperparameter('a', choices=[1, 2, 3]))
+
+        with open('config_space.json', 'w') as f:
+            f.write(json.write(cs))
+
+
+    Args:
+        configuration_space ( :class:`~ConfigSpace.configuration_space.ConfigurationSpace`):
+            a configuration space, which should be written to file.
+        indent (int): number of whitspaces to use as indent
+
+    Returns:
+        str: String representation of the configuration space, which will be written to file
+    """
     if not isinstance(configuration_space, ConfigurationSpace):
         raise TypeError("pcs_parser.write expects an instance of %s, "
                         "you provided '%s'" % (ConfigurationSpace,
@@ -324,6 +343,22 @@ def write(configuration_space, indent=2):
 
 ################################################################################
 def read(jason_string):
+    """
+    Converts a configuration space definition from a json string.
+
+    **Example**::
+
+        with open('configspace.json', 'r') as f:
+            jason_string = f.read()
+            config = json.read(jason_string)
+
+    Args:
+        jason_string (str): A json string representing a configuration space definition
+
+    Returns:
+        :class:`~ConfigSpace.configuration_space.ConfigurationSpace`
+
+    """
     jason = json.loads(jason_string)
     if 'name' in jason:
         configuration_space = ConfigurationSpace(name=jason['name'])

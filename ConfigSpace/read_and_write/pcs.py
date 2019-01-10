@@ -159,6 +159,16 @@ def build_forbidden(clause):
 
 
 def read(pcs_string, debug=False):
+    """
+    Reads in a :py:class:`~ConfigSpace.configuration_space.ConfigurationSpace` definition from a pcs file.
+
+    Args:
+        pcs_string (str): ConfigSpace definition in pcs format
+        debug: Provides debug information. Defaults to False.
+
+    Returns:
+        :py:class:`~ConfigSpace.configuration_space.ConfigurationSpace`
+    """
     configuration_space = ConfigurationSpace()
     conditions = []
     forbidden = []
@@ -300,6 +310,15 @@ def read(pcs_string, debug=False):
 
 
 def write(configuration_space):
+    """
+    Writes a configurations space to file in pcs format.
+    Args:
+        configuration_space (:py:class:`~ConfigSpace.configuration_space.ConfigurationSpace`):
+            a configurations space
+
+    Returns:
+        str: The string representation of the configuration space
+    """
     if not isinstance(configuration_space, ConfigurationSpace):
         raise TypeError("pcs_parser.write expects an instance of %s, "
                         "you provided '%s'" % (ConfigurationSpace,

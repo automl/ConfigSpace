@@ -15,12 +15,14 @@ Assume that we want to train a support vector machine (=SVM) for classification 
 - :math:`\mathcal{C}`: regularization constant  with :math:`\mathcal{C} \in \mathbb{R}_{\geq 0}` and 0 :math:`\geq \mathcal{C} \geq` 1
 - ``max_iter``: the maximum number of iterations within the solver
 
-The implementation of the classifier is out of scope for this example and thus not shown. But for further reading about
-support vector machines and the meaning of its hyperparameter, take a look `here <https://en.wikipedia.org/wiki/Support_vector_machine>`_.
+The implementation of the classifier is out of scope for this example and thus not shown.
+But for further reading about
+support vector machines and the meaning of its hyperparameter, take a look
+`here <https://en.wikipedia.org/wiki/Support_vector_machine>`_.
 Or directly in the implementation of the SVM in
 `scikit-learn  <http://scikit-learn.org/stable/modules/generated/sklearn.svm.SVC.html#sklearn.svm.SVC>`_.
 
-The first step is always to create a ``ConfigurationSpace`` object. All the hyperparameters and constraints will be added to this
+The first step is always to create a :class:`~ConfigSpace.configuration_space.ConfigurationSpace` object. All the hyperparameters and constraints will be added to this
 object.
 ::
 
@@ -28,20 +30,20 @@ object.
    cs = CS.ConfigurationSpace()
 
 Now, we have to define the hyperparameters :math:`\mathcal{C}` and ``max_iter``. We choose :math:`\mathcal{C}` to be a float and
-``max_iter`` to be an integer hyperparameter.
+``max_iter`` to be an :class:`~ConfigSpace.hyperparameters.UniformIntegerHyperparameter` .
 ::
 
    import ConfigSpace.hyperparameters as CSH
    c = CSH.UniformFloatHyperparameter(name='C', lower=0, upper=1)
    max_iter = CSH.UniformIntegerHyperparameter(name='max_iter', lower=10, upper=100)
 
-As last step in this example, we need to add them to the ``ConfigurationSpace`` and sample a configuration from it::
+As last step in this example, we need to add them to the :class:`~ConfigSpace.configuration_space.ConfigurationSpace` and sample a configuration from it::
 
    cs.add_hyperparameter(c)
    cs.add_hyperparameter(max_iter)
    cs.sample_configuration()
 
-The ``ConfigurationSpace`` object *cs* stores now the hyperparameters :math:`\mathcal{C}` and ``max_iter`` with their defined value-ranges.
+The :class:`~ConfigSpace.configuration_space.ConfigurationSpace` object *cs* stores now the hyperparameters :math:`\mathcal{C}` and ``max_iter`` with their defined value-ranges.
 
 
 2nd Example: Categorical hyperparameters and conditions
@@ -50,7 +52,7 @@ The ``ConfigurationSpace`` object *cs* stores now the hyperparameters :math:`\ma
 The support vector machine from the sklearn implementation supports different kinds of kernels, such as a an RBF or a polynomial kernel.
 We want to include them in our configuration space.
 This is a new hyperparameter with a finite number of values.
-For this scenario, ConfigSpace offers the :ref:`categorical hyperparameters <Categorical hyperparameters>`.
+For this scenario, ConfigSpace offers the :class:`~ConfigSpace.hyperparameters.CategoricalHyperparameter`.
 
 - ``kernel_type``: with values 'linear', 'poly', 'rbf', 'sigmoid'.
 
@@ -100,13 +102,15 @@ following example expresses the fact, that ``coef0`` is a valid hyperparameter, 
     cs.add_conditions([cond_1, cond_2, cond_3])
 
 .. note::
-    ConfigSpace offers a lot of different condition types. For example ``NotEqualsConditions``,
-    ``LessThanCondition``, or ``GreaterThanCondition``.
+    ConfigSpace offers a lot of different condition types. For example the :class:`~ConfigSpace.conditions.NotEqualsCondition` ,
+    :class:`~ConfigSpace.conditions.LessThanCondition`, or :class:`~ConfigSpace.conditions.GreaterThanCondition`.
     To read more about conditions, please take a look at the :ref:`Conditions` or the :doc:`auto_examples/AdvancedExample`
 
 .. note::
-    Don't use either the ``EqualsCondition`` or the ``InCondition`` on float hyperparameters. Due to floating-point
-    inaccuracy, it is very unlikely that, for example, the ``EqualsCondition`` is evaluated to True.
+    Don't use either the :class:`~ConfigSpace.conditions.EqualsCondition` or the :class:`~ConfigSpace.conditions.InCondition`
+    on float hyperparameters.
+    Due to floating-point inaccuracy, it is very unlikely that, for example, the
+    :class:`~ConfigSpace.conditions.EqualsCondition` is evaluated to True.
 
 
 
@@ -116,7 +120,7 @@ following example expresses the fact, that ``coef0`` is a valid hyperparameter, 
 It may occur, that some states in the configuration space are not allowed.
 ConfigSpace supports this functionality by offering :ref:`Forbidden clauses`.
 
-To demonstrate the usage of ``forbidden clauses``, we assume that if ``kernel_type`` in the example above is 'linear', we use the
+To demonstrate the usage of :ref:`Forbidden clauses`, we assume that if ``kernel_type`` in the example above is 'linear', we use the
 `LinearSVC  <http://scikit-learn.org/stable/modules/generated/sklearn.svm.LinearSVC.html#sklearn.svm.LinearSVC>`_
 sklearn implementation, which has more flexibility in the choice of penalties and loss functions.
 This gives us three new hyperparameters:
@@ -176,10 +180,10 @@ Now we want to forbid some combinations in the configurations.
 -------------------------
 
 If you want to use the configuration space in another tool, such as `CAVE <https://github.com/automl/CAVE>`_, it is useful to store it to file.
-To serialize the defined ``ConfigurationSpace``, we can choose between different output formats, such as
+To serialize the defined :class:`~ConfigSpace.configuration_space.ConfigurationSpace`, we can choose between different output formats, such as
 :ref:`json <json>` or :ref:`pcs <pcs_new>`.
 
-In this case, we want to store the ``ConfigurationSpace`` object as json file ::
+In this case, we want to store the :class:`~ConfigSpace.configuration_space.ConfigurationSpace` object as json file ::
 
     from ConfigSpace.read_and_write import json
     with open('configspace.json', 'w') as fh:

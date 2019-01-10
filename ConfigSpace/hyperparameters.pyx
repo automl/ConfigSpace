@@ -331,7 +331,30 @@ cdef class UniformFloatHyperparameter(FloatHyperparameter):
     def __init__(self, name: str, lower: Union[int, float], upper: Union[int, float],
                  default_value: Union[int, float, None] = None, q: Union[int, float, None] = None, log: bool = False,
                  meta: Optional[Dict]=None) -> None:
+        """
+        Creates a float hyperparameter with values sampled from a uniform distribution with values
+        from ``lower`` to ``upper``
 
+        **Example**::
+
+            import ConfigSpace as CS
+            import ConfigSpace.hyperparameters as CSH
+
+            cs = CS.ConfigurationSpace()
+            uniform_float_hp = CSH.UniformFloatHyperparameter('uni_float', lower=10, upper=100, log=False)
+
+            cs.add_hyperparameter(uniform_float_hp)
+
+        Args:
+            name (str): Name of the hyperparameter, with which it can be accessed.
+            lower (int, float):  Lower bound of a range of values from which the hyperparameter will be sampled.
+            upper (int, float): Upper bound.
+            default_value (int, float, None): Sets the default value of a hyperparameter to a given value.
+            q (int, float, None): Quantization factor
+            log (bool): If ``True``, the values of the hyperparameter will be sampled on a logarithmic scale.
+                Defaults to False
+            meta (Dict, None): meta data (currently not used)
+        """
         super(UniformFloatHyperparameter, self).__init__(name, default_value, meta)
         self.lower = float(lower)
         self.upper = float(upper)
@@ -469,6 +492,32 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
     def __init__(self, name: str, mu: Union[int, float], sigma: Union[int, float],
                  default_value: Union[None, float] = None, q: Union[int, float, None] = None, log: bool = False,
                  meta: Optional[Dict]=None) -> None:
+        """
+        Creates a float hyperparameter with values sampled from a normal distribution
+        :math:`\mathcal{N}(\mu, \sigma^2)`
+
+        **Example**::
+
+            import ConfigSpace as CS
+            import ConfigSpace.hyperparameters as CSH
+
+            cs = CS.ConfigurationSpace()
+            normal_float_hp = CSH.NormalFloatHyperparameter('normal_float', mu=0, sigma=1, log=False)
+
+            cs.add_hyperparameter(normal_float_hp)
+
+
+        Args:
+            name (str): Name of the hyperparameter, with which it can be accessed.
+            mu (int, float):  Mean of the distribution.
+            sigma (int, float):  Standard deviation of the distribution.
+            default_value (int, float, None):  Sets the default value of a hyperparameter to a given value.
+            q (int, float, None):  Quantization factor
+            log (bool):  If ``True``, the values of the hyperparameter will be sampled on a logarithmic scale.
+                Defaults to ``False``
+            meta (Dict, None): meta data (currently not used)
+        """
+
         super(NormalFloatHyperparameter, self).__init__(name, default_value, meta)
         self.mu = float(mu)
         self.sigma = float(sigma)
@@ -602,6 +651,33 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
 cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
     def __init__(self, name: str, lower: int, upper: int, default_value: Union[int, None] = None,
                  q: Union[int, None] = None, log: bool = False, meta: Optional[Dict]=None) -> None:
+        """
+
+        Creates an integer hyperparameter with values sampled from a uniform distribution
+        with bounds ``lower`` and ``upper``
+
+        **Example**::
+
+            import ConfigSpace as CS
+            import ConfigSpace.hyperparameters as CSH
+
+            cs = CS.ConfigurationSpace()
+            uniform_integer_hp = CSH.UniformIntegerHyperparameter(name='uni_int', lower=10,
+                                                                  upper=100, log=False)
+
+            cs.add_hyperparameter(uniform_integer_hp)
+
+
+        Args:
+            name (str): Name of the hyperparameter with which it can be accessed.
+            lower (int): Lower bound of a range of values from which the hyperparameter will be sampled.
+            upper (int): upper bound.
+            default_value (int, None): Sets the default value of a hyperparameter to a given value.
+            q (int, None): Quantization factor
+            log (bool): If ``True``, the values of the hyperparameter will be sampled on a logarithmic scale.
+            meta (Dict, None):  metadata (currently not used)
+        """
+
         super(UniformIntegerHyperparameter, self).__init__(name, default_value, meta)
         self.lower = self.check_int(lower, "lower")
         self.upper = self.check_int(upper, "upper")
@@ -757,6 +833,30 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
     def __init__(self, name: str, mu: int, sigma: Union[int, float],
                  default_value: Union[int, None] = None, q: Union[None, int] = None, log: bool = False,
                  meta: Optional[Dict]=None) -> None:
+        """
+        Creates an integer hyperparameter with values sampled from a normal distribution
+        :math:`\mathcal{N}(\mu, \sigma^2)`
+
+        **Example**::
+
+            import ConfigSpace as CS
+            import ConfigSpace.hyperparameters as CSH
+
+            cs = CS.ConfigurationSpace()
+            normal_int_hp = CSH.NormalIntegerHyperparameter(name='normal_int', mu=0.,
+                                                            sigma=1., log=False)
+            cs.add_hyperparameter(normal_int_hp)
+
+
+        Args:
+            name (str):  Name of the hyperparameter with which it can be accessed.
+            mu (int):  Mean of the distribution, from which hyperparameter is sampled.
+            sigma (int, float):  Standard deviation of the distribution, from which hyperparameter is sampled.
+            default_value (int, None):  Sets the default value of a hyperparameter to a given value.
+            q (int, None): Quantization factor
+            log (bool): If ``True``, the values of the hyperparameter will be sampled on a logarithmic scale.
+            meta (Dict, None): meta data (currently not used)
+        """
         super(NormalIntegerHyperparameter, self).__init__(name, default_value, meta)
         self.mu = mu
         self.sigma = sigma
@@ -936,6 +1036,26 @@ cdef class CategoricalHyperparameter(Hyperparameter):
         default_value: Union[int, float, str, None]=None,
         meta: Optional[Dict]=None
     ) -> None:
+        """
+        Creates a categorical hyperparameter
+
+        **Example**::
+
+            import ConfigSpace as CS
+            import ConfigSpace.hyperparameters as CSH
+
+            cs = CS.ConfigurationSpace()
+            cat_hp = CSH.CategoricalHyperparameter('cat_hp', choices=['red', 'green', 'blue'])
+
+            cs.add_hyperparameter(cat_hp)
+
+        Args:
+            name (str):  Name of the hyperparameter, with which it can be accessed.
+            choices (list([str, float, int]): Collection of values to sample hyperparameter from.
+            default_value (int, float, str, None): Sets the default value of the hyperparameter to a given value.
+            meta (Dict, None): meta data (currently not used)
+        """
+
         super(CategoricalHyperparameter, self).__init__(name, meta)
         # TODO check that there is no bullshit in the choices!
         self.choices = tuple(choices)
@@ -1105,9 +1225,29 @@ cdef class OrdinalHyperparameter(Hyperparameter):
         meta: Optional[Dict]=None
     ) -> None:
         """
-        since the sequence can consist of elements from different types we
-        store them into a dictionary in order to handle them as a
-        numeric sequence according to their order/position.
+        Creates an ordinal hyperparameter
+
+        .. note::
+            Since the sequence can consist of elements from different types, they are stored into a dictionary
+            in order to handle them as a numeric sequence according to their order/position.
+
+
+        **Example**::
+
+            import ConfigSpace as CS
+            import ConfigSpace.hyperparameters as CSH
+
+            cs = CS.ConfigurationSpace()
+            ord_hp = CSH.OrdinalHyperparameter('ordinal_hp', sequence=['10', '20', '30'])
+
+            cs.add_hyperparameter(ord_hp)
+
+        Args:
+            name (str):  Name of the hyperparameter, with which it can be accessed.
+            sequence (list([str, float, int])):  collection of values to sample hyperparameter from.
+            default_value (int, float, str, None):  Sets the default value of a hyperparameter to a given value.
+            meta (Dict, None): meta data (currently not used)
+
         """
         super(OrdinalHyperparameter, self).__init__(name, meta)
         if len(sequence) > len(set(sequence)):

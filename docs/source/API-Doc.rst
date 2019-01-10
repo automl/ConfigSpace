@@ -4,149 +4,19 @@ API-Documentation
 ConfigurationSpace
 ==================
 
+
 A configuration space organizes all hyperparameters and its conditions as well as its forbidden clauses.
 Configurations can be sampled from this configuration space.
 
 .. autoclass:: ConfigSpace.configuration_space.ConfigurationSpace
+   :members:
 
-   .. method:: add_hyperparameter(hyperparameter)
-
-        :param Hyperparameter hyperparameter: hyperparameter to add
-
-   .. method:: add_hyperparameters(hyperparameters)
-
-        :param list[Hyperparameter] hyperparameters: collection of hyperparameters to add
-
-   .. method:: add_condition(condition)
-
-        :param ConditionComponent condition: condition to add
-
-   .. method:: add_conditions(conditions)
-
-        :param list[ConditionComponent] conditions: collection of conditions to add
-
-   .. method:: add_forbidden_clause(clause)
-
-        :param AbstractForbiddenComponent clause: Forbidden clause to add
-
-   .. method:: add_forbidden_clauses(clauses)
-
-        :param list[AbstractForbiddenComponent] clauses: collection of forbidden clauses to add
-
-   .. method:: add_configuration_space(prefix, configuration_space, delimiter=":", parent_hyperparameter=None)
-
-        This function adds a configuration space to another one. The added entries will receive the prefix ``prefix``.
-
-        :param str prefix: new hyperparameters will be renamed to ``prefix`` + '_' + old_name
-        :param ConfigurationSpace configuration_space: the configuration space which should be added
-        :param str(optional) delimiter: default ':'
-        :param Hyperparameter(optional) parent_hyperparamter: adds for each new hyperparameter the condition, that ``parent_hyperparameter`` is active
-        :return: ConfigurationSpace
-
-   .. method:: get_hyperparameters()
-
-       :return: list[Hyperparameter] -- list with all the hyperparameter, which were added to the configurationsspace-object earlier.
-
-   .. method:: get_hyperparameter_names()
-
-       :return: list[str] -- list with names of all hyperparameter, which were added to the configurationsspace-object earlier.
-
-   .. method:: get_hyperparameter(name)
-
-       :param str name: Name of the searched hyperparameter
-       :return: Hyperparameter -- the hyperparameter with the name ``name``
-
-   .. method:: get_hyperparameter_by_idx(idx))
-
-       :param int idx: id of a hyperparameter
-       :return: str -- name of the hyperparameter with the id ``idx``
-
-   .. method:: get_idx_by_hyperparameter_name(name))
-
-       :param str name: name of a hyperparameter
-       :return:  int -- id of the hyperparameter with name ``name``
-
-   .. method:: get_conditions()
-
-       :return: list[AbstractConditions] -- All conditions from the configuration space
-
-   .. method:: get_forbiddens()
-
-       :return: list[AbstractForbiddenComponent] -- All forbiddens from the configuration space
-
-   .. method:: get_children_of(name)
-
-       Returns a list with the children of a given hyperparameter
-
-       :param str,Hyperparameter name:
-       :return: list[Hyperparameter]
-
-   .. method:: get_child_conditions_of(name)
-
-       Returns a List with conditions of all children of a given hyperparameter
-
-       :param str,Hyperparameter name:
-       :return: list[AbstractCondition]
-
-   .. method:: get_parents_of(name)
-
-       Returns a list with the parents of a given hyperparameter
-
-       :param str,Hyperparameter name:
-       :return: list[Hyperparameter]
-
-   .. method:: get_parent_conditions_of(name)
-
-       Returns a List with conditions of all parents of a given hyperparameter
-
-       :param str,Hyperparameter name:
-       :return: list[AbstractCondition]
-
-
-   .. method:: get_all_unconditional_hyperparameters()
-
-       Returns a list with names of unconditional hyperparameters
-
-       :return: list[Hyperparamter]
-
-   .. method:: get_all_conditional_hyperparameters()
-
-       Returns a list with names of all conditional hyperparameters
-
-       :return: list[Hyperparamter]
-
-   .. method:: get_default_configuration()
-
-       Returns a configuration containing hyperparameters with default values
-
-       :return: Configuration
-
-   .. method:: check_configuration(configuration)
-
-       :param Configuration configuration:
-
-
-   .. method:: check_configuration_vector_representation(vector)
-
-       :param np.ndarray vector:
-
-   .. method:: sample_configuration(size=1)
-
-       sample ``size`` configurations
-
-       :param int size:
-       :return: Configuration,list[Configuration]
-
-   .. method:: seed(seed)
-
-       Sets the random seed.
-
-       :param int seed:
 
 Configuration
 =============
 
 .. autoclass:: ConfigSpace.configuration_space.Configuration
+    :members:
 
 .. _Hyperparameters:
 
@@ -162,93 +32,21 @@ Example usages are shown in the :doc:`quickstart <quickstart>`
 3.1 Integer hyperparameters
 ---------------------------
 
-.. py:class:: ConfigSpace.hyperparameters.UniformIntegerHyperparameter(name, lower, upper, default_value=None, q=None, log=False) -> None:
+.. autoclass:: ConfigSpace.hyperparameters.UniformIntegerHyperparameter
 
-    Creates an integer hyperparameter with values sampled from a uniform distribution with values from ``lower`` to ``upper``
 
-    :param str name: Name of the hyperparameter with which it can be accessed.
-    :param int lower: lower bound of a range of values from which the hyperparameter will be sampled.
-    :param int upper: upper bound.
-    :param int,None default_value: Sets the default value of a hyperparameter to a given value.
-    :param None,int q: Quantization factor
-    :param bool log: If ``True``, the values of the hyperparameter will be sampled on a logarithmic scale.
-
-**Example**::
-
-    import ConfigSpace as CS
-    import ConfigSpace.hyperparameters as CSH
-
-    cs = CS.ConfigurationSpace()
-    uniform_integer_hp = CSH.UniformIntegerHyperparameter('uni_int', lower=10, upper=100, log=False)
-
-    cs.add_hyperparameter(uniform_integer_hp)
-
-.. py:class:: ConfigSpace.hyperparameters.NormalIntegerHyperparameter(name, mu, sigma, default_value=None, q=None, log=False) -> None:
-
-    Creates an integer hyperparameter with values sampled from a normal distribution :math:`\mathcal{N}(\mu, \sigma^2)`
-
-    :param str name: Name of the hyperparameter with which it can be accessed.
-    :param int mu: Mean of the distribution.
-    :param int,float sigma: Standard deviation of the distribution.
-    :param int,None default_value: Sets the default value of a hyperparameter to a given value.
-    :param None,int q: Quantization factor
-    :param bool log: If ``True``, the values of the hyperparameter will be sampled on a logarithmic scale.
-
-**Example**::
-
-    import ConfigSpace as CS
-    import ConfigSpace.hyperparameters as CSH
-
-    cs = CS.ConfigurationSpace()
-    normal_int_hp = CSH.NormalIntegerHyperparameter('uni_int', mu=0, sigma=1, log=False)
-    cs.add_hyperparameter(normal_int_hp)
+.. autoclass:: ConfigSpace.hyperparameters.NormalIntegerHyperparameter
 
 
 
 3.2 Float hyperparameters
 -------------------------
 
-.. py:class:: ConfigSpace.hyperparameters.UniformFloatHyperparameter(name, lower, upper, default_value=None, q=None, log=False) -> None:
+.. autoclass:: ConfigSpace.hyperparameters.UniformFloatHyperparameter
 
-    Creates a float hyperparameter with values sampled from a uniform distribution with values from ``lower`` to ``upper``
 
-    :param str name: Name of the hyperparameter, with which it can be accessed.
-    :param int,float lower: lower bound of a range of values from which the hyperparameter will be sampled.
-    :param int,float upper: upper bound.
-    :param int,float,None default_value: Sets the default value of a hyperparameter to a given value.
-    :param None,int,float q: Quantization factor
-    :param bool log: If ``True``, the values of the hyperparameter will be sampled on a logarithmic scale.
+.. autoclass:: ConfigSpace.hyperparameters.NormalFloatHyperparameter
 
-**Example:**::
-
-    import ConfigSpace as CS
-    import ConfigSpace.hyperparameters as CSH
-
-    cs = CS.ConfigurationSpace()
-    uniform_float_hp = CSH.UniformFloatHyperparameter('uni_float', lower=10, upper=100, log=False)
-
-    cs.add_hyperparameter(uniform_float_hp)
-
-.. py:class:: ConfigSpace.hyperparameters.NormalFloatHyperparameter(name, mu, sigma, default_value=None, q=None, log=False) -> None:
-
-    Creates a float hyperparameter with values sampled from a normal distribution :math:`\mathcal{N}(\mu, \sigma^2)`
-
-    :param str name: Name of the hyperparameter, with which it can be accessed.
-    :param int,float mu: Mean of the distribution.
-    :param int,float sigma: Standard deviation of the distribution.
-    :param int,float,None default_value: Sets the default value of a hyperparameter to a given value.
-    :param None,int,float q: Quantization factor
-    :param bool log: If ``True``, the values of the hyperparameter will be sampled on a logarithmic scale.
-
-**Example:**::
-
-    import ConfigSpace as CS
-    import ConfigSpace.hyperparameters as CSH
-
-    cs = CS.ConfigurationSpace()
-    normal_float_hp = CSH.NormalFloatHyperparameter('normal_float', mu=0, sigma=1, log=False)
-
-    cs.add_hyperparameter(normal_float_hp)
 
 
 .. _Categorical hyperparameters:
@@ -256,46 +54,13 @@ Example usages are shown in the :doc:`quickstart <quickstart>`
 3.3 Categorical hyperparameters
 -------------------------------
 
-.. py:class:: ConfigSpace.hyperparameters.CategoricalHyperparameter(name, choices, default_value=None) -> None:
-
-    Creates a categorical hyperparameter
-
-    :param str name: Name of the hyperparameter, with which it can be accessed.
-    :param list[Union[str,float,int]],Tuple[Union[float,int,str]]] choices: set of values to sample hyperparameter from.
-    :param int,float,None default_value: Sets the default value of a hyperparameter to a given value.
-
-**Example:**::
-
-    import ConfigSpace as CS
-    import ConfigSpace.hyperparameters as CSH
-
-    cs = CS.ConfigurationSpace()
-    cat_hp = CSH.CategoricalHyperparameter('cat_hp', choices=['red', 'green', 'blue'])
-
-    cs.add_hyperparameter(cat_hp)
-
+.. autoclass:: ConfigSpace.hyperparameters.CategoricalHyperparameter
 
 
 3.4 OrdinalHyperparameters
 --------------------------
 
-.. py:class:: ConfigSpace.hyperparameters.CategoricalHyperparameter(name, choices, default_value=None) -> None:
-
-    Creates an ordinal hyperparameter
-
-    :param str name: Name of the hyperparameter, with which it can be accessed.
-    :param list[Union[str,float,int]],Tuple[Union[float,int,str]]] sequence: set of values to sample hyperparameter from.
-    :param int,float,None default_value: Sets the default value of a hyperparameter to a given value.
-
-**Example:**::
-
-    import ConfigSpace as CS
-    import ConfigSpace.hyperparameters as CSH
-
-    cs = CS.ConfigurationSpace()
-    ord_hp = CSH.OrdinalHyperparameter('ordinal_hp', sequence=['10', '20', '30'])
-
-    cs.add_hyperparameter(ord_hp)
+.. autoclass:: ConfigSpace.hyperparameters.OrdinalHyperparameter
 
 
 .. _Conditions:
@@ -315,184 +80,47 @@ To see an example of how to use conditions, please take a look at the :doc:`Guid
 4.1 EqualsCondition
 -------------------
 
-.. py:class:: ConfigSpace.conditions.EqualsCondition(child, parent, value) -> None:
+.. autoclass:: ConfigSpace.conditions.EqualsCondition
 
-    Adds on the ``child`` hyperparameter the condition, that the ``parent`` hyperparameter has to be equal to ``value``
-
-    :param Hyperparameter child: This hyperparameter will be sampled in the configspace, if the ``equal condition`` is satisfied
-    :param Hyperparameter parent: The hyperparameter, which has to satisfy the ``equal condition``
-    :param str,float,int value: value, which the parent is compared to
-
-Example::
-
-    import ConfigSpace as CS
-    import ConfigSpace.hyperparameters as CSH
-
-    cs = CS.ConfigurationSpace()
-    a = CSH.CategoricalHyperparameter('a', choices=[1, 2, 3])
-    b = CSH.UniformFloatHyperparameter('b', lower=1., upper=8., log=False)
-    cs.add_hyperparameters([a, b])
-
-    # makes 'b' an active hyperparameter if 'a' has the value 1
-    cond = CS.EqualsCondition(b, a, 1)
-    cs.add_condition(cond)
+.. _NotEqualsCondition:
 
 4.2 NotEqualsCondition
 ----------------------
 
-.. py:class:: ConfigSpace.conditions.NotEqualsCondition(child, parent, value) -> None:
+.. autoclass:: ConfigSpace.conditions.NotEqualsCondition
 
-    Adds on the ``child`` hyperparameter the condition, that the ``parent`` hyperparameter's value is not equal to ``value``
-
-    :param Hyperparameter child: This hyperparameter will be sampled in the configspace, if the not-equals condition is satisfied
-    :param Hyperparameter parent: The hyperparameter, which has to satisfy the ``not equal condition``
-    :param str,float,int value: value, which the parent is compared to
-
-Example::
-
-    import ConfigSpace as CS
-    import ConfigSpace.hyperparameters as CSH
-
-    cs = CS.ConfigurationSpace()
-    a = CSH.CategoricalHyperparameter('a', choices=[1, 2, 3])
-    b = CSH.UniformFloatHyperparameter('b', lower=1., upper=8., log=False)
-    cs.add_hyperparameters([a, b])
-
-    # makes 'b' an active hyperparameter if 'a' has **not** the value 1
-    cond = CS.NotEqualsCondition(b, a, 1)
-    cs.add_condition(cond)
+.. _LessThanCondition:
 
 4.3 LessThanCondition
 ---------------------
 
-.. py:class:: ConfigSpace.conditions.LessThanCondition(child, parent, value) -> None:
+.. autoclass:: ConfigSpace.conditions.LessThanCondition
 
-    Adds on the ``child`` hyperparameter the condition, that the ``parent`` hyperparameter's value has to be less than ``value``
-
-    :param Hyperparameter child: This hyperparameter will be sampled in the configspace, if the ``LessThanCondition`` is satisfied
-    :param Hyperparameter parent: The hyperparameter, which has to satisfy the ``LessThanCondition``
-    :param str,float,int value: value, which the parent is compared to
-
-Example::
-
-    import ConfigSpace as CS
-    import ConfigSpace.hyperparameters as CSH
-
-    cs = CS.ConfigurationSpace()
-    a = CSH.UniformFloatHyperparameter('a', lower=0., upper=10.)
-    b = CSH.UniformFloatHyperparameter('b', lower=1., upper=8., log=False)
-    cs.add_hyperparameters([a, b])
-
-    # makes 'b' an active hyperparameter if 'a' is less than 5
-    cond = CS.LessThanCondition(b, a, 5.)
-    cs.add_condition(cond)
 
 
 4.4 GreaterThanCondition
 ------------------------
 
-.. py:class:: ConfigSpace.conditions.GreaterThanCondition(child, parent, value) -> None:
+.. autoclass:: ConfigSpace.conditions.GreaterThanCondition
 
-    Adds on the ``child`` hyperparameter the condition, that the ``parent`` hyperparameter's value has to be greater than ``value``
-
-    :param Hyperparameter child: This hyperparameter will be sampled in the configspace, if the ``GreaterThanCondition`` is satisfied
-    :param Hyperparameter parent: The hyperparameter, which has to satisfy the ``GreaterThanCondition``
-    :param str,float,int value: value, which the parent is compared to
-
-Example::
-
-    import ConfigSpace as CS
-    import ConfigSpace.hyperparameters as CSH
-
-    cs = CS.ConfigurationSpace()
-    a = CSH.UniformFloatHyperparameter('a', lower=0., upper=10.)
-    b = CSH.UniformFloatHyperparameter('b', lower=1., upper=8., log=False)
-    cs.add_hyperparameters([a, b])
-
-    # makes 'b' an active hyperparameter if 'a' is greater than 5
-    cond = CS.GreaterThanCondition(b, a, 5.)
-    cs.add_condition(cond)
 
 4.5 InCondition
 ---------------
 
-.. py:class:: ConfigSpace.conditions.InCondition(child, parent, values) -> None:
-
-    Adds on the ``child`` hyperparameter the condition, that the ``parent`` hyperparameter's value has to be in the set ``values``
-
-    :param Hyperparameter child: This hyperparameter will be sampled in the configspace, if the ``InCondition`` is satisfied
-    :param Hyperparameter parent: The hyperparameter, which has to satisfy the ``InCondition``
-    :param list[str,float,int] value: subset of values, which the parent is compared to
-
-Example::
-
-    import ConfigSpace as CS
-    import ConfigSpace.hyperparameters as CSH
-
-    cs = CS.ConfigurationSpace()
-    a = CSH.UniformIntegerHyperparameter('a', lower=0, upper=10)
-    b = CSH.UniformFloatHyperparameter('b', lower=1., upper=8., log=False)
-    cs.add_hyperparameters([a, b])
-
-    # makes 'b' an active hyperparameter if 'a' is in the set [1, 2, 3, 4]
-    cond = CS.InCondition(b, a, [1, 2, 3, 4])
-    cs.add_condition(cond)
+.. autoclass:: ConfigSpace.conditions.InCondition
 
 
 4.6 AndConjunction
 ------------------
 
-By using the and conjunction, we can easily connect constraints.
+.. autoclass:: ConfigSpace.conditions.AndConjunction
 
-.. py:class:: ConfigSpace.conditions.AndConjunction(*args) -> None:
-
-    :param AbstractCondition args: conditions, which will be combined with an ``AndConjunction``
-
-The following example shows how we can combine two constraints with an ``AndConjunction``.
-Example::
-
-    import ConfigSpace as CS
-    import ConfigSpace.hyperparameters as CSH
-
-    cs = CS.ConfigurationSpace()
-
-    a = CSH.UniformIntegerHyperparameter('a', lower=5, upper=15)
-    b = CSH.UniformIntegerHyperparameter('b', lower=0, upper=10)
-    c = CSH.UniformFloatHyperparameter('c', lower=0., upper=1.)
-    cs.add_hyperparameters([a, b, c])
-
-    less_cond = CS.LessThanCondition(c, a, 10)
-    greater_cond = CS.GreaterThanCondition(c, b, 5)
-
-    cs.add_condition(CS.AndConjunction(less_cond, greater_cond))
 
 4.7 OrConjunction
 -----------------
 
+.. autoclass:: ConfigSpace.conditions.OrConjunction
 
-Similar to the ``AndConjunction``, new constraints can be combined by using the ``OrConjunction``.
-
-.. py:class:: ConfigSpace.conditions.OrConjunction(*args) -> None:
-
-    :param AbstractCondition args: conditions, which will be combined with an ``OrConjunction``
-
-The following example shows how we can combine two constraints with an ``OrConjunction``.
-Example::
-
-    import ConfigSpace as CS
-    import ConfigSpace.hyperparameters as CSH
-
-    cs = CS.ConfigurationSpace()
-
-    a = CSH.UniformIntegerHyperparameter('a', lower=5, upper=15)
-    b = CSH.UniformIntegerHyperparameter('b', lower=0, upper=10)
-    c = CSH.UniformFloatHyperparameter('c', lower=0., upper=1.)
-    cs.add_hyperparameters([a, b, c])
-
-    less_cond = CS.LessThanCondition(c, a, 10)
-    greater_cond = CS.GreaterThanCondition(c, b, 5)
-
-    cs.add_condition(CS.OrConjunction(less_cond, greater_cond))
 
 .. _Forbidden clauses:
 
@@ -548,64 +176,17 @@ For a further example, please take a look in the :doc:`guide <Guide>`
 
 5.1 ForbiddenEqualsClause
 -------------------------
-.. py:class:: ConfigSpace.ForbiddenEqualsClause(hyperparameter, value) -> None:
+.. autoclass:: ConfigSpace.ForbiddenEqualsClause(hyperparameter, value)
 
-    :param Hyperparameter hyperparameter: hyperparameter on which a restriction will be made
-    :param Any value: forbidden value
-
-Example::
-
-    cs = CS.ConfigurationSpace()
-    a = CSH.CategoricalHyperparameter('a', [1,2,3])
-    cs.add_hyperparameters([a])
-
-    # It forbids the value 2 for the hyperparameter a
-    forbidden_clause_a = CS.ForbiddenEqualsClause(a, 2)
-    cs.add_forbidden_clause(forbidden_clause_a)
 
 5.2 ForbiddenInClause
 ---------------------
-.. py:class:: ConfigSpace.ForbiddenInClause(hyperparameter, values) -> None:
+.. autoclass:: ConfigSpace.ForbiddenInClause(hyperparameter, values)
 
-    :param Hyperparameter hyperparameter: hyperparameter on which a restriction will be made
-    :param Any values: forbidden values
-
-.. note::
-
-    The forbidden values have to be a subset of the hyperparameter's values.
-
-Example::
-
-    cs = CS.ConfigurationSpace()
-    a = CSH.CategoricalHyperparameter('a', [1,2,3])
-    cs.add_hyperparameters([a])
-
-    # It forbids the values 2, 3, 4 for the hyperparameter 'a'
-    forbidden_clause_a = CS.ForbiddenInClause(a, [2, 3])
-
-    cs.add_forbidden_clause(forbidden_clause_a)
 
 5.3 ForbiddenAndConjunction
 ---------------------------
-.. py:class:: ConfigSpace.ForbiddenAndConjunction(*args) -> None:
-
-    The *ForbiddenAndConjunction* combines forbidden-clauses, which allows to build powerful constraints.
-
-    :param AbstractForbiddenComponent : forbidden clauses, which should be combined
-
-Example::
-
-    cs = CS.ConfigurationSpace()
-    a = CSH.CategoricalHyperparameter('a', [1,2,3])
-    b = CSH.CategoricalHyperparameter('b', [2,5,6])
-    cs.add_hyperparameters([a, b])
-
-    forbidden_clause_a = CS.ForbiddenEqualsClause(a, 2)
-    forbidden_clause_b = CS.ForbiddenInClause(b, [2])
-
-    forbidden_clause = CS.ForbiddenAndConjunction(forbidden_clause_a, forbidden_clause_b)
-
-    cs.add_forbidden_clause(forbidden_clause)
+.. autoclass:: ConfigSpace.ForbiddenAndConjunction(*args)
 
 
 .. _Serialization:
@@ -615,7 +196,8 @@ Serialization
 
 | ConfigSpace offers also the functionality to serialize the configuration space.
   This can be useful to share configuration spaces across experiments,
-  or use them in other tools, for example to analyze hyperparameter importance with `CAVE <https://github.com/automl/CAVE>`_,
+  or use them in other tools, for example to analyze hyperparameter importance with
+  `CAVE <https://github.com/automl/CAVE>`_,
 | This can be achieved by using the classes **ConfigSpace.read_and_write.pcs**,
   **ConfigSpace.read_and_write.pcs_new** or **ConfigSpace.read_and_write.json**.
 
@@ -625,10 +207,10 @@ Serialization
 -------------------------
 
 .. automodule:: ConfigSpace.read_and_write.json
-   :members:
+   :members: read, write
    :undoc-members:
 
-This example shows how to write and read a configuration space in *json* file format::
+This example shows you a complete example on how to write and read a configuration space in *json* file format::
 
     import ConfigSpace as CS
     import ConfigSpace.hyperparameters as CSH
@@ -662,7 +244,7 @@ Examples are also provieded in the `pysmac documentation <https://pysmac.readthe
 .. note::
 
     The pcs format definition has changed in the year 2016 and is supported by AClib 2.0 as well as SMAC.
-    To write or read the old version of pcs, please use the ``ConfigSpace.read_and_write.pcs`` (see below).
+    To write or read the old version of pcs, please use the :class:`~ConfigSpace.read_and_write.pcs` module.
 
 .. automodule:: ConfigSpace.read_and_write.pcs_new
    :members: read, write
@@ -688,8 +270,6 @@ To write to a pcs file is similar to the example above.::
 
 6.3 Serialization with pcs
 --------------------------
-
-An introduction to the old version of pcs is hosted in the `SMAC manual. <http://www.cs.ubc.ca/labs/beta/Projects/SMAC/v2.08.00/manual.pdf>`_
 
 .. automodule:: ConfigSpace.read_and_write.pcs
    :members: read, write
