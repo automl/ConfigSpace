@@ -169,7 +169,7 @@ def _build_or_conjunction(conjunction: OrConjunction) -> Dict:
 def _build_in_condition(condition: InCondition) -> Dict:
     child = condition.child.name
     parent = condition.parent.name
-    values = condition.values
+    values = list(condition.values)
     return {
         'child': child,
         'parent': parent,
@@ -251,7 +251,8 @@ def _build_forbidden_in_clause(clause: ForbiddenInClause) -> Dict:
     return {
         'name': clause.hyperparameter.name,
         'type': 'IN',
-        'values': clause.values,
+        # The values are a set, but a set cannot be serialized to json
+        'values': list(clause.values),
     }
 
 
