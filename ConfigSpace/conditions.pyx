@@ -114,7 +114,7 @@ cdef class AbstractCondition(ConditionComponent):
                 % type(parent)
             )
         if child == parent:
-            raise TypeError(
+            raise ValueError(
                 "The child and parent hyperparameter must be different "
                 "hyperparameters."
             )
