@@ -28,7 +28,7 @@ popd
 conda create -n testenv --yes python=$PYTHON_VERSION pip
 source activate testenv
 
-if [ -z "$NPY_VERSION" ]
+if [[ -z "$NPY_VERSION" ]]; then
     conda install -y numpy=$NPY_VERSION pytest pytest-cov cython
 else
     conda install -y numpy pytest pytest-cov cython
