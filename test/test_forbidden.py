@@ -50,12 +50,6 @@ class TestForbidden(unittest.TestCase):
         hp3 = CategoricalHyperparameter("grandchild", ["hot", "cold"])
 
         self.assertRaisesRegexp(
-            TypeError,
-            "Argument 'hyperparameter' has incorrect type \(expected ConfigSpace.hyperparameters.Hyperparameter, got str\)",
-            ForbiddenEqualsClause, "HP1", 1,
-        )
-
-        self.assertRaisesRegexp(
             ValueError,
             "Forbidden clause must be instantiated with a legal hyperparameter value for "
             "'parent, Type: Categorical, Choices: \{0, 1\}, Default: 0', but got '2'",
@@ -116,12 +110,6 @@ class TestForbidden(unittest.TestCase):
         hp2 = UniformIntegerHyperparameter("child", 0, 10)
         hp3 = UniformIntegerHyperparameter("child2", 0, 10)
         hp4 = CategoricalHyperparameter("grandchild", ["hot", "cold", "warm"])
-
-        self.assertRaisesRegexp(
-            TypeError,
-            "Argument 'hyperparameter' has incorrect type \(expected ConfigSpace.hyperparameters.Hyperparameter, got str\)",
-            ForbiddenInClause, "HP1", 1,
-        )
 
         self.assertRaisesRegexp(
             ValueError,

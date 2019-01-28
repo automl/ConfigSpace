@@ -101,15 +101,11 @@ cdef class AbstractCondition(ConditionComponent):
     cdef public DTYPE_t vector_value
 
     def __init__(self, child: Hyperparameter, parent: Hyperparameter) -> None:
-        if not isinstance(child, Hyperparameter):
-            raise ValueError("Argument 'child' is not an instance of "
-                             "HPOlibConfigSpace.hyperparameter.Hyperparameter.")
-        if not isinstance(parent, Hyperparameter):
-            raise ValueError("Argument 'parent' is not an instance of "
-                             "HPOlibConfigSpace.hyperparameter.Hyperparameter.")
         if child == parent:
-            raise ValueError("The child and parent hyperparameter must be "
-                             "different hyperparameters.")
+            raise ValueError(
+                "The child and parent hyperparameter must be different "
+                "hyperparameters."
+            )
         self.child = child
         self.parent = parent
         self.child_vector_id = -1

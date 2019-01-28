@@ -17,6 +17,11 @@ env:
     - DISTRIB="conda" PYTHON_VERSION="3.5"
     - DISTRIB="conda" PYTHON_VERSION="3.6"
     - DISTRIB="conda" PYTHON_VERSION="3.7" DOCPUSH="true"
+    - DISTRIB="conda" PYTHON_VERSION="3.7" NPY_VERSION="1.15"
+    - DISTRIB="conda" PYTHON_VERSION="3.7" NPY_VERSION="1.14"
+    - DISTRIB="conda" PYTHON_VERSION="3.7" NPY_VERSION="1.13"
+    - DISTRIB="conda" PYTHON_VERSION="3.7" NPY_VERSION="1.12"
+    - DISTRIB="conda" PYTHON_VERSION="3.7" NPY_VERSION="1.11"
 
 install:
   - source ci_scripts/install.sh
