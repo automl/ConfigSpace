@@ -50,9 +50,9 @@ class TestForbidden(unittest.TestCase):
         hp3 = CategoricalHyperparameter("grandchild", ["hot", "cold"])
 
         self.assertRaisesRegexp(
-            TypeError,
-            "Argument 'hyperparameter' has incorrect type \(expected ConfigSpace.hyperparameters.Hyperparameter, got str\)",
-            ForbiddenEqualsClause, "HP1", 1,
+            ValueError,
+            "The child and parent hyperparameter must be different hyperparameters.",
+            ForbiddenInClause, hp1, hp1,
         )
 
         self.assertRaisesRegexp(
@@ -118,9 +118,9 @@ class TestForbidden(unittest.TestCase):
         hp4 = CategoricalHyperparameter("grandchild", ["hot", "cold", "warm"])
 
         self.assertRaisesRegexp(
-            TypeError,
-            "Argument 'hyperparameter' has incorrect type \(expected ConfigSpace.hyperparameters.Hyperparameter, got str\)",
-            ForbiddenInClause, "HP1", 1,
+            ValueError,
+            "The child and parent hyperparameter must be different hyperparameters.",
+            ForbiddenInClause, hp1, hp1,
         )
 
         self.assertRaisesRegexp(
