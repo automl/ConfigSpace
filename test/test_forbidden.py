@@ -59,7 +59,7 @@ class TestForbidden(unittest.TestCase):
             ValueError,
             "Forbidden clause must be instantiated with a legal hyperparameter value for "
             "'parent, Type: Categorical, Choices: \{0, 1\}, Default: 0', but got '2'",
-            ForbiddenEqualsClause, hp1, 2,
+            ForbiddenEqualsClause, hp1, hp1, 1,
         )
 
         forb1 = ForbiddenEqualsClause(hp1, 1)
@@ -120,7 +120,7 @@ class TestForbidden(unittest.TestCase):
         self.assertRaisesRegexp(
             ValueError,
             "The child and parent hyperparameter must be different hyperparameters.",
-            ForbiddenInClause, hp1, hp1,
+            ForbiddenInClause, hp1, hp1, [2, 3],
         )
 
         self.assertRaisesRegexp(
