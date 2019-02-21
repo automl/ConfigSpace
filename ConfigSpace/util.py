@@ -270,10 +270,13 @@ def get_random_neighbor(configuration: Configuration, seed: int) -> Configuratio
 def deactivate_inactive_hyperparameters(
         configuration: Dict,
         configuration_space: ConfigurationSpace,
+        vector: Union[None, np.ndarray] = None,
 ):
+
     hyperparameters = configuration_space.get_hyperparameters()
     configuration = Configuration(configuration_space=configuration_space,
                                   values=configuration,
+                                  vector=vector,
                                   allow_inactive_with_values=True)
 
     hps = deque()
