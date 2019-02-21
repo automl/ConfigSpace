@@ -923,7 +923,7 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
 
 cdef class CategoricalHyperparameter(Hyperparameter):
     cdef public tuple choices
-    cdef int _num_choices
+    cdef public int num_choices
     cdef list choices_vector
     cdef set _choices_set
 
@@ -939,8 +939,8 @@ cdef class CategoricalHyperparameter(Hyperparameter):
         super(CategoricalHyperparameter, self).__init__(name, meta)
         # TODO check that there is no bullshit in the choices!
         self.choices = tuple(choices)
-        self._num_choices = len(choices)
-        self.choices_vector = list(range(self._num_choices))
+        self.num_choices = len(choices)
+        self.choices_vector = list(range(self.num_choices))
         self._choices_set = set(self.choices_vector)
         self.default_value = self.check_default(default_value)
         self.normalized_default_value = self._inverse_transform(self.default_value)
@@ -1025,7 +1025,7 @@ cdef class CategoricalHyperparameter(Hyperparameter):
             raise ValueError("Illegal default value %s" % str(default_value))
 
     def _sample(self, rs: np.random.RandomState, size: Optional[int]=None) -> Union[int, np.ndarray]:
-        return rs.randint(0, self._num_choices, size=size)
+        return rs.randint(0, self.num_choices, size=size)
 
     def _transform(self, vector: Union[np.ndarray, float, int]) -> Optional[Union[str, int, float]]:
         if not np.isfinite(vector):
@@ -1056,7 +1056,7 @@ cdef class CategoricalHyperparameter(Hyperparameter):
                 rejected = True
                 index = int(value)
                 while rejected:
-                    neighbor_idx = rs.randint(0, self._num_choices)
+                    neighbor_idx = rs.randint(0, self.num_choices)
                     if neighbor_idx != index:
                         rejected = False
 
@@ -1093,7 +1093,7 @@ cdef class CategoricalHyperparameter(Hyperparameter):
 
 cdef class OrdinalHyperparameter(Hyperparameter):
     cdef public tuple sequence
-    cdef int _num_elements
+    cdef public int num_elements
     cdef sequence_vector
     cdef value_dict
 
@@ -1113,8 +1113,8 @@ cdef class OrdinalHyperparameter(Hyperparameter):
         if len(sequence) > len(set(sequence)):
             raise ValueError("Ordinal Hyperparameter Sequence %s contain duplicate values." % sequence)
         self.sequence = tuple(sequence)
-        self._num_elements = len(sequence)
-        self.sequence_vector = list(range(self._num_elements))
+        self.num_elements = len(sequence)
+        self.sequence_vector = list(range(self.num_elements))
         self.default_value = self.check_default(default_value)
         self.normalized_default_value = self._inverse_transform(self.default_value)
         self.value_dict = OrderedDict()  # type: OrderedDict[Union[int, float, str], int]
@@ -1234,7 +1234,7 @@ cdef class OrdinalHyperparameter(Hyperparameter):
         returns the ordinal sequence as numeric sequence
         (according to the the ordering) from 1 to length of our sequence.
         """
-        return np.arange(0, self._num_elements)
+        return np.arange(0, self.num_elements)
 
     def get_order(self, value: Optional[Union[int, str, float]]) -> int:
         """
@@ -1263,7 +1263,7 @@ cdef class OrdinalHyperparameter(Hyperparameter):
         """
         returns a random sample from our sequence as order/position index
         """
-        return rs.randint(0, self._num_elements, size=size)
+        return rs.randint(0, self.num_elements, size=size)
 
     def has_neighbors(self) -> bool:
         """
@@ -1302,7 +1302,7 @@ cdef class OrdinalHyperparameter(Hyperparameter):
                     candidate1 = self.get_value(neighbor_idx1)
                     if self.check_order(candidate1, value):
                         neighbors.append(candidate1)
-                if neighbor_idx2 < self._num_elements:
+                if neighbor_idx2 < self.num_elements:
                     candidate2 = self.get_value(neighbor_idx2)
                     if self.check_order(value, candidate2):
                         neighbors.append(candidate2)
@@ -1316,7 +1316,7 @@ cdef class OrdinalHyperparameter(Hyperparameter):
 
                 if neighbor_idx1 < index and neighbor_idx1 >= seq[0]:
                     neighbors.append(neighbor_idx1)
-                if neighbor_idx2 > index and neighbor_idx2 < self._num_elements:
+                if neighbor_idx2 > index and neighbor_idx2 < self.num_elements:
                     neighbors.append(neighbor_idx2)
 
         return neighbors
