@@ -1,6 +1,14 @@
+# Version 0.4.9
+
+* Fixes an issue where adding a new forbidden for an unknown hyperparameter 
+  did not result in an immediate exception.
+* Add a new argument `vector` to `util.deactivate_inactive_hyperparameters`
+* Make the number of categories a public variable for categorical and
+  ordinal hyperparameters
+
 # Version 0.4.8
 
-* Fixen an issue which made serialization of `ForbiddenInCondition` to json 
+* Fixes an issue which made serialization of `ForbiddenInCondition` to json 
   fail.
 * MAINT #101: Improved error message on setting illegal value in a 
   configuration.
