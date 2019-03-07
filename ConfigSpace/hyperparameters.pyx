@@ -69,15 +69,17 @@ cdef class Hyperparameter(object):
     cpdef bint is_legal_vector(self, DTYPE_t value):
         """
         Checks wether the given value is a legal value for the vector
-        representation of this hyperparameter
+        representation of this hyperparameter.
 
         Parameters
         ----------
-        value : the vector value to check
+        value
+            the vector value to check
 
         Returns
         -------
-        True if the given value is a legal vector value, otherwise False
+        bool
+            True if the given value is a legal vector value, otherwise False
 
         """
         raise NotImplementedError()
@@ -333,27 +335,35 @@ cdef class UniformFloatHyperparameter(FloatHyperparameter):
                  meta: Optional[Dict]=None) -> None:
         """
         Creates a float hyperparameter with values sampled from a uniform distribution with values
-        from ``lower`` to ``upper``
+        from ``lower`` to ``upper``.
 
-        **Example**::
+        Example
+        -------
 
-            import ConfigSpace as CS
-            import ConfigSpace.hyperparameters as CSH
+        >>> import ConfigSpace as CS
+        >>> import ConfigSpace.hyperparameters as CSH
+        >>> cs = CS.ConfigurationSpace()
+        >>> uniform_float_hp = CSH.UniformFloatHyperparameter('uni_float', lower=10,
+        ...                                                   upper=100, log=False)
+        >>> cs.add_hyperparameter(uniform_float_hp)
 
-            cs = CS.ConfigurationSpace()
-            uniform_float_hp = CSH.UniformFloatHyperparameter('uni_float', lower=10, upper=100, log=False)
-
-            cs.add_hyperparameter(uniform_float_hp)
-
-        Args:
-            name (str): Name of the hyperparameter, with which it can be accessed.
-            lower (int, float):  Lower bound of a range of values from which the hyperparameter will be sampled.
-            upper (int, float): Upper bound.
-            default_value (int, float, None): Sets the default value of a hyperparameter to a given value.
-            q (int, float, None): Quantization factor
-            log (bool): If ``True``, the values of the hyperparameter will be sampled on a logarithmic scale.
-                Defaults to False
-            meta (Dict, None): meta data (currently not used)
+        Parameters
+        ----------
+        name : str
+            Name of the hyperparameter, with which it can be accessed
+        lower : (int, floor)
+            Lower bound of a range of values from which the hyperparameter will be sampled
+        upper : (int, float)
+            Upper bound
+        default_value : (int, float, None)
+            Sets the default value of a hyperparameter to a given value
+        q : (int, float, None)
+            Quantization factor
+        log : bool
+            If ``True``, the values of the hyperparameter will be sampled
+            on a logarithmic scale. Defaults to False
+        meta : (Dict, None)
+            meta data (currently not used)
         """
         super(UniformFloatHyperparameter, self).__init__(name, default_value, meta)
         self.lower = float(lower)
@@ -494,30 +504,36 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
                  meta: Optional[Dict]=None) -> None:
         """
         Creates a float hyperparameter with values sampled from a normal distribution
-        :math:`\mathcal{N}(\mu, \sigma^2)`
+        :math:`\mathcal{N}(\mu, \sigma^2)`.
 
-        **Example**::
+        Example
+        -------
 
-            import ConfigSpace as CS
-            import ConfigSpace.hyperparameters as CSH
+        >>> import ConfigSpace as CS
+        >>> import ConfigSpace.hyperparameters as CSH
+        >>> cs = CS.ConfigurationSpace()
+        >>> normal_float_hp = CSH.NormalFloatHyperparameter('normal_float', mu=0,
+        ...                                                 sigma=1, log=False)
+        >>> cs.add_hyperparameter(normal_float_hp)
 
-            cs = CS.ConfigurationSpace()
-            normal_float_hp = CSH.NormalFloatHyperparameter('normal_float', mu=0, sigma=1, log=False)
-
-            cs.add_hyperparameter(normal_float_hp)
-
-
-        Args:
-            name (str): Name of the hyperparameter, with which it can be accessed.
-            mu (int, float):  Mean of the distribution.
-            sigma (int, float):  Standard deviation of the distribution.
-            default_value (int, float, None):  Sets the default value of a hyperparameter to a given value.
-            q (int, float, None):  Quantization factor
-            log (bool):  If ``True``, the values of the hyperparameter will be sampled on a logarithmic scale.
-                Defaults to ``False``
-            meta (Dict, None): meta data (currently not used)
+        Parameters
+        ----------
+        name : str
+            Name of the hyperparameter, with which it can be accessed
+        mu : (int, float)
+            Mean of the distribution
+        sigma : (int, float)
+            Standard deviation of the distribution
+        default_value : (int, float, None)
+            Sets the default value of a hyperparameter to a given value
+        q : (int, float, None)
+            Quantization factor
+        log : bool
+            If ``True``, the values of the hyperparameter will be sampled on a logarithmic scale
+            Defaults to ``False``
+        meta : (Dict, None)
+            meta data (currently not used)
         """
-
         super(NormalFloatHyperparameter, self).__init__(name, default_value, meta)
         self.mu = float(mu)
         self.sigma = float(sigma)
@@ -654,28 +670,34 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
         """
 
         Creates an integer hyperparameter with values sampled from a uniform distribution
-        with bounds ``lower`` and ``upper``
+        with bounds ``lower`` and ``upper``.
 
-        **Example**::
+        Example
+        -------
 
-            import ConfigSpace as CS
-            import ConfigSpace.hyperparameters as CSH
+        >>> import ConfigSpace as CS
+        >>> import ConfigSpace.hyperparameters as CSH
+        >>> cs = CS.ConfigurationSpace()
+        >>> uniform_integer_hp = CSH.UniformIntegerHyperparameter(name='uni_int', lower=10,
+        ...                                                       upper=100, log=False)
+        >>> cs.add_hyperparameter(uniform_integer_hp)
 
-            cs = CS.ConfigurationSpace()
-            uniform_integer_hp = CSH.UniformIntegerHyperparameter(name='uni_int', lower=10,
-                                                                  upper=100, log=False)
-
-            cs.add_hyperparameter(uniform_integer_hp)
-
-
-        Args:
-            name (str): Name of the hyperparameter with which it can be accessed.
-            lower (int): Lower bound of a range of values from which the hyperparameter will be sampled.
-            upper (int): upper bound.
-            default_value (int, None): Sets the default value of a hyperparameter to a given value.
-            q (int, None): Quantization factor
-            log (bool): If ``True``, the values of the hyperparameter will be sampled on a logarithmic scale.
-            meta (Dict, None):  metadata (currently not used)
+        Parameters
+        ----------
+        name : str
+            Name of the hyperparameter with which it can be accessed
+        lower : int
+            Lower bound of a range of values from which the hyperparameter will be sampled
+        upper : int
+            upper bound
+        default_value : (int, None)
+            Sets the default value of a hyperparameter to a given value
+        q : (int, None)
+            Quantization factor
+        log : (bool)
+            If ``True``, the values of the hyperparameter will be sampled on a logarithmic scale
+        meta : (Dict, None)
+            metadata (currently not used)
         """
 
         super(UniformIntegerHyperparameter, self).__init__(name, default_value, meta)
@@ -835,27 +857,36 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
                  meta: Optional[Dict]=None) -> None:
         """
         Creates an integer hyperparameter with values sampled from a normal distribution
-        :math:`\mathcal{N}(\mu, \sigma^2)`
+        :math:`\mathcal{N}(\mu, \sigma^2)`.
 
-        **Example**::
+        Example
+        -------
 
-            import ConfigSpace as CS
-            import ConfigSpace.hyperparameters as CSH
+            >>> import ConfigSpace as CS
+            >>> import ConfigSpace.hyperparameters as CSH
+            >>> cs = CS.ConfigurationSpace()
+            >>> normal_int_hp = CSH.NormalIntegerHyperparameter(name='normal_int', mu=0.,
+            ...                                                 sigma=1., log=False)
+            >>> cs.add_hyperparameter(normal_int_hp)
 
-            cs = CS.ConfigurationSpace()
-            normal_int_hp = CSH.NormalIntegerHyperparameter(name='normal_int', mu=0.,
-                                                            sigma=1., log=False)
-            cs.add_hyperparameter(normal_int_hp)
+        Parameters
+        ----------
+        name : str
+            Name of the hyperparameter with which it can be accessed
+        mu : int
+            Mean of the distribution, from which hyperparameter is sampled
+        sigma : (int, float)
+            Standard deviation of the distribution, from which
+            hyperparameter is sampled
+        default_value : (int, None)
+            Sets the default value of a hyperparameter to a given value
+        q : (int, None)
+            Quantization factor
+        log : bool
+            If ``True``, the values of the hyperparameter will be sampled on a logarithmic scale
+        meta : (Dict, None)
+            meta data (currently not used)
 
-
-        Args:
-            name (str):  Name of the hyperparameter with which it can be accessed.
-            mu (int):  Mean of the distribution, from which hyperparameter is sampled.
-            sigma (int, float):  Standard deviation of the distribution, from which hyperparameter is sampled.
-            default_value (int, None):  Sets the default value of a hyperparameter to a given value.
-            q (int, None): Quantization factor
-            log (bool): If ``True``, the values of the hyperparameter will be sampled on a logarithmic scale.
-            meta (Dict, None): meta data (currently not used)
         """
         super(NormalIntegerHyperparameter, self).__init__(name, default_value, meta)
         self.mu = mu
@@ -1037,23 +1068,27 @@ cdef class CategoricalHyperparameter(Hyperparameter):
         meta: Optional[Dict]=None
     ) -> None:
         """
-        Creates a categorical hyperparameter
+        Creates a categorical hyperparameter.
 
-        **Example**::
+        Example
+        -------
 
-            import ConfigSpace as CS
-            import ConfigSpace.hyperparameters as CSH
+        >>> import ConfigSpace as CS
+        >>> import ConfigSpace.hyperparameters as CSH
+        >>> cs = CS.ConfigurationSpace()
+        >>> cat_hp = CSH.CategoricalHyperparameter('cat_hp', choices=['red', 'green', 'blue'])
+        >>> cs.add_hyperparameter(cat_hp)
 
-            cs = CS.ConfigurationSpace()
-            cat_hp = CSH.CategoricalHyperparameter('cat_hp', choices=['red', 'green', 'blue'])
-
-            cs.add_hyperparameter(cat_hp)
-
-        Args:
-            name (str):  Name of the hyperparameter, with which it can be accessed.
-            choices (list([str, float, int]): Collection of values to sample hyperparameter from.
-            default_value (int, float, str, None): Sets the default value of the hyperparameter to a given value.
-            meta (Dict, None): meta data (currently not used)
+        Parameters
+        ----------
+        name : str
+            Name of the hyperparameter, with which it can be accessed
+        choices : list([str, float, int])
+            Collection of values to sample hyperparameter from
+        default_value : (int, float, str, None)
+            Sets the default value of the hyperparameter to a given value
+        meta : (Dict, None)
+            meta data (currently not used)
         """
 
         super(CategoricalHyperparameter, self).__init__(name, meta)
@@ -1216,7 +1251,6 @@ cdef class OrdinalHyperparameter(Hyperparameter):
     cdef int _num_elements
     cdef sequence_vector
     cdef value_dict
-
     def __init__(
         self,
         name: str,
@@ -1225,30 +1259,33 @@ cdef class OrdinalHyperparameter(Hyperparameter):
         meta: Optional[Dict]=None
     ) -> None:
         """
-        Creates an ordinal hyperparameter
+        Creates an ordinal hyperparameter.
 
-        .. note::
-            Since the sequence can consist of elements from different types, they are stored into a dictionary
-            in order to handle them as a numeric sequence according to their order/position.
+        Example
+        -------
 
+        >>> import ConfigSpace as CS
+        >>> import ConfigSpace.hyperparameters as CSH
+        >>> cs = CS.ConfigurationSpace()
+        >>> ord_hp = CSH.OrdinalHyperparameter('ordinal_hp', sequence=['10', '20', '30'])
+        >>> cs.add_hyperparameter(ord_hp)
 
-        **Example**::
-
-            import ConfigSpace as CS
-            import ConfigSpace.hyperparameters as CSH
-
-            cs = CS.ConfigurationSpace()
-            ord_hp = CSH.OrdinalHyperparameter('ordinal_hp', sequence=['10', '20', '30'])
-
-            cs.add_hyperparameter(ord_hp)
-
-        Args:
-            name (str):  Name of the hyperparameter, with which it can be accessed.
-            sequence (list([str, float, int])):  collection of values to sample hyperparameter from.
-            default_value (int, float, str, None):  Sets the default value of a hyperparameter to a given value.
-            meta (Dict, None): meta data (currently not used)
-
+        Parameters
+        ----------
+        name : str
+            Name of the hyperparameter, with which it can be accessed.
+        sequence : list([str, float, int])
+            collection of values to sample hyperparameter from.
+        default_value : (int, float, str, None)
+            Sets the default value of a hyperparameter to a given value.
+        meta : (Dict, None)
+            meta data (currently not used)
         """
+
+        # Remark
+        # Since the sequence can consist of elements from different types,
+        # they are stored into a dictionary in order to handle them as a
+        # numeric sequence according to their order/position.
         super(OrdinalHyperparameter, self).__init__(name, meta)
         if len(sequence) > len(set(sequence)):
             raise ValueError("Ordinal Hyperparameter Sequence %s contain duplicate values." % sequence)

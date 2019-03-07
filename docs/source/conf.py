@@ -26,7 +26,7 @@ sys.path.insert(0, os.path.abspath('../..'))
 
 project = 'ConfigSpace'
 copyright = "2014-{}, ".format(datetime.now().year) + ", ".join(ConfigSpace.__authors__)
-author = ConfigSpace.__authors__
+author = ', '.join(ConfigSpace.__authors__)
 
 # The short X.Y version
 version = ConfigSpace.__version__

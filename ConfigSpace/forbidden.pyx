@@ -230,20 +230,22 @@ cdef class ForbiddenEqualsClause(SingleValueForbiddenClause):
     """
     Forbids a value from the value range of a hyperparameter.
 
-    **Example**::
+    Example
+    -------
 
-        cs = CS.ConfigurationSpace()
-        a = CSH.CategoricalHyperparameter('a', [1,2,3])
-        cs.add_hyperparameters([a])
+    >>> cs = CS.ConfigurationSpace()
+    >>> a = CSH.CategoricalHyperparameter('a', [1,2,3])
+    >>> cs.add_hyperparameters([a])
+    # It forbids the value 2 for the hyperparameter a
+    >>> forbidden_clause_a = CS.ForbiddenEqualsClause(a, 2)
+    >>> cs.add_forbidden_clause(forbidden_clause_a)
 
-        # It forbids the value 2 for the hyperparameter a
-        forbidden_clause_a = CS.ForbiddenEqualsClause(a, 2)
-        cs.add_forbidden_clause(forbidden_clause_a)
-
-
-    Args:
-        hyperparameter (Hyperparameter): hyperparameter on which a restriction will be made
-        value (Any): forbidden value
+    Parameters
+    ----------
+    hyperparameter : :ref:`Hyperparameters`
+        Methods on which a restriction will be made
+    value : Any
+        forbidden value
     """
 
     def __repr__(self):
@@ -260,26 +262,30 @@ cdef class ForbiddenEqualsClause(SingleValueForbiddenClause):
 cdef class ForbiddenInClause(MultipleValueForbiddenClause):
     def __init__(self, hyperparameter: Dict[str, Union[None, str, float, int]], values: Any) -> None:
         """
-        The ForbiddenInClause permits the sampled value of a hyperparameter to be in a collection of values.
+        The ForbiddenInClause permits the sampled value of a hyperparameter to
+        be in a collection of values.
 
-        .. note::
+        Note
+        ----
 
-            The forbidden values have to be a subset of the hyperparameter's values.
+        The forbidden values have to be a subset of the hyperparameter's values.
 
-        **Example**::
+        Example
+        -------
 
-            cs = CS.ConfigurationSpace()
-            a = CSH.CategoricalHyperparameter('a', [1,2,3])
-            cs.add_hyperparameters([a])
+        >>> cs = CS.ConfigurationSpace()
+        >>> a = CSH.CategoricalHyperparameter('a', [1,2,3])
+        >>> cs.add_hyperparameters([a])
+        # It forbids the values 2, 3, 4 for the hyperparameter 'a'
+        >>> forbidden_clause_a = CS.ForbiddenInClause(a, [2, 3])
+        >>> cs.add_forbidden_clause(forbidden_clause_a)
 
-            # It forbids the values 2, 3, 4 for the hyperparameter 'a'
-            forbidden_clause_a = CS.ForbiddenInClause(a, [2, 3])
-
-            cs.add_forbidden_clause(forbidden_clause_a)
-
-        Args:
-            hyperparameter (Hyperparameter):  Hyperparameter on which a restriction will be made
-            values: Collection of forbidden values
+        Parameters
+        ----------
+        hyperparameter : :ref:`Hyperparameters`
+            Hyperparameter on which a restriction will be made
+        values : Any
+            Collection of forbidden values
         """
 
         super(ForbiddenInClause, self).__init__(hyperparameter, values)
@@ -423,26 +429,25 @@ cdef class AbstractForbiddenConjunction(AbstractForbiddenComponent):
 cdef class ForbiddenAndConjunction(AbstractForbiddenConjunction):
     """
 
-    The *ForbiddenAndConjunction* combines forbidden-clauses, which allows to build powerful constraints.
+    The ForbiddenAndConjunction combines forbidden-clauses, which allows to
+    build powerful constraints.
 
-    **Example**::
+    Example
+    -------
 
-        cs = CS.ConfigurationSpace()
-        a = CSH.CategoricalHyperparameter('a', [1,2,3])
-        b = CSH.CategoricalHyperparameter('b', [2,5,6])
-        cs.add_hyperparameters([a, b])
+    >>> cs = CS.ConfigurationSpace()
+    >>> a = CSH.CategoricalHyperparameter('a', [1,2,3])
+    >>> b = CSH.CategoricalHyperparameter('b', [2,5,6])
+    >>> cs.add_hyperparameters([a, b])
+    >>> forbidden_clause_a = CS.ForbiddenEqualsClause(a, 2)
+    >>> forbidden_clause_b = CS.ForbiddenInClause(b, [2])
+    >>> forbidden_clause = CS.ForbiddenAndConjunction(forbidden_clause_a, forbidden_clause_b)
+    >>> cs.add_forbidden_clause(forbidden_clause)
 
-        forbidden_clause_a = CS.ForbiddenEqualsClause(a, 2)
-        forbidden_clause_b = CS.ForbiddenInClause(b, [2])
-
-        forbidden_clause = CS.ForbiddenAndConjunction(forbidden_clause_a, forbidden_clause_b)
-
-        cs.add_forbidden_clause(forbidden_clause)
-
-
-    Args:
-        *args list([AbstractForbiddenComponent]): forbidden clauses, which should be combined
-
+    Parameters
+    ----------
+    *args : list([AbstractForbiddenComponent])
+        forbidden clauses, which should be combined
     """
 
     def __repr__(self) -> str:

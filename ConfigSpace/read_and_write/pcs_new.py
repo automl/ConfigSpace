@@ -247,14 +247,27 @@ def condition_specification(child_name, condition, configuration_space):
 
 def read(pcs_string, debug=False):
     """
-    Reads in a :py:class:`~ConfigSpace.configuration_space.ConfigurationSpace` definition from a pcs file.
+    Reads in a :py:class:`~ConfigSpace.configuration_space.ConfigurationSpace`
+    definition from a pcs file.
 
-    Args:
-        pcs_string (str): ConfigSpace definition in pcs format
-        debug: Provides debug information. Defaults to False.
+    Example
+    -------
 
-    Returns:
+    >>> from ConfigSpace.read_and_write import pcs_new
+    >>> with open('configspace.pcs', 'r') as fh:
+    >>>     restored_conf = pcs_new.read(fh)
+
+    Parameters
+    ----------
+        pcs_string : str
+            ConfigSpace definition in pcs format
+        debug : bool
+            Provides debug information. Defaults to False.
+
+    Returns
+    -------
         :py:class:`~ConfigSpace.configuration_space.ConfigurationSpace`
+
     """
     configuration_space = ConfigurationSpace()
     conditions = []
@@ -434,12 +447,17 @@ def read(pcs_string, debug=False):
 def write(configuration_space):
     """
     Writes a configurations space to file in pcs_new format.
-    Args:
-        configuration_space (:py:class:`~ConfigSpace.configuration_space.ConfigurationSpace`):
-            a configurations space
 
-    Returns:
-        str: The string representation of the configuration space
+    Parameters
+    ----------
+    configuration_space : :py:class:`~ConfigSpace.configuration_space.ConfigurationSpace`
+        a configuration space
+
+    Returns
+    -------
+    str
+        The string representation of the configuration space
+
     """
     if not isinstance(configuration_space, ConfigurationSpace):
         raise TypeError("pcs_parser.write expects an instance of %s, "

@@ -210,24 +210,6 @@ Serialization
    :members: read, write
    :undoc-members:
 
-This example shows you a complete example on how to write and read a configuration space in *json* file format::
-
-    import ConfigSpace as CS
-    import ConfigSpace.hyperparameters as CSH
-
-
-    cs = CS.ConfigurationSpace()
-    cs.add_hyperparameter(CSH.CategoricalHyperparameter('a', choices=[1, 2, 3]))
-
-    # Store the configuration space to file as json-file
-    with open('configspace.json', 'w') as fh:
-        fh.write(json.write(cs))
-
-    # Read the configuration space from file
-    with open('configspace.json', 'r') as fh:
-        json_string = fh.read()
-        restored_conf = json.read(json_string)
-
 .. _pcs_new:
 
 6.2 Serialization with pcs-new
@@ -250,47 +232,12 @@ Examples are also provieded in the `pysmac documentation <https://pysmac.readthe
    :members: read, write
    :undoc-members:
 
-To write to a pcs file is similar to the example above.::
-
-    import ConfigSpace as CS
-    import ConfigSpace.hyperparameters as CSH
-    from ConfigSpace.read_and_write import pcs_new
-
-    cs = CS.ConfigurationSpace()
-    cs.add_hyperparameter(CSH.CategoricalHyperparameter('a', choices=[1, 2, 3]))
-
-    # Store the configuration space to file configspace as pcs-file
-    with open('configspace.pcs', 'w') as fh:
-        fh.write(pcs_new.write(cs))
-
-    # Read the configuration space from file
-    with open('configspace.pcs', 'r') as fh:
-        restored_conf = pcs_new.read(fh)
-
-
 6.3 Serialization with pcs
 --------------------------
 
 .. automodule:: ConfigSpace.read_and_write.pcs
    :members: read, write
    :undoc-members:
-
-::
-
-    import ConfigSpace as CS
-    import ConfigSpace.hyperparameters as CSH
-    from ConfigSpace.read_and_write import pcs
-
-    cs = CS.ConfigurationSpace()
-    cs.add_hyperparameter(CSH.CategoricalHyperparameter('a', choices=[1, 2, 3]))
-
-    # Store the configuration space to file configspace as pcs-file
-    with open('configspace.pcs', 'w') as fh:
-        fh.write(pcs.write(cs))
-
-    # Read the configuration space from file
-    with open('configspace.pcs', 'r') as fh:
-        restored_conf = pcs.read(fh)
 
 
 Utils

@@ -271,22 +271,29 @@ def write(configuration_space, indent=2):
     """
     Writes a configuration space to a json file
 
-    **Examples**::
+    Example
+    -------
 
-        cs = ConfigurationSpace()
-        cs.add_hyperparameter(CSH.CategoricalHyperparameter('a', choices=[1, 2, 3]))
+    >>> from ConfigSpace import ConfigurationSpace
+    >>> import ConfigSpace.hyperparameters as CSH
+    >>> from ConfigSpace.read_and_write import json
+    >>> cs = ConfigurationSpace()
+    >>> cs.add_hyperparameter(CSH.CategoricalHyperparameter('a', choices=[1, 2, 3]))
+    >>> with open('config_space.json', 'w') as f:
+    >>>     f.write(json.write(cs))
 
-        with open('config_space.json', 'w') as f:
-            f.write(json.write(cs))
+    Parameters
+    ----------
+    configuration_space : :class:`~ConfigSpace.configuration_space.ConfigurationSpace`
+        a configuration space, which should be written to file.
+    indent : int
+        number of whitespaces to use as indent
 
-
-    Args:
-        configuration_space ( :class:`~ConfigSpace.configuration_space.ConfigurationSpace`):
-            a configuration space, which should be written to file.
-        indent (int): number of whitspaces to use as indent
-
-    Returns:
-        str: String representation of the configuration space, which will be written to file
+    Returns
+    -------
+    str
+        String representation of the configuration space,
+        which will be written to file
     """
     if not isinstance(configuration_space, ConfigurationSpace):
         raise TypeError("pcs_parser.write expects an instance of %s, "
@@ -345,20 +352,24 @@ def write(configuration_space, indent=2):
 ################################################################################
 def read(jason_string):
     """
-    Converts a configuration space definition from a json string.
+    Creates a configuration space definition from a json string.
 
-    **Example**::
+    Example
+    -------
 
-        with open('configspace.json', 'r') as f:
-            jason_string = f.read()
-            config = json.read(jason_string)
+    >>> from ConfigSpace.read_and_write import json
+    >>> with open('configspace.json', 'r') as f:
+    >>>     jason_string = f.read()
+    >>>     config = json.read(jason_string)
 
-    Args:
-        jason_string (str): A json string representing a configuration space definition
+    Parameters
+    ----------
+    jason_string : str
+        A json string representing a configuration space definition
 
-    Returns:
+    Returns
+    -------
         :class:`~ConfigSpace.configuration_space.ConfigurationSpace`
-
     """
     jason = json.loads(jason_string)
     if 'name' in jason:

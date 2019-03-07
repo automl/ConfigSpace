@@ -41,22 +41,29 @@ import ConfigSpace.c_util
 
 
 def impute_inactive_values(configuration: Configuration, strategy: Union[str, float]='default') -> Configuration:
-    """Impute inactive parameters.
+    """Imputes inactive parameters.
 
-    Iterates through the hyperparameters of a ``Configuration`` and sets the values
-    of the inactive hyperparamters to their default values if the choosen ``strategy`` is 'default'.
-    Otherwise ``strategy`` contains a float number. The hyperparameters' value will be set to this
-    number.
+    Iterates through the hyperparameters of a ``Configuration`` and sets the
+    values of the inactive hyperparamters to their default values if the choosen
+    ``strategy`` is 'default'. Otherwise ``strategy`` contains a float number.
+    The hyperparameters' value will be set to this number.
 
-    Args:
-        configuration (:class:`~ConfigSpace.configuration_space.Configuration`): For this configuration inactive values will be imputed.
-        strategy (str,float, optional): The imputation strategy. Defaults to 'default'
-            If 'default', replace inactive parameters by their default.
-            If float, replace inactive parameters by the given float value,
-            which should be able to be splitted apart by a tree-based model.
-    Returns:
-        :class:`~ConfigSpace.configuration_space.Configuration`: a new configuration with the imputed values.
-            In this new configuration inactive values are included.
+
+    Parameters
+    ----------
+    configuration : :class:`~ConfigSpace.configuration_space.Configuration`
+         For this configuration inactive values will be imputed.
+    strategy : str,float,optional
+        The imputation strategy. Defaults to 'default'
+        If 'default', replace inactive parameters by their default.
+        If float, replace inactive parameters by the given float value,
+        which should be able to be splitted apart by a tree-based model.
+
+    Returns
+    -------
+    :class:`~ConfigSpace.configuration_space.Configuration`
+        A new configuration with the imputed values.
+        In this new configuration inactive values are included.
     """
     values = dict()
     for hp in configuration.configuration_space.get_hyperparameters():
@@ -89,25 +96,33 @@ def get_one_exchange_neighbourhood(
         stdev: float=0.2,
     ) -> Generator[Configuration]:
     """
-    Return all configurations in a one-exchange neighborhood.
+    Returns all configurations in a one-exchange neighborhood.
 
     The method is implemented as defined by:
     Frank Hutter, Holger H. Hoos and Kevin Leyton-Brown
     Sequential Model-Based Optimization for General Algorithm Configuration
-    In Proceedings of the conference on Learning and Intelligent Optimization (LION 5)
+    In Proceedings of the conference on Learning and Intelligent
+    Optimization(LION 5)
 
-    Args:
-        configuration (:class:`~ConfigSpace.configuration_space.Configuration`): for this Configuration
-            object ``num_neighbors`` neighbors are computed
-        seed (int): Sets the random seed to a fixed value
-        num_neighbors (int, optional): number of configurations, which are sampled from the neighbourhood
-            of the input configuration
-        stdev (float, optional): The standard deviation is used to determine the neigbours of
-            :class:`~ConfigSpace.hyperparameters.UniformFloatHyperparameter` and
-            :class:`~ConfigSpace.hyperparameters.UniformIntegerHyperparameter`.
+    Parameters
+    ----------
+    configuration : :class:`~ConfigSpace.configuration_space.Configuration`
+        for this Configuration object ``num_neighbors`` neighbors are computed
+    seed : int
+        Sets the random seed to a fixed value
+    num_neighbors : int, optional
+        number of configurations, which are sampled from the neighbourhood
+        of the input configuration
+    stdev : float, optional
+        The standard deviation is used to determine the neigbours of
+        :class:`~ConfigSpace.hyperparameters.UniformFloatHyperparameter` and
+        :class:`~ConfigSpace.hyperparameters.UniformIntegerHyperparameter`.
 
-    Returns:
-        Generator: It contains configurations, with values being situated around the given configuration.
+    Returns
+    -------
+    Generator
+         It contains configurations, with values being situated around
+         the given configuration.
 
     """
     random = np.random.RandomState(seed)
@@ -218,10 +233,12 @@ def get_one_exchange_neighbourhood(
 
 
 def get_random_neighbor(configuration: Configuration, seed: int) -> Configuration:
-    """Draw a random neighbor by changing one parameter of a configuration.
+    """
+    Draws a random neighbor by changing one parameter of a configuration.
 
     - If the parameter is categorical, it changes it to another value.
-    - If the parameter is ordinal, it changes it to the next higher or lower value.
+    - If the parameter is ordinal, it changes it to the next higher or
+      lower value.
     - If parameter is a float, draw a random sample
 
     If changing a parameter activates new parameters or deactivates
@@ -229,13 +246,17 @@ def get_random_neighbor(configuration: Configuration, seed: int) -> Configuratio
     than 10000 configurations were rejected, this function raises a
     ValueError.
 
-    Args:
-        configuration (:class:`~ConfigSpace.configuration_space.Configuration`): a configuration for which a
-            random neigbour is calculated
-        seed (int): Used to generate a random state.
+    Parameters
+    ----------
+    configuration : :class:`~ConfigSpace.configuration_space.Configuration`
+        a configuration for which a random neigbour is calculated
+    seed : int
+        Used to generate a random state.
 
-    Returns:
-        :class:`~ConfigSpace.configuration_space.Configuration`: The new neighbour.
+    Returns
+    -------
+    :class:`~ConfigSpace.configuration_space.Configuration`
+        The new neighbor
 
     """
     random = np.random.RandomState(seed)
@@ -290,16 +311,20 @@ def deactivate_inactive_hyperparameters(
     """
     Removes inactive hyperparameters from a given configuration
 
-    Args:
-        configuration (:class:`~ConfigSpace.configuration_space.Configuration`): configuration from which
-            inactive hyperparameters will be removed
-        configuration_space (:class:`~ConfigSpace.configuration_space.ConfigurationSpace`): The defined configuration
-            space. It is needed to find the inactive hyperparameter by iterating through the conditions of the
-            configuration space.
+    Parameters
+    ----------
+    configuration : :class:`~ConfigSpace.configuration_space.Configuration`
+        configuration from which inactive hyperparameters will be removed
+    configuration_space : :class:`~ConfigSpace.configuration_space.ConfigurationSpace`
+        The defined configuration space. It is necessary to find the inactive
+        hyperparameters by iterating through the conditions of the
+        configuration space.
 
-    Returns:
-        :class:`~ConfigSpace.configuration_space.Configuration`: Is equivalent to the given configuration, except
-            that inactivate hyperparameters have been removed.
+    Returns
+    -------
+    :class:`~ConfigSpace.configuration_space.Configuration`
+        A configuration that is equivalent to the given configuration, except
+        that inactivate hyperparameters have been removed.
 
     """
     hyperparameters = configuration_space.get_hyperparameters()
@@ -358,16 +383,19 @@ def fix_types(configuration: dict,
     Iterates over all hyperparameters in the ConfigSpace
     and fixes the types of the parameter values in configuration.
 
-    Args:
-        configuration (dict): a configuration as a dictionary.
-            Key: name of the hyperparameter. Value: value of this hyperparamter
-        configuration_space (:class:`~ConfigSpace.configuration_space.ConfigurationSpace`):
-            Configuration space which knows the types for all parameter values
+    Parameters
+    ----------
+    configuration : dict
+        a configuration as a dictionary. Key: name of the hyperparameter.
+        Value: value of this hyperparamter
+    configuration_space : :class:`~ConfigSpace.configuration_space.ConfigurationSpace`
+        Configuration space which knows the types for all parameter values
 
-    Returns:
-        dict: configuration with fixed types of parameter values
+    Returns
+    -------
+    dict
+        configuration with fixed types of parameter values
     """
-    
     for param in configuration_space.get_hyperparameters():
         param_name = param.name
         if configuration.get(param_name) is not None:
