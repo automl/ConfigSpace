@@ -21,29 +21,26 @@ compiler_directives = {
 extensions = [
     Extension('ConfigSpace.hyperparameters',
               sources=['ConfigSpace/hyperparameters.pyx'],
-              include_dirs=[np.get_include()],
-              compiler_directives=compiler_directives),
+              include_dirs=[np.get_include()]),
     Extension('ConfigSpace.forbidden',
               sources=['ConfigSpace/forbidden.pyx'],
-              include_dirs=[np.get_include()],
-              compiler_directives=compiler_directives),
+              include_dirs=[np.get_include()]),
     Extension('ConfigSpace.conditions',
               sources=['ConfigSpace/conditions.pyx'],
-              include_dirs=[np.get_include()],
-              compiler_directives=compiler_directives),
+              include_dirs=[np.get_include()]),
     Extension('ConfigSpace.c_util',
               sources=['ConfigSpace/c_util.pyx'],
-              include_dirs=[np.get_include()],
-              compiler_directives=compiler_directives),
+              include_dirs=[np.get_include()]),
     Extension('ConfigSpace.util',
               sources=['ConfigSpace/util.pyx'],
-              include_dirs=[np.get_include()],
-              compiler_directives=compiler_directives),
+              include_dirs=[np.get_include()]),
     Extension('ConfigSpace.configuration_space',
               sources=['ConfigSpace/configuration_space.pyx'],
-              include_dirs=[np.get_include()],
-              compiler_directives=compiler_directives),
+              include_dirs=[np.get_include()])
 ]
+
+for e in extensions:
+    e.cython_directives = compiler_directives
 
 
 def read(fname):
