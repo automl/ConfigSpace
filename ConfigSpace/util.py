@@ -27,6 +27,8 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+# cython: language_level=2
+
 from collections import deque
 import copy
 from typing import Union, List, Dict, Generator
@@ -329,20 +331,20 @@ def fix_types(configuration: dict,
     '''
         iterates over all hyperparameters in the ConfigSpace
         and fixes the types of the parameter values in configuration.
-    
+
         Arguments
         ---------
         configuration: dict
             param name -> param value
         configuration_space: ConfigurationSpace
             Configuration space which knows the types for all parameter values
-            
+
         Returns
         -------
         configuration: dict
             with fixed types of parameter values
     '''
-    
+
     for param in configuration_space.get_hyperparameters():
         param_name = param.name
         if configuration.get(param_name) is not None:

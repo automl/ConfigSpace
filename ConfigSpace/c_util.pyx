@@ -1,3 +1,5 @@
+# cython: language_level=2
+
 from collections import deque
 
 import numpy as np

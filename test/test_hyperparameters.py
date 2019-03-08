@@ -28,7 +28,7 @@
 
 from collections import defaultdict
 import unittest
-import warnings
+import pytest
 
 import numpy as np
 
@@ -131,13 +131,13 @@ class TestHyperparameters(unittest.TestCase):
 
     def test_uniformfloat_to_integer(self):
         f1 = UniformFloatHyperparameter("param", 1, 10, q=0.1, log=True)
-        with warnings.catch_warnings():
+        with pytest.warns(UserWarning, match="Setting quantization < 1 for Integer "
+                                             "Hyperparameter 'param' has no effect"):
             f2 = f1.to_integer()
-            warnings.simplefilter("ignore")
-            # TODO is this a useful rounding?
-            # TODO should there be any rounding, if e.g. lower=0.1
-            self.assertEqual("param, Type: UniformInteger, Range: [1, 10], "
-                             "Default: 3, on log-scale", str(f2))
+        # TODO is this a useful rounding?
+        # TODO should there be any rounding, if e.g. lower=0.1
+        self.assertEqual("param, Type: UniformInteger, Range: [1, 10], "
+                            "Default: 3, on log-scale", str(f2))
 
     def test_uniformfloat_is_legal(self):
         lower = 0.1
@@ -160,17 +160,17 @@ class TestHyperparameters(unittest.TestCase):
         self.assertFalse(f1.is_legal_vector(1.1))
         self.assertRaises(TypeError, f1.is_legal_vector, "Hahaha")
 
-
     def test_uniformfloat_illegal_bounds(self):
-        self.assertRaisesRegexp(ValueError,
-            "Negative lower bound \(0.000000\) for log-scale hyperparameter "
-            "param is forbidden.", UniformFloatHyperparameter, "param", 0, 10,
+        self.assertRaisesRegex(
+            ValueError,
+            r"Negative lower bound \(0.000000\) for log-scale hyperparameter "
+            r"param is forbidden.", UniformFloatHyperparameter, "param", 0, 10,
             q=0.1, log=True)
 
-        self.assertRaisesRegexp(ValueError,
-            "Upper bound 1.000000 must be larger than lower bound "
-            "0.000000 for hyperparameter param",
-                                UniformFloatHyperparameter, "param", 1, 0)
+        self.assertRaisesRegex(
+            ValueError, "Upper bound 1.000000 must be larger than lower bound "
+            "0.000000 for hyperparameter param", UniformFloatHyperparameter,
+            "param", 1, 0)
 
     def test_normalfloat(self):
         # TODO test non-equality
@@ -188,8 +188,10 @@ class TestHyperparameters(unittest.TestCase):
             "param, Type: NormalFloat, Mu: 0.0 Sigma: 10.0, Default: 0.0, "
             "Q: 0.1", str(f2))
 
-        f3 = NormalFloatHyperparameter("param", 0, 10, log=True)
-        f3_ = NormalFloatHyperparameter("param", 0, 10, log=True)
+        with pytest.warns(RuntimeWarning, match='divide by zero encountered in log'):
+            f3 = NormalFloatHyperparameter("param", 0, 10, log=True)
+        with pytest.warns(RuntimeWarning, match='divide by zero encountered in log'):
+            f3_ = NormalFloatHyperparameter("param", 0, 10, log=True)
         self.assertEqual(f3, f3_)
         self.assertEqual(
             "param, Type: NormalFloat, Mu: 0.0 Sigma: 10.0, Default: 0.0, "
@@ -248,14 +250,18 @@ class TestHyperparameters(unittest.TestCase):
 
     def test_uniforminteger(self):
         # TODO: rounding or converting or error message?
+
         f1 = UniformIntegerHyperparameter("param", 0.0, 5.0)
         f1_ = UniformIntegerHyperparameter("param", 0, 5)
         self.assertEqual(f1, f1_)
         self.assertEqual("param, Type: UniformInteger, Range: [0, 5], "
                          "Default: 2", str(f1))
 
-        f2 = UniformIntegerHyperparameter("param", 0, 10, q=0.1)
-        f2_ = UniformIntegerHyperparameter("param", 0, 10, q=0.1)
+        quantization_warning = "Setting quantization < 1 for Integer Hyperparameter 'param' has no effect"
+        with pytest.warns(UserWarning, match=quantization_warning):
+            f2 = UniformIntegerHyperparameter("param", 0, 10, q=0.1)
+        with pytest.warns(UserWarning, match=quantization_warning):
+            f2_ = UniformIntegerHyperparameter("param", 0, 10, q=0.1)
         self.assertEqual(f2, f2_)
         self.assertEqual(
             "param, Type: UniformInteger, Range: [0, 10], Default: 5",
@@ -282,10 +288,10 @@ class TestHyperparameters(unittest.TestCase):
             "param, Type: UniformInteger, Range: [1, 10], Default: 1, "
             "on log-scale", str(f4))
 
-        f5 = UniformIntegerHyperparameter("param", 1, 10, default_value=1, q=0.1,\
-                                                                     log=True)
-        f5_ = UniformIntegerHyperparameter("param", 1, 10, default_value=1, q=0.1,\
-                                                                      log=True)
+        with pytest.warns(UserWarning, match=quantization_warning):
+            f5 = UniformIntegerHyperparameter("param", 1, 10, default_value=1, q=0.1, log=True)
+        with pytest.warns(UserWarning, match=quantization_warning):
+            f5_ = UniformIntegerHyperparameter("param", 1, 10, default_value=1, q=0.1, log=True)
         self.assertEqual(f5, f5_)
         self.assertEqual(
             "param, Type: UniformInteger, Range: [1, 10], Default: 1, "
@@ -295,29 +301,32 @@ class TestHyperparameters(unittest.TestCase):
         self.assertNotEqual(f1, "UniformFloat")
 
         # test that meta-data is stored correctly
-        f_meta = UniformIntegerHyperparameter("param", 1, 10, q=0.1, log=True,
-                                              default_value=1, meta=dict(self.meta_data))
+        with pytest.warns(UserWarning, match=quantization_warning):
+            f_meta = UniformIntegerHyperparameter("param", 1, 10, q=0.1, log=True,
+                                                  default_value=1, meta=dict(self.meta_data))
         self.assertEqual(f_meta.meta, self.meta_data)
 
     def test_uniformint_legal_float_values(self):
         n_iter = UniformIntegerHyperparameter("n_iter", 5., 1000., default_value=20.0)
 
         self.assertIsInstance(n_iter.default_value, int)
-        self.assertRaisesRegexp(ValueError, "For the Integer parameter n_iter, "
-                                            "the value must be an Integer, too."
-                                            " Right now it is a <(type|class) "
-                                            "'float'>"
-                                            " with value 20.5.",
-                                UniformIntegerHyperparameter,"n_iter", 5.,
-                                1000., default_value=20.5)
+        self.assertRaisesRegex(ValueError, r"For the Integer parameter n_iter, "
+                                           r"the value must be an Integer, too."
+                                           r" Right now it is a <(type|class) "
+                                           r"'float'>"
+                                           r" with value 20.5.",
+                               UniformIntegerHyperparameter, "n_iter", 5.,
+                               1000., default_value=20.5)
 
     def test_uniformint_illegal_bounds(self):
-        self.assertRaisesRegexp(ValueError,
-            "Negative lower bound \(0\) for log-scale hyperparameter "
-            "param is forbidden.", UniformIntegerHyperparameter, "param", 0, 10,
+        self.assertRaisesRegex(
+            ValueError,
+            r"Negative lower bound \(0\) for log-scale hyperparameter "
+            r"param is forbidden.", UniformIntegerHyperparameter, "param", 0, 10,
             log=True)
 
-        self.assertRaisesRegexp(ValueError,
+        self.assertRaisesRegex(
+            ValueError,
             "Upper bound 1 must be larger than lower bound 0 for "
             "hyperparameter param", UniformIntegerHyperparameter, "param", 1, 0)
 
@@ -330,8 +339,12 @@ class TestHyperparameters(unittest.TestCase):
             "param, Type: NormalInteger, Mu: 0.5 Sigma: 5.5, Default: 0.5",
             str(f1))
 
-        f2 = NormalIntegerHyperparameter("param", 0, 10, q=0.1)
-        f2_ = NormalIntegerHyperparameter("param", 0, 10, q=0.1)
+        with pytest.warns(UserWarning, match="Setting quantization < 1 for Integer "
+                                             "Hyperparameter 'param' has no effect"):
+            f2 = NormalIntegerHyperparameter("param", 0, 10, q=0.1)
+        with pytest.warns(UserWarning, match="Setting quantization < 1 for Integer "
+                                             "Hyperparameter 'param' has no effect"):
+            f2_ = NormalIntegerHyperparameter("param", 0, 10, q=0.1)
         self.assertEqual(f2, f2_)
         self.assertEqual(
             "param, Type: NormalInteger, Mu: 0 Sigma: 10, Default: 0",
@@ -344,8 +357,10 @@ class TestHyperparameters(unittest.TestCase):
             "param, Type: NormalInteger, Mu: 0 Sigma: 10, Default: 0, Q: 2",
             str(f2_large_q))
 
-        f3 = NormalIntegerHyperparameter("param", 0, 10, log=True)
-        f3_ = NormalIntegerHyperparameter("param", 0, 10, log=True)
+        with pytest.warns(RuntimeWarning, match='divide by zero encountered in log'):
+            f3 = NormalIntegerHyperparameter("param", 0, 10, log=True)
+        with pytest.warns(RuntimeWarning, match='divide by zero encountered in log'):
+            f3_ = NormalIntegerHyperparameter("param", 0, 10, log=True)
         self.assertEqual(f3, f3_)
         self.assertEqual(
             "param, Type: NormalInteger, Mu: 0 Sigma: 10, Default: 0, "
@@ -358,8 +373,10 @@ class TestHyperparameters(unittest.TestCase):
             "param, Type: NormalInteger, Mu: 0 Sigma: 10, Default: 1, "
             "on log-scale", str(f4))
 
-        f5 = NormalIntegerHyperparameter("param", 0, 10, q=0.1, log=True)
-        f5_ = NormalIntegerHyperparameter("param", 0, 10, q=0.1, log=True)
+        with pytest.warns(RuntimeWarning, match='divide by zero encountered in log'):
+            f5 = NormalIntegerHyperparameter("param", 0, 10, q=0.1, log=True)
+        with pytest.warns(RuntimeWarning, match='divide by zero encountered in log'):
+            f5_ = NormalIntegerHyperparameter("param", 0, 10, q=0.1, log=True)
         self.assertEqual(f5, f5_)
         self.assertEqual(
             "param, Type: NormalInteger, Mu: 0 Sigma: 10, Default: 0, "
@@ -376,22 +393,25 @@ class TestHyperparameters(unittest.TestCase):
     def test_normalint_legal_float_values(self):
         n_iter = NormalIntegerHyperparameter("n_iter", 0, 1., default_value=2.0)
         self.assertIsInstance(n_iter.default_value, int)
-        self.assertRaisesRegexp(ValueError, "For the Integer parameter n_iter, "
-                                            "the value must be an Integer, too."
-                                            " Right now it is a "
-                                            "<(type|class) 'float'>"
-                                            " with value 0.5.",
-                                UniformIntegerHyperparameter, "n_iter", 0,
-                                1., default_value=0.5)
+        self.assertRaisesRegex(ValueError, r"For the Integer parameter n_iter, "
+                                           r"the value must be an Integer, too."
+                                           r" Right now it is a "
+                                           r"<(type|class) 'float'>"
+                                           r" with value 0.5.",
+                               UniformIntegerHyperparameter, "n_iter", 0,
+                               1., default_value=0.5)
 
     def test_normalint_to_uniform(self):
-        f1 = NormalIntegerHyperparameter("param", 0, 10, q=0.1)
+        with pytest.warns(UserWarning, match="Setting quantization < 1 for Integer "
+                                             "Hyperparameter 'param' has no effect"):
+            f1 = NormalIntegerHyperparameter("param", 0, 10, q=0.1)
         f1_expected = UniformIntegerHyperparameter("param", -30, 30)
         f1_actual = f1.to_uniform()
         self.assertEqual(f1_expected, f1_actual)
 
     def test_normalint_is_legal(self):
-        f1 = NormalIntegerHyperparameter("param", 0, 10, q=0.1, log=True)
+        with pytest.warns(RuntimeWarning, match='divide by zero encountered in log'):
+            f1 = NormalIntegerHyperparameter("param", 0, 10, q=0.1, log=True)
         self.assertFalse(f1.is_legal(3.1))
         self.assertFalse(f1.is_legal(3.0))   # 3.0 behaves like an Integer
         self.assertFalse(f1.is_legal("BlaBlaBla"))
@@ -435,8 +455,7 @@ class TestHyperparameters(unittest.TestCase):
         f6 = CategoricalHyperparameter("param", ["a", "b"], default_value="b")
         f6_ = CategoricalHyperparameter("param", ["a", "b"], default_value="b")
         self.assertEqual(f6, f6_)
-        self.assertEqual("param, Type: Categorical, Choices: {a, b}, Default: b"
-                         , str(f6))
+        self.assertEqual("param, Type: Categorical, Choices: {a, b}, Default: b", str(f6))
 
         self.assertNotEqual(f1, f2)
         self.assertNotEqual(f1, "UniformFloat")
@@ -450,8 +469,7 @@ class TestHyperparameters(unittest.TestCase):
         f1 = CategoricalHyperparameter("param", ["a", "b"])
         f1_ = CategoricalHyperparameter("param", ["a", "b"])
         self.assertEqual(f1, f1_)
-        self.assertEqual("param, Type: Categorical, Choices: {a, b}, Default: a"
-                         , str(f1))
+        self.assertEqual("param, Type: Categorical, Choices: {a, b}, Default: a", str(f1))
 
     def test_categorical_is_legal(self):
         f1 = CategoricalHyperparameter("param", ["a", "b"])
@@ -636,17 +654,17 @@ class TestHyperparameters(unittest.TestCase):
 
     def test_log_space_conversion(self):
         lower, upper = 1e-5, 1e5
-        hyper = UniformFloatHyperparameter('test', lower=lower, upper=upper, 
+        hyper = UniformFloatHyperparameter('test', lower=lower, upper=upper,
             log=True)
         self.assertTrue(hyper.is_legal(hyper._transform(1.)))
 
         lower, upper = 1e-10, 1e10
-        hyper = UniformFloatHyperparameter('test', lower=lower, upper=upper, 
+        hyper = UniformFloatHyperparameter('test', lower=lower, upper=upper,
             log=True)
         self.assertTrue(hyper.is_legal(hyper._transform(1.)))
-    
+
     def test_ordinal_is_legal(self):
-        f1 = OrdinalHyperparameter("temp", 
+        f1 = OrdinalHyperparameter("temp",
                                    ["freezing", "cold", "warm", "hot"])
         self.assertTrue(f1.is_legal("warm"))
         self.assertTrue(f1.is_legal(u"freezing"))
@@ -661,43 +679,43 @@ class TestHyperparameters(unittest.TestCase):
         self.assertTrue(f1.is_legal_vector(3))
         self.assertFalse(f1.is_legal_vector(-0.1))
         self.assertRaises(TypeError, f1.is_legal_vector, "Hahaha")
-        
+
     def test_ordinal_check_order(self):
-        f1 = OrdinalHyperparameter("temp", 
+        f1 = OrdinalHyperparameter("temp",
                                    ["freezing", "cold", "warm", "hot"])
         self.assertTrue(f1.check_order("freezing", "cold"))
         self.assertTrue(f1.check_order("freezing", "hot"))
         self.assertFalse(f1.check_order("hot", "cold"))
         self.assertFalse(f1.check_order("hot", "warm"))
-        
+
     def test_ordinal_get_value(self):
-        f1 = OrdinalHyperparameter("temp", 
+        f1 = OrdinalHyperparameter("temp",
                                    ["freezing", "cold", "warm", "hot"])
         self.assertEqual(f1.get_value(3), "hot")
         self.assertNotEqual(f1.get_value(1), "warm")
-        
+
     def test_ordinal_get_order(self):
-        f1 = OrdinalHyperparameter("temp", 
+        f1 = OrdinalHyperparameter("temp",
                                    ["freezing", "cold", "warm", "hot"])
-        self.assertEqual(f1.get_order("warm"),2)
+        self.assertEqual(f1.get_order("warm"), 2)
         self.assertNotEqual(f1.get_order("freezing"), 3)
-    
+
     def test_ordinal_get_seq_order(self):
-        f1 = OrdinalHyperparameter("temp", 
+        f1 = OrdinalHyperparameter("temp",
                                    ["freezing", "cold", "warm", "hot"])
-        self.assertEqual(tuple(f1.get_seq_order()), tuple([0,1,2,3]))
-    
+        self.assertEqual(tuple(f1.get_seq_order()), tuple([0, 1, 2, 3]))
+
     def test_ordinal_get_neighbors(self):
-        f1 = OrdinalHyperparameter("temp", 
+        f1 = OrdinalHyperparameter("temp",
                                    ["freezing", "cold", "warm", "hot"])
         self.assertEqual(f1.get_neighbors(0, rs=None), [1])
         self.assertEqual(f1.get_neighbors(1, rs=None), [0, 2])
         self.assertEqual(f1.get_neighbors(3, rs=None), [2])
-        self.assertEqual(f1.get_neighbors("hot", transform =True, rs=None), ["warm"])
-        self.assertEqual(f1.get_neighbors("cold", transform =True, rs=None), ["freezing", "warm"])
+        self.assertEqual(f1.get_neighbors("hot", transform=True, rs=None), ["warm"])
+        self.assertEqual(f1.get_neighbors("cold", transform=True, rs=None), ["freezing", "warm"])
 
     def test_get_num_neighbors(self):
-        f1 = OrdinalHyperparameter("temp", 
+        f1 = OrdinalHyperparameter("temp",
                                    ["freezing", "cold", "warm", "hot"])
         self.assertEqual(f1.get_num_neighbors("freezing"), 1)
         self.assertEqual(f1.get_num_neighbors("hot"), 1)
