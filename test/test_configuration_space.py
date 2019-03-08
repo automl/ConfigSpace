@@ -94,8 +94,13 @@ class TestConfigurationSpace(unittest.TestCase):
         forb2 = ForbiddenEqualsClause(hp2, "l1")
         forb3 = ForbiddenAndConjunction(forb1, forb2)
         # cs.add_forbidden_clause(forb3)
-        self.assertRaisesRegexp(ValueError, "Given vector violates forbidden clause \(Forbidden: loss == \'l1\' && "
-            "Forbidden: penalty == \'l1\'\)", cs.add_forbidden_clause, forb3)
+        self.assertRaisesRegexp(
+            ValueError,
+            "Given vector violates forbidden clause \(Forbidden: loss == \'l1\' && "
+            "Forbidden: penalty == \'l1\'\)",
+            cs.add_forbidden_clause,
+            forb3,
+        )
 
     def test_meta_data_stored(self):
         meta_data = {'additional': 'meta-data',
@@ -208,6 +213,25 @@ class TestConfigurationSpace(unittest.TestCase):
                                   "Default: 0\n"
                                   "  Forbidden Clauses:\n"
                                   "    Forbidden: input1 == 1\n")
+
+    def test_add_forbidden_illegal(self):
+        cs = ConfigurationSpace()
+        hp = CategoricalHyperparameter("input1", [0, 1])
+        forb = ForbiddenEqualsClause(hp, 1)
+        self.assertRaisesRegex(
+            ValueError,
+            "Cannot add clause '%s'" % forb,
+            cs.add_forbidden_clause,
+            forb,
+        )
+
+        forb2 = ForbiddenEqualsClause(hp, 0)
+        self.assertRaisesRegex(
+            ValueError,
+            "Cannot add clause '%s'" % forb,
+            cs.add_forbidden_clauses,
+            [forb, forb2],
+        )
 
     def test_add_configuration_space(self):
         cs = ConfigurationSpace()
@@ -733,7 +757,7 @@ class ConfigurationTest(unittest.TestCase):
             saved_value = json.loads(string)
             saved_value = byteify(saved_value)
             self.assertEqual(values_dict, saved_value)
-            
+
     def test_setitem(self):
         '''
         Checks overriding a sampled configuration
@@ -749,13 +773,13 @@ class ConfigurationTest(unittest.TestCase):
         # Forbidden
         x3 = pcs.add_hyperparameter(CategoricalHyperparameter('x3', [1, 2]))
         pcs.add_forbidden_clause(ForbiddenEqualsClause(x3, 2))
-        
+
         conf = pcs.get_default_configuration()
-        
+
         # failed because it's a invalid configuration
         with self.assertRaisesRegex(ValueError, "Illegal value '0' for hyperparameter x0"):
             conf['x0'] = 0
-        
+
         # failed because the variable didn't exists
         with self.assertRaisesRegex(KeyError, "Hyperparameter 'x_0' does not exist in this configuration space."):
             conf['x_0'] = 1
@@ -764,7 +788,7 @@ class ConfigurationTest(unittest.TestCase):
         with self.assertRaisesRegex(ForbiddenValueError, "Given vector violates forbidden clause Forbidden: x3 == 2"):
             conf['x3'] = 2
         self.assertEqual(conf['x3'], 1)
-        
+
         # successful operation 1
         x0_old = conf['x0']
         if x0_old == 1:
@@ -775,7 +799,7 @@ class ConfigurationTest(unittest.TestCase):
         self.assertNotEqual(x0_old, x0_new)
         pcs._check_configuration_rigorous(conf)
         self.assertEqual(conf['x2'], 1)
-        
+
         # successful operation 2
         x1_old = conf['x1']
         if x1_old == 'ab':

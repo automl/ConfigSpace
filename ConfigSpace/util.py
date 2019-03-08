@@ -307,6 +307,7 @@ def get_random_neighbor(configuration: Configuration, seed: int) -> Configuratio
 def deactivate_inactive_hyperparameters(
         configuration: Dict,
         configuration_space: ConfigurationSpace,
+        vector: Union[None, np.ndarray] = None,
 ):
     """
     Removes inactive hyperparameters from a given configuration
@@ -319,6 +320,9 @@ def deactivate_inactive_hyperparameters(
         The defined configuration space. It is necessary to find the inactive
         hyperparameters by iterating through the conditions of the
         configuration space.
+    vector : (np.ndarray, optional)
+        Efficient represantation of a configuration. Either ``configuration`` or ``vector`` must
+        be specified. If both are specified only ``configuration`` will be used.
 
     Returns
     -------
@@ -330,6 +334,7 @@ def deactivate_inactive_hyperparameters(
     hyperparameters = configuration_space.get_hyperparameters()
     configuration = Configuration(configuration_space=configuration_space,
                                   values=configuration,
+                                  vector=vector,
                                   allow_inactive_with_values=True)
 
     hps = deque()

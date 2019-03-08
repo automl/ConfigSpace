@@ -34,20 +34,28 @@ import numpy as np
 import io
 
 import ConfigSpace.nx
-from ConfigSpace.hyperparameters import Hyperparameter, Constant, FloatHyperparameter
-from ConfigSpace.conditions import ConditionComponent, \
-    AbstractCondition, AbstractConjunction, EqualsCondition
-# from ConfigSpace.forbidden import AbstractForbiddenComponent
-from ConfigSpace.forbidden import AbstractForbiddenComponent
+from ConfigSpace.hyperparameters import (
+    Hyperparameter,
+    Constant,
+    FloatHyperparameter,
+)
+from ConfigSpace.conditions import (
+    ConditionComponent,
+    AbstractCondition,
+    AbstractConjunction,
+    EqualsCondition,
+)
+from ConfigSpace.forbidden import (
+    AbstractForbiddenComponent,
+    AbstractForbiddenClause,
+    AbstractForbiddenConjunction,
+)
 from typing import Union, List, Any, Dict, Iterable, Set, Tuple, Optional
 from ConfigSpace.exceptions import ForbiddenValueError
 import ConfigSpace.c_util
 
 
 class ConfigurationSpace(object):
-
-    # TODO add comments to both the configuration space and single
-    # hyperparameters!
 
     # TODO add a method to add whole configuration spaces as a child "tree"
 
@@ -557,14 +565,38 @@ class ConfigurationSpace(object):
             Same as input clauses
         """
         for clause in clauses:
+            self._check_forbidden_component(clause=clause)
             clause.set_vector_idx(self._hyperparameter_idx)
-            if not isinstance(clause, AbstractForbiddenComponent):
-                raise TypeError("Forbidden '%s' is not an instance of "
-                                "ConfigSpace.forbidden.AbstractForbiddenComponent." %
-                                str(clause))
             self.forbidden_clauses.append(clause)
         self._check_default_configuration()
         return clauses
+
+    def _check_forbidden_component(self, clause: AbstractForbiddenComponent):
+        if not isinstance(clause, AbstractForbiddenComponent):
+            raise TypeError("The method add_forbidden_clause must be called "
+                            "with an instance of "
+                            "ConfigSpace.forbidden.AbstractForbiddenComponent.")
+        to_check = list()
+        if isinstance(clause, AbstractForbiddenClause):
+            to_check.append(clause)
+        elif isinstance(clause, AbstractForbiddenConjunction):
+            to_check.extend(clause.get_descendant_literal_clauses())
+        else:
+            raise NotImplementedError(type(clause))
+
+        for tmp_clause in to_check:
+            if tmp_clause.hyperparameter.name not in self._hyperparameters:
+                raise ValueError(
+                    "Cannot add clause '%s' because it references hyperparameter"
+                    " %s which is not in the configuration space (allowed "
+                    "hyperparameters are: %s)"
+                    % (
+                        tmp_clause,
+                        tmp_clause.hyperparameter.name,
+                        list(self._hyperparameters),
+                    )
+                )
+
 
     def add_configuration_space(self, prefix: str, configuration_space: 'ConfigurationSpace',
                                 delimiter: str=":", parent_hyperparameter: Hyperparameter=None) -> 'ConfigurationSpace':
@@ -1438,7 +1470,7 @@ class Configuration(object):
             return self[item]
         except:
             return default
-            
+
     def __setitem__(self, key, value):
         param = self.configuration_space.get_hyperparameter(key)
         if not param.is_legal(value):
@@ -1461,7 +1493,7 @@ class Configuration(object):
         self._vector = new_array
         self._values = dict()
         self._query_values = False
-        
+
     def __contains__(self, item: str) -> bool:
         self._populate_values()
         return item in self._values
