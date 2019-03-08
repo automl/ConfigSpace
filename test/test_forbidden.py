@@ -168,7 +168,7 @@ class TestForbidden(unittest.TestCase):
         self.assertFalse(forb1.is_forbidden_vector(np.array([np.NaN, 0]), strict=False))
         correct_vector_value = hp2._inverse_transform(6)
         # print("\nTest11:")
-        print(correct_vector_value, np.array([np.NaN, correct_vector_value]))
+        # print(correct_vector_value, np.array([np.NaN, correct_vector_value]))
         self.assertTrue(forb1.is_forbidden_vector(np.array([np.NaN, correct_vector_value]), strict=False))
         # print("\nfinished:")
 

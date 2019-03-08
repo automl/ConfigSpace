@@ -228,7 +228,7 @@ class TestIraceWriter(unittest.TestCase):
         cs.add_forbidden_clauses(
             [forb2, forb3, forb4, forb5, forb6, and1, and2, and3])
 
-        irace.write(cs)  # generates file called forbidden.txt
+        value = irace.write(cs)  # generates file called forbidden.txt
 
     def test_write_log_int(self):
         expected = "int_log '--int_log ' i (2, 4)\n"

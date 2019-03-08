@@ -528,7 +528,7 @@ class TestHyperparameters(unittest.TestCase):
         hp = UniformFloatHyperparameter("ufhp", 1.0, np.e ** 2, log=True)
 
         counts_per_bin = sample(hp)
-        print(counts_per_bin)
+        # print(counts_per_bin)
         self.assertEqual(counts_per_bin,
                          [14012, 10977, 8809, 7559, 6424, 5706, 5276, 4694,
                           4328, 3928, 3655, 3386, 3253, 2932, 2816, 2727, 2530,
@@ -585,7 +585,7 @@ class TestHyperparameters(unittest.TestCase):
         hp = UniformIntegerHyperparameter("uihp", 0, 10)
 
         counts_per_bin = sample(hp)
-        print(counts_per_bin)
+        # print(counts_per_bin)
         for bin in counts_per_bin[::2]:
             self.assertTrue(9302 > bin > 8700)
         for bin in counts_per_bin[1::2]:

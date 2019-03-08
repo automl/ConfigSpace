@@ -44,7 +44,6 @@ from ConfigSpace.exceptions import ForbiddenValueError
 
 
 def byteify(input):
-    print(sys.version)
     if sys.version_info >= (3, 0):
         return input
 
@@ -368,9 +367,9 @@ class TestConfigurationSpace(unittest.TestCase):
 
             cs.add_condition(conj3)
             hps = cs.get_hyperparameters()
-            print(hps, hyperparameters)
+            # print(hps, hyperparameters)
             for hp, idx in zip(hyperparameters, [0, 1, 2, 5, 4, 6, 3]):
-                print(hp, idx)
+                # print(hp, idx)
                 self.assertEqual(hps.index(hp), idx)
                 self.assertEqual(cs._hyperparameter_idx[hp.name], idx)
             self.assertEqual(cs._idx_to_hyperparameter[idx], hp.name)
