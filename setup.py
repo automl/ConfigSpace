@@ -36,11 +36,11 @@ extensions = [
               include_dirs=[np.get_include()],
               compiler_directives=compiler_directives),
     Extension('ConfigSpace.util',
-              sources=['ConfigSpace/util.py'],
+              sources=['ConfigSpace/util.pyx'],
               include_dirs=[np.get_include()],
               compiler_directives=compiler_directives),
     Extension('ConfigSpace.configuration_space',
-              sources=['ConfigSpace/configuration_space.py'],
+              sources=['ConfigSpace/configuration_space.pyx'],
               include_dirs=[np.get_include()],
               compiler_directives=compiler_directives),
 ]
