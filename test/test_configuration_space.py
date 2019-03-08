@@ -53,7 +53,7 @@ def byteify(input):
                 for key, value in input.iteritems()}
     elif isinstance(input, list):
         return [byteify(element) for element in input]
-    elif isinstance(input, unicode):
+    elif isinstance(input, str):
         return input.encode('utf-8')
     else:
         return input
@@ -235,9 +235,9 @@ class TestConfigurationSpace(unittest.TestCase):
     def test_add_configuration_space(self):
         cs = ConfigurationSpace()
         hp1 = cs.add_hyperparameter(CategoricalHyperparameter("input1", [0, 1]))
-        forb1 = cs.add_forbidden_clause(ForbiddenEqualsClause(hp1, 1))
+        cs.add_forbidden_clause(ForbiddenEqualsClause(hp1, 1))
         hp2 = cs.add_hyperparameter(UniformIntegerHyperparameter("child", 0, 10))
-        cond = cs.add_condition(EqualsCondition(hp2, hp1, 0))
+        cs.add_condition(EqualsCondition(hp2, hp1, 0))
         cs2 = ConfigurationSpace()
         cs2.add_configuration_space('prefix', cs, delimiter='__')
         self.assertEqual(str(cs2), '''Configuration space object:
@@ -540,8 +540,7 @@ class TestConfigurationSpace(unittest.TestCase):
         # that evaluating forbidden clauses does not choke on missing
         # hyperparameters
         cs = ConfigurationSpace()
-        classifier = CategoricalHyperparameter("classifier",
-            ["k_nearest_neighbors", "extra_trees"])
+        classifier = CategoricalHyperparameter("classifier", ["k_nearest_neighbors", "extra_trees"])
         metric = CategoricalHyperparameter("metric", ["minkowski", "other"])
         p = CategoricalHyperparameter("k_nearest_neighbors:p", [1, 2])
         metric_depends_on_classifier = EqualsCondition(metric, classifier,
@@ -689,10 +688,10 @@ class TestConfigurationSpace(unittest.TestCase):
 class ConfigurationTest(unittest.TestCase):
     def setUp(self):
         cs = ConfigurationSpace()
-        hp1 = cs.add_hyperparameter(CategoricalHyperparameter("parent", [0, 1]))
-        hp2 = cs.add_hyperparameter(
+        cs.add_hyperparameter(CategoricalHyperparameter("parent", [0, 1]))
+        cs.add_hyperparameter(
             UniformIntegerHyperparameter("child", 0, 10))
-        hp3 = cs.add_hyperparameter(
+        cs.add_hyperparameter(
             UniformIntegerHyperparameter("friend", 0, 5))
         self.cs = cs
 
@@ -832,5 +831,4 @@ class ConfigurationTest(unittest.TestCase):
 
         for i in range(10):
             config = cs.sample_configuration()
-            d = {hp_name: config[hp_name] for hp_name in
-                 config if config[hp_name] is not None}
+            {hp_name: config[hp_name] for hp_name in config if config[hp_name] is not None}

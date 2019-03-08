@@ -82,9 +82,11 @@ class TestIraceWriter(unittest.TestCase):
     '''
     def setUp(self):
         self.test_dir = tempfile.mkdtemp()
+        self.cwd = os.getcwd()
         os.chdir(self.test_dir)
 
     def tearDown(self):
+        os.chdir(self.cwd)
         shutil.rmtree(self.test_dir)
 
     def test_write_illegal_argument(self):
@@ -237,7 +239,7 @@ class TestIraceWriter(unittest.TestCase):
         cs.add_forbidden_clauses(
             [forb2, forb3, forb4, forb5, forb6, and1, and2, and3])
 
-        value = irace.write(cs)  # generates file called forbidden.txt
+        irace.write(cs)  # generates file called forbidden.txt
 
     def test_write_log_int(self):
         expected = "int_log '--int_log ' i (2, 4)\n"

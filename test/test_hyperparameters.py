@@ -137,7 +137,7 @@ class TestHyperparameters(unittest.TestCase):
         # TODO is this a useful rounding?
         # TODO should there be any rounding, if e.g. lower=0.1
         self.assertEqual("param, Type: UniformInteger, Range: [1, 10], "
-                            "Default: 3, on log-scale", str(f2))
+                         "Default: 3, on log-scale", str(f2))
 
     def test_uniformfloat_is_legal(self):
         lower = 0.1
@@ -267,10 +267,10 @@ class TestHyperparameters(unittest.TestCase):
             "param, Type: UniformInteger, Range: [0, 10], Default: 5",
             str(f2))
 
-        #f2_large_q = UniformIntegerHyperparameter("param", 0, 10, q=2)
-        #f2_large_q_ = UniformIntegerHyperparameter("param", 0, 10, q=2)
-        #self.assertEqual(f2_large_q, f2_large_q_)
-        #self.assertEqual(
+        # f2_large_q = UniformIntegerHyperparameter("param", 0, 10, q=2)
+        # f2_large_q_ = UniformIntegerHyperparameter("param", 0, 10, q=2)
+        # self.assertEqual(f2_large_q, f2_large_q_)
+        # self.assertEqual(
         #    "param, Type: UniformInteger, Range: [0, 10], Default: 5, Q: 2",
         #    str(f2_large_q))
 
@@ -297,7 +297,7 @@ class TestHyperparameters(unittest.TestCase):
             "param, Type: UniformInteger, Range: [1, 10], Default: 1, "
             "on log-scale", str(f5))
 
-        #self.assertNotEqual(f2, f2_large_q)
+        # self.assertNotEqual(f2, f2_large_q)
         self.assertNotEqual(f1, "UniformFloat")
 
         # test that meta-data is stored correctly
@@ -654,13 +654,11 @@ class TestHyperparameters(unittest.TestCase):
 
     def test_log_space_conversion(self):
         lower, upper = 1e-5, 1e5
-        hyper = UniformFloatHyperparameter('test', lower=lower, upper=upper,
-            log=True)
+        hyper = UniformFloatHyperparameter('test', lower=lower, upper=upper, log=True)
         self.assertTrue(hyper.is_legal(hyper._transform(1.)))
 
         lower, upper = 1e-10, 1e10
-        hyper = UniformFloatHyperparameter('test', lower=lower, upper=upper,
-            log=True)
+        hyper = UniformFloatHyperparameter('test', lower=lower, upper=upper, log=True)
         self.assertTrue(hyper.is_legal(hyper._transform(1.)))
 
     def test_ordinal_is_legal(self):

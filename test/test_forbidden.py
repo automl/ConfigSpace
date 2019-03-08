@@ -28,7 +28,6 @@
 
 from itertools import product
 import unittest
-import warnings
 
 import numpy as np
 
@@ -103,7 +102,6 @@ class TestForbidden(unittest.TestCase):
         self.assertFalse(forb1.is_forbidden_vector(np.array([0., np.NaN]), strict=False))
         # print("\nneq12:")
         self.assertTrue(forb1.is_forbidden_vector(np.array([1., np.NaN]), strict=False))
-
 
     def test_in_condition(self):
         hp1 = CategoricalHyperparameter("parent", [0, 1, 2, 3, 4])

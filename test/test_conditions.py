@@ -30,8 +30,7 @@ import unittest
 import numpy as np
 
 from ConfigSpace.hyperparameters import Constant, \
-    UniformFloatHyperparameter, NormalFloatHyperparameter, \
-    UniformIntegerHyperparameter, NormalIntegerHyperparameter, \
+    UniformFloatHyperparameter, UniformIntegerHyperparameter, \
     CategoricalHyperparameter, OrdinalHyperparameter
 from ConfigSpace.conditions import EqualsCondition, NotEqualsCondition, \
     InCondition, AndConjunction, OrConjunction, LessThanCondition, \

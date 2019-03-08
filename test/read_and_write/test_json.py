@@ -1,5 +1,4 @@
 import os
-import re
 import unittest
 
 from ConfigSpace.read_and_write.json import read, write
@@ -37,7 +36,7 @@ class TestJson(unittest.TestCase):
                     cs_string = fh.read().split('\n')
                 try:
                     cs = read_pcs(cs_string)
-                except:
+                except Exception:
                     cs = read_pcs_new(cs_string)
 
                 cs.name = pcs_file

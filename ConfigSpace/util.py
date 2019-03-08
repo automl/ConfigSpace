@@ -31,18 +31,18 @@
 
 from collections import deque
 import copy
-from typing import Union, List, Dict, Generator
+from typing import Union, Dict, Generator
 
 import numpy as np  # type: ignore
 from ConfigSpace import Configuration, ConfigurationSpace
 from ConfigSpace.exceptions import ForbiddenValueError
 from ConfigSpace.hyperparameters import CategoricalHyperparameter, \
     UniformFloatHyperparameter, UniformIntegerHyperparameter, Constant, \
-    OrdinalHyperparameter, Hyperparameter
+    OrdinalHyperparameter
 import ConfigSpace.c_util
 
 
-def impute_inactive_values(configuration: Configuration, strategy: Union[str, float]='default') -> Configuration:
+def impute_inactive_values(configuration: Configuration, strategy: Union[str, float] = 'default') -> Configuration:
     """Impute inactive parameters.
 
     Parameters
@@ -81,9 +81,8 @@ def impute_inactive_values(configuration: Configuration, strategy: Union[str, fl
 def get_one_exchange_neighbourhood(
         configuration: Configuration,
         seed: int,
-        num_neighbors: int=4,
-        stdev: float=0.2,
-    ) -> Generator[Configuration]:
+        num_neighbors: int = 4,
+        stdev: float = 0.2) -> Generator[Configuration]:
     """Return all configurations in a one-exchange neighborhood.
 
     The method is implemented as defined by:
@@ -97,10 +96,13 @@ def get_one_exchange_neighbourhood(
     )
     hyperparameters_list_length = len(hyperparameters_list)
     hyperparameters_used = [hp.name for hp in configuration.configuration_space.get_hyperparameters()
-                            if hp.get_num_neighbors(configuration.get(hp.name)) == 0 and configuration.get(hp.name) is not None]
+                            if hp.get_num_neighbors(configuration.get(hp.name)) == 0 and
+                            configuration.get(hp.name)is not None]
     number_of_usable_hyperparameters = sum(np.isfinite(configuration.get_array()))
     n_neighbors_per_hp = {
-        hp.name: num_neighbors if np.isinf(hp.get_num_neighbors(configuration.get(hp.name))) else hp.get_num_neighbors(configuration.get(hp.name))
+        hp.name: num_neighbors if
+        np.isinf(hp.get_num_neighbors(configuration.get(hp.name)))
+        else hp.get_num_neighbors(configuration.get(hp.name))
         for hp in configuration.configuration_space.get_hyperparameters()
     }
 
@@ -176,7 +178,7 @@ def get_one_exchange_neighbourhood(
                     else:
                         configuration_space._check_forbidden(new_array)
                     neighbourhood.append(new_configuration)
-                except ForbiddenValueError as e:
+                except ForbiddenValueError:
                     pass
 
                 iteration += 1
@@ -263,7 +265,7 @@ def get_random_neighbor(configuration: Configuration, seed: int) -> Configuratio
             new_configuration = Configuration(
                 configuration.configuration_space, values=values)
             rejected = False
-        except ValueError as e:
+        except ValueError:
             values[hp.name] = previous_value
 
     return new_configuration
@@ -325,6 +327,7 @@ def deactivate_inactive_hyperparameters(
                 allow_inactive_with_values=True)
 
     return Configuration(configuration_space, values=configuration.get_dictionary())
+
 
 def fix_types(configuration: dict,
               configuration_space: ConfigurationSpace):
