@@ -28,6 +28,9 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import unittest
+import shutil
+import tempfile
+import os
 
 from ConfigSpace.configuration_space import ConfigurationSpace
 import ConfigSpace.read_and_write.irace as irace
@@ -77,6 +80,12 @@ class TestIraceWriter(unittest.TestCase):
     '''
     Test IRACE writer
     '''
+    def setUp(self):
+        self.test_dir = tempfile.mkdtemp()
+        os.chdir(self.test_dir)
+
+    def tearDown(self):
+        shutil.rmtree(self.test_dir)
 
     def test_write_illegal_argument(self):
         sp = {"a": int_a}
