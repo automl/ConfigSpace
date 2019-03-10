@@ -112,11 +112,15 @@ cdef class AbstractCondition(ConditionComponent):
         self.parent_vector_id = -1
 
     def __richcmp__(self, other: Any, int op):
-        """Override the default Equals behavior
-        There are no separate methods for the individual rich comparison
-        operations (__eq__(), __le__(), etc.).
-        Instead there is a single method __richcmp__() which takes an integer
-        indicating which operation is to be performed, as follows:
+        """
+        Todo: With Cython 2.7 this function can be replaced by using the six
+              Python special methods (__eq__(), __lt__(),...).
+        (--> https://cython.readthedocs.io/en/latest/src/userguide/special_methods.html#rich-comparisons)
+
+        Before 2.7 there were no separate methods for the individual rich
+        comparison operations. Instead there is a single method __richcmp__()
+        which takes an integer indicating which operation is to be performed,
+        as follows:
         < 	0
         == 2
         > 	4
@@ -180,8 +184,8 @@ cdef class EqualsCondition(AbstractCondition):
 
     def __init__(self, child: Hyperparameter, parent: Hyperparameter, value: Union[str, float, int]) -> None:
         """
-        Adds on the ``child`` hyperparameter the condition, that the ``parent``
-        hyperparameter has to be equal to ``value``.
+        Hyperparameter ``child`` is conditional on the ``parent`` hyperparameter
+        being *equal* to ``value``.
 
         Example
         -------
@@ -200,9 +204,9 @@ cdef class EqualsCondition(AbstractCondition):
         ----------
         child : :ref:`Hyperparameters`
             This hyperparameter will be sampled in the configspace
-            if the ``equal condition`` is satisfied
+            if the *equal condition* is satisfied
         parent : :ref:`Hyperparameters`
-            The hyperparameter, which has to satisfy the ``equal condition``
+            The hyperparameter, which has to satisfy the *equal condition*
         value : (str, float, int)
             Value, which the parent is compared to
         """
@@ -252,8 +256,8 @@ cdef class EqualsCondition(AbstractCondition):
 cdef class NotEqualsCondition(AbstractCondition):
     def __init__(self, child: Hyperparameter, parent: Hyperparameter, value: Union[str, float, int]) -> None:
         """
-        Adds on the ``child`` hyperparameter the condition, that the ``parent``
-        hyperparameter's value is not equal to ``value``.
+        Hyperparameter ``child`` is conditional on the ``parent`` hyperparameter
+        being *not equal* to ``value``.
 
         Example
         -------
@@ -275,7 +279,7 @@ cdef class NotEqualsCondition(AbstractCondition):
             if the not-equals condition is satisfied
         parent : :ref:`Hyperparameters`
             The hyperparameter, which has to satisfy the
-            ``not equal condition``
+            *not equal condition*
         value : (str, float, int)
             Value, which the parent is compared to
 
@@ -324,8 +328,8 @@ cdef class NotEqualsCondition(AbstractCondition):
 cdef class LessThanCondition(AbstractCondition):
     def __init__(self, child: Hyperparameter, parent: Hyperparameter, value: Union[str, float, int]) -> None:
         """
-        Adds on the ``child`` hyperparameter the condition, that the ``parent``
-        hyperparameter's value has to be less than ``value``.
+        Hyperparameter ``child`` is conditional on the ``parent`` hyperparameter
+        being *less than* ``value``.
 
         Example
         -------
@@ -344,9 +348,9 @@ cdef class LessThanCondition(AbstractCondition):
         ----------
         child : :ref:`Hyperparameters`
             This hyperparameter will be sampled in the configspace,
-            if the ``LessThanCondition`` is satisfied
+            if the *LessThanCondition* is satisfied
         parent : :ref:`Hyperparameters`
-            The hyperparameter, which has to satisfy the ``LessThanCondition``
+            The hyperparameter, which has to satisfy the *LessThanCondition*
         value : (str, float, int)
             Value, which the parent is compared to
 
@@ -397,8 +401,8 @@ cdef class LessThanCondition(AbstractCondition):
 cdef class GreaterThanCondition(AbstractCondition):
     def __init__(self, child: Hyperparameter, parent: Hyperparameter, value: Union[str, float, int]) -> None:
         """
-        Adds on the ``child`` hyperparameter the condition, that the ``parent``
-        hyperparameter's value has to be greater than ``value``.
+        Hyperparameter ``child`` is conditional on the ``parent`` hyperparameter
+        being *greater than* ``value``.
 
         Example
         -------
@@ -417,9 +421,9 @@ cdef class GreaterThanCondition(AbstractCondition):
         ----------
         child : :ref:`Hyperparameters`
             This hyperparameter will be sampled in the configspace,
-            if the ``GreaterThanCondition`` is satisfied
+            if the *GreaterThanCondition* is satisfied
         parent : :ref:`Hyperparameters`
-            The hyperparameter, which has to satisfy the ``GreaterThanCondition``
+            The hyperparameter, which has to satisfy the *GreaterThanCondition*
         value : (str, float, int)
             Value, which the parent is compared to
 
@@ -472,8 +476,8 @@ cdef class InCondition(AbstractCondition):
 
     def __init__(self, child: Hyperparameter, parent: Hyperparameter, values: List[Union[str, float, int]]) -> None:
         """
-        Adds on the ``child`` hyperparameter the condition, that the ``parent``
-        hyperparameter's value has to be in the set ``values``.
+        Hyperparameter ``child`` is conditional on the ``parent`` hyperparameter
+        being *in* a set of ``values``.
 
         Example
         -------
@@ -492,9 +496,9 @@ cdef class InCondition(AbstractCondition):
         ----------
         child : :ref:`Hyperparameters`
             This hyperparameter will be sampled in the configspace,
-            if the ``InCondition`` is satisfied
+            if the *InCondition* is satisfied
         parent : :ref:`Hyperparameters`
-            The hyperparameter, which has to satisfy the ``InCondition``
+            The hyperparameter, which has to satisfy the *InCondition*
         values : list([str, float, int])
             Collection of values, which the parent is compared to
 
@@ -511,9 +515,15 @@ cdef class InCondition(AbstractCondition):
         self.vector_values = [self.parent._inverse_transform(value) for value in self.values]
 
     def __richcmp__(self, other: Any, int op):
-        """Override the default Equals behavior
-        There are no separate methods for the individual rich comparison operations (__eq__(), __le__(), etc.).
-         Instead there is a single method __richcmp__() which takes an integer indicating which operation is to be performed, as follows:
+        """
+        Todo: With Cython 2.7 this function can be replaced by using the six
+              Python special methods (__eq__(), __lt__(),...).
+        (--> https://cython.readthedocs.io/en/latest/src/userguide/special_methods.html#rich-comparisons)
+
+        Before 2.7 there were no separate methods for the individual rich
+        comparison operations. Instead there is a single method __richcmp__()
+        which takes an integer indicating which operation is to be performed,
+        as follows:
         < 	0
         == 2
         > 	4
@@ -577,9 +587,15 @@ cdef class AbstractConjunction(ConditionComponent):
                                  "the same child.")
 
     def __richcmp__(self, other: Any, int op):
-        """Override the default Equals behavior
-        There are no separate methods for the individual rich comparison operations (__eq__(), __le__(), etc.).
-         Instead there is a single method __richcmp__() which takes an integer indicating which operation is to be performed, as follows:
+        """
+        Todo: With Cython 2.7 this function can be replaced by using the six
+              Python special methods (__eq__(), __lt__(),...).
+        (--> https://cython.readthedocs.io/en/latest/src/userguide/special_methods.html#rich-comparisons)
+
+        Before 2.7 there were no separate methods for the individual rich
+        comparison operations. Instead there is a single method __richcmp__()
+        which takes an integer indicating which operation is to be performed,
+        as follows:
         < 	0
         == 2
         > 	4
@@ -701,12 +717,12 @@ cdef class AndConjunction(AbstractConjunction):
     # Tautology! -> SAT solver
     def __init__(self, *args: AbstractCondition) -> None:
         """
-        By using the and conjunction, we can easily connect constraints.
-        The following example shows how we can combine two constraints with an
-        ``AndConjunction``.
+        By using the *AndConjunction*, constraints can easily be connected.
 
         Example
         -------
+        The following example shows how two constraints with an
+        *AndConjunction* can be combined.
 
         >>> import ConfigSpace as CS
         >>> import ConfigSpace.hyperparameters as CSH
@@ -722,7 +738,7 @@ cdef class AndConjunction(AbstractConjunction):
         Parameters
         ----------
         *args : :ref:`Conditions`
-            conditions, which will be combined with an ``AndConjunction``
+            conditions, which will be combined with an *AndConjunction*
 
         """
         if len(args) < 2:
@@ -762,8 +778,8 @@ cdef class AndConjunction(AbstractConjunction):
 cdef class OrConjunction(AbstractConjunction):
     def __init__(self, *args: AbstractCondition) -> None:
         """
-        Similar to the ``AndConjunction``, new constraints can be combined by
-        using the ``OrConjunction``.
+        Similar to the *AndConjunction*, constraints can be combined by
+        using the *OrConjunction*.
 
         Example
         -------
@@ -782,7 +798,7 @@ cdef class OrConjunction(AbstractConjunction):
         Parameters
         ----------
         *args : :ref:`Conditions`
-            conditions, which will be combined with an ``OrConjunction``
+            conditions, which will be combined with an *OrConjunction*
         """
         if len(args) < 2:
             raise ValueError("OrConjunction must at least have two "

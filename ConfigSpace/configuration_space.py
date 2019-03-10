@@ -66,10 +66,14 @@ class ConfigurationSpace(object):
             meta: Optional[Dict] = None,
     ) -> None:
         """
+        A collection-like object containing a set of hyperparameter definitions and conditions.
+
         A configuration space organizes all hyperparameters and its conditions
         as well as its forbidden clauses. Configurations can be sampled from
-        this configuration space.
-        
+        this configuration space. As underlying data structure, the
+        configuration space uses a tree-based approach to represent the
+        conditions and restrictions between hyperparameters.
+
         Parameters
         ----------
         name : str
@@ -77,7 +81,8 @@ class ConfigurationSpace(object):
         seed : int
             random seed
         meta : dict 
-            metadata (not used)
+            Field for holding meta data provided by the user.
+            Not used by the configuration space.
         """
         self.name = name
         self.meta = meta
@@ -111,17 +116,14 @@ class ConfigurationSpace(object):
 
     def generate_all_continuous_from_bounds(self, bounds: List[List[Any]]) -> None:
         """
-        Generates Unniform Float Hyperparameter from a list containing tuples 
-        with lower and upper bounds. The generated hyperparameters are added to 
-        the configuration space.
+        Generate :class:`~ConfigSpace.hyperparameters.UniformFloatHyperparameter`
+        from a list containing lists with lower and upper bounds. The generated
+        hyperparameters are added to the configuration space.
         
         Parameters
         ----------
-        bounds : list(float,float)
-            List containing tuples with lower and upper bounds
-        Returns
-        -------
-            None
+        bounds : list(list(float, float))
+            List containing lists with two elements: lower and upper bound
         """
         for i, (l, u) in enumerate(bounds):
             hp = ConfigSpace.UniformFloatHyperparameter('x%d' % i, l, u)
@@ -209,7 +211,7 @@ class ConfigurationSpace(object):
 
     def add_condition(self, condition: ConditionComponent) -> ConditionComponent:
         """
-        Adds a condition to the configuration space.
+        Add a condition to the configuration space.
         Check if adding the condition is legal:
 
         - The parent in a condition statement must exist
@@ -270,9 +272,9 @@ class ConfigurationSpace(object):
 
     def add_conditions(self, conditions: List[ConditionComponent]) -> List[ConditionComponent]:
         """
-        Adds a list of conditions to the configuration space.
+        Add a list of conditions to the configuration space.
         They must be legal. Take a look at
-        :meth:`ConfigSpace.configuration_space.ConfigurationSpace.add_condition`.
+        :meth:`~ConfigSpace.configuration_space.ConfigurationSpace.add_condition`.
 
         Parameters
         ----------
@@ -529,7 +531,7 @@ class ConfigurationSpace(object):
 
     def add_forbidden_clause(self, clause: AbstractForbiddenComponent) -> AbstractForbiddenComponent:
         """
-        Adds a forbidden clause to the configuration space.
+        Add a forbidden clause to the configuration space.
 
         Parameters
         ----------
@@ -552,7 +554,7 @@ class ConfigurationSpace(object):
 
     def add_forbidden_clauses(self, clauses: List[AbstractForbiddenComponent]) -> List[AbstractForbiddenComponent]:
         """
-        Adds a list of forbidden clauses to the configuration space.
+        Add a list of forbidden clauses to the configuration space.
 
         Parameters
         ----------
@@ -601,9 +603,9 @@ class ConfigurationSpace(object):
     def add_configuration_space(self, prefix: str, configuration_space: 'ConfigurationSpace',
                                 delimiter: str=":", parent_hyperparameter: Hyperparameter=None) -> 'ConfigurationSpace':
         """
-        This function adds a configuration space to another one.
-        The contents of the configuration space, which should be added, are
-        renamed to ``prefix`` + ``delimiter`` + old_name.
+        Combine two configuration space by adding one the other configuration
+        space. The contents of the configuration space, which should be added,
+        are renamed to ``prefix`` + ``delimiter`` + old_name.
 
         Parameters
         ----------
@@ -613,7 +615,7 @@ class ConfigurationSpace(object):
         configuration_space : :class:`~ConfigSpace.configuration_space.ConfigurationSpace`
             The configuration space which should be added
         delimiter : (str, optional)
-            Defaults to ':'.
+            Defaults to '':''.
         parent_hyperparameter : (:ref:`Hyperparameters`, optional)
             Adds for each new hyperparameter the condition, that
             ``parent_hyperparameter`` is active
@@ -696,7 +698,7 @@ class ConfigurationSpace(object):
 
     def get_hyperparameters(self) -> List[Hyperparameter]:
         """
-        Gives a list with all the hyperparameter, which are contained in the
+        Return a list with all the hyperparameter, which are contained in the
         configuration space object.
 
         Returns
@@ -709,7 +711,7 @@ class ConfigurationSpace(object):
 
     def get_hyperparameter_names(self) -> List[str]:
         """
-        Gives a list with all names of hyperparameter, which are contained in
+        Return a list with all names of hyperparameter, which are contained in
         the configuration space object.
 
         Returns
@@ -749,7 +751,7 @@ class ConfigurationSpace(object):
 
     def get_hyperparameter_by_idx(self, idx: int) -> str:
         """
-        Gives the name of a hyperparameter from the configuration space given
+        Return the name of a hyperparameter from the configuration space given
         its id.
 
         Parameters
@@ -777,7 +779,7 @@ class ConfigurationSpace(object):
 
     def get_idx_by_hyperparameter_name(self, name: str) -> int:
         """
-        Gives the id of a hyperparameter by its ``name``.
+        Return the id of a hyperparameter by its ``name``.
 
         Parameters
         ----------
@@ -804,11 +806,11 @@ class ConfigurationSpace(object):
 
     def get_conditions(self) -> List[AbstractCondition]:
         """
-        Gives a list with all conditions from the configuration space.
+        Return a list with all conditions from the configuration space.
 
         Returns
         -------
-        list[:class:`~ConfigSpace.AbstractConditions`]
+        list[:ref:`Conditions`]
             Conditions of the configuration space
 
         """
@@ -830,7 +832,7 @@ class ConfigurationSpace(object):
 
     def get_forbiddens(self) -> List[AbstractForbiddenComponent]:
         """
-        Returns a list with all forbidden clauses from the configuration space.
+        Return a list with all forbidden clauses from the configuration space.
 
         Returns
         -------
@@ -841,12 +843,12 @@ class ConfigurationSpace(object):
 
     def get_children_of(self, name: Union[str, Hyperparameter]) -> List[Hyperparameter]:
         """
-        Returns a list with all children of a given hyperparameter.
+        Return a list with all children of a given hyperparameter.
 
         Parameters
         ----------
-        name : str
-            Name of the hyperparameter for which all children are requested
+        name : (str, :ref:`Hyperparameters`)
+            Hyperparameter or its name, for which all children are requested
 
         Returns
         -------
@@ -869,17 +871,17 @@ class ConfigurationSpace(object):
 
     def get_child_conditions_of(self, name: Union[str, Hyperparameter]) -> List[AbstractCondition]:
         """
-        Returns a list with conditions of all children of a given
+        Return a list with conditions of all children of a given
         hyperparameter referenced by its ``name``.
 
         Parameters
         ----------
-        name : str
-            Name of the hyperparameter
+        name : (str, :ref:`Hyperparameters`)
+            Hyperparameter or its name, for which conditions are requested
 
         Returns
         -------
-        list[:class:`~ConfigSpace.AbstractConditions`]
+        list[:ref:`Conditions`]
             List with the conditions on the children of the given hyperparameter
 
         """
@@ -902,13 +904,13 @@ class ConfigurationSpace(object):
 
         Parameters
         ----------
-        name : (str, :class:`~ConfigSpace.Hyperparameter`)
+        name : (str, :ref:`Hyperparameters`)
             Can either be the name of a hyperparameter or the hyperparameter
             object
 
         Returns
         -------
-        list[:class:`~ConfigSpace.AbstractConditions`]
+        list[:ref:`Conditions`]
             List with all parent hyperparameters
         """
 
@@ -939,7 +941,7 @@ class ConfigurationSpace(object):
 
     def get_parent_conditions_of(self, name: Union[str, Hyperparameter]) -> List[AbstractCondition]:
         """
-        Returns a list with conditions of all parents of a given hyperparameter.
+        Return a list with conditions of all parents of a given hyperparameter.
 
         Parameters
         ----------
@@ -949,7 +951,7 @@ class ConfigurationSpace(object):
 
         Returns
         -------
-        List[:class:`~ConfigSpace.AbstractConditions`]
+        List[:ref:`Conditions`]
             List with all conditions on parent hyperparameters
 
         """
@@ -968,7 +970,7 @@ class ConfigurationSpace(object):
 
     def get_all_unconditional_hyperparameters(self) -> List[str]:
         """
-        Gives a list with names of unconditional hyperparameters.
+        Return a list with names of unconditional hyperparameters.
 
         Returns
         -------
@@ -983,7 +985,7 @@ class ConfigurationSpace(object):
 
     def get_all_conditional_hyperparameters(self) -> List[str]:
         """
-        Gives a list with names of all conditional hyperparameters.
+        Return a list with names of all conditional hyperparameters.
 
         Returns
         -------
@@ -995,7 +997,7 @@ class ConfigurationSpace(object):
 
     def get_default_configuration(self) -> 'Configuration':
         """
-        Gives a configuration containing hyperparameters with default values.
+        Return a configuration containing hyperparameters with default values.
 
         Returns
         -------
@@ -1040,7 +1042,7 @@ class ConfigurationSpace(object):
     # For backward compatibility
     def check_configuration(self, configuration: 'Configuration') -> None:
         """
-        Checks if a configuration is legal. Raises an error if not.
+        Check if a configuration is legal. Raises an error if not.
 
         Parameters
         ----------
@@ -1058,7 +1060,7 @@ class ConfigurationSpace(object):
     def check_configuration_vector_representation(self, vector: np.ndarray) -> None:
         """
         Check if configuration in vector representation is legal.
-        Raises an error if not.
+        Raise an error if not.
 
         Parameters
         ----------
@@ -1073,7 +1075,7 @@ class ConfigurationSpace(object):
 
     def get_active_hyperparameters(self, configuration: 'Configuration') -> Set:
         """
-        Gives a set of active hyperparameter for a given configuration.
+        Return a set of active hyperparameter for a given configuration.
 
         Parameters
         ----------
@@ -1144,7 +1146,7 @@ class ConfigurationSpace(object):
         #for clause in self.forbidden_clauses:
         #    if clause.is_forbidden_vector(vector, strict=False):
         #        raise ForbiddenValueError("Given vector violates forbidden
-    # clause %s" % (str(clause)))
+        # clause %s" % (str(clause)))
 
     # http://stackoverflow.com/a/25176504/4636294
     def __eq__(self, other: Any) -> bool:
@@ -1208,7 +1210,7 @@ class ConfigurationSpace(object):
 
     def sample_configuration(self, size: int = 1) -> Union['Configuration', List['Configuration']]:
         """
-        Samples ``size`` configurations from the configuration space object.
+        Sample ``size`` configurations from the configuration space object.
 
         Parameters
         ----------
@@ -1218,7 +1220,7 @@ class ConfigurationSpace(object):
         Returns
         -------
         :class:`~ConfigSpace.configuration_space.Configuration`, List[:class:`~ConfigSpace.configuration_space.Configuration`]:
-            A single configuration if size 1 else a list of Configurations
+            A single configuration if ``size`` 1 else a list of Configurations
         """
         if not isinstance(size, int):
             raise TypeError('Argument size must be of type int, but is %s'
@@ -1296,7 +1298,7 @@ class ConfigurationSpace(object):
 
     def seed(self, seed: int) -> None:
         """
-        Sets the random seed.
+        Set the random seed to a number.
 
         Parameters
         ----------
@@ -1311,9 +1313,10 @@ class Configuration(object):
                  vector: Union[None, np.ndarray]=None, allow_inactive_with_values: bool=False, origin: Any=None)\
             -> None:
         """
-        Class for a single configuration. The
-        :class:`~ConfigSpace.configuration_space.Configuration` object holds for
-        all active hyperparameters a value. While the
+        Class for a single configuration.
+
+        The :class:`~ConfigSpace.configuration_space.Configuration` object holds
+        for all active hyperparameters a value. While the
         :class:`~ConfigSpace.configuration_space.ConfigurationSpace` stores the
         definitions for the hyperparameters (value ranges, constraints,...), a
         :class:`~ConfigSpace.configuration_space.Configuration` object is
@@ -1413,7 +1416,7 @@ class Configuration(object):
 
     def is_valid_configuration(self) -> None:
         """
-        Checks if the object is a valid
+        Check if the object is a valid
         :class:`~ConfigSpace.configuration_space.Configuration`.
 
         Returns
@@ -1452,8 +1455,8 @@ class Configuration(object):
 
     def get(self, item: str, default: Union[None, Any]=None) -> Union[None, Any]:
         """
-        Returns for a given hyperparameter name ``item`` the value of this
-        hyperparameter.
+        Return for a given hyperparameter name ``item`` the value of this
+        hyperparameter. ``default`` if the hyperparameter ``name`` doesn't exist.
 
         Parameters
         ----------
@@ -1571,7 +1574,7 @@ class Configuration(object):
 
     def get_dictionary(self) -> Dict[str, Union[str, float, int]]:
         """
-        Gives a representation of the
+        Return a representation of the
         :class:`~ConfigSpace.configuration_space.Configuration` in dictionary
         form.
 
@@ -1586,7 +1589,7 @@ class Configuration(object):
 
     def get_array(self) -> np.ndarray:
         """
-        Gives internal vector representation of the
+        Return the internal vector representation of the
         :class:`~ConfigSpace.configuration_space.Configuration`. All continuous
         values are scaled between zero and one.
 

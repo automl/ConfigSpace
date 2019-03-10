@@ -68,7 +68,7 @@ cdef class Hyperparameter(object):
 
     cpdef bint is_legal_vector(self, DTYPE_t value):
         """
-        Checks wether the given value is a legal value for the vector
+        Check whether the given value is a legal value for the vector
         representation of this hyperparameter.
 
         Parameters
@@ -116,6 +116,22 @@ cdef class Constant(Hyperparameter):
     cdef DTYPE_t value_vector
 
     def __init__(self, name: str, value: Union[str, int, float], meta: Optional[Dict]=None) -> None:
+        """
+        Representing a constant hyperparaeter in the configuration space.
+
+        By sampling from the configuration space each time only a single,
+        constant ``value`` will be drawn from this hyperparameter.
+
+        Parameters
+        ----------
+        name : str
+            Name of the hyperparameter, with which it can be accessed
+        value : (str, int, float)
+            value to sample hyperparameter from
+        meta : (Dict, optional)
+            Field for holding meta data provided by the user.
+            Not used by the configuration space.
+        """
         super(Constant, self).__init__(name, meta)
         allowed_types = (int, float, str)
 
@@ -137,16 +153,22 @@ cdef class Constant(Hyperparameter):
         return ", ".join(repr_str)
 
     def __richcmp__(self, other: Any, int op):
-        """Override the default Equals behavior
-         There are no separate methods for the individual rich comparison operations (__eq__(), __le__(), etc.).
-          Instead there is a single method __richcmp__() which takes an integer indicating which operation is to be performed, as follows:
-         < 	0
-         == 2
-         > 	4
-         <=	1
-         !=	3
-         >=	5
-         """
+        """
+        Todo: With Cython 2.7 this function can be replaced by using the six
+              Python special methods (__eq__(), __lt__(),...).
+        (--> https://cython.readthedocs.io/en/latest/src/userguide/special_methods.html#rich-comparisons)
+
+        Before 2.7 there were no separate methods for the individual rich
+        comparison operations. Instead there is a single method __richcmp__()
+        which takes an integer indicating which operation is to be performed,
+        as follows:
+        < 	0
+        == 2
+        > 	4
+        <=	1
+        !=	3
+        >=	5
+        """
 
         if isinstance(other, self.__class__):
             if op == 2:
@@ -235,16 +257,22 @@ cdef class NumericalHyperparameter(Hyperparameter):
         return True
 
     def __richcmp__(self, other: Any, int op):
-        """Override the default Equals behavior
-         There are no separate methods for the individual rich comparison operations (__eq__(), __le__(), etc.).
-          Instead there is a single method __richcmp__() which takes an integer indicating which operation is to be performed, as follows:
-         < 	0
-         == 2
-         > 	4
-         <=	1
-         !=	3
-         >=	5
-         """
+        """
+        Todo: With Cython 2.7 this function can be replaced by using the six
+              Python special methods (__eq__(), __lt__(),...).
+        (--> https://cython.readthedocs.io/en/latest/src/userguide/special_methods.html#rich-comparisons)
+
+        Before 2.7 there were no separate methods for the individual rich
+        comparison operations. Instead there is a single method __richcmp__()
+        which takes an integer indicating which operation is to be performed,
+        as follows:
+        < 	0
+        == 2
+        > 	4
+        <=	1
+        !=	3
+        >=	5
+        """
 
         if isinstance(other, self.__class__):
             if op == 2:
@@ -334,7 +362,9 @@ cdef class UniformFloatHyperparameter(FloatHyperparameter):
                  default_value: Union[int, float, None] = None, q: Union[int, float, None] = None, log: bool = False,
                  meta: Optional[Dict]=None) -> None:
         """
-        Creates a float hyperparameter with values sampled from a uniform distribution with values
+        A float hyperparameter.
+
+        Its values are sampled from a uniform distribution with values
         from ``lower`` to ``upper``.
 
         Example
@@ -363,7 +393,8 @@ cdef class UniformFloatHyperparameter(FloatHyperparameter):
             If ``True``, the values of the hyperparameter will be sampled
             on a logarithmic scale. Defaults to False
         meta : (Dict, None)
-            meta data (currently not used)
+            Field for holding meta data provided by the user.
+            Not used by the configuration space.
         """
         super(UniformFloatHyperparameter, self).__init__(name, default_value, meta)
         self.lower = float(lower)
@@ -503,7 +534,9 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
                  default_value: Union[None, float] = None, q: Union[int, float, None] = None, log: bool = False,
                  meta: Optional[Dict]=None) -> None:
         """
-        Creates a float hyperparameter with values sampled from a normal distribution
+        A float hyperparameter.
+
+        Its values are sampled from a normal distribution
         :math:`\mathcal{N}(\mu, \sigma^2)`.
 
         Example
@@ -532,7 +565,8 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
             If ``True``, the values of the hyperparameter will be sampled on a logarithmic scale
             Defaults to ``False``
         meta : (Dict, None)
-            meta data (currently not used)
+            Field for holding meta data provided by the user.
+            Not used by the configuration space.
         """
         super(NormalFloatHyperparameter, self).__init__(name, default_value, meta)
         self.mu = float(mu)
@@ -556,16 +590,22 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
         return repr_str.getvalue()
 
     def __richcmp__(self, other: Any, int op):
-        """Override the default Equals behavior
-         There are no separate methods for the individual rich comparison operations (__eq__(), __le__(), etc.).
-          Instead there is a single method __richcmp__() which takes an integer indicating which operation is to be performed, as follows:
-         < 	0
-         == 2
-         > 	4
-         <=	1
-         !=	3
-         >=	5
-         """
+        """
+        Todo: With Cython 2.7 this function can be replaced by using the six
+              Python special methods (__eq__(), __lt__(),...).
+        (--> https://cython.readthedocs.io/en/latest/src/userguide/special_methods.html#rich-comparisons)
+
+        Before 2.7 there were no separate methods for the individual rich
+        comparison operations. Instead there is a single method __richcmp__()
+        which takes an integer indicating which operation is to be performed,
+        as follows:
+        < 	0
+        == 2
+        > 	4
+        <=	1
+        !=	3
+        >=	5
+        """
 
         if isinstance(other, self.__class__):
             if op == 2:
@@ -668,8 +708,9 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
     def __init__(self, name: str, lower: int, upper: int, default_value: Union[int, None] = None,
                  q: Union[int, None] = None, log: bool = False, meta: Optional[Dict]=None) -> None:
         """
+        An integer hyperparameter.
 
-        Creates an integer hyperparameter with values sampled from a uniform distribution
+        Its values are sampled from a uniform distribution
         with bounds ``lower`` and ``upper``.
 
         Example
@@ -697,7 +738,8 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
         log : (bool)
             If ``True``, the values of the hyperparameter will be sampled on a logarithmic scale
         meta : (Dict, None)
-            metadata (currently not used)
+            Field for holding meta data provided by the user.
+            Not used by the configuration space.
         """
 
         super(UniformIntegerHyperparameter, self).__init__(name, default_value, meta)
@@ -856,7 +898,9 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
                  default_value: Union[int, None] = None, q: Union[None, int] = None, log: bool = False,
                  meta: Optional[Dict]=None) -> None:
         """
-        Creates an integer hyperparameter with values sampled from a normal distribution
+        An integer hyperparameter.
+
+        Its values are sampled from a normal distribution
         :math:`\mathcal{N}(\mu, \sigma^2)`.
 
         Example
@@ -885,7 +929,8 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
         log : bool
             If ``True``, the values of the hyperparameter will be sampled on a logarithmic scale
         meta : (Dict, None)
-            meta data (currently not used)
+            Field for holding meta data provided by the user.
+            Not used by the configuration space.
 
         """
         super(NormalIntegerHyperparameter, self).__init__(name, default_value, meta)
@@ -932,16 +977,22 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
         return repr_str.getvalue()
 
     def __richcmp__(self, other: Any, int op):
-        """Override the default Equals behavior
-         There are no separate methods for the individual rich comparison operations (__eq__(), __le__(), etc.).
-          Instead there is a single method __richcmp__() which takes an integer indicating which operation is to be performed, as follows:
-         < 	0
-         == 2
-         > 	4
-         <=	1
-         !=	3
-         >=	5
-         """
+        """
+        Todo: With Cython 2.7 this function can be replaced by using the six
+              Python special methods (__eq__(), __lt__(),...).
+        (--> https://cython.readthedocs.io/en/latest/src/userguide/special_methods.html#rich-comparisons)
+
+        Before 2.7 there were no separate methods for the individual rich
+        comparison operations. Instead there is a single method __richcmp__()
+        which takes an integer indicating which operation is to be performed,
+        as follows:
+        < 	0
+        == 2
+        > 	4
+        <=	1
+        !=	3
+        >=	5
+        """
 
         if isinstance(other, self.__class__):
             if op == 2:
@@ -1068,7 +1119,9 @@ cdef class CategoricalHyperparameter(Hyperparameter):
         meta: Optional[Dict]=None
     ) -> None:
         """
-        Creates a categorical hyperparameter.
+        A categorical hyperparameter.
+
+        Its values are sampled from a set of ``values``.
 
         Example
         -------
@@ -1088,7 +1141,8 @@ cdef class CategoricalHyperparameter(Hyperparameter):
         default_value : (int, float, str, None)
             Sets the default value of the hyperparameter to a given value
         meta : (Dict, None)
-            meta data (currently not used)
+            Field for holding meta data provided by the user.
+            Not used by the configuration space.
         """
 
         super(CategoricalHyperparameter, self).__init__(name, meta)
@@ -1114,16 +1168,22 @@ cdef class CategoricalHyperparameter(Hyperparameter):
         return repr_str.getvalue()
 
     def __richcmp__(self, other: Any, int op):
-        """Override the default Equals behavior
-         There are no separate methods for the individual rich comparison operations (__eq__(), __le__(), etc.).
-          Instead there is a single method __richcmp__() which takes an integer indicating which operation is to be performed, as follows:
-         < 	0
-         == 2
-         > 	4
-         <=	1
-         !=	3
-         >=	5
-         """
+        """
+        Todo: With Cython 2.7 this function can be replaced by using the six
+              Python special methods (__eq__(), __lt__(),...).
+        (--> https://cython.readthedocs.io/en/latest/src/userguide/special_methods.html#rich-comparisons)
+
+        Before 2.7 there were no separate methods for the individual rich
+        comparison operations. Instead there is a single method __richcmp__()
+        which takes an integer indicating which operation is to be performed,
+        as follows:
+        < 	0
+        == 2
+        > 	4
+        <=	1
+        !=	3
+        >=	5
+        """
 
         if isinstance(other, self.__class__):
             if op == 2:
@@ -1259,7 +1319,9 @@ cdef class OrdinalHyperparameter(Hyperparameter):
         meta: Optional[Dict]=None
     ) -> None:
         """
-        Creates an ordinal hyperparameter.
+        An ordinal hyperparameter.
+
+        Its values are sampled form a ``sequence`` of values.
 
         Example
         -------
@@ -1274,12 +1336,13 @@ cdef class OrdinalHyperparameter(Hyperparameter):
         ----------
         name : str
             Name of the hyperparameter, with which it can be accessed.
-        sequence : list([str, float, int])
+        sequence : (list(str, float, int), tuple(str, float, int))
             collection of values to sample hyperparameter from.
         default_value : (int, float, str, None)
             Sets the default value of a hyperparameter to a given value.
         meta : (Dict, None)
-            meta data (currently not used)
+            Field for holding meta data provided by the user.
+            Not used by the configuration space.
         """
 
         # Remark
@@ -1320,16 +1383,22 @@ cdef class OrdinalHyperparameter(Hyperparameter):
         return repr_str.getvalue()
 
     def __richcmp__(self, other: Any, int op):
-        """Override the default Equals behavior
-         There are no separate methods for the individual rich comparison operations (__eq__(), __le__(), etc.).
-          Instead there is a single method __richcmp__() which takes an integer indicating which operation is to be performed, as follows:
-         < 	0
-         == 2
-         > 	4
-         <=	1
-         !=	3
-         >=	5
-         """
+        """
+        Todo: With Cython 2.7 this function can be replaced by using the six
+              Python special methods (__eq__(), __lt__(),...).
+        (--> https://cython.readthedocs.io/en/latest/src/userguide/special_methods.html#rich-comparisons)
+
+        Before 2.7 there were no separate methods for the individual rich
+        comparison operations. Instead there is a single method __richcmp__()
+        which takes an integer indicating which operation is to be performed,
+        as follows:
+        < 	0
+        == 2
+        > 	4
+        <=	1
+        !=	3
+        >=	5
+        """
 
         if isinstance(other, self.__class__):
             if op == 2:

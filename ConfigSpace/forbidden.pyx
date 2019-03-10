@@ -58,16 +58,22 @@ cdef class AbstractForbiddenComponent(object):
 
 
     def __richcmp__(self, other: Any, int op):
-        """Override the default Equals behavior
-         There are no separate methods for the individual rich comparison operations (__eq__(), __le__(), etc.).
-          Instead there is a single method __richcmp__() which takes an integer indicating which operation is to be performed, as follows:
-         < 	0
-         == 2
-         > 	4
-         <=	1
-         !=	3
-         >=	5
-         """
+        """
+        Todo: With Cython 2.7 this function can be replaced by using the six
+              Python special methods (__eq__(), __lt__(),...).
+        (--> https://cython.readthedocs.io/en/latest/src/userguide/special_methods.html#rich-comparisons)
+
+        Before 2.7 there were no separate methods for the individual rich
+        comparison operations. Instead there is a single method __richcmp__()
+        which takes an integer indicating which operation is to be performed,
+        as follows:
+        < 	0
+        == 2
+        > 	4
+        <=	1
+        !=	3
+        >=	5
+        """
         if self.value is None:
             self.value = self.values
             other.value = other.values
@@ -228,7 +234,10 @@ cdef class MultipleValueForbiddenClause(AbstractForbiddenClause):
 
 cdef class ForbiddenEqualsClause(SingleValueForbiddenClause):
     """
-    Forbids a value from the value range of a hyperparameter.
+    A ForbiddenEqualsClause
+
+    It forbids a value from the value range of a hyperparameter to be
+    *equal to* ``value``.
 
     Example
     -------
@@ -262,8 +271,10 @@ cdef class ForbiddenEqualsClause(SingleValueForbiddenClause):
 cdef class ForbiddenInClause(MultipleValueForbiddenClause):
     def __init__(self, hyperparameter: Dict[str, Union[None, str, float, int]], values: Any) -> None:
         """
-        The ForbiddenInClause permits the sampled value of a hyperparameter to
-        be in a collection of values.
+        A ForbiddenInClause.
+
+        It forbids a value from the value range of a hyperparameter to be
+        *in* a collection of ``values``.
 
         Note
         ----
@@ -331,16 +342,22 @@ cdef class AbstractForbiddenConjunction(AbstractForbiddenComponent):
         return self.__class__([copy(comp) for comp in self.components])
 
     def __richcmp__(self, other: Any, int op):
-        """Override the default Equals behavior
-         There are no separate methods for the individual rich comparison operations (__eq__(), __le__(), etc.).
-          Instead there is a single method __richcmp__() which takes an integer indicating which operation is to be performed, as follows:
-         < 	0
-         == 2
-         > 	4
-         <=	1
-         !=	3
-         >=	5
-         """
+        """
+        Todo: With Cython 2.7 this function can be replaced by using the six
+              Python special methods (__eq__(), __lt__(),...).
+        (--> https://cython.readthedocs.io/en/latest/src/userguide/special_methods.html#rich-comparisons)
+
+        Before 2.7 there were no separate methods for the individual rich
+        comparison operations. Instead there is a single method __richcmp__()
+        which takes an integer indicating which operation is to be performed,
+        as follows:
+        < 	0
+        == 2
+        > 	4
+        <=	1
+        !=	3
+        >=	5
+        """
 
         if isinstance(other, self.__class__):
             if op == 2:
@@ -428,6 +445,7 @@ cdef class AbstractForbiddenConjunction(AbstractForbiddenComponent):
 
 cdef class ForbiddenAndConjunction(AbstractForbiddenConjunction):
     """
+    A ForbiddenAndConjunction.
 
     The ForbiddenAndConjunction combines forbidden-clauses, which allows to
     build powerful constraints.

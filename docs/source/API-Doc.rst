@@ -4,9 +4,8 @@ API-Documentation
 ConfigurationSpace
 ==================
 
-
-A configuration space organizes all hyperparameters and its conditions as well as its forbidden clauses.
-Configurations can be sampled from this configuration space.
+First, we start by introducing the main object, the *configuration space* and
+all of its functions.
 
 .. autoclass:: ConfigSpace.configuration_space.ConfigurationSpace
    :members:
@@ -23,9 +22,11 @@ Configuration
 Hyperparameters
 ===============
 
-In this section, the different types of hyperparameters are introduced. ConfigSpace is able to handle integer, float, categorical as well as ordinal hyperparameters.
+In this section, the different types of hyperparameters are introduced.
+ConfigSpace is able to handle integer, float, categorical as well as ordinal hyperparameters.
 Float and integer hyperparameters are available as **uniform** or **normal distributed** ones.
-So when a hyperparameter is sampled from the configuration space, its value is distributed according to the specified type.
+So when a hyperparameter is sampled from the configuration space,
+its value is distributed according to the specified type.
 
 Example usages are shown in the :doc:`quickstart <quickstart>`
 

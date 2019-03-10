@@ -259,14 +259,15 @@ def read(pcs_string, debug=False):
 
     Parameters
     ----------
-        pcs_string : str
-            ConfigSpace definition in pcs format
-        debug : bool
-            Provides debug information. Defaults to False.
+    pcs_string : str
+        ConfigSpace definition in pcs format
+    debug : bool
+        Provides debug information. Defaults to False.
 
     Returns
     -------
-        :py:class:`~ConfigSpace.configuration_space.ConfigurationSpace`
+    :py:class:`~ConfigSpace.configuration_space.ConfigurationSpace`
+        The restored ConfigurationSpace object
 
     """
     configuration_space = ConfigurationSpace()

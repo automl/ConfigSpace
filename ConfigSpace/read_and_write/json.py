@@ -369,7 +369,8 @@ def read(jason_string):
 
     Returns
     -------
-        :class:`~ConfigSpace.configuration_space.ConfigurationSpace`
+    :class:`~ConfigSpace.configuration_space.ConfigurationSpace`
+        The restored ConfigurationSpace object
     """
     jason = json.loads(jason_string)
     if 'name' in jason:
