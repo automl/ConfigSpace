@@ -16,9 +16,7 @@ For directed graphs see DiGraph and MultiDiGraph.
 import collections
 from copy import deepcopy
 
-import ConfigSpace.nx
 from ConfigSpace.nx.exception import NetworkXError
-# from ConfigSpace.nx import convert
 
 
 __author__ = """\n""".join(['Aric Hagberg (hagberg@lanl.gov)',
@@ -324,7 +322,6 @@ class Graph(object):
         """
         return self.adj[n]
 
-
     def add_node(self, n, attr_dict=None, **attr):
         """Add a single node n and update node attributes.
 
@@ -374,14 +371,13 @@ class Graph(object):
             try:
                 attr_dict.update(attr)
             except AttributeError:
-                raise NetworkXError( \
+                raise NetworkXError(
                     "The attr_dict argument must be a dictionary.")
         if n not in self.node:
             self.adj[n] = collections.OrderedDict()
             self.node[n] = attr_dict
         else:  # update attr even if node already exists
             self.node[n].update(attr_dict)
-
 
     def add_nodes_from(self, nodes, **attr):
         """Add multiple nodes.
@@ -491,7 +487,6 @@ class Graph(object):
             del adj[u][n]  # remove all edges n-u in graph
         del adj[n]  # now remove node
 
-
     def remove_nodes_from(self, nodes):
         """Remove multiple nodes.
 
@@ -523,11 +518,10 @@ class Graph(object):
             try:
                 del self.node[n]
                 for u in list(adj[n].keys()):  # keys() handles self-loops
-                    del adj[u][n]  #(allows mutation of dict in loop)
+                    del adj[u][n]  # (allows mutation of dict in loop)
                 del adj[n]
             except KeyError:
                 pass
-
 
     def nodes_iter(self, data=False):
         """Return an iterator over the nodes.
@@ -707,7 +701,7 @@ class Graph(object):
             try:
                 attr_dict.update(attr)
             except AttributeError:
-                raise NetworkXError( \
+                raise NetworkXError(
                     "The attr_dict argument must be a dictionary.")
         # add nodes
         if u not in self.node:
@@ -721,7 +715,6 @@ class Graph(object):
         datadict.update(attr_dict)
         self.adj[u][v] = datadict
         self.adj[v][u] = datadict
-
 
     def add_edges_from(self, ebunch, attr_dict=None, **attr):
         """Add all the edges in ebunch.
@@ -770,7 +763,7 @@ class Graph(object):
             try:
                 attr_dict.update(attr)
             except AttributeError:
-                raise NetworkXError( \
+                raise NetworkXError(
                     "The attr_dict argument must be a dictionary.")
         # process ebunch
         for e in ebunch:
@@ -781,7 +774,7 @@ class Graph(object):
                 u, v = e
                 dd = collections.OrderedDict()
             else:
-                raise NetworkXError( \
+                raise NetworkXError(
                     "Edge tuple %s must be a 2-tuple or 3-tuple." % (e,))
             if u not in self.node:
                 self.adj[u] = collections.OrderedDict()
@@ -794,7 +787,6 @@ class Graph(object):
             datadict.update(dd)
             self.adj[u][v] = datadict
             self.adj[v][u] = datadict
-
 
     def add_weighted_edges_from(self, ebunch, weight='weight', **attr):
         """Add all the edges in ebunch as weighted edges with specified
@@ -818,8 +810,8 @@ class Graph(object):
 
         Notes
         -----
-        Adding the same edge twice for Graph/DiGraph simply updates 
-        the edge data.  For MultiGraph/MultiDiGraph, duplicate edges 
+        Adding the same edge twice for Graph/DiGraph simply updates
+        the edge data.  For MultiGraph/MultiDiGraph, duplicate edges
         are stored.
 
         Examples
@@ -863,7 +855,6 @@ class Graph(object):
         except KeyError:
             raise NetworkXError("The edge %s-%s is not in the graph" % (u, v))
 
-
     def remove_edges_from(self, ebunch):
         """Remove all edges specified in ebunch.
 
@@ -898,7 +889,6 @@ class Graph(object):
                 del adj[u][v]
                 if u != v:  # self loop needs only one entry removed
                     del adj[v][u]
-
 
     def has_edge(self, u, v):
         """Return True if the edge (u,v) is in the graph.
@@ -941,7 +931,6 @@ class Graph(object):
             return v in self.adj[u]
         except KeyError:
             return False
-
 
     def neighbors(self, n):
         """Return a list of the nodes connected to the node n.
@@ -1113,7 +1102,6 @@ class Graph(object):
                 seen[n] = 1
         del seen
 
-
     def get_edge_data(self, u, v, default=None):
         """Return the attribute dictionary associated with edge (u,v).
 
@@ -1226,7 +1214,7 @@ class Graph(object):
             through once.
 
         weight : string or None, optional (default=None)
-           The edge attribute that holds the numerical value used 
+           The edge attribute that holds the numerical value used
            as a weight.  If None, then each edge has weight 1.
            The degree is the sum of the edge weights adjacent to the node.
 
@@ -1265,7 +1253,7 @@ class Graph(object):
             through once.
 
         weight : string or None, optional (default=None)
-           The edge attribute that holds the numerical value used 
+           The edge attribute that holds the numerical value used
            as a weight.  If None, then each edge has weight 1.
            The degree is the sum of the edge weights adjacent to the node.
 
@@ -1301,7 +1289,6 @@ class Graph(object):
             for n, nbrs in nodes_nbrs:
                 yield (n, sum((nbrs[nbr].get(weight, 1) for nbr in nbrs)) +
                        (n in nbrs and nbrs[n].get(weight, 1)))
-
 
     def clear(self):
         """Remove all nodes and edges from the graph.
@@ -1353,7 +1340,6 @@ class Graph(object):
     def is_multigraph(self):
         """Return True if graph is a multigraph, False otherwise."""
         return False
-
 
     def is_directed(self):
         """Return True if graph is directed, False otherwise."""
@@ -1506,7 +1492,6 @@ class Graph(object):
         H.graph = self.graph
         return H
 
-
     def nodes_with_selfloops(self):
         """Return a list of nodes with self loops.
 
@@ -1569,7 +1554,6 @@ class Graph(object):
             return [(n, n)
                     for n, nbrs in self.adj.items() if n in nbrs]
 
-
     def number_of_selfloops(self):
         """Return the number of selfloop edges.
 
@@ -1594,14 +1578,13 @@ class Graph(object):
         """
         return len(self.selfloop_edges())
 
-
     def size(self, weight=None):
         """Return the number of edges.
 
         Parameters
         ----------
         weight : string or None, optional (default=None)
-           The edge attribute that holds the numerical value used 
+           The edge attribute that holds the numerical value used
            as a weight.  If None, then each edge has weight 1.
 
         Returns
@@ -1665,12 +1648,12 @@ class Graph(object):
         >>> G.number_of_edges(*e)
         1
         """
-        if u is None: return int(self.size())
+        if u is None:
+            return int(self.size())
         if v in self.adj[u]:
             return 1
         else:
             return 0
-
 
     def add_star(self, nodes, **attr):
         """Add a star.
@@ -1753,7 +1736,6 @@ class Graph(object):
         edges = zip(nlist, nlist[1:] + [nlist[0]])
         self.add_edges_from(edges, **attr)
 
-
     def nbunch_iter(self, nbunch=None):
         """Return an iterator of nodes contained in nbunch that are
         also in the graph.
@@ -1812,11 +1794,11 @@ class Graph(object):
                     sys.stdout.write(message)
                     # capture error for non-sequence/iterator nbunch.
                     if 'iter' in message:
-                        raise NetworkXError( \
+                        raise NetworkXError(
                             "nbunch is not a node or a sequence of nodes.")
                     # capture error for unhashable node.
                     elif 'hashable' in message:
-                        raise NetworkXError( \
+                        raise NetworkXError(
                             "Node %s in the sequence nbunch is not a valid node." % n)
                     else:
                         raise

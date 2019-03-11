@@ -8,10 +8,8 @@
 import collections
 from copy import deepcopy
 
-import ConfigSpace.nx
 from ConfigSpace.nx.classes.graph import Graph
 from ConfigSpace.nx.exception import NetworkXError
-# from ConfigSpace.nx import convert
 
 
 __author__ = """\n""".join(['Aric Hagberg (hagberg@lanl.gov)',
@@ -218,7 +216,6 @@ class DiGraph(Graph):
         self.graph.update(attr)
         self.edge = self.adj
 
-
     def add_node(self, n, attr_dict=None, **attr):
         """Add a single node n and update node attributes.
 
@@ -268,15 +265,13 @@ class DiGraph(Graph):
             try:
                 attr_dict.update(attr)
             except AttributeError:
-                raise NetworkXError( \
-                    "The attr_dict argument must be a dictionary.")
+                raise NetworkXError("The attr_dict argument must be a dictionary.")
         if n not in self.succ:
             self.succ[n] = collections.OrderedDict()
             self.pred[n] = collections.OrderedDict()
             self.node[n] = attr_dict
         else:  # update attr even if node already exists
             self.node[n].update(attr_dict)
-
 
     def add_nodes_from(self, nodes, **attr):
         """Add multiple nodes.
@@ -389,7 +384,6 @@ class DiGraph(Graph):
             del self.succ[u][n]  # remove all edges n-u in digraph
         del self.pred[n]  # remove node from pred
 
-
     def remove_nodes_from(self, nbunch):
         """Remove multiple nodes.
 
@@ -484,7 +478,7 @@ class DiGraph(Graph):
             try:
                 attr_dict.update(attr)
             except AttributeError:
-                raise NetworkXError( \
+                raise NetworkXError(
                     "The attr_dict argument must be a dictionary.")
         # add nodes
         if u not in self.succ:
@@ -567,7 +561,6 @@ class DiGraph(Graph):
                 del self.succ[u][v]
                 del self.pred[v][u]
 
-
     def has_successor(self, u, v):
         """Return True if node u has successor v.
 
@@ -609,7 +602,6 @@ class DiGraph(Graph):
     def predecessors(self, n):
         """Return a list of predecessor nodes of n."""
         return list(self.predecessors_iter(n))
-
 
     # digraph definitions
     neighbors = successors
@@ -768,7 +760,6 @@ class DiGraph(Graph):
                        sum((succ[nbr].get(weight, 1) for nbr in succ)) +
                        sum((pred[nbr].get(weight, 1) for nbr in pred)))
 
-
     def in_degree_iter(self, nbunch=None, weight=None):
         """Return an iterator for (node, in-degree).
 
@@ -817,7 +808,6 @@ class DiGraph(Graph):
             for n, nbrs in nodes_nbrs:
                 yield (n, sum(data.get(weight, 1) for data in nbrs.values()))
 
-
     def out_degree_iter(self, nbunch=None, weight=None):
         """Return an iterator for (node, out-degree).
 
@@ -865,7 +855,6 @@ class DiGraph(Graph):
             # edge weighted graph - degree is sum of edge weights
             for n, nbrs in nodes_nbrs:
                 yield (n, sum(data.get(weight, 1) for data in nbrs.values()))
-
 
     def in_degree(self, nbunch=None, weight=None):
         """Return the in-degree of a node or nodes.
@@ -970,11 +959,9 @@ class DiGraph(Graph):
         self.node.clear()
         self.graph.clear()
 
-
     def is_multigraph(self):
         """Return True if graph is a multigraph, False otherwise."""
         return False
-
 
     def is_directed(self):
         """Return True if graph is directed, False otherwise."""
@@ -1071,7 +1058,6 @@ class DiGraph(Graph):
         H.node = deepcopy(self.node)
         return H
 
-
     def reverse(self, copy=True):
         """Return the reverse of the graph.
 
@@ -1097,7 +1083,6 @@ class DiGraph(Graph):
             self.adj = self.succ
             H = self
         return H
-
 
     def subgraph(self, nbunch):
         """Return the subgraph induced on nodes in nbunch.

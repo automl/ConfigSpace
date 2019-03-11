@@ -69,9 +69,9 @@ def ancestors(G, source):
 
 
 def is_directed_acyclic_graph(G):
-    """Return True if the graph G is a directed acyclic graph (DAG) or 
+    """Return True if the graph G is a directed acyclic graph (DAG) or
     False if not.
-    
+
     Parameters
     ----------
     G : NetworkX graph
@@ -155,7 +155,7 @@ def topological_sort(G, nbunch=None):
             new_nodes = []
             for n in G[w]:
                 if n not in explored:
-                    if n in seen:  #CYCLE !!
+                    if n in seen:  # CYCLE !!
                         raise ConfigSpace.nx.NetworkXUnfeasible(
                             "Graph contains a cycle.")
                     new_nodes.append(n)
@@ -277,7 +277,7 @@ def is_aperiodic(G):
     levels = {s: 0}
     this_level = [s]
     g = 0
-    l = 1
+    level = 1
     while this_level:
         next_level = []
         for u in this_level:
@@ -286,10 +286,10 @@ def is_aperiodic(G):
                     g = gcd(g, levels[u] - levels[v] + 1)
                 else:  # Tree Edge
                     next_level.append(v)
-                    levels[v] = l
+                    levels[v] = level
         this_level = next_level
-        l += 1
-    if len(levels) == len(G):  #All nodes in tree
+        level += 1
+    if len(levels) == len(G):  # All nodes in tree
         return g == 1
     else:
         return g == 1 and ConfigSpace.nx.is_aperiodic(
