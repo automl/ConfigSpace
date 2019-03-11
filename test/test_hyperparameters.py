@@ -53,6 +53,10 @@ class TestHyperparameters(unittest.TestCase):
         c4 = Constant("valuee", 1)
         c5 = Constant("valueee", 2)
 
+        # Test attributes are accessible
+        self.assertEqual(c5.name, "valueee")
+        self.assertEqual(c5.value, 2)
+
         # Test the representation
         self.assertEqual("value, Type: Constant, Value: 1", c1.__repr__())
 
@@ -88,6 +92,15 @@ class TestHyperparameters(unittest.TestCase):
         self.assertEqual("param, Type: UniformFloat, Range: [0.0, 10.0], "
                          "Default: 5.0",
                          str(f1))
+
+        # Test attributes are accessible
+        self.assertEqual(f1.name, "param")
+        self.assertAlmostEqual(f1.lower, 0.0)
+        self.assertAlmostEqual(f1.upper, 10.0)
+        self.assertEqual(f1.q, None)
+        self.assertEqual(f1.log, False)
+        self.assertAlmostEqual(f1.default_value, 5.0)
+        self.assertAlmostEqual(f1.normalized_default_value, 0.5)
 
         f2 = UniformFloatHyperparameter("param", 0, 10, q=0.1)
         f2_ = UniformFloatHyperparameter("param", 0, 10, q=0.1)
@@ -181,6 +194,15 @@ class TestHyperparameters(unittest.TestCase):
             "param, Type: NormalFloat, Mu: 0.5 Sigma: 10.5, Default: 0.5",
             str(f1))
 
+        # Test attributes are accessible
+        self.assertEqual(f1.name, "param")
+        self.assertAlmostEqual(f1.mu, 0.5)
+        self.assertAlmostEqual(f1.sigma, 10.5)
+        self.assertAlmostEqual(f1.q, None)
+        self.assertEqual(f1.log, False)
+        self.assertAlmostEqual(f1.default_value, 0.5)
+        self.assertAlmostEqual(f1.normalized_default_value, 0.5)
+
         f2 = NormalFloatHyperparameter("param", 0, 10, q=0.1)
         f2_ = NormalFloatHyperparameter("param", 0, 10, q=0.1)
         self.assertEqual(f2, f2_)
@@ -256,6 +278,15 @@ class TestHyperparameters(unittest.TestCase):
         self.assertEqual(f1, f1_)
         self.assertEqual("param, Type: UniformInteger, Range: [0, 5], "
                          "Default: 2", str(f1))
+
+        # Test name is accessible
+        self.assertEqual(f1.name, "param")
+        self.assertEqual(f1.lower, 0)
+        self.assertEqual(f1.upper, 5)
+        self.assertEqual(f1.q, None)
+        self.assertEqual(f1.default_value, 2)
+        self.assertEqual(f1.log, False)
+        self.assertAlmostEqual(f1.normalized_default_value, (2.0+0.49999)/(5.49999+0.49999))
 
         quantization_warning = "Setting quantization < 1 for Integer Hyperparameter 'param' has no effect"
         with pytest.warns(UserWarning, match=quantization_warning):
@@ -338,6 +369,15 @@ class TestHyperparameters(unittest.TestCase):
         self.assertEqual(
             "param, Type: NormalInteger, Mu: 0.5 Sigma: 5.5, Default: 0.5",
             str(f1))
+
+        # Test attributes are accessible
+        self.assertEqual(f1.name, "param")
+        self.assertEqual(f1.mu, 0.5)
+        self.assertEqual(f1.sigma, 5.5)
+        self.assertEqual(f1.q, None)
+        self.assertEqual(f1.log, False)
+        self.assertAlmostEqual(f1.default_value, 0.5)
+        self.assertAlmostEqual(f1.normalized_default_value, 0.5)
 
         with pytest.warns(UserWarning, match="Setting quantization < 1 for Integer "
                                              "Hyperparameter 'param' has no effect"):
@@ -434,6 +474,12 @@ class TestHyperparameters(unittest.TestCase):
         self.assertEqual(f1, f1_)
         self.assertEqual("param, Type: Categorical, Choices: {0, 1}, Default: 0",
                          str(f1))
+
+        # Test attributes are accessible
+        self.assertEqual(f1.name, "param")
+        self.assertEqual(f1.num_choices, 2)
+        self.assertEqual(f1.default_value, 0)
+        self.assertEqual(f1.normalized_default_value, 0)
 
         f2 = CategoricalHyperparameter("param", list(range(0, 1000)))
         f2_ = CategoricalHyperparameter("param", list(range(0, 1000)))
@@ -660,6 +706,14 @@ class TestHyperparameters(unittest.TestCase):
         lower, upper = 1e-10, 1e10
         hyper = UniformFloatHyperparameter('test', lower=lower, upper=upper, log=True)
         self.assertTrue(hyper.is_legal(hyper._transform(1.)))
+
+    def test_ordinal_attributes_accessible(self):
+        f1 = OrdinalHyperparameter("temp", ["freezing", "cold", "warm", "hot"])
+        self.assertEqual(f1.name, "temp")
+        self.assertTupleEqual(f1.sequence, ("freezing", "cold", "warm", "hot"))
+        self.assertEqual(f1.num_elements, 4)
+        self.assertEqual(f1.default_value, "freezing")
+        self.assertEqual(f1.normalized_default_value, 0)
 
     def test_ordinal_is_legal(self):
         f1 = OrdinalHyperparameter("temp",

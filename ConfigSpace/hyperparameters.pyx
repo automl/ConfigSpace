@@ -339,7 +339,6 @@ cdef class UniformFloatHyperparameter(FloatHyperparameter):
         self.upper = float(upper)
         self.q = float(q) if q is not None else None
         self.log = bool(log)
-        self.name = name
 
         if self.lower >= self.upper:
             raise ValueError("Upper bound %f must be larger than lower bound "
@@ -476,7 +475,6 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
         self.sigma = float(sigma)
         self.q = float(q) if q is not None else None
         self.log = bool(log)
-        self.name = name
         self.default_value = self.check_default(default_value)
         self.normalized_default_value = self._inverse_transform(self.default_value)
 
@@ -607,7 +605,6 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
         super(UniformIntegerHyperparameter, self).__init__(name, default_value, meta)
         self.lower = self.check_int(lower, "lower")
         self.upper = self.check_int(upper, "upper")
-        self.name = name
         if default_value is not None:
             default_value = self.check_int(default_value, name)
 
@@ -762,7 +759,6 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
         super(NormalIntegerHyperparameter, self).__init__(name, default_value, meta)
         self.mu = mu
         self.sigma = sigma
-        self.name = name
 
         if default_value is not None:
             default_value = self.check_int(default_value, self.name)
