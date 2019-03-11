@@ -512,4 +512,3 @@ class TestPCSConverter(unittest.TestCase):
             pcs_new = pcs.read(fh)
 
         self.assertEqual(pcs_new, cs, msg=(pcs_new, cs))
-
