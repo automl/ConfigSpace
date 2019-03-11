@@ -26,6 +26,7 @@ script:
   - |
     set -e
     if [ "$RUN_FLAKE8" == "true" ]; then
+      pip install flake8
       ./ci_scripts/flake8_diff.sh
     fi
     pytest -sv --cov=ConfigSpace test
