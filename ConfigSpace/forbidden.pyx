@@ -26,7 +26,7 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-# cython: language_level=2
+# cython: language_level=3
 
 import copy
 import numpy as np
@@ -38,7 +38,7 @@ from typing import List, Dict, Any, Union
 
 from libc.stdlib cimport malloc, free
 
-from forbidden cimport AbstractForbiddenComponent
+from ConfigSpace.forbidden cimport AbstractForbiddenComponent
 
 # We now need to fix a datatype for our arrays. I've used the variable
 # DTYPE for this, which is assigned to the usual NumPy runtime
