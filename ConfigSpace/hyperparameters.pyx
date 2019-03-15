@@ -117,7 +117,7 @@ cdef class Constant(Hyperparameter):
 
     def __init__(self, name: str, value: Union[str, int, float], meta: Optional[Dict]=None) -> None:
         """
-        Representing a constant hyperparaeter in the configuration space.
+        Representing a constant hyperparameter in the configuration space.
 
         By sampling from the configuration space each time only a single,
         constant ``value`` will be drawn from this hyperparameter.
