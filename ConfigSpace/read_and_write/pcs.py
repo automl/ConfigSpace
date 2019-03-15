@@ -114,7 +114,7 @@ def build_condition(condition):
                                   (condition))
     if isinstance(condition, NotEqualsCondition):
         raise NotImplementedError("SMAC cannot handle != conditions: %s" %
-                                 (condition))
+                                  (condition))
 
     # Now handle the conditions SMAC can handle
     condition_template = "%s | %s in {%s}"
@@ -286,7 +286,7 @@ def read(pcs_string, debug=False):
         configuration_space.add_forbidden_clause(ForbiddenAndConjunction(
             *clause_list))
 
-    #Now handle conditions
+    # Now handle conditions
     # If there are two conditions for one child, these two conditions are an
     # AND-conjunction of conditions, thus we have to connect them
     conditions_per_child = OrderedDict()
@@ -351,8 +351,7 @@ def write(configuration_space):
     """
     if not isinstance(configuration_space, ConfigurationSpace):
         raise TypeError("pcs_parser.write expects an instance of %s, "
-                        "you provided '%s'" % (ConfigurationSpace,
-                        type(configuration_space)))
+                        "you provided '%s'" % (ConfigurationSpace, type(configuration_space)))
 
     param_lines = StringIO()
     condition_lines = StringIO()
@@ -424,7 +423,6 @@ def write(configuration_space):
             param_lines.write("\n")
 
     # Check if the default configuration is a valid configuration!
-
 
     param_lines.seek(0)
     return param_lines.getvalue()

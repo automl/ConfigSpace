@@ -15,6 +15,7 @@ import subprocess
 
 basedir = os.path.abspath(os.path.split(__file__)[0])
 
+
 def get_revision():
     """Returns revision and vcs information, dynamically obtained."""
     vcs, revision, tag = None, None, None
@@ -58,7 +59,7 @@ def get_revision():
 
 
 def get_info(dynamic=True):
-    ## Date information
+    # Date information
     date_info = datetime.datetime.now()
     date = time.asctime(date_info.timetuple())
 
@@ -90,41 +91,42 @@ def get_info(dynamic=True):
         # We are here if:
         #   we failed to determine static versioning info, or
         #   we successfully obtained dynamic revision info
-        version = ''.join([str(major), '.', str(minor)])
+        version = ''.join([str(major), '.', str(minor)])  # noqa
         if dev:
             version += '.dev_' + date_info.strftime("%Y%m%d%H%M%S")
-        version_info = (name, major, minor, revision)
+        version_info = (name, major, minor, revision)  # noqa
 
     return date, date_info, version, version_info, vcs_info
 
-## Version information
+
+# Version information
 name = 'networkx'
 major = "1"
 minor = "8.1"
 
 
-## Declare current release as a development release.
-## Change to False before tagging a release; then change back.
+# Declare current release as a development release.
+# Change to False before tagging a release; then change back.
 dev = False
 
 
 description = "Python package for creating and manipulating graphs and networks"
 
-long_description = \
-"""
+long_description = """
 NetworkX is a Python package for the creation, manipulation, and
 study of the structure, dynamics, and functions of complex networks.
 
 """
 license = 'BSD'
-authors = {'Hagberg' : ('Aric Hagberg','hagberg@lanl.gov'),
-           'Schult' : ('Dan Schult','dschult@colgate.edu'),
-           'Swart' : ('Pieter Swart','swart@lanl.gov')
-           }
+authors = {
+    'Hagberg': ('Aric Hagberg', 'hagberg@lanl.gov'),
+    'Schult': ('Dan Schult', 'dschult@colgate.edu'),
+    'Swart': ('Pieter Swart', 'swart@lanl.gov')
+}
 maintainer = "NetworkX Developers"
 maintainer_email = "networkx-discuss@googlegroups.com"
 url = 'http://networkx.lanl.gov/'
-download_url="http://networkx.lanl.gov/download/networkx"
+download_url = "http://networkx.lanl.gov/download/networkx"
 platforms = ['Linux', 'Mac OSX', 'Windows', 'Unix']
 keywords = ['Networks', 'Graph Theory', 'Mathematics', 'network', 'graph', 'discrete mathematics', 'math']
 classifiers = [
@@ -146,5 +148,3 @@ classifiers = [
         'Topic :: Scientific/Engineering :: Physics']
 
 date, date_info, version, version_info, vcs_info = get_info()
-
-

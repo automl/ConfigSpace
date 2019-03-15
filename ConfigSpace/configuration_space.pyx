@@ -26,6 +26,8 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+# cython: language_level=3
+
 from collections import defaultdict, deque, OrderedDict
 import copy
 from itertools import chain
@@ -157,7 +159,6 @@ class ConfigurationSpace(object):
         self._check_default_configuration()
         self._sort_hyperparameters()
         return hyperparameters
-
 
     def add_hyperparameter(self, hyperparameter: Hyperparameter) -> Hyperparameter:
         """
@@ -411,7 +412,7 @@ class ConfigurationSpace(object):
 
     def _sort_hyperparameters(self) -> None:
         levels = OrderedDict()  # type: OrderedDict[str, int]
-        to_visit = deque() # type: ignore
+        to_visit = deque()  # type: ignore
         for hp_name in self._hyperparameters:
             to_visit.appendleft(hp_name)
 
@@ -599,9 +600,12 @@ class ConfigurationSpace(object):
                     )
                 )
 
-
-    def add_configuration_space(self, prefix: str, configuration_space: 'ConfigurationSpace',
-                                delimiter: str=":", parent_hyperparameter: Hyperparameter=None) -> 'ConfigurationSpace':
+    def add_configuration_space(self,
+                                prefix: str,
+                                configuration_space: 'ConfigurationSpace',
+                                delimiter: str = ":",
+                                parent_hyperparameter: Hyperparameter = None
+                                ) -> 'ConfigurationSpace':
         """
         Combine two configuration space by adding one the other configuration
         space. The contents of the configuration space, which should be added,
@@ -857,7 +861,7 @@ class ConfigurationSpace(object):
 
         """
         conditions = self.get_child_conditions_of(name)
-        parents = [] # type: List[Hyperparameter]
+        parents = []  # type: List[Hyperparameter]
         for condition in conditions:
             parents.extend(condition.get_children())
         return parents
@@ -915,7 +919,7 @@ class ConfigurationSpace(object):
         """
 
         conditions = self.get_parent_conditions_of(name)
-        parents = [] # type: List[Hyperparameter]
+        parents = []  # type: List[Hyperparameter]
         for condition in conditions:
             parents.extend(condition.get_parents())
         return parents
@@ -1009,7 +1013,7 @@ class ConfigurationSpace(object):
 
     def _check_default_configuration(self) -> 'Configuration':
         # Check if adding that hyperparameter leads to an illegal default configuration
-        instantiated_hyperparameters = {} # type: Dict[str, Optional[Union[int, float, str]]]
+        instantiated_hyperparameters = {}  # type: Dict[str, Optional[Union[int, float, str]]]
         for hp in self.get_hyperparameters():
             conditions = self._get_parent_conditions_of(hp.name)
             active = True
@@ -1026,7 +1030,7 @@ class ConfigurationSpace(object):
                     # TODO find out why a configuration is illegal!
                     active = False
 
-            if active == False:
+            if not active:
                 instantiated_hyperparameters[hp.name] = None
             elif isinstance(hp, Constant):
                 instantiated_hyperparameters[hp.name] = hp.value
@@ -1052,7 +1056,7 @@ class ConfigurationSpace(object):
         if not isinstance(configuration, Configuration):
             raise TypeError("The method check_configuration must be called "
                             "with an instance of %s. "
-                            "Your input was of type %s"% (Configuration, type(configuration)))
+                            "Your input was of type %s" % (Configuration, type(configuration)))
         ConfigSpace.c_util.check_configuration(
             self, configuration.get_array(), False
         )
@@ -1135,7 +1139,7 @@ class ConfigurationSpace(object):
                                  hyperparameter.name)
 
             if not allow_inactive_with_values and not active and \
-                            not np.isnan(hp_value):
+               not np.isnan(hp_value):
                 raise ValueError("Inactive hyperparameter '%s' must not be "
                                  "specified, but has the vector value: '%s'." %
                                  (hp_name, hp_value))
@@ -1143,7 +1147,7 @@ class ConfigurationSpace(object):
 
     def _check_forbidden(self, vector: np.ndarray) -> None:
         ConfigSpace.c_util.check_forbidden(self.forbidden_clauses, vector)
-        #for clause in self.forbidden_clauses:
+        # for clause in self.forbidden_clauses:
         #    if clause.is_forbidden_vector(vector, strict=False):
         #        raise ForbiddenValueError("Given vector violates forbidden
         # clause %s" % (str(clause)))
@@ -1281,7 +1285,7 @@ class ConfigurationSpace(object):
                             self._children_of,
                         ))
                     accepted_configurations.append(configuration)
-                except ForbiddenValueError as e:
+                except ForbiddenValueError:
                     iteration += 1
 
                     if iteration == size * 100:
@@ -1309,9 +1313,10 @@ class ConfigurationSpace(object):
 
 
 class Configuration(object):
-    def __init__(self, configuration_space: ConfigurationSpace, values: Union[None,  Dict[str, Union[str, float, int]]] = None,
-                 vector: Union[None, np.ndarray]=None, allow_inactive_with_values: bool=False, origin: Any=None)\
-            -> None:
+    def __init__(self, configuration_space: ConfigurationSpace,
+                 values: Union[None,  Dict[str, Union[str, float, int]]] = None,
+                 vector: Union[None, np.ndarray] = None,
+                 allow_inactive_with_values: bool = False, origin: Any = None) -> None:
         """
         Class for a single configuration.
 
@@ -1391,7 +1396,6 @@ class Configuration(object):
                     _inverse_transform(self[key])
             self.is_valid_configuration()
 
-
         elif vector is not None:
             self._values = dict()
             if not isinstance(vector, np.ndarray):
@@ -1453,7 +1457,7 @@ class Configuration(object):
         self._values[item] = value
         return self._values[item]
 
-    def get(self, item: str, default: Union[None, Any]=None) -> Union[None, Any]:
+    def get(self, item: str, default: Union[None, Any] = None) -> Union[None, Any]:
         """
         Return for a given hyperparameter name ``item`` the value of this
         hyperparameter. ``default`` if the hyperparameter ``name`` doesn't exist.
@@ -1471,7 +1475,7 @@ class Configuration(object):
         """
         try:
             return self[item]
-        except:
+        except Exception:
             return default
 
     def __setitem__(self, key, value):
@@ -1567,7 +1571,7 @@ class Configuration(object):
             keys = list(self.configuration_space._hyperparameters.keys())
             keys = [
                 key for i, key in enumerate(keys) if
-                    np.isfinite(self._vector[i])
+                np.isfinite(self._vector[i])
             ]
             self._keys = keys
         return self._keys
@@ -1599,4 +1603,3 @@ class Configuration(object):
             The vector representation of the configuration
         """
         return self._vector
-

@@ -79,7 +79,7 @@ int_a = UniformIntegerHyperparameter("int_a", -1, 6)
 log_a = UniformFloatHyperparameter("log_a", 4e-1, 6.45, log=True)
 int_log_a = UniformIntegerHyperparameter("int_log_a", 1, 6, log=True)
 cat_a = CategoricalHyperparameter("cat_a", ["a", "b", "c", "d"])
-crazy = CategoricalHyperparameter("@.:;/\?!$%&_-<>*+1234567890", ["const"])
+crazy = CategoricalHyperparameter(r"@.:;/\?!$%&_-<>*+1234567890", ["const"])
 easy_space = ConfigurationSpace()
 easy_space.add_hyperparameter(float_a)
 easy_space.add_hyperparameter(e_float_a)
@@ -100,10 +100,10 @@ class TestPCSConverter(unittest.TestCase):
         a_copy = {"a": float_a_copy, "b": int_a}
         a_real = {"b": int_a, "a": float_a}
         self.assertDictEqual(a_real, a_copy)
-    
+
     '''
     Tests for the "older pcs" version
-    
+
     '''
     def test_read_configuration_space_easy(self):
         expected = StringIO()
@@ -116,11 +116,11 @@ class TestPCSConverter(unittest.TestCase):
         expected.write('log_a [4e-1, 6.45] [1.6062378404]l\n')
         expected.write('int_log_a [1, 6] [2]il\n')
         expected.write('cat_a {a,"b",c,d} [a]\n')
-        expected.write('@.:;/\?!$%&_-<>*+1234567890 {"const"} ["const"]\n')
+        expected.write(r'@.:;/\?!$%&_-<>*+1234567890 {"const"} ["const"]\n')
         expected.seek(0)
         cs = pcs.read(expected)
         self.assertEqual(cs, easy_space)
-    
+
     def test_read_configuration_space_conditional(self):
         # More complex search space as string array
         complex_cs = list()
@@ -156,12 +156,12 @@ class TestPCSConverter(unittest.TestCase):
 
     def test_write_illegal_argument(self):
         sp = {"a": int_a}
-        self.assertRaisesRegexp(TypeError, "pcs_parser.write expects an "
-                                "instance of "
-                                "<class "
-                                "'ConfigSpace.configuration_"
-                                "space.ConfigurationSpace'>, you provided "
-                                "'<(type|class) 'dict'>'", pcs.write, sp)
+        self.assertRaisesRegex(TypeError, r"pcs_parser.write expects an "
+                               r"instance of "
+                               r"<class "
+                               r"'ConfigSpace.configuration_"
+                               r"space.ConfigurationSpace'>, you provided "
+                               r"'<(type|class) 'dict'>'", pcs.write, sp)
 
     def test_write_int(self):
         expected = "int_a [-1, 6] [2]i"
@@ -214,9 +214,9 @@ class TestPCSConverter(unittest.TestCase):
         cs.add_forbidden_clause(fb)
         value = pcs.write(cs)
         self.assertIn(expected, value)
-    
+
     """
-    Tests for the "newer pcs" version in order to check 
+    Tests for the "newer pcs" version in order to check
     if both deliver the same results
     """
     def test_read_new_configuration_space_easy(self):
@@ -230,11 +230,11 @@ class TestPCSConverter(unittest.TestCase):
         expected.write('log_a real [4e-1, 6.45] [1.6062378404]log\n')
         expected.write('int_log_a integer [1, 6] [2]log\n')
         expected.write('cat_a categorical {a,"b",c,d} [a]\n')
-        expected.write('@.:;/\?!$%&_-<>*+1234567890 categorical {"const"} ["const"]\n')
+        expected.write(r'@.:;/\?!$%&_-<>*+1234567890 categorical {"const"} ["const"]\n')
         expected.seek(0)
         cs = pcs_new.read(expected)
         self.assertEqual(cs, easy_space)
-        
+
     def test_read_new_configuration_space_conditional(self):
         # More complex search space as string array
         complex_cs = list()
@@ -256,7 +256,7 @@ class TestPCSConverter(unittest.TestCase):
 
         cs_new = pcs_new.read(complex_cs)
         self.assertEqual(cs_new, conditional_space)
-        
+
         # same in older version
         complex_cs_old = list()
         complex_cs_old.append("preprocessing {None, pca} [None]")
@@ -277,16 +277,17 @@ class TestPCSConverter(unittest.TestCase):
 
         cs_old = pcs.read(complex_cs_old)
         self.assertEqual(cs_old, cs_new)
-        
+
     def test_write_new_illegal_argument(self):
         sp = {"a": int_a}
-        self.assertRaisesRegexp(TypeError, "pcs_parser.write expects an "
-                                "instance of "
-                                "<class "
-                                "'ConfigSpace.configuration_"
-                                "space.ConfigurationSpace'>, you provided "
-                                "'<(type|class) 'dict'>'", pcs_new.write, sp)
-                                
+        self.assertRaisesRegex(TypeError,
+                               r"pcs_parser.write expects an "
+                               r"instance of "
+                               r"<class "
+                               r"'ConfigSpace.configuration_"
+                               r"space.ConfigurationSpace'>, you provided "
+                               r"'<(type|class) 'dict'>'", pcs_new.write, sp)
+
     def test_write_new_int(self):
         expected = "int_a integer [-1, 6] [2]"
         cs = ConfigurationSpace()
@@ -398,31 +399,31 @@ class TestPCSConverter(unittest.TestCase):
         self.assertEqual(expected, value)
 
     def test_read_new_configuration_space_complex_conditionals(self):
-        classi = OrdinalHyperparameter("classi", ["random_forest","extra_trees","k_nearest_neighbors","something"])
+        classi = OrdinalHyperparameter("classi", ["random_forest", "extra_trees", "k_nearest_neighbors", "something"])
         knn_weights = CategoricalHyperparameter("knn_weights", ["uniform", "distance"])
-        weather = OrdinalHyperparameter("weather",["sunny", "rainy", "cloudy", "snowing"])
+        weather = OrdinalHyperparameter("weather", ["sunny", "rainy", "cloudy", "snowing"])
         temperature = CategoricalHyperparameter("temperature", ["high", "low"])
         rain = CategoricalHyperparameter("rain", ["yes", "no"])
-        gloves = OrdinalHyperparameter("gloves",["none", "yarn", "leather", "gortex"])
+        gloves = OrdinalHyperparameter("gloves", ["none", "yarn", "leather", "gortex"])
         heur1 = CategoricalHyperparameter("heur1", ["off", "on"])
         heur2 = CategoricalHyperparameter("heur2", ["off", "on"])
         heur_order = CategoricalHyperparameter("heur_order", ["heur1then2", "heur2then1"])
         gloves_condition = OrConjunction(EqualsCondition(gloves, rain, "yes"),
-                                           EqualsCondition(gloves, temperature, "low"))
+                                         EqualsCondition(gloves, temperature, "low"))
         heur_condition = AndConjunction(EqualsCondition(heur_order, heur1, "on"),
                                         EqualsCondition(heur_order, heur2, "on"))
-        and_conjunction = AndConjunction(NotEqualsCondition(knn_weights, classi, "extra_trees"), 
+        and_conjunction = AndConjunction(NotEqualsCondition(knn_weights, classi, "extra_trees"),
                                          EqualsCondition(knn_weights, classi, "random_forest"))
         Cl_condition = OrConjunction(EqualsCondition(knn_weights, classi, "k_nearest_neighbors"),
                                      and_conjunction,
                                      EqualsCondition(knn_weights, classi, "something"))
-        
+
         and1 = AndConjunction(EqualsCondition(temperature, weather, "rainy"),
-                              EqualsCondition(temperature, weather, "cloudy"))   
+                              EqualsCondition(temperature, weather, "cloudy"))
         and2 = AndConjunction(EqualsCondition(temperature, weather, "sunny"),
-                              NotEqualsCondition(temperature, weather, "snowing"))                       
-        another_condition = OrConjunction(and1,and2)
-        
+                              NotEqualsCondition(temperature, weather, "snowing"))
+        another_condition = OrConjunction(and1, and2)
+
         complex_conditional_space = ConfigurationSpace()
         complex_conditional_space.add_hyperparameter(classi)
         complex_conditional_space.add_hyperparameter(knn_weights)
@@ -433,7 +434,7 @@ class TestPCSConverter(unittest.TestCase):
         complex_conditional_space.add_hyperparameter(heur1)
         complex_conditional_space.add_hyperparameter(heur2)
         complex_conditional_space.add_hyperparameter(heur_order)
-        
+
         complex_conditional_space.add_condition(gloves_condition)
         complex_conditional_space.add_condition(heur_condition)
         complex_conditional_space.add_condition(Cl_condition)
@@ -451,8 +452,10 @@ class TestPCSConverter(unittest.TestCase):
         complex_cs.append("heur_order categorical { heur1then2, heur2then1 } [heur1then2]")
         complex_cs.append("gloves | rain == yes || temperature == low")
         complex_cs.append("heur_order | heur1 == on && heur2 == on")
-        complex_cs.append("knn_weights | classi == k_nearest_neighbors || classi != extra_trees && classi == random_forest || classi == something")
-        complex_cs.append("temperature | weather == rainy && weather == cloudy || weather == sunny && weather != snowing")
+        complex_cs.append("knn_weights | classi == k_nearest_neighbors || "
+                          "classi != extra_trees && classi == random_forest || classi == something")
+        complex_cs.append("temperature | weather == rainy && weather == cloudy || "
+                          "weather == sunny && weather != snowing")
         cs_new = pcs_new.read(complex_cs)
         self.assertEqual(cs_new, complex_conditional_space)
 
@@ -509,4 +512,3 @@ class TestPCSConverter(unittest.TestCase):
             pcs_new = pcs.read(fh)
 
         self.assertEqual(pcs_new, cs, msg=(pcs_new, cs))
-

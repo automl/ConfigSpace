@@ -44,7 +44,7 @@ def generate(configuration_space_path):
         try:
             with open(configuration_space_path) as fh:
                 cs = pcs_parser.read(fh)
-        except:
+        except Exception:
             with open(configuration_space_path) as fh:
                 cs = pcs_new_parser.read(fh)
 

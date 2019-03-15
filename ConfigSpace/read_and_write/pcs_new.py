@@ -63,13 +63,15 @@ pp_connective = pyparsing.Word("||" + "&&")
 pp_choices = pp_param_name + pyparsing.Optional(pyparsing.OneOrMore("," + pp_param_name))
 pp_sequence = pp_param_name + pyparsing.Optional(pyparsing.OneOrMore("," + pp_param_name))
 pp_ord_param = pp_param_name + pp_param_type + "{" + pp_sequence + "}" + "[" + pp_param_name + "]"
-pp_cont_param = pp_param_name + pp_param_type + "[" + pp_number + "," + pp_number + "]" + "[" + pp_number + "]" + pyparsing.Optional(pp_log)
+pp_cont_param = (pp_param_name + pp_param_type + "[" + pp_number + "," +
+                 pp_number + "]" + "[" + pp_number + "]" + pyparsing.Optional(pp_log))
 pp_cat_param = pp_param_name + pp_param_type + "{" + pp_choices + "}" + "[" + pp_param_name + "]"
-pp_condition = pp_param_name + "|" +  pp_param_name + pp_param_operation + \
+pp_condition = pp_param_name + "|" + pp_param_name + pp_param_operation + \
     pyparsing.Optional('{') + pp_param_val + pyparsing.Optional('}') + \
     pyparsing.Optional(
         pyparsing.OneOrMore(
-            pp_connective  + pp_param_name + pp_param_operation + pyparsing.Optional('{') + pp_param_val + pyparsing.Optional('}')
+            pp_connective + pp_param_name + pp_param_operation +
+            pyparsing.Optional('{') + pp_param_val + pyparsing.Optional('}')
         )
     )
 pp_forbidden_clause = "{" + pp_param_name + "=" + pp_numberorname + \
@@ -85,9 +87,9 @@ def build_categorical(param):
 
 def build_ordinal(param):
     ordinal_template = '%s ordinal {%s} [%s]'
-    return ordinal_template % (param.name, 
+    return ordinal_template % (param.name,
                                ", ".join([str(value) for value in param.sequence]),
-                                str(param.default_value))
+                               str(param.default_value))
 
 
 def build_constant(param):
@@ -138,24 +140,24 @@ def build_condition(condition):
         return notequal_template % (condition.child.name,
                                     condition.parent.name,
                                     condition.value)
-                                     
+
     elif isinstance(condition, InCondition):
         return in_template % (condition.child.name,
                               condition.parent.name,
                               ", ".join(condition.values))
-                                     
+
     elif isinstance(condition, EqualsCondition):
         return equal_template % (condition.child.name,
                                  condition.parent.name,
                                  condition.value)
     elif isinstance(condition, LessThanCondition):
         return less_template % (condition.child.name,
-                                 condition.parent.name,
-                                 condition.value)
+                                condition.parent.name,
+                                condition.value)
     elif isinstance(condition, GreaterThanCondition):
         return greater_template % (condition.child.name,
-                                 condition.parent.name,
-                                 condition.value)
+                                   condition.parent.name,
+                                   condition.value)
 
 
 def build_conjunction(conjunction):
@@ -181,7 +183,7 @@ def build_forbidden(clause):
         raise TypeError("build_forbidden must be called with an instance of "
                         "'%s', got '%s'" %
                         (AbstractForbiddenComponent, type(clause)))
-                        
+
     retval = StringIO()
     retval.write("{")
     # Really simple because everything is an AND-conjunction of equals
@@ -214,7 +216,7 @@ def condition_specification(child_name, condition, configuration_space):
             condition = EqualsCondition(child, parent, restrictions[0])
         else:
             condition = InCondition(child, parent, values=restrictions)
-        return condition                
+        return condition
     else:
         restrictions = condition[2]
         if isinstance(parent, FloatHyperparameter):
@@ -320,7 +322,7 @@ def read(pcs_string, debug=False):
         try:
             param_list = pp_cont_param.parseString(line)
             name = param_list[0]
-            if param_list[1]  == 'integer':
+            if param_list[1] == 'integer':
                 paramtype = 'int'
             elif param_list[1] == 'real':
                 paramtype = 'float'
@@ -388,7 +390,7 @@ def read(pcs_string, debug=False):
                 tmp_list = []
         configuration_space.add_forbidden_clause(ForbiddenAndConjunction(
             *clause_list))
-            
+
     conditions_per_child = OrderedDict()
     for condition in conditions:
         child_name = condition[0]
@@ -409,8 +411,8 @@ def read(pcs_string, debug=False):
                         condition = str(cond_parts).split('&&')
                         # if length is 1 it must be or
                         if len(condition) == 1:
-                            element_list =  condition[0].split()
-                            ors_combis.append(condition_specification(child_name, element_list, configuration_space))       
+                            element_list = condition[0].split()
+                            ors_combis.append(condition_specification(child_name, element_list, configuration_space))
                         else:
                             # now taking care of ands
                             ands = []
@@ -441,7 +443,7 @@ def read(pcs_string, debug=False):
                     element_list = [element for element in condition.split()]
                     normal_condition = condition_specification(child_name, element_list, configuration_space)
                     configuration_space.add_condition(normal_condition)
-   
+
     return configuration_space
 
 
@@ -462,8 +464,7 @@ def write(configuration_space):
     """
     if not isinstance(configuration_space, ConfigurationSpace):
         raise TypeError("pcs_parser.write expects an instance of %s, "
-                        "you provided '%s'" % (ConfigurationSpace,
-                        type(configuration_space)))
+                        "you provided '%s'" % (ConfigurationSpace, type(configuration_space)))
 
     param_lines = StringIO()
     condition_lines = StringIO()
@@ -540,7 +541,6 @@ def write(configuration_space):
             param_lines.write("\n")
 
     # Check if the default configuration is a valid configuration!
-
 
     param_lines.seek(0)
     return param_lines.getvalue()

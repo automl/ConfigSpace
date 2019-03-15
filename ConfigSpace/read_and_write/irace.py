@@ -21,7 +21,6 @@
 __authors__ = ["Katharina Eggensperger", "Matthias Feurer", "Mohsin Ali"]
 __contact__ = "automl.org"
 
-from collections import OrderedDict
 from itertools import product
 from ConfigSpace.configuration_space import ConfigurationSpace
 from ConfigSpace.hyperparameters import CategoricalHyperparameter, \
@@ -34,7 +33,6 @@ from ConfigSpace.conditions import EqualsCondition, NotEqualsCondition, \
 #     ForbiddenAndConjunction, ForbiddenInClause, AbstractForbiddenComponent, MultipleValueForbiddenClause
 from ConfigSpace.forbidden import ForbiddenEqualsClause, \
     ForbiddenAndConjunction, ForbiddenInClause, AbstractForbiddenComponent, MultipleValueForbiddenClause
-import sys
 import pyparsing
 import io
 import numpy as np
@@ -43,15 +41,18 @@ import numpy as np
 pp_param_name = pyparsing.Word(pyparsing.alphanums + "_" + "-" + "@" + "." + ":" + ";" + "\\" + "/" + "?" + "!" +
                                "$" + "%" + "&" + "*" + "+" + "<" + ">")
 
+
 def build_categorical(param):
     cat_template = "%s '--%s ' c {%s}"
     return cat_template % (param.name, param.name,
                            ",".join([str(value) for value in param.choices]))
 
+
 def build_ordinal(param):
     cat_template = "%s '--%s ' o {%s}"
     return cat_template % (param.name, param.name,
                            ",".join([str(value) for value in param.sequence]))
+
 
 def build_constant(param):
     constant_template = "%s '--%s ' c (%s)"
@@ -104,7 +105,7 @@ def build_condition(condition):
 
     full_condition = ''
     child = ''
-    conditions = [condition] # if not a conjunction this makes condition iteratable
+    conditions = [condition]  # if not a conjunction this makes condition iteratable
 
     # Check if IRACE can handle the condition
     if isinstance(condition, OrConjunction):
@@ -121,8 +122,8 @@ def build_condition(condition):
     for clause in conditions:
         child = clause.child.name
         # Findout type of parent
-        if isinstance(clause.parent, UniformIntegerHyperparameter) or isinstance(clause.parent,
-                                                                               NormalIntegerHyperparameter):
+        if (isinstance(clause.parent, UniformIntegerHyperparameter) or
+           isinstance(clause.parent, NormalIntegerHyperparameter)):
             pType = 'i'
         elif isinstance(clause.parent, UniformFloatHyperparameter) or isinstance(clause.parent,
                                                                                  NormalFloatHyperparameter):
@@ -164,7 +165,6 @@ def build_condition(condition):
             full_condition += greater_template % (clause.parent.name, clause.value)
 
     return child + ' | ' + full_condition
-
 
 
 def build_forbidden(clause):
@@ -273,7 +273,6 @@ def write(configuration_space):
             t = filter(lambda x: line.split(" ")[0] in x, splitted_params)
             index = splitted_params.index(next(t))
             splitted_params[index] = splitted_params[index] + "  ".join(line.split(" ")[1:])
-
 
     for i, j in enumerate(splitted_params):
         if j[-1] != "\n":

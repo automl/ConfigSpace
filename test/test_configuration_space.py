@@ -44,7 +44,6 @@ from ConfigSpace.exceptions import ForbiddenValueError
 
 
 def byteify(input):
-    print(sys.version)
     if sys.version_info >= (3, 0):
         return input
 
@@ -54,7 +53,7 @@ def byteify(input):
                 for key, value in input.iteritems()}
     elif isinstance(input, list):
         return [byteify(element) for element in input]
-    elif isinstance(input, unicode):
+    elif isinstance(input, str):
         return input.encode('utf-8')
     else:
         return input
@@ -79,10 +78,10 @@ class TestConfigurationSpace(unittest.TestCase):
         cs = ConfigurationSpace()
         hp = UniformIntegerHyperparameter("name", 0, 10)
         cs.add_hyperparameter(hp)
-        self.assertRaisesRegexp(ValueError,
-                                "Hyperparameter 'name' is already in the "
-                                "configuration space.",
-                                cs.add_hyperparameter, hp)
+        self.assertRaisesRegex(ValueError,
+                               "Hyperparameter 'name' is already in the "
+                               "configuration space.",
+                               cs.add_hyperparameter, hp)
 
     def test_illegal_default_configuration(self):
         cs = ConfigurationSpace()
@@ -94,10 +93,10 @@ class TestConfigurationSpace(unittest.TestCase):
         forb2 = ForbiddenEqualsClause(hp2, "l1")
         forb3 = ForbiddenAndConjunction(forb1, forb2)
         # cs.add_forbidden_clause(forb3)
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             ValueError,
-            "Given vector violates forbidden clause \(Forbidden: loss == \'l1\' && "
-            "Forbidden: penalty == \'l1\'\)",
+            r"Given vector violates forbidden clause \(Forbidden: loss == \'l1\' && "
+            r"Forbidden: penalty == \'l1\'\)",
             cs.add_forbidden_clause,
             forb3,
         )
@@ -129,20 +128,20 @@ class TestConfigurationSpace(unittest.TestCase):
         hp1 = CategoricalHyperparameter("parent", [0, 1])
         hp2 = UniformIntegerHyperparameter("child", 0, 10)
         cond = EqualsCondition(hp2, hp1, 0)
-        self.assertRaisesRegexp(ValueError, "Child hyperparameter 'child' not "
-                                "in configuration space.", cs.add_condition,
-                                cond)
+        self.assertRaisesRegex(ValueError, "Child hyperparameter 'child' not "
+                               "in configuration space.", cs.add_condition,
+                               cond)
         cs.add_hyperparameter(hp1)
-        self.assertRaisesRegexp(ValueError, "Child hyperparameter 'child' not "
-                                "in configuration space.", cs.add_condition,
-                                cond)
+        self.assertRaisesRegex(ValueError, "Child hyperparameter 'child' not "
+                               "in configuration space.", cs.add_condition,
+                               cond)
 
         # Test also the parent hyperparameter
         cs2 = ConfigurationSpace()
         cs2.add_hyperparameter(hp2)
-        self.assertRaisesRegexp(ValueError, "Parent hyperparameter 'parent' "
-                                "not in configuration space.",
-                                cs2.add_condition, cond)
+        self.assertRaisesRegex(ValueError, "Parent hyperparameter 'parent' "
+                               "not in configuration space.",
+                               cs2.add_condition, cond)
 
     def test_condition_with_cycles(self):
         cs = ConfigurationSpace()
@@ -153,9 +152,9 @@ class TestConfigurationSpace(unittest.TestCase):
         cond1 = EqualsCondition(hp2, hp1, 0)
         cs.add_condition(cond1)
         cond2 = EqualsCondition(hp1, hp2, 0)
-        self.assertRaisesRegexp(ValueError, "Hyperparameter configuration "
-                                "contains a cycle \[\['child', 'parent'\]\]",
-                                cs.add_condition, cond2)
+        self.assertRaisesRegex(ValueError, r"Hyperparameter configuration "
+                               r"contains a cycle \[\['child', 'parent'\]\]",
+                               cs.add_condition, cond2)
 
     def test_add_conjunction(self):
         hp1 = CategoricalHyperparameter("input1", [0, 1])
@@ -192,12 +191,12 @@ class TestConfigurationSpace(unittest.TestCase):
         cs.add_hyperparameter(hp3)
 
         cs.add_condition(cond1)
-        self.assertRaisesRegexp(ValueError,
-                                "Adding a second condition \(different\) for a "
-                                "hyperparameter is ambigouos and "
-                                "therefore forbidden. Add a conjunction "
-                                "instead!",
-                                cs.add_condition, cond2)
+        self.assertRaisesRegex(ValueError,
+                               r"Adding a second condition \(different\) for a "
+                               r"hyperparameter is ambigouos and "
+                               r"therefore forbidden. Add a conjunction "
+                               r"instead!",
+                               cs.add_condition, cond2)
 
     def test_add_forbidden_clause(self):
         cs = ConfigurationSpace()
@@ -236,9 +235,9 @@ class TestConfigurationSpace(unittest.TestCase):
     def test_add_configuration_space(self):
         cs = ConfigurationSpace()
         hp1 = cs.add_hyperparameter(CategoricalHyperparameter("input1", [0, 1]))
-        forb1 = cs.add_forbidden_clause(ForbiddenEqualsClause(hp1, 1))
+        cs.add_forbidden_clause(ForbiddenEqualsClause(hp1, 1))
         hp2 = cs.add_hyperparameter(UniformIntegerHyperparameter("child", 0, 10))
-        cond = cs.add_condition(EqualsCondition(hp2, hp1, 0))
+        cs.add_condition(EqualsCondition(hp2, hp1, 0))
         cs2 = ConfigurationSpace()
         cs2.add_configuration_space('prefix', cs, delimiter='__')
         self.assertEqual(str(cs2), '''Configuration space object:
@@ -368,9 +367,9 @@ class TestConfigurationSpace(unittest.TestCase):
 
             cs.add_condition(conj3)
             hps = cs.get_hyperparameters()
-            print(hps, hyperparameters)
+            # print(hps, hyperparameters)
             for hp, idx in zip(hyperparameters, [0, 1, 2, 5, 4, 6, 3]):
-                print(hp, idx)
+                # print(hp, idx)
                 self.assertEqual(hps.index(hp), idx)
                 self.assertEqual(cs._hyperparameter_idx[hp.name], idx)
             self.assertEqual(cs._idx_to_hyperparameter[idx], hp.name)
@@ -413,14 +412,14 @@ class TestConfigurationSpace(unittest.TestCase):
         self.assertEqual([cond1], cs.get_child_conditions_of(hp1.name))
         self.assertEqual([cond1], cs.get_child_conditions_of(hp1))
 
-        self.assertRaisesRegexp(KeyError,
-                                "Hyperparameter 'Foo' does not exist in this "
-                                "configuration space.", cs.get_parents_of,
-                                "Foo")
-        self.assertRaisesRegexp(KeyError,
-                                "Hyperparameter 'Foo' does not exist in this "
-                                "configuration space.", cs.get_children_of,
-                                "Foo")
+        self.assertRaisesRegex(KeyError,
+                               "Hyperparameter 'Foo' does not exist in this "
+                               "configuration space.", cs.get_parents_of,
+                               "Foo")
+        self.assertRaisesRegex(KeyError,
+                               "Hyperparameter 'Foo' does not exist in this "
+                               "configuration space.", cs.get_children_of,
+                               "Foo")
 
     def test_get_parent_and_children_of(self):
         cs = ConfigurationSpace()
@@ -436,26 +435,26 @@ class TestConfigurationSpace(unittest.TestCase):
         self.assertEqual([hp2], cs.get_children_of(hp1.name))
         self.assertEqual([hp2], cs.get_children_of(hp1))
 
-        self.assertRaisesRegexp(KeyError,
-                                "Hyperparameter 'Foo' does not exist in this "
-                                "configuration space.", cs.get_parents_of,
-                                "Foo")
-        self.assertRaisesRegexp(KeyError,
-                                "Hyperparameter 'Foo' does not exist in this "
-                                "configuration space.", cs.get_children_of,
-                                "Foo")
+        self.assertRaisesRegex(KeyError,
+                               "Hyperparameter 'Foo' does not exist in this "
+                               "configuration space.", cs.get_parents_of,
+                               "Foo")
+        self.assertRaisesRegex(KeyError,
+                               "Hyperparameter 'Foo' does not exist in this "
+                               "configuration space.", cs.get_children_of,
+                               "Foo")
 
     def test_check_configuration_input_checking(self):
         cs = ConfigurationSpace()
-        self.assertRaisesRegexp(TypeError, "The method check_configuration must be called "
-                                            "with an instance of %s. "
-                                            "Your input was of type %s"% (Configuration, type("String")),
-                                cs.check_configuration, "String")
+        self.assertRaisesRegex(TypeError, r"The method check_configuration must be called "
+                                          r"with an instance of %s. "
+                                          r"Your input was of type %s" % (Configuration, type("String")),
+                               cs.check_configuration, "String")
         # For the check configuration method with vector representation
-        self.assertRaisesRegexp(TypeError, "The method check_configuration must"
-                                           " be called with an instance of "
-                                           "np.ndarray Your input was of type %s" % (type("String")),
-                                cs.check_configuration_vector_representation, "String")
+        self.assertRaisesRegex(TypeError, r"The method check_configuration must"
+                                          r" be called with an instance of "
+                                          r"np.ndarray Your input was of type %s" % (type("String")),
+                               cs.check_configuration_vector_representation, "String")
 
     def test_check_configuration(self):
         # TODO this is only a smoke test
@@ -516,18 +515,18 @@ class TestConfigurationSpace(unittest.TestCase):
             evaluation = conj3.evaluate(instantiations)
             self.assertEqual(expected_outcomes[idx], evaluation)
 
-            if evaluation == False:
-                self.assertRaisesRegexp(ValueError,
-                                        "Inactive hyperparameter 'AND' must "
-                                        "not be specified, but has the vector value: "
-                                        "'0.0'.",
-                                        Configuration, cs, values={
-                                        "input1": values[0],
-                                        "input2": values[1],
-                                        "input3": values[2],
-                                        "input4": values[3],
-                                        "input5": values[4],
-                                        "AND": "True"})
+            if not evaluation:
+                self.assertRaisesRegex(ValueError,
+                                       r"Inactive hyperparameter 'AND' must "
+                                       r"not be specified, but has the vector value: "
+                                       r"'0.0'.",
+                                       Configuration, cs, values={
+                                            "input1": values[0],
+                                            "input2": values[1],
+                                            "input3": values[2],
+                                            "input4": values[3],
+                                            "input5": values[4],
+                                            "AND": "True"})
             else:
                 Configuration(cs, values={"input1": values[0],
                                           "input2": values[1],
@@ -541,8 +540,7 @@ class TestConfigurationSpace(unittest.TestCase):
         # that evaluating forbidden clauses does not choke on missing
         # hyperparameters
         cs = ConfigurationSpace()
-        classifier = CategoricalHyperparameter("classifier",
-            ["k_nearest_neighbors", "extra_trees"])
+        classifier = CategoricalHyperparameter("classifier", ["k_nearest_neighbors", "extra_trees"])
         metric = CategoricalHyperparameter("metric", ["minkowski", "other"])
         p = CategoricalHyperparameter("k_nearest_neighbors:p", [1, 2])
         metric_depends_on_classifier = EqualsCondition(metric, classifier,
@@ -569,10 +567,9 @@ class TestConfigurationSpace(unittest.TestCase):
 
         forbidden = ForbiddenEqualsClause(metric, "other")
         cs.add_forbidden_clause(forbidden)
-        configuration = Configuration(cs,
-            vector=np.ones(1, dtype=float))
-        self.assertRaisesRegexp(ValueError, "violates forbidden clause",
-                                cs._check_forbidden, configuration.get_array())
+        configuration = Configuration(cs, vector=np.ones(1, dtype=float))
+        self.assertRaisesRegex(ValueError, "violates forbidden clause",
+                               cs._check_forbidden, configuration.get_array())
 
     def test_eq(self):
         # Compare empty configuration spaces
@@ -691,19 +688,19 @@ class TestConfigurationSpace(unittest.TestCase):
 class ConfigurationTest(unittest.TestCase):
     def setUp(self):
         cs = ConfigurationSpace()
-        hp1 = cs.add_hyperparameter(CategoricalHyperparameter("parent", [0, 1]))
-        hp2 = cs.add_hyperparameter(
+        cs.add_hyperparameter(CategoricalHyperparameter("parent", [0, 1]))
+        cs.add_hyperparameter(
             UniformIntegerHyperparameter("child", 0, 10))
-        hp3 = cs.add_hyperparameter(
+        cs.add_hyperparameter(
             UniformIntegerHyperparameter("friend", 0, 5))
         self.cs = cs
 
     def test_wrong_init(self):
-        self.assertRaisesRegexp(ValueError,
+        self.assertRaisesRegex(ValueError,
                                'Configuration neither specified as dictionary '
                                'or vector.', Configuration, self.cs)
 
-        self.assertRaisesRegexp(ValueError,
+        self.assertRaisesRegex(ValueError,
                                'Configuration specified both as dictionary and '
                                'vector, can only do one.', Configuration,
                                self.cs, values={}, vector=np.zeros((3, )))
@@ -834,5 +831,4 @@ class ConfigurationTest(unittest.TestCase):
 
         for i in range(10):
             config = cs.sample_configuration()
-            d = {hp_name: config[hp_name] for hp_name in
-                 config if config[hp_name] is not None}
+            {hp_name: config[hp_name] for hp_name in config if config[hp_name] is not None}

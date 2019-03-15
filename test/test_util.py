@@ -134,7 +134,7 @@ class UtilTest(unittest.TestCase):
         hp = CategoricalHyperparameter('a', [5, 6, 7, 8])
         all_neighbors = self._test_get_one_exchange_neighbourhood(hp)
         all_neighbors = [neighbor for neighbor in all_neighbors]
-        self.assertEqual(len(all_neighbors), 300) # 3 (neighbors) * 100 (samples)
+        self.assertEqual(len(all_neighbors), 300)  # 3 (neighbors) * 100 (samples)
 
     def test_random_neighborhood_cat(self):
         hp = CategoricalHyperparameter('a', [5, 6, 7, 8])
@@ -142,14 +142,14 @@ class UtilTest(unittest.TestCase):
 
     def test_random_neighbor_failing(self):
         hp = Constant('a', 'b')
-        self.assertRaisesRegexp(ValueError, 'Probably caught in an infinite '
+        self.assertRaisesRegex(ValueError, 'Probably caught in an infinite '
                                            'loop.',
-                                self._test_random_neigbor, hp)
+                               self._test_random_neigbor, hp)
 
         hp = CategoricalHyperparameter('a', ['a'])
-        self.assertRaisesRegexp(ValueError, 'Probably caught in an infinite '
+        self.assertRaisesRegex(ValueError, 'Probably caught in an infinite '
                                            'loop.',
-                                self._test_random_neigbor, hp)
+                               self._test_random_neigbor, hp)
 
     def test_random_neigbor_conditional(self):
         mini_autosklearn_config_space_path = os.path.join(
@@ -192,7 +192,7 @@ class UtilTest(unittest.TestCase):
 
         c = deactivate_inactive_hyperparameters({'head': 0, 'left': 0,
                                                  'right': 0, 'bottom': 0},
-                                                 diamond)
+                                                diamond)
         diamond._check_configuration_rigorous(c)
 
         c = deactivate_inactive_hyperparameters({'head': 1, 'left': 0,
@@ -230,7 +230,6 @@ class UtilTest(unittest.TestCase):
                                                  'right': 0, 'bottom': 0},
                                                 diamond)
         diamond._check_configuration_rigorous(c)
-
 
         plain = ConfigurationSpace()
         a = UniformIntegerHyperparameter('a', 0, 10)
