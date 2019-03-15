@@ -90,8 +90,8 @@ def strongly_connected_components(G):
                     if lowlink[v] == preorder[v]:
                         scc_found[v] = True
                         scc = [v]
-                        while scc_queue and preorder[scc_queue[-1]] > preorder[
-                            v]:
+                        while (scc_queue
+                               and preorder[scc_queue[-1]] > preorder[v]):
                             k = scc_queue.pop()
                             scc_found[k] = True
                             scc.append(k)

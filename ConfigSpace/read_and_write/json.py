@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from collections import OrderedDict
 import json
 from typing import Dict
 
@@ -31,10 +30,8 @@ from ConfigSpace.conditions import (
 from ConfigSpace.forbidden import (
     ForbiddenEqualsClause,
     ForbiddenAndConjunction,
-    AbstractForbiddenConjunction,
     ForbiddenInClause,
     AbstractForbiddenComponent,
-    MultipleValueForbiddenClause,
 )
 
 

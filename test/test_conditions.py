@@ -28,11 +28,9 @@
 
 import unittest
 import numpy as np
-import warnings
 
 from ConfigSpace.hyperparameters import Constant, \
-    UniformFloatHyperparameter, NormalFloatHyperparameter, \
-    UniformIntegerHyperparameter, NormalIntegerHyperparameter, \
+    UniformFloatHyperparameter, UniformIntegerHyperparameter, \
     CategoricalHyperparameter, OrdinalHyperparameter
 from ConfigSpace.conditions import EqualsCondition, NotEqualsCondition, \
     InCondition, AndConjunction, OrConjunction, LessThanCondition, \
@@ -71,10 +69,10 @@ class TestConditions(unittest.TestCase):
         loss = CategoricalHyperparameter("loss",
                                          ["hinge", "log", "modified_huber", "squared_hinge", "perceptron"],
                                          default_value="hinge")
-        self.assertRaisesRegexp(ValueError, "Hyperparameter 'epsilon' is "
-                                            "conditional on the illegal value 'huber' of "
-                                            "its parent hyperparameter 'loss'",
-                                EqualsCondition, epsilon, loss, "huber")
+        self.assertRaisesRegex(ValueError, "Hyperparameter 'epsilon' is "
+                                           "conditional on the illegal value 'huber' of "
+                                           "its parent hyperparameter 'loss'",
+                               EqualsCondition, epsilon, loss, "huber")
 
     def test_not_equals_condition(self):
         hp1 = CategoricalHyperparameter("parent", [0, 1])
@@ -101,10 +99,10 @@ class TestConditions(unittest.TestCase):
                                          ["hinge", "log", "modified_huber",
                                           "squared_hinge", "perceptron"],
                                          default_value="hinge")
-        self.assertRaisesRegexp(ValueError, "Hyperparameter 'epsilon' is "
-                                            "conditional on the illegal value 'huber' of "
-                                            "its parent hyperparameter 'loss'",
-                                NotEqualsCondition, epsilon, loss, "huber")
+        self.assertRaisesRegex(ValueError, "Hyperparameter 'epsilon' is "
+                                           "conditional on the illegal value 'huber' of "
+                                           "its parent hyperparameter 'loss'",
+                               NotEqualsCondition, epsilon, loss, "huber")
 
     def test_in_condition(self):
         hp1 = CategoricalHyperparameter("parent", list(range(0, 11)))
@@ -161,18 +159,18 @@ class TestConditions(unittest.TestCase):
             self.assertFalse(lt.evaluate_vector(np.array([np.NaN, np.NaN])))
 
         hp4 = CategoricalHyperparameter("cat", list(range(6)))
-        self.assertRaisesRegexp(ValueError, "Parent hyperparameter in a > or < "
-                                            "condition must be a subclass of "
-                                            "NumericalHyperparameter or "
-                                            "OrdinalHyperparameter, but is "
-                                            "<cdef class 'ConfigSpace.hyperparameters.CategoricalHyperparameter'>",
-                                GreaterThanCondition, child, hp4, 1)
-        self.assertRaisesRegexp(ValueError, "Parent hyperparameter in a > or < "
-                                            "condition must be a subclass of "
-                                            "NumericalHyperparameter or "
-                                            "OrdinalHyperparameter, but is "
-                                            "<cdef class 'ConfigSpace.hyperparameters.CategoricalHyperparameter'>",
-                                LessThanCondition, child, hp4, 1)
+        self.assertRaisesRegex(ValueError, "Parent hyperparameter in a > or < "
+                                           "condition must be a subclass of "
+                                           "NumericalHyperparameter or "
+                                           "OrdinalHyperparameter, but is "
+                                           "<cdef class 'ConfigSpace.hyperparameters.CategoricalHyperparameter'>",
+                               GreaterThanCondition, child, hp4, 1)
+        self.assertRaisesRegex(ValueError, "Parent hyperparameter in a > or < "
+                                           "condition must be a subclass of "
+                                           "NumericalHyperparameter or "
+                                           "OrdinalHyperparameter, but is "
+                                           "<cdef class 'ConfigSpace.hyperparameters.CategoricalHyperparameter'>",
+                               LessThanCondition, child, hp4, 1)
 
         hp5 = OrdinalHyperparameter("ord", ['cold', 'luke warm', 'warm', 'hot'])
 
@@ -203,10 +201,10 @@ class TestConditions(unittest.TestCase):
                                          ["hinge", "log", "modified_huber",
                                           "squared_hinge", "perceptron"],
                                          default_value="hinge")
-        self.assertRaisesRegexp(ValueError, "Hyperparameter 'epsilon' is "
-                                            "conditional on the illegal value 'huber' of "
-                                            "its parent hyperparameter 'loss'",
-                                InCondition, epsilon, loss, ["huber", "log"])
+        self.assertRaisesRegex(ValueError, "Hyperparameter 'epsilon' is "
+                                           "conditional on the illegal value 'huber' of "
+                                           "its parent hyperparameter 'loss'",
+                               InCondition, epsilon, loss, ["huber", "log"])
 
     def test_and_conjunction(self):
         self.assertRaises(TypeError, AndConjunction, "String1", "String2")
@@ -325,9 +323,9 @@ class TestConditions(unittest.TestCase):
 
         AndConjunction(cond1, cond2, cond3)
         AndConjunction(cond4, cond5)
-        self.assertRaisesRegexp(ValueError,
-                                "All Conjunctions and Conditions must have "
-                                "the same child.", AndConjunction, cond1, cond4)
+        self.assertRaisesRegex(ValueError,
+                               "All Conjunctions and Conditions must have "
+                               "the same child.", AndConjunction, cond1, cond4)
 
     def test_condition_from_cryptominisat(self):
         parent = CategoricalHyperparameter('blkrest', ['0', '1'], default_value='1')

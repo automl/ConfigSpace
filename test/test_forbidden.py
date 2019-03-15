@@ -28,7 +28,6 @@
 
 from itertools import product
 import unittest
-import warnings
 
 import numpy as np
 
@@ -49,10 +48,10 @@ class TestForbidden(unittest.TestCase):
         hp2 = UniformIntegerHyperparameter("child", 0, 10)
         hp3 = CategoricalHyperparameter("grandchild", ["hot", "cold"])
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             ValueError,
-            "Forbidden clause must be instantiated with a legal hyperparameter value for "
-            "'parent, Type: Categorical, Choices: \{0, 1\}, Default: 0', but got '2'",
+            r"Forbidden clause must be instantiated with a legal hyperparameter value for "
+            r"'parent, Type: Categorical, Choices: \{0, 1\}, Default: 0', but got '2'",
             ForbiddenEqualsClause, hp1, 2,
         )
 
@@ -78,12 +77,12 @@ class TestForbidden(unittest.TestCase):
         self.assertEqual("Forbidden: parent == 1", str(forb1))
 
         # print("\nraisereg6:")
-        self.assertRaisesRegexp(ValueError,
-                                "Is_forbidden must be called with the "
-                                "instanstatiated hyperparameter in the "
-                                "forbidden clause; you are missing "
-                                "'parent'", forb1.is_forbidden,
-                                {1: hp2}, True)
+        self.assertRaisesRegex(ValueError,
+                               "Is_forbidden must be called with the "
+                               "instanstatiated hyperparameter in the "
+                               "forbidden clause; you are missing "
+                               "'parent'", forb1.is_forbidden,
+                               {1: hp2}, True)
         # print("\nneq7:")
         self.assertFalse(forb1.is_forbidden({'child': 1}, strict=False))
         # print("\nneq8:")
@@ -104,14 +103,13 @@ class TestForbidden(unittest.TestCase):
         # print("\nneq12:")
         self.assertTrue(forb1.is_forbidden_vector(np.array([1., np.NaN]), strict=False))
 
-
     def test_in_condition(self):
         hp1 = CategoricalHyperparameter("parent", [0, 1, 2, 3, 4])
         hp2 = UniformIntegerHyperparameter("child", 0, 10)
         hp3 = UniformIntegerHyperparameter("child2", 0, 10)
         hp4 = CategoricalHyperparameter("grandchild", ["hot", "cold", "warm"])
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             ValueError,
             "Forbidden clause must be instantiated with a "
             "legal hyperparameter value for "
@@ -141,12 +139,12 @@ class TestForbidden(unittest.TestCase):
         # print("\nTest4:")
         self.assertEqual("Forbidden: child in {5, 6, 7, 8, 9}", str(forb1))
         # print("\nTest5:")
-        self.assertRaisesRegexp(ValueError,
-                                "Is_forbidden must be called with the "
-                                "instanstatiated hyperparameter in the "
-                                "forbidden clause; you are missing "
-                                "'child'", forb1.is_forbidden,
-                                {'parent': 1}, True)
+        self.assertRaisesRegex(ValueError,
+                               "Is_forbidden must be called with the "
+                               "instanstatiated hyperparameter in the "
+                               "forbidden clause; you are missing "
+                               "'child'", forb1.is_forbidden,
+                               {'parent': 1}, True)
         # print("\nTest6:")
         self.assertFalse(forb1.is_forbidden({'parent': 1}, strict=False))
         # print("\nTest7:")
@@ -168,7 +166,7 @@ class TestForbidden(unittest.TestCase):
         self.assertFalse(forb1.is_forbidden_vector(np.array([np.NaN, 0]), strict=False))
         correct_vector_value = hp2._inverse_transform(6)
         # print("\nTest11:")
-        print(correct_vector_value, np.array([np.NaN, correct_vector_value]))
+        # print(correct_vector_value, np.array([np.NaN, correct_vector_value]))
         self.assertTrue(forb1.is_forbidden_vector(np.array([np.NaN, correct_vector_value]), strict=False))
         # print("\nfinished:")
 
