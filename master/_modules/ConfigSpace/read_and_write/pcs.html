@@ -248,7 +248,7 @@
                                   <span class="p">(</span><span class="n">condition</span><span class="p">))</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">condition</span><span class="p">,</span> <span class="n">NotEqualsCondition</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;SMAC cannot handle != conditions: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span>
-                                 <span class="p">(</span><span class="n">condition</span><span class="p">))</span>
+                                  <span class="p">(</span><span class="n">condition</span><span class="p">))</span>
 
     <span class="c1"># Now handle the conditions SMAC can handle</span>
     <span class="n">condition_template</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> | </span><span class="si">%s</span><span class="s2"> in {</span><span class="si">%s</span><span class="s2">}&quot;</span>
@@ -396,7 +396,7 @@
         <span class="n">configuration_space</span><span class="o">.</span><span class="n">add_forbidden_clause</span><span class="p">(</span><span class="n">ForbiddenAndConjunction</span><span class="p">(</span>
             <span class="o">*</span><span class="n">clause_list</span><span class="p">))</span>
 
-    <span class="c1">#Now handle conditions</span>
+    <span class="c1"># Now handle conditions</span>
     <span class="c1"># If there are two conditions for one child, these two conditions are an</span>
     <span class="c1"># AND-conjunction of conditions, thus we have to connect them</span>
     <span class="n">conditions_per_child</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
@@ -436,8 +436,7 @@
 <div class="viewcode-block" id="write"><a class="viewcode-back" href="../../../API-Doc.html#ConfigSpace.read_and_write.pcs.write">[docs]</a><span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="n">configuration_space</span><span class="p">):</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">configuration_space</span><span class="p">,</span> <span class="n">ConfigurationSpace</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;pcs_parser.write expects an instance of </span><span class="si">%s</span><span class="s2">, &quot;</span>
-                        <span class="s2">&quot;you provided &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ConfigurationSpace</span><span class="p">,</span>
-                        <span class="nb">type</span><span class="p">(</span><span class="n">configuration_space</span><span class="p">)))</span>
+                        <span class="s2">&quot;you provided &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ConfigurationSpace</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="n">configuration_space</span><span class="p">)))</span>
 
     <span class="n">param_lines</span> <span class="o">=</span> <span class="n">StringIO</span><span class="p">()</span>
     <span class="n">condition_lines</span> <span class="o">=</span> <span class="n">StringIO</span><span class="p">()</span>
@@ -509,7 +508,6 @@
             <span class="n">param_lines</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
 
     <span class="c1"># Check if the default configuration is a valid configuration!</span>
-
 
     <span class="n">param_lines</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">param_lines</span><span class="o">.</span><span class="n">getvalue</span><span class="p">()</span></div>

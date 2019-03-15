@@ -197,13 +197,15 @@
 <span class="n">pp_choices</span> <span class="o">=</span> <span class="n">pp_param_name</span> <span class="o">+</span> <span class="n">pyparsing</span><span class="o">.</span><span class="n">Optional</span><span class="p">(</span><span class="n">pyparsing</span><span class="o">.</span><span class="n">OneOrMore</span><span class="p">(</span><span class="s2">&quot;,&quot;</span> <span class="o">+</span> <span class="n">pp_param_name</span><span class="p">))</span>
 <span class="n">pp_sequence</span> <span class="o">=</span> <span class="n">pp_param_name</span> <span class="o">+</span> <span class="n">pyparsing</span><span class="o">.</span><span class="n">Optional</span><span class="p">(</span><span class="n">pyparsing</span><span class="o">.</span><span class="n">OneOrMore</span><span class="p">(</span><span class="s2">&quot;,&quot;</span> <span class="o">+</span> <span class="n">pp_param_name</span><span class="p">))</span>
 <span class="n">pp_ord_param</span> <span class="o">=</span> <span class="n">pp_param_name</span> <span class="o">+</span> <span class="n">pp_param_type</span> <span class="o">+</span> <span class="s2">&quot;{&quot;</span> <span class="o">+</span> <span class="n">pp_sequence</span> <span class="o">+</span> <span class="s2">&quot;}&quot;</span> <span class="o">+</span> <span class="s2">&quot;[&quot;</span> <span class="o">+</span> <span class="n">pp_param_name</span> <span class="o">+</span> <span class="s2">&quot;]&quot;</span>
-<span class="n">pp_cont_param</span> <span class="o">=</span> <span class="n">pp_param_name</span> <span class="o">+</span> <span class="n">pp_param_type</span> <span class="o">+</span> <span class="s2">&quot;[&quot;</span> <span class="o">+</span> <span class="n">pp_number</span> <span class="o">+</span> <span class="s2">&quot;,&quot;</span> <span class="o">+</span> <span class="n">pp_number</span> <span class="o">+</span> <span class="s2">&quot;]&quot;</span> <span class="o">+</span> <span class="s2">&quot;[&quot;</span> <span class="o">+</span> <span class="n">pp_number</span> <span class="o">+</span> <span class="s2">&quot;]&quot;</span> <span class="o">+</span> <span class="n">pyparsing</span><span class="o">.</span><span class="n">Optional</span><span class="p">(</span><span class="n">pp_log</span><span class="p">)</span>
+<span class="n">pp_cont_param</span> <span class="o">=</span> <span class="p">(</span><span class="n">pp_param_name</span> <span class="o">+</span> <span class="n">pp_param_type</span> <span class="o">+</span> <span class="s2">&quot;[&quot;</span> <span class="o">+</span> <span class="n">pp_number</span> <span class="o">+</span> <span class="s2">&quot;,&quot;</span> <span class="o">+</span>
+                 <span class="n">pp_number</span> <span class="o">+</span> <span class="s2">&quot;]&quot;</span> <span class="o">+</span> <span class="s2">&quot;[&quot;</span> <span class="o">+</span> <span class="n">pp_number</span> <span class="o">+</span> <span class="s2">&quot;]&quot;</span> <span class="o">+</span> <span class="n">pyparsing</span><span class="o">.</span><span class="n">Optional</span><span class="p">(</span><span class="n">pp_log</span><span class="p">))</span>
 <span class="n">pp_cat_param</span> <span class="o">=</span> <span class="n">pp_param_name</span> <span class="o">+</span> <span class="n">pp_param_type</span> <span class="o">+</span> <span class="s2">&quot;{&quot;</span> <span class="o">+</span> <span class="n">pp_choices</span> <span class="o">+</span> <span class="s2">&quot;}&quot;</span> <span class="o">+</span> <span class="s2">&quot;[&quot;</span> <span class="o">+</span> <span class="n">pp_param_name</span> <span class="o">+</span> <span class="s2">&quot;]&quot;</span>
-<span class="n">pp_condition</span> <span class="o">=</span> <span class="n">pp_param_name</span> <span class="o">+</span> <span class="s2">&quot;|&quot;</span> <span class="o">+</span>  <span class="n">pp_param_name</span> <span class="o">+</span> <span class="n">pp_param_operation</span> <span class="o">+</span> \
+<span class="n">pp_condition</span> <span class="o">=</span> <span class="n">pp_param_name</span> <span class="o">+</span> <span class="s2">&quot;|&quot;</span> <span class="o">+</span> <span class="n">pp_param_name</span> <span class="o">+</span> <span class="n">pp_param_operation</span> <span class="o">+</span> \
     <span class="n">pyparsing</span><span class="o">.</span><span class="n">Optional</span><span class="p">(</span><span class="s1">&#39;{&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">pp_param_val</span> <span class="o">+</span> <span class="n">pyparsing</span><span class="o">.</span><span class="n">Optional</span><span class="p">(</span><span class="s1">&#39;}&#39;</span><span class="p">)</span> <span class="o">+</span> \
     <span class="n">pyparsing</span><span class="o">.</span><span class="n">Optional</span><span class="p">(</span>
         <span class="n">pyparsing</span><span class="o">.</span><span class="n">OneOrMore</span><span class="p">(</span>
-            <span class="n">pp_connective</span>  <span class="o">+</span> <span class="n">pp_param_name</span> <span class="o">+</span> <span class="n">pp_param_operation</span> <span class="o">+</span> <span class="n">pyparsing</span><span class="o">.</span><span class="n">Optional</span><span class="p">(</span><span class="s1">&#39;{&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">pp_param_val</span> <span class="o">+</span> <span class="n">pyparsing</span><span class="o">.</span><span class="n">Optional</span><span class="p">(</span><span class="s1">&#39;}&#39;</span><span class="p">)</span>
+            <span class="n">pp_connective</span> <span class="o">+</span> <span class="n">pp_param_name</span> <span class="o">+</span> <span class="n">pp_param_operation</span> <span class="o">+</span>
+            <span class="n">pyparsing</span><span class="o">.</span><span class="n">Optional</span><span class="p">(</span><span class="s1">&#39;{&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">pp_param_val</span> <span class="o">+</span> <span class="n">pyparsing</span><span class="o">.</span><span class="n">Optional</span><span class="p">(</span><span class="s1">&#39;}&#39;</span><span class="p">)</span>
         <span class="p">)</span>
     <span class="p">)</span>
 <span class="n">pp_forbidden_clause</span> <span class="o">=</span> <span class="s2">&quot;{&quot;</span> <span class="o">+</span> <span class="n">pp_param_name</span> <span class="o">+</span> <span class="s2">&quot;=&quot;</span> <span class="o">+</span> <span class="n">pp_numberorname</span> <span class="o">+</span> \
@@ -219,9 +221,9 @@
 
 <span class="k">def</span> <span class="nf">build_ordinal</span><span class="p">(</span><span class="n">param</span><span class="p">):</span>
     <span class="n">ordinal_template</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> ordinal {</span><span class="si">%s</span><span class="s1">} [</span><span class="si">%s</span><span class="s1">]&#39;</span>
-    <span class="k">return</span> <span class="n">ordinal_template</span> <span class="o">%</span> <span class="p">(</span><span class="n">param</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> 
+    <span class="k">return</span> <span class="n">ordinal_template</span> <span class="o">%</span> <span class="p">(</span><span class="n">param</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
                                <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">param</span><span class="o">.</span><span class="n">sequence</span><span class="p">]),</span>
-                                <span class="nb">str</span><span class="p">(</span><span class="n">param</span><span class="o">.</span><span class="n">default_value</span><span class="p">))</span>
+                               <span class="nb">str</span><span class="p">(</span><span class="n">param</span><span class="o">.</span><span class="n">default_value</span><span class="p">))</span>
 
 
 <span class="k">def</span> <span class="nf">build_constant</span><span class="p">(</span><span class="n">param</span><span class="p">):</span>
@@ -272,24 +274,24 @@
         <span class="k">return</span> <span class="n">notequal_template</span> <span class="o">%</span> <span class="p">(</span><span class="n">condition</span><span class="o">.</span><span class="n">child</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
                                     <span class="n">condition</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
                                     <span class="n">condition</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
-                                     
+
     <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">condition</span><span class="p">,</span> <span class="n">InCondition</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">in_template</span> <span class="o">%</span> <span class="p">(</span><span class="n">condition</span><span class="o">.</span><span class="n">child</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
                               <span class="n">condition</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
                               <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">condition</span><span class="o">.</span><span class="n">values</span><span class="p">))</span>
-                                     
+
     <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">condition</span><span class="p">,</span> <span class="n">EqualsCondition</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">equal_template</span> <span class="o">%</span> <span class="p">(</span><span class="n">condition</span><span class="o">.</span><span class="n">child</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
                                  <span class="n">condition</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
                                  <span class="n">condition</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
     <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">condition</span><span class="p">,</span> <span class="n">LessThanCondition</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">less_template</span> <span class="o">%</span> <span class="p">(</span><span class="n">condition</span><span class="o">.</span><span class="n">child</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
-                                 <span class="n">condition</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
-                                 <span class="n">condition</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+                                <span class="n">condition</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                                <span class="n">condition</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
     <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">condition</span><span class="p">,</span> <span class="n">GreaterThanCondition</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">greater_template</span> <span class="o">%</span> <span class="p">(</span><span class="n">condition</span><span class="o">.</span><span class="n">child</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
-                                 <span class="n">condition</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
-                                 <span class="n">condition</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+                                   <span class="n">condition</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                                   <span class="n">condition</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
 
 
 <span class="k">def</span> <span class="nf">build_conjunction</span><span class="p">(</span><span class="n">conjunction</span><span class="p">):</span>
@@ -315,7 +317,7 @@
         <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;build_forbidden must be called with an instance of &quot;</span>
                         <span class="s2">&quot;&#39;</span><span class="si">%s</span><span class="s2">&#39;, got &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span>
                         <span class="p">(</span><span class="n">AbstractForbiddenComponent</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="n">clause</span><span class="p">)))</span>
-                        
+
     <span class="n">retval</span> <span class="o">=</span> <span class="n">StringIO</span><span class="p">()</span>
     <span class="n">retval</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;{&quot;</span><span class="p">)</span>
     <span class="c1"># Really simple because everything is an AND-conjunction of equals</span>
@@ -348,7 +350,7 @@
             <span class="n">condition</span> <span class="o">=</span> <span class="n">EqualsCondition</span><span class="p">(</span><span class="n">child</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">restrictions</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">condition</span> <span class="o">=</span> <span class="n">InCondition</span><span class="p">(</span><span class="n">child</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="n">restrictions</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">condition</span>                
+        <span class="k">return</span> <span class="n">condition</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">restrictions</span> <span class="o">=</span> <span class="n">condition</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="n">FloatHyperparameter</span><span class="p">):</span>
@@ -430,7 +432,7 @@
         <span class="k">try</span><span class="p">:</span>
             <span class="n">param_list</span> <span class="o">=</span> <span class="n">pp_cont_param</span><span class="o">.</span><span class="n">parseString</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
             <span class="n">name</span> <span class="o">=</span> <span class="n">param_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-            <span class="k">if</span> <span class="n">param_list</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>  <span class="o">==</span> <span class="s1">&#39;integer&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">param_list</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;integer&#39;</span><span class="p">:</span>
                 <span class="n">paramtype</span> <span class="o">=</span> <span class="s1">&#39;int&#39;</span>
             <span class="k">elif</span> <span class="n">param_list</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;real&#39;</span><span class="p">:</span>
                 <span class="n">paramtype</span> <span class="o">=</span> <span class="s1">&#39;float&#39;</span>
@@ -498,7 +500,7 @@
                 <span class="n">tmp_list</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">configuration_space</span><span class="o">.</span><span class="n">add_forbidden_clause</span><span class="p">(</span><span class="n">ForbiddenAndConjunction</span><span class="p">(</span>
             <span class="o">*</span><span class="n">clause_list</span><span class="p">))</span>
-            
+
     <span class="n">conditions_per_child</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
     <span class="k">for</span> <span class="n">condition</span> <span class="ow">in</span> <span class="n">conditions</span><span class="p">:</span>
         <span class="n">child_name</span> <span class="o">=</span> <span class="n">condition</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
@@ -519,8 +521,8 @@
                         <span class="n">condition</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">cond_parts</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;&amp;&amp;&#39;</span><span class="p">)</span>
                         <span class="c1"># if length is 1 it must be or</span>
                         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">condition</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-                            <span class="n">element_list</span> <span class="o">=</span>  <span class="n">condition</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
-                            <span class="n">ors_combis</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">condition_specification</span><span class="p">(</span><span class="n">child_name</span><span class="p">,</span> <span class="n">element_list</span><span class="p">,</span> <span class="n">configuration_space</span><span class="p">))</span>       
+                            <span class="n">element_list</span> <span class="o">=</span> <span class="n">condition</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+                            <span class="n">ors_combis</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">condition_specification</span><span class="p">(</span><span class="n">child_name</span><span class="p">,</span> <span class="n">element_list</span><span class="p">,</span> <span class="n">configuration_space</span><span class="p">))</span>
                         <span class="k">else</span><span class="p">:</span>
                             <span class="c1"># now taking care of ands</span>
                             <span class="n">ands</span> <span class="o">=</span> <span class="p">[]</span>
@@ -551,15 +553,14 @@
                     <span class="n">element_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">element</span> <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">condition</span><span class="o">.</span><span class="n">split</span><span class="p">()]</span>
                     <span class="n">normal_condition</span> <span class="o">=</span> <span class="n">condition_specification</span><span class="p">(</span><span class="n">child_name</span><span class="p">,</span> <span class="n">element_list</span><span class="p">,</span> <span class="n">configuration_space</span><span class="p">)</span>
                     <span class="n">configuration_space</span><span class="o">.</span><span class="n">add_condition</span><span class="p">(</span><span class="n">normal_condition</span><span class="p">)</span>
-   
+
     <span class="k">return</span> <span class="n">configuration_space</span></div>
 
 
 <div class="viewcode-block" id="write"><a class="viewcode-back" href="../../../API-Doc.html#ConfigSpace.read_and_write.pcs_new.write">[docs]</a><span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="n">configuration_space</span><span class="p">):</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">configuration_space</span><span class="p">,</span> <span class="n">ConfigurationSpace</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;pcs_parser.write expects an instance of </span><span class="si">%s</span><span class="s2">, &quot;</span>
-                        <span class="s2">&quot;you provided &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ConfigurationSpace</span><span class="p">,</span>
-                        <span class="nb">type</span><span class="p">(</span><span class="n">configuration_space</span><span class="p">)))</span>
+                        <span class="s2">&quot;you provided &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ConfigurationSpace</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="n">configuration_space</span><span class="p">)))</span>
 
     <span class="n">param_lines</span> <span class="o">=</span> <span class="n">StringIO</span><span class="p">()</span>
     <span class="n">condition_lines</span> <span class="o">=</span> <span class="n">StringIO</span><span class="p">()</span>
@@ -636,7 +637,6 @@
             <span class="n">param_lines</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
 
     <span class="c1"># Check if the default configuration is a valid configuration!</span>
-
 
     <span class="n">param_lines</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">param_lines</span><span class="o">.</span><span class="n">getvalue</span><span class="p">()</span></div>
