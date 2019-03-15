@@ -317,7 +317,9 @@ def deactivate_inactive_hyperparameters(
 
     Parameters
     ----------
-    configuration : :class:`~ConfigSpace.configuration_space.Configuration`
+    configuration : dict
+        a configuration as a dictionary. Key: name of the hyperparameter.
+        Value: value of this hyperparamter
         configuration from which inactive hyperparameters will be removed
     configuration_space : :class:`~ConfigSpace.configuration_space.ConfigurationSpace`
         The defined configuration space. It is necessary to find the inactive

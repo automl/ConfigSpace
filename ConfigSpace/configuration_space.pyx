@@ -78,11 +78,11 @@ class ConfigurationSpace(object):
 
         Parameters
         ----------
-        name : str
+        name : (str, optional)
             Name of the configuration space
-        seed : int
+        seed : (int, optional)
             random seed
-        meta : dict 
+        meta : (dict, optional)
             Field for holding meta data provided by the user.
             Not used by the configuration space.
         """
@@ -124,7 +124,7 @@ class ConfigurationSpace(object):
         
         Parameters
         ----------
-        bounds : list(list(float, float))
+        bounds : list(list([Any, Any)])
             List containing lists with two elements: lower and upper bound
         """
         for i, (l, u) in enumerate(bounds):
@@ -137,12 +137,12 @@ class ConfigurationSpace(object):
 
         Parameters
         ----------
-        hyperparameters : list[:ref:`Hyperparameters`]
+        hyperparameters : list(:ref:`Hyperparameters`)
             Collection of hyperparameters to add
 
         Returns
         -------
-        list[:ref:`Hyperparameters`]
+        list(:ref:`Hyperparameters`)
             List of added hyperparameters (same as input)
         """
 
@@ -279,12 +279,12 @@ class ConfigurationSpace(object):
 
         Parameters
         ----------
-        conditions : list[:ref:`Conditions`]
+        conditions : list(:ref:`Conditions`)
             collection of conditions to add
 
         Returns
         -------
-        list[:ref:`Conditions`]
+        list(:ref:`Conditions`)
             Same as input conditions
         """
         for condition in conditions:
@@ -559,12 +559,12 @@ class ConfigurationSpace(object):
 
         Parameters
         ----------
-        clauses :list[:ref:`Forbidden clauses`]
+        clauses : list(:ref:`Forbidden clauses`)
             Collection of forbidden clauses to add
 
         Returns
         -------
-        list[:ref:`Forbidden clauses`]
+        list(:ref:`Forbidden clauses`)
             Same as input clauses
         """
         for clause in clauses:
@@ -707,7 +707,7 @@ class ConfigurationSpace(object):
 
         Returns
         -------
-        list[:ref:`Hyperparameters`]
+        list(:ref:`Hyperparameters`)
             A list with all hyperparameters stored in the configuration
             space object
         """
@@ -720,7 +720,7 @@ class ConfigurationSpace(object):
 
         Returns
         -------
-        list[str]
+        list(str)
             List of hyperparameter names
 
         """
@@ -814,7 +814,7 @@ class ConfigurationSpace(object):
 
         Returns
         -------
-        list[:ref:`Conditions`]
+        list(:ref:`Conditions`)
             Conditions of the configuration space
 
         """
@@ -840,7 +840,7 @@ class ConfigurationSpace(object):
 
         Returns
         -------
-        list[:ref:`Forbidden clauses`]
+        list(:ref:`Forbidden clauses`)
             List with the forbidden clauses
         """
         return self.forbidden_clauses
@@ -856,7 +856,7 @@ class ConfigurationSpace(object):
 
         Returns
         -------
-        list[:ref:`Hyperparameters`]
+        list(:ref:`Hyperparameters`)
             Children of the hyperparameter
 
         """
@@ -885,7 +885,7 @@ class ConfigurationSpace(object):
 
         Returns
         -------
-        list[:ref:`Conditions`]
+        list(:ref:`Conditions`)
             List with the conditions on the children of the given hyperparameter
 
         """
@@ -1063,8 +1063,7 @@ class ConfigurationSpace(object):
 
     def check_configuration_vector_representation(self, vector: np.ndarray) -> None:
         """
-        Check if configuration in vector representation is legal.
-        Raise an error if not.
+        Raise error f configuration in vector representation is not legal.
 
         Parameters
         ----------
@@ -1218,7 +1217,7 @@ class ConfigurationSpace(object):
 
         Parameters
         ----------
-        size : int
+        size : (int, optional)
             Number of configurations to sample. Default to 1
 
         Returns
@@ -1330,18 +1329,20 @@ class Configuration(object):
         Parameters
         ----------
         configuration_space : :class:`~ConfigSpace.configuration_space.ConfigurationSpace`
-        values : dict
+        values : (dict, optional)
             A dictionary with pairs (hyperparameter_name, value), where value is
             a legal value of the hyperparameter in the above
             configuration_space
-        vector : np.ndarray
+        vector : (np.ndarray, optional)
             A numpy array for efficient representation. Either values or vector
             has to be given
-        allow_inactive_with_values : bool
+        allow_inactive_with_values : (bool, optional)
             Whether an Exception will be raised if a value for an inactive
             hyperparameter is given. Default is to raise an Exception.
             Default to False
-        origin : Any
+        origin : (Any, optional)
+            Store information about the origin of this configuration.
+            Default to None
         """
         if not isinstance(configuration_space, ConfigurationSpace):
             raise TypeError("Configuration expects an instance of %s, "
@@ -1422,12 +1423,7 @@ class Configuration(object):
         """
         Check if the object is a valid
         :class:`~ConfigSpace.configuration_space.Configuration`.
-
-        Returns
-        -------
-        bool
-            True if the object is legal, else False
-
+        Raise an error if configuration is not valid.
         """
         ConfigSpace.c_util.check_configuration(
             self.configuration_space,
@@ -1470,7 +1466,7 @@ class Configuration(object):
 
         Returns
         -------
-        Any
+        Any, None
             Value of the hyperparameter
         """
         try:

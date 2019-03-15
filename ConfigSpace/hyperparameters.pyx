@@ -387,14 +387,14 @@ cdef class UniformFloatHyperparameter(FloatHyperparameter):
             Lower bound of a range of values from which the hyperparameter will be sampled
         upper : (int, float)
             Upper bound
-        default_value : (int, float, None)
+        default_value : (int, float, optional)
             Sets the default value of a hyperparameter to a given value
-        q : (int, float, None)
+        q : (int, float, optional)
             Quantization factor
-        log : bool
+        log : (bool, optional)
             If ``True``, the values of the hyperparameter will be sampled
-            on a logarithmic scale. Defaults to False
-        meta : (Dict, None)
+            on a logarithmic scale. Default to ``False``
+        meta : (Dict, optional)
             Field for holding meta data provided by the user.
             Not used by the configuration space.
         """
@@ -558,14 +558,14 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
             Mean of the distribution
         sigma : (int, float)
             Standard deviation of the distribution
-        default_value : (int, float, None)
+        default_value : (int, float, optional)
             Sets the default value of a hyperparameter to a given value
-        q : (int, float, None)
+        q : (int, float, optional)
             Quantization factor
-        log : bool
-            If ``True``, the values of the hyperparameter will be sampled on a logarithmic scale
-            Defaults to ``False``
-        meta : (Dict, None)
+        log : (bool, optional)
+            If ``True``, the values of the hyperparameter will be sampled
+            on a logarithmic scale. Default to ``False``
+        meta : (Dict, optional)
             Field for holding meta data provided by the user.
             Not used by the configuration space.
         """
@@ -731,13 +731,14 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
             Lower bound of a range of values from which the hyperparameter will be sampled
         upper : int
             upper bound
-        default_value : (int, None)
+        default_value : (int, optional)
             Sets the default value of a hyperparameter to a given value
-        q : (int, None)
+        q : (int, optional)
             Quantization factor
-        log : (bool)
-            If ``True``, the values of the hyperparameter will be sampled on a logarithmic scale
-        meta : (Dict, None)
+        log : (bool, optional)
+            If ``True``, the values of the hyperparameter will be sampled
+            on a logarithmic scale. Defaults to ``False``
+        meta : (Dict, optional)
             Field for holding meta data provided by the user.
             Not used by the configuration space.
         """
@@ -921,13 +922,14 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
         sigma : (int, float)
             Standard deviation of the distribution, from which
             hyperparameter is sampled
-        default_value : (int, None)
+        default_value : (int, optional)
             Sets the default value of a hyperparameter to a given value
-        q : (int, None)
+        q : (int, optional)
             Quantization factor
-        log : bool
-            If ``True``, the values of the hyperparameter will be sampled on a logarithmic scale
-        meta : (Dict, None)
+        log : (bool, optional)
+            If ``True``, the values of the hyperparameter will be sampled
+            on a logarithmic scale. Defaults to ``False``
+        meta : (Dict, optional)
             Field for holding meta data provided by the user.
             Not used by the configuration space.
 
@@ -1134,11 +1136,11 @@ cdef class CategoricalHyperparameter(Hyperparameter):
         ----------
         name : str
             Name of the hyperparameter, with which it can be accessed
-        choices : list([str, float, int])
+        choices : (list([str, float, int]), tuple([str, float, int]))
             Collection of values to sample hyperparameter from
-        default_value : (int, float, str, None)
+        default_value : (int, float, str, optional)
             Sets the default value of the hyperparameter to a given value
-        meta : (Dict, None)
+        meta : (Dict, optional)
             Field for holding meta data provided by the user.
             Not used by the configuration space.
         """
@@ -1334,11 +1336,11 @@ cdef class OrdinalHyperparameter(Hyperparameter):
         ----------
         name : str
             Name of the hyperparameter, with which it can be accessed.
-        sequence : (list(str, float, int), tuple(str, float, int))
+        sequence : (list([str, float, int]), tuple([str, float, int]))
             collection of values to sample hyperparameter from.
-        default_value : (int, float, str, None)
+        default_value : (int, float, str, optional)
             Sets the default value of a hyperparameter to a given value.
-        meta : (Dict, None)
+        meta : (Dict, optional)
             Field for holding meta data provided by the user.
             Not used by the configuration space.
         """
@@ -1366,7 +1368,7 @@ cdef class OrdinalHyperparameter(Hyperparameter):
 
     def __repr__(self) -> str:
         """
-        writes out the parameter definition
+        write out the parameter definition
         """
         repr_str = io.StringIO()
         repr_str.write("%s, Type: Ordinal, Sequence: {" % (self.name))
@@ -1438,7 +1440,7 @@ cdef class OrdinalHyperparameter(Hyperparameter):
 
     def is_legal(self, value: Union[int, float, str]) -> bool:
         """
-        checks if a certain value is represented in the sequence
+        check if a certain value is represented in the sequence
         """
         return value in self.sequence
 
@@ -1447,7 +1449,7 @@ cdef class OrdinalHyperparameter(Hyperparameter):
 
     def check_default(self, default_value: Optional[Union[int, float, str]]) -> Union[int, float, str]:
         """
-        checks if given default value is represented in the sequence.
+        check if given default value is represented in the sequence.
         If there's no default value we simply choose the
         first element in our sequence as default.
         """
@@ -1475,26 +1477,26 @@ cdef class OrdinalHyperparameter(Hyperparameter):
 
     def get_seq_order(self) -> np.ndarray:
         """
-        returns the ordinal sequence as numeric sequence
+        return the ordinal sequence as numeric sequence
         (according to the the ordering) from 1 to length of our sequence.
         """
         return np.arange(0, self.num_elements)
 
     def get_order(self, value: Optional[Union[int, str, float]]) -> int:
         """
-        returns the seuence position/order of a certain value from the sequence
+        return the seuence position/order of a certain value from the sequence
         """
         return self.value_dict[value]
 
     def get_value(self, idx: int) -> Union[int, str, float]:
         """
-        returns the sequence value of a given order/position
+        return the sequence value of a given order/position
         """
         return list(self.value_dict.keys())[list(self.value_dict.values()).index(idx)]
 
     def check_order(self, val1: Union[int, str, float], val2: Union[int, str, float]) -> bool:
         """
-        checks whether value1 is smaller than value2.
+        check whether value1 is smaller than value2.
         """
         idx1 = self.get_order(val1)
         idx2 = self.get_order(val2)
@@ -1505,20 +1507,20 @@ cdef class OrdinalHyperparameter(Hyperparameter):
 
     def _sample(self, rs: np.random.RandomState, size: Optional[int]=None) -> int:
         """
-        returns a random sample from our sequence as order/position index
+        return a random sample from our sequence as order/position index
         """
         return rs.randint(0, self.num_elements, size=size)
 
     def has_neighbors(self) -> bool:
         """
-        checks if there are neighbors or we're only dealing with an
+        check if there are neighbors or we're only dealing with an
         one-element sequence
         """
         return len(self.sequence) > 1
 
     def get_num_neighbors(self, value: Union[int, float, str]) -> int:
         """
-        returns the number of existing neighbors in the sequence
+        return the number of existing neighbors in the sequence
         """
         max_idx = len(self.sequence) - 1
         if value == self.sequence[0] and value == self.sequence[max_idx]:# check if there is only one value
@@ -1531,7 +1533,7 @@ cdef class OrdinalHyperparameter(Hyperparameter):
     def get_neighbors(self, value: Union[int, str, float], rs: None, number: int = 0, transform: bool = False) \
             -> List[Union[str, float, int]]:
         """
-        Returns the neighbors of a given value.
+        Return the neighbors of a given value.
         Value must be in vector form. Ordinal name will not work.
         """
         neighbors = []

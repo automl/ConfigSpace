@@ -295,7 +295,7 @@ cdef class ForbiddenInClause(MultipleValueForbiddenClause):
 
         Parameters
         ----------
-        hyperparameter : :ref:`Hyperparameters`
+        hyperparameter : (:ref:`Hyperparameters`, dict)
             Hyperparameter on which a restriction will be made
         values : Any
             Collection of forbidden values
@@ -466,7 +466,7 @@ cdef class ForbiddenAndConjunction(AbstractForbiddenConjunction):
 
     Parameters
     ----------
-    *args : list([AbstractForbiddenComponent])
+    *args : list([:ref:`Forbidden clauses`])
         forbidden clauses, which should be combined
     """
 
