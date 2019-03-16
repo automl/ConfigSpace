@@ -544,10 +544,7 @@ class ConfigurationSpace(object):
         :ref:`Forbidden clauses`
             Same as input forbidden clause
         """
-        if not isinstance(clause, AbstractForbiddenComponent):
-            raise TypeError("The method add_forbidden_clause must be called "
-                            "with an instance of "
-                            "ConfigSpace.forbidden.AbstractForbiddenComponent.")
+        self._check_forbidden_component(clause=clause)
         clause.set_vector_idx(self._hyperparameter_idx)
         self.forbidden_clauses.append(clause)
         self._check_default_configuration()
