@@ -154,37 +154,39 @@ a configuration space are captured.</p>
 <li><span class="math notranslate nohighlight">\(\mathcal{C}\)</span>: regularization constant  with <span class="math notranslate nohighlight">\(\mathcal{C} \in \mathbb{R}_{\geq 0}\)</span> and 0 <span class="math notranslate nohighlight">\(\geq \mathcal{C} \geq\)</span> 1</li>
 <li><code class="docutils literal notranslate"><span class="pre">max_iter</span></code>: the maximum number of iterations within the solver</li>
 </ul>
-<p>The implementation of the classifier is out of scope for this example and thus not shown. But for further reading about
-support vector machines and the meaning of its hyperparameter, take a look <a class="reference external" href="https://en.wikipedia.org/wiki/Support_vector_machine">here</a>.
+<p>The implementation of the classifier is out of scope for this example and thus not shown.
+But for further reading about
+support vector machines and the meaning of its hyperparameter, take a look
+<a class="reference external" href="https://en.wikipedia.org/wiki/Support_vector_machine">here</a>.
 Or directly in the implementation of the SVM in
 <a class="reference external" href="http://scikit-learn.org/stable/modules/generated/sklearn.svm.SVC.html#sklearn.svm.SVC">scikit-learn</a>.</p>
-<p>The first step is always to create a <code class="docutils literal notranslate"><span class="pre">ConfigurationSpace</span></code> object. All the hyperparameters and constraints will be added to this
+<p>The first step is always to create a <a class="reference internal" href="API-Doc.html#ConfigSpace.configuration_space.ConfigurationSpace" title="ConfigSpace.configuration_space.ConfigurationSpace"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigurationSpace</span></code></a> object. All the hyperparameters and constraints will be added to this
 object.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">ConfigSpace</span> <span class="k">as</span> <span class="nn">CS</span>
 <span class="n">cs</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">ConfigurationSpace</span><span class="p">()</span>
 </pre></div>
 </div>
 <p>Now, we have to define the hyperparameters <span class="math notranslate nohighlight">\(\mathcal{C}\)</span> and <code class="docutils literal notranslate"><span class="pre">max_iter</span></code>. We choose <span class="math notranslate nohighlight">\(\mathcal{C}\)</span> to be a float and
-<code class="docutils literal notranslate"><span class="pre">max_iter</span></code> to be an integer hyperparameter.</p>
+<code class="docutils literal notranslate"><span class="pre">max_iter</span></code> to be an <a class="reference internal" href="API-Doc.html#ConfigSpace.hyperparameters.UniformIntegerHyperparameter" title="ConfigSpace.hyperparameters.UniformIntegerHyperparameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">UniformIntegerHyperparameter</span></code></a> .</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">ConfigSpace.hyperparameters</span> <span class="k">as</span> <span class="nn">CSH</span>
 <span class="n">c</span> <span class="o">=</span> <span class="n">CSH</span><span class="o">.</span><span class="n">UniformFloatHyperparameter</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;C&#39;</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 <span class="n">max_iter</span> <span class="o">=</span> <span class="n">CSH</span><span class="o">.</span><span class="n">UniformIntegerHyperparameter</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;max_iter&#39;</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>As last step in this example, we need to add them to the <code class="docutils literal notranslate"><span class="pre">ConfigurationSpace</span></code> and sample a configuration from it:</p>
+<p>As last step in this example, we need to add them to the <a class="reference internal" href="API-Doc.html#ConfigSpace.configuration_space.ConfigurationSpace" title="ConfigSpace.configuration_space.ConfigurationSpace"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigurationSpace</span></code></a> and sample a configuration from it:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cs</span><span class="o">.</span><span class="n">add_hyperparameter</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
 <span class="n">cs</span><span class="o">.</span><span class="n">add_hyperparameter</span><span class="p">(</span><span class="n">max_iter</span><span class="p">)</span>
 <span class="n">cs</span><span class="o">.</span><span class="n">sample_configuration</span><span class="p">()</span>
 </pre></div>
 </div>
-<p>The <code class="docutils literal notranslate"><span class="pre">ConfigurationSpace</span></code> object <em>cs</em> stores now the hyperparameters <span class="math notranslate nohighlight">\(\mathcal{C}\)</span> and <code class="docutils literal notranslate"><span class="pre">max_iter</span></code> with their defined value-ranges.</p>
+<p>The <a class="reference internal" href="API-Doc.html#ConfigSpace.configuration_space.ConfigurationSpace" title="ConfigSpace.configuration_space.ConfigurationSpace"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigurationSpace</span></code></a> object <em>cs</em> stores now the hyperparameters <span class="math notranslate nohighlight">\(\mathcal{C}\)</span> and <code class="docutils literal notranslate"><span class="pre">max_iter</span></code> with their defined value-ranges.</p>
 </div>
 <div class="section" id="nd-example-categorical-hyperparameters-and-conditions">
 <h2>2nd Example: Categorical hyperparameters and conditions<a class="headerlink" href="#nd-example-categorical-hyperparameters-and-conditions" title="Permalink to this headline">¶</a></h2>
 <p>The support vector machine from the sklearn implementation supports different kinds of kernels, such as a an RBF or a polynomial kernel.
 We want to include them in our configuration space.
 This is a new hyperparameter with a finite number of values.
-For this scenario, ConfigSpace offers the <a class="reference internal" href="API-Doc.html#categorical-hyperparameters"><span class="std std-ref">categorical hyperparameters</span></a>.</p>
+For this scenario, ConfigSpace offers the <a class="reference internal" href="API-Doc.html#ConfigSpace.hyperparameters.CategoricalHyperparameter" title="ConfigSpace.hyperparameters.CategoricalHyperparameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">CategoricalHyperparameter</span></code></a>.</p>
 <ul class="simple">
 <li><code class="docutils literal notranslate"><span class="pre">kernel_type</span></code>: with values ‘linear’, ‘poly’, ‘rbf’, ‘sigmoid’.</li>
 </ul>
@@ -231,21 +233,23 @@ following example expresses the fact, that <code class="docutils literal notrans
 </div>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">ConfigSpace offers a lot of different condition types. For example <code class="docutils literal notranslate"><span class="pre">NotEqualsConditions</span></code>,
-<code class="docutils literal notranslate"><span class="pre">LessThanCondition</span></code>, or <code class="docutils literal notranslate"><span class="pre">GreaterThanCondition</span></code>.
+<p class="last">ConfigSpace offers a lot of different condition types. For example the <a class="reference internal" href="API-Doc.html#ConfigSpace.conditions.NotEqualsCondition" title="ConfigSpace.conditions.NotEqualsCondition"><code class="xref py py-class docutils literal notranslate"><span class="pre">NotEqualsCondition</span></code></a> ,
+<a class="reference internal" href="API-Doc.html#ConfigSpace.conditions.LessThanCondition" title="ConfigSpace.conditions.LessThanCondition"><code class="xref py py-class docutils literal notranslate"><span class="pre">LessThanCondition</span></code></a>, or <a class="reference internal" href="API-Doc.html#ConfigSpace.conditions.GreaterThanCondition" title="ConfigSpace.conditions.GreaterThanCondition"><code class="xref py py-class docutils literal notranslate"><span class="pre">GreaterThanCondition</span></code></a>.
 To read more about conditions, please take a look at the <a class="reference internal" href="API-Doc.html#conditions"><span class="std std-ref">Conditions</span></a> or the <a class="reference internal" href="auto_examples/AdvancedExample.html"><span class="doc">Advanced Example</span></a></p>
 </div>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">Don’t use either the <code class="docutils literal notranslate"><span class="pre">EqualsCondition</span></code> or the <code class="docutils literal notranslate"><span class="pre">InCondition</span></code> on float hyperparameters. Due to floating-point
-inaccuracy, it is very unlikely that, for example, the <code class="docutils literal notranslate"><span class="pre">EqualsCondition</span></code> is evaluated to True.</p>
+<p class="last">Don’t use either the <a class="reference internal" href="API-Doc.html#ConfigSpace.conditions.EqualsCondition" title="ConfigSpace.conditions.EqualsCondition"><code class="xref py py-class docutils literal notranslate"><span class="pre">EqualsCondition</span></code></a> or the <a class="reference internal" href="API-Doc.html#ConfigSpace.conditions.InCondition" title="ConfigSpace.conditions.InCondition"><code class="xref py py-class docutils literal notranslate"><span class="pre">InCondition</span></code></a>
+on float hyperparameters.
+Due to floating-point inaccuracy, it is very unlikely that, for example, the
+<a class="reference internal" href="API-Doc.html#ConfigSpace.conditions.EqualsCondition" title="ConfigSpace.conditions.EqualsCondition"><code class="xref py py-class docutils literal notranslate"><span class="pre">EqualsCondition</span></code></a> is evaluated to True.</p>
 </div>
 </div>
 <div class="section" id="rd-example-forbidden-clauses">
 <h2>3rd Example: Forbidden clauses<a class="headerlink" href="#rd-example-forbidden-clauses" title="Permalink to this headline">¶</a></h2>
 <p>It may occur, that some states in the configuration space are not allowed.
 ConfigSpace supports this functionality by offering <a class="reference internal" href="API-Doc.html#forbidden-clauses"><span class="std std-ref">Forbidden Clauses</span></a>.</p>
-<p>To demonstrate the usage of <code class="docutils literal notranslate"><span class="pre">forbidden</span> <span class="pre">clauses</span></code>, we assume that if <code class="docutils literal notranslate"><span class="pre">kernel_type</span></code> in the example above is ‘linear’, we use the
+<p>To demonstrate the usage of <a class="reference internal" href="API-Doc.html#forbidden-clauses"><span class="std std-ref">Forbidden Clauses</span></a>, we assume that if <code class="docutils literal notranslate"><span class="pre">kernel_type</span></code> in the example above is ‘linear’, we use the
 <a class="reference external" href="http://scikit-learn.org/stable/modules/generated/sklearn.svm.LinearSVC.html#sklearn.svm.LinearSVC">LinearSVC</a>
 sklearn implementation, which has more flexibility in the choice of penalties and loss functions.
 This gives us three new hyperparameters:</p>
@@ -303,9 +307,9 @@ This gives us three new hyperparameters:</p>
 <div class="section" id="th-example-serialization">
 <h2>4th Example Serialization<a class="headerlink" href="#th-example-serialization" title="Permalink to this headline">¶</a></h2>
 <p>If you want to use the configuration space in another tool, such as <a class="reference external" href="https://github.com/automl/CAVE">CAVE</a>, it is useful to store it to file.
-To serialize the defined <code class="docutils literal notranslate"><span class="pre">ConfigurationSpace</span></code>, we can choose between different output formats, such as
+To serialize the defined <a class="reference internal" href="API-Doc.html#ConfigSpace.configuration_space.ConfigurationSpace" title="ConfigSpace.configuration_space.ConfigurationSpace"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigurationSpace</span></code></a>, we can choose between different output formats, such as
 <a class="reference internal" href="API-Doc.html#json"><span class="std std-ref">json</span></a> or <a class="reference internal" href="API-Doc.html#pcs-new"><span class="std std-ref">pcs</span></a>.</p>
-<p>In this case, we want to store the <code class="docutils literal notranslate"><span class="pre">ConfigurationSpace</span></code> object as json file</p>
+<p>In this case, we want to store the <a class="reference internal" href="API-Doc.html#ConfigSpace.configuration_space.ConfigurationSpace" title="ConfigSpace.configuration_space.ConfigurationSpace"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigurationSpace</span></code></a> object as json file</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ConfigSpace.read_and_write</span> <span class="k">import</span> <span class="n">json</span>
 <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;configspace.json&#39;</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
     <span class="n">fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">cs</span><span class="p">))</span>

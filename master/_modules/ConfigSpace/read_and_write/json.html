@@ -399,6 +399,33 @@
 
 <span class="c1">################################################################################</span>
 <div class="viewcode-block" id="write"><a class="viewcode-back" href="../../../API-Doc.html#ConfigSpace.read_and_write.json.write">[docs]</a><span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="n">configuration_space</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Writes a configuration space to a json file</span>
+
+<span class="sd">    Example</span>
+<span class="sd">    -------</span>
+
+<span class="sd">    &gt;&gt;&gt; from ConfigSpace import ConfigurationSpace</span>
+<span class="sd">    &gt;&gt;&gt; import ConfigSpace.hyperparameters as CSH</span>
+<span class="sd">    &gt;&gt;&gt; from ConfigSpace.read_and_write import json</span>
+<span class="sd">    &gt;&gt;&gt; cs = ConfigurationSpace()</span>
+<span class="sd">    &gt;&gt;&gt; cs.add_hyperparameter(CSH.CategoricalHyperparameter(&#39;a&#39;, choices=[1, 2, 3]))</span>
+<span class="sd">    &gt;&gt;&gt; with open(&#39;config_space.json&#39;, &#39;w&#39;) as f:</span>
+<span class="sd">    &gt;&gt;&gt;     f.write(json.write(cs))</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    configuration_space : :class:`~ConfigSpace.configuration_space.ConfigurationSpace`</span>
+<span class="sd">        a configuration space, which should be written to file.</span>
+<span class="sd">    indent : int</span>
+<span class="sd">        number of whitespaces to use as indent</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    str</span>
+<span class="sd">        String representation of the configuration space,</span>
+<span class="sd">        which will be written to file</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">configuration_space</span><span class="p">,</span> <span class="n">ConfigurationSpace</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;pcs_parser.write expects an instance of </span><span class="si">%s</span><span class="s2">, &quot;</span>
                         <span class="s2">&quot;you provided &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ConfigurationSpace</span><span class="p">,</span>
@@ -455,6 +482,27 @@
 
 <span class="c1">################################################################################</span>
 <div class="viewcode-block" id="read"><a class="viewcode-back" href="../../../API-Doc.html#ConfigSpace.read_and_write.json.read">[docs]</a><span class="k">def</span> <span class="nf">read</span><span class="p">(</span><span class="n">jason_string</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Creates a configuration space definition from a json string.</span>
+
+<span class="sd">    Example</span>
+<span class="sd">    -------</span>
+
+<span class="sd">    &gt;&gt;&gt; from ConfigSpace.read_and_write import json</span>
+<span class="sd">    &gt;&gt;&gt; with open(&#39;configspace.json&#39;, &#39;r&#39;) as f:</span>
+<span class="sd">    &gt;&gt;&gt;     jason_string = f.read()</span>
+<span class="sd">    &gt;&gt;&gt;     config = json.read(jason_string)</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    jason_string : str</span>
+<span class="sd">        A json string representing a configuration space definition</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    :class:`~ConfigSpace.configuration_space.ConfigurationSpace`</span>
+<span class="sd">        The restored ConfigurationSpace object</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">jason</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">jason_string</span><span class="p">)</span>
     <span class="k">if</span> <span class="s1">&#39;name&#39;</span> <span class="ow">in</span> <span class="n">jason</span><span class="p">:</span>
         <span class="n">configuration_space</span> <span class="o">=</span> <span class="n">ConfigurationSpace</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">jason</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">])</span>

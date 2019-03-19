@@ -382,6 +382,30 @@
 
 
 <div class="viewcode-block" id="read"><a class="viewcode-back" href="../../../API-Doc.html#ConfigSpace.read_and_write.pcs_new.read">[docs]</a><span class="k">def</span> <span class="nf">read</span><span class="p">(</span><span class="n">pcs_string</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Reads in a :py:class:`~ConfigSpace.configuration_space.ConfigurationSpace`</span>
+<span class="sd">    definition from a pcs file.</span>
+
+<span class="sd">    Example</span>
+<span class="sd">    -------</span>
+
+<span class="sd">    &gt;&gt;&gt; from ConfigSpace.read_and_write import pcs_new</span>
+<span class="sd">    &gt;&gt;&gt; with open(&#39;configspace.pcs&#39;, &#39;r&#39;) as fh:</span>
+<span class="sd">    &gt;&gt;&gt;     restored_conf = pcs_new.read(fh)</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    pcs_string : str</span>
+<span class="sd">        ConfigSpace definition in pcs format</span>
+<span class="sd">    debug : bool</span>
+<span class="sd">        Provides debug information. Defaults to False.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    :py:class:`~ConfigSpace.configuration_space.ConfigurationSpace`</span>
+<span class="sd">        The restored ConfigurationSpace object</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">configuration_space</span> <span class="o">=</span> <span class="n">ConfigurationSpace</span><span class="p">()</span>
     <span class="n">conditions</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">forbidden</span> <span class="o">=</span> <span class="p">[]</span>
@@ -558,6 +582,20 @@
 
 
 <div class="viewcode-block" id="write"><a class="viewcode-back" href="../../../API-Doc.html#ConfigSpace.read_and_write.pcs_new.write">[docs]</a><span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="n">configuration_space</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Writes a configurations space to file in pcs_new format.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    configuration_space : :py:class:`~ConfigSpace.configuration_space.ConfigurationSpace`</span>
+<span class="sd">        a configuration space</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    str</span>
+<span class="sd">        The string representation of the configuration space</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">configuration_space</span><span class="p">,</span> <span class="n">ConfigurationSpace</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;pcs_parser.write expects an instance of </span><span class="si">%s</span><span class="s2">, &quot;</span>
                         <span class="s2">&quot;you provided &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ConfigurationSpace</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="n">configuration_space</span><span class="p">)))</span>

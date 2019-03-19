@@ -51,7 +51,7 @@ The *ConfigSpace* can be installed with *pip*:
 
 .. code:: bash
 
-    pip install configspace
+    pip install ConfigSpace
 
 The *ConfigSpace* package requires *numpy*, *cython* and *pyparsing*. If you
 want to use it with Python3.4 it also requires the *typing* package.
