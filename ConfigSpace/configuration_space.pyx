@@ -58,13 +58,8 @@ import ConfigSpace.c_util
 
 
 class ConfigurationSpace(object):
-    # TODO add comments to both the configuration space and single
-    # hyperparameters!
 
     # TODO add a method to add whole configuration spaces as a child "tree"
-
-    """Represent a configuration space.
-    """
 
     def __init__(
             self,
@@ -72,6 +67,25 @@ class ConfigurationSpace(object):
             seed: Union[int, None] = None,
             meta: Optional[Dict] = None,
     ) -> None:
+        """
+        A collection-like object containing a set of hyperparameter definitions and conditions.
+
+        A configuration space organizes all hyperparameters and its conditions
+        as well as its forbidden clauses. Configurations can be sampled from
+        this configuration space. As underlying data structure, the
+        configuration space uses a tree-based approach to represent the
+        conditions and restrictions between hyperparameters.
+
+        Parameters
+        ----------
+        name : (str, optional)
+            Name of the configuration space
+        seed : (int, optional)
+            random seed
+        meta : (dict, optional)
+            Field for holding meta data provided by the user.
+            Not used by the configuration space.
+        """
         self.name = name
         self.meta = meta
 
@@ -103,23 +117,35 @@ class ConfigurationSpace(object):
         self._children_of = dict()
 
     def generate_all_continuous_from_bounds(self, bounds: List[List[Any]]) -> None:
+        """
+        Generate :class:`~ConfigSpace.hyperparameters.UniformFloatHyperparameter`
+        from a list containing lists with lower and upper bounds. The generated
+        hyperparameters are added to the configuration space.
+        
+        Parameters
+        ----------
+        bounds : list(list([Any, Any)])
+            List containing lists with two elements: lower and upper bound
+        """
         for i, (l, u) in enumerate(bounds):
             hp = ConfigSpace.UniformFloatHyperparameter('x%d' % i, l, u)
             self.add_hyperparameter(hp)
 
     def add_hyperparameters(self, hyperparameters: List[Hyperparameter]) -> List[Hyperparameter]:
-        """Add hyperparameters to the configuration space.
+        """
+        Add hyperparameters to the configuration space.
 
         Parameters
         ----------
-        hyperparameters : list
-            List of hyperparameters to add.
+        hyperparameters : list(:ref:`Hyperparameters`)
+            Collection of hyperparameters to add
 
         Returns
         -------
-        hyperparameters : list
+        list(:ref:`Hyperparameters`)
             List of added hyperparameters (same as input)
         """
+
         for hyperparameter in hyperparameters:
             if not isinstance(hyperparameter, Hyperparameter):
                 raise TypeError("Hyperparameter '%s' is not an instance of "
@@ -135,13 +161,18 @@ class ConfigurationSpace(object):
         return hyperparameters
 
     def add_hyperparameter(self, hyperparameter: Hyperparameter) -> Hyperparameter:
-        """Add a hyperparameter to the configuration space.
+        """
+        Add a hyperparameter to the configuration space.
 
         Parameters
         ----------
-        hyperparameter : :class:`HPOlibConfigSpace.hyperparameters.
-                Hyperparameter`
-            The hyperparameter to add.
+        hyperparameter : :ref:`Hyperparameters`
+            The hyperparameter to add
+
+        Returns
+        -------
+        :ref:`Hyperparameters`
+            The added hyperparameter
         """
         if not isinstance(hyperparameter, Hyperparameter):
             raise TypeError("The method add_hyperparameter must be called "
@@ -180,12 +211,27 @@ class ConfigurationSpace(object):
             self._hyperparameter_idx[hp] = i
 
     def add_condition(self, condition: ConditionComponent) -> ConditionComponent:
-        # Check if adding the condition is legal:
-        # * The parent in a condition statement must exist
-        # * The condition must add no cycles
-        # The following array keeps track of all edges which must be
-        # added to the DiGraph; if the checks don't raise any Exception,
-        # these edges are finally added at the end of the function
+        """
+        Add a condition to the configuration space.
+        Check if adding the condition is legal:
+
+        - The parent in a condition statement must exist
+        - The condition must add no cycles
+
+        The following array keeps track of all edges which must be
+        added to the DiGraph; if the checks don't raise any Exception,
+        these edges are finally added at the end of the function.
+
+        Parameters
+        ----------
+        condition : :ref:`Conditions`
+            Condition to add
+
+        Returns
+        -------
+        :ref:`Conditions`
+            Same condition as input
+        """
         if not isinstance(condition, ConditionComponent):
             raise TypeError("The method add_condition must be called "
                             "with an instance of "
@@ -226,6 +272,21 @@ class ConfigurationSpace(object):
         return condition
 
     def add_conditions(self, conditions: List[ConditionComponent]) -> List[ConditionComponent]:
+        """
+        Add a list of conditions to the configuration space.
+        They must be legal. Take a look at
+        :meth:`~ConfigSpace.configuration_space.ConfigurationSpace.add_condition`.
+
+        Parameters
+        ----------
+        conditions : list(:ref:`Conditions`)
+            collection of conditions to add
+
+        Returns
+        -------
+        list(:ref:`Conditions`)
+            Same as input conditions
+        """
         for condition in conditions:
             if not isinstance(condition, ConditionComponent):
                 raise TypeError("Condition '%s' is not an instance of "
@@ -470,6 +531,19 @@ class ConfigurationSpace(object):
         return tmp_dag
 
     def add_forbidden_clause(self, clause: AbstractForbiddenComponent) -> AbstractForbiddenComponent:
+        """
+        Add a forbidden clause to the configuration space.
+
+        Parameters
+        ----------
+        clause : :ref:`Forbidden clauses`
+            Forbidden clause to add
+
+        Returns
+        -------
+        :ref:`Forbidden clauses`
+            Same as input forbidden clause
+        """
         self._check_forbidden_component(clause=clause)
         clause.set_vector_idx(self._hyperparameter_idx)
         self.forbidden_clauses.append(clause)
@@ -477,6 +551,19 @@ class ConfigurationSpace(object):
         return clause
 
     def add_forbidden_clauses(self, clauses: List[AbstractForbiddenComponent]) -> List[AbstractForbiddenComponent]:
+        """
+        Add a list of forbidden clauses to the configuration space.
+
+        Parameters
+        ----------
+        clauses : list(:ref:`Forbidden clauses`)
+            Collection of forbidden clauses to add
+
+        Returns
+        -------
+        list(:ref:`Forbidden clauses`)
+            Same as input clauses
+        """
         for clause in clauses:
             self._check_forbidden_component(clause=clause)
             clause.set_vector_idx(self._hyperparameter_idx)
@@ -516,10 +603,33 @@ class ConfigurationSpace(object):
                                 delimiter: str = ":",
                                 parent_hyperparameter: Hyperparameter = None
                                 ) -> 'ConfigurationSpace':
+        """
+        Combine two configuration space by adding one the other configuration
+        space. The contents of the configuration space, which should be added,
+        are renamed to ``prefix`` + ``delimiter`` + old_name.
+
+        Parameters
+        ----------
+        prefix : str
+            The prefix for the renamed hyperparameter | conditions |
+            forbidden clauses
+        configuration_space : :class:`~ConfigSpace.configuration_space.ConfigurationSpace`
+            The configuration space which should be added
+        delimiter : (str, optional)
+            Defaults to '':''.
+        parent_hyperparameter : (:ref:`Hyperparameters`, optional)
+            Adds for each new hyperparameter the condition, that
+            ``parent_hyperparameter`` is active
+
+        Returns
+        -------
+        :class:`~ConfigSpace.configuration_space.ConfigurationSpace`
+            The configuration space, which was added
+        """
         if not isinstance(configuration_space, ConfigurationSpace):
             raise TypeError("The method add_configuration_space must be "
                             "called with an instance of "
-                            "HPOlibConfigSpace.configuration_space."
+                            "ConfigSpace.configuration_space."
                             "ConfigurationSpace.")
 
         new_parameters = []
@@ -588,12 +698,46 @@ class ConfigurationSpace(object):
         return configuration_space
 
     def get_hyperparameters(self) -> List[Hyperparameter]:
+        """
+        Return a list with all the hyperparameter, which are contained in the
+        configuration space object.
+
+        Returns
+        -------
+        list(:ref:`Hyperparameters`)
+            A list with all hyperparameters stored in the configuration
+            space object
+        """
         return list(self._hyperparameters.values())
 
     def get_hyperparameter_names(self) -> List[str]:
+        """
+        Return a list with all names of hyperparameter, which are contained in
+        the configuration space object.
+
+        Returns
+        -------
+        list(str)
+            List of hyperparameter names
+
+        """
         return list(self._hyperparameters.keys())
 
     def get_hyperparameter(self, name: str) -> Hyperparameter:
+        """
+        Gives the hyperparameter from the configuration space given its name.
+
+        Parameters
+        ----------
+        name : str
+            Name of the searched hyperparameter
+
+        Returns
+        -------
+        :ref:`Hyperparameters`
+            Hyperparameter with the name ``name``
+
+        """
         hp = self._hyperparameters.get(name)
 
         if hp is None:
@@ -607,6 +751,21 @@ class ConfigurationSpace(object):
             return hp
 
     def get_hyperparameter_by_idx(self, idx: int) -> str:
+        """
+        Return the name of a hyperparameter from the configuration space given
+        its id.
+
+        Parameters
+        ----------
+        idx : int
+            Id of a hyperparameter
+
+        Returns
+        -------
+        str
+            Name of the hyperparameter
+
+        """
         hp = self._idx_to_hyperparameter.get(idx)
 
         if hp is None:
@@ -620,6 +779,20 @@ class ConfigurationSpace(object):
             return hp
 
     def get_idx_by_hyperparameter_name(self, name: str) -> int:
+        """
+        Return the id of a hyperparameter by its ``name``.
+
+        Parameters
+        ----------
+        name : str
+            Name of a hyperparameter
+
+        Returns
+        -------
+        int
+            Id of the hyperparameter with name ``name``
+
+        """
         idx = self._hyperparameter_idx.get(name)
 
         if idx is None:
@@ -633,6 +806,15 @@ class ConfigurationSpace(object):
             return idx
 
     def get_conditions(self) -> List[AbstractCondition]:
+        """
+        Return a list with all conditions from the configuration space.
+
+        Returns
+        -------
+        list(:ref:`Conditions`)
+            Conditions of the configuration space
+
+        """
         conditions = []
         added_conditions = set()  # type: Set[str]
 
@@ -650,9 +832,31 @@ class ConfigurationSpace(object):
         return conditions
 
     def get_forbiddens(self) -> List[AbstractForbiddenComponent]:
+        """
+        Return a list with all forbidden clauses from the configuration space.
+
+        Returns
+        -------
+        list(:ref:`Forbidden clauses`)
+            List with the forbidden clauses
+        """
         return self.forbidden_clauses
 
     def get_children_of(self, name: Union[str, Hyperparameter]) -> List[Hyperparameter]:
+        """
+        Return a list with all children of a given hyperparameter.
+
+        Parameters
+        ----------
+        name : (str, :ref:`Hyperparameters`)
+            Hyperparameter or its name, for which all children are requested
+
+        Returns
+        -------
+        list(:ref:`Hyperparameters`)
+            Children of the hyperparameter
+
+        """
         conditions = self.get_child_conditions_of(name)
         parents = []  # type: List[Hyperparameter]
         for condition in conditions:
@@ -667,6 +871,21 @@ class ConfigurationSpace(object):
         return parents
 
     def get_child_conditions_of(self, name: Union[str, Hyperparameter]) -> List[AbstractCondition]:
+        """
+        Return a list with conditions of all children of a given
+        hyperparameter referenced by its ``name``.
+
+        Parameters
+        ----------
+        name : (str, :ref:`Hyperparameters`)
+            Hyperparameter or its name, for which conditions are requested
+
+        Returns
+        -------
+        list(:ref:`Conditions`)
+            List with the conditions on the children of the given hyperparameter
+
+        """
         if isinstance(name, Hyperparameter):
             name = name.name  # type: ignore
 
@@ -681,19 +900,21 @@ class ConfigurationSpace(object):
         return conditions
 
     def get_parents_of(self, name: Union[str, Hyperparameter]) -> List[Hyperparameter]:
-        """Return the parent hyperparameters of a given hyperparameter.
+        """
+        Return the parent hyperparameters of a given hyperparameter.
 
         Parameters
         ----------
-        name : str or Hyperparameter
+        name : (str, :ref:`Hyperparameters`)
             Can either be the name of a hyperparameter or the hyperparameter
-            object.
+            object
 
         Returns
         -------
-        list
-            List with all parent hyperparameters.
+        list[:ref:`Conditions`]
+            List with all parent hyperparameters
         """
+
         conditions = self.get_parent_conditions_of(name)
         parents = []  # type: List[Hyperparameter]
         for condition in conditions:
@@ -701,7 +922,8 @@ class ConfigurationSpace(object):
         return parents
 
     def _get_parents_of(self, name: str) -> List[Hyperparameter]:
-        """Return the parent hyperparameters of a given hyperparameter.
+        """
+        Return the parent hyperparameters of a given hyperparameter.
 
         Parameters
         ----------
@@ -710,7 +932,7 @@ class ConfigurationSpace(object):
         Returns
         -------
         list
-            List with all parent hyperparameters.
+            List with all parent hyperparameters
         """
         conditions = self._get_parent_conditions_of(name)
         parents = []  # type: List[Hyperparameter]
@@ -719,6 +941,21 @@ class ConfigurationSpace(object):
         return parents
 
     def get_parent_conditions_of(self, name: Union[str, Hyperparameter]) -> List[AbstractCondition]:
+        """
+        Return a list with conditions of all parents of a given hyperparameter.
+
+        Parameters
+        ----------
+        name : (str, :ref:`Hyperparameters`)
+            Can either be the name of a hyperparameter or the hyperparameter
+            object
+
+        Returns
+        -------
+        List[:ref:`Conditions`]
+            List with all conditions on parent hyperparameters
+
+        """
         if isinstance(name, Hyperparameter):
             name = name.name  # type: ignore
 
@@ -733,15 +970,42 @@ class ConfigurationSpace(object):
         return conditions
 
     def get_all_unconditional_hyperparameters(self) -> List[str]:
+        """
+        Return a list with names of unconditional hyperparameters.
+
+        Returns
+        -------
+        list[:ref:`Hyperparameters`]
+            List with all parent hyperparameters, which are not part of a condition
+
+        """
         hyperparameters = [hp_name for hp_name in
                            self._children[
                                '__HPOlib_configuration_space_root__']]
         return hyperparameters
 
     def get_all_conditional_hyperparameters(self) -> List[str]:
+        """
+        Return a list with names of all conditional hyperparameters.
+
+        Returns
+        -------
+        list[:ref:`Hyperparameters`]
+            List with all conditional hyperparameter
+
+        """
         return self._conditionals
 
     def get_default_configuration(self) -> 'Configuration':
+        """
+        Return a configuration containing hyperparameters with default values.
+
+        Returns
+        -------
+        :class:`~ConfigSpace.configuration_space.Configuration`
+            Configuration with the set default values
+
+        """
         return self._check_default_configuration()
 
     def _check_default_configuration(self) -> 'Configuration':
@@ -778,6 +1042,14 @@ class ConfigurationSpace(object):
 
     # For backward compatibility
     def check_configuration(self, configuration: 'Configuration') -> None:
+        """
+        Check if a configuration is legal. Raises an error if not.
+
+        Parameters
+        ----------
+        configuration : :class:`~ConfigSpace.configuration_space.Configuration`
+            Configuration to check
+        """
         if not isinstance(configuration, Configuration):
             raise TypeError("The method check_configuration must be called "
                             "with an instance of %s. "
@@ -787,6 +1059,14 @@ class ConfigurationSpace(object):
         )
 
     def check_configuration_vector_representation(self, vector: np.ndarray) -> None:
+        """
+        Raise error f configuration in vector representation is not legal.
+
+        Parameters
+        ----------
+        vector : np.ndarray
+            Configuration in vector representation
+        """
         if not isinstance(vector, np.ndarray):
             raise TypeError("The method check_configuration must be called "
                             "with an instance of np.ndarray "
@@ -794,6 +1074,20 @@ class ConfigurationSpace(object):
         ConfigSpace.c_util.check_configuration(self, vector, False)
 
     def get_active_hyperparameters(self, configuration: 'Configuration') -> Set:
+        """
+        Return a set of active hyperparameter for a given configuration.
+
+        Parameters
+        ----------
+        configuration : :class:`~ConfigSpace.configuration_space.Configuration`
+            Configuration for which the active hyperparameter are returned
+
+        Returns
+        -------
+        set(:class:`~ConfigSpace.configuration_space.Configuration`)
+            The set of all active hyperparameter
+
+        """
         vector = configuration.get_array()
         active_hyperparameters = set()
         for hp_name, hyperparameter in self._hyperparameters.items():
@@ -852,7 +1146,7 @@ class ConfigurationSpace(object):
         # for clause in self.forbidden_clauses:
         #    if clause.is_forbidden_vector(vector, strict=False):
         #        raise ForbiddenValueError("Given vector violates forbidden
-    # clause %s" % (str(clause)))
+        # clause %s" % (str(clause)))
 
     # http://stackoverflow.com/a/25176504/4636294
     def __eq__(self, other: Any) -> bool:
@@ -915,6 +1209,19 @@ class ConfigurationSpace(object):
         return iter(self._hyperparameters.keys())
 
     def sample_configuration(self, size: int = 1) -> Union['Configuration', List['Configuration']]:
+        """
+        Sample ``size`` configurations from the configuration space object.
+
+        Parameters
+        ----------
+        size : (int, optional)
+            Number of configurations to sample. Default to 1
+
+        Returns
+        -------
+        :class:`~ConfigSpace.configuration_space.Configuration`, List[:class:`~ConfigSpace.configuration_space.Configuration`]:
+            A single configuration if ``size`` 1 else a list of Configurations
+        """
         if not isinstance(size, int):
             raise TypeError('Argument size must be of type int, but is %s'
                             % type(size))
@@ -990,6 +1297,14 @@ class ConfigurationSpace(object):
             return accepted_configurations
 
     def seed(self, seed: int) -> None:
+        """
+        Set the random seed to a number.
+
+        Parameters
+        ----------
+        seed : int
+            The random seed
+        """
         self.random = np.random.RandomState(seed)
 
 
@@ -998,25 +1313,33 @@ class Configuration(object):
                  values: Union[None,  Dict[str, Union[str, float, int]]] = None,
                  vector: Union[None, np.ndarray] = None,
                  allow_inactive_with_values: bool = False, origin: Any = None) -> None:
-        """A single configuration.
+        """
+        Class for a single configuration.
+
+        The :class:`~ConfigSpace.configuration_space.Configuration` object holds
+        for all active hyperparameters a value. While the
+        :class:`~ConfigSpace.configuration_space.ConfigurationSpace` stores the
+        definitions for the hyperparameters (value ranges, constraints,...), a
+        :class:`~ConfigSpace.configuration_space.Configuration` object is
+        more like a instance of it.
 
         Parameters
         ----------
-        configuration_space : ConfigurationSpace
-            The configuration space for this configuration
-
-        values : dict
+        configuration_space : :class:`~ConfigSpace.configuration_space.ConfigurationSpace`
+        values : (dict, optional)
             A dictionary with pairs (hyperparameter_name, value), where value is
             a legal value of the hyperparameter in the above
-            configuration_space.
-
-        vector : np.ndarray
-            A numpy array for efficient representation. Either values or
-            vector has to be given.
-
-        allow_inactive_with_values : bool (default=False)
+            configuration_space
+        vector : (np.ndarray, optional)
+            A numpy array for efficient representation. Either values or vector
+            has to be given
+        allow_inactive_with_values : (bool, optional)
             Whether an Exception will be raised if a value for an inactive
             hyperparameter is given. Default is to raise an Exception.
+            Default to False
+        origin : (Any, optional)
+            Store information about the origin of this configuration.
+            Default to None
         """
         if not isinstance(configuration_space, ConfigurationSpace):
             raise TypeError("Configuration expects an instance of %s, "
@@ -1094,6 +1417,11 @@ class Configuration(object):
                              'or vector.')
 
     def is_valid_configuration(self) -> None:
+        """
+        Check if the object is a valid
+        :class:`~ConfigSpace.configuration_space.Configuration`.
+        Raise an error if configuration is not valid.
+        """
         ConfigSpace.c_util.check_configuration(
             self.configuration_space,
             self._vector,
@@ -1123,6 +1451,21 @@ class Configuration(object):
         return self._values[item]
 
     def get(self, item: str, default: Union[None, Any] = None) -> Union[None, Any]:
+        """
+        Return for a given hyperparameter name ``item`` the value of this
+        hyperparameter. ``default`` if the hyperparameter ``name`` doesn't exist.
+
+        Parameters
+        ----------
+        item : str
+            Name of the desired hyperparameter
+        default : (None, Any)
+
+        Returns
+        -------
+        Any, None
+            Value of the hyperparameter
+        """
         try:
             return self[item]
         except Exception:
@@ -1208,7 +1551,15 @@ class Configuration(object):
         return iter(self.keys())
 
     def keys(self) -> List[str]:
-        # Cache the keys to speed up the process of retrieving the keys
+        """
+        Cache the keys to speed up the process of retrieving the keys.
+
+        Returns
+        -------
+        list(str)
+            list of keys
+
+        """
         if self._keys is None:
             keys = list(self.configuration_space._hyperparameters.keys())
             keys = [
@@ -1219,15 +1570,29 @@ class Configuration(object):
         return self._keys
 
     def get_dictionary(self) -> Dict[str, Union[str, float, int]]:
+        """
+        Return a representation of the
+        :class:`~ConfigSpace.configuration_space.Configuration` in dictionary
+        form.
+
+        Returns
+        -------
+        dict
+            Configuration as dictionary
+
+        """
         self._populate_values()
         return self._values
 
     def get_array(self) -> np.ndarray:
         """
+        Return the internal vector representation of the
+        :class:`~ConfigSpace.configuration_space.Configuration`. All continuous
+        values are scaled between zero and one.
+
         Returns
         -------
         numpy.ndarray
-            internal vector representation of the configuration. All
-            continuous values are scaled between zero and one.
+            The vector representation of the configuration
         """
         return self._vector

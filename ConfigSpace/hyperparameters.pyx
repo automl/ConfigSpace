@@ -70,16 +70,18 @@ cdef class Hyperparameter(object):
 
     cpdef bint is_legal_vector(self, DTYPE_t value):
         """
-        Checks wether the given value is a legal value for the vector
-        representation of this hyperparameter
+        Check whether the given value is a legal value for the vector
+        representation of this hyperparameter.
 
         Parameters
         ----------
-        value : the vector value to check
+        value
+            the vector value to check
 
         Returns
         -------
-        True if the given value is a legal vector value, otherwise False
+        bool
+            True if the given value is a legal vector value, otherwise False
 
         """
         raise NotImplementedError()
@@ -116,6 +118,22 @@ cdef class Constant(Hyperparameter):
     cdef DTYPE_t value_vector
 
     def __init__(self, name: str, value: Union[str, int, float], meta: Optional[Dict]=None) -> None:
+        """
+        Representing a constant hyperparameter in the configuration space.
+
+        By sampling from the configuration space each time only a single,
+        constant ``value`` will be drawn from this hyperparameter.
+
+        Parameters
+        ----------
+        name : str
+            Name of the hyperparameter, with which it can be accessed
+        value : (str, int, float)
+            value to sample hyperparameter from
+        meta : (Dict, optional)
+            Field for holding meta data provided by the user.
+            Not used by the configuration space.
+        """
         super(Constant, self).__init__(name, meta)
         allowed_types = (int, float, str)
 
@@ -137,16 +155,22 @@ cdef class Constant(Hyperparameter):
         return ", ".join(repr_str)
 
     def __richcmp__(self, other: Any, int op):
-        """Override the default Equals behavior
-         There are no separate methods for the individual rich comparison operations (__eq__(), __le__(), etc.).
-          Instead there is a single method __richcmp__() which takes an integer indicating which operation is to be performed, as follows:
-         < 	0
-         == 2
-         > 	4
-         <=	1
-         !=	3
-         >=	5
-         """
+        """
+        Todo: With Cython 2.7 this function can be replaced by using the six
+              Python special methods (__eq__(), __lt__(),...).
+        (--> https://cython.readthedocs.io/en/latest/src/userguide/special_methods.html#rich-comparisons)
+
+        Before 2.7 there were no separate methods for the individual rich
+        comparison operations. Instead there is a single method __richcmp__()
+        which takes an integer indicating which operation is to be performed,
+        as follows:
+        < 	0
+        == 2
+        > 	4
+        <=	1
+        !=	3
+        >=	5
+        """
 
         if isinstance(other, self.__class__):
             if op == 2:
@@ -235,16 +259,22 @@ cdef class NumericalHyperparameter(Hyperparameter):
         return True
 
     def __richcmp__(self, other: Any, int op):
-        """Override the default Equals behavior
-         There are no separate methods for the individual rich comparison operations (__eq__(), __le__(), etc.).
-          Instead there is a single method __richcmp__() which takes an integer indicating which operation is to be performed, as follows:
-         < 	0
-         == 2
-         > 	4
-         <=	1
-         !=	3
-         >=	5
-         """
+        """
+        Todo: With Cython 2.7 this function can be replaced by using the six
+              Python special methods (__eq__(), __lt__(),...).
+        (--> https://cython.readthedocs.io/en/latest/src/userguide/special_methods.html#rich-comparisons)
+
+        Before 2.7 there were no separate methods for the individual rich
+        comparison operations. Instead there is a single method __richcmp__()
+        which takes an integer indicating which operation is to be performed,
+        as follows:
+        < 	0
+        == 2
+        > 	4
+        <=	1
+        !=	3
+        >=	5
+        """
 
         if isinstance(other, self.__class__):
             if op == 2:
@@ -333,7 +363,41 @@ cdef class UniformFloatHyperparameter(FloatHyperparameter):
     def __init__(self, name: str, lower: Union[int, float], upper: Union[int, float],
                  default_value: Union[int, float, None] = None, q: Union[int, float, None] = None, log: bool = False,
                  meta: Optional[Dict]=None) -> None:
+        """
+        A float hyperparameter.
 
+        Its values are sampled from a uniform distribution with values
+        from ``lower`` to ``upper``.
+
+        Example
+        -------
+
+        >>> import ConfigSpace as CS
+        >>> import ConfigSpace.hyperparameters as CSH
+        >>> cs = CS.ConfigurationSpace()
+        >>> uniform_float_hp = CSH.UniformFloatHyperparameter('uni_float', lower=10,
+        ...                                                   upper=100, log=False)
+        >>> cs.add_hyperparameter(uniform_float_hp)
+
+        Parameters
+        ----------
+        name : str
+            Name of the hyperparameter, with which it can be accessed
+        lower : (int, floor)
+            Lower bound of a range of values from which the hyperparameter will be sampled
+        upper : (int, float)
+            Upper bound
+        default_value : (int, float, optional)
+            Sets the default value of a hyperparameter to a given value
+        q : (int, float, optional)
+            Quantization factor
+        log : (bool, optional)
+            If ``True``, the values of the hyperparameter will be sampled
+            on a logarithmic scale. Default to ``False``
+        meta : (Dict, optional)
+            Field for holding meta data provided by the user.
+            Not used by the configuration space.
+        """
         super(UniformFloatHyperparameter, self).__init__(name, default_value, meta)
         self.lower = float(lower)
         self.upper = float(upper)
@@ -470,6 +534,41 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
     def __init__(self, name: str, mu: Union[int, float], sigma: Union[int, float],
                  default_value: Union[None, float] = None, q: Union[int, float, None] = None, log: bool = False,
                  meta: Optional[Dict]=None) -> None:
+        """
+        A float hyperparameter.
+
+        Its values are sampled from a normal distribution
+        :math:`\mathcal{N}(\mu, \sigma^2)`.
+
+        Example
+        -------
+
+        >>> import ConfigSpace as CS
+        >>> import ConfigSpace.hyperparameters as CSH
+        >>> cs = CS.ConfigurationSpace()
+        >>> normal_float_hp = CSH.NormalFloatHyperparameter('normal_float', mu=0,
+        ...                                                 sigma=1, log=False)
+        >>> cs.add_hyperparameter(normal_float_hp)
+
+        Parameters
+        ----------
+        name : str
+            Name of the hyperparameter, with which it can be accessed
+        mu : (int, float)
+            Mean of the distribution
+        sigma : (int, float)
+            Standard deviation of the distribution
+        default_value : (int, float, optional)
+            Sets the default value of a hyperparameter to a given value
+        q : (int, float, optional)
+            Quantization factor
+        log : (bool, optional)
+            If ``True``, the values of the hyperparameter will be sampled
+            on a logarithmic scale. Default to ``False``
+        meta : (Dict, optional)
+            Field for holding meta data provided by the user.
+            Not used by the configuration space.
+        """
         super(NormalFloatHyperparameter, self).__init__(name, default_value, meta)
         self.mu = float(mu)
         self.sigma = float(sigma)
@@ -491,16 +590,22 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
         return repr_str.getvalue()
 
     def __richcmp__(self, other: Any, int op):
-        """Override the default Equals behavior
-         There are no separate methods for the individual rich comparison operations (__eq__(), __le__(), etc.).
-          Instead there is a single method __richcmp__() which takes an integer indicating which operation is to be performed, as follows:
-         < 	0
-         == 2
-         > 	4
-         <=	1
-         !=	3
-         >=	5
-         """
+        """
+        Todo: With Cython 2.7 this function can be replaced by using the six
+              Python special methods (__eq__(), __lt__(),...).
+        (--> https://cython.readthedocs.io/en/latest/src/userguide/special_methods.html#rich-comparisons)
+
+        Before 2.7 there were no separate methods for the individual rich
+        comparison operations. Instead there is a single method __richcmp__()
+        which takes an integer indicating which operation is to be performed,
+        as follows:
+        < 	0
+        == 2
+        > 	4
+        <=	1
+        !=	3
+        >=	5
+        """
 
         if isinstance(other, self.__class__):
             if op == 2:
@@ -602,6 +707,42 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
 cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
     def __init__(self, name: str, lower: int, upper: int, default_value: Union[int, None] = None,
                  q: Union[int, None] = None, log: bool = False, meta: Optional[Dict]=None) -> None:
+        """
+        An integer hyperparameter.
+
+        Its values are sampled from a uniform distribution
+        with bounds ``lower`` and ``upper``.
+
+        Example
+        -------
+
+        >>> import ConfigSpace as CS
+        >>> import ConfigSpace.hyperparameters as CSH
+        >>> cs = CS.ConfigurationSpace()
+        >>> uniform_integer_hp = CSH.UniformIntegerHyperparameter(name='uni_int', lower=10,
+        ...                                                       upper=100, log=False)
+        >>> cs.add_hyperparameter(uniform_integer_hp)
+
+        Parameters
+        ----------
+        name : str
+            Name of the hyperparameter with which it can be accessed
+        lower : int
+            Lower bound of a range of values from which the hyperparameter will be sampled
+        upper : int
+            upper bound
+        default_value : (int, optional)
+            Sets the default value of a hyperparameter to a given value
+        q : (int, optional)
+            Quantization factor
+        log : (bool, optional)
+            If ``True``, the values of the hyperparameter will be sampled
+            on a logarithmic scale. Defaults to ``False``
+        meta : (Dict, optional)
+            Field for holding meta data provided by the user.
+            Not used by the configuration space.
+        """
+
         super(UniformIntegerHyperparameter, self).__init__(name, default_value, meta)
         self.lower = self.check_int(lower, "lower")
         self.upper = self.check_int(upper, "upper")
@@ -756,6 +897,43 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
     def __init__(self, name: str, mu: int, sigma: Union[int, float],
                  default_value: Union[int, None] = None, q: Union[None, int] = None, log: bool = False,
                  meta: Optional[Dict]=None) -> None:
+        """
+        An integer hyperparameter.
+
+        Its values are sampled from a normal distribution
+        :math:`\mathcal{N}(\mu, \sigma^2)`.
+
+        Example
+        -------
+
+            >>> import ConfigSpace as CS
+            >>> import ConfigSpace.hyperparameters as CSH
+            >>> cs = CS.ConfigurationSpace()
+            >>> normal_int_hp = CSH.NormalIntegerHyperparameter(name='normal_int', mu=0.,
+            ...                                                 sigma=1., log=False)
+            >>> cs.add_hyperparameter(normal_int_hp)
+
+        Parameters
+        ----------
+        name : str
+            Name of the hyperparameter with which it can be accessed
+        mu : int
+            Mean of the distribution, from which hyperparameter is sampled
+        sigma : (int, float)
+            Standard deviation of the distribution, from which
+            hyperparameter is sampled
+        default_value : (int, optional)
+            Sets the default value of a hyperparameter to a given value
+        q : (int, optional)
+            Quantization factor
+        log : (bool, optional)
+            If ``True``, the values of the hyperparameter will be sampled
+            on a logarithmic scale. Defaults to ``False``
+        meta : (Dict, optional)
+            Field for holding meta data provided by the user.
+            Not used by the configuration space.
+
+        """
         super(NormalIntegerHyperparameter, self).__init__(name, default_value, meta)
         self.mu = mu
         self.sigma = sigma
@@ -799,16 +977,22 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
         return repr_str.getvalue()
 
     def __richcmp__(self, other: Any, int op):
-        """Override the default Equals behavior
-         There are no separate methods for the individual rich comparison operations (__eq__(), __le__(), etc.).
-          Instead there is a single method __richcmp__() which takes an integer indicating which operation is to be performed, as follows:
-         < 	0
-         == 2
-         > 	4
-         <=	1
-         !=	3
-         >=	5
-         """
+        """
+        Todo: With Cython 2.7 this function can be replaced by using the six
+              Python special methods (__eq__(), __lt__(),...).
+        (--> https://cython.readthedocs.io/en/latest/src/userguide/special_methods.html#rich-comparisons)
+
+        Before 2.7 there were no separate methods for the individual rich
+        comparison operations. Instead there is a single method __richcmp__()
+        which takes an integer indicating which operation is to be performed,
+        as follows:
+        < 	0
+        == 2
+        > 	4
+        <=	1
+        !=	3
+        >=	5
+        """
 
         if isinstance(other, self.__class__):
             if op == 2:
@@ -934,6 +1118,33 @@ cdef class CategoricalHyperparameter(Hyperparameter):
         default_value: Union[int, float, str, None]=None,
         meta: Optional[Dict]=None
     ) -> None:
+        """
+        A categorical hyperparameter.
+
+        Its values are sampled from a set of ``values``.
+
+        Example
+        -------
+
+        >>> import ConfigSpace as CS
+        >>> import ConfigSpace.hyperparameters as CSH
+        >>> cs = CS.ConfigurationSpace()
+        >>> cat_hp = CSH.CategoricalHyperparameter('cat_hp', choices=['red', 'green', 'blue'])
+        >>> cs.add_hyperparameter(cat_hp)
+
+        Parameters
+        ----------
+        name : str
+            Name of the hyperparameter, with which it can be accessed
+        choices : (list([str, float, int]), tuple([str, float, int]))
+            Collection of values to sample hyperparameter from
+        default_value : (int, float, str, optional)
+            Sets the default value of the hyperparameter to a given value
+        meta : (Dict, optional)
+            Field for holding meta data provided by the user.
+            Not used by the configuration space.
+        """
+
         super(CategoricalHyperparameter, self).__init__(name, meta)
         # TODO check that there is no bullshit in the choices!
         self.choices = tuple(choices)
@@ -957,16 +1168,22 @@ cdef class CategoricalHyperparameter(Hyperparameter):
         return repr_str.getvalue()
 
     def __richcmp__(self, other: Any, int op):
-        """Override the default Equals behavior
-         There are no separate methods for the individual rich comparison operations (__eq__(), __le__(), etc.).
-          Instead there is a single method __richcmp__() which takes an integer indicating which operation is to be performed, as follows:
-         < 	0
-         == 2
-         > 	4
-         <=	1
-         !=	3
-         >=	5
-         """
+        """
+        Todo: With Cython 2.7 this function can be replaced by using the six
+              Python special methods (__eq__(), __lt__(),...).
+        (--> https://cython.readthedocs.io/en/latest/src/userguide/special_methods.html#rich-comparisons)
+
+        Before 2.7 there were no separate methods for the individual rich
+        comparison operations. Instead there is a single method __richcmp__()
+        which takes an integer indicating which operation is to be performed,
+        as follows:
+        < 	0
+        == 2
+        > 	4
+        <=	1
+        !=	3
+        >=	5
+        """
 
         if isinstance(other, self.__class__):
             if op == 2:
@@ -1094,7 +1311,6 @@ cdef class OrdinalHyperparameter(Hyperparameter):
     cdef public int num_elements
     cdef sequence_vector
     cdef value_dict
-
     def __init__(
         self,
         name: str,
@@ -1103,10 +1319,36 @@ cdef class OrdinalHyperparameter(Hyperparameter):
         meta: Optional[Dict]=None
     ) -> None:
         """
-        since the sequence can consist of elements from different types we
-        store them into a dictionary in order to handle them as a
-        numeric sequence according to their order/position.
+        An ordinal hyperparameter.
+
+        Its values are sampled form a ``sequence`` of values.
+
+        Example
+        -------
+
+        >>> import ConfigSpace as CS
+        >>> import ConfigSpace.hyperparameters as CSH
+        >>> cs = CS.ConfigurationSpace()
+        >>> ord_hp = CSH.OrdinalHyperparameter('ordinal_hp', sequence=['10', '20', '30'])
+        >>> cs.add_hyperparameter(ord_hp)
+
+        Parameters
+        ----------
+        name : str
+            Name of the hyperparameter, with which it can be accessed.
+        sequence : (list([str, float, int]), tuple([str, float, int]))
+            collection of values to sample hyperparameter from.
+        default_value : (int, float, str, optional)
+            Sets the default value of a hyperparameter to a given value.
+        meta : (Dict, optional)
+            Field for holding meta data provided by the user.
+            Not used by the configuration space.
         """
+
+        # Remark
+        # Since the sequence can consist of elements from different types,
+        # they are stored into a dictionary in order to handle them as a
+        # numeric sequence according to their order/position.
         super(OrdinalHyperparameter, self).__init__(name, meta)
         if len(sequence) > len(set(sequence)):
             raise ValueError("Ordinal Hyperparameter Sequence %s contain duplicate values." % sequence)
@@ -1126,7 +1368,7 @@ cdef class OrdinalHyperparameter(Hyperparameter):
 
     def __repr__(self) -> str:
         """
-        writes out the parameter definition
+        write out the parameter definition
         """
         repr_str = io.StringIO()
         repr_str.write("%s, Type: Ordinal, Sequence: {" % (self.name))
@@ -1141,16 +1383,22 @@ cdef class OrdinalHyperparameter(Hyperparameter):
         return repr_str.getvalue()
 
     def __richcmp__(self, other: Any, int op):
-        """Override the default Equals behavior
-         There are no separate methods for the individual rich comparison operations (__eq__(), __le__(), etc.).
-          Instead there is a single method __richcmp__() which takes an integer indicating which operation is to be performed, as follows:
-         < 	0
-         == 2
-         > 	4
-         <=	1
-         !=	3
-         >=	5
-         """
+        """
+        Todo: With Cython 2.7 this function can be replaced by using the six
+              Python special methods (__eq__(), __lt__(),...).
+        (--> https://cython.readthedocs.io/en/latest/src/userguide/special_methods.html#rich-comparisons)
+
+        Before 2.7 there were no separate methods for the individual rich
+        comparison operations. Instead there is a single method __richcmp__()
+        which takes an integer indicating which operation is to be performed,
+        as follows:
+        < 	0
+        == 2
+        > 	4
+        <=	1
+        !=	3
+        >=	5
+        """
 
         if isinstance(other, self.__class__):
             if op == 2:
@@ -1192,7 +1440,7 @@ cdef class OrdinalHyperparameter(Hyperparameter):
 
     def is_legal(self, value: Union[int, float, str]) -> bool:
         """
-        checks if a certain value is represented in the sequence
+        check if a certain value is represented in the sequence
         """
         return value in self.sequence
 
@@ -1201,7 +1449,7 @@ cdef class OrdinalHyperparameter(Hyperparameter):
 
     def check_default(self, default_value: Optional[Union[int, float, str]]) -> Union[int, float, str]:
         """
-        checks if given default value is represented in the sequence.
+        check if given default value is represented in the sequence.
         If there's no default value we simply choose the
         first element in our sequence as default.
         """
@@ -1229,26 +1477,26 @@ cdef class OrdinalHyperparameter(Hyperparameter):
 
     def get_seq_order(self) -> np.ndarray:
         """
-        returns the ordinal sequence as numeric sequence
+        return the ordinal sequence as numeric sequence
         (according to the the ordering) from 1 to length of our sequence.
         """
         return np.arange(0, self.num_elements)
 
     def get_order(self, value: Optional[Union[int, str, float]]) -> int:
         """
-        returns the seuence position/order of a certain value from the sequence
+        return the seuence position/order of a certain value from the sequence
         """
         return self.value_dict[value]
 
     def get_value(self, idx: int) -> Union[int, str, float]:
         """
-        returns the sequence value of a given order/position
+        return the sequence value of a given order/position
         """
         return list(self.value_dict.keys())[list(self.value_dict.values()).index(idx)]
 
     def check_order(self, val1: Union[int, str, float], val2: Union[int, str, float]) -> bool:
         """
-        checks whether value1 is smaller than value2.
+        check whether value1 is smaller than value2.
         """
         idx1 = self.get_order(val1)
         idx2 = self.get_order(val2)
@@ -1259,20 +1507,20 @@ cdef class OrdinalHyperparameter(Hyperparameter):
 
     def _sample(self, rs: np.random.RandomState, size: Optional[int]=None) -> int:
         """
-        returns a random sample from our sequence as order/position index
+        return a random sample from our sequence as order/position index
         """
         return rs.randint(0, self.num_elements, size=size)
 
     def has_neighbors(self) -> bool:
         """
-        checks if there are neighbors or we're only dealing with an
+        check if there are neighbors or we're only dealing with an
         one-element sequence
         """
         return len(self.sequence) > 1
 
     def get_num_neighbors(self, value: Union[int, float, str]) -> int:
         """
-        returns the number of existing neighbors in the sequence
+        return the number of existing neighbors in the sequence
         """
         max_idx = len(self.sequence) - 1
         if value == self.sequence[0] and value == self.sequence[max_idx]:# check if there is only one value
@@ -1285,7 +1533,7 @@ cdef class OrdinalHyperparameter(Hyperparameter):
     def get_neighbors(self, value: Union[int, str, float], rs: None, number: int = 0, transform: bool = False) \
             -> List[Union[str, float, int]]:
         """
-        Returns the neighbors of a given value.
+        Return the neighbors of a given value.
         Value must be in vector form. Ordinal name will not work.
         """
         neighbors = []

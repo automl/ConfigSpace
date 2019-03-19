@@ -114,9 +114,15 @@ cdef class AbstractCondition(ConditionComponent):
         self.parent_vector_id = -1
 
     def __richcmp__(self, other: Any, int op):
-        """Override the default Equals behavior
-        There are no separate methods for the individual rich comparison operations (__eq__(), __le__(), etc.).
-         Instead there is a single method __richcmp__() which takes an integer indicating which operation is to be performed, as follows:
+        """
+        Todo: With Cython 2.7 this function can be replaced by using the six
+              Python special methods (__eq__(), __lt__(),...).
+        (--> https://cython.readthedocs.io/en/latest/src/userguide/special_methods.html#rich-comparisons)
+
+        Before 2.7 there were no separate methods for the individual rich
+        comparison operations. Instead there is a single method __richcmp__()
+        which takes an integer indicating which operation is to be performed,
+        as follows:
         < 	0
         == 2
         > 	4
@@ -179,6 +185,35 @@ cdef class AbstractCondition(ConditionComponent):
 cdef class EqualsCondition(AbstractCondition):
 
     def __init__(self, child: Hyperparameter, parent: Hyperparameter, value: Union[str, float, int]) -> None:
+        """
+        Hyperparameter ``child`` is conditional on the ``parent`` hyperparameter
+        being *equal* to ``value``.
+
+        Example
+        -------
+
+        >>> import ConfigSpace as CS
+        >>> import ConfigSpace.hyperparameters as CSH
+        >>> cs = CS.ConfigurationSpace()
+        >>> a = CSH.CategoricalHyperparameter('a', choices=[1, 2, 3])
+        >>> b = CSH.UniformFloatHyperparameter('b', lower=1., upper=8., log=False)
+        >>> cs.add_hyperparameters([a, b])
+        # makes 'b' an active hyperparameter if 'a' has the value 1
+        >>> cond = CS.EqualsCondition(b, a, 1)
+        >>> cs.add_condition(cond)
+
+        Parameters
+        ----------
+        child : :ref:`Hyperparameters`
+            This hyperparameter will be sampled in the configspace
+            if the *equal condition* is satisfied
+        parent : :ref:`Hyperparameters`
+            The hyperparameter, which has to satisfy the *equal condition*
+        value : (str, float, int)
+            Value, which the parent is compared to
+        """
+
+
         super(EqualsCondition, self).__init__(child, parent)
         if not parent.is_legal(value):
             raise ValueError("Hyperparameter '%s' is "
@@ -222,6 +257,35 @@ cdef class EqualsCondition(AbstractCondition):
 
 cdef class NotEqualsCondition(AbstractCondition):
     def __init__(self, child: Hyperparameter, parent: Hyperparameter, value: Union[str, float, int]) -> None:
+        """
+        Hyperparameter ``child`` is conditional on the ``parent`` hyperparameter
+        being *not equal* to ``value``.
+
+        Example
+        -------
+
+        >>> import ConfigSpace as CS
+        >>> import ConfigSpace.hyperparameters as CSH
+        >>> cs = CS.ConfigurationSpace()
+        >>> a = CSH.CategoricalHyperparameter('a', choices=[1, 2, 3])
+        >>> b = CSH.UniformFloatHyperparameter('b', lower=1., upper=8., log=False)
+        >>> cs.add_hyperparameters([a, b])
+        # makes 'b' an active hyperparameter if 'a' has **not** the value 1
+        >>> cond = CS.NotEqualsCondition(b, a, 1)
+        >>> cs.add_condition(cond)
+
+        Parameters
+        ----------
+        child : :ref:`Hyperparameters`
+            This hyperparameter will be sampled in the configspace
+            if the not-equals condition is satisfied
+        parent : :ref:`Hyperparameters`
+            The hyperparameter, which has to satisfy the
+            *not equal condition*
+        value : (str, float, int)
+            Value, which the parent is compared to
+
+        """
         super(NotEqualsCondition, self).__init__(child, parent)
         if not parent.is_legal(value):
             raise ValueError("Hyperparameter '%s' is "
@@ -265,6 +329,35 @@ cdef class NotEqualsCondition(AbstractCondition):
 
 cdef class LessThanCondition(AbstractCondition):
     def __init__(self, child: Hyperparameter, parent: Hyperparameter, value: Union[str, float, int]) -> None:
+        """
+        Hyperparameter ``child`` is conditional on the ``parent`` hyperparameter
+        being *less than* ``value``.
+
+        Example
+        -------
+
+        >>> import ConfigSpace as CS
+        >>> import ConfigSpace.hyperparameters as CSH
+        >>> cs = CS.ConfigurationSpace()
+        >>> a = CSH.UniformFloatHyperparameter('a', lower=0., upper=10.)
+        >>> b = CSH.UniformFloatHyperparameter('b', lower=1., upper=8., log=False)
+        >>> cs.add_hyperparameters([a, b])
+        # makes 'b' an active hyperparameter if 'a' is less than 5
+        >>> cond = CS.LessThanCondition(b, a, 5.)
+        >>> cs.add_condition(cond)
+
+        Parameters
+        ----------
+        child : :ref:`Hyperparameters`
+            This hyperparameter will be sampled in the configspace,
+            if the *LessThanCondition* is satisfied
+        parent : :ref:`Hyperparameters`
+            The hyperparameter, which has to satisfy the *LessThanCondition*
+        value : (str, float, int)
+            Value, which the parent is compared to
+
+        """
+
         super(LessThanCondition, self).__init__(child, parent)
         self.parent.allow_greater_less_comparison()
         if not parent.is_legal(value):
@@ -309,7 +402,36 @@ cdef class LessThanCondition(AbstractCondition):
 
 cdef class GreaterThanCondition(AbstractCondition):
     def __init__(self, child: Hyperparameter, parent: Hyperparameter, value: Union[str, float, int]) -> None:
+        """
+        Hyperparameter ``child`` is conditional on the ``parent`` hyperparameter
+        being *greater than* ``value``.
+
+        Example
+        -------
+
+        >>> import ConfigSpace as CS
+        >>> import ConfigSpace.hyperparameters as CSH
+        >>> cs = CS.ConfigurationSpace()
+        >>> a = CSH.UniformFloatHyperparameter('a', lower=0., upper=10.)
+        >>> b = CSH.UniformFloatHyperparameter('b', lower=1., upper=8., log=False)
+        >>> cs.add_hyperparameters([a, b])
+        # makes 'b' an active hyperparameter if 'a' is greater than 5
+        >>> cond = CS.GreaterThanCondition(b, a, 5.)
+        >>> cs.add_condition(cond)
+
+        Parameters
+        ----------
+        child : :ref:`Hyperparameters`
+            This hyperparameter will be sampled in the configspace,
+            if the *GreaterThanCondition* is satisfied
+        parent : :ref:`Hyperparameters`
+            The hyperparameter, which has to satisfy the *GreaterThanCondition*
+        value : (str, float, int)
+            Value, which the parent is compared to
+
+        """
         super(GreaterThanCondition, self).__init__(child, parent)
+
         self.parent.allow_greater_less_comparison()
         if not parent.is_legal(value):
             raise ValueError("Hyperparameter '%s' is "
@@ -355,6 +477,34 @@ cdef class InCondition(AbstractCondition):
     cdef public vector_values
 
     def __init__(self, child: Hyperparameter, parent: Hyperparameter, values: List[Union[str, float, int]]) -> None:
+        """
+        Hyperparameter ``child`` is conditional on the ``parent`` hyperparameter
+        being *in* a set of ``values``.
+
+        Example
+        -------
+
+        >>> import ConfigSpace as CS
+        >>> import ConfigSpace.hyperparameters as CSH
+        >>> cs = CS.ConfigurationSpace()
+        >>> a = CSH.UniformIntegerHyperparameter('a', lower=0, upper=10)
+        >>> b = CSH.UniformFloatHyperparameter('b', lower=1., upper=8., log=False)
+        >>> cs.add_hyperparameters([a, b])
+        # makes 'b' an active hyperparameter if 'a' is in the set [1, 2, 3, 4]
+        >>> cond = CS.InCondition(b, a, [1, 2, 3, 4])
+        >>> cs.add_condition(cond)
+
+        Parameters
+        ----------
+        child : :ref:`Hyperparameters`
+            This hyperparameter will be sampled in the configspace,
+            if the *InCondition* is satisfied
+        parent : :ref:`Hyperparameters`
+            The hyperparameter, which has to satisfy the *InCondition*
+        values : list([str, float, int])
+            Collection of values, which the parent is compared to
+
+        """
         super(InCondition, self).__init__(child, parent)
         for value in values:
             if not parent.is_legal(value):
@@ -367,9 +517,15 @@ cdef class InCondition(AbstractCondition):
         self.vector_values = [self.parent._inverse_transform(value) for value in self.values]
 
     def __richcmp__(self, other: Any, int op):
-        """Override the default Equals behavior
-        There are no separate methods for the individual rich comparison operations (__eq__(), __le__(), etc.).
-         Instead there is a single method __richcmp__() which takes an integer indicating which operation is to be performed, as follows:
+        """
+        Todo: With Cython 2.7 this function can be replaced by using the six
+              Python special methods (__eq__(), __lt__(),...).
+        (--> https://cython.readthedocs.io/en/latest/src/userguide/special_methods.html#rich-comparisons)
+
+        Before 2.7 there were no separate methods for the individual rich
+        comparison operations. Instead there is a single method __richcmp__()
+        which takes an integer indicating which operation is to be performed,
+        as follows:
         < 	0
         == 2
         > 	4
@@ -433,9 +589,15 @@ cdef class AbstractConjunction(ConditionComponent):
                                  "the same child.")
 
     def __richcmp__(self, other: Any, int op):
-        """Override the default Equals behavior
-        There are no separate methods for the individual rich comparison operations (__eq__(), __le__(), etc.).
-         Instead there is a single method __richcmp__() which takes an integer indicating which operation is to be performed, as follows:
+        """
+        Todo: With Cython 2.7 this function can be replaced by using the six
+              Python special methods (__eq__(), __lt__(),...).
+        (--> https://cython.readthedocs.io/en/latest/src/userguide/special_methods.html#rich-comparisons)
+
+        Before 2.7 there were no separate methods for the individual rich
+        comparison operations. Instead there is a single method __richcmp__()
+        which takes an integer indicating which operation is to be performed,
+        as follows:
         < 	0
         == 2
         > 	4
@@ -556,6 +718,31 @@ cdef class AndConjunction(AbstractConjunction):
     # TODO: test if an AndConjunction results in an illegal state or a
     # Tautology! -> SAT solver
     def __init__(self, *args: AbstractCondition) -> None:
+        """
+        By using the *AndConjunction*, constraints can easily be connected.
+
+        Example
+        -------
+        The following example shows how two constraints with an
+        *AndConjunction* can be combined.
+
+        >>> import ConfigSpace as CS
+        >>> import ConfigSpace.hyperparameters as CSH
+        >>> cs = CS.ConfigurationSpace()
+        >>> a = CSH.UniformIntegerHyperparameter('a', lower=5, upper=15)
+        >>> b = CSH.UniformIntegerHyperparameter('b', lower=0, upper=10)
+        >>> c = CSH.UniformFloatHyperparameter('c', lower=0., upper=1.)
+        >>> cs.add_hyperparameters([a, b, c])
+        >>> less_cond = CS.LessThanCondition(c, a, 10)
+        >>> greater_cond = CS.GreaterThanCondition(c, b, 5)
+        >>> cs.add_condition(CS.AndConjunction(less_cond, greater_cond))
+
+        Parameters
+        ----------
+        *args : :ref:`Conditions`
+            conditions, which will be combined with an *AndConjunction*
+
+        """
         if len(args) < 2:
             raise ValueError("AndConjunction must at least have two "
                              "Conditions.")
@@ -592,6 +779,29 @@ cdef class AndConjunction(AbstractConjunction):
 
 cdef class OrConjunction(AbstractConjunction):
     def __init__(self, *args: AbstractCondition) -> None:
+        """
+        Similar to the *AndConjunction*, constraints can be combined by
+        using the *OrConjunction*.
+
+        Example
+        -------
+
+        >>> import ConfigSpace as CS
+        >>> import ConfigSpace.hyperparameters as CSH
+        >>> cs = CS.ConfigurationSpace()
+        >>> a = CSH.UniformIntegerHyperparameter('a', lower=5, upper=15)
+        >>> b = CSH.UniformIntegerHyperparameter('b', lower=0, upper=10)
+        >>> c = CSH.UniformFloatHyperparameter('c', lower=0., upper=1.)
+        >>> cs.add_hyperparameters([a, b, c])
+        >>> less_cond = CS.LessThanCondition(c, a, 10)
+        >>> greater_cond = CS.GreaterThanCondition(c, b, 5)
+        >>> cs.add_condition(CS.OrConjunction(less_cond, greater_cond))
+
+        Parameters
+        ----------
+        *args : :ref:`Conditions`
+            conditions, which will be combined with an *OrConjunction*
+        """
         if len(args) < 2:
             raise ValueError("OrConjunction must at least have two "
                              "Conditions.")

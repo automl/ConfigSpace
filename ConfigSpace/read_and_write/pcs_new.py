@@ -248,6 +248,30 @@ def condition_specification(child_name, condition, configuration_space):
 
 
 def read(pcs_string, debug=False):
+    """
+    Reads in a :py:class:`~ConfigSpace.configuration_space.ConfigurationSpace`
+    definition from a pcs file.
+
+    Example
+    -------
+
+    >>> from ConfigSpace.read_and_write import pcs_new
+    >>> with open('configspace.pcs', 'r') as fh:
+    >>>     restored_conf = pcs_new.read(fh)
+
+    Parameters
+    ----------
+    pcs_string : str
+        ConfigSpace definition in pcs format
+    debug : bool
+        Provides debug information. Defaults to False.
+
+    Returns
+    -------
+    :py:class:`~ConfigSpace.configuration_space.ConfigurationSpace`
+        The restored ConfigurationSpace object
+
+    """
     configuration_space = ConfigurationSpace()
     conditions = []
     forbidden = []
@@ -424,6 +448,20 @@ def read(pcs_string, debug=False):
 
 
 def write(configuration_space):
+    """
+    Writes a configurations space to file in pcs_new format.
+
+    Parameters
+    ----------
+    configuration_space : :py:class:`~ConfigSpace.configuration_space.ConfigurationSpace`
+        a configuration space
+
+    Returns
+    -------
+    str
+        The string representation of the configuration space
+
+    """
     if not isinstance(configuration_space, ConfigurationSpace):
         raise TypeError("pcs_parser.write expects an instance of %s, "
                         "you provided '%s'" % (ConfigurationSpace, type(configuration_space)))

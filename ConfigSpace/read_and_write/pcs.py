@@ -159,6 +159,30 @@ def build_forbidden(clause):
 
 
 def read(pcs_string, debug=False):
+    """
+    Reads in a :py:class:`~ConfigSpace.configuration_space.ConfigurationSpace`
+     definition from a pcs file.
+
+    Example
+    -------
+
+    >>> from ConfigSpace.read_and_write import pcs
+    >>> with open('configspace.pcs', 'r') as fh:
+    >>>     restored_conf = pcs_new.read(fh)
+
+    Parameters
+    ----------
+    pcs_string : str
+        ConfigSpace definition in pcs format
+    debug : bool
+        Provides debug information. Defaults to False.
+
+    Returns
+    -------
+    :py:class:`~ConfigSpace.configuration_space.ConfigurationSpace`
+        The restored ConfigurationSpace object
+
+    """
     configuration_space = ConfigurationSpace()
     conditions = []
     forbidden = []
@@ -300,6 +324,31 @@ def read(pcs_string, debug=False):
 
 
 def write(configuration_space):
+    """
+    Writes a configurations space to file in pcs format.
+
+    Example
+    -------
+
+    >>> import ConfigSpace as CS
+    >>> import ConfigSpace.hyperparameters as CSH
+    >>> from ConfigSpace.read_and_write import pcs
+    >>> cs = CS.ConfigurationSpace()
+    >>> cs.add_hyperparameter(CSH.CategoricalHyperparameter('a', choices=[1, 2, 3]))
+    >>> with open('configspace.pcs', 'w') as fh:
+    >>>     fh.write(pcs.write(cs))
+
+    Parameters
+    ----------
+    configuration_space : :py:class:`~ConfigSpace.configuration_space.ConfigurationSpace`
+        a configuration space
+
+    Returns
+    -------
+    str
+        The string representation of the configuration space
+
+    """
     if not isinstance(configuration_space, ConfigurationSpace):
         raise TypeError("pcs_parser.write expects an instance of %s, "
                         "you provided '%s'" % (ConfigurationSpace, type(configuration_space)))
