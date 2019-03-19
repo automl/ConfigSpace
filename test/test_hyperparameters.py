@@ -532,6 +532,20 @@ class TestHyperparameters(unittest.TestCase):
         self.assertFalse(f1.is_legal_vector(-0.1))
         self.assertRaises(TypeError, f1.is_legal_vector, "Hahaha")
 
+    def test_categorical_choices(self):
+        with self.assertRaisesRegex(
+            ValueError,
+            "Choices for categorical hyperparameters param contain choice 'a' 2 times, "
+            "while only a single oocurence is allowed.",
+        ):
+            CategoricalHyperparameter('param', ['a', 'a'])
+
+        with self.assertRaisesRegex(
+            TypeError,
+            "Choice 'None' is not supported",
+        ):
+            CategoricalHyperparameter('param', ['a', None])
+
     def test_sample_UniformFloatHyperparameter(self):
         # This can sample four distributions
         def sample(hp):
