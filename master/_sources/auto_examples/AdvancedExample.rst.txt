@@ -45,10 +45,7 @@ Advanced Example
 | g                      | categorical   | 2, 5, 6  |  None                     |
 +------------------------+---------------+----------+---------------------------+
 
-
-
-
-.. code-block:: python
+.. code-block:: default
 
 
     import ConfigSpace as CS
@@ -116,7 +113,10 @@ Advanced Example
     with open('configspace.json', 'w') as fh:
         fh.write(json.write(cs))
 
-**Total running time of the script:** ( 0 minutes  0.000 seconds)
+
+.. rst-class:: sphx-glr-timing
+
+   **Total running time of the script:** ( 0 minutes  0.000 seconds)
 
 
 .. _sphx_glr_download_auto_examples_AdvancedExample.py:
