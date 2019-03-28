@@ -2,8 +2,7 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
     <title>Guide &#8212; ConfigSpace  documentation</title>
     <link rel="stylesheet" href="_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -151,8 +150,8 @@ a configuration space are captured.</p>
 <h2>1st Example: Integer hyperparameters and float hyperparameters<a class="headerlink" href="#st-example-integer-hyperparameters-and-float-hyperparameters" title="Permalink to this headline">¶</a></h2>
 <p>Assume that we want to train a support vector machine (=SVM) for classification tasks with the hyperparameters:</p>
 <ul class="simple">
-<li><span class="math notranslate nohighlight">\(\mathcal{C}\)</span>: regularization constant  with <span class="math notranslate nohighlight">\(\mathcal{C} \in \mathbb{R}_{\geq 0}\)</span> and 0 <span class="math notranslate nohighlight">\(\geq \mathcal{C} \geq\)</span> 1</li>
-<li><code class="docutils literal notranslate"><span class="pre">max_iter</span></code>: the maximum number of iterations within the solver</li>
+<li><p><span class="math notranslate nohighlight">\(\mathcal{C}\)</span>: regularization constant  with <span class="math notranslate nohighlight">\(\mathcal{C} \in \mathbb{R}_{\geq 0}\)</span> and 0 <span class="math notranslate nohighlight">\(\geq \mathcal{C} \geq\)</span> 1</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">max_iter</span></code>: the maximum number of iterations within the solver</p></li>
 </ul>
 <p>The implementation of the classifier is out of scope for this example and thus not shown.
 But for further reading about
@@ -188,7 +187,7 @@ We want to include them in our configuration space.
 This is a new hyperparameter with a finite number of values.
 For this scenario, ConfigSpace offers the <a class="reference internal" href="API-Doc.html#ConfigSpace.hyperparameters.CategoricalHyperparameter" title="ConfigSpace.hyperparameters.CategoricalHyperparameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">CategoricalHyperparameter</span></code></a>.</p>
 <ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">kernel_type</span></code>: with values ‘linear’, ‘poly’, ‘rbf’, ‘sigmoid’.</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">kernel_type</span></code>: with values ‘linear’, ‘poly’, ‘rbf’, ‘sigmoid’.</p></li>
 </ul>
 <p>If we take a closer look at the possible values of <code class="docutils literal notranslate"><span class="pre">kernel_type</span></code>, we observe, that the kernel type ‘poly’ has an additional,
 unique hyperparameter, the degree of the polynomial kernel function. There is also a hyperparameter <code class="docutils literal notranslate"><span class="pre">coef0</span></code> for the kernel
@@ -232,14 +231,14 @@ following example expresses the fact, that <code class="docutils literal notrans
 </pre></div>
 </div>
 <div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">ConfigSpace offers a lot of different condition types. For example the <a class="reference internal" href="API-Doc.html#ConfigSpace.conditions.NotEqualsCondition" title="ConfigSpace.conditions.NotEqualsCondition"><code class="xref py py-class docutils literal notranslate"><span class="pre">NotEqualsCondition</span></code></a> ,
+<p class="admonition-title">Note</p>
+<p>ConfigSpace offers a lot of different condition types. For example the <a class="reference internal" href="API-Doc.html#ConfigSpace.conditions.NotEqualsCondition" title="ConfigSpace.conditions.NotEqualsCondition"><code class="xref py py-class docutils literal notranslate"><span class="pre">NotEqualsCondition</span></code></a> ,
 <a class="reference internal" href="API-Doc.html#ConfigSpace.conditions.LessThanCondition" title="ConfigSpace.conditions.LessThanCondition"><code class="xref py py-class docutils literal notranslate"><span class="pre">LessThanCondition</span></code></a>, or <a class="reference internal" href="API-Doc.html#ConfigSpace.conditions.GreaterThanCondition" title="ConfigSpace.conditions.GreaterThanCondition"><code class="xref py py-class docutils literal notranslate"><span class="pre">GreaterThanCondition</span></code></a>.
 To read more about conditions, please take a look at the <a class="reference internal" href="API-Doc.html#conditions"><span class="std std-ref">Conditions</span></a> or the <a class="reference internal" href="auto_examples/AdvancedExample.html"><span class="doc">Advanced Example</span></a></p>
 </div>
 <div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">Don’t use either the <a class="reference internal" href="API-Doc.html#ConfigSpace.conditions.EqualsCondition" title="ConfigSpace.conditions.EqualsCondition"><code class="xref py py-class docutils literal notranslate"><span class="pre">EqualsCondition</span></code></a> or the <a class="reference internal" href="API-Doc.html#ConfigSpace.conditions.InCondition" title="ConfigSpace.conditions.InCondition"><code class="xref py py-class docutils literal notranslate"><span class="pre">InCondition</span></code></a>
+<p class="admonition-title">Note</p>
+<p>Don’t use either the <a class="reference internal" href="API-Doc.html#ConfigSpace.conditions.EqualsCondition" title="ConfigSpace.conditions.EqualsCondition"><code class="xref py py-class docutils literal notranslate"><span class="pre">EqualsCondition</span></code></a> or the <a class="reference internal" href="API-Doc.html#ConfigSpace.conditions.InCondition" title="ConfigSpace.conditions.InCondition"><code class="xref py py-class docutils literal notranslate"><span class="pre">InCondition</span></code></a>
 on float hyperparameters.
 Due to floating-point inaccuracy, it is very unlikely that, for example, the
 <a class="reference internal" href="API-Doc.html#ConfigSpace.conditions.EqualsCondition" title="ConfigSpace.conditions.EqualsCondition"><code class="xref py py-class docutils literal notranslate"><span class="pre">EqualsCondition</span></code></a> is evaluated to True.</p>
@@ -254,9 +253,9 @@ ConfigSpace supports this functionality by offering <a class="reference internal
 sklearn implementation, which has more flexibility in the choice of penalties and loss functions.
 This gives us three new hyperparameters:</p>
 <ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">penalty</span></code>: Specifies the norm used in the penalization with values ‘l1’ or ‘l2’</li>
-<li><code class="docutils literal notranslate"><span class="pre">loss</span></code>: Specifies the loss function with values ‘hinge’ or ‘squared_hinge’</li>
-<li><code class="docutils literal notranslate"><span class="pre">dual</span></code>: Solve the optimization problem either in dual or simple form with values True or False</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">penalty</span></code>: Specifies the norm used in the penalization with values ‘l1’ or ‘l2’</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">loss</span></code>: Specifies the loss function with values ‘hinge’ or ‘squared_hinge’</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dual</span></code>: Solve the optimization problem either in dual or simple form with values True or False</p></li>
 </ul>
 <p>Again, add these 3 new hyperparameters to the configuration space.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">penalty</span> <span class="o">=</span> <span class="n">CSH</span><span class="o">.</span><span class="n">CategoricalHyperparameter</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;penalty&quot;</span><span class="p">,</span> <span class="n">choices</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;l1&quot;</span><span class="p">,</span> <span class="s2">&quot;l2&quot;</span><span class="p">],</span> <span class="n">default_value</span><span class="o">=</span><span class="s2">&quot;l2&quot;</span><span class="p">)</span>
@@ -277,9 +276,9 @@ This gives us three new hyperparameters:</p>
 </div>
 <p>Now we want to forbid some combinations in the configurations.</p>
 <ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">penalty</span></code> is ‘l1’ and <code class="docutils literal notranslate"><span class="pre">loss</span></code> is ‘hinge’</li>
-<li><code class="docutils literal notranslate"><span class="pre">dual</span></code> is False and <code class="docutils literal notranslate"><span class="pre">penalty</span></code> is ‘l2’ and <code class="docutils literal notranslate"><span class="pre">loss</span></code> is ‘hinge’</li>
-<li><code class="docutils literal notranslate"><span class="pre">dual</span></code> is False and <code class="docutils literal notranslate"><span class="pre">penalty</span></code> is ‘l1’</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">penalty</span></code> is ‘l1’ and <code class="docutils literal notranslate"><span class="pre">loss</span></code> is ‘hinge’</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dual</span></code> is False and <code class="docutils literal notranslate"><span class="pre">penalty</span></code> is ‘l2’ and <code class="docutils literal notranslate"><span class="pre">loss</span></code> is ‘hinge’</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dual</span></code> is False and <code class="docutils literal notranslate"><span class="pre">penalty</span></code> is ‘l1’</p></li>
 </ul>
 <blockquote>
 <div><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">penalty_and_loss</span> <span class="o">=</span> <span class="n">ForbiddenAndConjunction</span><span class="p">(</span>
@@ -344,7 +343,7 @@ To serialize the defined <a class="reference internal" href="API-Doc.html#Config
     </p>
     <p>
         &copy; Copyright 2014-2019, Matthias Feurer, Katharina Eggensperger, Syed Mohsin Ali, Christina Hernandez Wunsch, Julien-Charles Levesque, Jost Tobias Springenberg, Philipp Mueller, Marius Lindauer, Jorn Tuyls.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.5.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.0.0.<br/>
     </p>
   </div>
 </footer>
