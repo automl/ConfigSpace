@@ -3,7 +3,14 @@
 import os
 from setuptools import setup, find_packages
 from setuptools.extension import Extension
-import numpy as np
+
+try:
+    import numpy as np
+except ImportError:
+    print("Numpy module not found. Attempting to install for user using pip..")
+    from pip import main as pip
+    pip(['install', '--user', 'numpy'])
+    import numpy as np
 
 # Read http://peterdowns.com/posts/first-time-with-pypi.html to figure out how
 # to publish the package on PyPI
