@@ -3,26 +3,32 @@
 import os
 from setuptools import setup, find_packages
 from setuptools.extension import Extension
+from setuptools.command.build_ext import build_ext
 
-try:
-    import numpy as np
-except ImportError:
-    print("Numpy module not found. Attempting to install for user using pip..")
-    from pip import main as pip
-    pip(['install', '--user', 'numpy'])
-    import numpy as np
-
-# Read http://peterdowns.com/posts/first-time-with-pypi.html to figure out how
-# to publish the package on PyPI
 
 # Helper functions
 def read_file(fname):
     """Get contents of file from the modules directory"""
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
+
+
 def get_version(fname):
     """Get the module version"""
     with open(fname) as file_handle:
         return file_handle.readlines()[-1].split()[-1].strip("\"'")
+
+
+class BuildExt(build_ext):
+    """ build_ext command for use when numpy headers are needed.
+    SEE tutorial: https://stackoverflow.com/questions/2379898
+    SEE fix: https://stackoverflow.com/questions/19919905
+    """
+
+    def finalize_options(self):
+        build_ext.finalize_options(self)
+        import numpy
+        self.include_dirs.append(numpy.get_include())
+
 
 # Configure setup parameters
 MODULE_NAME = 'ConfigSpace'
@@ -64,23 +70,17 @@ COMPILER_DIRECTIVES = {
 }
 
 EXTENSIONS = [Extension('ConfigSpace.hyperparameters',
-                        sources=['ConfigSpace/hyperparameters.pyx'],
-                        include_dirs=[np.get_include()]),
+                        sources=['ConfigSpace/hyperparameters.pyx']),
               Extension('ConfigSpace.forbidden',
-                        sources=['ConfigSpace/forbidden.pyx'],
-                        include_dirs=[np.get_include()]),
+                        sources=['ConfigSpace/forbidden.pyx']),
               Extension('ConfigSpace.conditions',
-                        sources=['ConfigSpace/conditions.pyx'],
-                        include_dirs=[np.get_include()]),
+                        sources=['ConfigSpace/conditions.pyx']),
               Extension('ConfigSpace.c_util',
-                        sources=['ConfigSpace/c_util.pyx'],
-                        include_dirs=[np.get_include()]),
+                        sources=['ConfigSpace/c_util.pyx']),
               Extension('ConfigSpace.util',
-                        sources=['ConfigSpace/util.pyx'],
-                        include_dirs=[np.get_include()]),
+                        sources=['ConfigSpace/util.pyx']),
               Extension('ConfigSpace.configuration_space',
-                        sources=['ConfigSpace/configuration_space.pyx'],
-                        include_dirs=[np.get_include()])]
+                        sources=['ConfigSpace/configuration_space.pyx'])]
 
 for e in EXTENSIONS:
     e.cython_directives = COMPILER_DIRECTIVES
@@ -89,6 +89,7 @@ for e in EXTENSIONS:
 setup(
     name=MODULE_NAME,
     version=get_version('ConfigSpace/__version__.py'),
+    cmdclass={'build_ext': BuildExt},
     url=MODULE_URL,
     description=SHORT_DESCRIPTION,
     ext_modules=EXTENSIONS,
