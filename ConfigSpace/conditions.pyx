@@ -198,9 +198,13 @@ cdef class EqualsCondition(AbstractCondition):
         >>> a = CSH.CategoricalHyperparameter('a', choices=[1, 2, 3])
         >>> b = CSH.UniformFloatHyperparameter('b', lower=1., upper=8., log=False)
         >>> cs.add_hyperparameters([a, b])
-        # makes 'b' an active hyperparameter if 'a' has the value 1
+        [a, Type: Categorical, Choices: {1, 2, 3}, Default: 1, b, Type: ...]
+
+        make *b* an active hyperparameter if *a* has the value 1
+
         >>> cond = CS.EqualsCondition(b, a, 1)
         >>> cs.add_condition(cond)
+        b | a == 1
 
         Parameters
         ----------
@@ -209,7 +213,7 @@ cdef class EqualsCondition(AbstractCondition):
             if the *equal condition* is satisfied
         parent : :ref:`Hyperparameters`
             The hyperparameter, which has to satisfy the *equal condition*
-        value : (str, float, int)
+        value : str, float, int
             Value, which the parent is compared to
         """
 
@@ -270,9 +274,13 @@ cdef class NotEqualsCondition(AbstractCondition):
         >>> a = CSH.CategoricalHyperparameter('a', choices=[1, 2, 3])
         >>> b = CSH.UniformFloatHyperparameter('b', lower=1., upper=8., log=False)
         >>> cs.add_hyperparameters([a, b])
-        # makes 'b' an active hyperparameter if 'a' has **not** the value 1
+        [a, Type: Categorical, Choices: {1, 2, 3}, Default: 1, b, Type: ...]
+
+        make *b* an active hyperparameter if *a* has **not** the value 1
+
         >>> cond = CS.NotEqualsCondition(b, a, 1)
         >>> cs.add_condition(cond)
+        b | a != 1
 
         Parameters
         ----------
@@ -282,7 +290,7 @@ cdef class NotEqualsCondition(AbstractCondition):
         parent : :ref:`Hyperparameters`
             The hyperparameter, which has to satisfy the
             *not equal condition*
-        value : (str, float, int)
+        value : str, float, int
             Value, which the parent is compared to
 
         """
@@ -342,9 +350,13 @@ cdef class LessThanCondition(AbstractCondition):
         >>> a = CSH.UniformFloatHyperparameter('a', lower=0., upper=10.)
         >>> b = CSH.UniformFloatHyperparameter('b', lower=1., upper=8., log=False)
         >>> cs.add_hyperparameters([a, b])
-        # makes 'b' an active hyperparameter if 'a' is less than 5
+        [a, Type: UniformFloat, Range: [0.0, 10.0], Default: 5.0, b, Type: ...]
+
+        make *b* an active hyperparameter if *a* is less than 5
+
         >>> cond = CS.LessThanCondition(b, a, 5.)
         >>> cs.add_condition(cond)
+        b | a < 5.0
 
         Parameters
         ----------
@@ -353,7 +365,7 @@ cdef class LessThanCondition(AbstractCondition):
             if the *LessThanCondition* is satisfied
         parent : :ref:`Hyperparameters`
             The hyperparameter, which has to satisfy the *LessThanCondition*
-        value : (str, float, int)
+        value : str, float, int
             Value, which the parent is compared to
 
         """
@@ -411,13 +423,17 @@ cdef class GreaterThanCondition(AbstractCondition):
 
         >>> import ConfigSpace as CS
         >>> import ConfigSpace.hyperparameters as CSH
-        >>> cs = CS.ConfigurationSpace()
+        >>> cs = CS.ConfigurationSpace(seed=1)
         >>> a = CSH.UniformFloatHyperparameter('a', lower=0., upper=10.)
         >>> b = CSH.UniformFloatHyperparameter('b', lower=1., upper=8., log=False)
         >>> cs.add_hyperparameters([a, b])
-        # makes 'b' an active hyperparameter if 'a' is greater than 5
+        [a, Type: UniformFloat, Range: [0.0, 10.0], Default: 5.0, b, Type: ...]
+
+        make *b* an active hyperparameter if *a* is greater than 5
+
         >>> cond = CS.GreaterThanCondition(b, a, 5.)
         >>> cs.add_condition(cond)
+        b | a > 5.0
 
         Parameters
         ----------
@@ -426,7 +442,7 @@ cdef class GreaterThanCondition(AbstractCondition):
             if the *GreaterThanCondition* is satisfied
         parent : :ref:`Hyperparameters`
             The hyperparameter, which has to satisfy the *GreaterThanCondition*
-        value : (str, float, int)
+        value : str, float, int
             Value, which the parent is compared to
 
         """
@@ -486,13 +502,16 @@ cdef class InCondition(AbstractCondition):
 
         >>> import ConfigSpace as CS
         >>> import ConfigSpace.hyperparameters as CSH
-        >>> cs = CS.ConfigurationSpace()
+        >>> cs = CS.ConfigurationSpace(seed=1)
         >>> a = CSH.UniformIntegerHyperparameter('a', lower=0, upper=10)
         >>> b = CSH.UniformFloatHyperparameter('b', lower=1., upper=8., log=False)
         >>> cs.add_hyperparameters([a, b])
-        # makes 'b' an active hyperparameter if 'a' is in the set [1, 2, 3, 4]
+        [a, Type: UniformInteger, Range: [0, 10], Default: 5, b, Type: ...]
+
+        make *b* an active hyperparameter if *a* is in the set [1, 2, 3, 4]
         >>> cond = CS.InCondition(b, a, [1, 2, 3, 4])
         >>> cs.add_condition(cond)
+        b | a in {1, 2, 3, 4}
 
         Parameters
         ----------
@@ -501,7 +520,7 @@ cdef class InCondition(AbstractCondition):
             if the *InCondition* is satisfied
         parent : :ref:`Hyperparameters`
             The hyperparameter, which has to satisfy the *InCondition*
-        values : list([str, float, int])
+        values : list(str, float, int)
             Collection of values, which the parent is compared to
 
         """
@@ -716,7 +735,7 @@ cdef class AbstractConjunction(ConditionComponent):
 
 cdef class AndConjunction(AbstractConjunction):
     # TODO: test if an AndConjunction results in an illegal state or a
-    # Tautology! -> SAT solver
+    #       Tautology! -> SAT solver
     def __init__(self, *args: AbstractCondition) -> None:
         """
         By using the *AndConjunction*, constraints can easily be connected.
@@ -728,14 +747,18 @@ cdef class AndConjunction(AbstractConjunction):
 
         >>> import ConfigSpace as CS
         >>> import ConfigSpace.hyperparameters as CSH
-        >>> cs = CS.ConfigurationSpace()
+        >>> cs = CS.ConfigurationSpace(seed=1)
         >>> a = CSH.UniformIntegerHyperparameter('a', lower=5, upper=15)
         >>> b = CSH.UniformIntegerHyperparameter('b', lower=0, upper=10)
         >>> c = CSH.UniformFloatHyperparameter('c', lower=0., upper=1.)
         >>> cs.add_hyperparameters([a, b, c])
+        [a, Type: UniformInteger, Range: [5, 15], Default: 10, b, Type: ...]
+
+        <BLANKLINE>
         >>> less_cond = CS.LessThanCondition(c, a, 10)
         >>> greater_cond = CS.GreaterThanCondition(c, b, 5)
         >>> cs.add_condition(CS.AndConjunction(less_cond, greater_cond))
+        (c | a < 10 && c | b > 5)
 
         Parameters
         ----------
@@ -788,14 +811,18 @@ cdef class OrConjunction(AbstractConjunction):
 
         >>> import ConfigSpace as CS
         >>> import ConfigSpace.hyperparameters as CSH
-        >>> cs = CS.ConfigurationSpace()
+        >>> cs = CS.ConfigurationSpace(seed=1)
         >>> a = CSH.UniformIntegerHyperparameter('a', lower=5, upper=15)
         >>> b = CSH.UniformIntegerHyperparameter('b', lower=0, upper=10)
         >>> c = CSH.UniformFloatHyperparameter('c', lower=0., upper=1.)
         >>> cs.add_hyperparameters([a, b, c])
+        [a, Type: UniformInteger, Range: [5, 15], Default: 10, b, Type: ...]
+
+        <BLANKLINE>
         >>> less_cond = CS.LessThanCondition(c, a, 10)
         >>> greater_cond = CS.GreaterThanCondition(c, b, 5)
         >>> cs.add_condition(CS.OrConjunction(less_cond, greater_cond))
+        (c | a < 10 || c | b > 5)
 
         Parameters
         ----------

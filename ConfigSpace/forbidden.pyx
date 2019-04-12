@@ -247,9 +247,13 @@ cdef class ForbiddenEqualsClause(SingleValueForbiddenClause):
     >>> cs = CS.ConfigurationSpace()
     >>> a = CSH.CategoricalHyperparameter('a', [1,2,3])
     >>> cs.add_hyperparameters([a])
-    # It forbids the value 2 for the hyperparameter a
+    [a, Type: Categorical, Choices: {1, 2, 3}, Default: 1]
+
+    It forbids the value 2 for the hyperparameter *a*
+
     >>> forbidden_clause_a = CS.ForbiddenEqualsClause(a, 2)
     >>> cs.add_forbidden_clause(forbidden_clause_a)
+    Forbidden: a == 2
 
     Parameters
     ----------
@@ -286,12 +290,16 @@ cdef class ForbiddenInClause(MultipleValueForbiddenClause):
         Example
         -------
 
-        >>> cs = CS.ConfigurationSpace()
+        >>> cs = CS.ConfigurationSpace(seed=1)
         >>> a = CSH.CategoricalHyperparameter('a', [1,2,3])
         >>> cs.add_hyperparameters([a])
-        # It forbids the values 2, 3, 4 for the hyperparameter 'a'
+        [a, Type: Categorical, Choices: {1, 2, 3}, Default: 1]
+
+        It forbids the values 2, 3, 4 for the hyperparameter *a*
+
         >>> forbidden_clause_a = CS.ForbiddenInClause(a, [2, 3])
         >>> cs.add_forbidden_clause(forbidden_clause_a)
+        Forbidden: a in {2, 3}
 
         Parameters
         ----------
@@ -455,18 +463,22 @@ cdef class ForbiddenAndConjunction(AbstractForbiddenConjunction):
     Example
     -------
 
-    >>> cs = CS.ConfigurationSpace()
+    >>> cs = CS.ConfigurationSpace(seed=1)
     >>> a = CSH.CategoricalHyperparameter('a', [1,2,3])
     >>> b = CSH.CategoricalHyperparameter('b', [2,5,6])
     >>> cs.add_hyperparameters([a, b])
+    [a, Type: Categorical, Choices: {1, 2, 3}, Default: 1, b, Type: ...]
+
+    <BLANKLINE>
     >>> forbidden_clause_a = CS.ForbiddenEqualsClause(a, 2)
     >>> forbidden_clause_b = CS.ForbiddenInClause(b, [2])
     >>> forbidden_clause = CS.ForbiddenAndConjunction(forbidden_clause_a, forbidden_clause_b)
     >>> cs.add_forbidden_clause(forbidden_clause)
+    (Forbidden: a == 2 && Forbidden: b in {2})
 
     Parameters
     ----------
-    *args : list([:ref:`Forbidden clauses`])
+    *args : list(:ref:`Forbidden clauses`)
         forbidden clauses, which should be combined
     """
 

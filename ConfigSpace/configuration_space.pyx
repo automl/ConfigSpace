@@ -78,11 +78,11 @@ class ConfigurationSpace(object):
 
         Parameters
         ----------
-        name : (str, optional)
+        name : str, optional
             Name of the configuration space
-        seed : (int, optional)
+        seed : int, optional
             random seed
-        meta : (dict, optional)
+        meta : dict, optional
             Field for holding meta data provided by the user.
             Not used by the configuration space.
         """
@@ -124,7 +124,7 @@ class ConfigurationSpace(object):
         
         Parameters
         ----------
-        bounds : list(list([Any, Any)])
+        bounds : list([Any, Any])
             List containing lists with two elements: lower and upper bound
         """
         for i, (l, u) in enumerate(bounds):
@@ -615,9 +615,9 @@ class ConfigurationSpace(object):
             forbidden clauses
         configuration_space : :class:`~ConfigSpace.configuration_space.ConfigurationSpace`
             The configuration space which should be added
-        delimiter : (str, optional)
-            Defaults to '':''.
-        parent_hyperparameter : (:ref:`Hyperparameters`, optional)
+        delimiter : str, optional
+            Defaults to ':'.
+        parent_hyperparameter : :ref:`Hyperparameters`, optional
             Adds for each new hyperparameter the condition, that
             ``parent_hyperparameter`` is active
 
@@ -848,7 +848,7 @@ class ConfigurationSpace(object):
 
         Parameters
         ----------
-        name : (str, :ref:`Hyperparameters`)
+        name : str, :ref:`Hyperparameters`
             Hyperparameter or its name, for which all children are requested
 
         Returns
@@ -877,7 +877,7 @@ class ConfigurationSpace(object):
 
         Parameters
         ----------
-        name : (str, :ref:`Hyperparameters`)
+        name : str, :ref:`Hyperparameters`
             Hyperparameter or its name, for which conditions are requested
 
         Returns
@@ -905,7 +905,7 @@ class ConfigurationSpace(object):
 
         Parameters
         ----------
-        name : (str, :ref:`Hyperparameters`)
+        name : str, :ref:`Hyperparameters`
             Can either be the name of a hyperparameter or the hyperparameter
             object
 
@@ -946,7 +946,7 @@ class ConfigurationSpace(object):
 
         Parameters
         ----------
-        name : (str, :ref:`Hyperparameters`)
+        name : str, :ref:`Hyperparameters`
             Can either be the name of a hyperparameter or the hyperparameter
             object
 
@@ -1214,7 +1214,7 @@ class ConfigurationSpace(object):
 
         Parameters
         ----------
-        size : (int, optional)
+        size : int, optional
             Number of configurations to sample. Default to 1
 
         Returns
@@ -1321,23 +1321,26 @@ class Configuration(object):
         :class:`~ConfigSpace.configuration_space.ConfigurationSpace` stores the
         definitions for the hyperparameters (value ranges, constraints,...), a
         :class:`~ConfigSpace.configuration_space.Configuration` object is
-        more like a instance of it.
+        more a instance of it. Parameters of a
+        :class:`~ConfigSpace.configuration_space.Configuration` object can be
+        accessed and modified similar to python dictionaries
+        (c.f. :ref:`Guide<1st_Example>`).
 
         Parameters
         ----------
         configuration_space : :class:`~ConfigSpace.configuration_space.ConfigurationSpace`
-        values : (dict, optional)
+        values : dict, optional
             A dictionary with pairs (hyperparameter_name, value), where value is
             a legal value of the hyperparameter in the above
             configuration_space
-        vector : (np.ndarray, optional)
+        vector : np.ndarray, optional
             A numpy array for efficient representation. Either values or vector
             has to be given
-        allow_inactive_with_values : (bool, optional)
+        allow_inactive_with_values : bool, optional
             Whether an Exception will be raised if a value for an inactive
             hyperparameter is given. Default is to raise an Exception.
             Default to False
-        origin : (Any, optional)
+        origin : Any, optional
             Store information about the origin of this configuration.
             Default to None
         """
@@ -1459,7 +1462,7 @@ class Configuration(object):
         ----------
         item : str
             Name of the desired hyperparameter
-        default : (None, Any)
+        default : None, Any
 
         Returns
         -------
