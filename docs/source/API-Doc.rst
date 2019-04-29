@@ -197,8 +197,7 @@ Further examples are provieded in the
 Utils
 =====
 
-Until now, all examples were designed to define a configuration space.
-However, functions defined in the utils module can be helpful if you want to
+Functions defined in the utils module can be helpful to
 develop your own tool that creates configurations from a given configuration
 space or modify a given configuration space.
 
