@@ -25,6 +25,9 @@ if ! [[ -z ${DOCPUSH+x} ]]; then
         # create the documentation
         cd docs && make html 2>&1
 
+        # Run the doctests from the documentation
+        make doctest
+
         # create directory with branch name
         # the documentation for dev/stable from git will be stored here
         mkdir $1

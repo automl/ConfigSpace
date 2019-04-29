@@ -35,11 +35,4 @@ else
 fi
 pip install codecov typing
 
-# run the doctests of the documentation
-cd docs
-echo pwd
-echo ls
-make doctest
-cd ..
-
 python setup.py install
