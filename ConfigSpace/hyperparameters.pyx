@@ -33,7 +33,7 @@ import warnings
 
 from ConfigSpace.hyperparameters cimport Hyperparameter
 
-from collections import OrderedDict
+from collections import OrderedDict, Counter
 import copy
 from typing import List, Any, Dict, Union, Tuple, Optional
 import io
@@ -1152,6 +1152,16 @@ cdef class CategoricalHyperparameter(Hyperparameter):
 
         super(CategoricalHyperparameter, self).__init__(name, meta)
         # TODO check that there is no bullshit in the choices!
+        counter = Counter(choices)
+        for choice in choices:
+            if counter[choice] > 1:
+                raise ValueError(
+                    "Choices for categorical hyperparameters %s contain choice '%s' %d "
+                    "times, while only a single oocurence is allowed."
+                    % (name, choice, counter[choice])
+                )
+            if choice is None:
+                raise TypeError("Choice 'None' is not supported")
         self.choices = tuple(choices)
         self.num_choices = len(choices)
         self.choices_vector = list(range(self.num_choices))

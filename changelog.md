@@ -1,3 +1,11 @@
+# Version 0.4.10
+
+* DOC: improved documentation and plenty of new docstrings.
+* FIX #114: Checking categorical hyperparameters for uniqueness.
+* MAINT #110: temporarily disable categorical value `None`
+* MAINT #112: improved unit tests and compilation; new pep8 checks
+
+
 # Version 0.4.9
 
 * Fixes an issue where adding a new forbidden for an unknown hyperparameter 

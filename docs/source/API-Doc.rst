@@ -19,7 +19,7 @@ Configuration
 Hyperparameters
 ===============
 
-ConfigSpace contains integer, float, categorical as well as ordinal
+ConfigSpace contains integer, float, categorical, as well as ordinal
 hyperparameters. Integer and float hyperparameter can be sampled from a uniform
 or normal distribution. Example usages are shown in the
 :doc:`quickstart <quickstart>`.
@@ -145,7 +145,7 @@ For a further example, please take a look in the :doc:`guide <Guide>`.
 Serialization
 =============
 
-ConfigSpace offers a *json*, *pcs* and *pcs_new* writer/reader.
+ConfigSpace offers *json*, *pcs* and *pcs_new* writers/readers.
 These classes can serialize and deserialize configuration spaces.
 Serializing configuration spaces is useful to share configuration spaces across
 experiments, or use them in other tools, for example to analyze hyperparameter
@@ -180,7 +180,7 @@ Further examples are provieded in the
 .. note::
 
     The pcs format definition has changed in the year 2016 and is supported by
-    AClib 2.0 as well as SMAC. To write or read the old version of pcs, please
+    AClib 2.0, as well as SMAC. To write or to read the old version of pcs, please
     use the :class:`~ConfigSpace.read_and_write.pcs` module.
 
 .. automodule:: ConfigSpace.read_and_write.pcs_new
@@ -193,6 +193,7 @@ Further examples are provieded in the
 .. automodule:: ConfigSpace.read_and_write.pcs
    :members: read, write
    :undoc-members:
+
 
 Utils
 =====

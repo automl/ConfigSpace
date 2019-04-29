@@ -1321,7 +1321,7 @@ class Configuration(object):
         :class:`~ConfigSpace.configuration_space.ConfigurationSpace` stores the
         definitions for the hyperparameters (value ranges, constraints,...), a
         :class:`~ConfigSpace.configuration_space.Configuration` object is
-        more a instance of it. Parameters of a
+        more an instance of it. Parameters of a
         :class:`~ConfigSpace.configuration_space.Configuration` object can be
         accessed and modified similar to python dictionaries
         (c.f. :ref:`Guide<1st_Example>`).
