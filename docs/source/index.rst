@@ -8,20 +8,19 @@ Welcome to ConfigSpace's documentation!
 
 ConfigSpace is a simple python package to manage configuration spaces for `algorithm configuration <https://ml.informatik.uni-freiburg.de/papers/09-JAIR-ParamILS.pdf>`_ and
 `hyperparameter optimization <https://en.wikipedia.org/wiki/Hyperparameter_optimization>`_ tasks.
-It includes various modules to translate between different text formats for configuration space description.
+It includes various modules to translate between different text formats for configuration space descriptions.
 
 ConfigSpace is often used in AutoML tools such as `SMAC3`_, `BOHB`_ or `auto-sklearn`_.
 To read more about our group and projects, visit our homepage `AutoML.org <https://www.automl.org>`_.
 
-This documentation explains how to use ``ConfigurationSpace`` and show you its
-abilities. In the :doc:`quickstart` you
-will see how to set up a ``ConfigurationSpace`` and add hyperparameters of
-different types.
-Besides containing hyperparameters, ``ConfigurationSpace`` is able to realize
-constraints such as conditions and forbidden clauses
-on the defined configurations space. (:math:`\rightarrow` :doc:`Guide`)
+This documentation explains how to use ConfigSpace and show you its
+abilities. In the :doc:`quickstart`, you
+will see how to set up a :class:`~ConfigSpace.configuration_space.ConfigurationSpace` and add hyperparameters of
+different types to it.
+Besides containing hyperparameters, a :class:`~ConfigSpace.configuration_space.ConfigurationSpace` can contain
+constraints such as conditions and forbidden clauses. (:math:`\rightarrow` :doc:`Guide`)
 Furthermore, in the :ref:`serialization section <Serialization>`, it will be
-explained how to serialize a defined *configuration space* for later usage.
+explained how to serialize a defined :class:`~ConfigSpace.configuration_space.ConfigurationSpace` for later usage.
 
 .. _SMAC3: https://github.com/automl/SMAC3
 .. _BOHB: https://github.com/automl/HpBandSter
@@ -47,7 +46,7 @@ Basic usage
 Installation
 ============
 
-The *ConfigSpace* can be installed with *pip*:
+*ConfigSpace* can be installed with *pip*:
 
 .. code:: bash
 

@@ -1,28 +1,27 @@
 Guide
 =====
 
-In this guide the concepts of using different hyperparameters, applying
+In this guide, the concepts of using different hyperparameters, applying
 conditions and forbidden clauses to
-a configuration space are captured.
+a configuration space are explained.
 
-They will be shown by explaining a more detailed example, a configuration space
+These concepts will be introduced by defining a more complex configuration space
 for a support vector machine.
 
 1st Example: Integer hyperparameters and float hyperparameters
 --------------------------------------------------------------
 
-Assume that we want to train a support vector machine (=SVM) for classification
-tasks. For this task, we want to optimize the following hyperparameters:
+Assume that we want to use a support vector machine (=SVM) for classification
+tasks and therefore, we want to optimize its hyperparameters:
 
 - :math:`\mathcal{C}`: regularization constant  with :math:`\mathcal{C} \in \mathbb{R}_{\geq 0}` and 0 :math:`\geq \mathcal{C} \geq` 1
 - ``max_iter``: the maximum number of iterations within the solver
 
-The implementation of the classifier is out of scope for this example and thus not shown.
+The implementation of the classifier is out of scope and thus not shown.
 But for further reading about
-support vector machines and the meaning of its hyperparameter, take a look
-`here <https://en.wikipedia.org/wiki/Support_vector_machine>`_.
-Or directly in the implementation of the SVM in
-`scikit-learn  <http://scikit-learn.org/stable/modules/generated/sklearn.svm.SVC.html#sklearn.svm.SVC>`_.
+support vector machines and the meaning of its hyperparameter, you can continue
+reading `here <https://en.wikipedia.org/wiki/Support_vector_machine>`_ or
+in the `scikit-learn documentation <http://scikit-learn.org/stable/modules/generated/sklearn.svm.SVC.html#sklearn.svm.SVC>`_.
 
 The first step is always to create a
 :class:`~ConfigSpace.configuration_space.ConfigurationSpace` object. All the
@@ -39,9 +38,9 @@ We choose :math:`\mathcal{C}` to be a float and
 >>> c = CSH.UniformFloatHyperparameter(name='C', lower=0, upper=1)
 >>> max_iter = CSH.UniformIntegerHyperparameter(name='max_iter', lower=10, upper=100)
 
-As last step in this example, we need to add them to the
-:class:`~ConfigSpace.configuration_space.ConfigurationSpace` and sample a
-configuration from it
+As last step, we need to add them to the
+:class:`~ConfigSpace.configuration_space.ConfigurationSpace`.
+For demonstation purpose, we sample a configuration from it.
 
 .. doctest::
 
@@ -54,12 +53,14 @@ configuration from it
     <BLANKLINE>
 
 
-The :class:`~ConfigSpace.configuration_space.ConfigurationSpace` object *cs*
-stores now the hyperparameters :math:`\mathcal{C}` and ``max_iter`` with their
-defined value-ranges.
+Now, the :class:`~ConfigSpace.configuration_space.ConfigurationSpace` object *cs*
+contains definitions of the hyperparameters :math:`\mathcal{C}` and ``max_iter`` with their
+value-ranges.
 
 .. _1st_Example:
 
+Sampled instances from a :class:`~ConfigSpace.configuration_space.ConfigurationSpace`
+are called :class:`~ConfigSpace.configuration_space.Configuration`.
 In a :class:`~ConfigSpace.configuration_space.Configuration` object, the value
 of a parameter can be accessed or modified similar to a python dictionary.
 
@@ -71,19 +72,18 @@ of a parameter can be accessed or modified similar to a python dictionary.
 2nd Example: Categorical hyperparameters and conditions
 -------------------------------------------------------
 
-The support vector machine from the sklearn implementation supports different
-kernels, such as an RBF or a polynomial kernel.
-We want to include them in our configuration space.
-This is a new hyperparameter with a finite number of values.
-For this scenario, ConfigSpace offers the :class:`~ConfigSpace.hyperparameters.CategoricalHyperparameter`.
+The scikit-learn SVM supports different kernels, such as an RBF, a sigmoid,
+a linear or a polynomial kernel. We want to include them in the configuration space.
+Since this new hyperparameter has a finite number of values, we use a
+:class:`~ConfigSpace.hyperparameters.CategoricalHyperparameter`.
+
 
 - ``kernel_type``: with values 'linear', 'poly', 'rbf', 'sigmoid'.
 
-If we take a closer look at the possible values of ``kernel_type``, we observe,
-that the kernel type 'poly' has an additional,
-unique hyperparameter: the degree of the polynomial kernel function.
-For the kernel types 'poly' and 'sigmoid', there is also an additional hyperparameter ``coef0``.
-As well as ``gamma`` for the kernel 'rbf', 'poly' and 'sigmoid'.
+Taking a look at the SVM documentation, we observe that if the kernel type is
+chosen to be 'poly', another hyperparameter ``degree`` must be specified.
+Also, for the kernel types 'poly' and 'sigmoid', there is an additional hyperparameter ``coef0``.
+As well as the hyperparameter ``gamma`` for the kernel types 'rbf', 'poly' and 'sigmoid'.
 
 - ``degree``: degree of polynomial kernel function, being :math:`\in \mathbb{N}`
 - ``coef0``: Independent term in kernel function. It is only significant in 'poly' and 'sigmoid'.
@@ -100,7 +100,7 @@ achieves this by sampling those hyperparameters from the defined configuration
 space only if their condition is met.
 
 To add conditions on hyperparameters to the configuration space, we first have
-to insert the new hyperparameters in the ``ConfigSpace`` and in a second step the
+to insert the new hyperparameters in the ``ConfigSpace`` and in a second step, the
 conditions on them.
 
 >>> kernel_type = CSH.CategoricalHyperparameter(
@@ -115,15 +115,15 @@ conditions on them.
 >>> cs.add_hyperparameters([kernel_type, degree, coef0, gamma])
 [kernel_type, Type: Categorical, Choices: {linear, poly, rbf, sigmoid}, ...]
 
-Now, we define the conditions. Conditions work by constraining a child
+First, we define the conditions. Conditions work by constraining a child
 hyperparameter (the first argument) on its parent hyperparameter (the second argument)
 being in a certain relation to a value (the third argument).
 ``CS.EqualsCondition(degree, kernel_type, 'poly')`` expresses that ``degree`` is
-constrained on ``kernel_type`` being equal to the value ``'poly'``.  To express
-constraints involving multiple parameters or values we can use conjunctions.
-For example ``cond_2`` in the following example expresses the fact, that ``coef0``
-is a valid hyperparameter, if ``kernel_type`` either has the value
-``'poly'`` or ``'sigmoid'``
+constrained on ``kernel_type`` being equal to the value 'poly'.  To express
+constraints involving multiple parameters or values, we can use conjunctions.
+In the following example, ``cond_2`` describes that ``coef0``
+is a valid hyperparameter, if the ``kernel_type`` has either the value
+'poly' or 'sigmoid'.
 
 >>> cond_1 = CS.EqualsCondition(degree, kernel_type, 'poly')
 
@@ -134,7 +134,7 @@ is a valid hyperparameter, if ``kernel_type`` either has the value
 ...                           CS.EqualsCondition(gamma, kernel_type, 'poly'),
 ...                           CS.EqualsCondition(gamma, kernel_type, 'sigmoid'))
 
-Again, we need to add the conditions to the configuration space
+Again, we add the conditions to the configuration space
 
 >>> cs.add_conditions([cond_1, cond_2, cond_3])
 [degree | kernel_type == 'poly', (coef0 | kernel_type == 'poly' || coef0 | ...), ...]
@@ -150,7 +150,7 @@ Again, we need to add the conditions to the configuration space
 .. note::
     Don't use either the :class:`~ConfigSpace.conditions.EqualsCondition` or the
     :class:`~ConfigSpace.conditions.InCondition` on float hyperparameters.
-    Due to floating-point inaccuracy, it is very unlikely that, for example, the
+    For example due to floating-point inaccuracy, it is very unlikely that the
     :class:`~ConfigSpace.conditions.EqualsCondition` is evaluated to True.
 
 
@@ -162,19 +162,19 @@ ConfigSpace supports this functionality by offering :ref:`Forbidden clauses`.
 
 We demonstrate the usage of :ref:`Forbidden clauses` by defining the
 configuration space for the
-`linear support vector machine  <http://scikit-learn.org/stable/modules/generated/sklearn.svm.LinearSVC.html#sklearn.svm.LinearSVC>`_.
-We use again the sklearn implementation. This implemenation has three
+`linear SVM  <http://scikit-learn.org/stable/modules/generated/sklearn.svm.LinearSVC.html#sklearn.svm.LinearSVC>`_.
+Again, we use the sklearn implementation. This implemenation has three
 hyperparameters to tune:
 
 - ``penalty``: Specifies the norm used in the penalization with values 'l1' or 'l2'
 - ``loss``: Specifies the loss function with values 'hinge' or 'squared_hinge'
-- ``dual``: Solve the optimization problem either in dual or simple form with values True or False
+- ``dual``: Solves the optimization problem either in dual or simple form with values True or False
 
 Because some combinations of ``penalty``, ``loss`` and ``dual`` just don't work
 together, we want to make sure that these combinations are not sampled from the
 configuration space.
 
-Firstly, we add these 3 new hyperparameters to the configuration space.
+First, we add these three new hyperparameters to the configuration space.
 
 >>> penalty = CSH.CategoricalHyperparameter(
 ...         name="penalty", choices=["l1", "l2"], default_value="l2")
@@ -221,7 +221,7 @@ To serialize the defined :class:`~ConfigSpace.configuration_space.ConfigurationS
 we can choose between different output formats, such as
 :ref:`json <json>` or :ref:`pcs <pcs_new>`.
 
-In this case, we want to store the :class:`~ConfigSpace.configuration_space.ConfigurationSpace`
+In this example, we want to store the :class:`~ConfigSpace.configuration_space.ConfigurationSpace`
 object as json file
 
 .. testcode::

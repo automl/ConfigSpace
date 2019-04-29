@@ -5,8 +5,7 @@ ConfigurationSpace
 ==================
 
 .. autoclass:: ConfigSpace.configuration_space.ConfigurationSpace
-   :members:
-
+    :members:
 
 Configuration
 =============
@@ -29,7 +28,6 @@ or normal distribution. Example usages are shown in the
 
 .. autoclass:: ConfigSpace.hyperparameters.UniformIntegerHyperparameter
 
-
 .. autoclass:: ConfigSpace.hyperparameters.NormalIntegerHyperparameter
 
 
@@ -38,7 +36,6 @@ or normal distribution. Example usages are shown in the
 -------------------------
 
 .. autoclass:: ConfigSpace.hyperparameters.UniformFloatHyperparameter
-
 
 .. autoclass:: ConfigSpace.hyperparameters.NormalFloatHyperparameter
 
@@ -199,7 +196,7 @@ Utils
 =====
 
 Functions defined in the utils module can be helpful to
-develop your own tool that creates configurations from a given configuration
+develop custom tools that create configurations from a given configuration
 space or modify a given configuration space.
 
 .. automodule:: ConfigSpace.util

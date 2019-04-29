@@ -266,7 +266,7 @@ def _build_forbidden_and_conjunction(clause: ForbiddenAndConjunction) -> Dict:
 ################################################################################
 def write(configuration_space, indent=2):
     """
-    Writes a configuration space to a json file
+    Write a configuration space to a json file
 
     Example
     -------
@@ -279,10 +279,9 @@ def write(configuration_space, indent=2):
         >>> cs.add_hyperparameter(CSH.CategoricalHyperparameter('a', choices=[1, 2, 3]))
         a, Type: Categorical, Choices: {1, 2, 3}, Default: 1
 
-        <BLANKLINE>
         >>> with open('configspace.json', 'w') as f:
         ...      f.write(json.write(cs))
-        275
+        276
 
     Parameters
     ----------
@@ -354,7 +353,7 @@ def write(configuration_space, indent=2):
 ################################################################################
 def read(jason_string):
     """
-    Creates a configuration space definition from a json string.
+    Create a configuration space definition from a json string.
 
     Example
     -------

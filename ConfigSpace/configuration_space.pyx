@@ -218,7 +218,7 @@ class ConfigurationSpace(object):
         - The parent in a condition statement must exist
         - The condition must add no cycles
 
-        The following array keeps track of all edges which must be
+        The internal array keeps track of all edges which must be
         added to the DiGraph; if the checks don't raise any Exception,
         these edges are finally added at the end of the function.
 
@@ -616,7 +616,7 @@ class ConfigurationSpace(object):
         configuration_space : :class:`~ConfigSpace.configuration_space.ConfigurationSpace`
             The configuration space which should be added
         delimiter : str, optional
-            Defaults to ':'.
+            Defaults to ':'
         parent_hyperparameter : :ref:`Hyperparameters`, optional
             Adds for each new hyperparameter the condition, that
             ``parent_hyperparameter`` is active
@@ -1060,7 +1060,7 @@ class ConfigurationSpace(object):
 
     def check_configuration_vector_representation(self, vector: np.ndarray) -> None:
         """
-        Raise error f configuration in vector representation is not legal.
+        Raise error if configuration in vector representation is not legal.
 
         Parameters
         ----------

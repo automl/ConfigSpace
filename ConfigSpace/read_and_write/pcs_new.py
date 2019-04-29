@@ -249,7 +249,7 @@ def condition_specification(child_name, condition, configuration_space):
 
 def read(pcs_string, debug=False):
     """
-    Reads in a :py:class:`~ConfigSpace.configuration_space.ConfigurationSpace`
+    Read in a :py:class:`~ConfigSpace.configuration_space.ConfigurationSpace`
     definition from a pcs file.
 
     Example
@@ -461,7 +461,7 @@ def read(pcs_string, debug=False):
 
 def write(configuration_space):
     """
-    Writes a configurations space to file in pcs_new format.
+    Write a configurations space to file in pcs_new format.
 
     Example
     -------

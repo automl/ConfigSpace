@@ -469,7 +469,6 @@ cdef class ForbiddenAndConjunction(AbstractForbiddenConjunction):
     >>> cs.add_hyperparameters([a, b])
     [a, Type: Categorical, Choices: {1, 2, 3}, Default: 1, b, Type: ...]
 
-    <BLANKLINE>
     >>> forbidden_clause_a = CS.ForbiddenEqualsClause(a, 2)
     >>> forbidden_clause_b = CS.ForbiddenInClause(b, [2])
     >>> forbidden_clause = CS.ForbiddenAndConjunction(forbidden_clause_a, forbidden_clause_b)
