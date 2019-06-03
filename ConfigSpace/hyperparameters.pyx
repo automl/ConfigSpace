@@ -35,7 +35,7 @@ from ConfigSpace.hyperparameters cimport Hyperparameter
 
 from collections import OrderedDict, Counter
 import copy
-from typing import List, Any, Dict, Union, Tuple, Optional
+from typing import List, Any, Dict, Union, Set, Tuple, Optional
 import io
 import numpy as np
 cimport numpy as np
@@ -856,6 +856,9 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
         else:
             return False
 
+    def get_num_neighbors(self, value=None) -> int:
+        return self.upper - self.lower
+
     def get_neighbors(
         self,
         value: Union[int, float],
@@ -863,28 +866,45 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
         number: int=4,
         transform: bool=False,
         std: float=0.2,
-    ) -> List[
-        int]:
+    ) -> List[int]:
         neighbors = []  # type: List[int]
-        while len(neighbors) < number:
-            rejected = True  # type: bool
-            iteration = 0  # type: int
-            while rejected:
-                new_min_value = np.min([1, rs.normal(loc=value, scale=std)])
-                new_value = np.max((0, new_min_value))
-                int_value = self._transform(value)
-                new_int_value = self._transform(new_value)
-                if int_value != new_int_value:
-                    rejected = False
-                elif iteration > 100000:
-                    raise ValueError('Probably caught in an infinite loop.')
+        _neighbors_as_int = set()  # type: Set[int]
+        int_value = self._transform(value)
 
-            if transform:
-                neighbors.append(self._transform(new_value))
-            else:
-                new_value = self._transform(new_value)
-                new_value = self._inverse_transform(new_value)
-                neighbors.append(new_value)
+        if self.upper - self.lower <= number:
+            transformed_value = self._transform(value)
+            for n in range(self.lower, self.upper + 1):
+                if n != int_value:
+                    if transform:
+                        neighbors.append(n)
+                    else:
+                        n = self._inverse_transform(n)
+                        neighbors.append(n)
+
+        else:
+            samples = rs.normal(loc=value, scale=std, size=number * 2)
+            idx = 0
+            while len(neighbors) < number:
+                while True:
+                    new_value = samples[idx]
+                    idx += 1
+                    if idx >= (number * 2):
+                        samples = rs.normal(loc=value, scale=std, size=number * 2)
+                        idx = 0
+                    if new_value < 0 or new_value > 1:
+                        continue
+                    new_int_value = self._transform(new_value)
+                    if new_int_value in _neighbors_as_int:
+                        continue
+                    if int_value != new_int_value:
+                        break
+
+                _neighbors_as_int.add(new_int_value)
+                if transform:
+                    neighbors.append(new_int_value)
+                else:
+                    new_value = self._inverse_transform(new_int_value)
+                    neighbors.append(new_value)
 
         return neighbors
 

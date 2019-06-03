@@ -37,7 +37,7 @@ from ConfigSpace import Configuration, ConfigurationSpace
 from ConfigSpace.exceptions import ForbiddenValueError
 from ConfigSpace.hyperparameters import CategoricalHyperparameter, \
     UniformFloatHyperparameter, UniformIntegerHyperparameter, Constant, \
-    OrdinalHyperparameter
+    OrdinalHyperparameter, NumericalHyperparameter
 import ConfigSpace.c_util
 
 
@@ -136,7 +136,7 @@ def get_one_exchange_neighbourhood(
     number_of_usable_hyperparameters = sum(np.isfinite(configuration.get_array()))
     n_neighbors_per_hp = {
         hp.name: num_neighbors if
-        np.isinf(hp.get_num_neighbors(configuration.get(hp.name)))
+        isinstance(hp, NumericalHyperparameter) and hp.get_num_neighbors(configuration.get(hp.name))> num_neighbors
         else hp.get_num_neighbors(configuration.get(hp.name))
         for hp in configuration.configuration_space.get_hyperparameters()
     }
@@ -174,18 +174,21 @@ def get_one_exchange_neighbourhood(
                 elif np.isinf(num_neighbors_for_hp):
                     if number_of_sampled_neighbors >= 1:
                         break
-                    # TODO if code becomes slow remove the isinstance!
-                    if isinstance(hp, (UniformFloatHyperparameter, UniformIntegerHyperparameter)):
-                        neighbor = hp.get_neighbors(value, random,
-                                                    number=1, std=stdev)[0]
+                    if isinstance(hp, UniformFloatHyperparameter):
+                        neighbor = hp.get_neighbors(value, random, number=1, std=stdev)[0]
                     else:
-                        neighbor = hp.get_neighbors(value, random,
-                                                    number=1)[0]
+                        neighbor = hp.get_neighbors(value, random, number=1)[0]
                 else:
                     if iteration > 0:
                         break
                     if hp_name not in finite_neighbors_stack:
-                        neighbors = hp.get_neighbors(value, random)
+                        if isinstance(hp, UniformIntegerHyperparameter):
+                            neighbors = hp.get_neighbors(
+                                value, random,
+                                number=n_neighbors_per_hp[hp_name], std=stdev,
+                            )
+                        else:
+                            neighbors = hp.get_neighbors(value, random)
                         random.shuffle(neighbors)
                         finite_neighbors_stack[hp_name] = neighbors
                     else:
