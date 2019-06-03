@@ -17,7 +17,6 @@ ctypedef np.float_t DTYPE_t
 from libc.stdlib cimport malloc, free
 
 from ConfigSpace.exceptions import ForbiddenValueError
-from ConfigSpace.forbidden import AbstractForbiddenComponent
 
 from ConfigSpace.forbidden import AbstractForbiddenComponent
 from ConfigSpace.forbidden cimport AbstractForbiddenComponent
@@ -25,6 +24,7 @@ from ConfigSpace.hyperparameters import Hyperparameter
 from ConfigSpace.hyperparameters cimport Hyperparameter
 from ConfigSpace.conditions import ConditionComponent
 from ConfigSpace.conditions cimport ConditionComponent
+from ConfigSpace.conditions import OrConjunction
 
 
 cpdef int check_forbidden(list forbidden_clauses, np.ndarray vector) except 1:
@@ -54,6 +54,7 @@ cpdef int check_configuration(
     cdef list parents
     cdef list children
     cdef set inactive
+    cdef set visited
 
     cdef int* active
     active = <int*> malloc(sizeof(int) * len(vector))
@@ -62,6 +63,7 @@ cpdef int check_configuration(
 
     unconditional_hyperparameters = self.get_all_unconditional_hyperparameters()
     to_visit = deque()
+    visited = set()
     to_visit.extendleft(unconditional_hyperparameters)
     inactive = set()
 
@@ -70,6 +72,7 @@ cpdef int check_configuration(
 
     while len(to_visit) > 0:
         hp_name = to_visit.pop()
+        visited.add(hp_name)
         hp_idx = self._hyperparameter_idx[hp_name]
         hyperparameter = self._hyperparameters[hp_name]
         hp_value = vector[hp_idx]
@@ -94,15 +97,22 @@ cpdef int check_configuration(
                             inactive.add(child.name)
                             break
                     if add:
-                        hyperparameter_idx = self._hyperparameter_idx[
-                            child.name]
+                        hyperparameter_idx = self._hyperparameter_idx[child.name]
                         active[hyperparameter_idx] = 1
                         to_visit.appendleft(child.name)
-
                 else:
-                    parent_names = set([p.name for p in parents])
-                    if not parent_names <= set(to_visit):  # make sure no parents are still unvisited
+                    parents_visited = 0
+                    for parent in parents:
+                        if parent.name in visited:
+                            parents_visited += True
+                    if parents_visited > 0:  # make sure at least one parent was visited
                         conditions = self._parent_conditions_of[child.name]
+                        if isinstance(conditions[0], OrConjunction):
+                            pass
+                        else:  # AndCondition
+                            if parents_visited != len(parents):
+                                continue
+
                         add = True
                         for condition in conditions:
                             if not condition._evaluate_vector(vector):
@@ -111,8 +121,7 @@ cpdef int check_configuration(
                                 break
 
                         if add:
-                            hyperparameter_idx = self._hyperparameter_idx[
-                                child.name]
+                            hyperparameter_idx = self._hyperparameter_idx[child.name]
                             active[hyperparameter_idx] = 1
                             to_visit.appendleft(child.name)
 
@@ -126,10 +135,8 @@ cpdef int check_configuration(
 
     for hp_idx in self._idx_to_hyperparameter:
 
-        if not allow_inactive_with_values and not active[hp_idx] and \
-                not np.isnan(vector[hp_idx]):
-                # Only look up the value (in the line above) if the
-                # hyperparameter is inactive!
+        if not allow_inactive_with_values and not active[hp_idx] and not np.isnan(vector[hp_idx]):
+                # Only look up the value (in the line above) if the hyperparameter is inactive!
             hp_name = self._idx_to_hyperparameter[hp_idx]
             hp_value = vector[hp_idx]
             free(active)
@@ -162,7 +169,8 @@ cpdef np.ndarray correct_sampled_array(
     cdef list children
     cdef str child_name
     cdef list parents
-    cdef set parent_names
+    cdef Hyperparameter parent
+    cdef int parents_visited
     cdef list conditions
     cdef int add
 
@@ -212,9 +220,18 @@ cpdef np.ndarray correct_sampled_array(
                         hps.appendleft(child_name)
 
                 else:
-                    parent_names = set([p.name for p in parents])
-                    if parent_names.issubset(visited):  # make sure no parents are still unvisited
+                    parents_visited = 0
+                    for parent in parents:
+                        if parent.name in visited:
+                            parents_visited += 1
+                    if parents_visited > 0:  # make sure at least one parent was visited
                         conditions = parent_conditions_of[child_name]
+                        if isinstance(conditions[0], OrConjunction):
+                            pass
+                        else:  # AndCondition
+                            if parents_visited != len(parents):
+                                continue
+
                         add = True
                         for j in range(len(conditions)):
                             condition = conditions[j]

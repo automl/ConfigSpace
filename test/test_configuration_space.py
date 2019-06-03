@@ -673,6 +673,29 @@ class TestConfigurationSpace(unittest.TestCase):
                 for j in range(100):
                     self.assertEqual(samples[-1][j], samples[-2][j])
 
+    def test_sample_configuration_with_or_conjunction(self):
+        cs = ConfigurationSpace(seed=1)
+
+        hyper_params = {}
+        hyper_params["hp5"] = CategoricalHyperparameter("hp5", ['0', '1', '2'])
+        hyper_params["hp7"] = CategoricalHyperparameter("hp7", ['3', '4', '5'])
+        hyper_params["hp8"] = CategoricalHyperparameter("hp8", ['6', '7', '8'])
+        for key in hyper_params:
+            cs.add_hyperparameter(hyper_params[key])
+
+        cs.add_condition(InCondition(hyper_params["hp5"], hyper_params["hp8"], ['6']))
+
+        cs.add_condition(
+            OrConjunction(
+                InCondition(hyper_params["hp7"], hyper_params["hp8"], ['7']),
+                InCondition(hyper_params["hp7"], hyper_params["hp5"], ['1'])))
+
+        for cfg, fixture in zip(
+                cs.sample_configuration(10),
+                [[1, np.NaN, 2], [0, 2, np.NaN], [0, 1, 1], [1, np.NaN, 2], [1, np.NaN, 2]]
+        ):
+            np.testing.assert_array_almost_equal(cfg.get_array(), fixture)
+
     def test_sample_wrong_argument(self):
         cs = ConfigurationSpace()
         self.assertRaisesRegex(TypeError,
