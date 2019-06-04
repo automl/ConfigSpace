@@ -88,45 +88,17 @@ cpdef int check_configuration(
         for child in children:
             if child.name not in inactive:
                 parents = self._parents_of[child.name]
-                if len(parents) == 1:
-                    conditions = self._parent_conditions_of[child.name]
-                    add = True
-                    for condition in conditions:
-                        if not condition._evaluate_vector(vector):
-                            add = False
-                            inactive.add(child.name)
-                            break
-                    if add:
-                        hyperparameter_idx = self._hyperparameter_idx[child.name]
-                        active[hyperparameter_idx] = 1
-                        to_visit.appendleft(child.name)
-                else:
-                    parents_visited = 0
-                    for parent in parents:
-                        if parent.name in visited:
-                            parents_visited += True
-                    if parents_visited > 0:  # make sure at least one parent was visited
-                        conditions = self._parent_conditions_of[child.name]
-                        if isinstance(conditions[0], OrConjunction):
-                            pass
-                        else:  # AndCondition
-                            if parents_visited != len(parents):
-                                continue
-
-                        add = True
-                        for condition in conditions:
-                            if not condition._evaluate_vector(vector):
-                                add = False
-                                inactive.add(child.name)
-                                break
-
-                        if add:
-                            hyperparameter_idx = self._hyperparameter_idx[child.name]
-                            active[hyperparameter_idx] = 1
-                            to_visit.appendleft(child.name)
-
-                    else:
-                        continue
+                conditions = self._parent_conditions_of[child.name]
+                add = True
+                for condition in conditions:
+                    if not condition._evaluate_vector(vector):
+                        add = False
+                        inactive.add(child.name)
+                        break
+                if add:
+                    hyperparameter_idx = self._hyperparameter_idx[child.name]
+                    active[hyperparameter_idx] = 1
+                    to_visit.appendleft(child.name)
 
         if active[hp_idx] and np.isnan(hp_value):
             free(active)
