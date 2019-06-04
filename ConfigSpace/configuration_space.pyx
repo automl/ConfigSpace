@@ -124,7 +124,7 @@ class ConfigurationSpace(object):
         
         Parameters
         ----------
-        bounds : list([Any, Any])
+        bounds : list[tuple([Any, Any])]
             List containing lists with two elements: lower and upper bound
         """
         for i, (l, u) in enumerate(bounds):

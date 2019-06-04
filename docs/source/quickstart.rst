@@ -8,8 +8,8 @@ Possible hyperparameter types are numerical, categorical, conditional and ordina
 AutoML tools, such as `SMAC3`_ and `BOHB`_ are using the configuration space
 module to sample hyperparameter configurations.
 Also, `auto-sklearn`_, an automated machine learning toolkit, which frees the
-machine learning user from algorithm selection and hyperparameter tuning, works
-with a defined :class:`~ConfigSpace.configuration_space.ConfigurationSpace`.
+machine learning user from algorithm selection and hyperparameter tuning,
+makes heavy use of the ConfigSpace package.
 
 This simple quickstart tutorial will show you, how to set up your own
 :class:`~ConfigSpace.configuration_space.ConfigurationSpace`, and will demonstrate
@@ -52,8 +52,7 @@ We add it to the :class:`~ConfigSpace.configuration_space.ConfigurationSpace` ob
 >>> cs.add_hyperparameter(alpha)
 alpha, Type: UniformFloat, Range: [0.0, 1.0], Default: 0.5
 
-For demonstration purpose, we sample a configuration from the defined
-:class:`~ConfigSpace.configuration_space.ConfigurationSpace` object.
+For demonstration purpose, we sample a configuration from the :class:`~ConfigSpace.configuration_space.ConfigurationSpace` object.
 
 .. doctest::
 

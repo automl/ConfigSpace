@@ -1161,7 +1161,7 @@ cdef class CategoricalHyperparameter(Hyperparameter):
         ----------
         name : str
             Name of the hyperparameter, with which it can be accessed
-        choices : list(str, float, int), tuple(str, float, int)
+        choices : list or tuple with str, float, int
             Collection of values to sample hyperparameter from
         default_value : int, float, str, optional
             Sets the default value of the hyperparameter to a given value
@@ -1373,7 +1373,7 @@ cdef class OrdinalHyperparameter(Hyperparameter):
         ----------
         name : str
             Name of the hyperparameter, with which it can be accessed.
-        sequence : list(str, float, int), tuple(str, float, int)
+        sequence : list or tuple with (str, float, int)
             ordered collection of values to sample hyperparameter from.
         default_value : int, float, str, optional
             Sets the default value of a hyperparameter to a given value.

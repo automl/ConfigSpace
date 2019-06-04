@@ -266,7 +266,9 @@ def _build_forbidden_and_conjunction(clause: ForbiddenAndConjunction) -> Dict:
 ################################################################################
 def write(configuration_space, indent=2):
     """
-    Write a configuration space to a json file
+    Create a string representation of a
+    :class:`~ConfigSpace.configuration_space.ConfigurationSpace` in json format.
+    This string can be written to file.
 
     Example
     -------

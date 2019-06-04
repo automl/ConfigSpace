@@ -16,16 +16,16 @@ ConfigSpace is often used in AutoML tools such as `SMAC3`_, `BOHB`_ or
 `auto-sklearn`_. To read more about our group and projects, visit our homepage
 `AutoML.org <https://www.automl.org>`_.
 
-This documentation explains how to use ConfigSpace and show you its
-abilities. In the :doc:`quickstart`, you
-will see how to set up a :class:`~ConfigSpace.configuration_space.ConfigurationSpace`
+This documentation explains how to use ConfigSpace and demonstrates its features.
+In the :doc:`quickstart`, you will see how to set up a
+:class:`~ConfigSpace.configuration_space.ConfigurationSpace`
 and add hyperparameters of different types to it.
 Besides containing hyperparameters, a :class:`~ConfigSpace.configuration_space.ConfigurationSpace`
-can contain constraints such as conditions and forbidden clauses
-(:math:`\rightarrow` :doc:`user guide <User-Guide>`).
+can contain constraints such as conditions and forbidden clauses.
+Those are introduced in the :doc:`user guide <User-Guide>`.
 
 Furthermore, in the :ref:`serialization section <Serialization>`, it will be
-explained how to serialize a defined
+explained how to serialize a
 :class:`~ConfigSpace.configuration_space.ConfigurationSpace` for later usage.
 
 .. _SMAC3: https://github.com/automl/SMAC3

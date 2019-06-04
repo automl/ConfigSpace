@@ -337,7 +337,9 @@ def read(pcs_string, debug=False):
 
 def write(configuration_space):
     """
-    Write a configurations space to file in pcs format.
+    Create a string representation of a
+    :class:`~ConfigSpace.configuration_space.ConfigurationSpace` in pcs format.
+    This string can be written to file.
 
     Example
     -------

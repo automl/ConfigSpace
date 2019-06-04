@@ -14,8 +14,8 @@ for a support vector machine.
 Assume that we want to use a support vector machine (=SVM) for classification
 tasks and therefore, we want to optimize its hyperparameters:
 
-- :math:`\mathcal{C}`: regularization constant  with :math:`\mathcal{C} \in \mathbb{R}_{\geq 0}` and 0 :math:`\geq \mathcal{C} \geq` 1
-- ``max_iter``: the maximum number of iterations within the solver
+- :math:`\mathcal{C}`: regularization constant  with :math:`\mathcal{C} \in \mathbb{R}`
+- ``max_iter``: the maximum number of iterations within the solver with :math:`max_iter \in \mathbb{N}`
 
 The implementation of the classifier is out of scope and thus not shown.
 But for further reading about
@@ -31,11 +31,13 @@ hyperparameters and constraints will be added to this object.
 >>> cs = CS.ConfigurationSpace(seed=1234)
 
 Now, we have to define the hyperparameters :math:`\mathcal{C}` and ``max_iter``.
-We choose :math:`\mathcal{C}` to be a float and
-``max_iter`` to be an :class:`~ConfigSpace.hyperparameters.UniformIntegerHyperparameter` .
+To restrict the search space, we choose :math:`\mathcal{C}` to be a
+:class:`~ConfigSpace.hyperparameters.UniformFloatHyperparameter` between -1 and 1.
+Furthermore, we choose ``max_iter`` to be an
+:class:`~ConfigSpace.hyperparameters.UniformIntegerHyperparameter` .
 
 >>> import ConfigSpace.hyperparameters as CSH
->>> c = CSH.UniformFloatHyperparameter(name='C', lower=0, upper=1)
+>>> c = CSH.UniformFloatHyperparameter(name='C', lower=-1, upper=1)
 >>> max_iter = CSH.UniformIntegerHyperparameter(name='max_iter', lower=10, upper=100)
 
 As last step, we need to add them to the
@@ -96,7 +98,7 @@ with it the number of possible configurations.
 It makes sense to limit the search space for hyperparameter optimizations in
 order to quickly find good configurations. For conditional hyperparameters
 (= hyperparameters which only take a value if some condition is met), ConfigSpace
-achieves this by sampling those hyperparameters from the defined configuration
+achieves this by sampling those hyperparameters from the configuration
 space only if their condition is met.
 
 To add conditions on hyperparameters to the configuration space, we first have
@@ -183,7 +185,7 @@ First, we add these three new hyperparameters to the configuration space.
 >>> cs.add_hyperparameters([penalty, loss, dual])
 [penalty, Type: Categorical, Choices: {l1, l2}, Default: l2, ...]
 
-Now, we want to forbid the following hyperparameter combination:
+Now, we want to forbid the following hyperparameter combinations:
 
 - ``penalty`` is 'l1' and ``loss`` is 'hinge'
 - ``dual`` is False and ``penalty`` is 'l2' and ``loss`` is 'hinge'
@@ -215,7 +217,7 @@ In the last step, we add them to the configuration space object:
 
 If you want to use the configuration space in another tool, such as
 `CAVE <https://github.com/automl/CAVE>`_, it is useful to store it to file.
-To serialize the defined :class:`~ConfigSpace.configuration_space.ConfigurationSpace`,
+To serialize the :class:`~ConfigSpace.configuration_space.ConfigurationSpace`,
 we can choose between different output formats, such as
 :ref:`json <json>` or :ref:`pcs <pcs_new>`.
 
