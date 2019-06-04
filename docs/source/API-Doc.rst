@@ -62,7 +62,8 @@ Conditions
 
 ConfigSpace can realize *equal*, *not equal*, *less than*, *greater than* and
 *in conditions*. Conditions can be combined by using the conjunctions *and* and
-*or*. To see how to use conditions, please take a look at the :doc:`Guide`.
+*or*. To see how to use conditions, please take a look at the
+:doc:`user guide <User-Guide>`.
 
 4.1 EqualsCondition
 -------------------
@@ -120,7 +121,7 @@ sampled from a configuration space if a certain condition is met. The
 *ForbiddenAndConjunction* can be used to combine *ForbiddenEqualsClauses* and
 the *ForbiddenInClauses*.
 
-For a further example, please take a look in the :doc:`guide <Guide>`.
+For a further example, please take a look in the :doc:`user guide <User-Guide>`.
 
 5.1 ForbiddenEqualsClause
 -------------------------
@@ -145,7 +146,7 @@ Serialization
 ConfigSpace offers *json*, *pcs* and *pcs_new* writers/readers.
 These classes can serialize and deserialize configuration spaces.
 Serializing configuration spaces is useful to share configuration spaces across
-experiments, or use them in other tools, for example to analyze hyperparameter
+experiments, or use them in other tools, for example, to analyze hyperparameter
 importance with `CAVE <https://github.com/automl/CAVE>`_.
 
 .. _json:
@@ -171,7 +172,7 @@ A detailed explanation of the pcs format can be found
 `here. <http://aclib.net/cssc2014/pcs-format.pdf>`_ A short summary is also
 given in the
 `SMAC Documentation <https://automl.github.io/SMAC3/dev/options.html#paramcs>`_.
-Further examples are provieded in the
+Further examples are provided in the
 `pysmac documentation <https://pysmac.readthedocs.io/en/latest/pcs.html>`_
 
 .. note::

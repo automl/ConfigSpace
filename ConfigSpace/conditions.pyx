@@ -509,6 +509,7 @@ cdef class InCondition(AbstractCondition):
         [a, Type: UniformInteger, Range: [0, 10], Default: 5, b, Type: ...]
 
         make *b* an active hyperparameter if *a* is in the set [1, 2, 3, 4]
+
         >>> cond = CS.InCondition(b, a, [1, 2, 3, 4])
         >>> cs.add_condition(cond)
         b | a in {1, 2, 3, 4}
@@ -754,7 +755,6 @@ cdef class AndConjunction(AbstractConjunction):
         >>> cs.add_hyperparameters([a, b, c])
         [a, Type: UniformInteger, Range: [5, 15], Default: 10, b, Type: ...]
 
-        <BLANKLINE>
         >>> less_cond = CS.LessThanCondition(c, a, 10)
         >>> greater_cond = CS.GreaterThanCondition(c, b, 5)
         >>> cs.add_condition(CS.AndConjunction(less_cond, greater_cond))
@@ -818,7 +818,6 @@ cdef class OrConjunction(AbstractConjunction):
         >>> cs.add_hyperparameters([a, b, c])
         [a, Type: UniformInteger, Range: [5, 15], Default: 10, b, Type: ...]
 
-        <BLANKLINE>
         >>> less_cond = CS.LessThanCondition(c, a, 10)
         >>> greater_cond = CS.GreaterThanCondition(c, b, 5)
         >>> cs.add_condition(CS.OrConjunction(less_cond, greater_cond))

@@ -6,21 +6,27 @@
 Welcome to ConfigSpace's documentation!
 =======================================
 
-ConfigSpace is a simple python package to manage configuration spaces for `algorithm configuration <https://ml.informatik.uni-freiburg.de/papers/09-JAIR-ParamILS.pdf>`_ and
+ConfigSpace is a simple python package to manage configuration spaces for
+`algorithm configuration <https://ml.informatik.uni-freiburg.de/papers/09-JAIR-ParamILS.pdf>`_ and
 `hyperparameter optimization <https://en.wikipedia.org/wiki/Hyperparameter_optimization>`_ tasks.
-It includes various modules to translate between different text formats for configuration space descriptions.
+It includes various modules to translate between different text formats for
+configuration space descriptions.
 
-ConfigSpace is often used in AutoML tools such as `SMAC3`_, `BOHB`_ or `auto-sklearn`_.
-To read more about our group and projects, visit our homepage `AutoML.org <https://www.automl.org>`_.
+ConfigSpace is often used in AutoML tools such as `SMAC3`_, `BOHB`_ or
+`auto-sklearn`_. To read more about our group and projects, visit our homepage
+`AutoML.org <https://www.automl.org>`_.
 
 This documentation explains how to use ConfigSpace and show you its
 abilities. In the :doc:`quickstart`, you
-will see how to set up a :class:`~ConfigSpace.configuration_space.ConfigurationSpace` and add hyperparameters of
-different types to it.
-Besides containing hyperparameters, a :class:`~ConfigSpace.configuration_space.ConfigurationSpace` can contain
-constraints such as conditions and forbidden clauses. (:math:`\rightarrow` :doc:`Guide`)
+will see how to set up a :class:`~ConfigSpace.configuration_space.ConfigurationSpace`
+and add hyperparameters of different types to it.
+Besides containing hyperparameters, a :class:`~ConfigSpace.configuration_space.ConfigurationSpace`
+can contain constraints such as conditions and forbidden clauses
+(:math:`\rightarrow` :doc:`user guide <User-Guide>`).
+
 Furthermore, in the :ref:`serialization section <Serialization>`, it will be
-explained how to serialize a defined :class:`~ConfigSpace.configuration_space.ConfigurationSpace` for later usage.
+explained how to serialize a defined
+:class:`~ConfigSpace.configuration_space.ConfigurationSpace` for later usage.
 
 .. _SMAC3: https://github.com/automl/SMAC3
 .. _BOHB: https://github.com/automl/HpBandSter
@@ -30,18 +36,18 @@ Basic usage
 
 .. doctest::
 
-   >>> import ConfigSpace as CS
-   >>> import ConfigSpace.hyperparameters as CSH
-   >>> cs = CS.ConfigurationSpace(seed=1234)
-   >>> a = CSH.UniformIntegerHyperparameter('a', lower=10, upper=100, log=False)
-   >>> b = CSH.CategoricalHyperparameter('b', choices=['red', 'green', 'blue'])
-   >>> cs.add_hyperparameters([a, b])
-   [a, Type: UniformInteger, Range: [10, 100], Default: 55,...]
-   >>> cs.sample_configuration()
-   Configuration:
-     a, Value: 27
-     b, Value: 'blue'
-   <BLANKLINE>
+    >>> import ConfigSpace as CS
+    >>> import ConfigSpace.hyperparameters as CSH
+    >>> cs = CS.ConfigurationSpace(seed=1234)
+    >>> a = CSH.UniformIntegerHyperparameter('a', lower=10, upper=100, log=False)
+    >>> b = CSH.CategoricalHyperparameter('b', choices=['red', 'green', 'blue'])
+    >>> cs.add_hyperparameters([a, b])
+    [a, Type: UniformInteger, Range: [10, 100], Default: 55,...]
+    >>> cs.sample_configuration()
+    Configuration:
+      a, Value: 27
+      b, Value: 'blue'
+    <BLANKLINE>
 
 Installation
 ============
@@ -76,6 +82,5 @@ Contents
    :maxdepth: 2
 
    quickstart.rst
-   Guide.rst
+   User-Guide.rst
    API-Doc.rst
-   auto_examples/index.rst

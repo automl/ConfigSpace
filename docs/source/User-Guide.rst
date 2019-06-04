@@ -1,7 +1,7 @@
-Guide
-=====
+User Guide
+==========
 
-In this guide, the concepts of using different hyperparameters, applying
+In this user guide, the concepts of using different hyperparameters, applying
 conditions and forbidden clauses to
 a configuration space are explained.
 
@@ -40,7 +40,7 @@ We choose :math:`\mathcal{C}` to be a float and
 
 As last step, we need to add them to the
 :class:`~ConfigSpace.configuration_space.ConfigurationSpace`.
-For demonstation purpose, we sample a configuration from it.
+For demonstration  purpose, we sample a configuration from it.
 
 .. doctest::
 
@@ -85,13 +85,13 @@ chosen to be 'poly', another hyperparameter ``degree`` must be specified.
 Also, for the kernel types 'poly' and 'sigmoid', there is an additional hyperparameter ``coef0``.
 As well as the hyperparameter ``gamma`` for the kernel types 'rbf', 'poly' and 'sigmoid'.
 
-- ``degree``: degree of polynomial kernel function, being :math:`\in \mathbb{N}`
+- ``degree``: the degree of a polynomial kernel function, being :math:`\in \mathbb{N}`
 - ``coef0``: Independent term in kernel function. It is only significant in 'poly' and 'sigmoid'.
 - ``gamma``: Kernel coefficient for 'rbf', 'poly' and 'sigmoid'.
 
 To realize the different hyperparameter for the kernels, we use :ref:`Conditions`.
 
-Even in simple examples the configuration space grows easily very fast and
+Even in simple examples, the configuration space grows easily very fast and
 with it the number of possible configurations.
 It makes sense to limit the search space for hyperparameter optimizations in
 order to quickly find good configurations. For conditional hyperparameters
@@ -144,13 +144,12 @@ Again, we add the conditions to the configuration space
     :class:`~ConfigSpace.conditions.NotEqualsCondition`,
     :class:`~ConfigSpace.conditions.LessThanCondition`,
     or :class:`~ConfigSpace.conditions.GreaterThanCondition`.
-    To read more about conditions, please take a look at the :ref:`Conditions`
-    or the :doc:`auto_examples/AdvancedExample`
+    To read more about conditions, please take a look at the :ref:`Conditions`.
 
 .. note::
     Don't use either the :class:`~ConfigSpace.conditions.EqualsCondition` or the
     :class:`~ConfigSpace.conditions.InCondition` on float hyperparameters.
-    For example due to floating-point inaccuracy, it is very unlikely that the
+    Due to floating-point inaccuracy, it is very unlikely that the
     :class:`~ConfigSpace.conditions.EqualsCondition` is evaluated to True.
 
 
@@ -163,12 +162,12 @@ ConfigSpace supports this functionality by offering :ref:`Forbidden clauses`.
 We demonstrate the usage of :ref:`Forbidden clauses` by defining the
 configuration space for the
 `linear SVM  <http://scikit-learn.org/stable/modules/generated/sklearn.svm.LinearSVC.html#sklearn.svm.LinearSVC>`_.
-Again, we use the sklearn implementation. This implemenation has three
+Again, we use the sklearn implementation. This implementation has three
 hyperparameters to tune:
 
 - ``penalty``: Specifies the norm used in the penalization with values 'l1' or 'l2'
 - ``loss``: Specifies the loss function with values 'hinge' or 'squared_hinge'
-- ``dual``: Solves the optimization problem either in dual or simple form with values True or False
+- ``dual``: Solves the optimization problem either in the dual or simple form with values True or False
 
 Because some combinations of ``penalty``, ``loss`` and ``dual`` just don't work
 together, we want to make sure that these combinations are not sampled from the
@@ -181,7 +180,6 @@ First, we add these three new hyperparameters to the configuration space.
 >>> loss = CSH.CategoricalHyperparameter(
 ...         name="loss", choices=["hinge", "squared_hinge"], default_value="squared_hinge")
 >>> dual = CSH.Constant("dual", "False")
-
 >>> cs.add_hyperparameters([penalty, loss, dual])
 [penalty, Type: Categorical, Choices: {l1, l2}, Default: l2, ...]
 

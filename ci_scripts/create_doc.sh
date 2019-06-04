@@ -8,7 +8,7 @@ if ! [[ -z ${DOCPUSH+x} ]]; then
     if [[ "$DOCPUSH" == "true" ]]; then
 
         # install documentation building dependencies
-        pip install --upgrade matplotlib pillow sphinx sphinx-gallery sphinx_bootstrap_theme
+        pip install --upgrade matplotlib pillow sphinx sphinx_bootstrap_theme
 
         # $1 is the branch name
         # $2 is the global variable where we set the script status

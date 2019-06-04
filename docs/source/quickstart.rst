@@ -22,8 +22,10 @@ what you can realize with it. This tutorial will include the following steps:
 - (Optional) Add :ref:`Forbidden clauses`
 - (Optional) :ref:`Serialize <Serialization>` the :class:`~ConfigSpace.configuration_space.ConfigurationSpace`
 
-We will show those steps in an exemplary way by creating a :class:`~ConfigSpace.configuration_space.ConfigurationSpace` for rigde regression.
-Note that the topics adding constraints, adding forbidden clauses and serialization are explained in the :doc:`Guide`.
+We will show those steps in an exemplary way by creating a
+:class:`~ConfigSpace.configuration_space.ConfigurationSpace` for ridge regression.
+Note that the topics adding constraints, adding forbidden clauses and
+serialization are explained in the :doc:`user guide <User-Guide>`.
 
 
 Basic Usage
@@ -33,13 +35,14 @@ We take a look at a simple
 `ridge regression <http://scikit-learn.org/stable/modules/generated/sklearn.linear_model.Ridge.html>`_,
 which has only one floating hyperparameter :math:`\alpha`.
 
-The first step is always to create a :class:`~ConfigSpace.configuration_space.ConfigurationSpace` object. All the hyperparameters and constraints will be added to this
-object.
+The first step is always to create a
+:class:`~ConfigSpace.configuration_space.ConfigurationSpace` object. All the
+hyperparameters and constraints will be added to this object.
 
 >>> import ConfigSpace as CS
 >>> cs = CS.ConfigurationSpace(seed=1234)
 
-The hyperparameter :math:`\alpha` is choosen to have floating point values from 0 to 1.
+The hyperparameter :math:`\alpha` is chosen to have floating point values from 0 to 1.
 
 >>> import ConfigSpace.hyperparameters as CSH
 >>> alpha = CSH.UniformFloatHyperparameter(name='alpha', lower=0, upper=1)
@@ -61,9 +64,9 @@ For demonstration purpose, we sample a configuration from the defined
 
 And that's it.
 
-To continue reading, visit the :doc:`Guide` section. There are more information
-about hyperparameters, as well as a introduction to the powerful concepts of
-:ref:`Conditions` and :ref:`Forbidden clauses`.
+To continue reading, visit the :doc:`user guide <User-Guide>` section. There are
+more information about hyperparameters, as well as an introduction to the
+powerful concepts of :ref:`Conditions` and :ref:`Forbidden clauses`.
 
 .. _SMAC3: https://github.com/automl/SMAC3
 .. _BOHB: https://github.com/automl/HpBandSter
