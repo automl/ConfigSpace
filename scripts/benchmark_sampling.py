@@ -39,11 +39,10 @@ def run_test(configuration_space_path):
         sampling_time.append(end_time - start_time)
 
         for j, c in enumerate(configurations):
-            #c.is_valid_configuration()
 
             if i == 0:
                 neighborhood = ConfigSpace.util.get_one_exchange_neighbourhood(
-                    c, seed=i*j)
+                    c, seed=i*j, num_neighbors=4)
 
                 start_time = time.time()
                 validation_time = []
@@ -52,8 +51,6 @@ def run_test(configuration_space_path):
                     n.is_valid_configuration()
                     v_end_time = time.time()
                     validation_time.append(v_end_time - v_start_time)
-                    if shuffle == 10:
-                        break
                 end_time = time.time()
                 neighborhood_time.append(end_time - start_time - np.sum(validation_time))
                 validation_times.extend(validation_time)
