@@ -30,9 +30,9 @@ script:
       ./ci_scripts/flake8_diff.sh
     fi
     pytest -sv --cov=ConfigSpace test
+  - source ci_scripts/create_doc.sh $TRAVIS_BRANCH "doc_result"
 
 after_success:
-  - source ci_scripts/create_doc.sh $TRAVIS_BRANCH "doc_result"
   - codecov
 
 deploy:
