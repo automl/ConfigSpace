@@ -407,7 +407,7 @@ cdef class UniformFloatHyperparameter(FloatHyperparameter):
         if self.lower >= self.upper:
             raise ValueError("Upper bound %f must be larger than lower bound "
                              "%f for hyperparameter %s" %
-                             (self.lower, self.upper, name))
+                             (self.upper, self.lower, name))
         elif log and self.lower <= 0:
             raise ValueError("Negative lower bound (%f) for log-scale "
                              "hyperparameter %s is forbidden." %
