@@ -660,6 +660,34 @@ class TestHyperparameters(unittest.TestCase):
             values.append(hp._sample(rs))
         self.assertEqual(len(np.unique(values)), 11)
 
+    def test_quantization_UniformIntegerHyperparameter(self):
+        hp = UniformIntegerHyperparameter("uihp", 1, 100, q=3)
+        rs = np.random.RandomState(1)
+
+        sample_one = hp._sample(rs=rs, size=1)
+        self.assertIsInstance(obj=sample_one, cls=np.ndarray)
+        self.assertEqual(1, sample_one.size)
+        self.assertTrue(hp._transform(sample_one) % 3 == 0)
+
+        sample_hundred = hp._sample(rs=rs, size=100)
+        self.assertIsInstance(obj=sample_hundred, cls=np.ndarray)
+        self.assertEqual(100, sample_hundred.size)
+        self.assertTrue(np.all(hp._transform(val) % 3 == 0 for val in sample_hundred))
+
+    def test_quantization_UniformFloatHyperparameter(self):
+        hp = UniformFloatHyperparameter("ufhp", 1, 100, q=3)
+        rs = np.random.RandomState(1)
+
+        sample_one = hp._sample(rs=rs, size=1)
+        self.assertIsInstance(obj=sample_one, cls=np.ndarray)
+        self.assertEqual(1, sample_one.size)
+        self.assertTrue(hp._transform(sample_one) % 3 == 0)
+
+        sample_hundred = hp._sample(rs=rs, size=100)
+        self.assertIsInstance(obj=sample_hundred, cls=np.ndarray)
+        self.assertEqual(100, sample_hundred.size)
+        self.assertTrue(np.all(hp._transform(val) % 3 == 0 for val in sample_hundred))
+
     def test_sample_NormalIntegerHyperparameter(self):
         def sample(hp):
             lower = -30
