@@ -28,7 +28,6 @@ popd
 conda create -n testenv --yes python=$PYTHON_VERSION pip
 source activate testenv
 
-conda install -y pytest pytest-cov
-pip install codecov typing
+pip install codecov pytest pytest-cov cython
 
 python setup.py install
