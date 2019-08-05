@@ -1,8 +1,7 @@
 """Setup.py for ConfigSpace"""
 
 import os
-from setuptools import setup, find_packages
-from setuptools.extension import Extension
+from setuptools import setup, find_packages, Extension
 from setuptools.command.build_ext import build_ext
 
 
@@ -45,11 +44,10 @@ AUTHORS = ', '.join(["Matthias Feurer", "Katharina Eggensperger",
                      "Marius Lindauer", "Jorn Tuyls"]),
 AUTHOR_EMAIL = 'feurerm@informatik.uni-freiburg.de'
 TEST_SUITE = "pytest"
-SETUP_REQS = ['Cython', 'numpy']
-INSTALL_REQS = ['numpy', 'pyparsing', 'typing', 'Cython']
-MIN_PYTHON_VERSION = '>=3.4.*'
-CLASSIFIERS = ['Programming Language :: Python :: 3.4',
-               'Programming Language :: Python :: 3.5',
+SETUP_REQS = ['numpy', 'cython']
+INSTALL_REQS = ['numpy', 'cython', 'pyparsing']
+MIN_PYTHON_VERSION = '>=3.5.*'
+CLASSIFIERS = ['Programming Language :: Python :: 3.5',
                'Programming Language :: Python :: 3.6',
                'Programming Language :: Python :: 3.7',
                'Development Status :: 4 - Beta',
@@ -104,5 +102,5 @@ setup(
     keywords=KEYWORDS,
     packages=find_packages(),
     python_requires=MIN_PYTHON_VERSION,
-    classifiers=CLASSIFIERS
+    classifiers=CLASSIFIERS,
 )
