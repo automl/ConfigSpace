@@ -181,8 +181,8 @@ class TestHyperparameters(unittest.TestCase):
             q=0.1, log=True)
 
         self.assertRaisesRegex(
-            ValueError, "Upper bound 1.000000 must be larger than lower bound "
-            "0.000000 for hyperparameter param", UniformFloatHyperparameter,
+            ValueError, "Upper bound 0.000000 must be larger than lower bound "
+            "1.000000 for hyperparameter param", UniformFloatHyperparameter,
             "param", 1, 0)
 
     def test_normalfloat(self):
