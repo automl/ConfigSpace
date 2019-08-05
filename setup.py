@@ -45,7 +45,7 @@ AUTHORS = ', '.join(["Matthias Feurer", "Katharina Eggensperger",
                      "Marius Lindauer", "Jorn Tuyls"]),
 AUTHOR_EMAIL = 'feurerm@informatik.uni-freiburg.de'
 TEST_SUITE = "pytest"
-SETUP_REQS = ['cython', 'numpy']
+SETUP_REQS = ['numpy', 'cython']
 INSTALL_REQS = ['numpy', 'pyparsing', 'typing', 'cython']
 MIN_PYTHON_VERSION = '>=3.5.*'
 CLASSIFIERS = ['Programming Language :: Python :: 3.5',
@@ -103,5 +103,5 @@ setup(
     keywords=KEYWORDS,
     packages=find_packages(),
     python_requires=MIN_PYTHON_VERSION,
-    classifiers=CLASSIFIERS
+    classifiers=CLASSIFIERS,
 )
