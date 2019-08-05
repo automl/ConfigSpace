@@ -13,7 +13,6 @@ before_cache:
 
 env:
   matrix:
-    - DISTRIB="conda" PYTHON_VERSION="3.4"
     - DISTRIB="conda" PYTHON_VERSION="3.5"
     - DISTRIB="conda" PYTHON_VERSION="3.6" RUN_FLAKE8="true"
     - DISTRIB="conda" PYTHON_VERSION="3.7" DOCPUSH="true"
