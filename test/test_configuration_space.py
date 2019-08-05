@@ -855,3 +855,12 @@ class ConfigurationTest(unittest.TestCase):
         for i in range(10):
             config = cs.sample_configuration()
             {hp_name: config[hp_name] for hp_name in config if config[hp_name] is not None}
+
+    def test_multi_sample_quantized_uihp(self):
+        # This unit test covers a problem with sampling multiple entries at a time from a configuration space with at
+        # least one UniformIntegerHyperparameter which is quantized.
+        cs = ConfigurationSpace()
+        cs.add_hyperparameter(UniformIntegerHyperparameter("uihp", lower=1, upper=100, q=2, log=False))
+
+        self.assertIsNotNone(cs.sample_configuration(size=1))
+        self.assertEqual(10, len(cs.sample_configuration(size=10)))

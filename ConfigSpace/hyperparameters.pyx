@@ -796,8 +796,12 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
         # Map all floats which belong to the same integer value to the same
         # float value by first transforming it to an integer and then
         # transforming it back to a float between zero and one
-        value = self._transform(value)
-        value = self._inverse_transform(value)
+        if isinstance(value, np.ndarray):
+            value = np.vectorize(self._transform)(value)
+            value = np.vectorize(self._inverse_transform)(value)
+        else:
+            value = self._transform(value)
+            value = self._inverse_transform(value)
         return value
 
     def _transform(self, vector: Union[np.ndarray, float, int]) -> Optional[Union[np.ndarray, float, int]]:
