@@ -70,6 +70,19 @@ When using Anaconda/Miniconda, the compiler has to be installed with:
     conda install gxx_linux-64 gcc_linux-64
 
 
+Citing the ConfigSpace
+======================
+
+.. code:: bibtex
+
+   @journal{
+       title   = {BOAH: A Tool Suite for Multi-Fidelity Bayesian Optimization & Analysis of Hyperparameters},
+       author  = {M. Lindauer and K. Eggensperger and M. Feurer and A. Biedenkapp and J. Marben and P. Müller and F. Hutter},
+       journal = {arXiv:1908.06756 {[cs.LG]}},
+       date    = {2019},
+   }
+
+
 Contents
 ========
 
