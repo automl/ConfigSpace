@@ -25,23 +25,6 @@ buildapi:
 	@echo
 	@echo "Auto-generation of API documentation finished. " \
 	      "The generated files are in 'apidoc/'"
-		  
-d:
-	make doctest SPHINX_BUILD="/home/philipp/.virtualenvs/ConfigSpaceEnv/bin/python" > output_doctest.log
-
-build_clean:
-	cd /mnt/c/Users/Philipp/Documents/Code/ConfigSpace/ && \
-	/home/philipp/.virtualenvs/ConfigSpaceEnv/bin/pip uninstall ConfigSpace && \
-	/home/philipp/.virtualenvs/ConfigSpaceEnv/bin/python /mnt/c/Users/Philipp/Documents/Code/ConfigSpace/setup.py install && \
-	  cd docs
-	
-b: build_clean
-	make html SPHINX_BUILD="/home/philipp/.virtualenvs/ConfigSpaceEnv/bin/python"
-
-a:
-	make b
-	make d
-
 
 # Catch-all target: route all unknown targets to Sphinx using the new
 # "make mode" option.  $(O) is meant as a shortcut for $(SPHINXOPTS).
