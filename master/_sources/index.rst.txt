@@ -75,7 +75,7 @@ Citing the ConfigSpace
 
 .. code:: bibtex
 
-   @journal{
+   @article{
        title   = {BOAH: A Tool Suite for Multi-Fidelity Bayesian Optimization & Analysis of Hyperparameters},
        author  = {M. Lindauer and K. Eggensperger and M. Feurer and A. Biedenkapp and J. Marben and P. Müller and F. Hutter},
        journal = {arXiv:1908.06756 {[cs.LG]}},
