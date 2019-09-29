@@ -805,8 +805,13 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
         return value
 
     def _transform(self, vector: Union[np.ndarray, float, int]) -> Optional[Union[np.ndarray, float, int]]:
-        if np.any(np.isnan(vector)):
+        
+        # Avoid expensive call to np.any() if not necessary
+        if isinstance(vector, np.ndarray) and np.any(np.isnan(vector)):
             return None
+        elif np.isnan(vector):
+            return None
+        
         vector = self.ufhp._transform(vector)
         if self.q is not None:
             vector = (np.round(vector / self.q, 0)).astype(int) * self.q
@@ -1085,8 +1090,13 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
         return value
 
     def _transform(self, vector: Union[np.ndarray, float, int]) -> Optional[Union[np.ndarray, int]]:
-        if np.isnan(vector):
+
+        # Avoid expensive call to np.any() if not necessary
+        if isinstance(vector, np.ndarray) and np.any(np.isnan(vector)):
             return None
+        elif np.isnan(vector):
+            return None
+        
         vector = self.nfhp._transform(vector)
         vector = (np.round(vector, 0)).astype(int)
         if isinstance(vector, (np.int, np.int32, np.int64)):
