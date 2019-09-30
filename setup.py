@@ -90,6 +90,7 @@ setup(
     cmdclass={'build_ext': BuildExt},
     url=MODULE_URL,
     description=SHORT_DESCRIPTION,
+    long_description_content_type='text/markdown',
     ext_modules=EXTENSIONS,
     long_description=read_file("README.md"),
     license=LICENSE,
