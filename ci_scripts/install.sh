@@ -28,6 +28,8 @@ popd
 conda create -n testenv --yes python=$PYTHON_VERSION pip
 source activate testenv
 
+pip install codecov pytest pytest-cov cython
+
 if [[ "$INSTALL_FROM_SDIST" == "true" ]]; then
     python setup.py sdist
     # Find file which was modified last as done in https://stackoverflow.com/a/4561987
@@ -35,7 +37,5 @@ if [[ "$INSTALL_FROM_SDIST" == "true" ]]; then
     echo "Installing $dist"
     pip install "$dist"
 else
-    pip install codecov pytest pytest-cov cython
+    python setup.py install
 fi
-
-python setup.py install
