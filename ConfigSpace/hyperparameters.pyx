@@ -881,6 +881,7 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
     ) -> List[int]:
         cdef int n_requested = number
         cdef int idx = 0
+        cdef int i = 0
         neighbors = []  # type: List[int]
         cdef int sampled_neighbors = 0
         _neighbors_as_int = set()  # type: Set[int]
@@ -901,15 +902,17 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
                         neighbors.append(n)
 
         else:
-            samples = rs.normal(loc=value, scale=std, size=n_requested * 2)
+            samples = rs.normal(loc=value, scale=std, size=250)
             samples_view = samples
-            idx = 0
+
             while sampled_neighbors < n_requested:
+
                 while True:
                     new_value = samples_view[idx]
                     idx += 1
-                    if idx >= (n_requested * 2):
-                        samples = rs.normal(loc=value, scale=std, size=n_requested * 2)
+                    i += 1
+                    if idx >= 250:
+                        samples = rs.normal(loc=value, scale=std, size=250)
                         samples_view = samples
                         idx = 0
                     if new_value < 0 or new_value > 1:
@@ -917,6 +920,21 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
                     new_int_value = self._transform(new_value)
                     if int_value == new_int_value:
                         continue
+                    elif i >= 200:
+                        # Fallback to uniform sampling if generating samples correctly takes too long
+                        values_to_sample = [j for j in range(self.lower, self.upper + 1) if j != int_value]
+                        samples = rs.choice(
+                            values_to_sample,
+                            size=n_requested,
+                            replace=False,
+                        )
+                        for sample in samples:
+                            if transform:
+                                neighbors.append(sample)
+                            else:
+                                sample = self._inverse_transform(sample)
+                                neighbors.append(sample)
+                        break
                     elif new_int_value in _neighbors_as_int:
                         continue
                     elif int_value != new_int_value:
