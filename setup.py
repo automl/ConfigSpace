@@ -32,10 +32,14 @@ class BuildExt(build_ext):
 # Configure setup parameters
 MODULE_NAME = 'ConfigSpace'
 MODULE_URL = 'https://github.com/automl/ConfigSpace'
-SHORT_DESCRIPTION = 'Creation and manipulation of parameter configuration spaces for ' \
-       'automated algorithm configuration and hyperparameter tuning.'
-KEYWORDS = 'algorithm configuration hyperparameter optimization empirical ' \
-           'evaluation black box'
+SHORT_DESCRIPTION = (
+    'Creation and manipulation of parameter configuration spaces for '
+    'automated algorithm configuration and hyperparameter tuning.'
+)
+KEYWORDS = (
+    'algorithm configuration hyperparameter optimization empirical '
+    'evaluation black box'
+)
 LICENSE = 'BSD 3-clause'
 PLATS = ['Linux']
 AUTHORS = ', '.join(["Matthias Feurer", "Katharina Eggensperger",

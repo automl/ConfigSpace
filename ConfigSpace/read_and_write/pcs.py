@@ -29,25 +29,43 @@ import sys
 import pyparsing
 
 from ConfigSpace.configuration_space import ConfigurationSpace
-from ConfigSpace.hyperparameters import CategoricalHyperparameter, \
-    UniformIntegerHyperparameter, UniformFloatHyperparameter, \
-    NumericalHyperparameter, Constant, IntegerHyperparameter, \
-    NormalIntegerHyperparameter, NormalFloatHyperparameter
-from ConfigSpace.conditions import EqualsCondition, NotEqualsCondition,\
-    InCondition, AndConjunction, OrConjunction, ConditionComponent
-# from ConfigSpace.forbidden import ForbiddenEqualsClause, \
-#     ForbiddenAndConjunction, ForbiddenInClause, AbstractForbiddenComponent, MultipleValueForbiddenClause
-from ConfigSpace.forbidden import ForbiddenEqualsClause, \
-    ForbiddenAndConjunction, ForbiddenInClause, AbstractForbiddenComponent, MultipleValueForbiddenClause
+from ConfigSpace.hyperparameters import (
+    CategoricalHyperparameter,
+    UniformIntegerHyperparameter,
+    UniformFloatHyperparameter,
+    NumericalHyperparameter,
+    Constant,
+    IntegerHyperparameter,
+    NormalIntegerHyperparameter,
+    NormalFloatHyperparameter,
+)
+from ConfigSpace.conditions import (
+    EqualsCondition,
+    NotEqualsCondition,
+    InCondition,
+    AndConjunction,
+    OrConjunction,
+    ConditionComponent,
+)
+from ConfigSpace.forbidden import (
+    ForbiddenEqualsClause,
+    ForbiddenAndConjunction,
+    ForbiddenInClause,
+    AbstractForbiddenComponent,
+    MultipleValueForbiddenClause,
+)
 
 
 # Build pyparsing expressions for params
-pp_param_name = pyparsing.Word(pyparsing.alphanums + "_" + "-" + "@" + "." + ":" + ";" + "\\" + "/" + "?" + "!" +
-                               "$" + "%" + "&" + "*" + "+" + "<" + ">")
+pp_param_name = pyparsing.Word(
+    pyparsing.alphanums + "_" + "-" + "@" + "." + ":" + ";" + "\\" + "/" + "?" + "!"
+    + "$" + "%" + "&" + "*" + "+" + "<" + ">")
 pp_digits = "0123456789"
 pp_plusorminus = pyparsing.Literal('+') | pyparsing.Literal('-')
 pp_int = pyparsing.Combine(pyparsing.Optional(pp_plusorminus) + pyparsing.Word(pp_digits))
-pp_float = pyparsing.Combine(pyparsing.Optional(pp_plusorminus) + pyparsing.Optional(pp_int) + "." + pp_int)
+pp_float = pyparsing.Combine(
+    pyparsing.Optional(pp_plusorminus) + pyparsing.Optional(pp_int) + "." + pp_int
+)
 pp_eorE = pyparsing.Literal('e') | pyparsing.Literal('E')
 pp_floatorint = pp_float | pp_int
 pp_e_notation = pyparsing.Combine(pp_floatorint + pp_eorE + pp_int)

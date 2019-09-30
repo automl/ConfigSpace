@@ -322,57 +322,57 @@ class TestConfigurationSpace(unittest.TestCase):
             Configuration(cs, dict(parent=0, child=5))
 
     def test_get_hyperparameters_topological_sort(self):
-            # and now for something more complicated
-            cs = ConfigurationSpace()
-            hp1 = CategoricalHyperparameter("input1", [0, 1])
-            hp2 = CategoricalHyperparameter("input2", [0, 1])
-            hp3 = CategoricalHyperparameter("input3", [0, 1])
-            hp4 = CategoricalHyperparameter("input4", [0, 1])
-            hp5 = CategoricalHyperparameter("input5", [0, 1])
-            hp6 = Constant("AND", "True")
-            # More top-level hyperparameters
-            hp7 = CategoricalHyperparameter("input7", [0, 1])
-            # Somewhat shuffled
-            hyperparameters = [hp1, hp2, hp3, hp4, hp5, hp6, hp7]
+        # and now for something more complicated
+        cs = ConfigurationSpace()
+        hp1 = CategoricalHyperparameter("input1", [0, 1])
+        hp2 = CategoricalHyperparameter("input2", [0, 1])
+        hp3 = CategoricalHyperparameter("input3", [0, 1])
+        hp4 = CategoricalHyperparameter("input4", [0, 1])
+        hp5 = CategoricalHyperparameter("input5", [0, 1])
+        hp6 = Constant("AND", "True")
+        # More top-level hyperparameters
+        hp7 = CategoricalHyperparameter("input7", [0, 1])
+        # Somewhat shuffled
+        hyperparameters = [hp1, hp2, hp3, hp4, hp5, hp6, hp7]
 
-            for hp in hyperparameters:
-                cs.add_hyperparameter(hp)
+        for hp in hyperparameters:
+            cs.add_hyperparameter(hp)
 
-            cond1 = EqualsCondition(hp6, hp1, 1)
-            cond2 = NotEqualsCondition(hp6, hp2, 1)
-            cond3 = InCondition(hp6, hp3, [1])
-            cond4 = EqualsCondition(hp5, hp3, 1)
-            cond5 = EqualsCondition(hp4, hp5, 1)
-            cond6 = EqualsCondition(hp6, hp4, 1)
-            cond7 = EqualsCondition(hp6, hp5, 1)
+        cond1 = EqualsCondition(hp6, hp1, 1)
+        cond2 = NotEqualsCondition(hp6, hp2, 1)
+        cond3 = InCondition(hp6, hp3, [1])
+        cond4 = EqualsCondition(hp5, hp3, 1)
+        cond5 = EqualsCondition(hp4, hp5, 1)
+        cond6 = EqualsCondition(hp6, hp4, 1)
+        cond7 = EqualsCondition(hp6, hp5, 1)
 
-            conj1 = AndConjunction(cond1, cond2)
-            conj2 = OrConjunction(conj1, cond3)
-            conj3 = AndConjunction(conj2, cond6, cond7)
+        conj1 = AndConjunction(cond1, cond2)
+        conj2 = OrConjunction(conj1, cond3)
+        conj3 = AndConjunction(conj2, cond6, cond7)
 
-            cs.add_condition(cond4)
-            hps = cs.get_hyperparameters()
-            # AND is moved to the front because of alphabetical sorting
-            for hp, idx in zip(hyperparameters, [1, 2, 3, 4, 6, 0, 5]):
-                self.assertEqual(hps.index(hp), idx)
-                self.assertEqual(cs._hyperparameter_idx[hp.name], idx)
-                self.assertEqual(cs._idx_to_hyperparameter[idx], hp.name)
-
-            cs.add_condition(cond5)
-            hps = cs.get_hyperparameters()
-            for hp, idx in zip(hyperparameters, [1, 2, 3, 6, 5, 0, 4]):
-                self.assertEqual(hps.index(hp), idx)
-                self.assertEqual(cs._hyperparameter_idx[hp.name], idx)
-                self.assertEqual(cs._idx_to_hyperparameter[idx], hp.name)
-
-            cs.add_condition(conj3)
-            hps = cs.get_hyperparameters()
-            # print(hps, hyperparameters)
-            for hp, idx in zip(hyperparameters, [0, 1, 2, 5, 4, 6, 3]):
-                # print(hp, idx)
-                self.assertEqual(hps.index(hp), idx)
-                self.assertEqual(cs._hyperparameter_idx[hp.name], idx)
+        cs.add_condition(cond4)
+        hps = cs.get_hyperparameters()
+        # AND is moved to the front because of alphabetical sorting
+        for hp, idx in zip(hyperparameters, [1, 2, 3, 4, 6, 0, 5]):
+            self.assertEqual(hps.index(hp), idx)
+            self.assertEqual(cs._hyperparameter_idx[hp.name], idx)
             self.assertEqual(cs._idx_to_hyperparameter[idx], hp.name)
+
+        cs.add_condition(cond5)
+        hps = cs.get_hyperparameters()
+        for hp, idx in zip(hyperparameters, [1, 2, 3, 6, 5, 0, 4]):
+            self.assertEqual(hps.index(hp), idx)
+            self.assertEqual(cs._hyperparameter_idx[hp.name], idx)
+            self.assertEqual(cs._idx_to_hyperparameter[idx], hp.name)
+
+        cs.add_condition(conj3)
+        hps = cs.get_hyperparameters()
+        # print(hps, hyperparameters)
+        for hp, idx in zip(hyperparameters, [0, 1, 2, 5, 4, 6, 3]):
+            # print(hp, idx)
+            self.assertEqual(hps.index(hp), idx)
+            self.assertEqual(cs._hyperparameter_idx[hp.name], idx)
+        self.assertEqual(cs._idx_to_hyperparameter[idx], hp.name)
 
     def test_get_hyperparameter(self):
         cs = ConfigurationSpace()
@@ -446,15 +446,19 @@ class TestConfigurationSpace(unittest.TestCase):
 
     def test_check_configuration_input_checking(self):
         cs = ConfigurationSpace()
-        self.assertRaisesRegex(TypeError, r"The method check_configuration must be called "
-                                          r"with an instance of %s. "
-                                          r"Your input was of type %s" % (Configuration, type("String")),
-                               cs.check_configuration, "String")
+        self.assertRaisesRegex(
+            TypeError,
+            r"The method check_configuration must be called with an instance of %s. "
+            r"Your input was of type %s" % (Configuration, type("String")),
+            cs.check_configuration, "String",
+        )
         # For the check configuration method with vector representation
-        self.assertRaisesRegex(TypeError, r"The method check_configuration must"
-                                          r" be called with an instance of "
-                                          r"np.ndarray Your input was of type %s" % (type("String")),
-                               cs.check_configuration_vector_representation, "String")
+        self.assertRaisesRegex(
+            TypeError,
+            r"The method check_configuration must be called with an instance of "
+            r"np.ndarray Your input was of type %s" % (type("String")),
+            cs.check_configuration_vector_representation, "String",
+        )
 
     def test_check_configuration(self):
         # TODO this is only a smoke test
@@ -509,31 +513,39 @@ class TestConfigurationSpace(unittest.TestCase):
             #  be sorted.
             hyperparameters = sorted(cs.get_hyperparameters(),
                                      key=lambda t: t.name)
-            instantiations = {hyperparameters[jdx+1].name: values[jdx]
+            instantiations = {hyperparameters[jdx + 1].name: values[jdx]
                               for jdx in range(len(values))}
 
             evaluation = conj3.evaluate(instantiations)
             self.assertEqual(expected_outcomes[idx], evaluation)
 
             if not evaluation:
-                self.assertRaisesRegex(ValueError,
-                                       r"Inactive hyperparameter 'AND' must "
-                                       r"not be specified, but has the vector value: "
-                                       r"'0.0'.",
-                                       Configuration, cs, values={
-                                            "input1": values[0],
-                                            "input2": values[1],
-                                            "input3": values[2],
-                                            "input4": values[3],
-                                            "input5": values[4],
-                                            "AND": "True"})
+                self.assertRaisesRegex(
+                    ValueError,
+                    r"Inactive hyperparameter 'AND' must "
+                    r"not be specified, but has the vector value: "
+                    r"'0.0'.",
+                    Configuration, cs, values={
+                        "input1": values[0],
+                        "input2": values[1],
+                        "input3": values[2],
+                        "input4": values[3],
+                        "input5": values[4],
+                        "AND": "True",
+                    },
+                )
             else:
-                Configuration(cs, values={"input1": values[0],
-                                          "input2": values[1],
-                                          "input3": values[2],
-                                          "input4": values[3],
-                                          "input5": values[4],
-                                          "AND": "True"})
+                Configuration(
+                    cs,
+                    values={
+                        "input1": values[0],
+                        "input2": values[1],
+                        "input3": values[2],
+                        "input4": values[3],
+                        "input5": values[4],
+                        "AND": "True",
+                    },
+                )
 
     def test_check_configuration2(self):
         # Test that hyperparameters which are not active must not be set and
@@ -784,7 +796,9 @@ class ConfigurationTest(unittest.TestCase):
         '''
         pcs = ConfigurationSpace()
         pcs.add_hyperparameter(UniformIntegerHyperparameter('x0', 1, 5, default_value=1))
-        x1 = pcs.add_hyperparameter(CategoricalHyperparameter('x1', ['ab', 'bc', 'cd', 'de'], default_value='ab'))
+        x1 = pcs.add_hyperparameter(
+            CategoricalHyperparameter('x1', ['ab', 'bc', 'cd', 'de'], default_value='ab')
+        )
 
         # Condition
         x2 = pcs.add_hyperparameter(CategoricalHyperparameter('x2', [1, 2]))
@@ -801,11 +815,17 @@ class ConfigurationTest(unittest.TestCase):
             conf['x0'] = 0
 
         # failed because the variable didn't exists
-        with self.assertRaisesRegex(KeyError, "Hyperparameter 'x_0' does not exist in this configuration space."):
+        with self.assertRaisesRegex(
+            KeyError,
+            "Hyperparameter 'x_0' does not exist in this configuration space.",
+        ):
             conf['x_0'] = 1
 
         # failed because forbidden clause is violated
-        with self.assertRaisesRegex(ForbiddenValueError, "Given vector violates forbidden clause Forbidden: x3 == 2"):
+        with self.assertRaisesRegex(
+            ForbiddenValueError,
+            "Given vector violates forbidden clause Forbidden: x3 == 2",
+        ):
             conf['x3'] = 2
         self.assertEqual(conf['x3'], 1)
 
@@ -857,10 +877,12 @@ class ConfigurationTest(unittest.TestCase):
             {hp_name: config[hp_name] for hp_name in config if config[hp_name] is not None}
 
     def test_multi_sample_quantized_uihp(self):
-        # This unit test covers a problem with sampling multiple entries at a time from a configuration space with at
-        # least one UniformIntegerHyperparameter which is quantized.
+        # This unit test covers a problem with sampling multiple entries at a time from a
+        # configuration space with at least one UniformIntegerHyperparameter which is quantized.
         cs = ConfigurationSpace()
-        cs.add_hyperparameter(UniformIntegerHyperparameter("uihp", lower=1, upper=100, q=2, log=False))
+        cs.add_hyperparameter(
+            UniformIntegerHyperparameter("uihp", lower=1, upper=100, q=2, log=False)
+        )
 
         self.assertIsNotNone(cs.sample_configuration(size=1))
         self.assertEqual(10, len(cs.sample_configuration(size=10)))

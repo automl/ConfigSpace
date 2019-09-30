@@ -17,7 +17,7 @@ n_configs = 100
 
 
 def run_test(configuration_space_path):
-    if not '2017_11' in configuration_space_path:
+    if '2017_11' not in configuration_space_path:
         return
 
     with open(configuration_space_path) as fh:
@@ -42,7 +42,7 @@ def run_test(configuration_space_path):
 
             if i == 0:
                 neighborhood = ConfigSpace.util.get_one_exchange_neighbourhood(
-                    c, seed=i*j, num_neighbors=4)
+                    c, seed=i * j, num_neighbors=4)
 
                 start_time = time.time()
                 validation_time = []

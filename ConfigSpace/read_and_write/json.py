@@ -509,9 +509,7 @@ def _construct_or_condition(
         condition: Dict,
         cs: ConfigurationSpace,
 ) -> OrConjunction:
-    conditions = [
-        _construct_condition(cond, cs) for cond in condition['conditions']
-        ]
+    conditions = [_construct_condition(cond, cs) for cond in condition['conditions']]
     return OrConjunction(*conditions)
 
 
@@ -609,7 +607,5 @@ def _construct_forbidden_and(
         clause: Dict,
         cs: ConfigurationSpace,
 ) -> ForbiddenAndConjunction:
-    clauses = [
-        _construct_forbidden(cl, cs) for cl in clause['clauses']
-     ]
+    clauses = [_construct_forbidden(cl, cs) for cl in clause['clauses']]
     return ForbiddenAndConjunction(*clauses)

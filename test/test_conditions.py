@@ -66,9 +66,11 @@ class TestConditions(unittest.TestCase):
     def test_equals_condition_illegal_value(self):
         epsilon = UniformFloatHyperparameter("epsilon", 1e-5, 1e-1,
                                              default_value=1e-4, log=True)
-        loss = CategoricalHyperparameter("loss",
-                                         ["hinge", "log", "modified_huber", "squared_hinge", "perceptron"],
-                                         default_value="hinge")
+        loss = CategoricalHyperparameter(
+            "loss",
+            ["hinge", "log", "modified_huber", "squared_hinge", "perceptron"],
+            default_value="hinge",
+        )
         self.assertRaisesRegex(ValueError, "Hyperparameter 'epsilon' is "
                                            "conditional on the illegal value 'huber' of "
                                            "its parent hyperparameter 'loss'",
@@ -112,7 +114,10 @@ class TestConditions(unittest.TestCase):
         self.assertEqual(cond, cond_)
 
         # Test vector value:
-        self.assertEqual(cond.vector_values, [hp1._inverse_transform(i) for i in [0, 1, 2, 3, 4, 5]])
+        self.assertEqual(
+            cond.vector_values,
+            [hp1._inverse_transform(i) for i in [0, 1, 2, 3, 4, 5]],
+        )
         self.assertEqual(cond.vector_values, cond_.vector_values)
 
         cond_reverse = InCondition(hp1, hp2, [0, 1, 2, 3, 4, 5])
@@ -159,18 +164,20 @@ class TestConditions(unittest.TestCase):
             self.assertFalse(lt.evaluate_vector(np.array([np.NaN, np.NaN])))
 
         hp4 = CategoricalHyperparameter("cat", list(range(6)))
-        self.assertRaisesRegex(ValueError, "Parent hyperparameter in a > or < "
-                                           "condition must be a subclass of "
-                                           "NumericalHyperparameter or "
-                                           "OrdinalHyperparameter, but is "
-                                           "<cdef class 'ConfigSpace.hyperparameters.CategoricalHyperparameter'>",
-                               GreaterThanCondition, child, hp4, 1)
-        self.assertRaisesRegex(ValueError, "Parent hyperparameter in a > or < "
-                                           "condition must be a subclass of "
-                                           "NumericalHyperparameter or "
-                                           "OrdinalHyperparameter, but is "
-                                           "<cdef class 'ConfigSpace.hyperparameters.CategoricalHyperparameter'>",
-                               LessThanCondition, child, hp4, 1)
+        self.assertRaisesRegex(
+            ValueError,
+            "Parent hyperparameter in a > or < condition must be a subclass of "
+            "NumericalHyperparameter or OrdinalHyperparameter, but is "
+            "<cdef class 'ConfigSpace.hyperparameters.CategoricalHyperparameter'>",
+            GreaterThanCondition, child, hp4, 1,
+        )
+        self.assertRaisesRegex(
+            ValueError,
+            "Parent hyperparameter in a > or < condition must be a subclass of "
+            "NumericalHyperparameter or OrdinalHyperparameter, but is "
+            "<cdef class 'ConfigSpace.hyperparameters.CategoricalHyperparameter'>",
+            LessThanCondition, child, hp4, 1,
+        )
 
         hp5 = OrdinalHyperparameter("ord", ['cold', 'luke warm', 'warm', 'hot'])
 

@@ -286,9 +286,11 @@ class TestHyperparameters(unittest.TestCase):
         self.assertEqual(f1.q, None)
         self.assertEqual(f1.default_value, 2)
         self.assertEqual(f1.log, False)
-        self.assertAlmostEqual(f1.normalized_default_value, (2.0+0.49999)/(5.49999+0.49999))
+        self.assertAlmostEqual(f1.normalized_default_value, (2.0 + 0.49999) / (5.49999 + 0.49999))
 
-        quantization_warning = "Setting quantization < 1 for Integer Hyperparameter 'param' has no effect"
+        quantization_warning = (
+            "Setting quantization < 1 for Integer Hyperparameter 'param' has no effect"
+        )
         with pytest.warns(UserWarning, match=quantization_warning):
             f2 = UniformIntegerHyperparameter("param", 0, 10, q=0.1)
         with pytest.warns(UserWarning, match=quantization_warning):
@@ -634,8 +636,7 @@ class TestHyperparameters(unittest.TestCase):
             for i in range(100000):
                 value = hp.sample(rs)
                 values.append(value)
-                index = int(float(value - hp.lower) /
-                            (hp.upper - hp.lower) * 20)
+                index = int(float(value - hp.lower) / (hp.upper - hp.lower) * 20)
                 counts_per_bin[index] += 1
 
             self.assertIsInstance(value, int)

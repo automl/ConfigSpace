@@ -29,31 +29,54 @@ from io import StringIO
 import pyparsing
 
 from ConfigSpace.configuration_space import ConfigurationSpace
-from ConfigSpace.hyperparameters import CategoricalHyperparameter, \
-    UniformIntegerHyperparameter, UniformFloatHyperparameter, \
-    NumericalHyperparameter, IntegerHyperparameter, FloatHyperparameter, \
-    NormalIntegerHyperparameter, NormalFloatHyperparameter, OrdinalHyperparameter,\
-    Constant
-from ConfigSpace.conditions import EqualsCondition, NotEqualsCondition,\
-    InCondition, AndConjunction, OrConjunction, ConditionComponent,\
-    GreaterThanCondition, LessThanCondition
-# from ConfigSpace.forbidden import ForbiddenEqualsClause, \
-#     ForbiddenAndConjunction, ForbiddenInClause, AbstractForbiddenComponent, MultipleValueForbiddenClause
-from ConfigSpace.forbidden import ForbiddenEqualsClause, \
-    ForbiddenAndConjunction, ForbiddenInClause, AbstractForbiddenComponent, MultipleValueForbiddenClause
+from ConfigSpace.hyperparameters import (
+    CategoricalHyperparameter,
+    UniformIntegerHyperparameter,
+    UniformFloatHyperparameter,
+    NumericalHyperparameter,
+    IntegerHyperparameter,
+    FloatHyperparameter,
+    NormalIntegerHyperparameter,
+    NormalFloatHyperparameter,
+    OrdinalHyperparameter,
+    Constant,
+)
+from ConfigSpace.conditions import (
+    EqualsCondition,
+    NotEqualsCondition,
+    InCondition,
+    AndConjunction,
+    OrConjunction,
+    ConditionComponent,
+    GreaterThanCondition,
+    LessThanCondition,
+)
+from ConfigSpace.forbidden import (
+    ForbiddenEqualsClause,
+    ForbiddenAndConjunction,
+    ForbiddenInClause,
+    AbstractForbiddenComponent,
+    MultipleValueForbiddenClause,
+)
 
 # Build pyparsing expressions for params
-pp_param_name = pyparsing.Word(pyparsing.alphanums + "_" + "-" + "@" + "." + ":" + ";" + "\\" + "/" + "?" + "!" +
-                               "$" + "%" + "&" + "*" + "+" + "<" + ">")
+pp_param_name = pyparsing.Word(
+    pyparsing.alphanums + "_" + "-" + "@" + "." + ":" + ";" + "\\" + "/" + "?" + "!"
+    + "$" + "%" + "&" + "*" + "+" + "<" + ">"
+)
 pp_param_operation = pyparsing.Word("in" + "!=" + "==" + ">" + "<")
 pp_digits = "0123456789"
 pp_param_val = pp_param_name + pyparsing.Optional(pyparsing.OneOrMore("," + pp_param_name))
 pp_plusorminus = pyparsing.Literal('+') | pyparsing.Literal('-')
 pp_int = pyparsing.Combine(pyparsing.Optional(pp_plusorminus) + pyparsing.Word(pp_digits))
-pp_float = pyparsing.Combine(pyparsing.Optional(pp_plusorminus) + pyparsing.Optional(pp_int) + "." + pp_int)
+pp_float = pyparsing.Combine(
+    pyparsing.Optional(pp_plusorminus) + pyparsing.Optional(pp_int) + "." + pp_int
+)
 pp_eorE = pyparsing.Literal('e') | pyparsing.Literal('E')
-pp_param_type = (pyparsing.Literal("integer") | pyparsing.Literal("real") |
-                 pyparsing.Literal("categorical") | pyparsing.Literal("ordinal"))
+pp_param_type = (
+    pyparsing.Literal("integer") | pyparsing.Literal("real")
+    | pyparsing.Literal("categorical") | pyparsing.Literal("ordinal")
+)
 pp_floatorint = pp_float | pp_int
 pp_e_notation = pyparsing.Combine(pp_floatorint + pp_eorE + pp_int)
 pp_number = pp_e_notation | pp_float | pp_int
@@ -63,15 +86,17 @@ pp_connective = pyparsing.Word("||" + "&&")
 pp_choices = pp_param_name + pyparsing.Optional(pyparsing.OneOrMore("," + pp_param_name))
 pp_sequence = pp_param_name + pyparsing.Optional(pyparsing.OneOrMore("," + pp_param_name))
 pp_ord_param = pp_param_name + pp_param_type + "{" + pp_sequence + "}" + "[" + pp_param_name + "]"
-pp_cont_param = (pp_param_name + pp_param_type + "[" + pp_number + "," +
-                 pp_number + "]" + "[" + pp_number + "]" + pyparsing.Optional(pp_log))
+pp_cont_param = (
+    pp_param_name + pp_param_type + "[" + pp_number + ","
+    + pp_number + "]" + "[" + pp_number + "]" + pyparsing.Optional(pp_log)
+)
 pp_cat_param = pp_param_name + pp_param_type + "{" + pp_choices + "}" + "[" + pp_param_name + "]"
 pp_condition = pp_param_name + "|" + pp_param_name + pp_param_operation + \
     pyparsing.Optional('{') + pp_param_val + pyparsing.Optional('}') + \
     pyparsing.Optional(
         pyparsing.OneOrMore(
-            pp_connective + pp_param_name + pp_param_operation +
-            pyparsing.Optional('{') + pp_param_val + pyparsing.Optional('}')
+            pp_connective + pp_param_name + pp_param_operation
+            + pyparsing.Optional('{') + pp_param_val + pyparsing.Optional('}')
         )
     )
 pp_forbidden_clause = "{" + pp_param_name + "=" + pp_numberorname + \
@@ -120,15 +145,16 @@ def build_continuous(param):
         return int_template % (q_prefix, param.name, param.lower,
                                param.upper, default_value)
     else:
-        return float_template % (q_prefix, param.name,  str(param.lower),
+        return float_template % (q_prefix, param.name, str(param.lower),
                                  str(param.upper), str(default_value))
 
 
 def build_condition(condition):
     if not isinstance(condition, ConditionComponent):
-        raise TypeError("build_condition must be called with an instance of "
-                        "'%s', got '%s'" %
-                        (ConditionComponent, type(condition)))
+        raise TypeError(
+            "build_condition must be called with an instance of '%s', got '%s'" %
+            (ConditionComponent, type(condition))
+        )
     # Now handle the conditions SMAC can handle
     in_template = "%s | %s in {%s}"
     less_template = "%s | %s < %s"
@@ -363,7 +389,11 @@ def read(pcs_string, debug=False):
                 name = param_list[0]
                 choices = [choice for choice in param_list[3:-4:2]]
                 default_value = param_list[-2]
-                param = create["categorical"](name=name, choices=choices, default_value=default_value)
+                param = create["categorical"](
+                    name=name,
+                    choices=choices,
+                    default_value=default_value,
+                )
                 cat_ct += 1
 
             elif "ordinal" in line:
@@ -371,7 +401,11 @@ def read(pcs_string, debug=False):
                 name = param_list[0]
                 sequence = [seq for seq in param_list[3:-4:2]]
                 default_value = param_list[-2]
-                param = create["ordinal"](name=name, sequence=sequence, default_value=default_value)
+                param = create["ordinal"](
+                    name=name,
+                    sequence=sequence,
+                    default_value=default_value,
+                )
                 ord_ct += 1
 
         except pyparsing.ParseException:
@@ -424,13 +458,27 @@ def read(pcs_string, debug=False):
                         # if length is 1 it must be or
                         if len(condition) == 1:
                             element_list = condition[0].split()
-                            ors_combis.append(condition_specification(child_name, element_list, configuration_space))
+                            ors_combis.append(
+                                condition_specification(
+                                    child_name,
+                                    element_list,
+                                    configuration_space,
+                                )
+                            )
                         else:
                             # now taking care of ands
                             ands = []
                             for and_part in condition:
-                                element_list = [element for part in condition for element in and_part.split()]
-                                ands.append(condition_specification(child_name, element_list, configuration_space))
+                                element_list = [
+                                    element for part in condition for element in and_part.split()
+                                ]
+                                ands.append(
+                                    condition_specification(
+                                        child_name,
+                                        element_list,
+                                        configuration_space,
+                                    )
+                                )
                             ors_combis.append(AndConjunction(*ands))
                     mixed_conjunction = OrConjunction(*ors_combis)
                     configuration_space.add_condition(mixed_conjunction)
@@ -438,7 +486,13 @@ def read(pcs_string, debug=False):
                     # 2nd case: we only have ors
                     for cond_parts in str(condition).split('||'):
                         element_list = [element for element in cond_parts.split()]
-                        ors.append(condition_specification(child_name, element_list, configuration_space))
+                        ors.append(
+                            condition_specification(
+                                child_name,
+                                element_list,
+                                configuration_space,
+                            )
+                        )
                     or_conjunction = OrConjunction(*ors)
                     configuration_space.add_condition(or_conjunction)
             else:
@@ -447,13 +501,23 @@ def read(pcs_string, debug=False):
                     ands = []
                     for cond_parts in str(condition).split('&&'):
                         element_list = [element for element in cond_parts.split()]
-                        ands.append(condition_specification(child_name, element_list, configuration_space))
+                        ands.append(
+                            condition_specification(
+                                child_name,
+                                element_list,
+                                configuration_space,
+                            )
+                        )
                     and_conjunction = AndConjunction(*ands)
                     configuration_space.add_condition(and_conjunction)
                 else:
                     # 4th case: we have a normal condition
                     element_list = [element for element in condition.split()]
-                    normal_condition = condition_specification(child_name, element_list, configuration_space)
+                    normal_condition = condition_specification(
+                        child_name,
+                        element_list,
+                        configuration_space,
+                    )
                     configuration_space.add_condition(normal_condition)
 
     return configuration_space
@@ -524,7 +588,7 @@ def write(configuration_space):
 
     for condition in configuration_space.get_conditions():
         if condition_lines.tell() > 0:
-                condition_lines.write("\n")
+            condition_lines.write("\n")
         if isinstance(condition, AndConjunction) or isinstance(condition, OrConjunction):
             condition_lines.write(build_conjunction(condition))
         else:

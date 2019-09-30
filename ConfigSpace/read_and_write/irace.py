@@ -23,23 +23,43 @@ __contact__ = "automl.org"
 
 from itertools import product
 from ConfigSpace.configuration_space import ConfigurationSpace
-from ConfigSpace.hyperparameters import CategoricalHyperparameter, \
-    UniformIntegerHyperparameter, UniformFloatHyperparameter, \
-    NumericalHyperparameter, Constant, IntegerHyperparameter, \
-    NormalIntegerHyperparameter, NormalFloatHyperparameter, OrdinalHyperparameter
-from ConfigSpace.conditions import EqualsCondition, NotEqualsCondition, \
-    InCondition, AndConjunction, OrConjunction, ConditionComponent, GreaterThanCondition, LessThanCondition
-# from ConfigSpace.forbidden import ForbiddenEqualsClause, \
-#     ForbiddenAndConjunction, ForbiddenInClause, AbstractForbiddenComponent, MultipleValueForbiddenClause
-from ConfigSpace.forbidden import ForbiddenEqualsClause, \
-    ForbiddenAndConjunction, ForbiddenInClause, AbstractForbiddenComponent, MultipleValueForbiddenClause
+from ConfigSpace.hyperparameters import (
+    CategoricalHyperparameter,
+    UniformIntegerHyperparameter,
+    UniformFloatHyperparameter,
+    NumericalHyperparameter,
+    Constant,
+    IntegerHyperparameter,
+    NormalIntegerHyperparameter,
+    NormalFloatHyperparameter,
+    OrdinalHyperparameter,
+)
+from ConfigSpace.conditions import (
+    EqualsCondition,
+    NotEqualsCondition,
+    InCondition,
+    AndConjunction,
+    OrConjunction,
+    ConditionComponent,
+    GreaterThanCondition,
+    LessThanCondition,
+)
+from ConfigSpace.forbidden import (
+    ForbiddenEqualsClause,
+    ForbiddenAndConjunction,
+    ForbiddenInClause,
+    AbstractForbiddenComponent,
+    MultipleValueForbiddenClause,
+)
 import pyparsing
 import io
 import numpy as np
 
 # Build pyparsing expressions for params
-pp_param_name = pyparsing.Word(pyparsing.alphanums + "_" + "-" + "@" + "." + ":" + ";" + "\\" + "/" + "?" + "!" +
-                               "$" + "%" + "&" + "*" + "+" + "<" + ">")
+pp_param_name = pyparsing.Word(
+    pyparsing.alphanums + "_" + "-" + "@" + "." + ":" + ";" + "\\" + "/" + "?" + "!"
+    + "$" + "%" + "&" + "*" + "+" + "<" + ">"
+)
 
 
 def build_categorical(param):
@@ -122,11 +142,15 @@ def build_condition(condition):
     for clause in conditions:
         child = clause.child.name
         # Findout type of parent
-        if (isinstance(clause.parent, UniformIntegerHyperparameter) or
-           isinstance(clause.parent, NormalIntegerHyperparameter)):
+        if (
+            isinstance(clause.parent, UniformIntegerHyperparameter)
+            or isinstance(clause.parent, NormalIntegerHyperparameter)
+        ):
             pType = 'i'
-        elif isinstance(clause.parent, UniformFloatHyperparameter) or isinstance(clause.parent,
-                                                                                 NormalFloatHyperparameter):
+        elif (
+            isinstance(clause.parent, UniformFloatHyperparameter)
+            or isinstance(clause.parent, NormalFloatHyperparameter)
+        ):
             pType = 'r'
         elif isinstance(clause.parent, CategoricalHyperparameter):
             pType = 'c'
@@ -262,8 +286,8 @@ def write(configuration_space):
         else:
             forbidden_lines.append(build_forbidden(forbidden_clause))
 
-    # Add conditions: first convert param_lines to array then search first part of condition in that array
-    # if found append second part of condition to that array part
+    # Add conditions: first convert param_lines to array then search first part of condition in
+    # that array if found append second part of condition to that array part
     splitted_params = param_lines.getvalue().split("\n")
     if condition_lines.tell() > 0:
         condition_lines.seek(0)
