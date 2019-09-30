@@ -30,4 +30,17 @@ source activate testenv
 
 pip install codecov pytest pytest-cov cython
 
-python setup.py install
+if [[ "$INSTALL_FROM_SDIST" == "true" ]]; then
+    python setup.py sdist
+    # Find file which was modified last as done in https://stackoverflow.com/a/4561987
+    dist=`find dist -type f -printf '%T@ %p\n' | sort -n | tail -1 | cut -f2- -d" "`
+    echo "Installing $dist"
+    twine check $dist
+    pip install "$dist"
+else
+    python setup.py install
+fi
+
+echo "###################"
+echo "conda list"
+conda list
