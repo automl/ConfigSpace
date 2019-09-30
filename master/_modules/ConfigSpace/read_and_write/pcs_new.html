@@ -6,7 +6,6 @@
     <title>ConfigSpace.read_and_write.pcs_new &#8212; ConfigSpace  documentation</title>
     <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/gallery.css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
     <script type="text/javascript" src="../../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../../_static/underscore.js"></script>
@@ -63,7 +62,7 @@
                      <li><a href="../../../quickstart.html">Quickstart</a></li>
                  
 				 
-                     <li><a href="../../../Guide.html">Guide</a></li>
+                     <li><a href="../../../User-Guide.html">User Guide</a></li>
                  
 				 
                      <li><a href="../../../API-Doc.html">API</a></li>
@@ -83,11 +82,11 @@
 <li class="toctree-l2"><a class="reference internal" href="../../../quickstart.html#basic-usage">Basic Usage</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Guide.html">Guide</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../../Guide.html#st-example-integer-hyperparameters-and-float-hyperparameters">1st Example: Integer hyperparameters and float hyperparameters</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../Guide.html#nd-example-categorical-hyperparameters-and-conditions">2nd Example: Categorical hyperparameters and conditions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../Guide.html#rd-example-forbidden-clauses">3rd Example: Forbidden clauses</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../Guide.html#th-example-serialization">4th Example Serialization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../User-Guide.html">User Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../User-Guide.html#st-example-integer-hyperparameters-and-float-hyperparameters">1st Example: Integer hyperparameters and float hyperparameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../User-Guide.html#nd-example-categorical-hyperparameters-and-conditions">2nd Example: Categorical hyperparameters and conditions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../User-Guide.html#rd-example-forbidden-clauses">3rd Example: Forbidden clauses</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../User-Guide.html#th-example-serialization">4th Example Serialization</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../../API-Doc.html">API-Documentation</a><ul>
@@ -98,10 +97,6 @@
 <li class="toctree-l2"><a class="reference internal" href="../../../API-Doc.html#forbidden-clauses">Forbidden Clauses</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../API-Doc.html#serialization">Serialization</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../API-Doc.html#utils">Utils</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="../../../auto_examples/index.html">Examples - ConfigSpace</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../../auto_examples/AdvancedExample.html">Advanced Example</a></li>
 </ul>
 </li>
 </ul>
@@ -382,15 +377,27 @@
 
 <div class="viewcode-block" id="read"><a class="viewcode-back" href="../../../API-Doc.html#ConfigSpace.read_and_write.pcs_new.read">[docs]</a><span class="k">def</span> <span class="nf">read</span><span class="p">(</span><span class="n">pcs_string</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Reads in a :py:class:`~ConfigSpace.configuration_space.ConfigurationSpace`</span>
+<span class="sd">    Read in a :py:class:`~ConfigSpace.configuration_space.ConfigurationSpace`</span>
 <span class="sd">    definition from a pcs file.</span>
 
 <span class="sd">    Example</span>
 <span class="sd">    -------</span>
 
-<span class="sd">    &gt;&gt;&gt; from ConfigSpace.read_and_write import pcs_new</span>
-<span class="sd">    &gt;&gt;&gt; with open(&#39;configspace.pcs&#39;, &#39;r&#39;) as fh:</span>
-<span class="sd">    &gt;&gt;&gt;     restored_conf = pcs_new.read(fh)</span>
+<span class="sd">    .. testsetup:: pcs_new_test</span>
+
+<span class="sd">        from ConfigSpace import ConfigurationSpace</span>
+<span class="sd">        import ConfigSpace.hyperparameters as CSH</span>
+<span class="sd">        from ConfigSpace.read_and_write import pcs_new</span>
+<span class="sd">        cs = ConfigurationSpace()</span>
+<span class="sd">        cs.add_hyperparameter(CSH.CategoricalHyperparameter(&#39;a&#39;, choices=[1, 2, 3]))</span>
+<span class="sd">        with open(&#39;configspace.pcs_new&#39;, &#39;w&#39;) as f:</span>
+<span class="sd">             f.write(pcs_new.write(cs))</span>
+
+<span class="sd">    .. doctest:: pcs_new_test</span>
+
+<span class="sd">        &gt;&gt;&gt; from ConfigSpace.read_and_write import pcs_new</span>
+<span class="sd">        &gt;&gt;&gt; with open(&#39;configspace.pcs_new&#39;, &#39;r&#39;) as fh:</span>
+<span class="sd">        ...     deserialized_conf = pcs_new.read(fh)</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -402,7 +409,7 @@
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    :py:class:`~ConfigSpace.configuration_space.ConfigurationSpace`</span>
-<span class="sd">        The restored ConfigurationSpace object</span>
+<span class="sd">        The deserialized ConfigurationSpace object</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">configuration_space</span> <span class="o">=</span> <span class="n">ConfigurationSpace</span><span class="p">()</span>
@@ -582,7 +589,25 @@
 
 <div class="viewcode-block" id="write"><a class="viewcode-back" href="../../../API-Doc.html#ConfigSpace.read_and_write.pcs_new.write">[docs]</a><span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="n">configuration_space</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Writes a configurations space to file in pcs_new format.</span>
+<span class="sd">    Create a string representation of a</span>
+<span class="sd">    :class:`~ConfigSpace.configuration_space.ConfigurationSpace`</span>
+<span class="sd">    in pcs_new format. This string can be written to file.</span>
+
+<span class="sd">    Example</span>
+<span class="sd">    -------</span>
+<span class="sd">    .. doctest::</span>
+
+<span class="sd">        &gt;&gt;&gt; import ConfigSpace as CS</span>
+<span class="sd">        &gt;&gt;&gt; import ConfigSpace.hyperparameters as CSH</span>
+<span class="sd">        &gt;&gt;&gt; from ConfigSpace.read_and_write import pcs_new</span>
+<span class="sd">        &gt;&gt;&gt; cs = CS.ConfigurationSpace()</span>
+<span class="sd">        &gt;&gt;&gt; cs.add_hyperparameter(CSH.CategoricalHyperparameter(&#39;a&#39;, choices=[1, 2, 3]))</span>
+<span class="sd">        a, Type: Categorical, Choices: {1, 2, 3}, Default: 1</span>
+
+<span class="sd">        &lt;BLANKLINE&gt;</span>
+<span class="sd">        &gt;&gt;&gt; with open(&#39;configspace.pcs_new&#39;, &#39;w&#39;) as fh:</span>
+<span class="sd">        ...     fh.write(pcs_new.write(cs))</span>
+<span class="sd">        27</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>

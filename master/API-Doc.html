@@ -6,7 +6,6 @@
     <title>API-Documentation &#8212; ConfigSpace  documentation</title>
     <link rel="stylesheet" href="_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" type="text/css" href="_static/gallery.css" />
     <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
@@ -15,8 +14,7 @@
     <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Examples - ConfigSpace" href="auto_examples/index.html" />
-    <link rel="prev" title="Guide" href="Guide.html" />
+    <link rel="prev" title="User Guide" href="User-Guide.html" />
 <meta charset='utf-8'>
 <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
 <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
@@ -65,7 +63,7 @@
                      <li><a href="quickstart.html">Quickstart</a></li>
                  
 				 
-                     <li><a href="Guide.html">Guide</a></li>
+                     <li><a href="User-Guide.html">User Guide</a></li>
                  
 				 
                      <li><a href="#">API</a></li>
@@ -85,11 +83,11 @@
 <li class="toctree-l2"><a class="reference internal" href="quickstart.html#basic-usage">Basic Usage</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="Guide.html">Guide</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="Guide.html#st-example-integer-hyperparameters-and-float-hyperparameters">1st Example: Integer hyperparameters and float hyperparameters</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Guide.html#nd-example-categorical-hyperparameters-and-conditions">2nd Example: Categorical hyperparameters and conditions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Guide.html#rd-example-forbidden-clauses">3rd Example: Forbidden clauses</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Guide.html#th-example-serialization">4th Example Serialization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="User-Guide.html">User Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="User-Guide.html#st-example-integer-hyperparameters-and-float-hyperparameters">1st Example: Integer hyperparameters and float hyperparameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="User-Guide.html#nd-example-categorical-hyperparameters-and-conditions">2nd Example: Categorical hyperparameters and conditions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="User-Guide.html#rd-example-forbidden-clauses">3rd Example: Forbidden clauses</a></li>
+<li class="toctree-l2"><a class="reference internal" href="User-Guide.html#th-example-serialization">4th Example Serialization</a></li>
 </ul>
 </li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">API-Documentation</a><ul>
@@ -100,10 +98,6 @@
 <li class="toctree-l2"><a class="reference internal" href="#forbidden-clauses">Forbidden Clauses</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#serialization">Serialization</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#utils">Utils</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="auto_examples/index.html">Examples - ConfigSpace</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="auto_examples/AdvancedExample.html">Advanced Example</a></li>
 </ul>
 </li>
 </ul>
@@ -173,8 +167,6 @@
 <h1>API-Documentation<a class="headerlink" href="#api-documentation" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="configurationspace">
 <h2>ConfigurationSpace<a class="headerlink" href="#configurationspace" title="Permalink to this headline">¶</a></h2>
-<p>First, we start by introducing the main object, the <em>configuration space</em> and
-all of its functions.</p>
 <dl class="class">
 <dt id="ConfigSpace.configuration_space.ConfigurationSpace">
 <em class="property">class </em><code class="sig-prename descclassname">ConfigSpace.configuration_space.</code><code class="sig-name descname">ConfigurationSpace</code><a class="headerlink" href="#ConfigSpace.configuration_space.ConfigurationSpace" title="Permalink to this definition">¶</a></dt>
@@ -187,9 +179,9 @@ conditions and restrictions between hyperparameters.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>name</strong> (<em>(</em><em>str</em><em>, </em><em>optional</em><em>)</em>) – Name of the configuration space</p></li>
-<li><p><strong>seed</strong> (<em>(</em><em>int</em><em>, </em><em>optional</em><em>)</em>) – random seed</p></li>
-<li><p><strong>meta</strong> (<em>(</em><em>dict</em><em>, </em><em>optional</em><em>)</em>) – Field for holding meta data provided by the user.
+<li><p><strong>name</strong> (<em>str</em><em>, </em><em>optional</em>) – Name of the configuration space</p></li>
+<li><p><strong>seed</strong> (<em>int</em><em>, </em><em>optional</em>) – random seed</p></li>
+<li><p><strong>meta</strong> (<em>dict</em><em>, </em><em>optional</em>) – Field for holding meta data provided by the user.
 Not used by the configuration space.</p></li>
 </ul>
 </dd>
@@ -203,7 +195,7 @@ Check if adding the condition is legal:</p>
 <li><p>The parent in a condition statement must exist</p></li>
 <li><p>The condition must add no cycles</p></li>
 </ul>
-<p>The following array keeps track of all edges which must be
+<p>The internal array keeps track of all edges which must be
 added to the DiGraph; if the checks don’t raise any Exception,
 these edges are finally added at the end of the function.</p>
 <dl class="field-list simple">
@@ -250,8 +242,8 @@ are renamed to <code class="docutils literal notranslate"><span class="pre">pref
 <li><p><strong>prefix</strong> (<em>str</em>) – The prefix for the renamed hyperparameter | conditions |
 forbidden clauses</p></li>
 <li><p><strong>configuration_space</strong> (<a class="reference internal" href="#ConfigSpace.configuration_space.ConfigurationSpace" title="ConfigSpace.configuration_space.ConfigurationSpace"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigurationSpace</span></code></a>) – The configuration space which should be added</p></li>
-<li><p><strong>delimiter</strong> (<em>(</em><em>str</em><em>, </em><em>optional</em><em>)</em>) – Defaults to ‘’:’’.</p></li>
-<li><p><strong>parent_hyperparameter</strong> ((<a class="reference internal" href="#hyperparameters"><span class="std std-ref">Hyperparameters</span></a>, optional)) – Adds for each new hyperparameter the condition, that
+<li><p><strong>delimiter</strong> (<em>str</em><em>, </em><em>optional</em>) – Defaults to ‘:’</p></li>
+<li><p><strong>parent_hyperparameter</strong> (<a class="reference internal" href="#hyperparameters"><span class="std std-ref">Hyperparameters</span></a>, optional) – Adds for each new hyperparameter the condition, that
 <code class="docutils literal notranslate"><span class="pre">parent_hyperparameter</span></code> is active</p></li>
 </ul>
 </dd>
@@ -346,7 +338,7 @@ forbidden clauses</p></li>
 <dl class="attribute">
 <dt id="ConfigSpace.configuration_space.ConfigurationSpace.check_configuration_vector_representation">
 <code class="sig-name descname">check_configuration_vector_representation</code><a class="headerlink" href="#ConfigSpace.configuration_space.ConfigurationSpace.check_configuration_vector_representation" title="Permalink to this definition">¶</a></dt>
-<dd><p>Raise error f configuration in vector representation is not legal.</p>
+<dd><p>Raise error if configuration in vector representation is not legal.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>vector</strong> (<em>np.ndarray</em>) – Configuration in vector representation</p>
@@ -362,7 +354,7 @@ from a list containing lists with lower and upper bounds. The generated
 hyperparameters are added to the configuration space.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>bounds</strong> (<em>list</em><em>(</em><em>list</em><em>(</em><em>[</em><em>Any</em><em>, </em><em>Any</em><em>)</em><em>]</em><em>)</em>) – List containing lists with two elements: lower and upper bound</p>
+<dd class="field-odd"><p><strong>bounds</strong> (<em>list</em><em>[</em><em>tuple</em><em>(</em><em>[</em><em>Any</em><em>, </em><em>Any</em><em>]</em><em>)</em><em>]</em>) – List containing lists with two elements: lower and upper bound</p>
 </dd>
 </dl>
 </dd></dl>
@@ -419,7 +411,7 @@ hyperparameters are added to the configuration space.</p>
 hyperparameter referenced by its <code class="docutils literal notranslate"><span class="pre">name</span></code>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>name</strong> ((str, <a class="reference internal" href="#hyperparameters"><span class="std std-ref">Hyperparameters</span></a>)) – Hyperparameter or its name, for which conditions are requested</p>
+<dd class="field-odd"><p><strong>name</strong> (str, <a class="reference internal" href="#hyperparameters"><span class="std std-ref">Hyperparameters</span></a>) – Hyperparameter or its name, for which conditions are requested</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>List with the conditions on the children of the given hyperparameter</p>
@@ -436,7 +428,7 @@ hyperparameter referenced by its <code class="docutils literal notranslate"><spa
 <dd><p>Return a list with all children of a given hyperparameter.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>name</strong> ((str, <a class="reference internal" href="#hyperparameters"><span class="std std-ref">Hyperparameters</span></a>)) – Hyperparameter or its name, for which all children are requested</p>
+<dd class="field-odd"><p><strong>name</strong> (str, <a class="reference internal" href="#hyperparameters"><span class="std std-ref">Hyperparameters</span></a>) – Hyperparameter or its name, for which all children are requested</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>Children of the hyperparameter</p>
@@ -578,7 +570,7 @@ space object</p>
 <dd><p>Return a list with conditions of all parents of a given hyperparameter.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>name</strong> ((str, <a class="reference internal" href="#hyperparameters"><span class="std std-ref">Hyperparameters</span></a>)) – Can either be the name of a hyperparameter or the hyperparameter
+<dd class="field-odd"><p><strong>name</strong> (str, <a class="reference internal" href="#hyperparameters"><span class="std std-ref">Hyperparameters</span></a>) – Can either be the name of a hyperparameter or the hyperparameter
 object</p>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -596,7 +588,7 @@ object</p>
 <dd><p>Return the parent hyperparameters of a given hyperparameter.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>name</strong> ((str, <a class="reference internal" href="#hyperparameters"><span class="std std-ref">Hyperparameters</span></a>)) – Can either be the name of a hyperparameter or the hyperparameter
+<dd class="field-odd"><p><strong>name</strong> (str, <a class="reference internal" href="#hyperparameters"><span class="std std-ref">Hyperparameters</span></a>) – Can either be the name of a hyperparameter or the hyperparameter
 object</p>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -614,7 +606,7 @@ object</p>
 <dd><p>Sample <code class="docutils literal notranslate"><span class="pre">size</span></code> configurations from the configuration space object.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>size</strong> (<em>(</em><em>int</em><em>, </em><em>optional</em><em>)</em>) – Number of configurations to sample. Default to 1</p>
+<dd class="field-odd"><p><strong>size</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of configurations to sample. Default to 1</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>A single configuration if <code class="docutils literal notranslate"><span class="pre">size</span></code> 1 else a list of Configurations</p>
@@ -650,20 +642,23 @@ for all active hyperparameters a value. While the
 <a class="reference internal" href="#ConfigSpace.configuration_space.ConfigurationSpace" title="ConfigSpace.configuration_space.ConfigurationSpace"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigurationSpace</span></code></a> stores the
 definitions for the hyperparameters (value ranges, constraints,…), a
 <a class="reference internal" href="#ConfigSpace.configuration_space.Configuration" title="ConfigSpace.configuration_space.Configuration"><code class="xref py py-class docutils literal notranslate"><span class="pre">Configuration</span></code></a> object is
-more like a instance of it.</p>
+more an instance of it. Parameters of a
+<a class="reference internal" href="#ConfigSpace.configuration_space.Configuration" title="ConfigSpace.configuration_space.Configuration"><code class="xref py py-class docutils literal notranslate"><span class="pre">Configuration</span></code></a> object can be
+accessed and modified similar to python dictionaries
+(c.f. <a class="reference internal" href="User-Guide.html#st-example"><span class="std std-ref">Guide</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>configuration_space</strong> (<a class="reference internal" href="#ConfigSpace.configuration_space.ConfigurationSpace" title="ConfigSpace.configuration_space.ConfigurationSpace"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigurationSpace</span></code></a>) – </p></li>
-<li><p><strong>values</strong> (<em>(</em><em>dict</em><em>, </em><em>optional</em><em>)</em>) – A dictionary with pairs (hyperparameter_name, value), where value is
+<li><p><strong>values</strong> (<em>dict</em><em>, </em><em>optional</em>) – A dictionary with pairs (hyperparameter_name, value), where value is
 a legal value of the hyperparameter in the above
 configuration_space</p></li>
-<li><p><strong>vector</strong> (<em>(</em><em>np.ndarray</em><em>, </em><em>optional</em><em>)</em>) – A numpy array for efficient representation. Either values or vector
+<li><p><strong>vector</strong> (<em>np.ndarray</em><em>, </em><em>optional</em>) – A numpy array for efficient representation. Either values or vector
 has to be given</p></li>
-<li><p><strong>allow_inactive_with_values</strong> (<em>(</em><em>bool</em><em>, </em><em>optional</em><em>)</em>) – Whether an Exception will be raised if a value for an inactive
+<li><p><strong>allow_inactive_with_values</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether an Exception will be raised if a value for an inactive
 hyperparameter is given. Default is to raise an Exception.
 Default to False</p></li>
-<li><p><strong>origin</strong> (<em>(</em><em>Any</em><em>, </em><em>optional</em><em>)</em>) – Store information about the origin of this configuration.
+<li><p><strong>origin</strong> (<em>Any</em><em>, </em><em>optional</em>) – Store information about the origin of this configuration.
 Default to None</p></li>
 </ul>
 </dd>
@@ -677,7 +672,7 @@ hyperparameter. <code class="docutils literal notranslate"><span class="pre">def
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>item</strong> (<em>str</em>) – Name of the desired hyperparameter</p></li>
-<li><p><strong>default</strong> (<em>(</em><em>None</em><em>, </em><em>Any</em><em>)</em>) – </p></li>
+<li><p><strong>default</strong> (<em>None</em><em>, </em><em>Any</em>) – </p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -748,12 +743,10 @@ Raise an error if configuration is not valid.</p>
 </div>
 <div class="section" id="hyperparameters">
 <span id="id1"></span><h2>Hyperparameters<a class="headerlink" href="#hyperparameters" title="Permalink to this headline">¶</a></h2>
-<p>In this section, the different types of hyperparameters are introduced.
-ConfigSpace is able to handle integer, float, categorical as well as ordinal hyperparameters.
-Float and integer hyperparameters are available as <strong>uniform</strong> or <strong>normal distributed</strong> ones.
-So when a hyperparameter is sampled from the configuration space,
-its value is distributed according to the specified type.</p>
-<p>Example usages are shown in the <a class="reference internal" href="quickstart.html"><span class="doc">quickstart</span></a></p>
+<p>ConfigSpace contains integer, float, categorical, as well as ordinal
+hyperparameters. Integer and float hyperparameter can be sampled from a uniform
+or normal distribution. Example usages are shown in the
+<a class="reference internal" href="quickstart.html"><span class="doc">quickstart</span></a>.</p>
 <div class="section" id="integer-hyperparameters">
 <h3>3.1 Integer hyperparameters<a class="headerlink" href="#integer-hyperparameters" title="Permalink to this headline">¶</a></h3>
 <dl class="class">
@@ -765,10 +758,11 @@ with bounds <code class="docutils literal notranslate"><span class="pre">lower</
 <p class="rubric">Example</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ConfigSpace</span> <span class="k">as</span> <span class="nn">CS</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ConfigSpace.hyperparameters</span> <span class="k">as</span> <span class="nn">CSH</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">cs</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">ConfigurationSpace</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cs</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">ConfigurationSpace</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">uniform_integer_hp</span> <span class="o">=</span> <span class="n">CSH</span><span class="o">.</span><span class="n">UniformIntegerHyperparameter</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;uni_int&#39;</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
 <span class="gp">... </span>                                                      <span class="n">upper</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">log</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cs</span><span class="o">.</span><span class="n">add_hyperparameter</span><span class="p">(</span><span class="n">uniform_integer_hp</span><span class="p">)</span>
+<span class="go">uni_int, Type: UniformInteger, Range: [10, 100], Default: 55</span>
 </pre></div>
 </div>
 <dl class="field-list simple">
@@ -777,11 +771,11 @@ with bounds <code class="docutils literal notranslate"><span class="pre">lower</
 <li><p><strong>name</strong> (<em>str</em>) – Name of the hyperparameter with which it can be accessed</p></li>
 <li><p><strong>lower</strong> (<em>int</em>) – Lower bound of a range of values from which the hyperparameter will be sampled</p></li>
 <li><p><strong>upper</strong> (<em>int</em>) – upper bound</p></li>
-<li><p><strong>default_value</strong> (<em>(</em><em>int</em><em>, </em><em>optional</em><em>)</em>) – Sets the default value of a hyperparameter to a given value</p></li>
-<li><p><strong>q</strong> (<em>(</em><em>int</em><em>, </em><em>optional</em><em>)</em>) – Quantization factor</p></li>
-<li><p><strong>log</strong> (<em>(</em><em>bool</em><em>, </em><em>optional</em><em>)</em>) – If <code class="docutils literal notranslate"><span class="pre">True</span></code>, the values of the hyperparameter will be sampled
+<li><p><strong>default_value</strong> (<em>int</em><em>, </em><em>optional</em>) – Sets the default value of a hyperparameter to a given value</p></li>
+<li><p><strong>q</strong> (<em>int</em><em>, </em><em>optional</em>) – Quantization factor</p></li>
+<li><p><strong>log</strong> (<em>bool</em><em>, </em><em>optional</em>) – If <code class="docutils literal notranslate"><span class="pre">True</span></code>, the values of the hyperparameter will be sampled
 on a logarithmic scale. Defaults to <code class="docutils literal notranslate"><span class="pre">False</span></code></p></li>
-<li><p><strong>meta</strong> (<em>(</em><em>Dict</em><em>, </em><em>optional</em><em>)</em>) – Field for holding meta data provided by the user.
+<li><p><strong>meta</strong> (<em>Dict</em><em>, </em><em>optional</em>) – Field for holding meta data provided by the user.
 Not used by the configuration space.</p></li>
 </ul>
 </dd>
@@ -797,10 +791,11 @@ Not used by the configuration space.</p></li>
 <p class="rubric">Example</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ConfigSpace</span> <span class="k">as</span> <span class="nn">CS</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ConfigSpace.hyperparameters</span> <span class="k">as</span> <span class="nn">CSH</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">cs</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">ConfigurationSpace</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">normal_int_hp</span> <span class="o">=</span> <span class="n">CSH</span><span class="o">.</span><span class="n">NormalIntegerHyperparameter</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;normal_int&#39;</span><span class="p">,</span> <span class="n">mu</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span>
-<span class="gp">... </span>                                                <span class="n">sigma</span><span class="o">=</span><span class="mf">1.</span><span class="p">,</span> <span class="n">log</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cs</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">ConfigurationSpace</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">normal_int_hp</span> <span class="o">=</span> <span class="n">CSH</span><span class="o">.</span><span class="n">NormalIntegerHyperparameter</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;normal_int&#39;</span><span class="p">,</span> <span class="n">mu</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+<span class="gp">... </span>                                                <span class="n">sigma</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">log</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cs</span><span class="o">.</span><span class="n">add_hyperparameter</span><span class="p">(</span><span class="n">normal_int_hp</span><span class="p">)</span>
+<span class="go">normal_int, Type: NormalInteger, Mu: 0 Sigma: 1, Default: 0</span>
 </pre></div>
 </div>
 <dl class="field-list simple">
@@ -808,13 +803,13 @@ Not used by the configuration space.</p></li>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>name</strong> (<em>str</em>) – Name of the hyperparameter with which it can be accessed</p></li>
 <li><p><strong>mu</strong> (<em>int</em>) – Mean of the distribution, from which hyperparameter is sampled</p></li>
-<li><p><strong>sigma</strong> (<em>(</em><em>int</em><em>, </em><em>float</em><em>)</em>) – Standard deviation of the distribution, from which
+<li><p><strong>sigma</strong> (<em>int</em><em>, </em><em>float</em>) – Standard deviation of the distribution, from which
 hyperparameter is sampled</p></li>
-<li><p><strong>default_value</strong> (<em>(</em><em>int</em><em>, </em><em>optional</em><em>)</em>) – Sets the default value of a hyperparameter to a given value</p></li>
-<li><p><strong>q</strong> (<em>(</em><em>int</em><em>, </em><em>optional</em><em>)</em>) – Quantization factor</p></li>
-<li><p><strong>log</strong> (<em>(</em><em>bool</em><em>, </em><em>optional</em><em>)</em>) – If <code class="docutils literal notranslate"><span class="pre">True</span></code>, the values of the hyperparameter will be sampled
+<li><p><strong>default_value</strong> (<em>int</em><em>, </em><em>optional</em>) – Sets the default value of a hyperparameter to a given value</p></li>
+<li><p><strong>q</strong> (<em>int</em><em>, </em><em>optional</em>) – Quantization factor</p></li>
+<li><p><strong>log</strong> (<em>bool</em><em>, </em><em>optional</em>) – If <code class="docutils literal notranslate"><span class="pre">True</span></code>, the values of the hyperparameter will be sampled
 on a logarithmic scale. Defaults to <code class="docutils literal notranslate"><span class="pre">False</span></code></p></li>
-<li><p><strong>meta</strong> (<em>(</em><em>Dict</em><em>, </em><em>optional</em><em>)</em>) – Field for holding meta data provided by the user.
+<li><p><strong>meta</strong> (<em>Dict</em><em>, </em><em>optional</em>) – Field for holding meta data provided by the user.
 Not used by the configuration space.</p></li>
 </ul>
 </dd>
@@ -833,23 +828,24 @@ from <code class="docutils literal notranslate"><span class="pre">lower</span></
 <p class="rubric">Example</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ConfigSpace</span> <span class="k">as</span> <span class="nn">CS</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ConfigSpace.hyperparameters</span> <span class="k">as</span> <span class="nn">CSH</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">cs</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">ConfigurationSpace</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cs</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">ConfigurationSpace</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">uniform_float_hp</span> <span class="o">=</span> <span class="n">CSH</span><span class="o">.</span><span class="n">UniformFloatHyperparameter</span><span class="p">(</span><span class="s1">&#39;uni_float&#39;</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
 <span class="gp">... </span>                                                  <span class="n">upper</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">log</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cs</span><span class="o">.</span><span class="n">add_hyperparameter</span><span class="p">(</span><span class="n">uniform_float_hp</span><span class="p">)</span>
+<span class="go">uni_float, Type: UniformFloat, Range: [10.0, 100.0], Default: 55.0</span>
 </pre></div>
 </div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>name</strong> (<em>str</em>) – Name of the hyperparameter, with which it can be accessed</p></li>
-<li><p><strong>lower</strong> (<em>(</em><em>int</em><em>, </em><em>floor</em><em>)</em>) – Lower bound of a range of values from which the hyperparameter will be sampled</p></li>
-<li><p><strong>upper</strong> (<em>(</em><em>int</em><em>, </em><em>float</em><em>)</em>) – Upper bound</p></li>
-<li><p><strong>default_value</strong> (<em>(</em><em>int</em><em>, </em><em>float</em><em>, </em><em>optional</em><em>)</em>) – Sets the default value of a hyperparameter to a given value</p></li>
-<li><p><strong>q</strong> (<em>(</em><em>int</em><em>, </em><em>float</em><em>, </em><em>optional</em><em>)</em>) – Quantization factor</p></li>
-<li><p><strong>log</strong> (<em>(</em><em>bool</em><em>, </em><em>optional</em><em>)</em>) – If <code class="docutils literal notranslate"><span class="pre">True</span></code>, the values of the hyperparameter will be sampled
+<li><p><strong>lower</strong> (<em>int</em><em>, </em><em>floor</em>) – Lower bound of a range of values from which the hyperparameter will be sampled</p></li>
+<li><p><strong>upper</strong> (<em>int</em><em>, </em><em>float</em>) – Upper bound</p></li>
+<li><p><strong>default_value</strong> (<em>int</em><em>, </em><em>float</em><em>, </em><em>optional</em>) – Sets the default value of a hyperparameter to a given value</p></li>
+<li><p><strong>q</strong> (<em>int</em><em>, </em><em>float</em><em>, </em><em>optional</em>) – Quantization factor</p></li>
+<li><p><strong>log</strong> (<em>bool</em><em>, </em><em>optional</em>) – If <code class="docutils literal notranslate"><span class="pre">True</span></code>, the values of the hyperparameter will be sampled
 on a logarithmic scale. Default to <code class="docutils literal notranslate"><span class="pre">False</span></code></p></li>
-<li><p><strong>meta</strong> (<em>(</em><em>Dict</em><em>, </em><em>optional</em><em>)</em>) – Field for holding meta data provided by the user.
+<li><p><strong>meta</strong> (<em>Dict</em><em>, </em><em>optional</em>) – Field for holding meta data provided by the user.
 Not used by the configuration space.</p></li>
 </ul>
 </dd>
@@ -865,23 +861,24 @@ Not used by the configuration space.</p></li>
 <p class="rubric">Example</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ConfigSpace</span> <span class="k">as</span> <span class="nn">CS</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ConfigSpace.hyperparameters</span> <span class="k">as</span> <span class="nn">CSH</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">cs</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">ConfigurationSpace</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cs</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">ConfigurationSpace</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">normal_float_hp</span> <span class="o">=</span> <span class="n">CSH</span><span class="o">.</span><span class="n">NormalFloatHyperparameter</span><span class="p">(</span><span class="s1">&#39;normal_float&#39;</span><span class="p">,</span> <span class="n">mu</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
 <span class="gp">... </span>                                                <span class="n">sigma</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">log</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cs</span><span class="o">.</span><span class="n">add_hyperparameter</span><span class="p">(</span><span class="n">normal_float_hp</span><span class="p">)</span>
+<span class="go">normal_float, Type: NormalFloat, Mu: 0.0 Sigma: 1.0, Default: 0.0</span>
 </pre></div>
 </div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>name</strong> (<em>str</em>) – Name of the hyperparameter, with which it can be accessed</p></li>
-<li><p><strong>mu</strong> (<em>(</em><em>int</em><em>, </em><em>float</em><em>)</em>) – Mean of the distribution</p></li>
-<li><p><strong>sigma</strong> (<em>(</em><em>int</em><em>, </em><em>float</em><em>)</em>) – Standard deviation of the distribution</p></li>
-<li><p><strong>default_value</strong> (<em>(</em><em>int</em><em>, </em><em>float</em><em>, </em><em>optional</em><em>)</em>) – Sets the default value of a hyperparameter to a given value</p></li>
-<li><p><strong>q</strong> (<em>(</em><em>int</em><em>, </em><em>float</em><em>, </em><em>optional</em><em>)</em>) – Quantization factor</p></li>
-<li><p><strong>log</strong> (<em>(</em><em>bool</em><em>, </em><em>optional</em><em>)</em>) – If <code class="docutils literal notranslate"><span class="pre">True</span></code>, the values of the hyperparameter will be sampled
+<li><p><strong>mu</strong> (<em>int</em><em>, </em><em>float</em>) – Mean of the distribution</p></li>
+<li><p><strong>sigma</strong> (<em>int</em><em>, </em><em>float</em>) – Standard deviation of the distribution</p></li>
+<li><p><strong>default_value</strong> (<em>int</em><em>, </em><em>float</em><em>, </em><em>optional</em>) – Sets the default value of a hyperparameter to a given value</p></li>
+<li><p><strong>q</strong> (<em>int</em><em>, </em><em>float</em><em>, </em><em>optional</em>) – Quantization factor</p></li>
+<li><p><strong>log</strong> (<em>bool</em><em>, </em><em>optional</em>) – If <code class="docutils literal notranslate"><span class="pre">True</span></code>, the values of the hyperparameter will be sampled
 on a logarithmic scale. Default to <code class="docutils literal notranslate"><span class="pre">False</span></code></p></li>
-<li><p><strong>meta</strong> (<em>(</em><em>Dict</em><em>, </em><em>optional</em><em>)</em>) – Field for holding meta data provided by the user.
+<li><p><strong>meta</strong> (<em>Dict</em><em>, </em><em>optional</em>) – Field for holding meta data provided by the user.
 Not used by the configuration space.</p></li>
 </ul>
 </dd>
@@ -899,18 +896,19 @@ Not used by the configuration space.</p></li>
 <p class="rubric">Example</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ConfigSpace</span> <span class="k">as</span> <span class="nn">CS</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ConfigSpace.hyperparameters</span> <span class="k">as</span> <span class="nn">CSH</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">cs</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">ConfigurationSpace</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cs</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">ConfigurationSpace</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cat_hp</span> <span class="o">=</span> <span class="n">CSH</span><span class="o">.</span><span class="n">CategoricalHyperparameter</span><span class="p">(</span><span class="s1">&#39;cat_hp&#39;</span><span class="p">,</span> <span class="n">choices</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;red&#39;</span><span class="p">,</span> <span class="s1">&#39;green&#39;</span><span class="p">,</span> <span class="s1">&#39;blue&#39;</span><span class="p">])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cs</span><span class="o">.</span><span class="n">add_hyperparameter</span><span class="p">(</span><span class="n">cat_hp</span><span class="p">)</span>
+<span class="go">cat_hp, Type: Categorical, Choices: {red, green, blue}, Default: red</span>
 </pre></div>
 </div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>name</strong> (<em>str</em>) – Name of the hyperparameter, with which it can be accessed</p></li>
-<li><p><strong>choices</strong> (<em>(</em><em>list</em><em>(</em><em>[</em><em>str</em><em>, </em><em>float</em><em>, </em><em>int</em><em>]</em><em>)</em><em>, </em><em>tuple</em><em>(</em><em>[</em><em>str</em><em>, </em><em>float</em><em>, </em><em>int</em><em>]</em><em>)</em><em>)</em>) – Collection of values to sample hyperparameter from</p></li>
-<li><p><strong>default_value</strong> (<em>(</em><em>int</em><em>, </em><em>float</em><em>, </em><em>str</em><em>, </em><em>optional</em><em>)</em>) – Sets the default value of the hyperparameter to a given value</p></li>
-<li><p><strong>meta</strong> (<em>(</em><em>Dict</em><em>, </em><em>optional</em><em>)</em>) – Field for holding meta data provided by the user.
+<li><p><strong>choices</strong> (<em>list</em><em> or </em><em>tuple with str</em><em>, </em><em>float</em><em>, </em><em>int</em>) – Collection of values to sample hyperparameter from</p></li>
+<li><p><strong>default_value</strong> (<em>int</em><em>, </em><em>float</em><em>, </em><em>str</em><em>, </em><em>optional</em>) – Sets the default value of the hyperparameter to a given value</p></li>
+<li><p><strong>meta</strong> (<em>Dict</em><em>, </em><em>optional</em>) – Field for holding meta data provided by the user.
 Not used by the configuration space.</p></li>
 </ul>
 </dd>
@@ -924,22 +922,24 @@ Not used by the configuration space.</p></li>
 <dt id="ConfigSpace.hyperparameters.OrdinalHyperparameter">
 <em class="property">class </em><code class="sig-prename descclassname">ConfigSpace.hyperparameters.</code><code class="sig-name descname">OrdinalHyperparameter</code><a class="headerlink" href="#ConfigSpace.hyperparameters.OrdinalHyperparameter" title="Permalink to this definition">¶</a></dt>
 <dd><p>An ordinal hyperparameter.</p>
-<p>Its values are sampled form a <code class="docutils literal notranslate"><span class="pre">sequence</span></code> of values.</p>
+<p>Its values are sampled form a <code class="docutils literal notranslate"><span class="pre">sequence</span></code> of values.
+The sequence of values from a ordinal hyperparameter is ordered.</p>
 <p class="rubric">Example</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ConfigSpace</span> <span class="k">as</span> <span class="nn">CS</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ConfigSpace.hyperparameters</span> <span class="k">as</span> <span class="nn">CSH</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">cs</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">ConfigurationSpace</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cs</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">ConfigurationSpace</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ord_hp</span> <span class="o">=</span> <span class="n">CSH</span><span class="o">.</span><span class="n">OrdinalHyperparameter</span><span class="p">(</span><span class="s1">&#39;ordinal_hp&#39;</span><span class="p">,</span> <span class="n">sequence</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;10&#39;</span><span class="p">,</span> <span class="s1">&#39;20&#39;</span><span class="p">,</span> <span class="s1">&#39;30&#39;</span><span class="p">])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cs</span><span class="o">.</span><span class="n">add_hyperparameter</span><span class="p">(</span><span class="n">ord_hp</span><span class="p">)</span>
+<span class="go">ordinal_hp, Type: Ordinal, Sequence: {10, 20, 30}, Default: 10</span>
 </pre></div>
 </div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>name</strong> (<em>str</em>) – Name of the hyperparameter, with which it can be accessed.</p></li>
-<li><p><strong>sequence</strong> (<em>(</em><em>list</em><em>(</em><em>[</em><em>str</em><em>, </em><em>float</em><em>, </em><em>int</em><em>]</em><em>)</em><em>, </em><em>tuple</em><em>(</em><em>[</em><em>str</em><em>, </em><em>float</em><em>, </em><em>int</em><em>]</em><em>)</em><em>)</em>) – collection of values to sample hyperparameter from.</p></li>
-<li><p><strong>default_value</strong> (<em>(</em><em>int</em><em>, </em><em>float</em><em>, </em><em>str</em><em>, </em><em>optional</em><em>)</em>) – Sets the default value of a hyperparameter to a given value.</p></li>
-<li><p><strong>meta</strong> (<em>(</em><em>Dict</em><em>, </em><em>optional</em><em>)</em>) – Field for holding meta data provided by the user.
+<li><p><strong>sequence</strong> (<em>list</em><em> or </em><em>tuple with</em><em> (</em><em>str</em><em>, </em><em>float</em><em>, </em><em>int</em><em>)</em>) – ordered collection of values to sample hyperparameter from.</p></li>
+<li><p><strong>default_value</strong> (<em>int</em><em>, </em><em>float</em><em>, </em><em>str</em><em>, </em><em>optional</em>) – Sets the default value of a hyperparameter to a given value.</p></li>
+<li><p><strong>meta</strong> (<em>Dict</em><em>, </em><em>optional</em>) – Field for holding meta data provided by the user.
 Not used by the configuration space.</p></li>
 </ul>
 </dd>
@@ -950,13 +950,10 @@ Not used by the configuration space.</p></li>
 </div>
 <div class="section" id="conditions">
 <span id="id3"></span><h2>Conditions<a class="headerlink" href="#conditions" title="Permalink to this headline">¶</a></h2>
-<p>It is often necessary to make some constraint on hyperparameters. For example we have one hyperparameter, which decides whether
-we use method b or method b, and each method has additional unique hyperparameter.
-Those depending hyperparameters are called <em>child</em> hyperparameter.
-It is desired, that they should only be “active”, if their <em>parent</em> hyperparameter
-has the right value.
-This can be accomplished, using <strong>conditions</strong>.</p>
-<p>To see an example of how to use conditions, please take a look at the <a class="reference internal" href="Guide.html"><span class="doc">Guide</span></a></p>
+<p>ConfigSpace can realize <em>equal</em>, <em>not equal</em>, <em>less than</em>, <em>greater than</em> and
+<em>in conditions</em>. Conditions can be combined by using the conjunctions <em>and</em> and
+<em>or</em>. To see how to use conditions, please take a look at the
+<a class="reference internal" href="User-Guide.html"><span class="doc">user guide</span></a>.</p>
 <div class="section" id="equalscondition">
 <h3>4.1 EqualsCondition<a class="headerlink" href="#equalscondition" title="Permalink to this headline">¶</a></h3>
 <dl class="class">
@@ -971,9 +968,13 @@ being <em>equal</em> to <code class="docutils literal notranslate"><span class="
 <span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">CSH</span><span class="o">.</span><span class="n">CategoricalHyperparameter</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="n">choices</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">b</span> <span class="o">=</span> <span class="n">CSH</span><span class="o">.</span><span class="n">UniformFloatHyperparameter</span><span class="p">(</span><span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="mf">1.</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="mf">8.</span><span class="p">,</span> <span class="n">log</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cs</span><span class="o">.</span><span class="n">add_hyperparameters</span><span class="p">([</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">])</span>
-<span class="go"># makes &#39;b&#39; an active hyperparameter if &#39;a&#39; has the value 1</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">cond</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">EqualsCondition</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="go">[a, Type: Categorical, Choices: {1, 2, 3}, Default: 1, b, Type: ...]</span>
+</pre></div>
+</div>
+<p>make <em>b</em> an active hyperparameter if <em>a</em> has the value 1</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">cond</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">EqualsCondition</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cs</span><span class="o">.</span><span class="n">add_condition</span><span class="p">(</span><span class="n">cond</span><span class="p">)</span>
+<span class="go">b | a == 1</span>
 </pre></div>
 </div>
 <dl class="field-list simple">
@@ -982,7 +983,7 @@ being <em>equal</em> to <code class="docutils literal notranslate"><span class="
 <li><p><strong>child</strong> (<a class="reference internal" href="#hyperparameters"><span class="std std-ref">Hyperparameters</span></a>) – This hyperparameter will be sampled in the configspace
 if the <em>equal condition</em> is satisfied</p></li>
 <li><p><strong>parent</strong> (<a class="reference internal" href="#hyperparameters"><span class="std std-ref">Hyperparameters</span></a>) – The hyperparameter, which has to satisfy the <em>equal condition</em></p></li>
-<li><p><strong>value</strong> (<em>(</em><em>str</em><em>, </em><em>float</em><em>, </em><em>int</em><em>)</em>) – Value, which the parent is compared to</p></li>
+<li><p><strong>value</strong> (<em>str</em><em>, </em><em>float</em><em>, </em><em>int</em>) – Value, which the parent is compared to</p></li>
 </ul>
 </dd>
 </dl>
@@ -1003,9 +1004,13 @@ being <em>not equal</em> to <code class="docutils literal notranslate"><span cla
 <span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">CSH</span><span class="o">.</span><span class="n">CategoricalHyperparameter</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="n">choices</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">b</span> <span class="o">=</span> <span class="n">CSH</span><span class="o">.</span><span class="n">UniformFloatHyperparameter</span><span class="p">(</span><span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="mf">1.</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="mf">8.</span><span class="p">,</span> <span class="n">log</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cs</span><span class="o">.</span><span class="n">add_hyperparameters</span><span class="p">([</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">])</span>
-<span class="go"># makes &#39;b&#39; an active hyperparameter if &#39;a&#39; has **not** the value 1</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">cond</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">NotEqualsCondition</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="go">[a, Type: Categorical, Choices: {1, 2, 3}, Default: 1, b, Type: ...]</span>
+</pre></div>
+</div>
+<p>make <em>b</em> an active hyperparameter if <em>a</em> has <strong>not</strong> the value 1</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">cond</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">NotEqualsCondition</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cs</span><span class="o">.</span><span class="n">add_condition</span><span class="p">(</span><span class="n">cond</span><span class="p">)</span>
+<span class="go">b | a != 1</span>
 </pre></div>
 </div>
 <dl class="field-list simple">
@@ -1015,7 +1020,7 @@ being <em>not equal</em> to <code class="docutils literal notranslate"><span cla
 if the not-equals condition is satisfied</p></li>
 <li><p><strong>parent</strong> (<a class="reference internal" href="#hyperparameters"><span class="std std-ref">Hyperparameters</span></a>) – The hyperparameter, which has to satisfy the
 <em>not equal condition</em></p></li>
-<li><p><strong>value</strong> (<em>(</em><em>str</em><em>, </em><em>float</em><em>, </em><em>int</em><em>)</em>) – Value, which the parent is compared to</p></li>
+<li><p><strong>value</strong> (<em>str</em><em>, </em><em>float</em><em>, </em><em>int</em>) – Value, which the parent is compared to</p></li>
 </ul>
 </dd>
 </dl>
@@ -1036,9 +1041,13 @@ being <em>less than</em> <code class="docutils literal notranslate"><span class=
 <span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">CSH</span><span class="o">.</span><span class="n">UniformFloatHyperparameter</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="mf">10.</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">b</span> <span class="o">=</span> <span class="n">CSH</span><span class="o">.</span><span class="n">UniformFloatHyperparameter</span><span class="p">(</span><span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="mf">1.</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="mf">8.</span><span class="p">,</span> <span class="n">log</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cs</span><span class="o">.</span><span class="n">add_hyperparameters</span><span class="p">([</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">])</span>
-<span class="go"># makes &#39;b&#39; an active hyperparameter if &#39;a&#39; is less than 5</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">cond</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">LessThanCondition</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="mf">5.</span><span class="p">)</span>
+<span class="go">[a, Type: UniformFloat, Range: [0.0, 10.0], Default: 5.0, b, Type: ...]</span>
+</pre></div>
+</div>
+<p>make <em>b</em> an active hyperparameter if <em>a</em> is less than 5</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">cond</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">LessThanCondition</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="mf">5.</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cs</span><span class="o">.</span><span class="n">add_condition</span><span class="p">(</span><span class="n">cond</span><span class="p">)</span>
+<span class="go">b | a &lt; 5.0</span>
 </pre></div>
 </div>
 <dl class="field-list simple">
@@ -1047,7 +1056,7 @@ being <em>less than</em> <code class="docutils literal notranslate"><span class=
 <li><p><strong>child</strong> (<a class="reference internal" href="#hyperparameters"><span class="std std-ref">Hyperparameters</span></a>) – This hyperparameter will be sampled in the configspace,
 if the <em>LessThanCondition</em> is satisfied</p></li>
 <li><p><strong>parent</strong> (<a class="reference internal" href="#hyperparameters"><span class="std std-ref">Hyperparameters</span></a>) – The hyperparameter, which has to satisfy the <em>LessThanCondition</em></p></li>
-<li><p><strong>value</strong> (<em>(</em><em>str</em><em>, </em><em>float</em><em>, </em><em>int</em><em>)</em>) – Value, which the parent is compared to</p></li>
+<li><p><strong>value</strong> (<em>str</em><em>, </em><em>float</em><em>, </em><em>int</em>) – Value, which the parent is compared to</p></li>
 </ul>
 </dd>
 </dl>
@@ -1064,13 +1073,17 @@ being <em>greater than</em> <code class="docutils literal notranslate"><span cla
 <p class="rubric">Example</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ConfigSpace</span> <span class="k">as</span> <span class="nn">CS</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ConfigSpace.hyperparameters</span> <span class="k">as</span> <span class="nn">CSH</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">cs</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">ConfigurationSpace</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cs</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">ConfigurationSpace</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">CSH</span><span class="o">.</span><span class="n">UniformFloatHyperparameter</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="mf">10.</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">b</span> <span class="o">=</span> <span class="n">CSH</span><span class="o">.</span><span class="n">UniformFloatHyperparameter</span><span class="p">(</span><span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="mf">1.</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="mf">8.</span><span class="p">,</span> <span class="n">log</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cs</span><span class="o">.</span><span class="n">add_hyperparameters</span><span class="p">([</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">])</span>
-<span class="go"># makes &#39;b&#39; an active hyperparameter if &#39;a&#39; is greater than 5</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">cond</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">GreaterThanCondition</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="mf">5.</span><span class="p">)</span>
+<span class="go">[a, Type: UniformFloat, Range: [0.0, 10.0], Default: 5.0, b, Type: ...]</span>
+</pre></div>
+</div>
+<p>make <em>b</em> an active hyperparameter if <em>a</em> is greater than 5</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">cond</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">GreaterThanCondition</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="mf">5.</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cs</span><span class="o">.</span><span class="n">add_condition</span><span class="p">(</span><span class="n">cond</span><span class="p">)</span>
+<span class="go">b | a &gt; 5.0</span>
 </pre></div>
 </div>
 <dl class="field-list simple">
@@ -1079,7 +1092,7 @@ being <em>greater than</em> <code class="docutils literal notranslate"><span cla
 <li><p><strong>child</strong> (<a class="reference internal" href="#hyperparameters"><span class="std std-ref">Hyperparameters</span></a>) – This hyperparameter will be sampled in the configspace,
 if the <em>GreaterThanCondition</em> is satisfied</p></li>
 <li><p><strong>parent</strong> (<a class="reference internal" href="#hyperparameters"><span class="std std-ref">Hyperparameters</span></a>) – The hyperparameter, which has to satisfy the <em>GreaterThanCondition</em></p></li>
-<li><p><strong>value</strong> (<em>(</em><em>str</em><em>, </em><em>float</em><em>, </em><em>int</em><em>)</em>) – Value, which the parent is compared to</p></li>
+<li><p><strong>value</strong> (<em>str</em><em>, </em><em>float</em><em>, </em><em>int</em>) – Value, which the parent is compared to</p></li>
 </ul>
 </dd>
 </dl>
@@ -1096,13 +1109,17 @@ being <em>in</em> a set of <code class="docutils literal notranslate"><span clas
 <p class="rubric">Example</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ConfigSpace</span> <span class="k">as</span> <span class="nn">CS</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ConfigSpace.hyperparameters</span> <span class="k">as</span> <span class="nn">CSH</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">cs</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">ConfigurationSpace</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cs</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">ConfigurationSpace</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">CSH</span><span class="o">.</span><span class="n">UniformIntegerHyperparameter</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">b</span> <span class="o">=</span> <span class="n">CSH</span><span class="o">.</span><span class="n">UniformFloatHyperparameter</span><span class="p">(</span><span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="mf">1.</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="mf">8.</span><span class="p">,</span> <span class="n">log</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cs</span><span class="o">.</span><span class="n">add_hyperparameters</span><span class="p">([</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">])</span>
-<span class="go"># makes &#39;b&#39; an active hyperparameter if &#39;a&#39; is in the set [1, 2, 3, 4]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">cond</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">InCondition</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">])</span>
+<span class="go">[a, Type: UniformInteger, Range: [0, 10], Default: 5, b, Type: ...]</span>
+</pre></div>
+</div>
+<p>make <em>b</em> an active hyperparameter if <em>a</em> is in the set [1, 2, 3, 4]</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">cond</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">InCondition</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cs</span><span class="o">.</span><span class="n">add_condition</span><span class="p">(</span><span class="n">cond</span><span class="p">)</span>
+<span class="go">b | a in {1, 2, 3, 4}</span>
 </pre></div>
 </div>
 <dl class="field-list simple">
@@ -1111,7 +1128,7 @@ being <em>in</em> a set of <code class="docutils literal notranslate"><span clas
 <li><p><strong>child</strong> (<a class="reference internal" href="#hyperparameters"><span class="std std-ref">Hyperparameters</span></a>) – This hyperparameter will be sampled in the configspace,
 if the <em>InCondition</em> is satisfied</p></li>
 <li><p><strong>parent</strong> (<a class="reference internal" href="#hyperparameters"><span class="std std-ref">Hyperparameters</span></a>) – The hyperparameter, which has to satisfy the <em>InCondition</em></p></li>
-<li><p><strong>values</strong> (<em>list</em><em>(</em><em>[</em><em>str</em><em>, </em><em>float</em><em>, </em><em>int</em><em>]</em><em>)</em>) – Collection of values, which the parent is compared to</p></li>
+<li><p><strong>values</strong> (<em>list</em><em>(</em><em>str</em><em>, </em><em>float</em><em>, </em><em>int</em><em>)</em>) – Collection of values, which the parent is compared to</p></li>
 </ul>
 </dd>
 </dl>
@@ -1129,14 +1146,18 @@ if the <em>InCondition</em> is satisfied</p></li>
 <em>AndConjunction</em> can be combined.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ConfigSpace</span> <span class="k">as</span> <span class="nn">CS</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ConfigSpace.hyperparameters</span> <span class="k">as</span> <span class="nn">CSH</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">cs</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">ConfigurationSpace</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cs</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">ConfigurationSpace</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">CSH</span><span class="o">.</span><span class="n">UniformIntegerHyperparameter</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="mi">15</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">b</span> <span class="o">=</span> <span class="n">CSH</span><span class="o">.</span><span class="n">UniformIntegerHyperparameter</span><span class="p">(</span><span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">c</span> <span class="o">=</span> <span class="n">CSH</span><span class="o">.</span><span class="n">UniformFloatHyperparameter</span><span class="p">(</span><span class="s1">&#39;c&#39;</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="mf">1.</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cs</span><span class="o">.</span><span class="n">add_hyperparameters</span><span class="p">([</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span><span class="p">])</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">less_cond</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">LessThanCondition</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+<span class="go">[a, Type: UniformInteger, Range: [5, 15], Default: 10, b, Type: ...]</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">less_cond</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">LessThanCondition</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">greater_cond</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">GreaterThanCondition</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cs</span><span class="o">.</span><span class="n">add_condition</span><span class="p">(</span><span class="n">CS</span><span class="o">.</span><span class="n">AndConjunction</span><span class="p">(</span><span class="n">less_cond</span><span class="p">,</span> <span class="n">greater_cond</span><span class="p">))</span>
+<span class="go">(c | a &lt; 10 &amp;&amp; c | b &gt; 5)</span>
 </pre></div>
 </div>
 <dl class="field-list simple">
@@ -1157,14 +1178,18 @@ using the <em>OrConjunction</em>.</p>
 <p class="rubric">Example</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ConfigSpace</span> <span class="k">as</span> <span class="nn">CS</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ConfigSpace.hyperparameters</span> <span class="k">as</span> <span class="nn">CSH</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">cs</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">ConfigurationSpace</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cs</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">ConfigurationSpace</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">CSH</span><span class="o">.</span><span class="n">UniformIntegerHyperparameter</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="mi">15</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">b</span> <span class="o">=</span> <span class="n">CSH</span><span class="o">.</span><span class="n">UniformIntegerHyperparameter</span><span class="p">(</span><span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">c</span> <span class="o">=</span> <span class="n">CSH</span><span class="o">.</span><span class="n">UniformFloatHyperparameter</span><span class="p">(</span><span class="s1">&#39;c&#39;</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="mf">1.</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cs</span><span class="o">.</span><span class="n">add_hyperparameters</span><span class="p">([</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span><span class="p">])</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">less_cond</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">LessThanCondition</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+<span class="go">[a, Type: UniformInteger, Range: [5, 15], Default: 10, b, Type: ...]</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">less_cond</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">LessThanCondition</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">greater_cond</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">GreaterThanCondition</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cs</span><span class="o">.</span><span class="n">add_condition</span><span class="p">(</span><span class="n">CS</span><span class="o">.</span><span class="n">OrConjunction</span><span class="p">(</span><span class="n">less_cond</span><span class="p">,</span> <span class="n">greater_cond</span><span class="p">))</span>
+<span class="go">(c | a &lt; 10 || c | b &gt; 5)</span>
 </pre></div>
 </div>
 <dl class="field-list simple">
@@ -1178,50 +1203,12 @@ using the <em>OrConjunction</em>.</p>
 </div>
 <div class="section" id="forbidden-clauses">
 <span id="id6"></span><h2>Forbidden Clauses<a class="headerlink" href="#forbidden-clauses" title="Permalink to this headline">¶</a></h2>
-<p>In addition to the conditions, it’s also possible to add forbidden clauses to the configuration space.
-They allow us to make some more restrictions to the configuration space.</p>
-<p>In the following example the usage and utility of forbidden clauses is shown.
-It describes the configuration space for the linear support vector machine implementation from auto-sklearn. The full code can be found
-<a class="reference external" href="https://github.com/automl/auto-sklearn/blob/master/autosklearn/pipeline/components/classification/liblinear_svc.py">here</a>.:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">get_hyperparameter_search_space</span><span class="p">(</span><span class="n">dataset_properties</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="n">cs</span> <span class="o">=</span> <span class="n">ConfigurationSpace</span><span class="p">()</span>
-
-    <span class="n">penalty</span> <span class="o">=</span> <span class="n">cs</span><span class="o">.</span><span class="n">add_hyperparameter</span><span class="p">(</span><span class="n">CategoricalHyperparameter</span><span class="p">(</span>
-        <span class="s2">&quot;penalty&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;l1&quot;</span><span class="p">,</span> <span class="s2">&quot;l2&quot;</span><span class="p">],</span> <span class="n">default</span><span class="o">=</span><span class="s2">&quot;l2&quot;</span><span class="p">))</span>
-    <span class="n">loss</span> <span class="o">=</span> <span class="n">cs</span><span class="o">.</span><span class="n">add_hyperparameter</span><span class="p">(</span><span class="n">CategoricalHyperparameter</span><span class="p">(</span>
-        <span class="s2">&quot;loss&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;hinge&quot;</span><span class="p">,</span> <span class="s2">&quot;squared_hinge&quot;</span><span class="p">],</span> <span class="n">default</span><span class="o">=</span><span class="s2">&quot;squared_hinge&quot;</span><span class="p">))</span>
-    <span class="n">dual</span> <span class="o">=</span> <span class="n">cs</span><span class="o">.</span><span class="n">add_hyperparameter</span><span class="p">(</span><span class="n">Constant</span><span class="p">(</span><span class="s2">&quot;dual&quot;</span><span class="p">,</span> <span class="s2">&quot;False&quot;</span><span class="p">))</span>
-    <span class="c1"># This is set ad-hoc</span>
-    <span class="n">tol</span> <span class="o">=</span> <span class="n">cs</span><span class="o">.</span><span class="n">add_hyperparameter</span><span class="p">(</span><span class="n">UniformFloatHyperparameter</span><span class="p">(</span>
-        <span class="s2">&quot;tol&quot;</span><span class="p">,</span> <span class="mf">1e-5</span><span class="p">,</span> <span class="mf">1e-1</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mf">1e-4</span><span class="p">,</span> <span class="n">log</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
-    <span class="n">C</span> <span class="o">=</span> <span class="n">cs</span><span class="o">.</span><span class="n">add_hyperparameter</span><span class="p">(</span><span class="n">UniformFloatHyperparameter</span><span class="p">(</span>
-        <span class="s2">&quot;C&quot;</span><span class="p">,</span> <span class="mf">0.03125</span><span class="p">,</span> <span class="mi">32768</span><span class="p">,</span> <span class="n">log</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mf">1.0</span><span class="p">))</span>
-    <span class="n">multi_class</span> <span class="o">=</span> <span class="n">cs</span><span class="o">.</span><span class="n">add_hyperparameter</span><span class="p">(</span><span class="n">Constant</span><span class="p">(</span><span class="s2">&quot;multi_class&quot;</span><span class="p">,</span> <span class="s2">&quot;ovr&quot;</span><span class="p">))</span>
-    <span class="c1"># These are set ad-hoc</span>
-    <span class="n">fit_intercept</span> <span class="o">=</span> <span class="n">cs</span><span class="o">.</span><span class="n">add_hyperparameter</span><span class="p">(</span><span class="n">Constant</span><span class="p">(</span><span class="s2">&quot;fit_intercept&quot;</span><span class="p">,</span> <span class="s2">&quot;True&quot;</span><span class="p">))</span>
-    <span class="n">intercept_scaling</span> <span class="o">=</span> <span class="n">cs</span><span class="o">.</span><span class="n">add_hyperparameter</span><span class="p">(</span><span class="n">Constant</span><span class="p">(</span>
-        <span class="s2">&quot;intercept_scaling&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
-
-    <span class="n">penalty_and_loss</span> <span class="o">=</span> <span class="n">ForbiddenAndConjunction</span><span class="p">(</span>
-        <span class="n">ForbiddenEqualsClause</span><span class="p">(</span><span class="n">penalty</span><span class="p">,</span> <span class="s2">&quot;l1&quot;</span><span class="p">),</span>
-        <span class="n">ForbiddenEqualsClause</span><span class="p">(</span><span class="n">loss</span><span class="p">,</span> <span class="s2">&quot;hinge&quot;</span><span class="p">)</span>
-    <span class="p">)</span>
-    <span class="n">constant_penalty_and_loss</span> <span class="o">=</span> <span class="n">ForbiddenAndConjunction</span><span class="p">(</span>
-        <span class="n">ForbiddenEqualsClause</span><span class="p">(</span><span class="n">dual</span><span class="p">,</span> <span class="s2">&quot;False&quot;</span><span class="p">),</span>
-        <span class="n">ForbiddenEqualsClause</span><span class="p">(</span><span class="n">penalty</span><span class="p">,</span> <span class="s2">&quot;l2&quot;</span><span class="p">),</span>
-        <span class="n">ForbiddenEqualsClause</span><span class="p">(</span><span class="n">loss</span><span class="p">,</span> <span class="s2">&quot;hinge&quot;</span><span class="p">)</span>
-    <span class="p">)</span>
-    <span class="n">penalty_and_dual</span> <span class="o">=</span> <span class="n">ForbiddenAndConjunction</span><span class="p">(</span>
-        <span class="n">ForbiddenEqualsClause</span><span class="p">(</span><span class="n">dual</span><span class="p">,</span> <span class="s2">&quot;False&quot;</span><span class="p">),</span>
-        <span class="n">ForbiddenEqualsClause</span><span class="p">(</span><span class="n">penalty</span><span class="p">,</span> <span class="s2">&quot;l1&quot;</span><span class="p">)</span>
-    <span class="p">)</span>
-    <span class="n">cs</span><span class="o">.</span><span class="n">add_forbidden_clause</span><span class="p">(</span><span class="n">penalty_and_loss</span><span class="p">)</span>
-    <span class="n">cs</span><span class="o">.</span><span class="n">add_forbidden_clause</span><span class="p">(</span><span class="n">constant_penalty_and_loss</span><span class="p">)</span>
-    <span class="n">cs</span><span class="o">.</span><span class="n">add_forbidden_clause</span><span class="p">(</span><span class="n">penalty_and_dual</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">cs</span>
-</pre></div>
-</div>
-<p>For a further example, please take a look in the <a class="reference internal" href="Guide.html"><span class="doc">guide</span></a></p>
+<p>ConfigSpace contains <em>forbidden equal</em> and <em>forbidden in clauses</em>.
+The <em>ForbiddenEqualsClause</em> and the <em>ForbiddenInClause</em> can forbid values to be
+sampled from a configuration space if a certain condition is met. The
+<em>ForbiddenAndConjunction</em> can be used to combine <em>ForbiddenEqualsClauses</em> and
+the <em>ForbiddenInClauses</em>.</p>
+<p>For a further example, please take a look in the <a class="reference internal" href="User-Guide.html"><span class="doc">user guide</span></a>.</p>
 <div class="section" id="forbiddenequalsclause">
 <h3>5.1 ForbiddenEqualsClause<a class="headerlink" href="#forbiddenequalsclause" title="Permalink to this headline">¶</a></h3>
 <dl class="class">
@@ -1234,9 +1221,13 @@ It describes the configuration space for the linear support vector machine imple
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">cs</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">ConfigurationSpace</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">CSH</span><span class="o">.</span><span class="n">CategoricalHyperparameter</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cs</span><span class="o">.</span><span class="n">add_hyperparameters</span><span class="p">([</span><span class="n">a</span><span class="p">])</span>
-<span class="go"># It forbids the value 2 for the hyperparameter a</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">forbidden_clause_a</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">ForbiddenEqualsClause</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="go">[a, Type: Categorical, Choices: {1, 2, 3}, Default: 1]</span>
+</pre></div>
+</div>
+<p>It forbids the value 2 for the hyperparameter <em>a</em></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">forbidden_clause_a</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">ForbiddenEqualsClause</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cs</span><span class="o">.</span><span class="n">add_forbidden_clause</span><span class="p">(</span><span class="n">forbidden_clause_a</span><span class="p">)</span>
+<span class="go">Forbidden: a == 2</span>
 </pre></div>
 </div>
 <dl class="field-list simple">
@@ -1263,12 +1254,16 @@ It describes the configuration space for the linear support vector machine imple
 <p>The forbidden values have to be a subset of the hyperparameter’s values.</p>
 </div>
 <p class="rubric">Example</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">cs</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">ConfigurationSpace</span><span class="p">()</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">cs</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">ConfigurationSpace</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">CSH</span><span class="o">.</span><span class="n">CategoricalHyperparameter</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cs</span><span class="o">.</span><span class="n">add_hyperparameters</span><span class="p">([</span><span class="n">a</span><span class="p">])</span>
-<span class="go"># It forbids the values 2, 3, 4 for the hyperparameter &#39;a&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">forbidden_clause_a</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">ForbiddenInClause</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">])</span>
+<span class="go">[a, Type: Categorical, Choices: {1, 2, 3}, Default: 1]</span>
+</pre></div>
+</div>
+<p>It forbids the values 2, 3, 4 for the hyperparameter <em>a</em></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">forbidden_clause_a</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">ForbiddenInClause</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cs</span><span class="o">.</span><span class="n">add_forbidden_clause</span><span class="p">(</span><span class="n">forbidden_clause_a</span><span class="p">)</span>
+<span class="go">Forbidden: a in {2, 3}</span>
 </pre></div>
 </div>
 <dl class="field-list simple">
@@ -1291,19 +1286,23 @@ It describes the configuration space for the linear support vector machine imple
 <p>The ForbiddenAndConjunction combines forbidden-clauses, which allows to
 build powerful constraints.</p>
 <p class="rubric">Example</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">cs</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">ConfigurationSpace</span><span class="p">()</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">cs</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">ConfigurationSpace</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">CSH</span><span class="o">.</span><span class="n">CategoricalHyperparameter</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">b</span> <span class="o">=</span> <span class="n">CSH</span><span class="o">.</span><span class="n">CategoricalHyperparameter</span><span class="p">(</span><span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">6</span><span class="p">])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cs</span><span class="o">.</span><span class="n">add_hyperparameters</span><span class="p">([</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">])</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">forbidden_clause_a</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">ForbiddenEqualsClause</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="go">[a, Type: Categorical, Choices: {1, 2, 3}, Default: 1, b, Type: ...]</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">forbidden_clause_a</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">ForbiddenEqualsClause</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">forbidden_clause_b</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">ForbiddenInClause</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="p">[</span><span class="mi">2</span><span class="p">])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">forbidden_clause</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">ForbiddenAndConjunction</span><span class="p">(</span><span class="n">forbidden_clause_a</span><span class="p">,</span> <span class="n">forbidden_clause_b</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cs</span><span class="o">.</span><span class="n">add_forbidden_clause</span><span class="p">(</span><span class="n">forbidden_clause</span><span class="p">)</span>
+<span class="go">(Forbidden: a == 2 &amp;&amp; Forbidden: b in {2})</span>
 </pre></div>
 </div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>*args</strong> (list([<a class="reference internal" href="#forbidden-clauses"><span class="std std-ref">Forbidden Clauses</span></a>])) – forbidden clauses, which should be combined</p>
+<dd class="field-odd"><p><strong>*args</strong> (list(<a class="reference internal" href="#forbidden-clauses"><span class="std std-ref">Forbidden Clauses</span></a>)) – forbidden clauses, which should be combined</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1312,25 +1311,22 @@ build powerful constraints.</p>
 </div>
 <div class="section" id="serialization">
 <span id="id7"></span><h2>Serialization<a class="headerlink" href="#serialization" title="Permalink to this headline">¶</a></h2>
-<div class="line-block">
-<div class="line">ConfigSpace offers also the functionality to serialize the configuration space.
-This can be useful to share configuration spaces across experiments,
-or use them in other tools, for example to analyze hyperparameter importance with
-<a class="reference external" href="https://github.com/automl/CAVE">CAVE</a>,</div>
-<div class="line">This can be achieved by using the classes <strong>ConfigSpace.read_and_write.pcs</strong>,
-<strong>ConfigSpace.read_and_write.pcs_new</strong> or <strong>ConfigSpace.read_and_write.json</strong>.</div>
-</div>
+<p>ConfigSpace offers <em>json</em>, <em>pcs</em> and <em>pcs_new</em> writers/readers.
+These classes can serialize and deserialize configuration spaces.
+Serializing configuration spaces is useful to share configuration spaces across
+experiments, or use them in other tools, for example, to analyze hyperparameter
+importance with <a class="reference external" href="https://github.com/automl/CAVE">CAVE</a>.</p>
 <div class="section" id="module-ConfigSpace.read_and_write.json">
 <span id="serialization-to-json"></span><span id="json"></span><h3>6.1 Serialization to JSON<a class="headerlink" href="#module-ConfigSpace.read_and_write.json" title="Permalink to this headline">¶</a></h3>
 <dl class="function">
 <dt id="ConfigSpace.read_and_write.json.read">
 <code class="sig-prename descclassname">ConfigSpace.read_and_write.json.</code><code class="sig-name descname">read</code><span class="sig-paren">(</span><em class="sig-param">jason_string</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ConfigSpace/read_and_write/json.html#read"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ConfigSpace.read_and_write.json.read" title="Permalink to this definition">¶</a></dt>
-<dd><p>Creates a configuration space definition from a json string.</p>
+<dd><p>Create a configuration space definition from a json string.</p>
 <p class="rubric">Example</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ConfigSpace.read_and_write</span> <span class="k">import</span> <span class="n">json</span>
+<div class="highlight-pycon3 notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ConfigSpace.read_and_write</span> <span class="k">import</span> <span class="n">json</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;configspace.json&#39;</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="n">jason_string</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="n">config</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">jason_string</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">jason_string</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+<span class="gp">... </span>    <span class="n">config</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">jason_string</span><span class="p">)</span>
 </pre></div>
 </div>
 <dl class="field-list simple">
@@ -1338,7 +1334,7 @@ or use them in other tools, for example to analyze hyperparameter importance wit
 <dd class="field-odd"><p><strong>jason_string</strong> (<em>str</em>) – A json string representing a configuration space definition</p>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>The restored ConfigurationSpace object</p>
+<dd class="field-even"><p>The deserialized ConfigurationSpace object</p>
 </dd>
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p><a class="reference internal" href="#ConfigSpace.configuration_space.ConfigurationSpace" title="ConfigSpace.configuration_space.ConfigurationSpace"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigurationSpace</span></code></a></p>
@@ -1349,15 +1345,20 @@ or use them in other tools, for example to analyze hyperparameter importance wit
 <dl class="function">
 <dt id="ConfigSpace.read_and_write.json.write">
 <code class="sig-prename descclassname">ConfigSpace.read_and_write.json.</code><code class="sig-name descname">write</code><span class="sig-paren">(</span><em class="sig-param">configuration_space</em>, <em class="sig-param">indent=2</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ConfigSpace/read_and_write/json.html#write"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ConfigSpace.read_and_write.json.write" title="Permalink to this definition">¶</a></dt>
-<dd><p>Writes a configuration space to a json file</p>
+<dd><p>Create a string representation of a
+<a class="reference internal" href="#ConfigSpace.configuration_space.ConfigurationSpace" title="ConfigSpace.configuration_space.ConfigurationSpace"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigurationSpace</span></code></a> in json format.
+This string can be written to file.</p>
 <p class="rubric">Example</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ConfigSpace</span> <span class="k">import</span> <span class="n">ConfigurationSpace</span>
+<div class="highlight-pycon3 notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ConfigSpace</span> <span class="k">import</span> <span class="n">ConfigurationSpace</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ConfigSpace.hyperparameters</span> <span class="k">as</span> <span class="nn">CSH</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ConfigSpace.read_and_write</span> <span class="k">import</span> <span class="n">json</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cs</span> <span class="o">=</span> <span class="n">ConfigurationSpace</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cs</span><span class="o">.</span><span class="n">add_hyperparameter</span><span class="p">(</span><span class="n">CSH</span><span class="o">.</span><span class="n">CategoricalHyperparameter</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="n">choices</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;config_space.json&#39;</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">cs</span><span class="p">))</span>
+<span class="go">a, Type: Categorical, Choices: {1, 2, 3}, Default: 1</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;configspace.json&#39;</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+<span class="gp">... </span>     <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">cs</span><span class="p">))</span>
+<span class="go">276</span>
 </pre></div>
 </div>
 <dl class="field-list simple">
@@ -1380,26 +1381,31 @@ which will be written to file</p>
 </div>
 <div class="section" id="serialization-with-pcs-new">
 <span id="pcs-new"></span><h3>6.2 Serialization with pcs-new<a class="headerlink" href="#serialization-with-pcs-new" title="Permalink to this headline">¶</a></h3>
-<p>Pcs is a simple, human-readable file format for the description of an algorithm’s configurable parameters, their possible values, as well as any
+<p>Pcs is a simple, human-readable file format for the description of an
+algorithm’s configurable parameters, their possible values, as well as any
 parameter dependencies.</p>
-<p>It is part of the <a class="reference external" href="http://aclib.net/#">Algorithm Configuration Library</a>. A detailed explanation of the pcs format can be
-found <a class="reference external" href="http://aclib.net/cssc2014/pcs-format.pdf">here.</a> or a short summary is also given in the
+<p>Pcs is part of the <a class="reference external" href="http://aclib.net/#">Algorithm Configuration Library</a>.
+A detailed explanation of the pcs format can be found
+<a class="reference external" href="http://aclib.net/cssc2014/pcs-format.pdf">here.</a> A short summary is also
+given in the
 <a class="reference external" href="https://automl.github.io/SMAC3/dev/options.html#paramcs">SMAC Documentation</a>.
-Examples are also provieded in the <a class="reference external" href="https://pysmac.readthedocs.io/en/latest/pcs.html">pysmac documentation</a></p>
+Further examples are provided in the
+<a class="reference external" href="https://pysmac.readthedocs.io/en/latest/pcs.html">pysmac documentation</a></p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>The pcs format definition has changed in the year 2016 and is supported by AClib 2.0 as well as SMAC.
-To write or read the old version of pcs, please use the <a class="reference internal" href="#module-ConfigSpace.read_and_write.pcs" title="ConfigSpace.read_and_write.pcs"><code class="xref py py-class docutils literal notranslate"><span class="pre">pcs</span></code></a> module.</p>
+<p>The pcs format definition has changed in the year 2016 and is supported by
+AClib 2.0, as well as SMAC. To write or to read the old version of pcs, please
+use the <a class="reference internal" href="#module-ConfigSpace.read_and_write.pcs" title="ConfigSpace.read_and_write.pcs"><code class="xref py py-class docutils literal notranslate"><span class="pre">pcs</span></code></a> module.</p>
 </div>
 <span class="target" id="module-ConfigSpace.read_and_write.pcs_new"></span><dl class="function">
 <dt id="ConfigSpace.read_and_write.pcs_new.read">
 <code class="sig-prename descclassname">ConfigSpace.read_and_write.pcs_new.</code><code class="sig-name descname">read</code><span class="sig-paren">(</span><em class="sig-param">pcs_string</em>, <em class="sig-param">debug=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ConfigSpace/read_and_write/pcs_new.html#read"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ConfigSpace.read_and_write.pcs_new.read" title="Permalink to this definition">¶</a></dt>
-<dd><p>Reads in a <a class="reference internal" href="#ConfigSpace.configuration_space.ConfigurationSpace" title="ConfigSpace.configuration_space.ConfigurationSpace"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigurationSpace</span></code></a>
+<dd><p>Read in a <a class="reference internal" href="#ConfigSpace.configuration_space.ConfigurationSpace" title="ConfigSpace.configuration_space.ConfigurationSpace"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigurationSpace</span></code></a>
 definition from a pcs file.</p>
 <p class="rubric">Example</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ConfigSpace.read_and_write</span> <span class="k">import</span> <span class="n">pcs_new</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;configspace.pcs&#39;</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="n">restored_conf</span> <span class="o">=</span> <span class="n">pcs_new</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">fh</span><span class="p">)</span>
+<div class="highlight-pycon3 notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ConfigSpace.read_and_write</span> <span class="k">import</span> <span class="n">pcs_new</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;configspace.pcs_new&#39;</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="n">deserialized_conf</span> <span class="o">=</span> <span class="n">pcs_new</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">fh</span><span class="p">)</span>
 </pre></div>
 </div>
 <dl class="field-list simple">
@@ -1410,7 +1416,7 @@ definition from a pcs file.</p>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>The restored ConfigurationSpace object</p>
+<dd class="field-even"><p>The deserialized ConfigurationSpace object</p>
 </dd>
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p><a class="reference internal" href="#ConfigSpace.configuration_space.ConfigurationSpace" title="ConfigSpace.configuration_space.ConfigurationSpace"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigurationSpace</span></code></a></p>
@@ -1421,7 +1427,22 @@ definition from a pcs file.</p>
 <dl class="function">
 <dt id="ConfigSpace.read_and_write.pcs_new.write">
 <code class="sig-prename descclassname">ConfigSpace.read_and_write.pcs_new.</code><code class="sig-name descname">write</code><span class="sig-paren">(</span><em class="sig-param">configuration_space</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ConfigSpace/read_and_write/pcs_new.html#write"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ConfigSpace.read_and_write.pcs_new.write" title="Permalink to this definition">¶</a></dt>
-<dd><p>Writes a configurations space to file in pcs_new format.</p>
+<dd><p>Create a string representation of a
+<a class="reference internal" href="#ConfigSpace.configuration_space.ConfigurationSpace" title="ConfigSpace.configuration_space.ConfigurationSpace"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigurationSpace</span></code></a>
+in pcs_new format. This string can be written to file.</p>
+<p class="rubric">Example</p>
+<div class="highlight-pycon3 notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ConfigSpace</span> <span class="k">as</span> <span class="nn">CS</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ConfigSpace.hyperparameters</span> <span class="k">as</span> <span class="nn">CSH</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ConfigSpace.read_and_write</span> <span class="k">import</span> <span class="n">pcs_new</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cs</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">ConfigurationSpace</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cs</span><span class="o">.</span><span class="n">add_hyperparameter</span><span class="p">(</span><span class="n">CSH</span><span class="o">.</span><span class="n">CategoricalHyperparameter</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="n">choices</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]))</span>
+<span class="go">a, Type: Categorical, Choices: {1, 2, 3}, Default: 1</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;configspace.pcs_new&#39;</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="n">fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">pcs_new</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">cs</span><span class="p">))</span>
+<span class="go">27</span>
+</pre></div>
+</div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>configuration_space</strong> (<a class="reference internal" href="#ConfigSpace.configuration_space.ConfigurationSpace" title="ConfigSpace.configuration_space.ConfigurationSpace"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigurationSpace</span></code></a>) – a configuration space</p>
@@ -1441,14 +1462,12 @@ definition from a pcs file.</p>
 <dl class="function">
 <dt id="ConfigSpace.read_and_write.pcs.read">
 <code class="sig-prename descclassname">ConfigSpace.read_and_write.pcs.</code><code class="sig-name descname">read</code><span class="sig-paren">(</span><em class="sig-param">pcs_string</em>, <em class="sig-param">debug=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ConfigSpace/read_and_write/pcs.html#read"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ConfigSpace.read_and_write.pcs.read" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="simple">
-<dt>Reads in a <a class="reference internal" href="#ConfigSpace.configuration_space.ConfigurationSpace" title="ConfigSpace.configuration_space.ConfigurationSpace"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigurationSpace</span></code></a></dt><dd><p>definition from a pcs file.</p>
-</dd>
-</dl>
+<dd><p>Read in a <a class="reference internal" href="#ConfigSpace.configuration_space.ConfigurationSpace" title="ConfigSpace.configuration_space.ConfigurationSpace"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigurationSpace</span></code></a>
+definition from a pcs file.</p>
 <p class="rubric">Example</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ConfigSpace.read_and_write</span> <span class="k">import</span> <span class="n">pcs</span>
+<div class="highlight-pycon3 notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ConfigSpace.read_and_write</span> <span class="k">import</span> <span class="n">pcs</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;configspace.pcs&#39;</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="n">restored_conf</span> <span class="o">=</span> <span class="n">pcs_new</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">fh</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">deserialized_conf</span> <span class="o">=</span> <span class="n">pcs</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">fh</span><span class="p">)</span>
 </pre></div>
 </div>
 <dl class="field-list simple">
@@ -1459,7 +1478,7 @@ definition from a pcs file.</p>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>The restored ConfigurationSpace object</p>
+<dd class="field-even"><p>The deserialized ConfigurationSpace object</p>
 </dd>
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p><a class="reference internal" href="#ConfigSpace.configuration_space.ConfigurationSpace" title="ConfigSpace.configuration_space.ConfigurationSpace"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigurationSpace</span></code></a></p>
@@ -1470,15 +1489,20 @@ definition from a pcs file.</p>
 <dl class="function">
 <dt id="ConfigSpace.read_and_write.pcs.write">
 <code class="sig-prename descclassname">ConfigSpace.read_and_write.pcs.</code><code class="sig-name descname">write</code><span class="sig-paren">(</span><em class="sig-param">configuration_space</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ConfigSpace/read_and_write/pcs.html#write"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ConfigSpace.read_and_write.pcs.write" title="Permalink to this definition">¶</a></dt>
-<dd><p>Writes a configurations space to file in pcs format.</p>
+<dd><p>Create a string representation of a
+<a class="reference internal" href="#ConfigSpace.configuration_space.ConfigurationSpace" title="ConfigSpace.configuration_space.ConfigurationSpace"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigurationSpace</span></code></a> in pcs format.
+This string can be written to file.</p>
 <p class="rubric">Example</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ConfigSpace</span> <span class="k">as</span> <span class="nn">CS</span>
+<div class="highlight-pycon3 notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ConfigSpace</span> <span class="k">as</span> <span class="nn">CS</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ConfigSpace.hyperparameters</span> <span class="k">as</span> <span class="nn">CSH</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ConfigSpace.read_and_write</span> <span class="k">import</span> <span class="n">pcs</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cs</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">ConfigurationSpace</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cs</span><span class="o">.</span><span class="n">add_hyperparameter</span><span class="p">(</span><span class="n">CSH</span><span class="o">.</span><span class="n">CategoricalHyperparameter</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="n">choices</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]))</span>
+<span class="go">a, Type: Categorical, Choices: {1, 2, 3}, Default: 1</span>
+
 <span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;configspace.pcs&#39;</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="n">fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">pcs</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">cs</span><span class="p">))</span>
+<span class="gp">... </span>    <span class="n">fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">pcs</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">cs</span><span class="p">))</span>
+<span class="go">15</span>
 </pre></div>
 </div>
 <dl class="field-list simple">
@@ -1498,10 +1522,9 @@ definition from a pcs file.</p>
 </div>
 <div class="section" id="utils">
 <h2>Utils<a class="headerlink" href="#utils" title="Permalink to this headline">¶</a></h2>
-<p>Until now, all examples were designed to define a configuration space.
-However, there is also the application that you want to develop your own tool that creates configurations from
-a given configuration space. Or that you want to modify a given configuration space.</p>
-<p>The functionalities from the file util.py can be very useful.</p>
+<p>Functions defined in the utils module can be helpful to
+develop custom tools that create configurations from a given configuration
+space or modify a given configuration space.</p>
 <span class="target" id="module-ConfigSpace.util"></span><dl class="function">
 <dt id="ConfigSpace.util.deactivate_inactive_hyperparameters">
 <code class="sig-prename descclassname">ConfigSpace.util.</code><code class="sig-name descname">deactivate_inactive_hyperparameters</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.util.deactivate_inactive_hyperparameters" title="Permalink to this definition">¶</a></dt>
