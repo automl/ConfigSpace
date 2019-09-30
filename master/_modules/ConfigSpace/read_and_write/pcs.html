@@ -157,25 +157,43 @@
 <span class="kn">import</span> <span class="nn">pyparsing</span>
 
 <span class="kn">from</span> <span class="nn">ConfigSpace.configuration_space</span> <span class="k">import</span> <span class="n">ConfigurationSpace</span>
-<span class="kn">from</span> <span class="nn">ConfigSpace.hyperparameters</span> <span class="k">import</span> <span class="n">CategoricalHyperparameter</span><span class="p">,</span> \
-    <span class="n">UniformIntegerHyperparameter</span><span class="p">,</span> <span class="n">UniformFloatHyperparameter</span><span class="p">,</span> \
-    <span class="n">NumericalHyperparameter</span><span class="p">,</span> <span class="n">Constant</span><span class="p">,</span> <span class="n">IntegerHyperparameter</span><span class="p">,</span> \
-    <span class="n">NormalIntegerHyperparameter</span><span class="p">,</span> <span class="n">NormalFloatHyperparameter</span>
-<span class="kn">from</span> <span class="nn">ConfigSpace.conditions</span> <span class="k">import</span> <span class="n">EqualsCondition</span><span class="p">,</span> <span class="n">NotEqualsCondition</span><span class="p">,</span>\
-    <span class="n">InCondition</span><span class="p">,</span> <span class="n">AndConjunction</span><span class="p">,</span> <span class="n">OrConjunction</span><span class="p">,</span> <span class="n">ConditionComponent</span>
-<span class="c1"># from ConfigSpace.forbidden import ForbiddenEqualsClause, \</span>
-<span class="c1">#     ForbiddenAndConjunction, ForbiddenInClause, AbstractForbiddenComponent, MultipleValueForbiddenClause</span>
-<span class="kn">from</span> <span class="nn">ConfigSpace.forbidden</span> <span class="k">import</span> <span class="n">ForbiddenEqualsClause</span><span class="p">,</span> \
-    <span class="n">ForbiddenAndConjunction</span><span class="p">,</span> <span class="n">ForbiddenInClause</span><span class="p">,</span> <span class="n">AbstractForbiddenComponent</span><span class="p">,</span> <span class="n">MultipleValueForbiddenClause</span>
+<span class="kn">from</span> <span class="nn">ConfigSpace.hyperparameters</span> <span class="k">import</span> <span class="p">(</span>
+    <span class="n">CategoricalHyperparameter</span><span class="p">,</span>
+    <span class="n">UniformIntegerHyperparameter</span><span class="p">,</span>
+    <span class="n">UniformFloatHyperparameter</span><span class="p">,</span>
+    <span class="n">NumericalHyperparameter</span><span class="p">,</span>
+    <span class="n">Constant</span><span class="p">,</span>
+    <span class="n">IntegerHyperparameter</span><span class="p">,</span>
+    <span class="n">NormalIntegerHyperparameter</span><span class="p">,</span>
+    <span class="n">NormalFloatHyperparameter</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">ConfigSpace.conditions</span> <span class="k">import</span> <span class="p">(</span>
+    <span class="n">EqualsCondition</span><span class="p">,</span>
+    <span class="n">NotEqualsCondition</span><span class="p">,</span>
+    <span class="n">InCondition</span><span class="p">,</span>
+    <span class="n">AndConjunction</span><span class="p">,</span>
+    <span class="n">OrConjunction</span><span class="p">,</span>
+    <span class="n">ConditionComponent</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">ConfigSpace.forbidden</span> <span class="k">import</span> <span class="p">(</span>
+    <span class="n">ForbiddenEqualsClause</span><span class="p">,</span>
+    <span class="n">ForbiddenAndConjunction</span><span class="p">,</span>
+    <span class="n">ForbiddenInClause</span><span class="p">,</span>
+    <span class="n">AbstractForbiddenComponent</span><span class="p">,</span>
+    <span class="n">MultipleValueForbiddenClause</span><span class="p">,</span>
+<span class="p">)</span>
 
 
 <span class="c1"># Build pyparsing expressions for params</span>
-<span class="n">pp_param_name</span> <span class="o">=</span> <span class="n">pyparsing</span><span class="o">.</span><span class="n">Word</span><span class="p">(</span><span class="n">pyparsing</span><span class="o">.</span><span class="n">alphanums</span> <span class="o">+</span> <span class="s2">&quot;_&quot;</span> <span class="o">+</span> <span class="s2">&quot;-&quot;</span> <span class="o">+</span> <span class="s2">&quot;@&quot;</span> <span class="o">+</span> <span class="s2">&quot;.&quot;</span> <span class="o">+</span> <span class="s2">&quot;:&quot;</span> <span class="o">+</span> <span class="s2">&quot;;&quot;</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\\</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span> <span class="o">+</span> <span class="s2">&quot;?&quot;</span> <span class="o">+</span> <span class="s2">&quot;!&quot;</span> <span class="o">+</span>
-                               <span class="s2">&quot;$&quot;</span> <span class="o">+</span> <span class="s2">&quot;%&quot;</span> <span class="o">+</span> <span class="s2">&quot;&amp;&quot;</span> <span class="o">+</span> <span class="s2">&quot;*&quot;</span> <span class="o">+</span> <span class="s2">&quot;+&quot;</span> <span class="o">+</span> <span class="s2">&quot;&lt;&quot;</span> <span class="o">+</span> <span class="s2">&quot;&gt;&quot;</span><span class="p">)</span>
+<span class="n">pp_param_name</span> <span class="o">=</span> <span class="n">pyparsing</span><span class="o">.</span><span class="n">Word</span><span class="p">(</span>
+    <span class="n">pyparsing</span><span class="o">.</span><span class="n">alphanums</span> <span class="o">+</span> <span class="s2">&quot;_&quot;</span> <span class="o">+</span> <span class="s2">&quot;-&quot;</span> <span class="o">+</span> <span class="s2">&quot;@&quot;</span> <span class="o">+</span> <span class="s2">&quot;.&quot;</span> <span class="o">+</span> <span class="s2">&quot;:&quot;</span> <span class="o">+</span> <span class="s2">&quot;;&quot;</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\\</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span> <span class="o">+</span> <span class="s2">&quot;?&quot;</span> <span class="o">+</span> <span class="s2">&quot;!&quot;</span>
+    <span class="o">+</span> <span class="s2">&quot;$&quot;</span> <span class="o">+</span> <span class="s2">&quot;%&quot;</span> <span class="o">+</span> <span class="s2">&quot;&amp;&quot;</span> <span class="o">+</span> <span class="s2">&quot;*&quot;</span> <span class="o">+</span> <span class="s2">&quot;+&quot;</span> <span class="o">+</span> <span class="s2">&quot;&lt;&quot;</span> <span class="o">+</span> <span class="s2">&quot;&gt;&quot;</span><span class="p">)</span>
 <span class="n">pp_digits</span> <span class="o">=</span> <span class="s2">&quot;0123456789&quot;</span>
 <span class="n">pp_plusorminus</span> <span class="o">=</span> <span class="n">pyparsing</span><span class="o">.</span><span class="n">Literal</span><span class="p">(</span><span class="s1">&#39;+&#39;</span><span class="p">)</span> <span class="o">|</span> <span class="n">pyparsing</span><span class="o">.</span><span class="n">Literal</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">)</span>
 <span class="n">pp_int</span> <span class="o">=</span> <span class="n">pyparsing</span><span class="o">.</span><span class="n">Combine</span><span class="p">(</span><span class="n">pyparsing</span><span class="o">.</span><span class="n">Optional</span><span class="p">(</span><span class="n">pp_plusorminus</span><span class="p">)</span> <span class="o">+</span> <span class="n">pyparsing</span><span class="o">.</span><span class="n">Word</span><span class="p">(</span><span class="n">pp_digits</span><span class="p">))</span>
-<span class="n">pp_float</span> <span class="o">=</span> <span class="n">pyparsing</span><span class="o">.</span><span class="n">Combine</span><span class="p">(</span><span class="n">pyparsing</span><span class="o">.</span><span class="n">Optional</span><span class="p">(</span><span class="n">pp_plusorminus</span><span class="p">)</span> <span class="o">+</span> <span class="n">pyparsing</span><span class="o">.</span><span class="n">Optional</span><span class="p">(</span><span class="n">pp_int</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;.&quot;</span> <span class="o">+</span> <span class="n">pp_int</span><span class="p">)</span>
+<span class="n">pp_float</span> <span class="o">=</span> <span class="n">pyparsing</span><span class="o">.</span><span class="n">Combine</span><span class="p">(</span>
+    <span class="n">pyparsing</span><span class="o">.</span><span class="n">Optional</span><span class="p">(</span><span class="n">pp_plusorminus</span><span class="p">)</span> <span class="o">+</span> <span class="n">pyparsing</span><span class="o">.</span><span class="n">Optional</span><span class="p">(</span><span class="n">pp_int</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;.&quot;</span> <span class="o">+</span> <span class="n">pp_int</span>
+<span class="p">)</span>
 <span class="n">pp_eorE</span> <span class="o">=</span> <span class="n">pyparsing</span><span class="o">.</span><span class="n">Literal</span><span class="p">(</span><span class="s1">&#39;e&#39;</span><span class="p">)</span> <span class="o">|</span> <span class="n">pyparsing</span><span class="o">.</span><span class="n">Literal</span><span class="p">(</span><span class="s1">&#39;E&#39;</span><span class="p">)</span>
 <span class="n">pp_floatorint</span> <span class="o">=</span> <span class="n">pp_float</span> <span class="o">|</span> <span class="n">pp_int</span>
 <span class="n">pp_e_notation</span> <span class="o">=</span> <span class="n">pyparsing</span><span class="o">.</span><span class="n">Combine</span><span class="p">(</span><span class="n">pp_floatorint</span> <span class="o">+</span> <span class="n">pp_eorE</span> <span class="o">+</span> <span class="n">pp_int</span><span class="p">)</span>
