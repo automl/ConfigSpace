@@ -9,6 +9,11 @@ test_dir=$cwd/test/
 
 cd $TEST_DIR
 
+echo "###################"
+echo "Current directory and test directory"
+echo `pwd`
+echo "$test_dir"
+
 pytest -sv --cov=ConfigSpace $test_dir
 
 cd $cwd
