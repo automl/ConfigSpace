@@ -39,3 +39,7 @@ if [[ "$INSTALL_FROM_SDIST" == "true" ]]; then
 else
     python setup.py install
 fi
+
+echo "###################"
+echo "conda list"
+conda list

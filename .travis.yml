@@ -26,7 +26,7 @@ install:
 
 # command to run tests, e.g. python setup.py test
 script:
-  - ci_scripts/test.sh
+  - source ci_scripts/test.sh
 
 after_success:
   - codecov
