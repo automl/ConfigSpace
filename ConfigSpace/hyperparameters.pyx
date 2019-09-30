@@ -486,14 +486,17 @@ cdef class UniformFloatHyperparameter(FloatHyperparameter):
         return rs.uniform(size=size)
 
     def _transform(self, vector: Union[np.ndarray, float, int]) -> Optional[Union[np.ndarray, float, int]]:
-        if np.any(np.isnan(vector)):
+        if isinstance(vector, np.ndarray):
+            if np.any(np.isnan(vector)):
+                return None
+        elif np.isnan(vector):
             return None
         vector *= (self._upper - self._lower)
         vector += self._lower
         if self.log:
             vector = np.exp(vector)
         if self.q is not None:
-            vector = int(np.round(vector / self.q, 0)) * self.q
+            vector = np.rint(vector / self.q) * self.q
         vector = np.minimum(self.upper, vector)
         vector = np.maximum(self.lower, vector)
         return vector
@@ -799,19 +802,16 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
         # Map all floats which belong to the same integer value to the same
         # float value by first transforming it to an integer and then
         # transforming it back to a float between zero and one
-        if isinstance(value, np.ndarray):
-            value = np.vectorize(self._transform)(value)
-            value = np.vectorize(self._inverse_transform)(value)
-        else:
-            value = self._transform(value)
-            value = self._inverse_transform(value)
+        value = self._transform(value)
+        value = self._inverse_transform(value)
         return value
 
     def _transform(self, vector: Union[np.ndarray, float, int]) -> Optional[Union[np.ndarray, float, int]]:
 
         # Avoid expensive call to np.any() if not necessary
-        if isinstance(vector, np.ndarray) and np.any(np.isnan(vector)):
-            return None
+        if isinstance(vector, np.ndarray):
+            if np.any(np.isnan(vector)):
+                return None
         elif np.isnan(vector):
             return None
 
@@ -1126,8 +1126,9 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
     def _transform(self, vector: Union[np.ndarray, float, int]) -> Optional[Union[np.ndarray, int]]:
 
         # Avoid expensive call to np.any() if not necessary
-        if isinstance(vector, np.ndarray) and np.any(np.isnan(vector)):
-            return None
+        if isinstance(vector, np.ndarray):
+            if np.any(np.isnan(vector)):
+                return None
         elif np.isnan(vector):
             return None
 
