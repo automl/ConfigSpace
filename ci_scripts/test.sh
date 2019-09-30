@@ -9,7 +9,7 @@ test_dir=$cwd/test/
 
 cd $TEST_DIR
 
-pytest -sv --cov=ConfigSpace test
+pytest -sv --cov=ConfigSpace $test_dir
 
 cd $cwd
 
