@@ -808,13 +808,13 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
         return value
 
     def _transform(self, vector: Union[np.ndarray, float, int]) -> Optional[Union[np.ndarray, float, int]]:
-        
+
         # Avoid expensive call to np.any() if not necessary
         if isinstance(vector, np.ndarray) and np.any(np.isnan(vector)):
             return None
         elif np.isnan(vector):
             return None
-        
+
         vector = self.ufhp._transform(vector)
         if self.q is not None:
             vector = (np.round(vector / self.q, 0)).astype(int) * self.q
@@ -879,11 +879,18 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
         transform: bool=False,
         std: float=0.2,
     ) -> List[int]:
+        cdef int n_requested = number
+        cdef int idx = 0
         neighbors = []  # type: List[int]
+        cdef int sampled_neighbors = 0
         _neighbors_as_int = set()  # type: Set[int]
-        int_value = self._transform(value)
+        cdef long int_value = self._transform(value)
+        cdef long new_int_value = 0
+        cdef float new_value = 0.0
+        cdef np.ndarray samples
+        cdef double[:] samples_view
 
-        if self.upper - self.lower <= number:
+        if self.upper - self.lower <= n_requested:
             transformed_value = self._transform(value)
             for n in range(self.lower, self.upper + 1):
                 if n != int_value:
@@ -894,24 +901,29 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
                         neighbors.append(n)
 
         else:
-            samples = rs.normal(loc=value, scale=std, size=number * 2)
+            samples = rs.normal(loc=value, scale=std, size=n_requested * 2)
+            samples_view = samples
             idx = 0
-            while len(neighbors) < number:
+            while sampled_neighbors < n_requested:
                 while True:
-                    new_value = samples[idx]
+                    new_value = samples_view[idx]
                     idx += 1
-                    if idx >= (number * 2):
-                        samples = rs.normal(loc=value, scale=std, size=number * 2)
+                    if idx >= (n_requested * 2):
+                        samples = rs.normal(loc=value, scale=std, size=n_requested * 2)
+                        samples_view = samples
                         idx = 0
                     if new_value < 0 or new_value > 1:
                         continue
                     new_int_value = self._transform(new_value)
-                    if new_int_value in _neighbors_as_int:
+                    if int_value == new_int_value:
                         continue
-                    if int_value != new_int_value:
+                    elif new_int_value in _neighbors_as_int:
+                        continue
+                    elif int_value != new_int_value:
                         break
 
                 _neighbors_as_int.add(new_int_value)
+                sampled_neighbors += 1
                 if transform:
                     neighbors.append(new_int_value)
                 else:
@@ -1100,7 +1112,7 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
             return None
         elif np.isnan(vector):
             return None
-        
+
         vector = self.nfhp._transform(vector)
         vector = (np.round(vector, 0)).astype(int)
         if isinstance(vector, (np.int, np.int32, np.int64)):
