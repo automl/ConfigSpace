@@ -16,6 +16,7 @@ echo "$test_dir"
 which pytest
 which python
 python -c "import ConfigSpace"
+python -c "import ConfigSpace.configuration_space"
 
 pytest -sv --cov=ConfigSpace $test_dir
 
