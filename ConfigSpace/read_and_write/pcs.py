@@ -160,15 +160,27 @@ def build_forbidden(clause):
 
 def read(pcs_string, debug=False):
     """
-    Reads in a :py:class:`~ConfigSpace.configuration_space.ConfigurationSpace`
-     definition from a pcs file.
+    Read in a :py:class:`~ConfigSpace.configuration_space.ConfigurationSpace`
+    definition from a pcs file.
 
     Example
     -------
 
-    >>> from ConfigSpace.read_and_write import pcs
-    >>> with open('configspace.pcs', 'r') as fh:
-    >>>     restored_conf = pcs_new.read(fh)
+    .. testsetup:: pcs_test
+
+        from ConfigSpace import ConfigurationSpace
+        import ConfigSpace.hyperparameters as CSH
+        from ConfigSpace.read_and_write import pcs
+        cs = ConfigurationSpace()
+        cs.add_hyperparameter(CSH.CategoricalHyperparameter('a', choices=[1, 2, 3]))
+        with open('configspace.pcs', 'w') as f:
+             f.write(pcs.write(cs))
+
+    .. doctest:: pcs_test
+
+        >>> from ConfigSpace.read_and_write import pcs
+        >>> with open('configspace.pcs', 'r') as fh:
+        ...     deserialized_conf = pcs.read(fh)
 
     Parameters
     ----------
@@ -180,7 +192,7 @@ def read(pcs_string, debug=False):
     Returns
     -------
     :py:class:`~ConfigSpace.configuration_space.ConfigurationSpace`
-        The restored ConfigurationSpace object
+        The deserialized ConfigurationSpace object
 
     """
     configuration_space = ConfigurationSpace()
@@ -325,18 +337,26 @@ def read(pcs_string, debug=False):
 
 def write(configuration_space):
     """
-    Writes a configurations space to file in pcs format.
+    Create a string representation of a
+    :class:`~ConfigSpace.configuration_space.ConfigurationSpace` in pcs format.
+    This string can be written to file.
 
     Example
     -------
 
-    >>> import ConfigSpace as CS
-    >>> import ConfigSpace.hyperparameters as CSH
-    >>> from ConfigSpace.read_and_write import pcs
-    >>> cs = CS.ConfigurationSpace()
-    >>> cs.add_hyperparameter(CSH.CategoricalHyperparameter('a', choices=[1, 2, 3]))
-    >>> with open('configspace.pcs', 'w') as fh:
-    >>>     fh.write(pcs.write(cs))
+    .. doctest::
+
+        >>> import ConfigSpace as CS
+        >>> import ConfigSpace.hyperparameters as CSH
+        >>> from ConfigSpace.read_and_write import pcs
+        >>> cs = CS.ConfigurationSpace()
+        >>> cs.add_hyperparameter(CSH.CategoricalHyperparameter('a', choices=[1, 2, 3]))
+        a, Type: Categorical, Choices: {1, 2, 3}, Default: 1
+
+        <BLANKLINE>
+        >>> with open('configspace.pcs', 'w') as fh:
+        ...     fh.write(pcs.write(cs))
+        15
 
     Parameters
     ----------

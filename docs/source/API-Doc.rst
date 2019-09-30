@@ -4,12 +4,8 @@ API-Documentation
 ConfigurationSpace
 ==================
 
-First, we start by introducing the main object, the *configuration space* and
-all of its functions.
-
 .. autoclass:: ConfigSpace.configuration_space.ConfigurationSpace
-   :members:
-
+    :members:
 
 Configuration
 =============
@@ -22,19 +18,15 @@ Configuration
 Hyperparameters
 ===============
 
-In this section, the different types of hyperparameters are introduced.
-ConfigSpace is able to handle integer, float, categorical as well as ordinal hyperparameters.
-Float and integer hyperparameters are available as **uniform** or **normal distributed** ones.
-So when a hyperparameter is sampled from the configuration space,
-its value is distributed according to the specified type.
-
-Example usages are shown in the :doc:`quickstart <quickstart>`
+ConfigSpace contains integer, float, categorical, as well as ordinal
+hyperparameters. Integer and float hyperparameter can be sampled from a uniform
+or normal distribution. Example usages are shown in the
+:doc:`quickstart <quickstart>`.
 
 3.1 Integer hyperparameters
 ---------------------------
 
 .. autoclass:: ConfigSpace.hyperparameters.UniformIntegerHyperparameter
-
 
 .. autoclass:: ConfigSpace.hyperparameters.NormalIntegerHyperparameter
 
@@ -44,7 +36,6 @@ Example usages are shown in the :doc:`quickstart <quickstart>`
 -------------------------
 
 .. autoclass:: ConfigSpace.hyperparameters.UniformFloatHyperparameter
-
 
 .. autoclass:: ConfigSpace.hyperparameters.NormalFloatHyperparameter
 
@@ -69,14 +60,10 @@ Example usages are shown in the :doc:`quickstart <quickstart>`
 Conditions
 ==========
 
-It is often necessary to make some constraint on hyperparameters. For example we have one hyperparameter, which decides whether
-we use method b or method b, and each method has additional unique hyperparameter.
-Those depending hyperparameters are called *child* hyperparameter.
-It is desired, that they should only be "active", if their *parent* hyperparameter
-has the right value.
-This can be accomplished, using **conditions**.
-
-To see an example of how to use conditions, please take a look at the :doc:`Guide`
+ConfigSpace can realize *equal*, *not equal*, *less than*, *greater than* and
+*in conditions*. Conditions can be combined by using the conjunctions *and* and
+*or*. To see how to use conditions, please take a look at the
+:doc:`user guide <User-Guide>`.
 
 4.1 EqualsCondition
 -------------------
@@ -128,52 +115,13 @@ To see an example of how to use conditions, please take a look at the :doc:`Guid
 Forbidden Clauses
 =================
 
-In addition to the conditions, it's also possible to add forbidden clauses to the configuration space.
-They allow us to make some more restrictions to the configuration space.
+ConfigSpace contains *forbidden equal* and *forbidden in clauses*.
+The *ForbiddenEqualsClause* and the *ForbiddenInClause* can forbid values to be
+sampled from a configuration space if a certain condition is met. The
+*ForbiddenAndConjunction* can be used to combine *ForbiddenEqualsClauses* and
+the *ForbiddenInClauses*.
 
-In the following example the usage and utility of forbidden clauses is shown.
-It describes the configuration space for the linear support vector machine implementation from auto-sklearn. The full code can be found
-`here <https://github.com/automl/auto-sklearn/blob/master/autosklearn/pipeline/components/classification/liblinear_svc.py>`_.::
-
-    def get_hyperparameter_search_space(dataset_properties=None):
-        cs = ConfigurationSpace()
-
-        penalty = cs.add_hyperparameter(CategoricalHyperparameter(
-            "penalty", ["l1", "l2"], default="l2"))
-        loss = cs.add_hyperparameter(CategoricalHyperparameter(
-            "loss", ["hinge", "squared_hinge"], default="squared_hinge"))
-        dual = cs.add_hyperparameter(Constant("dual", "False"))
-        # This is set ad-hoc
-        tol = cs.add_hyperparameter(UniformFloatHyperparameter(
-            "tol", 1e-5, 1e-1, default=1e-4, log=True))
-        C = cs.add_hyperparameter(UniformFloatHyperparameter(
-            "C", 0.03125, 32768, log=True, default=1.0))
-        multi_class = cs.add_hyperparameter(Constant("multi_class", "ovr"))
-        # These are set ad-hoc
-        fit_intercept = cs.add_hyperparameter(Constant("fit_intercept", "True"))
-        intercept_scaling = cs.add_hyperparameter(Constant(
-            "intercept_scaling", 1))
-
-        penalty_and_loss = ForbiddenAndConjunction(
-            ForbiddenEqualsClause(penalty, "l1"),
-            ForbiddenEqualsClause(loss, "hinge")
-        )
-        constant_penalty_and_loss = ForbiddenAndConjunction(
-            ForbiddenEqualsClause(dual, "False"),
-            ForbiddenEqualsClause(penalty, "l2"),
-            ForbiddenEqualsClause(loss, "hinge")
-        )
-        penalty_and_dual = ForbiddenAndConjunction(
-            ForbiddenEqualsClause(dual, "False"),
-            ForbiddenEqualsClause(penalty, "l1")
-        )
-        cs.add_forbidden_clause(penalty_and_loss)
-        cs.add_forbidden_clause(constant_penalty_and_loss)
-        cs.add_forbidden_clause(penalty_and_dual)
-        return cs
-
-
-For a further example, please take a look in the :doc:`guide <Guide>`
+For a further example, please take a look in the :doc:`user guide <User-Guide>`.
 
 5.1 ForbiddenEqualsClause
 -------------------------
@@ -195,12 +143,11 @@ For a further example, please take a look in the :doc:`guide <Guide>`
 Serialization
 =============
 
-| ConfigSpace offers also the functionality to serialize the configuration space.
-  This can be useful to share configuration spaces across experiments,
-  or use them in other tools, for example to analyze hyperparameter importance with
-  `CAVE <https://github.com/automl/CAVE>`_,
-| This can be achieved by using the classes **ConfigSpace.read_and_write.pcs**,
-  **ConfigSpace.read_and_write.pcs_new** or **ConfigSpace.read_and_write.json**.
+ConfigSpace offers *json*, *pcs* and *pcs_new* writers/readers.
+These classes can serialize and deserialize configuration spaces.
+Serializing configuration spaces is useful to share configuration spaces across
+experiments, or use them in other tools, for example, to analyze hyperparameter
+importance with `CAVE <https://github.com/automl/CAVE>`_.
 
 .. _json:
 
@@ -216,18 +163,23 @@ Serialization
 6.2 Serialization with pcs-new
 ------------------------------
 
-Pcs is a simple, human-readable file format for the description of an algorithm's configurable parameters, their possible values, as well as any
+Pcs is a simple, human-readable file format for the description of an
+algorithm's configurable parameters, their possible values, as well as any
 parameter dependencies.
 
-It is part of the `Algorithm Configuration Library <http://aclib.net/#>`_. A detailed explanation of the pcs format can be
-found `here. <http://aclib.net/cssc2014/pcs-format.pdf>`_ or a short summary is also given in the
+Pcs is part of the `Algorithm Configuration Library <http://aclib.net/#>`_.
+A detailed explanation of the pcs format can be found
+`here. <http://aclib.net/cssc2014/pcs-format.pdf>`_ A short summary is also
+given in the
 `SMAC Documentation <https://automl.github.io/SMAC3/dev/options.html#paramcs>`_.
-Examples are also provieded in the `pysmac documentation <https://pysmac.readthedocs.io/en/latest/pcs.html>`_
+Further examples are provided in the
+`pysmac documentation <https://pysmac.readthedocs.io/en/latest/pcs.html>`_
 
 .. note::
 
-    The pcs format definition has changed in the year 2016 and is supported by AClib 2.0 as well as SMAC.
-    To write or read the old version of pcs, please use the :class:`~ConfigSpace.read_and_write.pcs` module.
+    The pcs format definition has changed in the year 2016 and is supported by
+    AClib 2.0, as well as SMAC. To write or to read the old version of pcs, please
+    use the :class:`~ConfigSpace.read_and_write.pcs` module.
 
 .. automodule:: ConfigSpace.read_and_write.pcs_new
    :members: read, write
@@ -244,11 +196,9 @@ Examples are also provieded in the `pysmac documentation <https://pysmac.readthe
 Utils
 =====
 
-Until now, all examples were designed to define a configuration space.
-However, there is also the application that you want to develop your own tool that creates configurations from
-a given configuration space. Or that you want to modify a given configuration space.
-
-The functionalities from the file util.py can be very useful.
+Functions defined in the utils module can be helpful to
+develop custom tools that create configurations from a given configuration
+space or modify a given configuration space.
 
 .. automodule:: ConfigSpace.util
     :members:

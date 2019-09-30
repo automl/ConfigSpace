@@ -266,18 +266,24 @@ def _build_forbidden_and_conjunction(clause: ForbiddenAndConjunction) -> Dict:
 ################################################################################
 def write(configuration_space, indent=2):
     """
-    Writes a configuration space to a json file
+    Create a string representation of a
+    :class:`~ConfigSpace.configuration_space.ConfigurationSpace` in json format.
+    This string can be written to file.
 
     Example
     -------
+    .. doctest::
 
-    >>> from ConfigSpace import ConfigurationSpace
-    >>> import ConfigSpace.hyperparameters as CSH
-    >>> from ConfigSpace.read_and_write import json
-    >>> cs = ConfigurationSpace()
-    >>> cs.add_hyperparameter(CSH.CategoricalHyperparameter('a', choices=[1, 2, 3]))
-    >>> with open('config_space.json', 'w') as f:
-    >>>     f.write(json.write(cs))
+        >>> from ConfigSpace import ConfigurationSpace
+        >>> import ConfigSpace.hyperparameters as CSH
+        >>> from ConfigSpace.read_and_write import json
+        >>> cs = ConfigurationSpace()
+        >>> cs.add_hyperparameter(CSH.CategoricalHyperparameter('a', choices=[1, 2, 3]))
+        a, Type: Categorical, Choices: {1, 2, 3}, Default: 1
+
+        >>> with open('configspace.json', 'w') as f:
+        ...      f.write(json.write(cs))
+        276
 
     Parameters
     ----------
@@ -349,15 +355,27 @@ def write(configuration_space, indent=2):
 ################################################################################
 def read(jason_string):
     """
-    Creates a configuration space definition from a json string.
+    Create a configuration space definition from a json string.
 
     Example
     -------
 
-    >>> from ConfigSpace.read_and_write import json
-    >>> with open('configspace.json', 'r') as f:
-    >>>     jason_string = f.read()
-    >>>     config = json.read(jason_string)
+    .. testsetup:: json_test
+
+        from ConfigSpace import ConfigurationSpace
+        import ConfigSpace.hyperparameters as CSH
+        from ConfigSpace.read_and_write import json
+        cs = ConfigurationSpace()
+        cs.add_hyperparameter(CSH.CategoricalHyperparameter('a', choices=[1, 2, 3]))
+        with open('configspace.json', 'w') as f:
+             f.write(json.write(cs))
+
+    .. doctest:: json_test
+
+        >>> from ConfigSpace.read_and_write import json
+        >>> with open('configspace.json', 'r') as f:
+        ...     jason_string = f.read()
+        ...     config = json.read(jason_string)
 
     Parameters
     ----------
@@ -367,7 +385,7 @@ def read(jason_string):
     Returns
     -------
     :class:`~ConfigSpace.configuration_space.ConfigurationSpace`
-        The restored ConfigurationSpace object
+        The deserialized ConfigurationSpace object
     """
     jason = json.loads(jason_string)
     if 'name' in jason:
