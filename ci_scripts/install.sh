@@ -35,6 +35,7 @@ if [[ "$INSTALL_FROM_SDIST" == "true" ]]; then
     # Find file which was modified last as done in https://stackoverflow.com/a/4561987
     dist=`find dist -type f -printf '%T@ %p\n' | sort -n | tail -1 | cut -f2- -d" "`
     echo "Installing $dist"
+    twine check $dist
     pip install "$dist"
 else
     python setup.py install
