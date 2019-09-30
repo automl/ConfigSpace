@@ -1,15 +1,6 @@
 language: python
 
-cache:
-  apt: true
-  directories:
-    - $HOME/.cache/pip
-  pip: true
-
 sudo: false
-
-before_cache:
-  - rm -f $HOME/.cache/pip/log/debug.log
 
 env:
   matrix:
@@ -17,19 +8,23 @@ env:
     - DISTRIB="conda" PYTHON_VERSION="3.6" RUN_FLAKE8="true"
     - DISTRIB="conda" PYTHON_VERSION="3.7" DOCPUSH="true" INSTALL_FROM_SDIST="true"
 
+before_cache:
+  - rm -f $HOME/.cache/pip/log/debug.log
+
+cache:
+  directories:
+    - $HOME/.cache/pip
+  pip: true
+
+git:
+  depth: 5
+
 install:
   - source ci_scripts/install.sh $INSTALL_FROM_SDIST
 
 # command to run tests, e.g. python setup.py test
 script:
-  - |
-    set -e
-    if [ "$RUN_FLAKE8" == "true" ]; then
-      pip install flake8 mypy
-      ./ci_scripts/flake8_diff.sh
-    fi
-    pytest -sv --cov=ConfigSpace test
-  - source ci_scripts/create_doc.sh $TRAVIS_BRANCH "doc_result"
+  - ci_scripts/test.sh
 
 after_success:
   - codecov
