@@ -13,6 +13,9 @@ echo "###################"
 echo "Current directory and test directory"
 echo `pwd`
 echo "$test_dir"
+which pytest
+which python
+python -c "import ConfigSpace"
 
 pytest -sv --cov=ConfigSpace $test_dir
 
