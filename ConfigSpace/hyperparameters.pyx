@@ -27,7 +27,7 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 # cython: language_level=3
-
+import math
 from abc import ABCMeta, abstractmethod
 import warnings
 
@@ -95,6 +95,14 @@ cdef class Hyperparameter(object):
 
     def _transform(self, vector: Union[np.ndarray, float, int]) -> Optional[Union[np.ndarray, float, int]]:
         raise NotImplementedError()
+
+    def _check_vector(self, vector: Union[np.ndarray, float, int]) -> Optional[Union[np.ndarray, float, int]]:
+        is_array = isinstance(vector, np.ndarray)
+
+        if is_array:
+            return is_array, np.any(~np.isfinite(vector))
+
+        return is_array, not math.isfinite(vector)
 
     def _inverse_transform(self, vector):
         raise NotImplementedError()
@@ -197,7 +205,8 @@ cdef class Constant(Hyperparameter):
         return 0 if size == 1 else np.zeros((size,))
 
     def _transform(self, vector: Union[np.ndarray, float, int]) -> Optional[Union[np.ndarray, float, int]]:
-        if not np.isfinite(vector):
+        is_array, not_finite = self._check_vector(vector)
+        if not_finite:
             return None
         return self.value
 
@@ -319,6 +328,13 @@ cdef class NumericalHyperparameter(Hyperparameter):
             log=self.log,
             q=self.q
         )
+
+    def _apply_quantization_factor(self, vector: Union[np.ndarray, float, int], is_array: bool, q: Optional[int]) -> Union[np.ndarray, int]:
+        if q is not None:
+            if is_array:
+                return np.rint(vector / q) * q
+            return int(round(vector / q)) * q
+        return vector
 
 
 cdef class FloatHyperparameter(NumericalHyperparameter):
@@ -486,19 +502,21 @@ cdef class UniformFloatHyperparameter(FloatHyperparameter):
         return rs.uniform(size=size)
 
     def _transform(self, vector: Union[np.ndarray, float, int]) -> Optional[Union[np.ndarray, float, int]]:
-        if isinstance(vector, np.ndarray):
-            if np.any(np.isnan(vector)):
-                return None
-        elif np.isnan(vector):
+
+        is_array, not_finite = self._check_vector(vector)
+
+        if not_finite:
             return None
-        vector *= (self._upper - self._lower)
-        vector += self._lower
+
+        vector = vector * (self._upper - self._lower) + self._lower
+
         if self.log:
-            vector = np.exp(vector)
-        if self.q is not None:
-            vector = np.rint(vector / self.q) * self.q
-        vector = np.minimum(self.upper, vector)
-        vector = np.maximum(self.lower, vector)
+            vector = np.exp(vector) if is_array else math.exp(vector)
+
+        vector = self._apply_quantization_factor(vector, is_array, self.q)
+
+        vector = np.maximum(self.lower, np.minimum(self.upper, vector)) if is_array else \
+            max(self.lower, min(self.upper, vector))
         return vector
 
     def _inverse_transform(self, vector: Union[np.ndarray, None]) -> Union[np.ndarray, float, int]:
@@ -686,12 +704,16 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
         return rs.normal(mu, sigma, size=size)
 
     def _transform(self, vector: Union[np.ndarray, float, int]) -> Optional[Union[np.ndarray, float, int]]:
-        if np.isnan(vector):
+
+        is_array, not_finite = self._check_vector(vector)
+
+        if not_finite:
             return None
+
         if self.log:
-            vector = np.exp(vector)
-        if self.q is not None:
-            vector = int(np.round(vector / self.q, 0)) * self.q
+            vector = np.exp(vector) if is_array else math.exp(vector)
+
+        vector = self._apply_quantization_factor(vector, is_array, self.q)
         return vector
 
     def _inverse_transform(self, vector: Optional[np.ndarray]) -> Union[float, np.ndarray]:
@@ -808,21 +830,18 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
 
     def _transform(self, vector: Union[np.ndarray, float, int]) -> Optional[Union[np.ndarray, float, int]]:
 
-        # Avoid expensive call to np.any() if not necessary
-        if isinstance(vector, np.ndarray):
-            if np.any(np.isnan(vector)):
-                return None
-        elif np.isnan(vector):
+        is_array, not_finite = self._check_vector(vector)
+
+        if not_finite:
             return None
 
         vector = self.ufhp._transform(vector)
-        if self.q is not None:
-            vector = (np.round(vector / self.q, 0)).astype(int) * self.q
-        vector = (np.round(vector, 0)).astype(int)
-        # Convert to regular float to avoid handling different data types
-        if isinstance(vector, (np.int, np.int32, np.int64)):
-            vector = int(vector)
-        return vector
+        vector = self._apply_quantization_factor(vector, is_array, self.q)
+
+        if is_array:
+            return (np.round(vector, 0)).astype(int)
+
+        return int(round(vector))
 
     def _inverse_transform(self, vector: Union[np.ndarray, float, int]) -> Union[np.ndarray, float, int]:
         return self.ufhp._inverse_transform(vector)
@@ -1125,18 +1144,17 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
 
     def _transform(self, vector: Union[np.ndarray, float, int]) -> Optional[Union[np.ndarray, int]]:
 
-        # Avoid expensive call to np.any() if not necessary
-        if isinstance(vector, np.ndarray):
-            if np.any(np.isnan(vector)):
-                return None
-        elif np.isnan(vector):
+        is_array, not_finite = self._check_vector(vector)
+
+        if not_finite:
             return None
 
         vector = self.nfhp._transform(vector)
-        vector = (np.round(vector, 0)).astype(int)
-        if isinstance(vector, (np.int, np.int32, np.int64)):
-            vector = int(vector)
-        return vector
+
+        if is_array:
+            return (np.round(vector, 0)).astype(int)
+
+        return int(round(vector))
 
     def _inverse_transform(self, vector: Union[np.ndarray, float, int]) -> Union[np.ndarray, float]:
         return self.nfhp._inverse_transform(vector)
@@ -1323,9 +1341,15 @@ cdef class CategoricalHyperparameter(Hyperparameter):
         return rs.randint(0, self.num_choices, size=size)
 
     def _transform(self, vector: Union[np.ndarray, float, int]) -> Optional[Union[str, int, float]]:
-        if not np.isfinite(vector):
+
+        is_array, not_finite = self._check_vector(vector)
+
+        if not_finite:
             return None
-        if np.equal(np.mod(vector, 1), 0):
+
+        if is_array and np.equal(np.mod(vector, 1), 0):
+            return self.choices[int(vector)]
+        elif vector % 1 == 0:
             return self.choices[int(vector)]
         else:
             raise ValueError('Can only index the choices of the categorical '
@@ -1543,9 +1567,14 @@ cdef class OrdinalHyperparameter(Hyperparameter):
             raise ValueError("Illegal default value %s" % str(default_value))
 
     def _transform(self, vector: Union[np.ndarray, float, int]) -> Optional[Union[np.ndarray, float, int]]:
-        if vector != vector:
+        is_array, not_finite = self._check_vector(vector)
+
+        if not_finite:
             return None
-        if np.equal(np.mod(vector, 1), 0):
+
+        if is_array and np.equal(np.mod(vector, 1), 0):
+            return self.sequence[int(vector)]
+        elif vector % 1 == 0:
             return self.sequence[int(vector)]
         else:
             raise ValueError('Can only index the choices of the ordinal '
