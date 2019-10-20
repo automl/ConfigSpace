@@ -1605,7 +1605,7 @@ cdef class OrdinalHyperparameter(Hyperparameter):
                              'hyperparameter %s with an integer, but provided '
                              'the following float: %f' % (self, vector))
 
-    cpdef long _transform_scalar(self, double scalar):
+    def _transform_scalar(self, scalar: Union[float, int]) -> Union[float, int, str]:
         if not math.isfinite(scalar):
             raise ValueError('number %s contains non-finite numbers' % scalar)
 
