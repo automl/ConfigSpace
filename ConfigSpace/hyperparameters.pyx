@@ -377,7 +377,7 @@ cdef class IntegerHyperparameter(NumericalHyperparameter):
             return None
         return self._transform_scalar(vector)
 
-    cpdef int _transform_scalar(self, double scalar):
+    cpdef long _transform_scalar(self, double scalar):
         raise NotImplementedError()
 
     cpdef np.ndarray _transform_vector(self, np.ndarray vector):
@@ -854,7 +854,7 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
 
         return np.rint(vector)
 
-    cpdef int _transform_scalar(self, double scalar):
+    cpdef long _transform_scalar(self, double scalar):
         if not math.isfinite(scalar):
             raise ValueError()
         scalar = self.ufhp._transform_scalar(scalar)
@@ -1167,7 +1167,7 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
         vector = self.nfhp._transform_vector(vector)
         return np.rint(vector)
 
-    cpdef int _transform_scalar(self, double scalar):
+    cpdef long _transform_scalar(self, double scalar):
         if not math.isfinite(scalar):
             raise ValueError()
         scalar = self.nfhp._transform_scalar(scalar)
@@ -1605,7 +1605,7 @@ cdef class OrdinalHyperparameter(Hyperparameter):
                              'hyperparameter %s with an integer, but provided '
                              'the following float: %f' % (self, vector))
 
-    cpdef int _transform_scalar(self, double scalar):
+    cpdef long _transform_scalar(self, double scalar):
         if not math.isfinite(scalar):
             raise ValueError('number %s contains non-finite numbers' % scalar)
 
