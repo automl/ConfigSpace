@@ -34,8 +34,8 @@ import warnings
 from collections import OrderedDict, Counter
 from typing import List, Any, Dict, Union, Set, Tuple, Optional
 
-cimport numpy as np
 import numpy as np
+cimport numpy as np
 
 # We now need to fix a datatype for our arrays. I've used the variable
 # DTYPE for this, which is assigned to the usual NumPy runtime
@@ -332,13 +332,12 @@ cdef class FloatHyperparameter(NumericalHyperparameter):
         raise NotImplementedError()
 
     def _transform(self, vector: Union[np.ndarray, float, int]) -> Optional[Union[np.ndarray, float, int]]:
-        if isinstance(vector, np.ndarray):
-            if np.any(np.isnan(vector)):
-                return None
-            return self._transform_vector(vector)
-        elif np.isnan(vector):
+        try:
+            if isinstance(vector, np.ndarray):
+                return self._transform_vector(vector)
+            return self._transform_scalar(vector)
+        except ValueError:
             return None
-        return self._transform_scalar(vector)
 
     cpdef double _transform_scalar(self, double scalar):
         raise NotImplementedError()
@@ -369,13 +368,12 @@ cdef class IntegerHyperparameter(NumericalHyperparameter):
         return int(parameter)
 
     def _transform(self, vector: Union[np.ndarray, float, int]) -> Optional[Union[np.ndarray, float, int]]:
-        if isinstance(vector, np.ndarray):
-            if np.any(np.isnan(vector)):
-                return None
-            return self._transform_vector(vector)
-        elif np.isnan(vector):
+        try:
+            if isinstance(vector, np.ndarray):
+                return self._transform_vector(vector)
+            return self._transform_scalar(vector)
+        except ValueError:
             return None
-        return self._transform_scalar(vector)
 
     cpdef long _transform_scalar(self, double scalar):
         raise NotImplementedError()
@@ -1380,9 +1378,12 @@ cdef class CategoricalHyperparameter(Hyperparameter):
                              'the following float: %f' % (self, scalar))
 
     def _transform(self, vector: Union[np.ndarray, float, int, str]) -> Optional[Union[np.ndarray, float, int]]:
-        if isinstance(vector, np.ndarray):
-            return self._transform_vector(vector)
-        return self._transform_scalar(vector)
+        try:
+            if isinstance(vector, np.ndarray):
+                return self._transform_vector(vector)
+            return self._transform_scalar(vector)
+        except ValueError:
+            return None
 
     def _inverse_transform(self, vector: Union[None, str, float, int]) -> Union[int, float]:
         if vector is None:
@@ -1617,9 +1618,12 @@ cdef class OrdinalHyperparameter(Hyperparameter):
                              'the following float: %f' % (self, scalar))
 
     def _transform(self, vector: Union[np.ndarray, float, int]) -> Optional[Union[np.ndarray, float, int]]:
-        if isinstance(vector, np.ndarray):
-            return self._transform_vector(vector)
-        return self._transform_scalar(vector)
+        try:
+            if isinstance(vector, np.ndarray):
+                return self._transform_vector(vector)
+            return self._transform_scalar(vector)
+        except ValueError:
+            return None
 
     def _inverse_transform(self, vector: Optional[Union[np.ndarray, List, int, str, float]]) -> Union[float, List[int], List[str], List[float]]:
         if vector is None:
