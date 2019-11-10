@@ -91,14 +91,6 @@ cdef class Hyperparameter(object):
     def _transform(self, vector: Union[np.ndarray, float, int]) -> Optional[Union[np.ndarray, float, int]]:
         raise NotImplementedError()
 
-    def _check_vector(self, vector: Union[np.ndarray, float, int]) -> Optional[Union[np.ndarray, float, int]]:
-        is_array = isinstance(vector, np.ndarray)
-
-        if is_array:
-            return is_array, np.any(~np.isfinite(vector))
-
-        return is_array, not math.isfinite(vector)
-
     def _inverse_transform(self, vector):
         raise NotImplementedError()
 
@@ -198,10 +190,16 @@ cdef class Constant(Hyperparameter):
     def _sample(self, rs: None, size: Optional[int]=None) -> Union[int, np.ndarray]:
         return 0 if size == 1 else np.zeros((size,))
 
-    def _transform(self, vector: Union[np.ndarray, float, int]) -> Optional[Union[np.ndarray, float, int]]:
-        is_array, not_finite = self._check_vector(vector)
-        if not_finite:
-            return None
+    def _transform(self, vector: Optional[Union[np.ndarray, float, int]]) \
+            -> Optional[Union[np.ndarray, float, int]]:
+        return self.value
+
+    def _transform_vector(self, vector: Optional[np.ndarray]) \
+            -> Optional[Union[np.ndarray, float, int]]:
+        return self.value
+
+    def _transform_scalar(self, vector: Optional[Union[float, int]]) \
+            -> Optional[Union[np.ndarray, float, int]]:
         return self.value
 
     def _inverse_transform(self, vector: Union[np.ndarray, float, int]) -> Union[np.ndarray, int, float]:
@@ -509,7 +507,7 @@ cdef class UniformFloatHyperparameter(FloatHyperparameter):
         return rs.uniform(size=size)
 
     cpdef np.ndarray _transform_vector(self, np.ndarray vector):
-        if np.any(~np.isfinite(vector)):
+        if np.isnan(vector).any():
             raise ValueError()
         vector = vector * (self._upper - self._lower) + self._lower
         if self.log:
@@ -519,7 +517,7 @@ cdef class UniformFloatHyperparameter(FloatHyperparameter):
         return np.maximum(self.lower, np.minimum(self.upper, vector))
 
     cpdef double _transform_scalar(self, double scalar):
-        if not math.isfinite(scalar):
+        if scalar == np.nan:
             raise ValueError()
         scalar = scalar * (self._upper - self._lower) + self._lower
         if self.log:
@@ -714,7 +712,7 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
         return rs.normal(mu, sigma, size=size)
 
     cpdef np.ndarray _transform_vector(self, np.ndarray vector):
-        if np.any(~np.isfinite(vector)):
+        if np.isnan(vector).any():
             raise ValueError()
         if self.log:
             vector = np.exp(vector)
@@ -723,7 +721,7 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
         return vector
 
     cpdef double _transform_scalar(self, double scalar):
-        if not math.isfinite(scalar):
+        if scalar == np.nan:
             raise ValueError()
         if self.log:
             scalar = math.exp(scalar)
@@ -844,8 +842,6 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
         return value
 
     cpdef np.ndarray _transform_vector(self, np.ndarray vector):
-        if np.any(~np.isfinite(vector)):
-            raise ValueError()
         vector = self.ufhp._transform_vector(vector)
         if self.q is not None:
             vector = np.rint(vector / self.q) * self.q
@@ -853,8 +849,6 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
         return np.rint(vector)
 
     cpdef long _transform_scalar(self, double scalar):
-        if not math.isfinite(scalar):
-            raise ValueError()
         scalar = self.ufhp._transform_scalar(scalar)
         if self.q is not None:
             scalar = round(scalar / self.q) * self.q
@@ -1160,14 +1154,10 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
         return value
 
     cpdef np.ndarray _transform_vector(self, np.ndarray vector):
-        if np.any(~np.isfinite(vector)):
-            raise ValueError()
         vector = self.nfhp._transform_vector(vector)
         return np.rint(vector)
 
     cpdef long _transform_scalar(self, double scalar):
-        if not math.isfinite(scalar):
-            raise ValueError()
         scalar = self.nfhp._transform_scalar(scalar)
         return int(round(scalar))
 
@@ -1356,18 +1346,18 @@ cdef class CategoricalHyperparameter(Hyperparameter):
         return rs.randint(0, self.num_choices, size=size)
 
     cpdef np.ndarray _transform_vector(self, np.ndarray vector):
-        if np.any(~np.isfinite(vector)):
+        if np.isnan(vector).any():
             raise ValueError('vector %s contains non-finite numbers' % vector)
 
         if np.equal(np.mod(vector, 1), 0):
-            return self.choices(vector.astype(int))
+            return self.choices[vector.astype(int)]
 
         raise ValueError('Can only index the choices of the ordinal '
                              'hyperparameter %s with an integer, but provided '
                              'the following float: %f' % (self, vector))
 
     def _transform_scalar(self, scalar: Union[float, int]) -> Union[float, int, str]:
-        if not math.isfinite(scalar):
+        if scalar == np.nan:
             raise ValueError('number %s contains non-finite numbers' % scalar)
 
         if scalar % 1 == 0:
@@ -1596,18 +1586,18 @@ cdef class OrdinalHyperparameter(Hyperparameter):
             raise ValueError("Illegal default value %s" % str(default_value))
 
     cpdef np.ndarray _transform_vector(self, np.ndarray vector):
-        if np.any(~np.isfinite(vector)):
+        if np.isnan(vector).any():
             raise ValueError('vector %s contains non-finite numbers' % vector)
 
         if np.equal(np.mod(vector, 1), 0):
-            return self.sequence(vector.astype(int))
+            return self.sequence[vector.astype(int)]
 
         raise ValueError('Can only index the choices of the ordinal '
                              'hyperparameter %s with an integer, but provided '
                              'the following float: %f' % (self, vector))
 
     def _transform_scalar(self, scalar: Union[float, int]) -> Union[float, int, str]:
-        if not math.isfinite(scalar):
+        if scalar == np.nan:
             raise ValueError('number %s contains non-finite numbers' % scalar)
 
         if scalar % 1 == 0:
