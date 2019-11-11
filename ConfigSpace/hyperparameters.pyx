@@ -508,7 +508,7 @@ cdef class UniformFloatHyperparameter(FloatHyperparameter):
 
     cpdef np.ndarray _transform_vector(self, np.ndarray vector):
         if np.isnan(vector).any():
-            raise ValueError()
+            raise ValueError('Vector %s contains NaN\'s' % vector)
         vector = vector * (self._upper - self._lower) + self._lower
         if self.log:
             vector = np.exp(vector)
@@ -517,8 +517,8 @@ cdef class UniformFloatHyperparameter(FloatHyperparameter):
         return np.maximum(self.lower, np.minimum(self.upper, vector))
 
     cpdef double _transform_scalar(self, double scalar):
-        if scalar == np.nan:
-            raise ValueError()
+        if scalar != scalar:
+            raise ValueError('Number %s is NaN' % scalar)
         scalar = scalar * (self._upper - self._lower) + self._lower
         if self.log:
             scalar = math.exp(scalar)
@@ -713,7 +713,7 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
 
     cpdef np.ndarray _transform_vector(self, np.ndarray vector):
         if np.isnan(vector).any():
-            raise ValueError()
+            raise ValueError('Vector %s contains NaN\'s' % vector)
         if self.log:
             vector = np.exp(vector)
         if self.q is not None:
@@ -721,8 +721,8 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
         return vector
 
     cpdef double _transform_scalar(self, double scalar):
-        if scalar == np.nan:
-            raise ValueError()
+        if scalar != scalar:
+            raise ValueError('Number %s is NaN' % scalar)
         if self.log:
             scalar = math.exp(scalar)
         if self.q is not None:
@@ -1347,7 +1347,7 @@ cdef class CategoricalHyperparameter(Hyperparameter):
 
     cpdef np.ndarray _transform_vector(self, np.ndarray vector):
         if np.isnan(vector).any():
-            raise ValueError('vector %s contains non-finite numbers' % vector)
+            raise ValueError('Vector %s contains NaN\'s' % vector)
 
         if np.equal(np.mod(vector, 1), 0):
             return self.choices[vector.astype(int)]
@@ -1357,8 +1357,8 @@ cdef class CategoricalHyperparameter(Hyperparameter):
                              'the following float: %f' % (self, vector))
 
     def _transform_scalar(self, scalar: Union[float, int]) -> Union[float, int, str]:
-        if scalar == np.nan:
-            raise ValueError('number %s contains non-finite numbers' % scalar)
+        if scalar != scalar:
+            raise ValueError('Number %s is NaN' % scalar)
 
         if scalar % 1 == 0:
             return self.choices[int(scalar)]
@@ -1587,7 +1587,7 @@ cdef class OrdinalHyperparameter(Hyperparameter):
 
     cpdef np.ndarray _transform_vector(self, np.ndarray vector):
         if np.isnan(vector).any():
-            raise ValueError('vector %s contains non-finite numbers' % vector)
+            raise ValueError('Vector %s contains NaN\'s' % vector)
 
         if np.equal(np.mod(vector, 1), 0):
             return self.sequence[vector.astype(int)]
@@ -1597,8 +1597,8 @@ cdef class OrdinalHyperparameter(Hyperparameter):
                              'the following float: %f' % (self, vector))
 
     def _transform_scalar(self, scalar: Union[float, int]) -> Union[float, int, str]:
-        if scalar == np.nan:
-            raise ValueError('number %s contains non-finite numbers' % scalar)
+        if scalar != scalar:
+            raise ValueError('Number %s is NaN' % scalar)
 
         if scalar % 1 == 0:
             return self.sequence[int(scalar)]
