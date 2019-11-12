@@ -1,5 +1,5 @@
 # cython: language_level=3
-
+from typing import Union
 import numpy as np
 cimport numpy as np
 
@@ -12,7 +12,6 @@ DTYPE = np.float
 # type with a _t-suffix.
 ctypedef np.float_t DTYPE_t
 
-
 cdef class Hyperparameter(object):
     cdef public str name
     cdef public default_value
@@ -21,3 +20,22 @@ cdef class Hyperparameter(object):
 
     cpdef int compare_vector(self, DTYPE_t value, DTYPE_t value2)
     cpdef bint is_legal_vector(self, DTYPE_t value)
+
+cdef class NumericalHyperparameter(Hyperparameter):
+    cdef public lower
+    cdef public upper
+    cdef public q
+    cdef public log
+    cdef public _lower
+    cdef public _upper
+    cpdef int compare(self, value: Union[int, float, str], value2: Union[int, float, str])
+    cpdef int compare_vector(self, DTYPE_t value, DTYPE_t value2)
+
+cdef class IntegerHyperparameter(NumericalHyperparameter):
+    cdef ufhp
+    cpdef long _transform_scalar(self, double scalar)
+    cpdef np.ndarray _transform_vector(self, np.ndarray vector)
+
+cdef class FloatHyperparameter(NumericalHyperparameter):
+    cpdef double _transform_scalar(self, double scalar)
+    cpdef np.ndarray _transform_vector(self, np.ndarray vector)

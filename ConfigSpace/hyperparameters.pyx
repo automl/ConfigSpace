@@ -26,17 +26,14 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-# cython: language_level=3
-
-from abc import ABCMeta, abstractmethod
-import warnings
-
-from ConfigSpace.hyperparameters cimport Hyperparameter
-
-from collections import OrderedDict, Counter
 import copy
-from typing import List, Any, Dict, Union, Set, Tuple, Optional
 import io
+# cython: language_level=3
+import math
+import warnings
+from collections import OrderedDict, Counter
+from typing import List, Any, Dict, Union, Set, Tuple, Optional
+
 import numpy as np
 cimport numpy as np
 
@@ -51,8 +48,6 @@ cimport numpy as np
 
 
 cdef class Hyperparameter(object):
-    #cdef public str name
-    #cdef public default_value
 
     def __init__(self, name: str, meta: Optional[Dict]) -> None:
         if not isinstance(name, str):
@@ -110,7 +105,6 @@ cdef class Hyperparameter(object):
 
     cpdef int compare_vector(self, DTYPE_t value, DTYPE_t value2):
         raise NotImplementedError()
-
 
 
 cdef class Constant(Hyperparameter):
@@ -196,9 +190,16 @@ cdef class Constant(Hyperparameter):
     def _sample(self, rs: None, size: Optional[int]=None) -> Union[int, np.ndarray]:
         return 0 if size == 1 else np.zeros((size,))
 
-    def _transform(self, vector: Union[np.ndarray, float, int]) -> Optional[Union[np.ndarray, float, int]]:
-        if not np.isfinite(vector):
-            return None
+    def _transform(self, vector: Optional[Union[np.ndarray, float, int]]) \
+            -> Optional[Union[np.ndarray, float, int]]:
+        return self.value
+
+    def _transform_vector(self, vector: Optional[np.ndarray]) \
+            -> Optional[Union[np.ndarray, float, int]]:
+        return self.value
+
+    def _transform_scalar(self, vector: Optional[Union[float, int]]) \
+            -> Optional[Union[np.ndarray, float, int]]:
         return self.value
 
     def _inverse_transform(self, vector: Union[np.ndarray, float, int]) -> Union[np.ndarray, int, float]:
@@ -221,12 +222,6 @@ cdef class UnParametrizedHyperparameter(Constant):
 
 
 cdef class NumericalHyperparameter(Hyperparameter):
-    cdef public lower
-    cdef public upper
-    cdef public q
-    cdef public log
-    cdef public _lower
-    cdef public _upper
 
     def __init__(self, name: str, default_value: Any, meta: Optional[Dict]) -> None:
         super(NumericalHyperparameter, self).__init__(name, meta)
@@ -326,18 +321,30 @@ cdef class FloatHyperparameter(NumericalHyperparameter):
         super(FloatHyperparameter, self).__init__(name, default_value, meta)
 
     def is_legal(self, value: Union[int, float]) -> bool:
-        raise NotImplemented
+        raise NotImplementedError()
 
     cpdef bint is_legal_vector(self, DTYPE_t value):
-        raise NotImplemented
+        raise NotImplementedError()
 
     def check_default(self, default_value: Union[int, float]) -> float:
-        raise NotImplemented
+        raise NotImplementedError()
+
+    def _transform(self, vector: Union[np.ndarray, float, int]) -> Optional[Union[np.ndarray, float, int]]:
+        try:
+            if isinstance(vector, np.ndarray):
+                return self._transform_vector(vector)
+            return self._transform_scalar(vector)
+        except ValueError:
+            return None
+
+    cpdef double _transform_scalar(self, double scalar):
+        raise NotImplementedError()
+
+    cpdef np.ndarray _transform_vector(self, np.ndarray vector):
+        raise NotImplementedError()
 
 
 cdef class IntegerHyperparameter(NumericalHyperparameter):
-    cdef ufhp
-
     def __init__(self, name: str, default_value: int, meta: Optional[Dict]=None) -> None:
         super(IntegerHyperparameter, self).__init__(name, default_value, meta)
 
@@ -357,6 +364,20 @@ cdef class IntegerHyperparameter(NumericalHyperparameter):
                              "an Integer, too. Right now it is a %s with value"
                              " %s." % (name, type(parameter), str(parameter)))
         return int(parameter)
+
+    def _transform(self, vector: Union[np.ndarray, float, int]) -> Optional[Union[np.ndarray, float, int]]:
+        try:
+            if isinstance(vector, np.ndarray):
+                return self._transform_vector(vector)
+            return self._transform_scalar(vector)
+        except ValueError:
+            return None
+
+    cpdef long _transform_scalar(self, double scalar):
+        raise NotImplementedError()
+
+    cpdef np.ndarray _transform_vector(self, np.ndarray vector):
+        raise NotImplementedError()
 
 
 cdef class UniformFloatHyperparameter(FloatHyperparameter):
@@ -485,21 +506,26 @@ cdef class UniformFloatHyperparameter(FloatHyperparameter):
     def _sample(self, rs: np.random, size: Optional[int]=None) -> Union[float, np.ndarray]:
         return rs.uniform(size=size)
 
-    def _transform(self, vector: Union[np.ndarray, float, int]) -> Optional[Union[np.ndarray, float, int]]:
-        if isinstance(vector, np.ndarray):
-            if np.any(np.isnan(vector)):
-                return None
-        elif np.isnan(vector):
-            return None
-        vector *= (self._upper - self._lower)
-        vector += self._lower
+    cpdef np.ndarray _transform_vector(self, np.ndarray vector):
+        if np.isnan(vector).any():
+            raise ValueError('Vector %s contains NaN\'s' % vector)
+        vector = vector * (self._upper - self._lower) + self._lower
         if self.log:
             vector = np.exp(vector)
         if self.q is not None:
             vector = np.rint(vector / self.q) * self.q
-        vector = np.minimum(self.upper, vector)
-        vector = np.maximum(self.lower, vector)
-        return vector
+        return np.maximum(self.lower, np.minimum(self.upper, vector))
+
+    cpdef double _transform_scalar(self, double scalar):
+        if scalar != scalar:
+            raise ValueError('Number %s is NaN' % scalar)
+        scalar = scalar * (self._upper - self._lower) + self._lower
+        if self.log:
+            scalar = math.exp(scalar)
+        if self.q is not None:
+            scalar = round(scalar / self.q) * self.q
+        scalar = min(self.upper, max(self.lower, scalar))
+        return scalar
 
     def _inverse_transform(self, vector: Union[np.ndarray, None]) -> Union[np.ndarray, float, int]:
         if vector is None:
@@ -685,14 +711,23 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
         sigma = self.sigma
         return rs.normal(mu, sigma, size=size)
 
-    def _transform(self, vector: Union[np.ndarray, float, int]) -> Optional[Union[np.ndarray, float, int]]:
-        if np.isnan(vector):
-            return None
+    cpdef np.ndarray _transform_vector(self, np.ndarray vector):
+        if np.isnan(vector).any():
+            raise ValueError('Vector %s contains NaN\'s' % vector)
         if self.log:
             vector = np.exp(vector)
         if self.q is not None:
-            vector = int(np.round(vector / self.q, 0)) * self.q
+            vector = np.rint(vector / self.q) * self.q
         return vector
+
+    cpdef double _transform_scalar(self, double scalar):
+        if scalar != scalar:
+            raise ValueError('Number %s is NaN' % scalar)
+        if self.log:
+            scalar = math.exp(scalar)
+        if self.q is not None:
+            scalar = round(scalar / self.q) * self.q
+        return scalar
 
     def _inverse_transform(self, vector: Optional[np.ndarray]) -> Union[float, np.ndarray]:
         if vector is None:
@@ -806,23 +841,18 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
         value = self._inverse_transform(value)
         return value
 
-    def _transform(self, vector: Union[np.ndarray, float, int]) -> Optional[Union[np.ndarray, float, int]]:
-
-        # Avoid expensive call to np.any() if not necessary
-        if isinstance(vector, np.ndarray):
-            if np.any(np.isnan(vector)):
-                return None
-        elif np.isnan(vector):
-            return None
-
-        vector = self.ufhp._transform(vector)
+    cpdef np.ndarray _transform_vector(self, np.ndarray vector):
+        vector = self.ufhp._transform_vector(vector)
         if self.q is not None:
-            vector = (np.round(vector / self.q, 0)).astype(int) * self.q
-        vector = (np.round(vector, 0)).astype(int)
-        # Convert to regular float to avoid handling different data types
-        if isinstance(vector, (np.int, np.int32, np.int64)):
-            vector = int(vector)
-        return vector
+            vector = np.rint(vector / self.q) * self.q
+
+        return np.rint(vector)
+
+    cpdef long _transform_scalar(self, double scalar):
+        scalar = self.ufhp._transform_scalar(scalar)
+        if self.q is not None:
+            scalar = round(scalar / self.q) * self.q
+        return int(round(scalar))
 
     def _inverse_transform(self, vector: Union[np.ndarray, float, int]) -> Union[np.ndarray, float, int]:
         return self.ufhp._inverse_transform(vector)
@@ -1123,20 +1153,13 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
         value = self._inverse_transform(value)
         return value
 
-    def _transform(self, vector: Union[np.ndarray, float, int]) -> Optional[Union[np.ndarray, int]]:
+    cpdef np.ndarray _transform_vector(self, np.ndarray vector):
+        vector = self.nfhp._transform_vector(vector)
+        return np.rint(vector)
 
-        # Avoid expensive call to np.any() if not necessary
-        if isinstance(vector, np.ndarray):
-            if np.any(np.isnan(vector)):
-                return None
-        elif np.isnan(vector):
-            return None
-
-        vector = self.nfhp._transform(vector)
-        vector = (np.round(vector, 0)).astype(int)
-        if isinstance(vector, (np.int, np.int32, np.int64)):
-            vector = int(vector)
-        return vector
+    cpdef long _transform_scalar(self, double scalar):
+        scalar = self.nfhp._transform_scalar(scalar)
+        return int(round(scalar))
 
     def _inverse_transform(self, vector: Union[np.ndarray, float, int]) -> Union[np.ndarray, float]:
         return self.nfhp._inverse_transform(vector)
@@ -1322,15 +1345,35 @@ cdef class CategoricalHyperparameter(Hyperparameter):
     def _sample(self, rs: np.random.RandomState, size: Optional[int]=None) -> Union[int, np.ndarray]:
         return rs.randint(0, self.num_choices, size=size)
 
-    def _transform(self, vector: Union[np.ndarray, float, int]) -> Optional[Union[str, int, float]]:
-        if not np.isfinite(vector):
-            return None
+    cpdef np.ndarray _transform_vector(self, np.ndarray vector):
+        if np.isnan(vector).any():
+            raise ValueError('Vector %s contains NaN\'s' % vector)
+
         if np.equal(np.mod(vector, 1), 0):
-            return self.choices[int(vector)]
-        else:
-            raise ValueError('Can only index the choices of the categorical '
+            return self.choices[vector.astype(int)]
+
+        raise ValueError('Can only index the choices of the ordinal '
                              'hyperparameter %s with an integer, but provided '
                              'the following float: %f' % (self, vector))
+
+    def _transform_scalar(self, scalar: Union[float, int]) -> Union[float, int, str]:
+        if scalar != scalar:
+            raise ValueError('Number %s is NaN' % scalar)
+
+        if scalar % 1 == 0:
+            return self.choices[int(scalar)]
+
+        raise ValueError('Can only index the choices of the ordinal '
+                             'hyperparameter %s with an integer, but provided '
+                             'the following float: %f' % (self, scalar))
+
+    def _transform(self, vector: Union[np.ndarray, float, int, str]) -> Optional[Union[np.ndarray, float, int]]:
+        try:
+            if isinstance(vector, np.ndarray):
+                return self._transform_vector(vector)
+            return self._transform_scalar(vector)
+        except ValueError:
+            return None
 
     def _inverse_transform(self, vector: Union[None, str, float, int]) -> Union[int, float]:
         if vector is None:
@@ -1542,15 +1585,35 @@ cdef class OrdinalHyperparameter(Hyperparameter):
         else:
             raise ValueError("Illegal default value %s" % str(default_value))
 
-    def _transform(self, vector: Union[np.ndarray, float, int]) -> Optional[Union[np.ndarray, float, int]]:
-        if vector != vector:
-            return None
+    cpdef np.ndarray _transform_vector(self, np.ndarray vector):
+        if np.isnan(vector).any():
+            raise ValueError('Vector %s contains NaN\'s' % vector)
+
         if np.equal(np.mod(vector, 1), 0):
-            return self.sequence[int(vector)]
-        else:
-            raise ValueError('Can only index the choices of the ordinal '
+            return self.sequence[vector.astype(int)]
+
+        raise ValueError('Can only index the choices of the ordinal '
                              'hyperparameter %s with an integer, but provided '
                              'the following float: %f' % (self, vector))
+
+    def _transform_scalar(self, scalar: Union[float, int]) -> Union[float, int, str]:
+        if scalar != scalar:
+            raise ValueError('Number %s is NaN' % scalar)
+
+        if scalar % 1 == 0:
+            return self.sequence[int(scalar)]
+
+        raise ValueError('Can only index the choices of the ordinal '
+                             'hyperparameter %s with an integer, but provided '
+                             'the following float: %f' % (self, scalar))
+
+    def _transform(self, vector: Union[np.ndarray, float, int]) -> Optional[Union[np.ndarray, float, int]]:
+        try:
+            if isinstance(vector, np.ndarray):
+                return self._transform_vector(vector)
+            return self._transform_scalar(vector)
+        except ValueError:
+            return None
 
     def _inverse_transform(self, vector: Optional[Union[np.ndarray, List, int, str, float]]) -> Union[float, List[int], List[str], List[float]]:
         if vector is None:
