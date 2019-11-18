@@ -29,25 +29,43 @@ import sys
 import pyparsing
 
 from ConfigSpace.configuration_space import ConfigurationSpace
-from ConfigSpace.hyperparameters import CategoricalHyperparameter, \
-    UniformIntegerHyperparameter, UniformFloatHyperparameter, \
-    NumericalHyperparameter, Constant, IntegerHyperparameter, \
-    NormalIntegerHyperparameter, NormalFloatHyperparameter
-from ConfigSpace.conditions import EqualsCondition, NotEqualsCondition,\
-    InCondition, AndConjunction, OrConjunction, ConditionComponent
-# from ConfigSpace.forbidden import ForbiddenEqualsClause, \
-#     ForbiddenAndConjunction, ForbiddenInClause, AbstractForbiddenComponent, MultipleValueForbiddenClause
-from ConfigSpace.forbidden import ForbiddenEqualsClause, \
-    ForbiddenAndConjunction, ForbiddenInClause, AbstractForbiddenComponent, MultipleValueForbiddenClause
+from ConfigSpace.hyperparameters import (
+    CategoricalHyperparameter,
+    UniformIntegerHyperparameter,
+    UniformFloatHyperparameter,
+    NumericalHyperparameter,
+    Constant,
+    IntegerHyperparameter,
+    NormalIntegerHyperparameter,
+    NormalFloatHyperparameter,
+)
+from ConfigSpace.conditions import (
+    EqualsCondition,
+    NotEqualsCondition,
+    InCondition,
+    AndConjunction,
+    OrConjunction,
+    ConditionComponent,
+)
+from ConfigSpace.forbidden import (
+    ForbiddenEqualsClause,
+    ForbiddenAndConjunction,
+    ForbiddenInClause,
+    AbstractForbiddenComponent,
+    MultipleValueForbiddenClause,
+)
 
 
 # Build pyparsing expressions for params
-pp_param_name = pyparsing.Word(pyparsing.alphanums + "_" + "-" + "@" + "." + ":" + ";" + "\\" + "/" + "?" + "!" +
-                               "$" + "%" + "&" + "*" + "+" + "<" + ">")
+pp_param_name = pyparsing.Word(
+    pyparsing.alphanums + "_" + "-" + "@" + "." + ":" + ";" + "\\" + "/" + "?" + "!"
+    + "$" + "%" + "&" + "*" + "+" + "<" + ">")
 pp_digits = "0123456789"
 pp_plusorminus = pyparsing.Literal('+') | pyparsing.Literal('-')
 pp_int = pyparsing.Combine(pyparsing.Optional(pp_plusorminus) + pyparsing.Word(pp_digits))
-pp_float = pyparsing.Combine(pyparsing.Optional(pp_plusorminus) + pyparsing.Optional(pp_int) + "." + pp_int)
+pp_float = pyparsing.Combine(
+    pyparsing.Optional(pp_plusorminus) + pyparsing.Optional(pp_int) + "." + pp_int
+)
 pp_eorE = pyparsing.Literal('e') | pyparsing.Literal('E')
 pp_floatorint = pp_float | pp_int
 pp_e_notation = pyparsing.Combine(pp_floatorint + pp_eorE + pp_int)
@@ -160,15 +178,27 @@ def build_forbidden(clause):
 
 def read(pcs_string, debug=False):
     """
-    Reads in a :py:class:`~ConfigSpace.configuration_space.ConfigurationSpace`
-     definition from a pcs file.
+    Read in a :py:class:`~ConfigSpace.configuration_space.ConfigurationSpace`
+    definition from a pcs file.
 
     Example
     -------
 
-    >>> from ConfigSpace.read_and_write import pcs
-    >>> with open('configspace.pcs', 'r') as fh:
-    >>>     restored_conf = pcs_new.read(fh)
+    .. testsetup:: pcs_test
+
+        from ConfigSpace import ConfigurationSpace
+        import ConfigSpace.hyperparameters as CSH
+        from ConfigSpace.read_and_write import pcs
+        cs = ConfigurationSpace()
+        cs.add_hyperparameter(CSH.CategoricalHyperparameter('a', choices=[1, 2, 3]))
+        with open('configspace.pcs', 'w') as f:
+             f.write(pcs.write(cs))
+
+    .. doctest:: pcs_test
+
+        >>> from ConfigSpace.read_and_write import pcs
+        >>> with open('configspace.pcs', 'r') as fh:
+        ...     deserialized_conf = pcs.read(fh)
 
     Parameters
     ----------
@@ -180,7 +210,7 @@ def read(pcs_string, debug=False):
     Returns
     -------
     :py:class:`~ConfigSpace.configuration_space.ConfigurationSpace`
-        The restored ConfigurationSpace object
+        The deserialized ConfigurationSpace object
 
     """
     configuration_space = ConfigurationSpace()
@@ -325,18 +355,26 @@ def read(pcs_string, debug=False):
 
 def write(configuration_space):
     """
-    Writes a configurations space to file in pcs format.
+    Create a string representation of a
+    :class:`~ConfigSpace.configuration_space.ConfigurationSpace` in pcs format.
+    This string can be written to file.
 
     Example
     -------
 
-    >>> import ConfigSpace as CS
-    >>> import ConfigSpace.hyperparameters as CSH
-    >>> from ConfigSpace.read_and_write import pcs
-    >>> cs = CS.ConfigurationSpace()
-    >>> cs.add_hyperparameter(CSH.CategoricalHyperparameter('a', choices=[1, 2, 3]))
-    >>> with open('configspace.pcs', 'w') as fh:
-    >>>     fh.write(pcs.write(cs))
+    .. doctest::
+
+        >>> import ConfigSpace as CS
+        >>> import ConfigSpace.hyperparameters as CSH
+        >>> from ConfigSpace.read_and_write import pcs
+        >>> cs = CS.ConfigurationSpace()
+        >>> cs.add_hyperparameter(CSH.CategoricalHyperparameter('a', choices=[1, 2, 3]))
+        a, Type: Categorical, Choices: {1, 2, 3}, Default: 1
+
+        <BLANKLINE>
+        >>> with open('configspace.pcs', 'w') as fh:
+        ...     fh.write(pcs.write(cs))
+        15
 
     Parameters
     ----------

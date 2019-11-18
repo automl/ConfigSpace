@@ -104,7 +104,7 @@ class UtilTest(unittest.TestCase):
         all_neighbors = self._test_get_one_exchange_neighbourhood(hp)
         all_neighbors = [neighbor['a'] for neighbor in all_neighbors]
         self.assertAlmostEqual(5.44, np.mean(all_neighbors), places=2)
-        self.assertAlmostEqual(3.065,  np.var(all_neighbors), places=2)
+        self.assertAlmostEqual(3.065, np.var(all_neighbors), places=2)
         hp = UniformFloatHyperparameter('a', 1, 10, log=True)
         all_neighbors = self._test_get_one_exchange_neighbourhood(hp)
         all_neighbors = [neighbor['a'] for neighbor in all_neighbors]
@@ -289,7 +289,10 @@ class UtilTest(unittest.TestCase):
         diamond.add_condition(AndConjunction(EqualsCondition(bottom, left, 'green'),
                                              EqualsCondition(bottom, right, 'green')))
 
-        config = Configuration(diamond, {'bottom': 'red', 'head': 'red', 'left': 'green', 'right': 'green'})
+        config = Configuration(
+            diamond,
+            {'bottom': 'red', 'head': 'red', 'left': 'green', 'right': 'green'},
+        )
         hp_name = "head"
         index = diamond.get_idx_by_hyperparameter_name(hp_name)
         neighbor_value = 1

@@ -157,7 +157,9 @@ class TestIraceWriter(unittest.TestCase):
         self.assertEqual(expected, value)
 
     def test_write_in_condition(self):
-        expected = "ls '--ls ' c {sa,ca,ny}\ntemp '--temp ' r (0.500000, 1.000000)|  ls  %in%  c(sa,ca)\n"
+        expected = (
+            "ls '--ls ' c {sa,ca,ny}\ntemp '--temp ' r (0.500000, 1.000000)|  ls  %in%  c(sa,ca)\n"
+        )
 
         temp = UniformFloatHyperparameter("temp", 0.5, 1)
         ls = CategoricalHyperparameter("ls", ["sa", "ca", "ny"], "sa")

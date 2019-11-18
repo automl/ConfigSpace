@@ -28,11 +28,19 @@ popd
 conda create -n testenv --yes python=$PYTHON_VERSION pip
 source activate testenv
 
-if [[ ! -z "$NPY_VERSION" ]]; then
-    conda install -y numpy=$NPY_VERSION pytest pytest-cov cython
-else
-    conda install -y numpy pytest pytest-cov cython
-fi
-pip install codecov typing
+pip install codecov pytest pytest-cov cython
 
-python setup.py install
+if [[ "$INSTALL_FROM_SDIST" == "true" ]]; then
+    python setup.py sdist
+    # Find file which was modified last as done in https://stackoverflow.com/a/4561987
+    dist=`find dist -type f -printf '%T@ %p\n' | sort -n | tail -1 | cut -f2- -d" "`
+    echo "Installing $dist"
+    twine check $dist
+    pip install "$dist"
+else
+    python setup.py install
+fi
+
+echo "###################"
+echo "conda list"
+conda list

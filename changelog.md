@@ -1,3 +1,13 @@
+# Version 0.4.11
+
+* MAINT #115: install numpy during installation if it is not already installed.
+* MAINT #124: add section on what to cite to the readme file.
+* MAINT via #127: speed improvement for neigborhood generation of integer hyperparameters.
+* FIX: Neighborhood of an integer hyperparameter does no longer contain duplicate values.
+* FIX #117: Fix sampling of `OrCondition`.
+* FIX #119: Allow sampling of multiple quantized integers.
+* FIX via #118: Fix error message.
+
 # Version 0.4.10
 
 * DOC: improved documentation and plenty of new docstrings.

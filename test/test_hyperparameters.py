@@ -181,8 +181,8 @@ class TestHyperparameters(unittest.TestCase):
             q=0.1, log=True)
 
         self.assertRaisesRegex(
-            ValueError, "Upper bound 1.000000 must be larger than lower bound "
-            "0.000000 for hyperparameter param", UniformFloatHyperparameter,
+            ValueError, "Upper bound 0.000000 must be larger than lower bound "
+            "1.000000 for hyperparameter param", UniformFloatHyperparameter,
             "param", 1, 0)
 
     def test_normalfloat(self):
@@ -286,9 +286,11 @@ class TestHyperparameters(unittest.TestCase):
         self.assertEqual(f1.q, None)
         self.assertEqual(f1.default_value, 2)
         self.assertEqual(f1.log, False)
-        self.assertAlmostEqual(f1.normalized_default_value, (2.0+0.49999)/(5.49999+0.49999))
+        self.assertAlmostEqual(f1.normalized_default_value, (2.0 + 0.49999) / (5.49999 + 0.49999))
 
-        quantization_warning = "Setting quantization < 1 for Integer Hyperparameter 'param' has no effect"
+        quantization_warning = (
+            "Setting quantization < 1 for Integer Hyperparameter 'param' has no effect"
+        )
         with pytest.warns(UserWarning, match=quantization_warning):
             f2 = UniformIntegerHyperparameter("param", 0, 10, q=0.1)
         with pytest.warns(UserWarning, match=quantization_warning):
@@ -634,8 +636,7 @@ class TestHyperparameters(unittest.TestCase):
             for i in range(100000):
                 value = hp.sample(rs)
                 values.append(value)
-                index = int(float(value - hp.lower) /
-                            (hp.upper - hp.lower) * 20)
+                index = int(float(value - hp.lower) / (hp.upper - hp.lower) * 20)
                 counts_per_bin[index] += 1
 
             self.assertIsInstance(value, int)
@@ -659,6 +660,34 @@ class TestHyperparameters(unittest.TestCase):
         for i in range(100):
             values.append(hp._sample(rs))
         self.assertEqual(len(np.unique(values)), 11)
+
+    def test_quantization_UniformIntegerHyperparameter(self):
+        hp = UniformIntegerHyperparameter("uihp", 1, 100, q=3)
+        rs = np.random.RandomState(1)
+
+        sample_one = hp._sample(rs=rs, size=1)
+        self.assertIsInstance(obj=sample_one, cls=np.ndarray)
+        self.assertEqual(1, sample_one.size)
+        self.assertTrue(hp._transform(sample_one) % 3 == 0)
+
+        sample_hundred = hp._sample(rs=rs, size=100)
+        self.assertIsInstance(obj=sample_hundred, cls=np.ndarray)
+        self.assertEqual(100, sample_hundred.size)
+        self.assertTrue(np.all(hp._transform(val) % 3 == 0 for val in sample_hundred))
+
+    def test_quantization_UniformFloatHyperparameter(self):
+        hp = UniformFloatHyperparameter("ufhp", 1, 100, q=3)
+        rs = np.random.RandomState(1)
+
+        sample_one = hp._sample(rs=rs, size=1)
+        self.assertIsInstance(obj=sample_one, cls=np.ndarray)
+        self.assertEqual(1, sample_one.size)
+        self.assertTrue(hp._transform(sample_one) % 3 == 0)
+
+        sample_hundred = hp._sample(rs=rs, size=100)
+        self.assertIsInstance(obj=sample_hundred, cls=np.ndarray)
+        self.assertEqual(100, sample_hundred.size)
+        self.assertTrue(np.all(hp._transform(val) % 3 == 0 for val in sample_hundred))
 
     def test_sample_NormalIntegerHyperparameter(self):
         def sample(hp):

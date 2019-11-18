@@ -51,8 +51,7 @@ extensions = [
     'sphinx.ext.viewcode',
     'sphinx.ext.autosummary',
     'sphinx.ext.napoleon',
-    'sphinx.ext.githubpages',
-    'sphinx_gallery.gen_gallery',
+    'sphinx.ext.githubpages'
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -85,22 +84,6 @@ pygments_style = 'sphinx'
 # If true, `todo` and `todoList` produce output, else they produce nothing.
 todo_include_todos = False
 
-from sphinx_gallery.sorting import ExampleTitleSortKey
-# Now to declare your project structure, we add a configuration dictionary
-# for Sphinx-Gallery. The examples directory ../examples is declared
-# with a relative path from the conf.py file location:
-
-
-sphinx_gallery_conf = {
-                        # path to your examples scripts
-                        'examples_dirs': '../../ConfigSpace/example',
-                        # path where to save gallery generated examples
-                        'gallery_dirs': 'auto_examples',
-                        # ignore files with this pattern.
-                        'ignore_pattern': '__init__\.py|.*\.sh',
-                        'within_subsection_order': ExampleTitleSortKey,
-                      }
-
 # -- Options for HTML output -------------------------------------------------
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
@@ -125,7 +108,7 @@ html_theme_options = {
     'navbar_links': [
         ('Start', 'index'),
         ('Quickstart', 'quickstart'),
-        ('Guide', 'Guide'),
+        ('User Guide', 'User-Guide'),
         ('API', 'API-Doc'),
     ],
     # Render the next and previous page links in navbar. (Default: true)

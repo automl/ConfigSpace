@@ -399,7 +399,10 @@ class TestPCSConverter(unittest.TestCase):
         self.assertEqual(expected, value)
 
     def test_read_new_configuration_space_complex_conditionals(self):
-        classi = OrdinalHyperparameter("classi", ["random_forest", "extra_trees", "k_nearest_neighbors", "something"])
+        classi = OrdinalHyperparameter(
+            "classi",
+            ["random_forest", "extra_trees", "k_nearest_neighbors", "something"],
+        )
         knn_weights = CategoricalHyperparameter("knn_weights", ["uniform", "distance"])
         weather = OrdinalHyperparameter("weather", ["sunny", "rainy", "cloudy", "snowing"])
         temperature = CategoricalHyperparameter("temperature", ["high", "low"])
@@ -441,7 +444,10 @@ class TestPCSConverter(unittest.TestCase):
         complex_conditional_space.add_condition(another_condition)
 
         complex_cs = list()
-        complex_cs.append("classi ordinal {random_forest,extra_trees,k_nearest_neighbors, something} [random_forest]")
+        complex_cs.append(
+            "classi ordinal {random_forest,extra_trees,k_nearest_neighbors, something} "
+            "[random_forest]"
+        )
         complex_cs.append("knn_weights categorical {uniform, distance} [uniform]")
         complex_cs.append("weather ordinal {sunny, rainy, cloudy, snowing} [sunny]")
         complex_cs.append("temperature categorical {high, low} [high]")

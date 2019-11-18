@@ -8,14 +8,10 @@ if ! [[ -z ${DOCPUSH+x} ]]; then
     if [[ "$DOCPUSH" == "true" ]]; then
 
         # install documentation building dependencies
-        pip install --upgrade matplotlib pillow sphinx sphinx-gallery sphinx_bootstrap_theme
+        pip install --upgrade matplotlib pillow sphinx sphinx_bootstrap_theme
 
         # $1 is the branch name
         # $2 is the global variable where we set the script status
-
-        if ! { [ $1 = "master" ]; }; then
-            { echo "Not one of the allowed branches"; exit 0; }
-        fi
 
         # delete any previous documentation folder
         if [ -d docs/$1 ]; then
@@ -24,6 +20,9 @@ if ! [[ -z ${DOCPUSH+x} ]]; then
 
         # create the documentation
         cd docs && make html 2>&1
+
+        # Run the doctests from the documentation
+        make doctest
 
         # create directory with branch name
         # the documentation for dev/stable from git will be stored here
@@ -44,6 +43,11 @@ if ! [[ -z ${DOCPUSH+x} ]]; then
         # copy the updated documentation for this branch
         mkdir $1/$1
         cp -r build/html/. $1/$1
+
+
+        if ! { [ $1 = "master" ]; }; then
+            { echo "Not one of the allowed branches"; exit 0; }
+        fi
 
         # takes a variable name as an argument and assigns the script outcome to a
         # variable with the given name. If it got this far, the script was successful
