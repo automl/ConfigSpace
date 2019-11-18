@@ -765,7 +765,7 @@ class TestHyperparameters(unittest.TestCase):
         self.assertEqual(actual_test(), actual_test())
 
     def test_categorical_with_weights(self):
-        rs = np.random.RandomState(1)
+        rs = np.random.RandomState()
 
         cat_hp_str = CategoricalHyperparameter(
             name="param",
@@ -773,7 +773,8 @@ class TestHyperparameters(unittest.TestCase):
             default_value="A",
             weights=[0.1, 0.6, 0.3]
         )
-        self.assertIn(member=cat_hp_str.sample(rs), container=["A", "B", "C"])
+        for _ in range(1000):
+            self.assertIn(member=cat_hp_str.sample(rs), container=["A", "B", "C"])
 
         cat_hp_int = CategoricalHyperparameter(
             name="param",
@@ -781,7 +782,8 @@ class TestHyperparameters(unittest.TestCase):
             default_value=2,
             weights=[0.1, 0.3, 0.6]
         )
-        self.assertIn(member=cat_hp_int.sample(rs), container=[1, 3, 2])
+        for _ in range(1000):
+            self.assertIn(member=cat_hp_int.sample(rs), container=[1, 3, 2])
 
         cat_hp_float = CategoricalHyperparameter(
             name="param",
@@ -789,12 +791,13 @@ class TestHyperparameters(unittest.TestCase):
             default_value=0.3,
             weights=[10, 60, 30]
         )
-        self.assertIn(member=cat_hp_float.sample(rs), container=[-0.1, 0.0, 0.3])
+        for _ in range(1000):
+            self.assertIn(member=cat_hp_float.sample(rs), container=[-0.1, 0.0, 0.3])
 
     def test_categorical_with_some_zero_weights(self):
         # zero weights are okay as long as there is at least one strictly positive weight
 
-        rs = np.random.RandomState(1)
+        rs = np.random.RandomState()
 
         cat_hp_str = CategoricalHyperparameter(
             name="param",
@@ -802,7 +805,8 @@ class TestHyperparameters(unittest.TestCase):
             default_value="A",
             weights=[0.1, 0.0, 0.3]
         )
-        self.assertIn(member=cat_hp_str.sample(rs), container=["A", "C"])
+        for _ in range(1000):
+            self.assertIn(member=cat_hp_str.sample(rs), container=["A", "C"])
         np.testing.assert_almost_equal(
             actual=cat_hp_str.probabilities,
             desired=[0.25, 0., 0.75],
@@ -815,7 +819,8 @@ class TestHyperparameters(unittest.TestCase):
             default_value=2,
             weights=[0.1, 0.6, 0.0]
         )
-        self.assertIn(member=cat_hp_int.sample(rs), container=[1, 2])
+        for _ in range(1000):
+            self.assertIn(member=cat_hp_int.sample(rs), container=[1, 2])
         np.testing.assert_almost_equal(
             actual=cat_hp_int.probabilities,
             desired=[0.1429, 0.8571, 0.0],
@@ -828,7 +833,8 @@ class TestHyperparameters(unittest.TestCase):
             default_value=0.3,
             weights=[0.0, 0.6, 0.3]
         )
-        self.assertIn(member=cat_hp_float.sample(rs), container=[0.0, 0.3])
+        for _ in range(1000):
+            self.assertIn(member=cat_hp_float.sample(rs), container=[0.0, 0.3])
         np.testing.assert_almost_equal(
             actual=cat_hp_float.probabilities,
             desired=[0.00, 0.6667, 0.3333],
