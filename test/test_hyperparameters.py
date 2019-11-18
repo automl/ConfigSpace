@@ -741,6 +741,125 @@ class TestHyperparameters(unittest.TestCase):
 
         self.assertEqual(actual_test(), actual_test())
 
+    def test_sample_CategoricalHyperparameter_with_weights(self):
+        # check also that normalization works
+        hp = CategoricalHyperparameter("chp", [0, 2, "Bla", u"Blub", u"Blurp"], weights=[1, 2, 3, 4, 0])
+
+        def actual_test():
+            rs = np.random.RandomState(1)
+            counts_per_bin = defaultdict(int)
+            for i in range(10000):
+                value = hp.sample(rs)
+                counts_per_bin[value] += 1
+
+            self.assertEqual(
+                {0: 1003, 2: 2061, 'Bla': 2994, u'Blub': 3942},
+                dict(counts_per_bin.items()))
+            return counts_per_bin
+
+        self.assertEqual(actual_test(), actual_test())
+
+    def test_categorical_with_weights(self):
+        rs = np.random.RandomState(1)
+
+        cat_hp_str = CategoricalHyperparameter(
+            name="param",
+            choices=["A", "B", "C"],
+            default_value="A",
+            weights=[0.1, 0.6, 0.3]
+        )
+        self.assertIn(member=cat_hp_str.sample(rs), container=["A", "B", "C"])
+
+        cat_hp_int = CategoricalHyperparameter(
+            name="param",
+            choices=[1, 2, 3],
+            default_value=2,
+            weights=[0.1, 0.6, 0.3]
+        )
+        self.assertIn(member=cat_hp_int.sample(rs), container=[1, 2, 3])
+
+        cat_hp_float = CategoricalHyperparameter(
+            name="param",
+            choices=[-0.1, 0.0, 0.3],
+            default_value=0.3,
+            weights=[0.1, 0.6, 0.3]
+        )
+        self.assertIn(member=cat_hp_float.sample(rs), container=[-0.1, 0.0, 0.3])
+
+    def test_categorical_with_some_zero_weights(self):
+        # zero weights are okay as long as there is at least one strictly positive weight
+
+        rs = np.random.RandomState(1)
+
+        cat_hp_str = CategoricalHyperparameter(
+            name="param",
+            choices=["A", "B", "C"],
+            default_value="A",
+            weights=[0.1, 0.0, 0.3]
+        )
+        self.assertIn(member=cat_hp_str.sample(rs), container=["A", "C"])
+
+        cat_hp_int = CategoricalHyperparameter(
+            name="param",
+            choices=[1, 2, 3],
+            default_value=2,
+            weights=[0.1, 0.6, 0.0]
+        )
+        self.assertIn(member=cat_hp_int.sample(rs), container=[1, 2])
+
+        cat_hp_float = CategoricalHyperparameter(
+            name="param",
+            choices=[-0.1, 0.0, 0.3],
+            default_value=0.3,
+            weights=[0.0, 0.6, 0.3]
+        )
+        self.assertIn(member=cat_hp_float.sample(rs), container=[0.0, 0.3])
+
+    def test_categorical_with_all_zero_weights(self):
+        rs = np.random.RandomState(1)
+
+        with self.assertRaises(ValueError) as context:
+            cat_hp_str = CategoricalHyperparameter(
+                name="param",
+                choices=["A", "B", "C"],
+                default_value="A",
+                weights=[0.0, 0.0, 0.0]
+            )
+            self.assertIn(member=cat_hp_str.sample(rs), container=["A", "C"])
+        self.assertEqual('At least one weight has to be strictly positive.', str(context.exception))
+
+    def test_categorical_with_wrong_length_weights(self):
+        with self.assertRaises(ValueError) as context:
+            CategoricalHyperparameter(
+                name="param",
+                choices=["A", "B", "C"],
+                default_value="A",
+                weights=[0.1, 0.3]
+            )
+        self.assertEqual('The list of weights and the list of choices are required to be of same length.', str(context.exception))
+
+        with self.assertRaises(ValueError) as context:
+            CategoricalHyperparameter(
+                name="param",
+                choices=["A", "B", "C"],
+                default_value="A",
+                weights=[0.1, 0.0, 0.5, 0.3]
+            )
+        self.assertEqual('The list of weights and the list of choices are required to be of same length.', str(context.exception))
+
+    def test_categorical_with_negative_weights(self):
+        rs = np.random.RandomState(1)
+
+        with self.assertRaises(ValueError) as context:
+            cat_hp_str = CategoricalHyperparameter(
+                name="param",
+                choices=["A", "B", "C"],
+                default_value="A",
+                weights=[0.1, -0.1, 0.3]
+            )
+            self.assertIn(member=cat_hp_str.sample(rs), container=["A", "C"])
+        self.assertEqual('Negative weights are not allowed.', str(context.exception))
+
     def test_log_space_conversion(self):
         lower, upper = 1e-5, 1e5
         hyper = UniformFloatHyperparameter('test', lower=lower, upper=upper, log=True)
