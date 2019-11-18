@@ -1197,6 +1197,7 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
 
 cdef class CategoricalHyperparameter(Hyperparameter):
     cdef public tuple choices
+    cdef public list probabilities
     cdef public int num_choices
     cdef list choices_vector
     cdef set _choices_set
@@ -1208,7 +1209,8 @@ cdef class CategoricalHyperparameter(Hyperparameter):
         name: str,
         choices: Union[List[Union[str, float, int]], Tuple[Union[float, int, str]]],
         default_value: Union[int, float, str, None]=None,
-        meta: Optional[Dict]=None
+        meta: Optional[Dict]=None,
+        weights: List[float]=None
     ) -> None:
         """
         A categorical hyperparameter.
@@ -1236,6 +1238,8 @@ cdef class CategoricalHyperparameter(Hyperparameter):
         meta : Dict, optional
             Field for holding meta data provided by the user.
             Not used by the configuration space.
+        weights: (list[float], optional)
+            List of weights for the choices to be used (after normalization) as probabilities during sampling, no negative values allowed
         """
 
         super(CategoricalHyperparameter, self).__init__(name, meta)
@@ -1251,6 +1255,7 @@ cdef class CategoricalHyperparameter(Hyperparameter):
             if choice is None:
                 raise TypeError("Choice 'None' is not supported")
         self.choices = tuple(choices)
+        self.probabilities = self._get_probabilities(choices=self.choices, weights=weights)
         self.num_choices = len(choices)
         self.choices_vector = list(range(self.num_choices))
         self._choices_set = set(self.choices_vector)
@@ -1334,6 +1339,23 @@ cdef class CategoricalHyperparameter(Hyperparameter):
     cpdef bint is_legal_vector(self, DTYPE_t value):
         return value in self._choices_set
 
+    def _get_probabilities(self, choices: Tuple[Union[None, str, float, int]], weights: Union[None, List[float]]) -> Union[None, List[float]]:
+        if weights is None:
+            return weights
+
+        if len(weights) != len(choices):
+            raise ValueError("The list of weights and the list of choices are required to be of same length.")
+
+        weights = np.array(weights)
+
+        if np.all(weights == 0):
+            raise ValueError("At least one weight has to be strictly positive.")
+
+        if np.any(weights < 0):
+            raise ValueError("Negative weights are not allowed.")
+
+        return list(weights / np.sum(weights))
+
     def check_default(self, default_value: Union[None, str, float, int]) -> Union[str, float, int]:
         if default_value is None:
             return self.choices[0]
@@ -1343,7 +1365,7 @@ cdef class CategoricalHyperparameter(Hyperparameter):
             raise ValueError("Illegal default value %s" % str(default_value))
 
     def _sample(self, rs: np.random.RandomState, size: Optional[int]=None) -> Union[int, np.ndarray]:
-        return rs.randint(0, self.num_choices, size=size)
+        return rs.choice(a=self.num_choices, size=size, replace=True, p=self.probabilities)
 
     cpdef np.ndarray _transform_vector(self, np.ndarray vector):
         if np.isnan(vector).any():
