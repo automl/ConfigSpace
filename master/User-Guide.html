@@ -348,7 +348,7 @@ we can choose between different output formats, such as
 <a class="reference internal" href="API-Doc.html#json"><span class="std std-ref">json</span></a> or <a class="reference internal" href="API-Doc.html#pcs-new"><span class="std std-ref">pcs</span></a>.</p>
 <p>In this example, we want to store the <a class="reference internal" href="API-Doc.html#ConfigSpace.configuration_space.ConfigurationSpace" title="ConfigSpace.configuration_space.ConfigurationSpace"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigurationSpace</span></code></a>
 object as json file</p>
-<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ConfigSpace.read_and_write</span> <span class="k">import</span> <span class="n">json</span>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ConfigSpace.read_and_write</span> <span class="kn">import</span> <span class="n">json</span>
 <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;configspace.json&#39;</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
     <span class="n">fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">cs</span><span class="p">))</span>
 </pre></div>

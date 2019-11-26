@@ -149,15 +149,15 @@
 <span class="n">__authors__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Katharina Eggensperger&quot;</span><span class="p">,</span> <span class="s2">&quot;Matthias Feurer&quot;</span><span class="p">]</span>
 <span class="n">__contact__</span> <span class="o">=</span> <span class="s2">&quot;automl.org&quot;</span>
 
-<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">OrderedDict</span>
-<span class="kn">from</span> <span class="nn">itertools</span> <span class="k">import</span> <span class="n">product</span>
-<span class="kn">from</span> <span class="nn">io</span> <span class="k">import</span> <span class="n">StringIO</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
+<span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">product</span>
+<span class="kn">from</span> <span class="nn">io</span> <span class="kn">import</span> <span class="n">StringIO</span>
 <span class="kn">import</span> <span class="nn">sys</span>
 
 <span class="kn">import</span> <span class="nn">pyparsing</span>
 
-<span class="kn">from</span> <span class="nn">ConfigSpace.configuration_space</span> <span class="k">import</span> <span class="n">ConfigurationSpace</span>
-<span class="kn">from</span> <span class="nn">ConfigSpace.hyperparameters</span> <span class="k">import</span> <span class="p">(</span>
+<span class="kn">from</span> <span class="nn">ConfigSpace.configuration_space</span> <span class="kn">import</span> <span class="n">ConfigurationSpace</span>
+<span class="kn">from</span> <span class="nn">ConfigSpace.hyperparameters</span> <span class="kn">import</span> <span class="p">(</span>
     <span class="n">CategoricalHyperparameter</span><span class="p">,</span>
     <span class="n">UniformIntegerHyperparameter</span><span class="p">,</span>
     <span class="n">UniformFloatHyperparameter</span><span class="p">,</span>
@@ -167,7 +167,7 @@
     <span class="n">NormalIntegerHyperparameter</span><span class="p">,</span>
     <span class="n">NormalFloatHyperparameter</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="kn">from</span> <span class="nn">ConfigSpace.conditions</span> <span class="k">import</span> <span class="p">(</span>
+<span class="kn">from</span> <span class="nn">ConfigSpace.conditions</span> <span class="kn">import</span> <span class="p">(</span>
     <span class="n">EqualsCondition</span><span class="p">,</span>
     <span class="n">NotEqualsCondition</span><span class="p">,</span>
     <span class="n">InCondition</span><span class="p">,</span>
@@ -175,7 +175,7 @@
     <span class="n">OrConjunction</span><span class="p">,</span>
     <span class="n">ConditionComponent</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="kn">from</span> <span class="nn">ConfigSpace.forbidden</span> <span class="k">import</span> <span class="p">(</span>
+<span class="kn">from</span> <span class="nn">ConfigSpace.forbidden</span> <span class="kn">import</span> <span class="p">(</span>
     <span class="n">ForbiddenEqualsClause</span><span class="p">,</span>
     <span class="n">ForbiddenAndConjunction</span><span class="p">,</span>
     <span class="n">ForbiddenInClause</span><span class="p">,</span>
