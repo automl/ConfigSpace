@@ -159,7 +159,7 @@ in the <a class="reference external" href="http://scikit-learn.org/stable/module
 <p>The first step is always to create a
 <a class="reference internal" href="API-Doc.html#ConfigSpace.configuration_space.ConfigurationSpace" title="ConfigSpace.configuration_space.ConfigurationSpace"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigurationSpace</span></code></a> object. All the
 hyperparameters and constraints will be added to this object.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ConfigSpace</span> <span class="k">as</span> <span class="nn">CS</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ConfigSpace</span> <span class="k">as</span> <span class="nn">CS</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cs</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">ConfigurationSpace</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="mi">1234</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -168,7 +168,7 @@ To restrict the search space, we choose <span class="math notranslate nohighligh
 <a class="reference internal" href="API-Doc.html#ConfigSpace.hyperparameters.UniformFloatHyperparameter" title="ConfigSpace.hyperparameters.UniformFloatHyperparameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">UniformFloatHyperparameter</span></code></a> between -1 and 1.
 Furthermore, we choose <code class="docutils literal notranslate"><span class="pre">max_iter</span></code> to be an
 <a class="reference internal" href="API-Doc.html#ConfigSpace.hyperparameters.UniformIntegerHyperparameter" title="ConfigSpace.hyperparameters.UniformIntegerHyperparameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">UniformIntegerHyperparameter</span></code></a> .</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ConfigSpace.hyperparameters</span> <span class="k">as</span> <span class="nn">CSH</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ConfigSpace.hyperparameters</span> <span class="k">as</span> <span class="nn">CSH</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">c</span> <span class="o">=</span> <span class="n">CSH</span><span class="o">.</span><span class="n">UniformFloatHyperparameter</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;C&#39;</span><span class="p">,</span> <span class="n">lower</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">max_iter</span> <span class="o">=</span> <span class="n">CSH</span><span class="o">.</span><span class="n">UniformIntegerHyperparameter</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;max_iter&#39;</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
 </pre></div>
@@ -191,7 +191,7 @@ value-ranges.</p>
 are called <a class="reference internal" href="API-Doc.html#ConfigSpace.configuration_space.Configuration" title="ConfigSpace.configuration_space.Configuration"><code class="xref py py-class docutils literal notranslate"><span class="pre">Configuration</span></code></a>.
 In a <a class="reference internal" href="API-Doc.html#ConfigSpace.configuration_space.Configuration" title="ConfigSpace.configuration_space.Configuration"><code class="xref py py-class docutils literal notranslate"><span class="pre">Configuration</span></code></a> object, the value
 of a parameter can be accessed or modified similar to a python dictionary.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">conf</span> <span class="o">=</span> <span class="n">cs</span><span class="o">.</span><span class="n">sample_configuration</span><span class="p">()</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">conf</span> <span class="o">=</span> <span class="n">cs</span><span class="o">.</span><span class="n">sample_configuration</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">conf</span><span class="p">[</span><span class="s1">&#39;max_iter&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">42</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">conf</span><span class="p">[</span><span class="s1">&#39;max_iter&#39;</span><span class="p">]</span>
 <span class="go">42</span>
@@ -227,7 +227,7 @@ space only if their condition is met.</p>
 <p>To add conditions on hyperparameters to the configuration space, we first have
 to insert the new hyperparameters in the <code class="docutils literal notranslate"><span class="pre">ConfigSpace</span></code> and in a second step, the
 conditions on them.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">kernel_type</span> <span class="o">=</span> <span class="n">CSH</span><span class="o">.</span><span class="n">CategoricalHyperparameter</span><span class="p">(</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">kernel_type</span> <span class="o">=</span> <span class="n">CSH</span><span class="o">.</span><span class="n">CategoricalHyperparameter</span><span class="p">(</span>
 <span class="gp">... </span>        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;kernel_type&#39;</span><span class="p">,</span> <span class="n">choices</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;linear&#39;</span><span class="p">,</span> <span class="s1">&#39;poly&#39;</span><span class="p">,</span> <span class="s1">&#39;rbf&#39;</span><span class="p">,</span> <span class="s1">&#39;sigmoid&#39;</span><span class="p">])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">degree</span> <span class="o">=</span> <span class="n">CSH</span><span class="o">.</span><span class="n">UniformIntegerHyperparameter</span><span class="p">(</span>
 <span class="gp">... </span>        <span class="s1">&#39;degree&#39;</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">default_value</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
@@ -237,7 +237,7 @@ conditions on them.</p>
 <span class="gp">... </span>        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;gamma&#39;</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="mf">1e2</span><span class="p">,</span> <span class="n">default_value</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">log</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">cs</span><span class="o">.</span><span class="n">add_hyperparameters</span><span class="p">([</span><span class="n">kernel_type</span><span class="p">,</span> <span class="n">degree</span><span class="p">,</span> <span class="n">coef0</span><span class="p">,</span> <span class="n">gamma</span><span class="p">])</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">cs</span><span class="o">.</span><span class="n">add_hyperparameters</span><span class="p">([</span><span class="n">kernel_type</span><span class="p">,</span> <span class="n">degree</span><span class="p">,</span> <span class="n">coef0</span><span class="p">,</span> <span class="n">gamma</span><span class="p">])</span>
 <span class="go">[kernel_type, Type: Categorical, Choices: {linear, poly, rbf, sigmoid}, ...]</span>
 </pre></div>
 </div>
@@ -250,20 +250,20 @@ constraints involving multiple parameters or values, we can use conjunctions.
 In the following example, <code class="docutils literal notranslate"><span class="pre">cond_2</span></code> describes that <code class="docutils literal notranslate"><span class="pre">coef0</span></code>
 is a valid hyperparameter, if the <code class="docutils literal notranslate"><span class="pre">kernel_type</span></code> has either the value
 ‘poly’ or ‘sigmoid’.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">cond_1</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">EqualsCondition</span><span class="p">(</span><span class="n">degree</span><span class="p">,</span> <span class="n">kernel_type</span><span class="p">,</span> <span class="s1">&#39;poly&#39;</span><span class="p">)</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">cond_1</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">EqualsCondition</span><span class="p">(</span><span class="n">degree</span><span class="p">,</span> <span class="n">kernel_type</span><span class="p">,</span> <span class="s1">&#39;poly&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">cond_2</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">OrConjunction</span><span class="p">(</span><span class="n">CS</span><span class="o">.</span><span class="n">EqualsCondition</span><span class="p">(</span><span class="n">coef0</span><span class="p">,</span> <span class="n">kernel_type</span><span class="p">,</span> <span class="s1">&#39;poly&#39;</span><span class="p">),</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">cond_2</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">OrConjunction</span><span class="p">(</span><span class="n">CS</span><span class="o">.</span><span class="n">EqualsCondition</span><span class="p">(</span><span class="n">coef0</span><span class="p">,</span> <span class="n">kernel_type</span><span class="p">,</span> <span class="s1">&#39;poly&#39;</span><span class="p">),</span>
 <span class="gp">... </span>                          <span class="n">CS</span><span class="o">.</span><span class="n">EqualsCondition</span><span class="p">(</span><span class="n">coef0</span><span class="p">,</span> <span class="n">kernel_type</span><span class="p">,</span> <span class="s1">&#39;sigmoid&#39;</span><span class="p">))</span>
 </pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">cond_3</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">OrConjunction</span><span class="p">(</span><span class="n">CS</span><span class="o">.</span><span class="n">EqualsCondition</span><span class="p">(</span><span class="n">gamma</span><span class="p">,</span> <span class="n">kernel_type</span><span class="p">,</span> <span class="s1">&#39;rbf&#39;</span><span class="p">),</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">cond_3</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">OrConjunction</span><span class="p">(</span><span class="n">CS</span><span class="o">.</span><span class="n">EqualsCondition</span><span class="p">(</span><span class="n">gamma</span><span class="p">,</span> <span class="n">kernel_type</span><span class="p">,</span> <span class="s1">&#39;rbf&#39;</span><span class="p">),</span>
 <span class="gp">... </span>                          <span class="n">CS</span><span class="o">.</span><span class="n">EqualsCondition</span><span class="p">(</span><span class="n">gamma</span><span class="p">,</span> <span class="n">kernel_type</span><span class="p">,</span> <span class="s1">&#39;poly&#39;</span><span class="p">),</span>
 <span class="gp">... </span>                          <span class="n">CS</span><span class="o">.</span><span class="n">EqualsCondition</span><span class="p">(</span><span class="n">gamma</span><span class="p">,</span> <span class="n">kernel_type</span><span class="p">,</span> <span class="s1">&#39;sigmoid&#39;</span><span class="p">))</span>
 </pre></div>
 </div>
 <p>Again, we add the conditions to the configuration space</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">cs</span><span class="o">.</span><span class="n">add_conditions</span><span class="p">([</span><span class="n">cond_1</span><span class="p">,</span> <span class="n">cond_2</span><span class="p">,</span> <span class="n">cond_3</span><span class="p">])</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">cs</span><span class="o">.</span><span class="n">add_conditions</span><span class="p">([</span><span class="n">cond_1</span><span class="p">,</span> <span class="n">cond_2</span><span class="p">,</span> <span class="n">cond_3</span><span class="p">])</span>
 <span class="go">[degree | kernel_type == &#39;poly&#39;, (coef0 | kernel_type == &#39;poly&#39; || coef0 | ...), ...]</span>
 </pre></div>
 </div>
@@ -301,7 +301,7 @@ hyperparameters to tune:</p>
 together, we want to make sure that these combinations are not sampled from the
 configuration space.</p>
 <p>First, we add these three new hyperparameters to the configuration space.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">penalty</span> <span class="o">=</span> <span class="n">CSH</span><span class="o">.</span><span class="n">CategoricalHyperparameter</span><span class="p">(</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">penalty</span> <span class="o">=</span> <span class="n">CSH</span><span class="o">.</span><span class="n">CategoricalHyperparameter</span><span class="p">(</span>
 <span class="gp">... </span>        <span class="n">name</span><span class="o">=</span><span class="s2">&quot;penalty&quot;</span><span class="p">,</span> <span class="n">choices</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;l1&quot;</span><span class="p">,</span> <span class="s2">&quot;l2&quot;</span><span class="p">],</span> <span class="n">default_value</span><span class="o">=</span><span class="s2">&quot;l2&quot;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">loss</span> <span class="o">=</span> <span class="n">CSH</span><span class="o">.</span><span class="n">CategoricalHyperparameter</span><span class="p">(</span>
 <span class="gp">... </span>        <span class="n">name</span><span class="o">=</span><span class="s2">&quot;loss&quot;</span><span class="p">,</span> <span class="n">choices</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;hinge&quot;</span><span class="p">,</span> <span class="s2">&quot;squared_hinge&quot;</span><span class="p">],</span> <span class="n">default_value</span><span class="o">=</span><span class="s2">&quot;squared_hinge&quot;</span><span class="p">)</span>
@@ -316,7 +316,7 @@ configuration space.</p>
 <li><p><code class="docutils literal notranslate"><span class="pre">dual</span></code> is False and <code class="docutils literal notranslate"><span class="pre">penalty</span></code> is ‘l2’ and <code class="docutils literal notranslate"><span class="pre">loss</span></code> is ‘hinge’</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">dual</span></code> is False and <code class="docutils literal notranslate"><span class="pre">penalty</span></code> is ‘l1’</p></li>
 </ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">penalty_and_loss</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">ForbiddenAndConjunction</span><span class="p">(</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">penalty_and_loss</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">ForbiddenAndConjunction</span><span class="p">(</span>
 <span class="gp">... </span>        <span class="n">CS</span><span class="o">.</span><span class="n">ForbiddenEqualsClause</span><span class="p">(</span><span class="n">penalty</span><span class="p">,</span> <span class="s2">&quot;l1&quot;</span><span class="p">),</span>
 <span class="gp">... </span>        <span class="n">CS</span><span class="o">.</span><span class="n">ForbiddenEqualsClause</span><span class="p">(</span><span class="n">loss</span><span class="p">,</span> <span class="s2">&quot;hinge&quot;</span><span class="p">)</span>
 <span class="gp">... </span>    <span class="p">)</span>
@@ -332,7 +332,7 @@ configuration space.</p>
 </pre></div>
 </div>
 <p>In the last step, we add them to the configuration space object:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">cs</span><span class="o">.</span><span class="n">add_forbidden_clauses</span><span class="p">([</span><span class="n">penalty_and_loss</span><span class="p">,</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">cs</span><span class="o">.</span><span class="n">add_forbidden_clauses</span><span class="p">([</span><span class="n">penalty_and_loss</span><span class="p">,</span>
 <span class="gp">... </span>                          <span class="n">constant_penalty_and_loss</span><span class="p">,</span>
 <span class="gp">... </span>                          <span class="n">penalty_and_dual</span><span class="p">])</span>
 <span class="go">[(Forbidden: penalty == &#39;l1&#39; &amp;&amp; Forbidden: loss == &#39;hinge&#39;), ...]</span>
@@ -382,7 +382,7 @@ object as json file</p>
     </p>
     <p>
         &copy; Copyright 2014-2019, Matthias Feurer, Katharina Eggensperger, Syed Mohsin Ali, Christina Hernandez Wunsch, Julien-Charles Levesque, Jost Tobias Springenberg, Philipp Mueller, Marius Lindauer, Jorn Tuyls.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.2.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.3.0.<br/>
     </p>
   </div>
 </footer>
