@@ -881,7 +881,7 @@ class ConfigurationTest(unittest.TestCase):
         # configuration space with at least one UniformIntegerHyperparameter which is quantized.
         cs = ConfigurationSpace()
         cs.add_hyperparameter(
-            UniformIntegerHyperparameter("uihp", lower=1, upper=100, q=2, log=False)
+            UniformIntegerHyperparameter("uihp", lower=1, upper=101, q=2, log=False)
         )
 
         self.assertIsNotNone(cs.sample_configuration(size=1))

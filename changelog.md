@@ -1,3 +1,8 @@
+# Version 0.4.12
+
+* FIX #140: Fixes a bug which led to samples lower than the lower bound of 
+  `UniformFloatHyperparemeter` if the lower bound was larger than zero and quantization was used.
+
 # Version 0.4.11
 
 * MAINT #115: install numpy during installation if it is not already installed.

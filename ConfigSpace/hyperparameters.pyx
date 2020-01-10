@@ -498,10 +498,14 @@ cdef class UniformFloatHyperparameter(FloatHyperparameter):
     def to_integer(self) -> 'UniformIntegerHyperparameter':
         # TODO check if conversion makes sense at all (at least two integer values possible!)
         # todo check if params should be converted to int while class initialization or inside class itself
-        return UniformIntegerHyperparameter(self.name, int(self.lower),
-                                            int(self.upper),
-                                            int(np.round(self.default_value)), int(self.q),
-                                            self.log)
+        return UniformIntegerHyperparameter(
+            name=self.name,
+            lower=int(self.lower),
+            upper=int(self.upper),
+            default_value=int(np.round(self.default_value)),
+            q=int(self.q),
+            log=self.log,
+        )
 
     def _sample(self, rs: np.random, size: Optional[int]=None) -> Union[float, np.ndarray]:
         return rs.uniform(size=size)
@@ -798,6 +802,11 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
                 self.q = None
             else:
                 self.q = self.check_int(q, "q")
+                if (self.upper - self.lower) % self.q != 0:
+                    raise ValueError(
+                        'Upper bound (%d) - lower bound (%d) must be a multiple of q (%d)'
+                        % (self.upper, self.lower, self.q)
+                    )
         else:
             self.q = None
         self.log = bool(log)
@@ -816,7 +825,7 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
         self.ufhp = UniformFloatHyperparameter(self.name,
                                                self.lower - 0.49999,
                                                self.upper + 0.49999,
-                                               log=self.log, q=self.q,
+                                               log=self.log,
                                                default_value=self.default_value)
         self.normalized_default_value = self._inverse_transform(self.default_value)
 
@@ -844,14 +853,18 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
     cpdef np.ndarray _transform_vector(self, np.ndarray vector):
         vector = self.ufhp._transform_vector(vector)
         if self.q is not None:
-            vector = np.rint(vector / self.q) * self.q
+            vector = np.rint((vector - self.lower) / self.q) * self.q + self.lower
+            vector = np.minimum(vector, self.upper)
+            vector = np.maximum(vector, self.lower)
 
         return np.rint(vector)
 
     cpdef long _transform_scalar(self, double scalar):
         scalar = self.ufhp._transform_scalar(scalar)
         if self.q is not None:
-            scalar = round(scalar / self.q) * self.q
+            scalar = round((scalar - self.lower) / self.q) * self.q + self.lower
+            scalar = min(scalar, self.upper)
+            scalar = max(scalar, self.lower)
         return int(round(scalar))
 
     def _inverse_transform(self, vector: Union[np.ndarray, float, int]) -> Union[np.ndarray, float, int]:

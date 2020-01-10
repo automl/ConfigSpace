@@ -661,19 +661,67 @@ class TestHyperparameters(unittest.TestCase):
             values.append(hp._sample(rs))
         self.assertEqual(len(np.unique(values)), 11)
 
+        hp = UniformIntegerHyperparameter("uihp", 2, 12)
+        values = []
+        rs = np.random.RandomState(1)
+        for i in range(100):
+            values.append(hp._sample(rs))
+            self.assertGreaterEqual(hp._transform(values[-1]), 2)
+            self.assertLessEqual(hp._transform(values[-1]), 12)
+        self.assertEqual(len(np.unique(values)), 11)
+
     def test_quantization_UniformIntegerHyperparameter(self):
         hp = UniformIntegerHyperparameter("uihp", 1, 100, q=3)
-        rs = np.random.RandomState(1)
+        rs = np.random.RandomState()
 
         sample_one = hp._sample(rs=rs, size=1)
         self.assertIsInstance(obj=sample_one, cls=np.ndarray)
         self.assertEqual(1, sample_one.size)
-        self.assertTrue(hp._transform(sample_one) % 3 == 0)
+        self.assertEqual((hp._transform(sample_one) - 1) % 3, 0)
+        self.assertGreaterEqual(hp._transform(sample_one), 1)
+        self.assertLessEqual(hp._transform(sample_one), 100)
 
         sample_hundred = hp._sample(rs=rs, size=100)
         self.assertIsInstance(obj=sample_hundred, cls=np.ndarray)
         self.assertEqual(100, sample_hundred.size)
-        self.assertTrue(np.all(hp._transform(val) % 3 == 0 for val in sample_hundred))
+        np.testing.assert_array_equal(
+            [(hp._transform(val) - 1) % 3 for val in sample_hundred],
+            np.zeros((100,), dtype=int),
+        )
+        samples_in_original_space = hp._transform(sample_hundred)
+        for i in range(100):
+            self.assertGreaterEqual(samples_in_original_space[i], 1)
+            self.assertLessEqual(samples_in_original_space[i], 100)
+
+    def test_quantization_UniformIntegerHyperparameter_negative(self):
+        hp = UniformIntegerHyperparameter("uihp", -2, 100, q=3)
+        rs = np.random.RandomState()
+
+        sample_one = hp._sample(rs=rs, size=1)
+        self.assertIsInstance(obj=sample_one, cls=np.ndarray)
+        self.assertEqual(1, sample_one.size)
+        self.assertEqual((hp._transform(sample_one) + 2) % 3, 0)
+        self.assertGreaterEqual(hp._transform(sample_one), 1)
+        self.assertLessEqual(hp._transform(sample_one), 100)
+
+        sample_hundred = hp._sample(rs=rs, size=100)
+        self.assertIsInstance(obj=sample_hundred, cls=np.ndarray)
+        self.assertEqual(100, sample_hundred.size)
+        np.testing.assert_array_equal(
+            [(hp._transform(val) + 2) % 3 for val in sample_hundred],
+            np.zeros((100, ), dtype=int),
+        )
+        samples_in_original_space = hp._transform(sample_hundred)
+        for i in range(100):
+            self.assertGreaterEqual(samples_in_original_space[i], -2)
+            self.assertLessEqual(samples_in_original_space[i], 100)
+
+    def test_illegal_quantization_UniformIntegerHyperparameter(self):
+        with self.assertRaisesRegex(
+            ValueError,
+            r'Upper bound \(4\) - lower bound \(1\) must be a multiple of q \(2\)',
+        ):
+            UniformIntegerHyperparameter("uihp", 1, 4, q=2)
 
     def test_quantization_UniformFloatHyperparameter(self):
         hp = UniformFloatHyperparameter("ufhp", 1, 100, q=3)
