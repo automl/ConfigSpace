@@ -439,7 +439,7 @@ cdef class UniformFloatHyperparameter(FloatHyperparameter):
 
         if self.log:
             if self.q is not None:
-                lower = self.lower - (np.float64(self.q) / 2. - 0.0001)
+                lower = self.lower - (np.float64(self.q) / 2. + 0.0001)
                 upper = self.upper + (np.float64(self.q) / 2. - 0.0001)
             else:
                 lower = self.lower
@@ -448,11 +448,20 @@ cdef class UniformFloatHyperparameter(FloatHyperparameter):
             self._upper = np.log(upper)
         else:
             if self.q is not None:
-                self._lower = self.lower - (self.q / 2. - 0.0001)
+                self._lower = self.lower - (self.q / 2. + 0.0001)
                 self._upper = self.upper + (self.q / 2. - 0.0001)
             else:
                 self._lower = self.lower
                 self._upper = self.upper
+        if self.q is not None:
+            # There can be weird rounding errors, so we compare the result against self.q, see
+            # In [13]: 2.4 % 0.2
+            # Out[13]: 0.1999999999999998
+            if np.round((self.upper - self.lower) % self.q, 10) not in (0, self.q):
+                raise ValueError(
+                    'Upper bound (%f) - lower bound (%f) must be a multiple of q (%f)'
+                    % (self.upper, self.lower, self.q)
+                )
 
         self.normalized_default_value = self._inverse_transform(self.default_value)
 
@@ -517,7 +526,9 @@ cdef class UniformFloatHyperparameter(FloatHyperparameter):
         if self.log:
             vector = np.exp(vector)
         if self.q is not None:
-            vector = np.rint(vector / self.q) * self.q
+            vector = np.rint((vector - self.lower) / self.q) * self.q + self.lower
+            vector = np.minimum(vector, self.upper)
+            vector = np.maximum(vector, self.lower)
         return np.maximum(self.lower, np.minimum(self.upper, vector))
 
     cpdef double _transform_scalar(self, double scalar):
@@ -527,7 +538,9 @@ cdef class UniformFloatHyperparameter(FloatHyperparameter):
         if self.log:
             scalar = math.exp(scalar)
         if self.q is not None:
-            scalar = round(scalar / self.q) * self.q
+            scalar = round((scalar - self.lower) / self.q) * self.q + self.lower
+            scalar = min(scalar, self.upper)
+            scalar = max(scalar, self.lower)
         scalar = min(self.upper, max(self.lower, scalar))
         return scalar
 

@@ -603,8 +603,8 @@ class TestHyperparameters(unittest.TestCase):
 
         counts_per_bin = sample(hp)
         self.assertEqual(counts_per_bin,
-                         [24359, 15781, 0, 11635, 0, 0, 9506, 7867, 0, 0, 6763,
-                          0, 5919, 5114, 0, 4798, 0, 0, 4339, 3919, 0])
+                         [24368, 15778, 0, 11633, 0, 0, 9508, 7869, 0, 0, 6757,
+                          0, 5918, 0, 5114, 4797, 0, 0, 4340, 0, 3918])
         self.assertEqual(sample(hp), sample(hp))
 
     def test_sample_NormalFloatHyperparameter(self):
@@ -725,17 +725,54 @@ class TestHyperparameters(unittest.TestCase):
 
     def test_quantization_UniformFloatHyperparameter(self):
         hp = UniformFloatHyperparameter("ufhp", 1, 100, q=3)
-        rs = np.random.RandomState(1)
+        rs = np.random.RandomState()
 
         sample_one = hp._sample(rs=rs, size=1)
         self.assertIsInstance(obj=sample_one, cls=np.ndarray)
         self.assertEqual(1, sample_one.size)
-        self.assertTrue(hp._transform(sample_one) % 3 == 0)
+        self.assertEqual((hp._transform(sample_one) - 1) % 3, 0)
+        self.assertGreaterEqual(hp._transform(sample_one), 1)
+        self.assertLessEqual(hp._transform(sample_one), 100)
 
         sample_hundred = hp._sample(rs=rs, size=100)
         self.assertIsInstance(obj=sample_hundred, cls=np.ndarray)
         self.assertEqual(100, sample_hundred.size)
-        self.assertTrue(np.all(hp._transform(val) % 3 == 0 for val in sample_hundred))
+        np.testing.assert_array_equal(
+            [(hp._transform(val) - 1) % 3 for val in sample_hundred],
+            np.zeros((100,), dtype=int),
+        )
+        samples_in_original_space = hp._transform(sample_hundred)
+        for i in range(100):
+            self.assertGreaterEqual(samples_in_original_space[i], 1)
+            self.assertLessEqual(samples_in_original_space[i], 100)
+
+    def test_quantization_UniformFloatHyperparameter_decimal_numbers(self):
+        hp = UniformFloatHyperparameter("ufhp", 1.2, 3.6, q=0.2)
+        rs = np.random.RandomState()
+
+        sample_one = hp._sample(rs=rs, size=1)
+        self.assertIsInstance(obj=sample_one, cls=np.ndarray)
+        self.assertEqual(1, sample_one.size)
+        try:
+            self.assertAlmostEqual(float(hp._transform(sample_one) + 1.2) % 0.2, 0.0)
+        except:
+            self.assertAlmostEqual(float(hp._transform(sample_one) + 1.2) % 0.2, 0.2)
+        self.assertGreaterEqual(hp._transform(sample_one), 1)
+        self.assertLessEqual(hp._transform(sample_one), 100)
+
+    def test_quantization_UniformFloatHyperparameter_decimal_numbers_negative(self):
+        hp = UniformFloatHyperparameter("ufhp", -1.2, 1.2, q=0.2)
+        rs = np.random.RandomState()
+
+        sample_one = hp._sample(rs=rs, size=1)
+        self.assertIsInstance(obj=sample_one, cls=np.ndarray)
+        self.assertEqual(1, sample_one.size)
+        try:
+            self.assertAlmostEqual(float(hp._transform(sample_one) + 1.2) % 0.2, 0.0)
+        except:
+            self.assertAlmostEqual(float(hp._transform(sample_one) + 1.2) % 0.2, 0.2)
+        self.assertGreaterEqual(hp._transform(sample_one), -1.2)
+        self.assertLessEqual(hp._transform(sample_one), 1.2)
 
     def test_sample_NormalIntegerHyperparameter(self):
         def sample(hp):
