@@ -701,7 +701,7 @@ class TestHyperparameters(unittest.TestCase):
         self.assertIsInstance(obj=sample_one, cls=np.ndarray)
         self.assertEqual(1, sample_one.size)
         self.assertEqual((hp._transform(sample_one) + 2) % 3, 0)
-        self.assertGreaterEqual(hp._transform(sample_one), 1)
+        self.assertGreaterEqual(hp._transform(sample_one), -2)
         self.assertLessEqual(hp._transform(sample_one), 100)
 
         sample_hundred = hp._sample(rs=rs, size=100)
