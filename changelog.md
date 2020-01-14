@@ -1,7 +1,12 @@
 # Version 0.4.12
 
+* ADD #135: Add weights to the sampling of categorical hyperparameters.
+* MAINT #129: Performance improvements for the generation of neighbor configurations.
+* MAINT #130: Test the installability of a distribution on travis-ci.
 * FIX #140: Fixes a bug which led to samples lower than the lower bound of 
   `UniformFloatHyperparemeter` if the lower bound was larger than zero and quantization was used.
+* FIX # 138: Fixes a bug in which the readme wasn't read correctly on systems not using UTF8 as
+  their default encoding.
 
 # Version 0.4.11
 
