@@ -430,3 +430,62 @@ def fix_types(configuration: dict,
             else:
                 raise TypeError("Unknown hyperparameter type %s" % type(param))
     return configuration
+
+def generate_grid(configuration_space: ConfigurationSpace,
+                 num_steps_dict: Union[None,  Dict[str, Union[str, float, int]]] = None) -> List:
+    """
+    configuration_space: :class:`~ConfigSpace.configuration_space.ConfigurationSpace`
+        The Configuration space over which to create a grid of HyperParameter Configuration values. It knows the types for all parameter values.
+
+    num_steps_dict: dict
+        A dict containing the number of points to divide the grid side formed by Hyperparameters which are either of type UniformFloatHyperparameter or type UniformIntegerHyperparameter. The keys in the dict should be the names of the corresponding Hyperparameters and the values should be the number of points to divide the grid side formed by the corresponding Hyperparameter in to.
+    """
+    
+    value_sets = [] # list of tuples: each tuple is the grid values to be taken on by a Hyperparameter
+    grid = []
+    
+    for param in configuration_space.get_hyperparameters():
+        param_name = param.name
+        if isinstance(param, (CategoricalHyperparameter)):
+            value_sets.append(param.choices)
+            
+        elif isinstance(param, (OrdinalHyperparameter)):
+            value_sets.append(param.sequence)
+
+        elif isinstance(param, Constant):
+            value_sets.append(tuple([param.value, ]))
+            
+        elif isinstance(param, UniformFloatHyperparameter):
+            num_steps = num_steps_dict[param.name]
+            if param.log:
+                lower, upper = np.log([param.lower, param.upper])
+            else:
+                lower, upper = param.lower, param.upper
+            grid_points = np.linspace(lower, upper, num_steps)
+            if param.log:
+                grid_points = np.exp(grid_points)
+            value_sets.append(tuple(grid_points))
+
+        elif isinstance(param, UniformIntegerHyperparameter):
+            num_steps = num_steps_dict[param.name]
+            if param.log:
+                lower, upper = np.log([param.lower, param.upper])
+            else:
+                lower, upper = param.lower, param.upper
+            grid_points = np.linspace(lower, upper, num_steps)
+            if param.log:
+                grid_points = np.exp(grid_points).astype(int)
+            value_sets.append(tuple(grid_points))
+
+        else:
+            raise TypeError("Unknown hyperparameter type %s" % type(param))
+                
+    import itertools
+    for element in itertools.product(*value_sets):
+        config_dict = {}
+        for i, param in enumerate(configuration_space.get_hyperparameters()):
+            config_dict[param.name] = element[i]
+        grid_point = Configuration(cs, config_dict)
+        grid.append(grid_point)
+
+    return grid
