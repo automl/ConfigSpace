@@ -495,7 +495,7 @@ def generate_grid(configuration_space: ConfigurationSpace,
         config_dict = {}
         for i, param in enumerate(configuration_space.get_hyperparameters()):
             config_dict[param.name] = element[i]
-        grid_point = Configuration(cs, config_dict)
+        grid_point = Configuration(configuration_space, config_dict)
         grid.append(grid_point)
 
     return grid
