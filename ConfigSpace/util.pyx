@@ -30,7 +30,7 @@
 
 from collections import deque
 import copy
-from typing import Union, Dict, Generator
+from typing import Union, Dict, Generator, List
 
 import numpy as np  # type: ignore
 from ConfigSpace import Configuration, ConfigurationSpace
@@ -434,27 +434,37 @@ def fix_types(configuration: dict,
 def generate_grid(configuration_space: ConfigurationSpace,
                  num_steps_dict: Union[None,  Dict[str, Union[str, float, int]]] = None) -> List:
     """
+    Generate a grid of Configurations for a given ConfigurationSpace. Can be used, for example, for grid search.
+
+    Parameters
+    ----------
     configuration_space: :class:`~ConfigSpace.configuration_space.ConfigurationSpace`
         The Configuration space over which to create a grid of HyperParameter Configuration values. It knows the types for all parameter values.
 
     num_steps_dict: dict
         A dict containing the number of points to divide the grid side formed by Hyperparameters which are either of type UniformFloatHyperparameter or type UniformIntegerHyperparameter. The keys in the dict should be the names of the corresponding Hyperparameters and the values should be the number of points to divide the grid side formed by the corresponding Hyperparameter in to.
+
+    Returns
+    -------
+    list
+        List containing Configurations. It is a cartesian product of tuples of HyperParameter values. Each tuple lists the possible values taken by the corresponding HyperParameter. Within the cartesian product, in each element, the ordering of HyperParameters is the same for the OrderedDict within the ConfigurationSpace.
+
     """
-    
+
     value_sets = [] # list of tuples: each tuple is the grid values to be taken on by a Hyperparameter
     grid = []
-    
+
     for param in configuration_space.get_hyperparameters():
         param_name = param.name
         if isinstance(param, (CategoricalHyperparameter)):
             value_sets.append(param.choices)
-            
+
         elif isinstance(param, (OrdinalHyperparameter)):
             value_sets.append(param.sequence)
 
         elif isinstance(param, Constant):
             value_sets.append(tuple([param.value, ]))
-            
+
         elif isinstance(param, UniformFloatHyperparameter):
             num_steps = num_steps_dict[param.name]
             if param.log:
@@ -479,7 +489,7 @@ def generate_grid(configuration_space: ConfigurationSpace,
 
         else:
             raise TypeError("Unknown hyperparameter type %s" % type(param))
-                
+
     import itertools
     for element in itertools.product(*value_sets):
         config_dict = {}
