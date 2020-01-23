@@ -434,7 +434,7 @@ def fix_types(configuration: dict,
 def generate_grid(configuration_space: ConfigurationSpace,
                  num_steps_dict: Union[None,  Dict[str, Union[str, float, int]]] = None) -> List:
     """
-    Generate a grid of Configurations for a given ConfigurationSpace. Can be used, for example, for grid search.
+    Generate a grid of Configurations for a given ConfigurationSpace. Can be used, for example, for grid search. Currently ignores conditional HyperParameters.
 
     Parameters
     ----------
