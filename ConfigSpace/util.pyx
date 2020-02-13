@@ -460,7 +460,7 @@ class ConfigSpaceGrid:
         hp_names = []
 
         for hp_name in self.configuration_space._children['__HPOlib_configuration_space_root__']:
-            value_sets.append(self.get_value_set(hp_name))
+            value_sets.append(self.get_value_set(num_steps_dict, hp_name))
             hp_names.append(hp_name)
 
         unchecked_grid_pts = self.get_cartesian_product(value_sets, hp_names)
@@ -490,7 +490,7 @@ class ConfigSpaceGrid:
 
 
                 for hp_name in new_active_hp_names:
-                    value_sets.append(self.get_value_set(hp_name))
+                    value_sets.append(self.get_value_set(num_steps_dict, hp_name))
                     hp_names.append(hp_name)
                 if len(new_active_hp_names) > 0: # this check might not be needed, as there is always going to be a new active HP when in this except block?
                     new_conditonal_grid = self.get_cartesian_product(value_sets, hp_names)
@@ -500,7 +500,7 @@ class ConfigSpaceGrid:
 
         return checked_grid_pts
 
-    def get_value_set(self, hp_name):
+    def get_value_set(self, num_steps_dict, hp_name):
         param = self.configuration_space.get_hyperparameter(hp_name)
         if isinstance(param, (CategoricalHyperparameter)):
             return param.choices
