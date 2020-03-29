@@ -64,6 +64,23 @@ class TestConfigurationSpace(unittest.TestCase):
     # and over again throughout this test suite
     # TODO make sure that every function here tests one aspect of the
     # configuration space object!
+    def test_add_configuration_space_probabilities(self):
+        from copy import copy,deepcopy
+        from pickle import dumps,loads
+        weights=[0.25,0.5,0.25]
+        hp = CategoricalHyperparameter("B", ["1", "2", "3"], weights=weights)
+        sub_cs = ConfigurationSpace()
+        sub_cs.add_hyperparameter(hp)
+        cs = ConfigurationSpace()
+        cs.add_configuration_space("A", sub_cs)
+        self.assertEqual(deepcopy(sub_cs).get_hyperparameter("B").probabilities, weights)
+        self.assertEqual(copy(sub_cs).get_hyperparameter("B").probabilities, weights)
+        self.assertEqual(loads(dumps(sub_cs)).get_hyperparameter("B").probabilities, weights)
+        self.assertEqual(cs.get_hyperparameter("A:B").probabilities, weights)
+        self.assertEqual(deepcopy(cs).get_hyperparameter("A:B").probabilities, weights)
+        self.assertEqual(copy(cs).get_hyperparameter("A:B").probabilities, weights)
+        self.assertEqual(loads(dumps(cs)).get_hyperparameter("A:B").probabilities, weights)
+
     def test_add_hyperparameter(self):
         cs = ConfigurationSpace()
         hp = UniformIntegerHyperparameter("name", 0, 10)
