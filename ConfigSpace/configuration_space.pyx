@@ -634,7 +634,8 @@ class ConfigurationSpace(object):
 
         new_parameters = []
         for hp in configuration_space.get_hyperparameters():
-            new_parameter = copy.copy(hp)
+            new_parameter = copy.deepcopy(hp)
+            # fixme: is use copy , "probabilities" will not be copy. to fix it , use deepcopy instead
             # Allow for an empty top-level parameter
             if new_parameter.name == '':
                 new_parameter.name = prefix
