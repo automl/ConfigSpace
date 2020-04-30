@@ -32,7 +32,7 @@ import io
 import math
 import warnings
 from collections import OrderedDict, Counter
-from typing import List, Any, Dict, Union, Set, Tuple, Optional
+from typing import List, Any, Dict, Union, Set, Tuple, Optional, Callable, Any
 
 import numpy as np
 cimport numpy as np
@@ -1233,8 +1233,8 @@ cdef class CategoricalHyperparameter(Hyperparameter):
     def __init__(
         self,
         name: str,
-        choices: Union[List[Union[str, float, int]], Tuple[Union[float, int, str]]],
-        default_value: Union[int, float, str, None]=None,
+        choices: Union[List[Union[str, float, int, Callable[[], Any]]], Tuple[Union[float, int, str, Callable[[], Any]]]],
+        default_value: Union[int, float, str, Callable[[], Any], None]=None,
         meta: Optional[Dict]=None,
         weights: List[float]=None
     ) -> None:
@@ -1257,9 +1257,9 @@ cdef class CategoricalHyperparameter(Hyperparameter):
         ----------
         name : str
             Name of the hyperparameter, with which it can be accessed
-        choices : list or tuple with str, float, int
+        choices : list or tuple with str, float, int, Callable[[], Any]
             Collection of values to sample hyperparameter from
-        default_value : int, float, str, optional
+        default_value : int, float, str, Callable[[], Any], optional
             Sets the default value of the hyperparameter to a given value
         meta : Dict, optional
             Field for holding meta data provided by the user.
@@ -1344,7 +1344,7 @@ cdef class CategoricalHyperparameter(Hyperparameter):
             default_value=self.default_value,
         )
 
-    cpdef int compare(self, value: Union[int, float, str], value2: Union[int, float, str]):
+    cpdef int compare(self, value: Union[int, float, str, Callable[[], Any]], value2: Union[int, float, str, Callable[[], Any]]):
         if value == value2:
             return 0
         else:
@@ -1356,16 +1356,13 @@ cdef class CategoricalHyperparameter(Hyperparameter):
         else:
             return 1
 
-    def is_legal(self, value: Union[None, str, float, int]) -> bool:
-        if value in self.choices:
-            return True
-        else:
-            return False
+    def is_legal(self, value: Union[None, str, float, int, Callable[[], Any]]) -> bool:
+        return value in self.choices
 
     cpdef bint is_legal_vector(self, DTYPE_t value):
         return value in self._choices_set
 
-    def _get_probabilities(self, choices: Tuple[Union[None, str, float, int]], weights: Union[None, List[float]]) -> Union[None, List[float]]:
+    def _get_probabilities(self, choices: Tuple[Union[None, str, float, int, Callable[[], Any]]], weights: Union[None, List[float]]) -> Union[None, List[float]]:
         if weights is None:
             return weights
 
@@ -1382,7 +1379,7 @@ cdef class CategoricalHyperparameter(Hyperparameter):
 
         return list(weights / np.sum(weights))
 
-    def check_default(self, default_value: Union[None, str, float, int]) -> Union[str, float, int]:
+    def check_default(self, default_value: Union[None, str, float, int, Callable[[], Any]]) -> Union[str, float, int, Callable[[], Any]]:
         if default_value is None:
             return self.choices[0]
         elif self.is_legal(default_value):
@@ -1423,7 +1420,7 @@ cdef class CategoricalHyperparameter(Hyperparameter):
         except ValueError:
             return None
 
-    def _inverse_transform(self, vector: Union[None, str, float, int]) -> Union[int, float]:
+    def _inverse_transform(self, vector: Union[None, str, float, int, Callable[[], Any]]) -> Union[int, float]:
         if vector is None:
             return np.NaN
         return self.choices.index(vector)

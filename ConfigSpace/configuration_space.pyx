@@ -52,7 +52,7 @@ from ConfigSpace.forbidden import (
     AbstractForbiddenClause,
     AbstractForbiddenConjunction,
 )
-from typing import Union, List, Any, Dict, Iterable, Set, Tuple, Optional
+from typing import Union, List, Any, Dict, Iterable, Set, Tuple, Optional, Callable
 from ConfigSpace.exceptions import ForbiddenValueError
 import ConfigSpace.c_util
 
@@ -1310,7 +1310,7 @@ class ConfigurationSpace(object):
 
 class Configuration(object):
     def __init__(self, configuration_space: ConfigurationSpace,
-                 values: Union[None,  Dict[str, Union[str, float, int]]] = None,
+                 values: Union[None,  Dict[str, Union[str, float, int, Callable[[], Any]]]] = None,
                  vector: Union[None, np.ndarray] = None,
                  allow_inactive_with_values: bool = False, origin: Any = None) -> None:
         """
