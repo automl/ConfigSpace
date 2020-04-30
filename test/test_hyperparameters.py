@@ -519,6 +519,23 @@ class TestHyperparameters(unittest.TestCase):
         self.assertEqual(f1, f1_)
         self.assertEqual("param, Type: Categorical, Choices: {a, b}, Default: a", str(f1))
 
+    def test_categorical_callable(self):
+        def fn_1(): return 1
+        def fn_2(): return 2
+        f1 = CategoricalHyperparameter("param", [fn_1, fn_2])
+        f1_ = CategoricalHyperparameter("param", [fn_1, fn_2])
+        self.assertEqual(f1, f1_)
+        self.assertEqual("param, Type: Categorical, Choices: {{{}, {}}}, Default: {}".format(fn_1, fn_2, fn_1), str(f1))
+
+        f2 = CategoricalHyperparameter("param", [fn_2, fn_1])
+        self.assertNotEqual(f1, f2)
+
+        def fn_3(): return 3
+        self.assertTrue(f1.is_legal(fn_1))
+        self.assertTrue(f1.is_legal(fn_2))
+        self.assertFalse(f1.is_legal(fn_3))
+        self.assertFalse(f1.is_legal(fn_1()))
+
     def test_categorical_is_legal(self):
         f1 = CategoricalHyperparameter("param", ["a", "b"])
         self.assertTrue(f1.is_legal("a"))
