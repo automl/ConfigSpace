@@ -603,8 +603,8 @@ class TestHyperparameters(unittest.TestCase):
 
         counts_per_bin = sample(hp)
         self.assertEqual(counts_per_bin,
-                         [24359, 15781, 0, 11635, 0, 0, 9506, 7867, 0, 0, 6763,
-                          0, 5919, 5114, 0, 4798, 0, 0, 4339, 3919, 0])
+                         [24368, 15778, 0, 11633, 0, 0, 9508, 7869, 0, 0, 6757,
+                          0, 5918, 0, 5114, 4797, 0, 0, 4340, 0, 3918])
         self.assertEqual(sample(hp), sample(hp))
 
     def test_sample_NormalFloatHyperparameter(self):
@@ -661,33 +661,118 @@ class TestHyperparameters(unittest.TestCase):
             values.append(hp._sample(rs))
         self.assertEqual(len(np.unique(values)), 11)
 
+        hp = UniformIntegerHyperparameter("uihp", 2, 12)
+        values = []
+        rs = np.random.RandomState(1)
+        for i in range(100):
+            values.append(hp._sample(rs))
+            self.assertGreaterEqual(hp._transform(values[-1]), 2)
+            self.assertLessEqual(hp._transform(values[-1]), 12)
+        self.assertEqual(len(np.unique(values)), 11)
+
     def test_quantization_UniformIntegerHyperparameter(self):
         hp = UniformIntegerHyperparameter("uihp", 1, 100, q=3)
-        rs = np.random.RandomState(1)
+        rs = np.random.RandomState()
 
         sample_one = hp._sample(rs=rs, size=1)
         self.assertIsInstance(obj=sample_one, cls=np.ndarray)
         self.assertEqual(1, sample_one.size)
-        self.assertTrue(hp._transform(sample_one) % 3 == 0)
+        self.assertEqual((hp._transform(sample_one) - 1) % 3, 0)
+        self.assertGreaterEqual(hp._transform(sample_one), 1)
+        self.assertLessEqual(hp._transform(sample_one), 100)
 
         sample_hundred = hp._sample(rs=rs, size=100)
         self.assertIsInstance(obj=sample_hundred, cls=np.ndarray)
         self.assertEqual(100, sample_hundred.size)
-        self.assertTrue(np.all(hp._transform(val) % 3 == 0 for val in sample_hundred))
+        np.testing.assert_array_equal(
+            [(hp._transform(val) - 1) % 3 for val in sample_hundred],
+            np.zeros((100,), dtype=int),
+        )
+        samples_in_original_space = hp._transform(sample_hundred)
+        for i in range(100):
+            self.assertGreaterEqual(samples_in_original_space[i], 1)
+            self.assertLessEqual(samples_in_original_space[i], 100)
+
+    def test_quantization_UniformIntegerHyperparameter_negative(self):
+        hp = UniformIntegerHyperparameter("uihp", -2, 100, q=3)
+        rs = np.random.RandomState()
+
+        sample_one = hp._sample(rs=rs, size=1)
+        self.assertIsInstance(obj=sample_one, cls=np.ndarray)
+        self.assertEqual(1, sample_one.size)
+        self.assertEqual((hp._transform(sample_one) + 2) % 3, 0)
+        self.assertGreaterEqual(hp._transform(sample_one), -2)
+        self.assertLessEqual(hp._transform(sample_one), 100)
+
+        sample_hundred = hp._sample(rs=rs, size=100)
+        self.assertIsInstance(obj=sample_hundred, cls=np.ndarray)
+        self.assertEqual(100, sample_hundred.size)
+        np.testing.assert_array_equal(
+            [(hp._transform(val) + 2) % 3 for val in sample_hundred],
+            np.zeros((100, ), dtype=int),
+        )
+        samples_in_original_space = hp._transform(sample_hundred)
+        for i in range(100):
+            self.assertGreaterEqual(samples_in_original_space[i], -2)
+            self.assertLessEqual(samples_in_original_space[i], 100)
+
+    def test_illegal_quantization_UniformIntegerHyperparameter(self):
+        with self.assertRaisesRegex(
+            ValueError,
+            r'Upper bound \(4\) - lower bound \(1\) must be a multiple of q \(2\)',
+        ):
+            UniformIntegerHyperparameter("uihp", 1, 4, q=2)
 
     def test_quantization_UniformFloatHyperparameter(self):
         hp = UniformFloatHyperparameter("ufhp", 1, 100, q=3)
-        rs = np.random.RandomState(1)
+        rs = np.random.RandomState()
 
         sample_one = hp._sample(rs=rs, size=1)
         self.assertIsInstance(obj=sample_one, cls=np.ndarray)
         self.assertEqual(1, sample_one.size)
-        self.assertTrue(hp._transform(sample_one) % 3 == 0)
+        self.assertEqual((hp._transform(sample_one) - 1) % 3, 0)
+        self.assertGreaterEqual(hp._transform(sample_one), 1)
+        self.assertLessEqual(hp._transform(sample_one), 100)
 
         sample_hundred = hp._sample(rs=rs, size=100)
         self.assertIsInstance(obj=sample_hundred, cls=np.ndarray)
         self.assertEqual(100, sample_hundred.size)
-        self.assertTrue(np.all(hp._transform(val) % 3 == 0 for val in sample_hundred))
+        np.testing.assert_array_equal(
+            [(hp._transform(val) - 1) % 3 for val in sample_hundred],
+            np.zeros((100,), dtype=int),
+        )
+        samples_in_original_space = hp._transform(sample_hundred)
+        for i in range(100):
+            self.assertGreaterEqual(samples_in_original_space[i], 1)
+            self.assertLessEqual(samples_in_original_space[i], 100)
+
+    def test_quantization_UniformFloatHyperparameter_decimal_numbers(self):
+        hp = UniformFloatHyperparameter("ufhp", 1.2, 3.6, q=0.2)
+        rs = np.random.RandomState()
+
+        sample_one = hp._sample(rs=rs, size=1)
+        self.assertIsInstance(obj=sample_one, cls=np.ndarray)
+        self.assertEqual(1, sample_one.size)
+        try:
+            self.assertAlmostEqual(float(hp._transform(sample_one) + 1.2) % 0.2, 0.0)
+        except:
+            self.assertAlmostEqual(float(hp._transform(sample_one) + 1.2) % 0.2, 0.2)
+        self.assertGreaterEqual(hp._transform(sample_one), 1)
+        self.assertLessEqual(hp._transform(sample_one), 100)
+
+    def test_quantization_UniformFloatHyperparameter_decimal_numbers_negative(self):
+        hp = UniformFloatHyperparameter("ufhp", -1.2, 1.2, q=0.2)
+        rs = np.random.RandomState()
+
+        sample_one = hp._sample(rs=rs, size=1)
+        self.assertIsInstance(obj=sample_one, cls=np.ndarray)
+        self.assertEqual(1, sample_one.size)
+        try:
+            self.assertAlmostEqual(float(hp._transform(sample_one) + 1.2) % 0.2, 0.0)
+        except:
+            self.assertAlmostEqual(float(hp._transform(sample_one) + 1.2) % 0.2, 0.2)
+        self.assertGreaterEqual(hp._transform(sample_one), -1.2)
+        self.assertLessEqual(hp._transform(sample_one), 1.2)
 
     def test_sample_NormalIntegerHyperparameter(self):
         def sample(hp):
@@ -740,6 +825,143 @@ class TestHyperparameters(unittest.TestCase):
             return counts_per_bin
 
         self.assertEqual(actual_test(), actual_test())
+
+    def test_sample_CategoricalHyperparameter_with_weights(self):
+        # check also that normalization works
+        hp = CategoricalHyperparameter("chp", [0, 2, "Bla", u"Blub", u"Blurp"], weights=[1, 2, 3, 4, 0])
+        np.testing.assert_almost_equal(
+            actual=hp.probabilities,
+            desired=[0.1, 0.2, 0.3, 0.4, 0],
+            decimal=3
+        )
+
+        def actual_test():
+            rs = np.random.RandomState(1)
+            counts_per_bin = defaultdict(int)
+            for i in range(10000):
+                value = hp.sample(rs)
+                counts_per_bin[value] += 1
+
+            self.assertEqual(
+                {0: 1003, 2: 2061, 'Bla': 2994, u'Blub': 3942},
+                dict(counts_per_bin.items()))
+            return counts_per_bin
+
+        self.assertEqual(actual_test(), actual_test())
+
+    def test_categorical_with_weights(self):
+        rs = np.random.RandomState()
+
+        cat_hp_str = CategoricalHyperparameter(
+            name="param",
+            choices=["A", "B", "C"],
+            default_value="A",
+            weights=[0.1, 0.6, 0.3]
+        )
+        for _ in range(1000):
+            self.assertIn(member=cat_hp_str.sample(rs), container=["A", "B", "C"])
+
+        cat_hp_int = CategoricalHyperparameter(
+            name="param",
+            choices=[1, 2, 3],
+            default_value=2,
+            weights=[0.1, 0.3, 0.6]
+        )
+        for _ in range(1000):
+            self.assertIn(member=cat_hp_int.sample(rs), container=[1, 3, 2])
+
+        cat_hp_float = CategoricalHyperparameter(
+            name="param",
+            choices=[-0.1, 0.0, 0.3],
+            default_value=0.3,
+            weights=[10, 60, 30]
+        )
+        for _ in range(1000):
+            self.assertIn(member=cat_hp_float.sample(rs), container=[-0.1, 0.0, 0.3])
+
+    def test_categorical_with_some_zero_weights(self):
+        # zero weights are okay as long as there is at least one strictly positive weight
+
+        rs = np.random.RandomState()
+
+        cat_hp_str = CategoricalHyperparameter(
+            name="param",
+            choices=["A", "B", "C"],
+            default_value="A",
+            weights=[0.1, 0.0, 0.3]
+        )
+        for _ in range(1000):
+            self.assertIn(member=cat_hp_str.sample(rs), container=["A", "C"])
+        np.testing.assert_almost_equal(
+            actual=cat_hp_str.probabilities,
+            desired=[0.25, 0., 0.75],
+            decimal=3
+        )
+
+        cat_hp_int = CategoricalHyperparameter(
+            name="param",
+            choices=[1, 2, 3],
+            default_value=2,
+            weights=[0.1, 0.6, 0.0]
+        )
+        for _ in range(1000):
+            self.assertIn(member=cat_hp_int.sample(rs), container=[1, 2])
+        np.testing.assert_almost_equal(
+            actual=cat_hp_int.probabilities,
+            desired=[0.1429, 0.8571, 0.0],
+            decimal=3
+        )
+
+        cat_hp_float = CategoricalHyperparameter(
+            name="param",
+            choices=[-0.1, 0.0, 0.3],
+            default_value=0.3,
+            weights=[0.0, 0.6, 0.3]
+        )
+        for _ in range(1000):
+            self.assertIn(member=cat_hp_float.sample(rs), container=[0.0, 0.3])
+        np.testing.assert_almost_equal(
+            actual=cat_hp_float.probabilities,
+            desired=[0.00, 0.6667, 0.3333],
+            decimal=3
+        )
+
+    def test_categorical_with_all_zero_weights(self):
+        with self.assertRaisesRegex(ValueError, 'At least one weight has to be strictly positive.'):
+            CategoricalHyperparameter(
+                name="param",
+                choices=["A", "B", "C"],
+                default_value="A",
+                weights=[0.0, 0.0, 0.0]
+            )
+
+    def test_categorical_with_wrong_length_weights(self):
+        with self.assertRaisesRegex(ValueError, 'The list of weights and the list of choices are required to be of same length.'):
+            CategoricalHyperparameter(
+                name="param",
+                choices=["A", "B", "C"],
+                default_value="A",
+                weights=[0.1, 0.3]
+            )
+
+        with self.assertRaisesRegex(ValueError, 'The list of weights and the list of choices are required to be of same length.'):
+            CategoricalHyperparameter(
+                name="param",
+                choices=["A", "B", "C"],
+                default_value="A",
+                weights=[0.1, 0.0, 0.5, 0.3]
+            )
+
+    def test_categorical_with_negative_weights(self):
+        rs = np.random.RandomState(1)
+
+        with self.assertRaisesRegex(ValueError, 'Negative weights are not allowed.'):
+            CategoricalHyperparameter(
+                name="param",
+                choices=["A", "B", "C"],
+                default_value="A",
+                weights=[0.1, -0.1, 0.3]
+            )
 
     def test_log_space_conversion(self):
         lower, upper = 1e-5, 1e5

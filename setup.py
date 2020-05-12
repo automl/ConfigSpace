@@ -8,12 +8,12 @@ from setuptools.command.build_ext import build_ext
 # Helper functions
 def read_file(fname):
     """Get contents of file from the modules directory"""
-    return open(os.path.join(os.path.dirname(__file__), fname)).read()
+    return open(os.path.join(os.path.dirname(__file__), fname), encoding='utf-8').read()
 
 
 def get_version(fname):
     """Get the module version"""
-    with open(fname) as file_handle:
+    with open(fname, encoding='utf-8') as file_handle:
         return file_handle.readlines()[-1].split()[-1].strip("\"'")
 
 
@@ -54,6 +54,7 @@ MIN_PYTHON_VERSION = '>=3.5.*'
 CLASSIFIERS = ['Programming Language :: Python :: 3.5',
                'Programming Language :: Python :: 3.6',
                'Programming Language :: Python :: 3.7',
+               'Programming Language :: Python :: 3.8',
                'Development Status :: 4 - Beta',
                'Natural Language :: English',
                'Intended Audience :: Developers',
