@@ -1342,6 +1342,7 @@ cdef class CategoricalHyperparameter(Hyperparameter):
             name=self.name,
             choices=copy.deepcopy(self.choices),
             default_value=self.default_value,
+            weights=copy.deepcopy(self.probabilities)
         )
 
     cpdef int compare(self, value: Union[int, float, str], value2: Union[int, float, str]):
