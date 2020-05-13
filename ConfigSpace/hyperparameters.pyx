@@ -1223,7 +1223,7 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
 
 cdef class CategoricalHyperparameter(Hyperparameter):
     cdef public tuple choices
-    cdef public list probabilities
+    cdef public tuple probabilities
     cdef public int num_choices
     cdef list choices_vector
     cdef set _choices_set
@@ -1381,7 +1381,7 @@ cdef class CategoricalHyperparameter(Hyperparameter):
         if np.any(weights < 0):
             raise ValueError("Negative weights are not allowed.")
 
-        return list(weights / np.sum(weights))
+        return tuple(weights / np.sum(weights))
 
     def check_default(self, default_value: Union[None, str, float, int]) -> Union[str, float, int]:
         if default_value is None:

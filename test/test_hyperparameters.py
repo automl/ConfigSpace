@@ -863,7 +863,7 @@ class TestHyperparameters(unittest.TestCase):
         self.assertTupleEqual(copy_hp.choices, orig_hp.choices)
         self.assertEqual(copy_hp.default_value, orig_hp.default_value)
         self.assertEqual(copy_hp.num_choices, orig_hp.num_choices)
-        self.assertEqual(copy_hp.probabilities, orig_hp.probabilities)
+        self.assertTupleEqual(copy_hp.probabilities, orig_hp.probabilities)
 
     def test_categorical_copy_without_weights(self):
         orig_hp = CategoricalHyperparameter(

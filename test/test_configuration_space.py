@@ -758,8 +758,8 @@ class TestConfigurationSpace(unittest.TestCase):
         self.assertEqual(("X", "Y"), cs.get_hyperparameter("algo2_subspace:algo2_param1").choices)
 
         # check probabilities in the final configuration space
-        self.assertEqual([0.25, 0.75], cs.get_hyperparameter("switch").probabilities)
-        self.assertEqual([0.3, 0.7], cs.get_hyperparameter("algo1_subspace:algo1_param1").probabilities)
+        self.assertEqual((0.25, 0.75), cs.get_hyperparameter("switch").probabilities)
+        self.assertEqual((0.3, 0.7), cs.get_hyperparameter("algo1_subspace:algo1_param1").probabilities)
         self.assertEqual(None, cs.get_hyperparameter("algo2_subspace:algo2_param1").probabilities)
 
         # check default values in the final configuration space
