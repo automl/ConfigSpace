@@ -31,6 +31,7 @@ source activate testenv
 pip install codecov pytest pytest-cov cython
 
 if [[ "$INSTALL_FROM_SDIST" == "true" ]]; then
+    pip install twine
     python setup.py sdist
     # Find file which was modified last as done in https://stackoverflow.com/a/4561987
     dist=`find dist -type f -printf '%T@ %p\n' | sort -n | tail -1 | cut -f2- -d" "`
