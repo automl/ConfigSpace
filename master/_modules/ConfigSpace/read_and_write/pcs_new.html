@@ -232,6 +232,9 @@
 
 
 <span class="k">def</span> <span class="nf">build_categorical</span><span class="p">(</span><span class="n">param</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">param</span><span class="o">.</span><span class="n">probabilities</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;The pcs format does not support categorical hyperparameters with &#39;</span>
+                         <span class="s1">&#39;assigend weights/probabilities (for hyperparameter </span><span class="si">%s</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="n">param</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
     <span class="n">cat_template</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> categorical {</span><span class="si">%s</span><span class="s2">} [</span><span class="si">%s</span><span class="s2">]&quot;</span>
     <span class="k">return</span> <span class="n">cat_template</span> <span class="o">%</span> <span class="p">(</span><span class="n">param</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
                            <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">param</span><span class="o">.</span><span class="n">choices</span><span class="p">]),</span>
