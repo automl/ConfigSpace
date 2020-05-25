@@ -27,6 +27,7 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from collections import defaultdict
+import copy
 import unittest
 import pytest
 
@@ -848,6 +849,36 @@ class TestHyperparameters(unittest.TestCase):
             return counts_per_bin
 
         self.assertEqual(actual_test(), actual_test())
+
+    def test_categorical_copy_with_weights(self):
+        orig_hp = CategoricalHyperparameter(
+            name="param",
+            choices=[1, 2, 3],
+            default_value=2,
+            weights=[1, 3, 6]
+        )
+        copy_hp = copy.copy(orig_hp)
+
+        self.assertEqual(copy_hp.name, orig_hp.name)
+        self.assertTupleEqual(copy_hp.choices, orig_hp.choices)
+        self.assertEqual(copy_hp.default_value, orig_hp.default_value)
+        self.assertEqual(copy_hp.num_choices, orig_hp.num_choices)
+        self.assertTupleEqual(copy_hp.probabilities, orig_hp.probabilities)
+
+    def test_categorical_copy_without_weights(self):
+        orig_hp = CategoricalHyperparameter(
+            name="param",
+            choices=[1, 2, 3],
+            default_value=2
+        )
+        copy_hp = copy.copy(orig_hp)
+
+        self.assertEqual(copy_hp.name, orig_hp.name)
+        self.assertTupleEqual(copy_hp.choices, orig_hp.choices)
+        self.assertEqual(copy_hp.default_value, orig_hp.default_value)
+        self.assertEqual(copy_hp.num_choices, orig_hp.num_choices)
+        self.assertIsNone(copy_hp.probabilities)
+        self.assertIsNone(orig_hp.probabilities)
 
     def test_categorical_with_weights(self):
         rs = np.random.RandomState()
