@@ -1236,7 +1236,7 @@ cdef class CategoricalHyperparameter(Hyperparameter):
         choices: Union[List[Union[str, float, int]], Tuple[Union[float, int, str]]],
         default_value: Union[int, float, str, None]=None,
         meta: Optional[Dict]=None,
-        weights: List[float]=None
+        weights: Union[List[float], Tuple[float]] = None
     ) -> None:
         """
         A categorical hyperparameter.
@@ -1280,6 +1280,12 @@ cdef class CategoricalHyperparameter(Hyperparameter):
                 )
             if choice is None:
                 raise TypeError("Choice 'None' is not supported")
+        if isinstance(choices, set):
+            raise TypeError('Using a set of choices is prohibited as it can result in '
+                            'non-deterministic behavior. Please use a list or a tuple.')
+        if isinstance(weights, set):
+            raise TypeError('Using a set of weights is prohibited as it can result in '
+                            'non-deterministic behavior. Please use a list or a tuple.')
         self.choices = tuple(choices)
         self.probabilities = self._get_probabilities(choices=self.choices, weights=weights)
         self.num_choices = len(choices)
@@ -1298,6 +1304,8 @@ cdef class CategoricalHyperparameter(Hyperparameter):
         repr_str.write("}")
         repr_str.write(", Default: ")
         repr_str.write(str(self.default_value))
+        if self.probabilities is not None:
+            repr_str.write(", Probabilities: %s" % str(self.probabilities))
         repr_str.seek(0)
         return repr_str.getvalue()
 

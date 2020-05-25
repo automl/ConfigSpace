@@ -19,6 +19,15 @@ class TestJson(unittest.TestCase):
         cs.add_forbidden_clause(ForbiddenInClause(a, [1, 2]))
         write(cs)
 
+    def test_configspace_with_probabilities(self):
+        cs = ConfigurationSpace()
+        cs.add_hyperparameter(
+            CategoricalHyperparameter('a', [0, 1, 2], weights=[0.2, 0.2, 0.6])
+        )
+        string = write(cs)
+        new_cs = read(string)
+        self.assertEqual(new_cs.get_hyperparameter('a').probabilities, (0.2, 0.2, 0.6))
+
     def test_round_trip(self):
         this_file = os.path.abspath(__file__)
         this_directory = os.path.dirname(this_file)

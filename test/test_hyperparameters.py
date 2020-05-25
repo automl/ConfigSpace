@@ -994,6 +994,22 @@ class TestHyperparameters(unittest.TestCase):
                 weights=[0.1, -0.1, 0.3]
             )
 
+    def test_categorical_with_set(self):
+        with self.assertRaisesRegex(TypeError, 'Using a set of choices is prohibited.'):
+            CategoricalHyperparameter(
+                name="param",
+                choices={"A", "B", "C"},
+                default_value="A",
+            )
+
+        with self.assertRaisesRegex(TypeError, 'Using a set of weights is prohibited.'):
+            CategoricalHyperparameter(
+                name="param",
+                choices=["A", "B", "C"],
+                default_value="A",
+                weights={0.2, 0.6, 0.8},
+            )
+
     def test_log_space_conversion(self):
         lower, upper = 1e-5, 1e5
         hyper = UniformFloatHyperparameter('test', lower=lower, upper=upper, log=True)
