@@ -518,3 +518,12 @@ class TestPCSConverter(unittest.TestCase):
             pcs_new = pcs.read(fh)
 
         self.assertEqual(pcs_new, cs, msg=(pcs_new, cs))
+
+    def test_write_categorical_with_weights(self):
+        cat = CategoricalHyperparameter('a', ['a', 'b'], weights=[0.3, 0.7])
+        cs = ConfigurationSpace()
+        cs.add_hyperparameter(cat)
+        with self.assertRaisesRegex(ValueError, 'The pcs format does not support'):
+            pcs.write(cs)
+        with self.assertRaisesRegex(ValueError, 'The pcs format does not support'):
+            pcs.write(cs)

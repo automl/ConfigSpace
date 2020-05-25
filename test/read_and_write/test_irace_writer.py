@@ -260,3 +260,10 @@ class TestIraceWriter(unittest.TestCase):
         cs.add_hyperparameter(float_log)
         value = irace.write(cs)
         self.assertEqual(expected, value)
+
+    def test_write_categorical_with_weights(self):
+        cat = CategoricalHyperparameter('a', ['a', 'b'], weights=[0.3, 0.7])
+        cs = ConfigurationSpace()
+        cs.add_hyperparameter(cat)
+        with self.assertRaisesRegex(ValueError, 'The irace format does not support'):
+            irace.write(cs)

@@ -63,6 +63,9 @@ pp_param_name = pyparsing.Word(
 
 
 def build_categorical(param):
+    if param.probabilities is not None:
+        raise ValueError('The irace format does not support categorical hyperparameters with '
+                         'assigend weights/probabilities (for hyperparameter %s)' % param.name)
     cat_template = "%s '--%s ' c {%s}"
     return cat_template % (param.name, param.name,
                            ",".join([str(value) for value in param.choices]))
