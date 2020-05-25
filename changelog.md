@@ -1,3 +1,12 @@
+# Version 0.4.13
+
+* ADD Python3.8 support, drop Python3.5 support (#144, #153)
+* FIX copy weights of `CategoricalHyperparameter` (#148)
+* FIX store weights of `CategoricalHyperparameter`, raise an error message
+  for the other output writers (#152).
+* FIX correct types in util function `fix_types` (#134)
+* MAINT unit test of the source distribution (#154)
+
 # Version 0.4.12
 
 * ADD #135: Add weights to the sampling of categorical hyperparameters.
