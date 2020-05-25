@@ -52,7 +52,7 @@ Basic usage
 Installation
 ============
 
-*ConfigSpace* requires Python 3.5 or higher.
+*ConfigSpace* requires Python 3.6 or higher.
 
 *ConfigSpace* can be installed with *pip*:
 
