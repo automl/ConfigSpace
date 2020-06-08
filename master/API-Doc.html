@@ -3,6 +3,7 @@
 <html>
   <head>
     <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>API-Documentation &#8212; ConfigSpace  documentation</title>
     <link rel="stylesheet" href="_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -11,7 +12,7 @@
     <script src="_static/underscore.js"></script>
     <script src="_static/doctools.js"></script>
     <script src="_static/language_data.js"></script>
-    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="prev" title="User Guide" href="User-Guide.html" />
@@ -169,7 +170,7 @@
 <h2>ConfigurationSpace<a class="headerlink" href="#configurationspace" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt id="ConfigSpace.configuration_space.ConfigurationSpace">
-<em class="property">class </em><code class="sig-prename descclassname">ConfigSpace.configuration_space.</code><code class="sig-name descname">ConfigurationSpace</code><a class="headerlink" href="#ConfigSpace.configuration_space.ConfigurationSpace" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">ConfigSpace.configuration_space.</code><code class="sig-name descname">ConfigurationSpace</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>str<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">seed</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>int<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">meta</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Dict<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.configuration_space.ConfigurationSpace" title="Permalink to this definition">¶</a></dt>
 <dd><p>A collection-like object containing a set of hyperparameter definitions and conditions.</p>
 <p>A configuration space organizes all hyperparameters and its conditions
 as well as its forbidden clauses. Configurations can be sampled from
@@ -635,7 +636,7 @@ object</p>
 <h2>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt id="ConfigSpace.configuration_space.Configuration">
-<em class="property">class </em><code class="sig-prename descclassname">ConfigSpace.configuration_space.</code><code class="sig-name descname">Configuration</code><a class="headerlink" href="#ConfigSpace.configuration_space.Configuration" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">ConfigSpace.configuration_space.</code><code class="sig-name descname">Configuration</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">configuration_space</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#ConfigSpace.configuration_space.ConfigurationSpace" title="ConfigSpace.configuration_space.ConfigurationSpace">ConfigSpace.configuration_space.ConfigurationSpace</a></span></em>, <em class="sig-param"><span class="n">values</span><span class="p">:</span> <span class="n">Union[None, Dict[str, Union[str, float, int]]]</span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">vector</span><span class="p">:</span> <span class="n">Union[None, numpy.ndarray]</span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">allow_inactive_with_values</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">origin</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.configuration_space.Configuration" title="Permalink to this definition">¶</a></dt>
 <dd><p>Class for a single configuration.</p>
 <p>The <a class="reference internal" href="#ConfigSpace.configuration_space.Configuration" title="ConfigSpace.configuration_space.Configuration"><code class="xref py py-class docutils literal notranslate"><span class="pre">Configuration</span></code></a> object holds
 for all active hyperparameters a value. While the
@@ -1688,7 +1689,7 @@ In this new configuration inactive values are included.</p>
     </p>
     <p>
         &copy; Copyright 2014-2020, Matthias Feurer, Katharina Eggensperger, Syed Mohsin Ali, Christina Hernandez Wunsch, Julien-Charles Levesque, Jost Tobias Springenberg, Philipp Mueller, Marius Lindauer, Jorn Tuyls.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.0.4.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.1.0.<br/>
     </p>
   </div>
 </footer>
