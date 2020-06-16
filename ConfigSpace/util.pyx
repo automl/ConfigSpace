@@ -276,8 +276,7 @@ def get_random_neighbor(configuration: Configuration, seed: int) -> Configuratio
         while not active:
             iteration += 1
             if configuration._num_hyperparameters > 1:
-                rand_idx = random.randint(0,
-                                          configuration._num_hyperparameters - 1)
+                rand_idx = random.randint(0, configuration._num_hyperparameters)
             else:
                 rand_idx = 0
 
