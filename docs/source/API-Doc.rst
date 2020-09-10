@@ -54,6 +54,13 @@ or normal distribution. Example usages are shown in the
 
 .. autoclass:: ConfigSpace.hyperparameters.OrdinalHyperparameter
 
+.. _Other hyperparameters:
+
+3.5 Constant
+------------
+
+.. autoclass:: ConfigSpace.hyperparameters.Constant
+
 
 .. _Conditions:
 
