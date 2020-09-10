@@ -1,3 +1,12 @@
+# Version 0.4.14
+
+* ADD new argument `config_id` to `Configuration` which can be set by an application
+  using the ConfigSpace package (`None` by default).
+* MAINT #136 remove asterisk in version identifier in `setup.py`.
+* MAINT #156 add `ConstantHyperparameter` to the API documentation.
+* MAINT #159 document that `None` is a forbidden value for `CategoricalHyperparameter` and
+  `OrdinalHyperparameter`.
+
 # Version 0.4.13
 
 * ADD Python3.8 support, drop Python3.5 support (#144, #153)
