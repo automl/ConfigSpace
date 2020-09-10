@@ -53,7 +53,7 @@
         </button>
         <a class="navbar-brand" href="index.html">
           ConfigSpace</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.4.13</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.4.14</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -897,6 +897,9 @@ Not used by the configuration space.</p></li>
 <em class="property">class </em><code class="sig-prename descclassname">ConfigSpace.hyperparameters.</code><code class="sig-name descname">CategoricalHyperparameter</code><a class="headerlink" href="#ConfigSpace.hyperparameters.CategoricalHyperparameter" title="Permalink to this definition">¶</a></dt>
 <dd><p>A categorical hyperparameter.</p>
 <p>Its values are sampled from a set of <code class="docutils literal notranslate"><span class="pre">values</span></code>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">None</span></code> is a forbidden value, please use a string constant instead and parse
+it in your own code, see <cite>here &lt;https://github.com/automl/ConfigSpace/issues/159&gt;_</cite>
+for further details.</p>
 <p class="rubric">Example</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ConfigSpace</span> <span class="k">as</span> <span class="nn">CS</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ConfigSpace.hyperparameters</span> <span class="k">as</span> <span class="nn">CSH</span>
@@ -929,6 +932,9 @@ Not used by the configuration space.</p></li>
 <dd><p>An ordinal hyperparameter.</p>
 <p>Its values are sampled form a <code class="docutils literal notranslate"><span class="pre">sequence</span></code> of values.
 The sequence of values from a ordinal hyperparameter is ordered.</p>
+<p><code class="docutils literal notranslate"><span class="pre">None</span></code> is a forbidden value, please use a string constant instead and parse
+it in your own code, see <cite>here &lt;https://github.com/automl/ConfigSpace/issues/159&gt;_</cite>
+for further details.</p>
 <p class="rubric">Example</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ConfigSpace</span> <span class="k">as</span> <span class="nn">CS</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ConfigSpace.hyperparameters</span> <span class="k">as</span> <span class="nn">CSH</span>
