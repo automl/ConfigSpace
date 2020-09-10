@@ -131,6 +131,7 @@
 <li><a class="reference internal" href="#float-hyperparameters">3.2 Float hyperparameters</a></li>
 <li><a class="reference internal" href="#categorical-hyperparameters">3.3 Categorical hyperparameters</a></li>
 <li><a class="reference internal" href="#ordinalhyperparameters">3.4 OrdinalHyperparameters</a></li>
+<li><a class="reference internal" href="#constant">3.5 Constant</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#conditions">Conditions</a><ul>
@@ -636,7 +637,7 @@ object</p>
 <h2>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt id="ConfigSpace.configuration_space.Configuration">
-<em class="property">class </em><code class="sig-prename descclassname">ConfigSpace.configuration_space.</code><code class="sig-name descname">Configuration</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">configuration_space</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#ConfigSpace.configuration_space.ConfigurationSpace" title="ConfigSpace.configuration_space.ConfigurationSpace">ConfigSpace.configuration_space.ConfigurationSpace</a></span></em>, <em class="sig-param"><span class="n">values</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>None<span class="p">, </span>Dict<span class="p">[</span>str<span class="p">, </span>Union<span class="p">[</span>str<span class="p">, </span>float<span class="p">, </span>int<span class="p">]</span><span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">vector</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>None<span class="p">, </span>numpy.ndarray<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">allow_inactive_with_values</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">origin</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.configuration_space.Configuration" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">ConfigSpace.configuration_space.</code><code class="sig-name descname">Configuration</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">configuration_space</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#ConfigSpace.configuration_space.ConfigurationSpace" title="ConfigSpace.configuration_space.ConfigurationSpace">ConfigSpace.configuration_space.ConfigurationSpace</a></span></em>, <em class="sig-param"><span class="n">values</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>None<span class="p">, </span>Dict<span class="p">[</span>str<span class="p">, </span>Union<span class="p">[</span>str<span class="p">, </span>float<span class="p">, </span>int<span class="p">]</span><span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">vector</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>None<span class="p">, </span>numpy.ndarray<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">allow_inactive_with_values</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">origin</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">config_id</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>int<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.configuration_space.Configuration" title="Permalink to this definition">¶</a></dt>
 <dd><p>Class for a single configuration.</p>
 <p>The <a class="reference internal" href="#ConfigSpace.configuration_space.Configuration" title="ConfigSpace.configuration_space.Configuration"><code class="xref py py-class docutils literal notranslate"><span class="pre">Configuration</span></code></a> object holds
 for all active hyperparameters a value. While the
@@ -661,6 +662,8 @@ hyperparameter is given. Default is to raise an Exception.
 Default to False</p></li>
 <li><p><strong>origin</strong> (<em>Any</em><em>, </em><em>optional</em>) – Store information about the origin of this configuration.
 Default to None</p></li>
+<li><p><strong>config_id</strong> (<em>int</em><em>, </em><em>optional</em>) – Integer configuration ID which can be used by a program using the ConfigSpace
+package.</p></li>
 </ul>
 </dd>
 </dl>
@@ -941,6 +944,27 @@ The sequence of values from a ordinal hyperparameter is ordered.</p>
 <li><p><strong>name</strong> (<em>str</em>) – Name of the hyperparameter, with which it can be accessed.</p></li>
 <li><p><strong>sequence</strong> (<em>list</em><em> or </em><em>tuple with</em><em> (</em><em>str</em><em>, </em><em>float</em><em>, </em><em>int</em><em>)</em>) – ordered collection of values to sample hyperparameter from.</p></li>
 <li><p><strong>default_value</strong> (<em>int</em><em>, </em><em>float</em><em>, </em><em>str</em><em>, </em><em>optional</em>) – Sets the default value of a hyperparameter to a given value.</p></li>
+<li><p><strong>meta</strong> (<em>Dict</em><em>, </em><em>optional</em>) – Field for holding meta data provided by the user.
+Not used by the configuration space.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="constant">
+<span id="other-hyperparameters"></span><h3>3.5 Constant<a class="headerlink" href="#constant" title="Permalink to this headline">¶</a></h3>
+<dl class="py class">
+<dt id="ConfigSpace.hyperparameters.Constant">
+<em class="property">class </em><code class="sig-prename descclassname">ConfigSpace.hyperparameters.</code><code class="sig-name descname">Constant</code><a class="headerlink" href="#ConfigSpace.hyperparameters.Constant" title="Permalink to this definition">¶</a></dt>
+<dd><p>Representing a constant hyperparameter in the configuration space.</p>
+<p>By sampling from the configuration space each time only a single,
+constant <code class="docutils literal notranslate"><span class="pre">value</span></code> will be drawn from this hyperparameter.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>) – Name of the hyperparameter, with which it can be accessed</p></li>
+<li><p><strong>value</strong> (<em>str</em><em>, </em><em>int</em><em>, </em><em>float</em>) – value to sample hyperparameter from</p></li>
 <li><p><strong>meta</strong> (<em>Dict</em><em>, </em><em>optional</em>) – Field for holding meta data provided by the user.
 Not used by the configuration space.</p></li>
 </ul>
