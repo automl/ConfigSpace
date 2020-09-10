@@ -2,6 +2,8 @@
 
 * ADD new argument `config_id` to `Configuration` which can be set by an application
   using the ConfigSpace package (`None` by default).
+* FIX #157 fix a bug in `get_random_neighbor` where the last hyperparameter value was never
+  changed.
 * MAINT #136 remove asterisk in version identifier in `setup.py`.
 * MAINT #156 add `ConstantHyperparameter` to the API documentation.
 * MAINT #159 document that `None` is a forbidden value for `CategoricalHyperparameter` and
