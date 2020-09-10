@@ -1243,6 +1243,10 @@ cdef class CategoricalHyperparameter(Hyperparameter):
 
         Its values are sampled from a set of ``values``.
 
+        ``None`` is a forbidden value, please use a string constant instead and parse
+        it in your own code, see `here <https://github.com/automl/ConfigSpace/issues/159>_`
+        for further details.
+
         Example
         -------
 
@@ -1503,6 +1507,10 @@ cdef class OrdinalHyperparameter(Hyperparameter):
 
         Its values are sampled form a ``sequence`` of values.
         The sequence of values from a ordinal hyperparameter is ordered.
+
+        ``None`` is a forbidden value, please use a string constant instead and parse
+        it in your own code, see `here <https://github.com/automl/ConfigSpace/issues/159>_`
+        for further details.
 
         Example
         -------
