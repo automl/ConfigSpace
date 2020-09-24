@@ -28,7 +28,7 @@ popd
 conda create -n testenv --yes python=$PYTHON_VERSION pip
 source activate testenv
 
-pip install codecov pytest pytest-cov cython
+pip install codecov pytest pytest-cov
 
 if [[ "$INSTALL_FROM_SDIST" == "true" ]]; then
     pip install twine
@@ -39,6 +39,7 @@ if [[ "$INSTALL_FROM_SDIST" == "true" ]]; then
     twine check $dist
     pip install "$dist"
 else
+    pip install cython
     python setup.py install
 fi
 

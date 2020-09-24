@@ -1,3 +1,8 @@
+# Version 0.5.15
+
+* Add `pyproject.toml` to support wheel installation as required in 
+  [PEP518](https://medium.com/@grassfedcode/pep-517-and-518-in-plain-english-47208ca8b7a6)
+
 # Version 0.4.14
 
 * ADD new argument `config_id` to `Configuration` which can be set by an application
