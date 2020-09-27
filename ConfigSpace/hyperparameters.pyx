@@ -85,6 +85,47 @@ cdef class Hyperparameter(object):
         vector = self._sample(rs)
         return self._transform(vector)
 
+    def rvs(self, size: Optional[int]=1, random_state: Optional[Union[int, np.random, np.random.RandomState]]=None) -> Union[float, np.ndarray]:
+        """
+        scipy compatibility wrapper for ``_sample``,
+        allowing the hyperparameter to be used in sklearn API
+        hyperparameter searchers, eg. GridSearchCV.
+
+        """
+
+        # copy-pasted from scikit-learn utils/validation.py
+        def check_random_state(seed):
+            """
+            Turn seed into a np.random.RandomState instance
+            If seed is None (or np.random), return the RandomState singleton used
+            by np.random.
+            If seed is an int, return a new RandomState instance seeded with seed.
+            If seed is already a RandomState instance, return it.
+            If seed is a new-style np.random.Generator, return it.
+            Otherwise, raise ValueError.
+
+            """
+            if seed is None or seed is np.random:
+                return np.random.mtrand._rand
+            if isinstance(seed, (int, np.integer)):
+                return np.random.RandomState(seed)
+            if isinstance(seed, np.random.RandomState):
+                return seed
+            try:
+                # Generator is only available in numpy >= 1.17
+                if isinstance(seed, np.random.Generator):
+                    return seed
+            except AttributeError:
+                pass
+            raise ValueError('%r cannot be used to seed a numpy.random.RandomState'
+                            ' instance' % seed)
+
+        vector = self._sample(rs=check_random_state(random_state), size=size)
+        if size <= 1:
+            vector = vector[0]
+
+        return self._transform(vector)
+
     def _sample(self, rs, size):
         raise NotImplementedError()
 
