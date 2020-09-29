@@ -710,7 +710,7 @@ class ConfigurationSpace(object):
         """
         return list(self._hyperparameters.values())
 
-    def get_hyperparameters_dict(self) -> OrderedDictType[str, Hyperparameter]:
+    def get_hyperparameters_dict(self) -> Dict[str, Hyperparameter]:
         """
         Return an OrderedDict with all the ``(name, Hyperparameter)`` contained in 
         the configuration space object.
@@ -735,6 +735,9 @@ class ConfigurationSpace(object):
 
         """
         return list(self._hyperparameters.keys())
+
+    def __getitem__(self, name: str) -> Hyperparameter:
+        return self.get_hyperparameter(name)
 
     def get_hyperparameter(self, name: str) -> Hyperparameter:
         """
