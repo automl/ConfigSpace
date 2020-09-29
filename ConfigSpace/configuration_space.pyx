@@ -736,9 +736,6 @@ class ConfigurationSpace(object):
         """
         return list(self._hyperparameters.keys())
 
-    def __getitem__(self, name: str) -> Hyperparameter:
-        return self.get_hyperparameter(name)
-
     def get_hyperparameter(self, name: str) -> Hyperparameter:
         """
         Gives the hyperparameter from the configuration space given its name.
