@@ -377,7 +377,7 @@ cdef class AbstractForbiddenConjunction(AbstractForbiddenComponent):
                             for i in range(self.n_components)])
 
             elif op == 3:
-                if self.n_copmonents == other.n_components:
+                if self.n_components == other.n_components:
                     return False
                 return any([self.components[i] != other.components[i]
                             for i in range(self.n_components)])
