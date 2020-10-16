@@ -77,10 +77,12 @@ cdef class AbstractForbiddenComponent(object):
         >=	5
         """
         if self.value is None:
+            print(f"called this nasty None for {self.values}({type(self.values)}) {other.values}({type(other.values)}) ")
             self.value = self.values
             other.value = other.values
 
         if isinstance(other, self.__class__):
+            print(f"called AbstractForbiddenComponent rich cmp ({self.value == other.value} AND {self.hyperparameter.name == other.hyperparameter.name}) {self.value}({type(self.value)}) {other.value}({type(other.value)})")
             if op == 2:
                 return (self.value == other.value
                          and self.hyperparameter.name == other.hyperparameter.name)
@@ -372,8 +374,9 @@ cdef class AbstractForbiddenConjunction(AbstractForbiddenComponent):
         if isinstance(other, self.__class__):
             different = [self.components[i] == other.components[i] for i in range(self.n_components)]
             adifferent = [self.components[i] for i in range(self.n_components)]
+            cdifferent = [other.components[i] for i in range(self.n_components)]
             bdifferent = [type(self.components[i]) for i in range(self.n_components)]
-            print(f"called rich cmp of forbidden with {op} self.n_components={self.n_components} other.n_components={other.n_components} {different} {adifferent} {bdifferent}")
+            print(f"called rich cmp of forbidden with {op} self.n_components={self.n_components} other.n_components={other.n_components} {different} {adifferent}!={cdifferent} {bdifferent}")
             if op == 2:
                 if self.n_components != other.n_components:
                     return False
