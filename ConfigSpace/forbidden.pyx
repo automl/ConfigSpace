@@ -79,6 +79,7 @@ cdef class AbstractForbiddenComponent(object):
         if self.value is None:
             print(f"called this nasty None for {self.values}({type(self.values)}) {other.values}({type(other.values)}) ")
             self.value = self.values
+        if other.value is None:
             other.value = other.values
 
         if isinstance(other, self.__class__):
