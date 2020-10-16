@@ -362,7 +362,7 @@ cdef class AbstractForbiddenConjunction(AbstractForbiddenComponent):
         which takes an integer indicating which operation is to be performed,
         as follows:
         < 	0
-        == 2
+        ==      2
         > 	4
         <=	1
         !=	3
@@ -370,6 +370,10 @@ cdef class AbstractForbiddenConjunction(AbstractForbiddenComponent):
         """
 
         if isinstance(other, self.__class__):
+            different = [self.components[i] == other.components[i] for i in range(self.n_components)]
+            adifferent = [self.components[i] for i in range(self.n_components)]
+            bdifferent = [type(self.components[i]) for i in range(self.n_components)]
+            print(f"called rich cmp of forbidden with {op} self.n_components={self.n_components} other.n_components={other.n_components} {different} {adifferent} {bdifferent}")
             if op == 2:
                 if self.n_components != other.n_components:
                     return False
