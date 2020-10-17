@@ -371,10 +371,6 @@ cdef class AbstractForbiddenConjunction(AbstractForbiddenComponent):
         """
 
         if isinstance(other, self.__class__):
-            different = [self.components[i] == other.components[i] for i in range(self.n_components)]
-            adifferent = [self.components[i] for i in range(self.n_components)]
-            cdifferent = [other.components[i] for i in range(self.n_components)]
-            bdifferent = [type(self.components[i]) for i in range(self.n_components)]
             if op == 2:
                 if self.n_components != other.n_components:
                     return False
