@@ -78,10 +78,10 @@ cdef class AbstractForbiddenComponent(object):
         """
         if self.value is None:
             self.value = self.values
-        if other.value is None:
-            other.value = other.values
 
         if isinstance(other, self.__class__):
+            if other.value is None:
+                other.value = other.values
             if op == 2:
                 return (self.value == other.value
                          and self.hyperparameter.name == other.hyperparameter.name)
