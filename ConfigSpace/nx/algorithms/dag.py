@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from fractions import gcd
+from math import gcd
 
 import ConfigSpace.nx
 
