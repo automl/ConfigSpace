@@ -1,3 +1,7 @@
+# Version 0.4.17
+
+* MAINT #168: Support for Python. 3.9.X
+
 # Version 0.4.16
 
 * FIX #167: fix a broken equal comparison in forbidden constraints.
