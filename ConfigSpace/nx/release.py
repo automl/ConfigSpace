@@ -128,7 +128,8 @@ maintainer_email = "networkx-discuss@googlegroups.com"
 url = 'http://networkx.lanl.gov/'
 download_url = "http://networkx.lanl.gov/download/networkx"
 platforms = ['Linux', 'Mac OSX', 'Windows', 'Unix']
-keywords = ['Networks', 'Graph Theory', 'Mathematics', 'network', 'graph', 'discrete mathematics', 'math']
+keywords = ['Networks', 'Graph Theory', 'Mathematics', 'network', 'graph',
+            'discrete mathematics', 'math']
 classifiers = [
         'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',

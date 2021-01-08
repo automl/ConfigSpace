@@ -756,7 +756,7 @@ class TestHyperparameters(unittest.TestCase):
         self.assertEqual(1, sample_one.size)
         try:
             self.assertAlmostEqual(float(hp._transform(sample_one) + 1.2) % 0.2, 0.0)
-        except:
+        except Exception:
             self.assertAlmostEqual(float(hp._transform(sample_one) + 1.2) % 0.2, 0.2)
         self.assertGreaterEqual(hp._transform(sample_one), 1)
         self.assertLessEqual(hp._transform(sample_one), 100)
@@ -770,7 +770,7 @@ class TestHyperparameters(unittest.TestCase):
         self.assertEqual(1, sample_one.size)
         try:
             self.assertAlmostEqual(float(hp._transform(sample_one) + 1.2) % 0.2, 0.0)
-        except:
+        except Exception:
             self.assertAlmostEqual(float(hp._transform(sample_one) + 1.2) % 0.2, 0.2)
         self.assertGreaterEqual(hp._transform(sample_one), -1.2)
         self.assertLessEqual(hp._transform(sample_one), 1.2)
@@ -829,7 +829,8 @@ class TestHyperparameters(unittest.TestCase):
 
     def test_sample_CategoricalHyperparameter_with_weights(self):
         # check also that normalization works
-        hp = CategoricalHyperparameter("chp", [0, 2, "Bla", u"Blub", u"Blurp"], weights=[1, 2, 3, 4, 0])
+        hp = CategoricalHyperparameter("chp", [0, 2, "Bla", u"Blub", u"Blurp"],
+                                       weights=[1, 2, 3, 4, 0])
         np.testing.assert_almost_equal(
             actual=hp.probabilities,
             desired=[0.1, 0.2, 0.3, 0.4, 0],
@@ -967,7 +968,9 @@ class TestHyperparameters(unittest.TestCase):
             )
 
     def test_categorical_with_wrong_length_weights(self):
-        with self.assertRaisesRegex(ValueError, 'The list of weights and the list of choices are required to be of same length.'):
+        with self.assertRaisesRegex(
+                ValueError,
+                'The list of weights and the list of choices are required to be of same length.'):
             CategoricalHyperparameter(
                 name="param",
                 choices=["A", "B", "C"],
@@ -975,7 +978,9 @@ class TestHyperparameters(unittest.TestCase):
                 weights=[0.1, 0.3]
             )
 
-        with self.assertRaisesRegex(ValueError, 'The list of weights and the list of choices are required to be of same length.'):
+        with self.assertRaisesRegex(
+                ValueError,
+                'The list of weights and the list of choices are required to be of same length.'):
             CategoricalHyperparameter(
                 name="param",
                 choices=["A", "B", "C"],
@@ -984,8 +989,6 @@ class TestHyperparameters(unittest.TestCase):
             )
 
     def test_categorical_with_negative_weights(self):
-        rs = np.random.RandomState(1)
-
         with self.assertRaisesRegex(ValueError, 'Negative weights are not allowed.'):
             CategoricalHyperparameter(
                 name="param",

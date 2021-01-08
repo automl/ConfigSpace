@@ -730,7 +730,8 @@ class TestConfigurationSpace(unittest.TestCase):
 
         # create sub-configuration space for algorithm 1
         algo1_cs = ConfigurationSpace()
-        hp1 = CategoricalHyperparameter(name="algo1_param1", choices=["A", "B"], weights=[0.3, 0.7], default_value="B")
+        hp1 = CategoricalHyperparameter(
+            name="algo1_param1", choices=["A", "B"], weights=[0.3, 0.7], default_value="B")
         algo1_cs.add_hyperparameter(hp1)
 
         # create sub-configuration space for algorithm 2
@@ -738,7 +739,8 @@ class TestConfigurationSpace(unittest.TestCase):
         hp2 = CategoricalHyperparameter(name="algo2_param1", choices=["X", "Y"], default_value="Y")
         algo2_cs.add_hyperparameter(hp2)
 
-        # create a configuration space and populate it with both the switch and the two sub-configuration spaces
+        # create a configuration space and populate it with both the switch
+        # and the two sub-configuration spaces
         cs = ConfigurationSpace()
         cs.add_hyperparameter(algo_switch)
         cs.add_configuration_space(
@@ -759,7 +761,8 @@ class TestConfigurationSpace(unittest.TestCase):
 
         # check probabilities in the final configuration space
         self.assertEqual((0.25, 0.75), cs.get_hyperparameter("switch").probabilities)
-        self.assertEqual((0.3, 0.7), cs.get_hyperparameter("algo1_subspace:algo1_param1").probabilities)
+        self.assertEqual((0.3, 0.7),
+                         cs.get_hyperparameter("algo1_subspace:algo1_param1").probabilities)
         self.assertEqual(None, cs.get_hyperparameter("algo2_subspace:algo2_param1").probabilities)
 
         # check default values in the final configuration space
