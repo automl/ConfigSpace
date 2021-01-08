@@ -1,0 +1,17 @@
+repos:
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v0.761
+    hooks:
+      - id: mypy
+        args: [--show-error-codes, --ignore-missing-imports, --follow-imports, skip]
+        name: mypy ConfigSpace
+        files: ConfigSpace
+  - repo: https://gitlab.com/pycqa/flake8
+    rev: 3.8.3
+    hooks:
+      - id: flake8
+        name: flake8 ConfigSpace
+        files: ConfigSpace
+      - id: flake8
+        name: flake8 test
+        files: test
