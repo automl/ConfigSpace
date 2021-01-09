@@ -15,20 +15,20 @@ jobs:
         pip install -e .[docs,examples,examples_unix]
     - name: Make docs
       run: |
-        cd doc
+        cd docs
         make html
     - name: Pull latest gh-pages
       if: (contains(github.ref, 'master')) && github.event_name == 'push'
       run: |
         cd ..
         git clone git@github.com:automl/ConfigSpace.git --branch gh-pages --single-branch gh-pages
-    - name: Copy new doc into gh-pages
+    - name: Copy new docs into gh-pages
       if: (contains(github.ref, 'develop') || contains(github.ref, 'master')) && github.event_name == 'push'
       run: |
         branch_name=${GITHUB_REF##*/}
         cd ../gh-pages
         rm -rf $branch_name
-        cp -r ../ConfigSpace/doc/build/html $branch_name
+        cp -r ../ConfigSpace/docs/build/html $branch_name
     - name: Push to gh-pages
       if: (contains(github.ref, 'master')) && github.event_name == 'push'
       run: |
