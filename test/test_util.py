@@ -315,7 +315,7 @@ class UtilTest(unittest.TestCase):
             cs.add_hyperparameters([
                 hyperparameter_type('bools', [True, False]),
                 hyperparameter_type('ints', [1, 2, 3, 4, 5]),
-                hyperparameter_type('floats', [1.5, 2.5 , 3.5, 4.5, 5.5]),
+                hyperparameter_type('floats', [1.5, 2.5, 3.5, 4.5, 5.5]),
                 hyperparameter_type('str', ['string', 'ding', 'dong']),
                 hyperparameter_type('mixed', [2, True, 1.5, 'string', False, 'False']),
                 ])
@@ -323,22 +323,22 @@ class UtilTest(unittest.TestCase):
             # Check bools
             for b in [False, True]:
                 c['bools'] = b
-                c_str = {k : str(v) for k, v in c.items()}
+                c_str = {k: str(v) for k, v in c.items()}
                 self.assertEqual(fix_types(c_str, cs), c)
             # Check legal mixed values
             for m in [2, True, 1.5, 'string']:
                 c['mixed'] = m
-                c_str = {k : str(v) for k, v in c.items()}
+                c_str = {k: str(v) for k, v in c.items()}
                 self.assertEqual(fix_types(c_str, cs), c)
             # Check error on cornercase that cannot be caught
             for m in [False, 'False']:
                 c['mixed'] = m
-                c_str = {k : str(v) for k, v in c.items()}
+                c_str = {k: str(v) for k, v in c.items()}
                 self.assertRaises(ValueError, fix_types, c_str, cs)
         # Test constant
         for m in [2, 1.5, 'string']:
             cs = ConfigurationSpace()
             cs.add_hyperparameter(Constant('constant', m))
             c = cs.get_default_configuration().get_dictionary()
-            c_str = {k : str(v) for k, v in c.items()}
+            c_str = {k: str(v) for k, v in c.items()}
             self.assertEqual(fix_types(c_str, cs), c)

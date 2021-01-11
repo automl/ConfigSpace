@@ -45,3 +45,21 @@ nosetests.xml
 *~
 *.orig
 *.html
+
+# Python distribution generated files
+.eggs
+
+# Unit test / coverage reports
+htmlcov/
+cover
+coverage
+htmlcov
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*,cover
+.hypothesis/
+prof/

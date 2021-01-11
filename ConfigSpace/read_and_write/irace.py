@@ -316,6 +316,6 @@ def write(configuration_space):
 
     # overwrite param_lines with split_params which contains lines with conditions
     param_lines = io.StringIO()
-    for l in splitted_params:
-        param_lines.write(l)
+    for line in splitted_params:
+        param_lines.write(line)
     return param_lines.getvalue()
