@@ -21,7 +21,7 @@ jobs:
       if: (contains(github.ref, 'master')) && github.event_name == 'push'
       run: |
         cd ..
-        git clone git@github.com:automl/ConfigSpace.git --branch gh-pages --single-branch gh-pages
+        git clone https://github.com/automl/ConfigSpace.git --branch gh-pages --single-branch gh-pages
     - name: Copy new docs into gh-pages
       if: (contains(github.ref, 'develop') || contains(github.ref, 'master')) && github.event_name == 'push'
       run: |
