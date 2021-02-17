@@ -1095,7 +1095,10 @@ class TestHyperparameters(unittest.TestCase):
         self.assertEqual(type(f1.rvs(size=2)), np.ndarray)
 
         self.assertAlmostEqual(f1.rvs(random_state=100), f1.rvs(random_state=100))
-        self.assertAlmostEqual(f1.rvs(random_state=100), f1.rvs(random_state=np.random.RandomState(100)))
+        self.assertAlmostEqual(
+            f1.rvs(random_state=100),
+            f1.rvs(random_state=np.random.RandomState(100))
+        )
         f1.rvs(random_state=np.random)
         f1.rvs(random_state=np.random.default_rng(1))
         self.assertRaises(ValueError, f1.rvs, 1, "a")
