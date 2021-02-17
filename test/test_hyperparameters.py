@@ -1084,3 +1084,18 @@ class TestHyperparameters(unittest.TestCase):
         self.assertEqual(f1.get_num_neighbors("freezing"), 1)
         self.assertEqual(f1.get_num_neighbors("hot"), 1)
         self.assertEqual(f1.get_num_neighbors("cold"), 2)
+
+    def test_rvs(self):
+        f1 = UniformFloatHyperparameter("param", 0, 10)
+
+        # test that returned types are correct
+        # if size=None, return a value, but if size=1, return a 1-element array
+        self.assertTrue(isinstance(f1.rvs(), float))
+        self.assertEqual(type(f1.rvs(size=1)), np.ndarray)
+        self.assertEqual(type(f1.rvs(size=2)), np.ndarray)
+
+        self.assertAlmostEqual(f1.rvs(random_state=100), f1.rvs(random_state=100))
+        self.assertAlmostEqual(f1.rvs(random_state=100), f1.rvs(random_state=np.random.RandomState(100)))
+        f1.rvs(random_state=np.random)
+        f1.rvs(random_state=np.random.default_rng(1))
+        self.assertRaises(ValueError, f1.rvs, 1, "a")
