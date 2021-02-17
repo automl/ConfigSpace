@@ -85,7 +85,7 @@ cdef class Hyperparameter(object):
         vector = self._sample(rs)
         return self._transform(vector)
 
-    def rvs(self, size: Optional[int]=1, random_state: Optional[Union[int, np.random, np.random.RandomState]]=None) -> Union[float, np.ndarray]:
+    def rvs(self, size: Optional[int]=None, random_state: Optional[Union[int, np.random, np.random.RandomState]]=None) -> Union[float, np.ndarray]:
         """
         scipy compatibility wrapper for ``_sample``,
         allowing the hyperparameter to be used in sklearn API
@@ -120,8 +120,13 @@ cdef class Hyperparameter(object):
             raise ValueError('%r cannot be used to seed a numpy.random.RandomState'
                             ' instance' % seed)
 
-        vector = self._sample(rs=check_random_state(random_state), size=size)
-        if size <= 1:
+        # if size=None, return a value, but if size=1, return a 1-element array
+
+        vector = self._sample(
+            rs=check_random_state(random_state),
+            size=size if size is not None else 1
+        )
+        if size is None:
             vector = vector[0]
 
         return self._transform(vector)
