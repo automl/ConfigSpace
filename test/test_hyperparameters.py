@@ -1094,7 +1094,7 @@ class TestHyperparameters(unittest.TestCase):
         # test that returned types are correct
         # if size=None, return a value, but if size=1, return a 1-element array
         self.assertIsInstance(f1.rvs(), float)
-        self.assertIsInstance(1.rvs(size=1), np.ndarray)
+        self.assertIsInstance(f1.rvs(size=1), np.ndarray)
         self.assertIsInstance(f1.rvs(size=2), np.ndarray)
 
         self.assertAlmostEqual(f1.rvs(random_state=100), f1.rvs(random_state=100))

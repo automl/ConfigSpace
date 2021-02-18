@@ -1,3 +1,9 @@
+# Version 0.4.18
+
+* ADD #164: New method `rvs` for hyperparameters to allow them being used with scikit-learn's
+  hyperparameter optimization tools.
+* FIX #173: Fixes a numpy ABI incompatibility problem with numpy 1.20
+
 # Version 0.4.17
 
 * MAINT #168: Support for Python. 3.9.X
