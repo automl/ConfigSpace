@@ -710,6 +710,19 @@ class ConfigurationSpace(object):
         """
         return list(self._hyperparameters.values())
 
+    def get_hyperparameters_dict(self) -> Dict[str, Hyperparameter]:
+        """
+        Return an OrderedDict with all the ``(name, Hyperparameter)`` contained in 
+        the configuration space object.
+
+        Returns
+        -------
+        OrderedDict(str, :ref:`Hyperparameters`)
+            An OrderedDict of names and hyperparameters
+
+        """
+        return self._hyperparameters.copy()
+
     def get_hyperparameter_names(self) -> List[str]:
         """
         Return a list with all names of hyperparameter, which are contained in
