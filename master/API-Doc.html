@@ -549,6 +549,21 @@ space object</p>
 </dd></dl>
 
 <dl class="py method">
+<dt id="ConfigSpace.configuration_space.ConfigurationSpace.get_hyperparameters_dict">
+<code class="sig-name descname"><span class="pre">get_hyperparameters_dict</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">ConfigSpace.hyperparameters.Hyperparameter</span><span class="p"><span class="pre">]</span></span><a class="headerlink" href="#ConfigSpace.configuration_space.ConfigurationSpace.get_hyperparameters_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return an OrderedDict with all the <code class="docutils literal notranslate"><span class="pre">(name,</span> <span class="pre">Hyperparameter)</span></code> contained in
+the configuration space object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>An OrderedDict of names and hyperparameters</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>OrderedDict(str, <a class="reference internal" href="#hyperparameters"><span class="std std-ref">Hyperparameters</span></a>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt id="ConfigSpace.configuration_space.ConfigurationSpace.get_idx_by_hyperparameter_name">
 <code class="sig-name descname"><span class="pre">get_idx_by_hyperparameter_name</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">unicode</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">int</span><a class="headerlink" href="#ConfigSpace.configuration_space.ConfigurationSpace.get_idx_by_hyperparameter_name" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the id of a hyperparameter by its <code class="docutils literal notranslate"><span class="pre">name</span></code>.</p>
