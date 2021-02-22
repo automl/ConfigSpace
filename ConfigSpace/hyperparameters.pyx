@@ -1403,7 +1403,7 @@ cdef class CategoricalHyperparameter(Hyperparameter):
             name=self.name,
             choices=copy.deepcopy(self.choices),
             default_value=self.default_value,
-            weights=copy.deepcopy(self.probabilities)
+            weights=copy.deepcopy(self.probabilities),
             meta=self.meta
         )
 
