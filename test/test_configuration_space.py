@@ -39,7 +39,8 @@ from ConfigSpace import ConfigurationSpace, \
     Constant, EqualsCondition, NotEqualsCondition, InCondition, \
     AndConjunction, OrConjunction, ForbiddenEqualsClause, \
     ForbiddenAndConjunction, UniformFloatHyperparameter
-from ConfigSpace.hyperparameters import NormalFloatHyperparameter
+from ConfigSpace.hyperparameters import NormalFloatHyperparameter, \
+    NormalIntegerHyperparameter, OrdinalHyperparameter
 from ConfigSpace.exceptions import ForbiddenValueError
 
 
@@ -937,3 +938,36 @@ class ConfigurationTest(unittest.TestCase):
 
         self.assertIsNotNone(cs.sample_configuration(size=1))
         self.assertEqual(10, len(cs.sample_configuration(size=10)))
+
+    def test_meta_field(self):
+        cs = ConfigurationSpace()
+        cs.add_hyperparameter(
+            UniformIntegerHyperparameter("uihp", lower=1, upper=10, meta=dict(uihp=True))
+        )
+        cs.add_hyperparameter(
+            NormalIntegerHyperparameter("nihp", mu=0, sigma=1, meta=dict(nihp=True))
+        )
+        cs.add_hyperparameter(
+            UniformFloatHyperparameter("ufhp", lower=1, upper=10, meta=dict(ufhp=True))
+        )
+        cs.add_hyperparameter(
+            NormalFloatHyperparameter("nfhp", mu=0, sigma=1, meta=dict(nfhp=True))
+        )
+        cs.add_hyperparameter(
+            CategoricalHyperparameter("chp", choices=['1', '2', '3'], meta=dict(chp=True))
+        )
+        cs.add_hyperparameter(
+            OrdinalHyperparameter("ohp", sequence=['1', '2', '3'], meta=dict(ohp=True))
+        )
+        cs.add_hyperparameter(
+            Constant("const", value=1, meta=dict(const=True))
+        )
+        parent = ConfigurationSpace()
+        parent.add_configuration_space("sub", cs, delimiter=':')
+        self.assertEqual(parent.get_hyperparameter("sub:uihp").meta, dict(uihp=True))
+        self.assertEqual(parent.get_hyperparameter("sub:nihp").meta, dict(nihp=True))
+        self.assertEqual(parent.get_hyperparameter("sub:ufhp").meta, dict(ufhp=True))
+        self.assertEqual(parent.get_hyperparameter("sub:nfhp").meta, dict(nfhp=True))
+        self.assertEqual(parent.get_hyperparameter("sub:chp").meta, dict(chp=True))
+        self.assertEqual(parent.get_hyperparameter("sub:ohp").meta, dict(ohp=True))
+        self.assertEqual(parent.get_hyperparameter("sub:const").meta, dict(const=True))

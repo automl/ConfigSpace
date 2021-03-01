@@ -222,7 +222,7 @@ cdef class Constant(Hyperparameter):
         return NotImplemented
 
     def __copy__(self):
-        return Constant(self.name, self.value)
+        return Constant(self.name, self.value, meta=self.meta)
 
     def __hash__(self):
         return hash((self.name, self.value))
@@ -358,7 +358,8 @@ cdef class NumericalHyperparameter(Hyperparameter):
             lower=self.lower,
             upper=self.upper,
             log=self.log,
-            q=self.q
+            q=self.q,
+            meta=self.meta
         )
 
 
@@ -732,6 +733,7 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
             sigma=self.sigma,
             log=self.log,
             q=self.q,
+            meta=self.meta
         )
 
     def __hash__(self):
@@ -1191,6 +1193,7 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
             sigma=self.sigma,
             log=self.log,
             q=self.q,
+            meta=self.meta
         )
 
     # todo check if conversion should be done in initiation call or inside class itsel
@@ -1400,7 +1403,8 @@ cdef class CategoricalHyperparameter(Hyperparameter):
             name=self.name,
             choices=copy.deepcopy(self.choices),
             default_value=self.default_value,
-            weights=copy.deepcopy(self.probabilities)
+            weights=copy.deepcopy(self.probabilities),
+            meta=self.meta
         )
 
     cpdef int compare(self, value: Union[int, float, str], value2: Union[int, float, str]):
@@ -1656,6 +1660,7 @@ cdef class OrdinalHyperparameter(Hyperparameter):
                 name=self.name,
                 sequence=copy.deepcopy(self.sequence),
                 default_value=self.default_value,
+                meta=self.meta
             )
 
     cpdef int compare(self, value: Union[int, float, str], value2: Union[int, float, str]):
