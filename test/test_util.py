@@ -307,3 +307,31 @@ class UtilTest(unittest.TestCase):
         expected_array = np.array([1, np.nan, np.nan, np.nan])
 
         np.testing.assert_almost_equal(new_array, expected_array)
+
+
+    def test_generate_grid(self):
+        cs = ConfigurationSpace(seed=1234)
+
+        cat1 = CategoricalHyperparameter(name='cat1', choices=['T', 'F'])
+        const1 = Constant(name='const1', value=4)
+        float1 = UniformFloatHyperparameter(name='float1', lower=-1, upper=1, log=False)
+        int1 = UniformIntegerHyperparameter(name='int1', lower=10, upper=100, log=True)
+        ord1 = OrdinalHyperparameter(name='ord1', sequence=['1', '2', '3'])
+
+        cs.add_hyperparameters([float1, int1, cat1, ord1, const1])
+
+        num_steps_dict = {'float1': 11, 'int1': 6}
+        generated_grid = generate_grid(cs, num_steps_dict)
+
+        # Check randomly pre-selected values in the generated_grid
+        self.assertEqual(len(generated_grid), 396) # 2 * 1 * 11 * 6 * 3 total diff. possibilities for the Configuration (i.e., for each tuple of HPs)
+        self.assertEqual(generated_grid[0].get_dictionary()['cat1'], 'T')
+        self.assertEqual(generated_grid[198].get_dictionary()['cat1'], 'F') #
+        self.assertEqual(generated_grid[45].get_dictionary()['const1'], 4) #
+        self.assertAlmostEqual(generated_grid[55].get_dictionary()['float1'], -0.4, places=2) # The 2 most frequently changing HPs (int1 and ord1) have 3*6 = 18 different values for each value of float1, so the 4th value of float1 of -0.4 is reached after 3*18 = 54 values.
+        self.assertEqual(generated_grid[12].get_dictionary()['int1'], 63) # 5th diff. value for int1 after 4*3 = 12 values. Reasoning as above.
+        self.assertEqual(generated_grid[3].get_dictionary()['ord1'], '1') #
+        self.assertEqual(generated_grid[4].get_dictionary()['ord1'], '2') #
+        self.assertEqual(generated_grid[5].get_dictionary()['ord1'], '3') #
+
+        #tests for conditional spaces: 1 basic one for 1 condition; 1 for tree of conditions; 1 for tree of conditions with OrConjunction and AndConjunction;
