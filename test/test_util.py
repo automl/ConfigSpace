@@ -308,7 +308,7 @@ class UtilTest(unittest.TestCase):
 
         np.testing.assert_almost_equal(new_array, expected_array)
 
-        
+
     def test_fix_types(self):
         # Test categorical and ordinal
         for hyperparameter_type in [CategoricalHyperparameter, OrdinalHyperparameter]:
@@ -343,7 +343,7 @@ class UtilTest(unittest.TestCase):
             c = cs.get_default_configuration().get_dictionary()
             c_str = {k: str(v) for k, v in c.items()}
             self.assertEqual(fix_types(c_str, cs), c)
-            
+
     def test_generate_grid(self):
         '''Test grid generation'''
         cs = ConfigurationSpace(seed=1234)
@@ -357,7 +357,7 @@ class UtilTest(unittest.TestCase):
         cs.add_hyperparameters([float1, int1, cat1, ord1, const1])
 
         num_steps_dict = {'float1': 11, 'int1': 6}
-        #TODO uncomment below and add asserts for later test cases
+        #TODO uncomment below
         # generated_grid = generate_grid(cs, num_steps_dict)
         #
         # # Check randomly pre-selected values in the generated_grid
@@ -371,7 +371,7 @@ class UtilTest(unittest.TestCase):
         # self.assertEqual(generated_grid[4].get_dictionary()['ord1'], '2') #
         # self.assertEqual(generated_grid[5].get_dictionary()['ord1'], '3') #
 
-        #tests for quantization and conditional spaces: 1 basic one for 1 condition; 1 for tree of conditions; 1 for tree of conditions with OrConjunction and AndConjunction;
+        # Tests for quantization and conditional spaces. num_steps_dict supports specifying steps for only some of the int and float HPs. The rest are taken from the 'q' member variables of these HPs. The conditional space tested has 2 levels of conditions.
         cs2 = CS.ConfigurationSpace(seed=123)
         float1 = CSH.UniformFloatHyperparameter(name='float1', lower=-1, upper=1, log=False)
         int1 = CSH.UniformIntegerHyperparameter(name='int1', lower=0, upper=1000, log=False, q=500)
@@ -398,3 +398,9 @@ class UtilTest(unittest.TestCase):
         num_steps_dict1 = {'float1': 4, 'int2_cond': 3, 'float2_cond': 3 }
         configspace_grid = ConfigSpaceGrid(cs2)
         generated_grid = configspace_grid.generate_grid(num_steps_dict1)
+        self.assertEqual(len(generated_grid), 18)
+
+        # RR: I manually generated the grid and verified the values were correct. Here, we test that a few randomly chosen values in the generated grid correspond to the ones I checked.
+        self.assertEqual(generated_grid[3].get_dictionary()['int1'], 1000)
+        self.assertEqual(generated_grid[12].get_dictionary()['cat1_cond'], 'orange')
+        self.assertAlmostEqual(generated_grid[-2].get_dictionary()['float2_cond'], 31.622776601683803, places=3)
