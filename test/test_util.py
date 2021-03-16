@@ -372,27 +372,27 @@ class UtilTest(unittest.TestCase):
         # self.assertEqual(generated_grid[5].get_dictionary()['ord1'], '3') #
 
         # Tests for quantization and conditional spaces. num_steps_dict supports specifying steps for only some of the int and float HPs. The rest are taken from the 'q' member variables of these HPs. The conditional space tested has 2 levels of conditions.
-        cs2 = CS.ConfigurationSpace(seed=123)
-        float1 = CSH.UniformFloatHyperparameter(name='float1', lower=-1, upper=1, log=False)
-        int1 = CSH.UniformIntegerHyperparameter(name='int1', lower=0, upper=1000, log=False, q=500)
+        cs2 = ConfigurationSpace(seed=123)
+        float1 = UniformFloatHyperparameter(name='float1', lower=-1, upper=1, log=False)
+        int1 = UniformIntegerHyperparameter(name='int1', lower=0, upper=1000, log=False, q=500)
         cs2.add_hyperparameters([float1, int1])
 
-        int2_cond = CSH.UniformIntegerHyperparameter(name='int2_cond', lower=10, upper=100, log=True)
+        int2_cond = UniformIntegerHyperparameter(name='int2_cond', lower=10, upper=100, log=True)
         cs2.add_hyperparameters([int2_cond])
-        cond_1 = CS.AndConjunction(CS.LessThanCondition(int2_cond, float1, -0.5),
-                                  CS.GreaterThanCondition(int2_cond, int1, 600))
+        cond_1 = AndConjunction(LessThanCondition(int2_cond, float1, -0.5),
+                                  GreaterThanCondition(int2_cond, int1, 600))
         cs2.add_conditions([cond_1])
-        cat1_cond = CSH.CategoricalHyperparameter(name='cat1_cond', choices=['apple', 'orange'])
+        cat1_cond = CategoricalHyperparameter(name='cat1_cond', choices=['apple', 'orange'])
         cs2.add_hyperparameters([cat1_cond])
-        cond_2 = CS.AndConjunction(CS.GreaterThanCondition(cat1_cond, int1, 300),
-                                   CS.LessThanCondition(cat1_cond, int1, 700),
-                                   CS.GreaterThanCondition(cat1_cond, float1, -0.5),
-                                  CS.LessThanCondition(cat1_cond, float1, 0.5)
+        cond_2 = AndConjunction(GreaterThanCondition(cat1_cond, int1, 300),
+                                   LessThanCondition(cat1_cond, int1, 700),
+                                   GreaterThanCondition(cat1_cond, float1, -0.5),
+                                  LessThanCondition(cat1_cond, float1, 0.5)
                                   )
         cs2.add_conditions([cond_2])
-        float2_cond = CSH.UniformFloatHyperparameter(name='float2_cond', lower=10., upper=100., log=True)
+        float2_cond = UniformFloatHyperparameter(name='float2_cond', lower=10., upper=100., log=True)
         cs2.add_hyperparameters([float2_cond])
-        cond_3 = CS.GreaterThanCondition(float2_cond, int2_cond, 50)
+        cond_3 = GreaterThanCondition(float2_cond, int2_cond, 50)
         cs2.add_conditions([cond_3])
         print(cs2)
         num_steps_dict1 = {'float1': 4, 'int2_cond': 3, 'float2_cond': 3 }
