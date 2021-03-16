@@ -39,7 +39,8 @@ from ConfigSpace import ConfigurationSpace, \
     Constant, EqualsCondition, NotEqualsCondition, InCondition, \
     AndConjunction, OrConjunction, ForbiddenEqualsClause, \
     ForbiddenAndConjunction, UniformFloatHyperparameter
-from ConfigSpace.hyperparameters import NormalFloatHyperparameter
+from ConfigSpace.hyperparameters import NormalFloatHyperparameter, \
+    NormalIntegerHyperparameter, OrdinalHyperparameter
 from ConfigSpace.exceptions import ForbiddenValueError
 
 
@@ -719,6 +720,57 @@ class TestConfigurationSpace(unittest.TestCase):
         rval = cs.sample_configuration(size=0)
         self.assertEqual(len(rval), 0)
 
+    def test_subspace_switches(self):
+        # create a switch to select one of two algorithms
+        algo_switch = CategoricalHyperparameter(
+            name="switch",
+            choices=["algo1", "algo2"],
+            weights=[0.25, 0.75],
+            default_value="algo1"
+        )
+
+        # create sub-configuration space for algorithm 1
+        algo1_cs = ConfigurationSpace()
+        hp1 = CategoricalHyperparameter(
+            name="algo1_param1", choices=["A", "B"], weights=[0.3, 0.7], default_value="B")
+        algo1_cs.add_hyperparameter(hp1)
+
+        # create sub-configuration space for algorithm 2
+        algo2_cs = ConfigurationSpace()
+        hp2 = CategoricalHyperparameter(name="algo2_param1", choices=["X", "Y"], default_value="Y")
+        algo2_cs.add_hyperparameter(hp2)
+
+        # create a configuration space and populate it with both the switch
+        # and the two sub-configuration spaces
+        cs = ConfigurationSpace()
+        cs.add_hyperparameter(algo_switch)
+        cs.add_configuration_space(
+            prefix="algo1_subspace",
+            configuration_space=algo1_cs,
+            parent_hyperparameter={'parent': algo_switch, 'value': "algo1"}
+        )
+        cs.add_configuration_space(
+            prefix="algo2_subspace",
+            configuration_space=algo2_cs,
+            parent_hyperparameter={'parent': algo_switch, 'value': "algo2"}
+        )
+
+        # check choices in the final configuration space
+        self.assertEqual(("algo1", "algo2"), cs.get_hyperparameter("switch").choices)
+        self.assertEqual(("A", "B"), cs.get_hyperparameter("algo1_subspace:algo1_param1").choices)
+        self.assertEqual(("X", "Y"), cs.get_hyperparameter("algo2_subspace:algo2_param1").choices)
+
+        # check probabilities in the final configuration space
+        self.assertEqual((0.25, 0.75), cs.get_hyperparameter("switch").probabilities)
+        self.assertEqual((0.3, 0.7),
+                         cs.get_hyperparameter("algo1_subspace:algo1_param1").probabilities)
+        self.assertEqual(None, cs.get_hyperparameter("algo2_subspace:algo2_param1").probabilities)
+
+        # check default values in the final configuration space
+        self.assertEqual("algo1", cs.get_hyperparameter("switch").default_value)
+        self.assertEqual("B", cs.get_hyperparameter("algo1_subspace:algo1_param1").default_value)
+        self.assertEqual("Y", cs.get_hyperparameter("algo2_subspace:algo2_param1").default_value)
+
 
 class ConfigurationTest(unittest.TestCase):
     def setUp(self):
@@ -886,3 +938,36 @@ class ConfigurationTest(unittest.TestCase):
 
         self.assertIsNotNone(cs.sample_configuration(size=1))
         self.assertEqual(10, len(cs.sample_configuration(size=10)))
+
+    def test_meta_field(self):
+        cs = ConfigurationSpace()
+        cs.add_hyperparameter(
+            UniformIntegerHyperparameter("uihp", lower=1, upper=10, meta=dict(uihp=True))
+        )
+        cs.add_hyperparameter(
+            NormalIntegerHyperparameter("nihp", mu=0, sigma=1, meta=dict(nihp=True))
+        )
+        cs.add_hyperparameter(
+            UniformFloatHyperparameter("ufhp", lower=1, upper=10, meta=dict(ufhp=True))
+        )
+        cs.add_hyperparameter(
+            NormalFloatHyperparameter("nfhp", mu=0, sigma=1, meta=dict(nfhp=True))
+        )
+        cs.add_hyperparameter(
+            CategoricalHyperparameter("chp", choices=['1', '2', '3'], meta=dict(chp=True))
+        )
+        cs.add_hyperparameter(
+            OrdinalHyperparameter("ohp", sequence=['1', '2', '3'], meta=dict(ohp=True))
+        )
+        cs.add_hyperparameter(
+            Constant("const", value=1, meta=dict(const=True))
+        )
+        parent = ConfigurationSpace()
+        parent.add_configuration_space("sub", cs, delimiter=':')
+        self.assertEqual(parent.get_hyperparameter("sub:uihp").meta, dict(uihp=True))
+        self.assertEqual(parent.get_hyperparameter("sub:nihp").meta, dict(nihp=True))
+        self.assertEqual(parent.get_hyperparameter("sub:ufhp").meta, dict(ufhp=True))
+        self.assertEqual(parent.get_hyperparameter("sub:nfhp").meta, dict(nfhp=True))
+        self.assertEqual(parent.get_hyperparameter("sub:chp").meta, dict(chp=True))
+        self.assertEqual(parent.get_hyperparameter("sub:ohp").meta, dict(ohp=True))
+        self.assertEqual(parent.get_hyperparameter("sub:const").meta, dict(const=True))

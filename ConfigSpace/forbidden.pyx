@@ -70,7 +70,7 @@ cdef class AbstractForbiddenComponent(object):
         which takes an integer indicating which operation is to be performed,
         as follows:
         < 	0
-        == 2
+        ==      2
         > 	4
         <=	1
         !=	3
@@ -78,9 +78,10 @@ cdef class AbstractForbiddenComponent(object):
         """
         if self.value is None:
             self.value = self.values
-            other.value = other.values
 
         if isinstance(other, self.__class__):
+            if other.value is None:
+                other.value = other.values
             if op == 2:
                 return (self.value == other.value
                          and self.hyperparameter.name == other.hyperparameter.name)
@@ -362,7 +363,7 @@ cdef class AbstractForbiddenConjunction(AbstractForbiddenComponent):
         which takes an integer indicating which operation is to be performed,
         as follows:
         < 	0
-        == 2
+        ==      2
         > 	4
         <=	1
         !=	3
@@ -377,7 +378,7 @@ cdef class AbstractForbiddenConjunction(AbstractForbiddenComponent):
                             for i in range(self.n_components)])
 
             elif op == 3:
-                if self.n_copmonents == other.n_components:
+                if self.n_components == other.n_components:
                     return False
                 return any([self.components[i] != other.components[i]
                             for i in range(self.n_components)])

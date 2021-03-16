@@ -52,14 +52,15 @@ Basic usage
 Installation
 ============
 
+*ConfigSpace* requires Python 3.6 or higher.
+
 *ConfigSpace* can be installed with *pip*:
 
 .. code:: bash
 
     pip install ConfigSpace
 
-The *ConfigSpace* package requires *numpy*, *cython* and *pyparsing*. If you
-want to use it with Python3.4 it also requires the *typing* package.
+The *ConfigSpace* package requires *numpy*, *cython* and *pyparsing*.
 Additionally, a functioning C compiler is required.
 
 On Ubuntu, the required compiler tools can be installed with:

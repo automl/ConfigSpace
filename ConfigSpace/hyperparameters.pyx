@@ -85,6 +85,52 @@ cdef class Hyperparameter(object):
         vector = self._sample(rs)
         return self._transform(vector)
 
+    def rvs(self, size: Optional[int]=None, random_state: Optional[Union[int, np.random, np.random.RandomState]]=None) -> Union[float, np.ndarray]:
+        """
+        scipy compatibility wrapper for ``_sample``,
+        allowing the hyperparameter to be used in sklearn API
+        hyperparameter searchers, eg. GridSearchCV.
+
+        """
+
+        # copy-pasted from scikit-learn utils/validation.py
+        def check_random_state(seed):
+            """
+            Turn seed into a np.random.RandomState instance
+            If seed is None (or np.random), return the RandomState singleton used
+            by np.random.
+            If seed is an int, return a new RandomState instance seeded with seed.
+            If seed is already a RandomState instance, return it.
+            If seed is a new-style np.random.Generator, return it.
+            Otherwise, raise ValueError.
+
+            """
+            if seed is None or seed is np.random:
+                return np.random.mtrand._rand
+            if isinstance(seed, (int, np.integer)):
+                return np.random.RandomState(seed)
+            if isinstance(seed, np.random.RandomState):
+                return seed
+            try:
+                # Generator is only available in numpy >= 1.17
+                if isinstance(seed, np.random.Generator):
+                    return seed
+            except AttributeError:
+                pass
+            raise ValueError('%r cannot be used to seed a numpy.random.RandomState'
+                            ' instance' % seed)
+
+        # if size=None, return a value, but if size=1, return a 1-element array
+
+        vector = self._sample(
+            rs=check_random_state(random_state),
+            size=size if size is not None else 1
+        )
+        if size is None:
+            vector = vector[0]
+
+        return self._transform(vector)
+
     def _sample(self, rs, size):
         raise NotImplementedError()
 
@@ -176,7 +222,7 @@ cdef class Constant(Hyperparameter):
         return NotImplemented
 
     def __copy__(self):
-        return Constant(self.name, self.value)
+        return Constant(self.name, self.value, meta=self.meta)
 
     def __hash__(self):
         return hash((self.name, self.value))
@@ -312,7 +358,8 @@ cdef class NumericalHyperparameter(Hyperparameter):
             lower=self.lower,
             upper=self.upper,
             log=self.log,
-            q=self.q
+            q=self.q,
+            meta=self.meta
         )
 
 
@@ -686,6 +733,7 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
             sigma=self.sigma,
             log=self.log,
             q=self.q,
+            meta=self.meta
         )
 
     def __hash__(self):
@@ -1145,6 +1193,7 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
             sigma=self.sigma,
             log=self.log,
             q=self.q,
+            meta=self.meta
         )
 
     # todo check if conversion should be done in initiation call or inside class itsel
@@ -1223,7 +1272,7 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
 
 cdef class CategoricalHyperparameter(Hyperparameter):
     cdef public tuple choices
-    cdef public list probabilities
+    cdef public tuple probabilities
     cdef public int num_choices
     cdef list choices_vector
     cdef set _choices_set
@@ -1236,12 +1285,16 @@ cdef class CategoricalHyperparameter(Hyperparameter):
         choices: Union[List[Union[str, float, int]], Tuple[Union[float, int, str]]],
         default_value: Union[int, float, str, None]=None,
         meta: Optional[Dict]=None,
-        weights: List[float]=None
+        weights: Union[List[float], Tuple[float]] = None
     ) -> None:
         """
         A categorical hyperparameter.
 
         Its values are sampled from a set of ``values``.
+
+        ``None`` is a forbidden value, please use a string constant instead and parse
+        it in your own code, see `here <https://github.com/automl/ConfigSpace/issues/159>_`
+        for further details.
 
         Example
         -------
@@ -1280,6 +1333,12 @@ cdef class CategoricalHyperparameter(Hyperparameter):
                 )
             if choice is None:
                 raise TypeError("Choice 'None' is not supported")
+        if isinstance(choices, set):
+            raise TypeError('Using a set of choices is prohibited as it can result in '
+                            'non-deterministic behavior. Please use a list or a tuple.')
+        if isinstance(weights, set):
+            raise TypeError('Using a set of weights is prohibited as it can result in '
+                            'non-deterministic behavior. Please use a list or a tuple.')
         self.choices = tuple(choices)
         self.probabilities = self._get_probabilities(choices=self.choices, weights=weights)
         self.num_choices = len(choices)
@@ -1298,6 +1357,8 @@ cdef class CategoricalHyperparameter(Hyperparameter):
         repr_str.write("}")
         repr_str.write(", Default: ")
         repr_str.write(str(self.default_value))
+        if self.probabilities is not None:
+            repr_str.write(", Probabilities: %s" % str(self.probabilities))
         repr_str.seek(0)
         return repr_str.getvalue()
 
@@ -1342,6 +1403,8 @@ cdef class CategoricalHyperparameter(Hyperparameter):
             name=self.name,
             choices=copy.deepcopy(self.choices),
             default_value=self.default_value,
+            weights=copy.deepcopy(self.probabilities),
+            meta=self.meta
         )
 
     cpdef int compare(self, value: Union[int, float, str], value2: Union[int, float, str]):
@@ -1380,7 +1443,7 @@ cdef class CategoricalHyperparameter(Hyperparameter):
         if np.any(weights < 0):
             raise ValueError("Negative weights are not allowed.")
 
-        return list(weights / np.sum(weights))
+        return tuple(weights / np.sum(weights))
 
     def check_default(self, default_value: Union[None, str, float, int]) -> Union[str, float, int]:
         if default_value is None:
@@ -1495,6 +1558,10 @@ cdef class OrdinalHyperparameter(Hyperparameter):
         Its values are sampled form a ``sequence`` of values.
         The sequence of values from a ordinal hyperparameter is ordered.
 
+        ``None`` is a forbidden value, please use a string constant instead and parse
+        it in your own code, see `here <https://github.com/automl/ConfigSpace/issues/159>_`
+        for further details.
+
         Example
         -------
 
@@ -1593,6 +1660,7 @@ cdef class OrdinalHyperparameter(Hyperparameter):
                 name=self.name,
                 sequence=copy.deepcopy(self.sequence),
                 default_value=self.default_value,
+                meta=self.meta
             )
 
     cpdef int compare(self, value: Union[int, float, str], value2: Union[int, float, str]):

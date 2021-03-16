@@ -27,6 +27,7 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from collections import defaultdict
+import copy
 import unittest
 import pytest
 
@@ -755,7 +756,7 @@ class TestHyperparameters(unittest.TestCase):
         self.assertEqual(1, sample_one.size)
         try:
             self.assertAlmostEqual(float(hp._transform(sample_one) + 1.2) % 0.2, 0.0)
-        except:
+        except Exception:
             self.assertAlmostEqual(float(hp._transform(sample_one) + 1.2) % 0.2, 0.2)
         self.assertGreaterEqual(hp._transform(sample_one), 1)
         self.assertLessEqual(hp._transform(sample_one), 100)
@@ -769,7 +770,7 @@ class TestHyperparameters(unittest.TestCase):
         self.assertEqual(1, sample_one.size)
         try:
             self.assertAlmostEqual(float(hp._transform(sample_one) + 1.2) % 0.2, 0.0)
-        except:
+        except Exception:
             self.assertAlmostEqual(float(hp._transform(sample_one) + 1.2) % 0.2, 0.2)
         self.assertGreaterEqual(hp._transform(sample_one), -1.2)
         self.assertLessEqual(hp._transform(sample_one), 1.2)
@@ -828,7 +829,8 @@ class TestHyperparameters(unittest.TestCase):
 
     def test_sample_CategoricalHyperparameter_with_weights(self):
         # check also that normalization works
-        hp = CategoricalHyperparameter("chp", [0, 2, "Bla", u"Blub", u"Blurp"], weights=[1, 2, 3, 4, 0])
+        hp = CategoricalHyperparameter("chp", [0, 2, "Bla", u"Blub", u"Blurp"],
+                                       weights=[1, 2, 3, 4, 0])
         np.testing.assert_almost_equal(
             actual=hp.probabilities,
             desired=[0.1, 0.2, 0.3, 0.4, 0],
@@ -848,6 +850,36 @@ class TestHyperparameters(unittest.TestCase):
             return counts_per_bin
 
         self.assertEqual(actual_test(), actual_test())
+
+    def test_categorical_copy_with_weights(self):
+        orig_hp = CategoricalHyperparameter(
+            name="param",
+            choices=[1, 2, 3],
+            default_value=2,
+            weights=[1, 3, 6]
+        )
+        copy_hp = copy.copy(orig_hp)
+
+        self.assertEqual(copy_hp.name, orig_hp.name)
+        self.assertTupleEqual(copy_hp.choices, orig_hp.choices)
+        self.assertEqual(copy_hp.default_value, orig_hp.default_value)
+        self.assertEqual(copy_hp.num_choices, orig_hp.num_choices)
+        self.assertTupleEqual(copy_hp.probabilities, orig_hp.probabilities)
+
+    def test_categorical_copy_without_weights(self):
+        orig_hp = CategoricalHyperparameter(
+            name="param",
+            choices=[1, 2, 3],
+            default_value=2
+        )
+        copy_hp = copy.copy(orig_hp)
+
+        self.assertEqual(copy_hp.name, orig_hp.name)
+        self.assertTupleEqual(copy_hp.choices, orig_hp.choices)
+        self.assertEqual(copy_hp.default_value, orig_hp.default_value)
+        self.assertEqual(copy_hp.num_choices, orig_hp.num_choices)
+        self.assertIsNone(copy_hp.probabilities)
+        self.assertIsNone(orig_hp.probabilities)
 
     def test_categorical_with_weights(self):
         rs = np.random.RandomState()
@@ -936,7 +968,9 @@ class TestHyperparameters(unittest.TestCase):
             )
 
     def test_categorical_with_wrong_length_weights(self):
-        with self.assertRaisesRegex(ValueError, 'The list of weights and the list of choices are required to be of same length.'):
+        with self.assertRaisesRegex(
+                ValueError,
+                'The list of weights and the list of choices are required to be of same length.'):
             CategoricalHyperparameter(
                 name="param",
                 choices=["A", "B", "C"],
@@ -944,7 +978,9 @@ class TestHyperparameters(unittest.TestCase):
                 weights=[0.1, 0.3]
             )
 
-        with self.assertRaisesRegex(ValueError, 'The list of weights and the list of choices are required to be of same length.'):
+        with self.assertRaisesRegex(
+                ValueError,
+                'The list of weights and the list of choices are required to be of same length.'):
             CategoricalHyperparameter(
                 name="param",
                 choices=["A", "B", "C"],
@@ -953,14 +989,28 @@ class TestHyperparameters(unittest.TestCase):
             )
 
     def test_categorical_with_negative_weights(self):
-        rs = np.random.RandomState(1)
-
         with self.assertRaisesRegex(ValueError, 'Negative weights are not allowed.'):
             CategoricalHyperparameter(
                 name="param",
                 choices=["A", "B", "C"],
                 default_value="A",
                 weights=[0.1, -0.1, 0.3]
+            )
+
+    def test_categorical_with_set(self):
+        with self.assertRaisesRegex(TypeError, 'Using a set of choices is prohibited.'):
+            CategoricalHyperparameter(
+                name="param",
+                choices={"A", "B", "C"},
+                default_value="A",
+            )
+
+        with self.assertRaisesRegex(TypeError, 'Using a set of weights is prohibited.'):
+            CategoricalHyperparameter(
+                name="param",
+                choices=["A", "B", "C"],
+                default_value="A",
+                weights={0.2, 0.6, 0.8},
             )
 
     def test_log_space_conversion(self):
@@ -1037,3 +1087,21 @@ class TestHyperparameters(unittest.TestCase):
         self.assertEqual(f1.get_num_neighbors("freezing"), 1)
         self.assertEqual(f1.get_num_neighbors("hot"), 1)
         self.assertEqual(f1.get_num_neighbors("cold"), 2)
+
+    def test_rvs(self):
+        f1 = UniformFloatHyperparameter("param", 0, 10)
+
+        # test that returned types are correct
+        # if size=None, return a value, but if size=1, return a 1-element array
+        self.assertIsInstance(f1.rvs(), float)
+        self.assertIsInstance(f1.rvs(size=1), np.ndarray)
+        self.assertIsInstance(f1.rvs(size=2), np.ndarray)
+
+        self.assertAlmostEqual(f1.rvs(random_state=100), f1.rvs(random_state=100))
+        self.assertAlmostEqual(
+            f1.rvs(random_state=100),
+            f1.rvs(random_state=np.random.RandomState(100))
+        )
+        f1.rvs(random_state=np.random)
+        f1.rvs(random_state=np.random.default_rng(1))
+        self.assertRaises(ValueError, f1.rvs, 1, "a")

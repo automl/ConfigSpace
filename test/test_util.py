@@ -32,11 +32,11 @@ import unittest
 import numpy as np
 
 from ConfigSpace import Configuration, ConfigurationSpace, UniformIntegerHyperparameter, \
-    UniformFloatHyperparameter, CategoricalHyperparameter, Constant, \
+    UniformFloatHyperparameter, CategoricalHyperparameter, Constant, OrdinalHyperparameter, \
     EqualsCondition, AndConjunction, OrConjunction
 from ConfigSpace.read_and_write.pcs import read
 from ConfigSpace.util import impute_inactive_values, get_random_neighbor, \
-    get_one_exchange_neighbourhood, deactivate_inactive_hyperparameters, ConfigSpaceGrid
+    get_one_exchange_neighbourhood, deactivate_inactive_hyperparameters, fix_types, ConfigSpaceGrid
 import ConfigSpace.c_util
 
 
@@ -308,8 +308,44 @@ class UtilTest(unittest.TestCase):
 
         np.testing.assert_almost_equal(new_array, expected_array)
 
-
+        
+    def test_fix_types(self):
+        # Test categorical and ordinal
+        for hyperparameter_type in [CategoricalHyperparameter, OrdinalHyperparameter]:
+            cs = ConfigurationSpace()
+            cs.add_hyperparameters([
+                hyperparameter_type('bools', [True, False]),
+                hyperparameter_type('ints', [1, 2, 3, 4, 5]),
+                hyperparameter_type('floats', [1.5, 2.5, 3.5, 4.5, 5.5]),
+                hyperparameter_type('str', ['string', 'ding', 'dong']),
+                hyperparameter_type('mixed', [2, True, 1.5, 'string', False, 'False']),
+                ])
+            c = cs.get_default_configuration().get_dictionary()
+            # Check bools
+            for b in [False, True]:
+                c['bools'] = b
+                c_str = {k: str(v) for k, v in c.items()}
+                self.assertEqual(fix_types(c_str, cs), c)
+            # Check legal mixed values
+            for m in [2, True, 1.5, 'string']:
+                c['mixed'] = m
+                c_str = {k: str(v) for k, v in c.items()}
+                self.assertEqual(fix_types(c_str, cs), c)
+            # Check error on cornercase that cannot be caught
+            for m in [False, 'False']:
+                c['mixed'] = m
+                c_str = {k: str(v) for k, v in c.items()}
+                self.assertRaises(ValueError, fix_types, c_str, cs)
+        # Test constant
+        for m in [2, 1.5, 'string']:
+            cs = ConfigurationSpace()
+            cs.add_hyperparameter(Constant('constant', m))
+            c = cs.get_default_configuration().get_dictionary()
+            c_str = {k: str(v) for k, v in c.items()}
+            self.assertEqual(fix_types(c_str, cs), c)
+            
     def test_generate_grid(self):
+        '''Test grid generation'''
         cs = ConfigurationSpace(seed=1234)
 
         cat1 = CategoricalHyperparameter(name='cat1', choices=['T', 'F'])

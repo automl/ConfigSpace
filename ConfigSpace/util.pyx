@@ -276,8 +276,7 @@ def get_random_neighbor(configuration: Configuration, seed: int) -> Configuratio
         while not active:
             iteration += 1
             if configuration._num_hyperparameters > 1:
-                rand_idx = random.randint(0,
-                                          configuration._num_hyperparameters - 1)
+                rand_idx = random.randint(0, configuration._num_hyperparameters)
             else:
                 rand_idx = 0
 
@@ -411,18 +410,25 @@ def fix_types(configuration: dict,
     dict
         configuration with fixed types of parameter values
     """
+    def fix_type_from_candidates(value, candidates):
+        result = [c for c in candidates if str(value) == str(c)]
+        if len(result) != 1:
+            raise ValueError("Parameter value %s cannot be matched to candidates %s. "
+                             "Either none or too many matching candidates." % (str(value), candidates))
+        return result[0]
+
     for param in configuration_space.get_hyperparameters():
         param_name = param.name
         if configuration.get(param_name) is not None:
             if isinstance(param, (CategoricalHyperparameter)):
-                # should be unnecessary, but to be on the safe param_name:
-                configuration[param_name] = str(configuration[param_name])
+                configuration[param_name] = fix_type_from_candidates(configuration[param_name],
+                                                                     param.choices)
             elif isinstance(param, (OrdinalHyperparameter)):
-                # should be unnecessary, but to be on the safe side:
-                configuration[param_name] = str(configuration[param_name])
+                configuration[param_name] = fix_type_from_candidates(configuration[param_name],
+                                                                     param.sequence)
             elif isinstance(param, Constant):
-                # should be unnecessary, but to be on the safe side:
-                configuration[param_name] = str(configuration[param_name])
+                configuration[param_name] = fix_type_from_candidates(configuration[param_name],
+                                                                     [param.value])
             elif isinstance(param, UniformFloatHyperparameter):
                 configuration[param_name] = float(configuration[param_name])
             elif isinstance(param, UniformIntegerHyperparameter):

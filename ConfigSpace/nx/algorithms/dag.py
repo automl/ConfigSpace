@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
-from fractions import gcd
+try:
+    from math import gcd  # >= Python 3.9
+except ImportError:
+    from fractions import gcd  # < Python 3.9
 
 import ConfigSpace.nx
 

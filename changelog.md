@@ -1,3 +1,42 @@
+# Version 0.4.18
+
+* ADD #164: New method `rvs` for hyperparameters to allow them being used with scikit-learn's
+  hyperparameter optimization tools.
+* FIX #173: Fixes a numpy ABI incompatibility problem with numpy 1.20
+
+# Version 0.4.17
+
+* MAINT #168: Support for Python. 3.9.X
+
+# Version 0.4.16
+
+* FIX #167: fix a broken equal comparison in forbidden constraints.
+
+# Version 0.4.15
+
+* Add `pyproject.toml` to support wheel installation as required in 
+  [PEP518](https://medium.com/@grassfedcode/pep-517-and-518-in-plain-english-47208ca8b7a6)
+
+# Version 0.4.14
+
+* ADD new argument `config_id` to `Configuration` which can be set by an application
+  using the ConfigSpace package (`None` by default).
+* FIX #157 fix a bug in `get_random_neighbor` where the last hyperparameter value was never
+  changed.
+* MAINT #136 remove asterisk in version identifier in `setup.py`.
+* MAINT #156 add `ConstantHyperparameter` to the API documentation.
+* MAINT #159 document that `None` is a forbidden value for `CategoricalHyperparameter` and
+  `OrdinalHyperparameter`.
+
+# Version 0.4.13
+
+* ADD Python3.8 support, drop Python3.5 support (#144, #153)
+* FIX copy weights of `CategoricalHyperparameter` (#148)
+* FIX store weights of `CategoricalHyperparameter`, raise an error message
+  for the other output writers (#152).
+* FIX correct types in util function `fix_types` (#134)
+* MAINT unit test of the source distribution (#154)
+
 # Version 0.4.12
 
 * ADD #135: Add weights to the sampling of categorical hyperparameters.

@@ -121,7 +121,7 @@ class ConfigurationSpace(object):
         Generate :class:`~ConfigSpace.hyperparameters.UniformFloatHyperparameter`
         from a list containing lists with lower and upper bounds. The generated
         hyperparameters are added to the configuration space.
-        
+
         Parameters
         ----------
         bounds : list[tuple([Any, Any])]
@@ -709,6 +709,19 @@ class ConfigurationSpace(object):
             space object
         """
         return list(self._hyperparameters.values())
+
+    def get_hyperparameters_dict(self) -> Dict[str, Hyperparameter]:
+        """
+        Return an OrderedDict with all the ``(name, Hyperparameter)`` contained in 
+        the configuration space object.
+
+        Returns
+        -------
+        OrderedDict(str, :ref:`Hyperparameters`)
+            An OrderedDict of names and hyperparameters
+
+        """
+        return self._hyperparameters.copy()
 
     def get_hyperparameter_names(self) -> List[str]:
         """
@@ -1312,7 +1325,8 @@ class Configuration(object):
     def __init__(self, configuration_space: ConfigurationSpace,
                  values: Union[None,  Dict[str, Union[str, float, int]]] = None,
                  vector: Union[None, np.ndarray] = None,
-                 allow_inactive_with_values: bool = False, origin: Any = None) -> None:
+                 allow_inactive_with_values: bool = False, origin: Any = None,
+                 config_id: Optional[int] = None) -> None:
         """
         Class for a single configuration.
 
@@ -1343,6 +1357,9 @@ class Configuration(object):
         origin : Any, optional
             Store information about the origin of this configuration.
             Default to None
+        config_id : int, optional
+            Integer configuration ID which can be used by a program using the ConfigSpace
+            package.
         """
         if not isinstance(configuration_space, ConfigurationSpace):
             raise TypeError("Configuration expects an instance of %s, "
@@ -1354,6 +1371,7 @@ class Configuration(object):
         self._query_values = False
         self._num_hyperparameters = len(self.configuration_space._hyperparameters)
         self.origin = origin
+        self.config_id = config_id
         self._keys = None  # type: Union[None, List[str]]
 
         if values is not None and vector is not None:

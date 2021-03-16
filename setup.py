@@ -50,10 +50,11 @@ AUTHOR_EMAIL = 'feurerm@informatik.uni-freiburg.de'
 TEST_SUITE = "pytest"
 SETUP_REQS = ['numpy', 'cython']
 INSTALL_REQS = ['numpy', 'cython', 'pyparsing']
-MIN_PYTHON_VERSION = '>=3.5.*'
-CLASSIFIERS = ['Programming Language :: Python :: 3.5',
-               'Programming Language :: Python :: 3.6',
+MIN_PYTHON_VERSION = '>=3.6'
+CLASSIFIERS = ['Programming Language :: Python :: 3.6',
                'Programming Language :: Python :: 3.7',
+               'Programming Language :: Python :: 3.8',
+               'Programming Language :: Python :: 3.9',
                'Development Status :: 4 - Beta',
                'Natural Language :: English',
                'Intended Audience :: Developers',
@@ -87,6 +88,16 @@ EXTENSIONS = [Extension('ConfigSpace.hyperparameters',
 for e in EXTENSIONS:
     e.cython_directives = COMPILER_DIRECTIVES
 
+extras_reqs = {
+    "test": [
+        "pytest>=4.6",
+        "mypy",
+        "pre-commit",
+        "pytest-cov",
+    ],
+    "docs": ["sphinx", "sphinx-gallery", "sphinx_bootstrap_theme", "numpydoc"],
+}
+
 
 setup(
     name=MODULE_NAME,
@@ -104,6 +115,7 @@ setup(
     test_suite=TEST_SUITE,
     setup_requires=SETUP_REQS,
     install_requires=INSTALL_REQS,
+    extras_require=extras_reqs,
     keywords=KEYWORDS,
     packages=find_packages(),
     python_requires=MIN_PYTHON_VERSION,
