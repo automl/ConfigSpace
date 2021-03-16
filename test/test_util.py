@@ -36,7 +36,7 @@ from ConfigSpace import Configuration, ConfigurationSpace, UniformIntegerHyperpa
     EqualsCondition, AndConjunction, OrConjunction
 from ConfigSpace.read_and_write.pcs import read
 from ConfigSpace.util import impute_inactive_values, get_random_neighbor, \
-    get_one_exchange_neighbourhood, deactivate_inactive_hyperparameters
+    get_one_exchange_neighbourhood, deactivate_inactive_hyperparameters, ConfigSpaceGrid
 import ConfigSpace.c_util
 
 
@@ -321,17 +321,44 @@ class UtilTest(unittest.TestCase):
         cs.add_hyperparameters([float1, int1, cat1, ord1, const1])
 
         num_steps_dict = {'float1': 11, 'int1': 6}
-        generated_grid = generate_grid(cs, num_steps_dict)
+        #TODO uncomment below and add asserts for later test cases
+        # generated_grid = generate_grid(cs, num_steps_dict)
+        #
+        # # Check randomly pre-selected values in the generated_grid
+        # self.assertEqual(len(generated_grid), 396) # 2 * 1 * 11 * 6 * 3 total diff. possibilities for the Configuration (i.e., for each tuple of HPs)
+        # self.assertEqual(generated_grid[0].get_dictionary()['cat1'], 'T')
+        # self.assertEqual(generated_grid[198].get_dictionary()['cat1'], 'F') #
+        # self.assertEqual(generated_grid[45].get_dictionary()['const1'], 4) #
+        # self.assertAlmostEqual(generated_grid[55].get_dictionary()['float1'], -0.4, places=2) # The 2 most frequently changing HPs (int1 and ord1) have 3*6 = 18 different values for each value of float1, so the 4th value of float1 of -0.4 is reached after 3*18 = 54 values.
+        # self.assertEqual(generated_grid[12].get_dictionary()['int1'], 63) # 5th diff. value for int1 after 4*3 = 12 values. Reasoning as above.
+        # self.assertEqual(generated_grid[3].get_dictionary()['ord1'], '1') #
+        # self.assertEqual(generated_grid[4].get_dictionary()['ord1'], '2') #
+        # self.assertEqual(generated_grid[5].get_dictionary()['ord1'], '3') #
 
-        # Check randomly pre-selected values in the generated_grid
-        self.assertEqual(len(generated_grid), 396) # 2 * 1 * 11 * 6 * 3 total diff. possibilities for the Configuration (i.e., for each tuple of HPs)
-        self.assertEqual(generated_grid[0].get_dictionary()['cat1'], 'T')
-        self.assertEqual(generated_grid[198].get_dictionary()['cat1'], 'F') #
-        self.assertEqual(generated_grid[45].get_dictionary()['const1'], 4) #
-        self.assertAlmostEqual(generated_grid[55].get_dictionary()['float1'], -0.4, places=2) # The 2 most frequently changing HPs (int1 and ord1) have 3*6 = 18 different values for each value of float1, so the 4th value of float1 of -0.4 is reached after 3*18 = 54 values.
-        self.assertEqual(generated_grid[12].get_dictionary()['int1'], 63) # 5th diff. value for int1 after 4*3 = 12 values. Reasoning as above.
-        self.assertEqual(generated_grid[3].get_dictionary()['ord1'], '1') #
-        self.assertEqual(generated_grid[4].get_dictionary()['ord1'], '2') #
-        self.assertEqual(generated_grid[5].get_dictionary()['ord1'], '3') #
+        #tests for quantization and conditional spaces: 1 basic one for 1 condition; 1 for tree of conditions; 1 for tree of conditions with OrConjunction and AndConjunction;
+        cs2 = CS.ConfigurationSpace(seed=123)
+        float1 = CSH.UniformFloatHyperparameter(name='float1', lower=-1, upper=1, log=False)
+        int1 = CSH.UniformIntegerHyperparameter(name='int1', lower=0, upper=1000, log=False, q=500)
+        cs2.add_hyperparameters([float1, int1])
 
-        #tests for conditional spaces: 1 basic one for 1 condition; 1 for tree of conditions; 1 for tree of conditions with OrConjunction and AndConjunction;
+        int2_cond = CSH.UniformIntegerHyperparameter(name='int2_cond', lower=10, upper=100, log=True)
+        cs2.add_hyperparameters([int2_cond])
+        cond_1 = CS.AndConjunction(CS.LessThanCondition(int2_cond, float1, -0.5),
+                                  CS.GreaterThanCondition(int2_cond, int1, 600))
+        cs2.add_conditions([cond_1])
+        cat1_cond = CSH.CategoricalHyperparameter(name='cat1_cond', choices=['apple', 'orange'])
+        cs2.add_hyperparameters([cat1_cond])
+        cond_2 = CS.AndConjunction(CS.GreaterThanCondition(cat1_cond, int1, 300),
+                                   CS.LessThanCondition(cat1_cond, int1, 700),
+                                   CS.GreaterThanCondition(cat1_cond, float1, -0.5),
+                                  CS.LessThanCondition(cat1_cond, float1, 0.5)
+                                  )
+        cs2.add_conditions([cond_2])
+        float2_cond = CSH.UniformFloatHyperparameter(name='float2_cond', lower=10., upper=100., log=True)
+        cs2.add_hyperparameters([float2_cond])
+        cond_3 = CS.GreaterThanCondition(float2_cond, int2_cond, 50)
+        cs2.add_conditions([cond_3])
+        print(cs2)
+        num_steps_dict1 = {'float1': 4, 'int2_cond': 3, 'float2_cond': 3 }
+        configspace_grid = ConfigSpaceGrid(cs2)
+        generated_grid = configspace_grid.generate_grid(num_steps_dict1)
