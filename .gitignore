@@ -63,3 +63,9 @@ coverage.xml
 *,cover
 .hypothesis/
 prof/
+
+# VSCode
+.vscode
+
+# Running pre-commit seems to generate these
+.mypy_cache

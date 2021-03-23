@@ -437,78 +437,30 @@ def fix_types(configuration: dict,
                 raise TypeError("Unknown hyperparameter type %s" % type(param))
     return configuration
 
-class ConfigSpaceGrid: #TODO cdef?
+cimport cython
+@cython.boundscheck(True)  # Activate bounds checking
+@cython.wraparound(True)  # Activate negative indexing
+def generate_grid(configuration_space: ConfigurationSpace,
+                 num_steps_dict: Union[None,  Dict[str, int]] = None,
+                 ) -> List[Configuration]:
+    """
+    Generates a grid of Configurations for a given ConfigurationSpace. Can be used, for example, for grid search.
 
-    def __init__(self, configuration_space: ConfigurationSpace,):
-        self.configuration_space = configuration_space
+    Parameters
+    ----------
+    configuration_space: :class:`~ConfigSpace.configuration_space.ConfigurationSpace`
+        The Configuration space over which to create a grid of HyperParameter Configuration values. It knows the types for all parameter values.
 
-    def generate_grid(self,
-                     num_steps_dict: Union[None,  Dict[str, int]] = None,
-                     ) -> List[Configuration]:
-        """
-        Generates a grid of Configurations for a given ConfigurationSpace. Can be used, for example, for grid search.
+    num_steps_dict: dict
+        A dict containing the number of points to divide the grid side formed by Hyperparameters which are either of type UniformFloatHyperparameter or type UniformIntegerHyperparameter. The keys in the dict should be the names of the corresponding Hyperparameters and the values should be the number of points to divide the grid side formed by the corresponding Hyperparameter in to.
 
-        Parameters
-        ----------
-        configuration_space: :class:`~ConfigSpace.configuration_space.ConfigurationSpace`
-            The Configuration space over which to create a grid of HyperParameter Configuration values. It knows the types for all parameter values.
+    Returns
+    -------
+    list
+        List containing Configurations. It is a cartesian product of tuples of HyperParameter values. Each tuple lists the possible values taken by the corresponding HyperParameter. Within the cartesian product, in each element, the ordering of HyperParameters is the same for the OrderedDict within the ConfigurationSpace.
+    """
 
-        num_steps_dict: dict
-            A dict containing the number of points to divide the grid side formed by Hyperparameters which are either of type UniformFloatHyperparameter or type UniformIntegerHyperparameter. The keys in the dict should be the names of the corresponding Hyperparameters and the values should be the number of points to divide the grid side formed by the corresponding Hyperparameter in to.
-
-        Returns
-        -------
-        list
-            List containing Configurations. It is a cartesian product of tuples of HyperParameter values. Each tuple lists the possible values taken by the corresponding HyperParameter. Within the cartesian product, in each element, the ordering of HyperParameters is the same for the OrderedDict within the ConfigurationSpace.
-        """
-
-        value_sets = [] # list of tuples: each tuple within is the grid values to be taken on by a Hyperparameter
-        hp_names = []
-
-        # Get HP names and allowed grid values they can take for the HPs at the top level of ConfigSpace tree
-        for hp_name in self.configuration_space._children['__HPOlib_configuration_space_root__']:
-            value_sets.append(self.get_value_set(num_steps_dict, hp_name))
-            hp_names.append(hp_name)
-
-        # Create a Cartesian product of above allowed values for the HPs. Hold them in an "unchecked" list because some of the conditionally dependent HPs may become active for some of the elements of the Cartesian product and in these cases creating a Configuration would throw an Error (see below).
-        unchecked_grid_pts = self.get_cartesian_product(value_sets, hp_names) # Creates a list of Configuration dicts
-        checked_grid_pts = []
-        conditional_grid_lens = []
-
-        while len(unchecked_grid_pts) > 0:
-            try:
-                grid_point = Configuration(self.configuration_space, unchecked_grid_pts[0])
-                checked_grid_pts.append(grid_point)
-            except ValueError as e:
-                value_sets = []
-                hp_names = []
-                new_active_hp_names = []
-
-                for hp_name in unchecked_grid_pts[0]: # "for" loop over currently active HP names
-                    value_sets.append(tuple([unchecked_grid_pts[0][hp_name], ]))
-                    hp_names.append(hp_name)
-                    for new_hp_name in self.configuration_space._children[hp_name]: # Checks if the conditionally dependent children of already active HPs are now active
-                        if new_hp_name not in new_active_hp_names and new_hp_name not in unchecked_grid_pts[0]:
-                            all_cond_ = True
-                            for cond in self.configuration_space._parent_conditions_of[new_hp_name]:
-                                if not cond.evaluate(unchecked_grid_pts[0]):
-                                    all_cond_ = False
-                            if all_cond_:
-                                new_active_hp_names.append(new_hp_name)
-
-
-                for hp_name in new_active_hp_names:
-                    value_sets.append(self.get_value_set(num_steps_dict, hp_name))
-                    hp_names.append(hp_name)
-                if len(new_active_hp_names) > 0: # this check might not be needed, as there is always going to be a new active HP when in this except block? #TODO
-                    new_conditonal_grid = self.get_cartesian_product(value_sets, hp_names)
-                    conditional_grid_lens.append(len(new_conditonal_grid))
-                    unchecked_grid_pts += new_conditonal_grid
-            del unchecked_grid_pts[0]
-
-        return checked_grid_pts
-
-    def get_value_set(self, num_steps_dict, hp_name):
+    def get_value_set(num_steps_dict, hp_name):
         '''
         Gets values along the grid for a particular hyperparameter.
 
@@ -528,7 +480,7 @@ class ConfigSpaceGrid: #TODO cdef?
             Holds grid values for the given hyperparameter
 
         '''
-        param = self.configuration_space.get_hyperparameter(hp_name)
+        param = configuration_space.get_hyperparameter(hp_name)
         if isinstance(param, (CategoricalHyperparameter)):
             return param.choices
 
@@ -554,6 +506,7 @@ class ConfigSpaceGrid: #TODO cdef?
                 grid_points = np.exp(grid_points)
 
             # Avoiding rounding off issues
+            print(grid_points)
             if grid_points[0] < param.lower:
                 grid_points[0] = param.lower
             if grid_points[-1] > param.upper:
@@ -588,9 +541,7 @@ class ConfigSpaceGrid: #TODO cdef?
         else:
             raise TypeError("Unknown hyperparameter type %s" % type(param))
 
-
-
-    def get_cartesian_product(self, value_sets, hp_names):
+    def get_cartesian_product(value_sets, hp_names):
         '''
         Returns a grid for a subspace of the configuration with given hyperparameters and their grid values.
 
@@ -619,3 +570,51 @@ class ConfigSpaceGrid: #TODO cdef?
             grid.append(config_dict)
 
         return grid
+
+
+    value_sets = [] # list of tuples: each tuple within is the grid values to be taken on by a Hyperparameter
+    hp_names = []
+
+    # Get HP names and allowed grid values they can take for the HPs at the top level of ConfigSpace tree
+    for hp_name in configuration_space._children['__HPOlib_configuration_space_root__']:
+        value_sets.append(get_value_set(num_steps_dict, hp_name))
+        hp_names.append(hp_name)
+
+    # Create a Cartesian product of above allowed values for the HPs. Hold them in an "unchecked" list because some of the conditionally dependent HPs may become active for some of the elements of the Cartesian product and in these cases creating a Configuration would throw an Error (see below).
+    unchecked_grid_pts = get_cartesian_product(value_sets, hp_names) # Creates a list of Configuration dicts
+    checked_grid_pts = []
+    conditional_grid_lens = []
+
+    while len(unchecked_grid_pts) > 0:
+        try:
+            grid_point = Configuration(configuration_space, unchecked_grid_pts[0])
+            checked_grid_pts.append(grid_point)
+        except ValueError as e:
+            value_sets = []
+            hp_names = []
+            new_active_hp_names = []
+
+            for hp_name in unchecked_grid_pts[0]: # "for" loop over currently active HP names
+                value_sets.append(tuple([unchecked_grid_pts[0][hp_name], ]))
+                hp_names.append(hp_name)
+                for new_hp_name in configuration_space._children[hp_name]: # Checks if the conditionally dependent children of already active HPs are now active
+                    if new_hp_name not in new_active_hp_names and new_hp_name not in unchecked_grid_pts[0]:
+                        all_cond_ = True
+                        for cond in configuration_space._parent_conditions_of[new_hp_name]:
+                            if not cond.evaluate(unchecked_grid_pts[0]):
+                                all_cond_ = False
+                        if all_cond_:
+                            new_active_hp_names.append(new_hp_name)
+
+
+            for hp_name in new_active_hp_names:
+                value_sets.append(get_value_set(num_steps_dict, hp_name))
+                hp_names.append(hp_name)
+            if len(new_active_hp_names) > 0: # this check might not be needed, as there is always going to be a new active HP when in this except block? #TODO
+                new_conditonal_grid = get_cartesian_product(value_sets, hp_names)
+                conditional_grid_lens.append(len(new_conditonal_grid))
+                unchecked_grid_pts += new_conditonal_grid
+        del unchecked_grid_pts[0]
+
+    return checked_grid_pts
+
