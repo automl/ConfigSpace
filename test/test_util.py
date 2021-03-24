@@ -380,13 +380,12 @@ class UtilTest(unittest.TestCase):
         # each value of float1, so the 4th value of float1 of -0.4 is reached after
         # 3 * 18 = 54 values in the generated_grid (and remains the same for the next 18 values):
         for i in range(18):
-            self.assertAlmostEqual(generated_grid[54 + i].get_dictionary()['float1'], -0.4, places=2)
+            self.assertAlmostEqual(generated_grid[54+i].get_dictionary()['float1'], -0.4, places=2)
         # 5th diff. value for int1 after 4 * 3 = 12 values. Reasoning as above.
         self.assertEqual(generated_grid[12].get_dictionary()['int1'], 63)
         self.assertEqual(generated_grid[3].get_dictionary()['ord1'], '1')
         self.assertEqual(generated_grid[4].get_dictionary()['ord1'], '2')
         self.assertEqual(generated_grid[5].get_dictionary()['ord1'], '3')
-
 
         # Sub-test 2
         # Test for extreme cases: only numerical
@@ -403,7 +402,6 @@ class UtilTest(unittest.TestCase):
         self.assertEqual(generated_grid[-1].get_dictionary()['float1'], 1.0)
         self.assertEqual(generated_grid[-1].get_dictionary()['int1'], 100)
 
-
         # Test: only categorical
         cs = ConfigurationSpace(seed=1234)
         cs.add_hyperparameters([cat1])
@@ -415,7 +413,6 @@ class UtilTest(unittest.TestCase):
         self.assertEqual(generated_grid[0].get_dictionary()['cat1'], 'T')
         self.assertEqual(generated_grid[-1].get_dictionary()['cat1'], 'F')
 
-
         # Test: only constant
         cs = ConfigurationSpace(seed=1234)
         cs.add_hyperparameters([const1])
@@ -426,16 +423,15 @@ class UtilTest(unittest.TestCase):
         # Check 1st and only generated configuration completely:
         self.assertEqual(generated_grid[0].get_dictionary()['const1'], 4)
 
-
         # Test: no hyperparameters yet
         cs = ConfigurationSpace(seed=1234)
 
         generated_grid = generate_grid(cs, num_steps_dict)
 
-        # For the case of no hyperparameters, in get_cartesian_product, itertools.product() returns a single empty tuple element which leads to a single empty Configuration.
+        # For the case of no hyperparameters, in get_cartesian_product, itertools.product() returns
+        # a single empty tuple element which leads to a single empty Configuration.
         self.assertEqual(len(generated_grid), 1)
         self.assertEqual(generated_grid[0].get_dictionary(), {})
-
 
         # Sub-test 3
         # Tests for quantization and conditional spaces. num_steps_dict supports specifying steps
@@ -484,7 +480,6 @@ class UtilTest(unittest.TestCase):
         self.assertAlmostEqual(generated_grid[-2].get_dictionary()['float2_cond'],
                                31.622776601683803, places=3)
 
-
         # Sub-test 4
         # Test: only a single hyperparameter and num_steps_dict is None
         cs = ConfigurationSpace(seed=1234)
@@ -494,7 +489,9 @@ class UtilTest(unittest.TestCase):
         try:
             generated_grid = generate_grid(cs)
         except ValueError as e:
-            assert str(e) == "num_steps_dict is None or doesn't contain the number of points to divide float1 into. And its quantization factor is None. Please provide/set one of these values."
+            assert str(e) == "num_steps_dict is None or doesn't contain " \
+                            "the number of points to divide float1 into. And its quantization " \
+                            "factor is None. Please provide/set one of these values."
 
         generated_grid = generate_grid(cs, num_steps_dict)
 
