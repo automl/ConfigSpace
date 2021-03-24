@@ -30,7 +30,7 @@
 
 from collections import deque
 import copy
-from typing import Union, Dict, Generator, List
+from typing import Union, Dict, Generator, List, Tuple, Optional
 
 import numpy as np  # type: ignore
 from ConfigSpace import Configuration, ConfigurationSpace
@@ -39,6 +39,7 @@ from ConfigSpace.hyperparameters import CategoricalHyperparameter, \
     UniformFloatHyperparameter, UniformIntegerHyperparameter, Constant, \
     OrdinalHyperparameter, NumericalHyperparameter
 import ConfigSpace.c_util
+cimport cython
 
 
 def impute_inactive_values(configuration: Configuration, strategy: Union[str, float] = 'default') -> Configuration:
@@ -437,11 +438,10 @@ def fix_types(configuration: dict,
                 raise TypeError("Unknown hyperparameter type %s" % type(param))
     return configuration
 
-cimport cython
 @cython.boundscheck(True)  # Activate bounds checking
 @cython.wraparound(True)  # Activate negative indexing
 def generate_grid(configuration_space: ConfigurationSpace,
-                 num_steps_dict: Union[None,  Dict[str, int]] = None,
+                 num_steps_dict: Optional[Dict[str, int]] = None,
                  ) -> List[Configuration]:
     """
     Generates a grid of Configurations for a given ConfigurationSpace. Can be used, for example, for grid search.
@@ -460,11 +460,11 @@ def generate_grid(configuration_space: ConfigurationSpace,
         List containing Configurations. It is a cartesian product of tuples of HyperParameter values. Each tuple lists the possible values taken by the corresponding HyperParameter. Within the cartesian product, in each element, the ordering of HyperParameters is the same for the OrderedDict within the ConfigurationSpace.
     """
 
-    def get_value_set(num_steps_dict, hp_name):
+    def get_value_set(num_steps_dict: Optional[Dict[str, int]], hp_name: str):
         '''
         Gets values along the grid for a particular hyperparameter.
 
-        Uses the num_steps_dict to determine number of grid values for UniformFloatHyperparameter and UniformIntegerHyperparameter. If these values are not present in num_steps_dict, the quantization, q, objects of these classes will be used to divide the grid. NOTE: If q is None, this results in np.arange using None for its step size parameter which results in a quantization of 1.
+        Uses the num_steps_dict to determine number of grid values for UniformFloatHyperparameter and UniformIntegerHyperparameter. If these values are not present in num_steps_dict, the quantization factor, q, of these classes will be used to divide the grid. NOTE: When q is used if it is None, a ValueError is raised.
 
         Parameters
         ----------
@@ -496,17 +496,19 @@ def generate_grid(configuration_space: ConfigurationSpace,
             else:
                 lower, upper = param.lower, param.upper
 
-            if param.name in num_steps_dict:
+            if num_steps_dict is not None and param.name in num_steps_dict:
                 num_steps = num_steps_dict[param.name]
                 grid_points = np.linspace(lower, upper, num_steps)
             else:
-                grid_points = np.arange(lower, upper + param.q, param.q) # check for log and for rounding issues
+                if param.q is not None:
+                    grid_points = np.arange(lower, upper + param.q, param.q) # check for log and for rounding issues
+                else:
+                    raise ValueError("num_steps_dict is None or doesn't contain the number of points to divide " + param.name + " into. And its quantization factor is None. Please provide/set one of these values.")
 
             if param.log:
                 grid_points = np.exp(grid_points)
 
             # Avoiding rounding off issues
-            print(grid_points)
             if grid_points[0] < param.lower:
                 grid_points[0] = param.lower
             if grid_points[-1] > param.upper:
@@ -520,11 +522,14 @@ def generate_grid(configuration_space: ConfigurationSpace,
             else:
                 lower, upper = param.lower, param.upper
 
-            if param.name in num_steps_dict:
+            if num_steps_dict is not None and param.name in num_steps_dict:
                 num_steps = num_steps_dict[param.name]
                 grid_points = np.linspace(lower, upper, num_steps)
             else:
-                grid_points = np.arange(lower, upper + param.q, param.q) # check for log and for rounding issues
+                if param.q is not None:
+                    grid_points = np.arange(lower, upper + param.q, param.q) # check for log and for rounding issues
+                else:
+                    raise ValueError("num_steps_dict is None or doesn't contain the number of points to divide " + param.name + " into. And its quantization factor is None. Please provide/set one of these values.")
 
             if param.log:
                 grid_points = np.exp(grid_points)
@@ -541,7 +546,7 @@ def generate_grid(configuration_space: ConfigurationSpace,
         else:
             raise TypeError("Unknown hyperparameter type %s" % type(param))
 
-    def get_cartesian_product(value_sets, hp_names):
+    def get_cartesian_product(value_sets: List[Tuple], hp_names: List[str]):
         '''
         Returns a grid for a subspace of the configuration with given hyperparameters and their grid values.
 
@@ -563,7 +568,7 @@ def generate_grid(configuration_space: ConfigurationSpace,
         '''
         grid = []
         import itertools
-        for i, element in enumerate(itertools.product(*value_sets)):
+        for element in itertools.product(*value_sets):
             config_dict = {}
             for j, hp_name in enumerate(hp_names):
                 config_dict[hp_name] = element[j]
@@ -580,10 +585,9 @@ def generate_grid(configuration_space: ConfigurationSpace,
         value_sets.append(get_value_set(num_steps_dict, hp_name))
         hp_names.append(hp_name)
 
-    # Create a Cartesian product of above allowed values for the HPs. Hold them in an "unchecked" list because some of the conditionally dependent HPs may become active for some of the elements of the Cartesian product and in these cases creating a Configuration would throw an Error (see below).
-    unchecked_grid_pts = get_cartesian_product(value_sets, hp_names) # Creates a list of Configuration dicts
+    # Create a Cartesian product of above allowed values for the HPs. Hold them in an "unchecked" deque because some of the conditionally dependent HPs may become active for some of the elements of the Cartesian product and in these cases creating a Configuration would throw an Error (see below).
+    unchecked_grid_pts = deque(get_cartesian_product(value_sets, hp_names)) # Creates a deque of Configuration dicts
     checked_grid_pts = []
-    conditional_grid_lens = []
 
     while len(unchecked_grid_pts) > 0:
         try:
@@ -612,9 +616,7 @@ def generate_grid(configuration_space: ConfigurationSpace,
                 hp_names.append(hp_name)
             if len(new_active_hp_names) > 0: # this check might not be needed, as there is always going to be a new active HP when in this except block? #TODO
                 new_conditonal_grid = get_cartesian_product(value_sets, hp_names)
-                conditional_grid_lens.append(len(new_conditonal_grid))
                 unchecked_grid_pts += new_conditonal_grid
-        del unchecked_grid_pts[0]
+        unchecked_grid_pts.popleft()
 
     return checked_grid_pts
-
