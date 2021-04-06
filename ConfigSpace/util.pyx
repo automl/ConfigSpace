@@ -568,11 +568,14 @@ def generate_grid(configuration_space: ConfigurationSpace,
         '''
         grid = []
         import itertools
-        for element in itertools.product(*value_sets):
-            config_dict = {}
-            for j, hp_name in enumerate(hp_names):
-                config_dict[hp_name] = element[j]
-            grid.append(config_dict)
+        if len(value_sets) == 0:
+            pass # Edge case
+        else:
+            for element in itertools.product(*value_sets):
+                config_dict = {}
+                for j, hp_name in enumerate(hp_names):
+                    config_dict[hp_name] = element[j]
+                grid.append(config_dict)
 
         return grid
 
@@ -594,6 +597,7 @@ def generate_grid(configuration_space: ConfigurationSpace,
             grid_point = Configuration(configuration_space, unchecked_grid_pts[0])
             checked_grid_pts.append(grid_point)
         except ValueError as e:
+            assert str(e)[:23] == "Active hyperparameter '" and str(e)[-16:] == "' not specified!", "Caught exception contains unexpected message."
             value_sets = []
             hp_names = []
             new_active_hp_names = []
@@ -614,9 +618,11 @@ def generate_grid(configuration_space: ConfigurationSpace,
             for hp_name in new_active_hp_names:
                 value_sets.append(get_value_set(num_steps_dict, hp_name))
                 hp_names.append(hp_name)
-            if len(new_active_hp_names) > 0: # this check might not be needed, as there is always going to be a new active HP when in this except block? #TODO
+            if len(new_active_hp_names) > 0: # this check might not be needed, as there is always going to be a new active HP when in this except block?
                 new_conditonal_grid = get_cartesian_product(value_sets, hp_names)
                 unchecked_grid_pts += new_conditonal_grid
+            else:
+                raise RuntimeError("Unexpected error: There should have been a newly activated hyperparameter for the current configuration values: " + str(unchecked_grid_pts[0]) + ". Please contact the developers with the code you ran and the stack trace.")
         unchecked_grid_pts.popleft()
 
     return checked_grid_pts

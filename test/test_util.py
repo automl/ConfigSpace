@@ -364,16 +364,10 @@ class UtilTest(unittest.TestCase):
         # 2 * 1 * 11 * 6 * 3 total diff. possible configurations
         self.assertEqual(len(generated_grid), 396)
         # Check 1st and last generated configurations completely:
-        self.assertEqual(generated_grid[0].get_dictionary()['cat1'], 'T')
-        self.assertEqual(generated_grid[0].get_dictionary()['const1'], 4)
-        self.assertEqual(generated_grid[0].get_dictionary()['float1'], -1.0)
-        self.assertEqual(generated_grid[0].get_dictionary()['int1'], 10)
-        self.assertEqual(generated_grid[0].get_dictionary()['ord1'], '1')
-        self.assertEqual(generated_grid[-1].get_dictionary()['cat1'], 'F')
-        self.assertEqual(generated_grid[-1].get_dictionary()['const1'], 4)
-        self.assertEqual(generated_grid[-1].get_dictionary()['float1'], 1.0)
-        self.assertEqual(generated_grid[-1].get_dictionary()['int1'], 100)
-        self.assertEqual(generated_grid[-1].get_dictionary()['ord1'], '3')
+        first_expected_dict = {'cat1': 'T', 'const1': 4, 'float1': -1.0, 'int1': 10, 'ord1': '1'}
+        last_expected_dict = {'cat1': 'F', 'const1': 4, 'float1': 1.0, 'int1': 100, 'ord1': '3'}
+        self.assertEqual(generated_grid[0].get_dictionary(), first_expected_dict)
+        self.assertEqual(generated_grid[-1].get_dictionary(), last_expected_dict)
         self.assertEqual(generated_grid[198].get_dictionary()['cat1'], 'F')
         self.assertEqual(generated_grid[45].get_dictionary()['const1'], 4)
         # The 2 most frequently changing HPs (int1 and ord1) have 3 * 6 = 18 different values for
@@ -397,10 +391,10 @@ class UtilTest(unittest.TestCase):
 
         self.assertEqual(len(generated_grid), 66)
         # Check 1st and last generated configurations completely:
-        self.assertEqual(generated_grid[0].get_dictionary()['float1'], -1.0)
-        self.assertEqual(generated_grid[0].get_dictionary()['int1'], 10)
-        self.assertEqual(generated_grid[-1].get_dictionary()['float1'], 1.0)
-        self.assertEqual(generated_grid[-1].get_dictionary()['int1'], 100)
+        first_expected_dict = {'float1': -1.0, 'int1': 10}
+        last_expected_dict = {'float1': 1.0, 'int1': 100}
+        self.assertEqual(generated_grid[0].get_dictionary(), first_expected_dict)
+        self.assertEqual(generated_grid[-1].get_dictionary(), last_expected_dict)
 
         # Test: only categorical
         cs = ConfigurationSpace(seed=1234)
@@ -430,8 +424,7 @@ class UtilTest(unittest.TestCase):
 
         # For the case of no hyperparameters, in get_cartesian_product, itertools.product() returns
         # a single empty tuple element which leads to a single empty Configuration.
-        self.assertEqual(len(generated_grid), 1)
-        self.assertEqual(generated_grid[0].get_dictionary(), {})
+        self.assertEqual(len(generated_grid), 0)
 
         # Sub-test 3
         # Tests for quantization and conditional spaces. num_steps_dict supports specifying steps
@@ -466,13 +459,11 @@ class UtilTest(unittest.TestCase):
         self.assertEqual(len(generated_grid), 18)
 
         # RR: I manually generated the grid and verified the values were correct.
-        # Check 1st and only generated configuration completely:
-        self.assertEqual(generated_grid[0].get_dictionary()['float1'], -1.0)
-        self.assertEqual(generated_grid[0].get_dictionary()['int1'], 0)
-        self.assertEqual(generated_grid[-1].get_dictionary()['float1'], -1.0)
-        self.assertEqual(generated_grid[-1].get_dictionary()['int1'], 1000)
-        self.assertEqual(generated_grid[-1].get_dictionary()['float2_cond'], 100.0)
-        self.assertEqual(generated_grid[-1].get_dictionary()['int2_cond'], 100)
+        # Check 1st and last generated configurations completely:
+        first_expected_dict = {'float1': -1.0, 'int1': 0}
+        last_expected_dict = {'float1': -1.0, 'int1': 1000, 'int2_cond': 100, 'float2_cond': 100.0}
+        self.assertEqual(generated_grid[0].get_dictionary(), first_expected_dict)
+        self.assertEqual(generated_grid[-1].get_dictionary(), last_expected_dict)
         # Here, we test that a few randomly chosen values in the generated grid
         # correspond to the ones I checked.
         self.assertEqual(generated_grid[3].get_dictionary()['int1'], 1000)
