@@ -33,10 +33,10 @@ import numpy as np
 
 from ConfigSpace import Configuration, ConfigurationSpace, UniformIntegerHyperparameter, \
     UniformFloatHyperparameter, CategoricalHyperparameter, Constant, OrdinalHyperparameter, \
-    EqualsCondition, AndConjunction, OrConjunction
+    EqualsCondition, AndConjunction, OrConjunction, LessThanCondition, GreaterThanCondition
 from ConfigSpace.read_and_write.pcs import read
 from ConfigSpace.util import impute_inactive_values, get_random_neighbor, \
-    get_one_exchange_neighbourhood, deactivate_inactive_hyperparameters, fix_types
+    get_one_exchange_neighbourhood, deactivate_inactive_hyperparameters, fix_types, generate_grid
 import ConfigSpace.c_util
 
 
@@ -342,3 +342,151 @@ class UtilTest(unittest.TestCase):
             c = cs.get_default_configuration().get_dictionary()
             c_str = {k: str(v) for k, v in c.items()}
             self.assertEqual(fix_types(c_str, cs), c)
+
+    def test_generate_grid(self):
+        '''Test grid generation'''
+
+        # Sub-test 1
+        cs = ConfigurationSpace(seed=1234)
+
+        cat1 = CategoricalHyperparameter(name='cat1', choices=['T', 'F'])
+        const1 = Constant(name='const1', value=4)
+        float1 = UniformFloatHyperparameter(name='float1', lower=-1, upper=1, log=False)
+        int1 = UniformIntegerHyperparameter(name='int1', lower=10, upper=100, log=True)
+        ord1 = OrdinalHyperparameter(name='ord1', sequence=['1', '2', '3'])
+
+        cs.add_hyperparameters([float1, int1, cat1, ord1, const1])
+
+        num_steps_dict = {'float1': 11, 'int1': 6}
+        generated_grid = generate_grid(cs, num_steps_dict)
+
+        # Check randomly pre-selected values in the generated_grid
+        # 2 * 1 * 11 * 6 * 3 total diff. possible configurations
+        self.assertEqual(len(generated_grid), 396)
+        # Check 1st and last generated configurations completely:
+        first_expected_dict = {'cat1': 'T', 'const1': 4, 'float1': -1.0, 'int1': 10, 'ord1': '1'}
+        last_expected_dict = {'cat1': 'F', 'const1': 4, 'float1': 1.0, 'int1': 100, 'ord1': '3'}
+        self.assertEqual(generated_grid[0].get_dictionary(), first_expected_dict)
+        self.assertEqual(generated_grid[-1].get_dictionary(), last_expected_dict)
+        self.assertEqual(generated_grid[198].get_dictionary()['cat1'], 'F')
+        self.assertEqual(generated_grid[45].get_dictionary()['const1'], 4)
+        # The 2 most frequently changing HPs (int1 and ord1) have 3 * 6 = 18 different values for
+        # each value of float1, so the 4th value of float1 of -0.4 is reached after
+        # 3 * 18 = 54 values in the generated_grid (and remains the same for the next 18 values):
+        for i in range(18):
+            self.assertAlmostEqual(generated_grid[54+i].get_dictionary()['float1'], -0.4, places=2)
+        # 5th diff. value for int1 after 4 * 3 = 12 values. Reasoning as above.
+        self.assertEqual(generated_grid[12].get_dictionary()['int1'], 63)
+        self.assertEqual(generated_grid[3].get_dictionary()['ord1'], '1')
+        self.assertEqual(generated_grid[4].get_dictionary()['ord1'], '2')
+        self.assertEqual(generated_grid[5].get_dictionary()['ord1'], '3')
+
+        # Sub-test 2
+        # Test for extreme cases: only numerical
+        cs = ConfigurationSpace(seed=1234)
+        cs.add_hyperparameters([float1, int1])
+
+        num_steps_dict = {'float1': 11, 'int1': 6}
+        generated_grid = generate_grid(cs, num_steps_dict)
+
+        self.assertEqual(len(generated_grid), 66)
+        # Check 1st and last generated configurations completely:
+        first_expected_dict = {'float1': -1.0, 'int1': 10}
+        last_expected_dict = {'float1': 1.0, 'int1': 100}
+        self.assertEqual(generated_grid[0].get_dictionary(), first_expected_dict)
+        self.assertEqual(generated_grid[-1].get_dictionary(), last_expected_dict)
+
+        # Test: only categorical
+        cs = ConfigurationSpace(seed=1234)
+        cs.add_hyperparameters([cat1])
+
+        generated_grid = generate_grid(cs)
+
+        self.assertEqual(len(generated_grid), 2)
+        # Check 1st and last generated configurations completely:
+        self.assertEqual(generated_grid[0].get_dictionary()['cat1'], 'T')
+        self.assertEqual(generated_grid[-1].get_dictionary()['cat1'], 'F')
+
+        # Test: only constant
+        cs = ConfigurationSpace(seed=1234)
+        cs.add_hyperparameters([const1])
+
+        generated_grid = generate_grid(cs)
+
+        self.assertEqual(len(generated_grid), 1)
+        # Check 1st and only generated configuration completely:
+        self.assertEqual(generated_grid[0].get_dictionary()['const1'], 4)
+
+        # Test: no hyperparameters yet
+        cs = ConfigurationSpace(seed=1234)
+
+        generated_grid = generate_grid(cs, num_steps_dict)
+
+        # For the case of no hyperparameters, in get_cartesian_product, itertools.product() returns
+        # a single empty tuple element which leads to a single empty Configuration.
+        self.assertEqual(len(generated_grid), 0)
+
+        # Sub-test 3
+        # Tests for quantization and conditional spaces. num_steps_dict supports specifying steps
+        # for only some of the int and float HPs. The rest are taken from the 'q' member variables
+        # of these HPs. The conditional space tested has 2 levels of conditions.
+        cs2 = ConfigurationSpace(seed=123)
+        float1 = UniformFloatHyperparameter(name='float1', lower=-1, upper=1, log=False)
+        int1 = UniformIntegerHyperparameter(name='int1', lower=0, upper=1000, log=False, q=500)
+        cs2.add_hyperparameters([float1, int1])
+
+        int2_cond = UniformIntegerHyperparameter(name='int2_cond', lower=10, upper=100, log=True)
+        cs2.add_hyperparameters([int2_cond])
+        cond_1 = AndConjunction(LessThanCondition(int2_cond, float1, -0.5),
+                                GreaterThanCondition(int2_cond, int1, 600))
+        cs2.add_conditions([cond_1])
+        cat1_cond = CategoricalHyperparameter(name='cat1_cond', choices=['apple', 'orange'])
+        cs2.add_hyperparameters([cat1_cond])
+        cond_2 = AndConjunction(GreaterThanCondition(cat1_cond, int1, 300),
+                                LessThanCondition(cat1_cond, int1, 700),
+                                GreaterThanCondition(cat1_cond, float1, -0.5),
+                                LessThanCondition(cat1_cond, float1, 0.5)
+                                )
+        cs2.add_conditions([cond_2])
+        float2_cond = UniformFloatHyperparameter(name='float2_cond',
+                                                 lower=10., upper=100., log=True)
+        # 2nd level dependency in ConfigurationSpace tree being tested
+        cs2.add_hyperparameters([float2_cond])
+        cond_3 = GreaterThanCondition(float2_cond, int2_cond, 50)
+        cs2.add_conditions([cond_3])
+        num_steps_dict1 = {'float1': 4, 'int2_cond': 3, 'float2_cond': 3}
+        generated_grid = generate_grid(cs2, num_steps_dict1)
+        self.assertEqual(len(generated_grid), 18)
+
+        # RR: I manually generated the grid and verified the values were correct.
+        # Check 1st and last generated configurations completely:
+        first_expected_dict = {'float1': -1.0, 'int1': 0}
+        last_expected_dict = {'float1': -1.0, 'int1': 1000, 'int2_cond': 100, 'float2_cond': 100.0}
+        self.assertEqual(generated_grid[0].get_dictionary(), first_expected_dict)
+        self.assertEqual(generated_grid[-1].get_dictionary(), last_expected_dict)
+        # Here, we test that a few randomly chosen values in the generated grid
+        # correspond to the ones I checked.
+        self.assertEqual(generated_grid[3].get_dictionary()['int1'], 1000)
+        self.assertEqual(generated_grid[12].get_dictionary()['cat1_cond'], 'orange')
+        self.assertAlmostEqual(generated_grid[-2].get_dictionary()['float2_cond'],
+                               31.622776601683803, places=3)
+
+        # Sub-test 4
+        # Test: only a single hyperparameter and num_steps_dict is None
+        cs = ConfigurationSpace(seed=1234)
+        cs.add_hyperparameters([float1])
+
+        num_steps_dict = {'float1': 11}
+        try:
+            generated_grid = generate_grid(cs)
+        except ValueError as e:
+            assert str(e) == "num_steps_dict is None or doesn't contain " \
+                            "the number of points to divide float1 into. And its quantization " \
+                            "factor is None. Please provide/set one of these values."
+
+        generated_grid = generate_grid(cs, num_steps_dict)
+
+        self.assertEqual(len(generated_grid), 11)
+        # Check 1st and last generated configurations completely:
+        self.assertEqual(generated_grid[0].get_dictionary()['float1'], -1.0)
+        self.assertEqual(generated_grid[-1].get_dictionary()['float1'], 1.0)
