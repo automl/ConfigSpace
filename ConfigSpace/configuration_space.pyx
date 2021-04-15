@@ -99,8 +99,10 @@ class ConfigurationSpace(object):
         # spaces when _children of one instance contained  all possible
         # hyperparameters as keys and empty dictionaries as values while the
         # other instance not containing these.
-        self._children = OrderedDict()   # type: OrderedDict[str, OrderedDict[str, Union[None, AbstractCondition]]]
-        self._parents = OrderedDict()   # type: OrderedDict[str, OrderedDict[str, Union[None, AbstractCondition]]]
+        self._children: OrderedDict[
+            str, OrderedDict[str, Union[None, AbstractCondition]]] = OrderedDict()
+        self._parents: OrderedDict[
+            str, OrderedDict[str, Union[None, AbstractCondition]]] = OrderedDict()
 
         # changing this to a normal dict will break sampling because there is
         #  no guarantee that the parent of a condition was evaluated before
@@ -462,7 +464,9 @@ class ConfigurationSpace(object):
 
         # Update order of _children
         new_order = OrderedDict()
-        new_order['__HPOlib_configuration_space_root__'] = self._children['__HPOlib_configuration_space_root__']
+        new_order['__HPOlib_configuration_space_root__'] = self._children[
+            '__HPOlib_configuration_space_root__'
+        ]
         for hp in chain(['__HPOlib_configuration_space_root__'], self._hyperparameters):
             # Also resort the children dict
             children_sorting = [(self._hyperparameter_idx[child_name], child_name)
@@ -530,7 +534,8 @@ class ConfigurationSpace(object):
 
         return tmp_dag
 
-    def add_forbidden_clause(self, clause: AbstractForbiddenComponent) -> AbstractForbiddenComponent:
+    def add_forbidden_clause(self,
+                             clause: AbstractForbiddenComponent) -> AbstractForbiddenComponent:
         """
         Add a forbidden clause to the configuration space.
 
@@ -550,7 +555,10 @@ class ConfigurationSpace(object):
         self._check_default_configuration()
         return clause
 
-    def add_forbidden_clauses(self, clauses: List[AbstractForbiddenComponent]) -> List[AbstractForbiddenComponent]:
+    def add_forbidden_clauses(
+        self,
+        clauses: List[AbstractForbiddenComponent]
+    ) -> List[AbstractForbiddenComponent]:
         """
         Add a list of forbidden clauses to the configuration space.
 
@@ -712,7 +720,7 @@ class ConfigurationSpace(object):
 
     def get_hyperparameters_dict(self) -> Dict[str, Hyperparameter]:
         """
-        Return an OrderedDict with all the ``(name, Hyperparameter)`` contained in 
+        Return an OrderedDict with all the ``(name, Hyperparameter)`` contained in
         the configuration space object.
 
         Returns
@@ -1232,7 +1240,8 @@ class ConfigurationSpace(object):
 
         Returns
         -------
-        :class:`~ConfigSpace.configuration_space.Configuration`, List[:class:`~ConfigSpace.configuration_space.Configuration`]:
+        :class:`~ConfigSpace.configuration_space.Configuration`,
+            List[:class:`~ConfigSpace.configuration_space.Configuration`]:
             A single configuration if ``size`` 1 else a list of Configurations
         """
         if not isinstance(size, int):
@@ -1390,7 +1399,9 @@ class Configuration(object):
                 if not hyperparameter.is_legal(value):
                     raise ValueError("Trying to set illegal value '%s' (type '%s') for "
                                      "hyperparameter '%s' (default-value has type '%s')." % (
-                                       str(value), type(value), hyperparameter, type(hyperparameter.default_value)))
+                                         str(value),
+                                         type(value), hyperparameter,
+                                         type(hyperparameter.default_value)))
                 # Truncate the representation of the float to be of constant
                 # length for a python version
                 if isinstance(hyperparameter, FloatHyperparameter):
