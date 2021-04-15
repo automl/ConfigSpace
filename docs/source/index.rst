@@ -63,11 +63,11 @@ Installation
 The *ConfigSpace* package requires *numpy*, *cython* and *pyparsing*.
 Additionally, a functioning C compiler is required.
 
-On Ubuntu, the required compiler tools can be installed with:
+On Ubuntu, the required compiler tools and Python headers can be installed with:
 
 .. code:: bash
 
-    sudo apt-get install build-essential
+    sudo apt-get install build-essential python3 python3-dev
 
 When using Anaconda/Miniconda, the compiler has to be installed with:
 
