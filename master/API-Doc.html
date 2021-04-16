@@ -625,10 +625,11 @@ object</p>
 <dd class="field-odd"><p><strong>size</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of configurations to sample. Default to 1</p>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>A single configuration if <code class="docutils literal notranslate"><span class="pre">size</span></code> 1 else a list of Configurations</p>
+<dd class="field-even"><p>List[<a class="reference internal" href="#ConfigSpace.configuration_space.Configuration" title="ConfigSpace.configuration_space.Configuration"><code class="xref py py-class docutils literal notranslate"><span class="pre">Configuration</span></code></a>]:
+A single configuration if <code class="docutils literal notranslate"><span class="pre">size</span></code> 1 else a list of Configurations</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><a class="reference internal" href="#ConfigSpace.configuration_space.Configuration" title="ConfigSpace.configuration_space.Configuration"><code class="xref py py-class docutils literal notranslate"><span class="pre">Configuration</span></code></a>, List[<a class="reference internal" href="#ConfigSpace.configuration_space.Configuration" title="ConfigSpace.configuration_space.Configuration"><code class="xref py py-class docutils literal notranslate"><span class="pre">Configuration</span></code></a>]</p>
+<dd class="field-odd"><p><a class="reference internal" href="#ConfigSpace.configuration_space.Configuration" title="ConfigSpace.configuration_space.Configuration"><code class="xref py py-class docutils literal notranslate"><span class="pre">Configuration</span></code></a>,</p>
 </dd>
 </dl>
 </dd></dl>
@@ -848,7 +849,7 @@ from <code class="docutils literal notranslate"><span class="pre">lower</span></
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ConfigSpace.hyperparameters</span> <span class="k">as</span> <span class="nn">CSH</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cs</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">ConfigurationSpace</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">uniform_float_hp</span> <span class="o">=</span> <span class="n">CSH</span><span class="o">.</span><span class="n">UniformFloatHyperparameter</span><span class="p">(</span><span class="s1">&#39;uni_float&#39;</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
-<span class="gp">... </span>                                                  <span class="n">upper</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">log</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">... </span>                                                  <span class="n">upper</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">log</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cs</span><span class="o">.</span><span class="n">add_hyperparameter</span><span class="p">(</span><span class="n">uniform_float_hp</span><span class="p">)</span>
 <span class="go">uni_float, Type: UniformFloat, Range: [10.0, 100.0], Default: 55.0</span>
 </pre></div>
@@ -931,7 +932,8 @@ for further details.</p>
 <li><p><strong>default_value</strong> (<em>int</em><em>, </em><em>float</em><em>, </em><em>str</em><em>, </em><em>optional</em>) – Sets the default value of the hyperparameter to a given value</p></li>
 <li><p><strong>meta</strong> (<em>Dict</em><em>, </em><em>optional</em>) – Field for holding meta data provided by the user.
 Not used by the configuration space.</p></li>
-<li><p><strong>weights</strong> (<em>(</em><em>list</em><em>[</em><em>float</em><em>]</em><em>, </em><em>optional</em><em>)</em>) – List of weights for the choices to be used (after normalization) as probabilities during sampling, no negative values allowed</p></li>
+<li><p><strong>weights</strong> (<em>(</em><em>list</em><em>[</em><em>float</em><em>]</em><em>, </em><em>optional</em><em>)</em>) – List of weights for the choices to be used (after normalization) as
+probabilities during sampling, no negative values allowed</p></li>
 </ul>
 </dd>
 </dl>
@@ -1624,16 +1626,26 @@ Value: value of this hyperparamter</p></li>
 <dl class="py function">
 <dt id="ConfigSpace.util.generate_grid">
 <code class="sig-prename descclassname"><span class="pre">ConfigSpace.util.</span></code><code class="sig-name descname"><span class="pre">generate_grid</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.util.generate_grid" title="Permalink to this definition">¶</a></dt>
-<dd><p>Generates a grid of Configurations for a given ConfigurationSpace. Can be used, for example, for grid search.</p>
+<dd><p>Generates a grid of Configurations for a given ConfigurationSpace.
+Can be used, for example, for grid search.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>configuration_space</strong> (<a class="reference internal" href="#ConfigSpace.configuration_space.ConfigurationSpace" title="ConfigSpace.configuration_space.ConfigurationSpace"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigurationSpace</span></code></a>) – The Configuration space over which to create a grid of HyperParameter Configuration values. It knows the types for all parameter values.</p></li>
-<li><p><strong>num_steps_dict</strong> (<em>dict</em>) – A dict containing the number of points to divide the grid side formed by Hyperparameters which are either of type UniformFloatHyperparameter or type UniformIntegerHyperparameter. The keys in the dict should be the names of the corresponding Hyperparameters and the values should be the number of points to divide the grid side formed by the corresponding Hyperparameter in to.</p></li>
+<li><p><strong>configuration_space</strong> (<a class="reference internal" href="#ConfigSpace.configuration_space.ConfigurationSpace" title="ConfigSpace.configuration_space.ConfigurationSpace"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigurationSpace</span></code></a>) – The Configuration space over which to create a grid of HyperParameter Configuration values.
+It knows the types for all parameter values.</p></li>
+<li><p><strong>num_steps_dict</strong> (<em>dict</em>) – A dict containing the number of points to divide the grid side formed by Hyperparameters
+which are either of type UniformFloatHyperparameter or type UniformIntegerHyperparameter.
+The keys in the dict should be the names of the corresponding Hyperparameters and the values
+should be the number of points to divide the grid side formed by the corresponding
+Hyperparameter in to.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>List containing Configurations. It is a cartesian product of tuples of HyperParameter values. Each tuple lists the possible values taken by the corresponding HyperParameter. Within the cartesian product, in each element, the ordering of HyperParameters is the same for the OrderedDict within the ConfigurationSpace.</p>
+<dd class="field-even"><p>List containing Configurations. It is a cartesian product of tuples of
+HyperParameter values.
+Each tuple lists the possible values taken by the corresponding HyperParameter.
+Within the cartesian product, in each element, the ordering of HyperParameters is the same
+for the OrderedDict within the ConfigurationSpace.</p>
 </dd>
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>list</p>
