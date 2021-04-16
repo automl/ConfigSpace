@@ -40,11 +40,11 @@ cimport numpy as np
 # We now need to fix a datatype for our arrays. I've used the variable
 # DTYPE for this, which is assigned to the usual NumPy runtime
 # type info object.
-#DTYPE = np.float
+# DTYPE = np.float
 # "ctypedef" assigns a corresponding compile-time type to DTYPE_t. For
 # every type in the numpy module there's a corresponding compile-time
 # type with a _t-suffix.
-#ctypedef np.float_t DTYPE_t
+# ctypedef np.float_t DTYPE_t
 
 
 cdef class Hyperparameter(object):
@@ -54,7 +54,7 @@ cdef class Hyperparameter(object):
             raise TypeError(
                 "The name of a hyperparameter must be an instance of"
                 " %s, but is %s." % (str(str), type(name)))
-        self.name = name # type : str
+        self.name: str = name
         self.meta = meta
 
     def __repr__(self):
@@ -85,7 +85,11 @@ cdef class Hyperparameter(object):
         vector = self._sample(rs)
         return self._transform(vector)
 
-    def rvs(self, size: Optional[int]=None, random_state: Optional[Union[int, np.random, np.random.RandomState]]=None) -> Union[float, np.ndarray]:
+    def rvs(
+        self,
+        size: Optional[int] = None,
+        random_state: Optional[Union[int, np.random, np.random.RandomState]] = None
+    ) -> Union[float, np.ndarray]:
         """
         scipy compatibility wrapper for ``_sample``,
         allowing the hyperparameter to be used in sklearn API
@@ -118,7 +122,7 @@ cdef class Hyperparameter(object):
             except AttributeError:
                 pass
             raise ValueError('%r cannot be used to seed a numpy.random.RandomState'
-                            ' instance' % seed)
+                             ' instance' % seed)
 
         # if size=None, return a value, but if size=1, return a 1-element array
 
@@ -134,7 +138,10 @@ cdef class Hyperparameter(object):
     def _sample(self, rs, size):
         raise NotImplementedError()
 
-    def _transform(self, vector: Union[np.ndarray, float, int]) -> Optional[Union[np.ndarray, float, int]]:
+    def _transform(
+        self,
+        vector: Union[np.ndarray, float, int]
+    ) -> Optional[Union[np.ndarray, float, int]]:
         raise NotImplementedError()
 
     def _inverse_transform(self, vector):
@@ -143,7 +150,7 @@ cdef class Hyperparameter(object):
     def has_neighbors(self):
         raise NotImplementedError()
 
-    def get_neighbors(self, value, rs, number, transform=False):
+    def get_neighbors(self, value, rs, number, transform = False):
         raise NotImplementedError()
 
     def get_num_neighbors(self, value):
@@ -157,7 +164,8 @@ cdef class Constant(Hyperparameter):
     cdef public value
     cdef DTYPE_t value_vector
 
-    def __init__(self, name: str, value: Union[str, int, float], meta: Optional[Dict]=None) -> None:
+    def __init__(self, name: str, value: Union[str, int, float], meta: Optional[Dict] = None
+                 ) -> None:
         """
         Representing a constant hyperparameter in the configuration space.
 
@@ -198,7 +206,8 @@ cdef class Constant(Hyperparameter):
         """
         Todo: With Cython 2.7 this function can be replaced by using the six
               Python special methods (__eq__(), __lt__(),...).
-        (--> https://cython.readthedocs.io/en/latest/src/userguide/special_methods.html#rich-comparisons)
+        (--> https://cython.readthedocs.io/en/latest/src/userguide/special_methods.html\
+        #rich-comparisons)
 
         Before 2.7 there were no separate methods for the individual rich
         comparison operations. Instead there is a single method __richcmp__()
@@ -233,7 +242,7 @@ cdef class Constant(Hyperparameter):
     cpdef bint is_legal_vector(self, DTYPE_t value):
         return value == self.value_vector
 
-    def _sample(self, rs: None, size: Optional[int]=None) -> Union[int, np.ndarray]:
+    def _sample(self, rs: None, size: Optional[int] = None) -> Union[int, np.ndarray]:
         return 0 if size == 1 else np.zeros((size,))
 
     def _transform(self, vector: Optional[Union[np.ndarray, float, int]]) \
@@ -248,7 +257,8 @@ cdef class Constant(Hyperparameter):
             -> Optional[Union[np.ndarray, float, int]]:
         return self.value
 
-    def _inverse_transform(self, vector: Union[np.ndarray, float, int]) -> Union[np.ndarray, int, float]:
+    def _inverse_transform(self, vector: Union[np.ndarray, float, int]
+                           ) -> Union[np.ndarray, int, float]:
         if vector != self.value:
             return np.NaN
         return 0
@@ -256,10 +266,11 @@ cdef class Constant(Hyperparameter):
     def has_neighbors(self) -> bool:
         return False
 
-    def get_num_neighbors(self, value=None) -> int:
+    def get_num_neighbors(self, value = None) -> int:
         return 0
 
-    def get_neighbors(self, value: Any, rs: np.random.RandomState, number: int, transform: bool = False) -> List:
+    def get_neighbors(self, value: Any, rs: np.random.RandomState, number: int,
+                      transform: bool = False) -> List:
         return []
 
 
@@ -276,7 +287,7 @@ cdef class NumericalHyperparameter(Hyperparameter):
     def has_neighbors(self) -> bool:
         return True
 
-    def get_num_neighbors(self, value=None) -> float:
+    def get_num_neighbors(self, value = None) -> float:
 
         return np.inf
 
@@ -303,7 +314,8 @@ cdef class NumericalHyperparameter(Hyperparameter):
         """
         Todo: With Cython 2.7 this function can be replaced by using the six
               Python special methods (__eq__(), __lt__(),...).
-        (--> https://cython.readthedocs.io/en/latest/src/userguide/special_methods.html#rich-comparisons)
+        (--> https://cython.readthedocs.io/en/latest/src/userguide/special_methods.html\
+        #rich-comparisons)
 
         Before 2.7 there were no separate methods for the individual rich
         comparison operations. Instead there is a single method __richcmp__()
@@ -364,7 +376,8 @@ cdef class NumericalHyperparameter(Hyperparameter):
 
 
 cdef class FloatHyperparameter(NumericalHyperparameter):
-    def __init__(self, name: str, default_value: Union[int, float], meta: Optional[Dict]=None) -> None:
+    def __init__(self, name: str, default_value: Union[int, float], meta: Optional[Dict] = None
+                 ) -> None:
         super(FloatHyperparameter, self).__init__(name, default_value, meta)
 
     def is_legal(self, value: Union[int, float]) -> bool:
@@ -376,7 +389,8 @@ cdef class FloatHyperparameter(NumericalHyperparameter):
     def check_default(self, default_value: Union[int, float]) -> float:
         raise NotImplementedError()
 
-    def _transform(self, vector: Union[np.ndarray, float, int]) -> Optional[Union[np.ndarray, float, int]]:
+    def _transform(self, vector: Union[np.ndarray, float, int]
+                   ) -> Optional[Union[np.ndarray, float, int]]:
         try:
             if isinstance(vector, np.ndarray):
                 return self._transform_vector(vector)
@@ -392,7 +406,7 @@ cdef class FloatHyperparameter(NumericalHyperparameter):
 
 
 cdef class IntegerHyperparameter(NumericalHyperparameter):
-    def __init__(self, name: str, default_value: int, meta: Optional[Dict]=None) -> None:
+    def __init__(self, name: str, default_value: int, meta: Optional[Dict] = None) -> None:
         super(IntegerHyperparameter, self).__init__(name, default_value, meta)
 
     def is_legal(self, value: int) -> bool:
@@ -412,7 +426,8 @@ cdef class IntegerHyperparameter(NumericalHyperparameter):
                              " %s." % (name, type(parameter), str(parameter)))
         return int(parameter)
 
-    def _transform(self, vector: Union[np.ndarray, float, int]) -> Optional[Union[np.ndarray, float, int]]:
+    def _transform(self, vector: Union[np.ndarray, float, int]
+                   ) -> Optional[Union[np.ndarray, float, int]]:
         try:
             if isinstance(vector, np.ndarray):
                 return self._transform_vector(vector)
@@ -429,8 +444,9 @@ cdef class IntegerHyperparameter(NumericalHyperparameter):
 
 cdef class UniformFloatHyperparameter(FloatHyperparameter):
     def __init__(self, name: str, lower: Union[int, float], upper: Union[int, float],
-                 default_value: Union[int, float, None] = None, q: Union[int, float, None] = None, log: bool = False,
-                 meta: Optional[Dict]=None) -> None:
+                 default_value: Union[int, float, None] = None,
+                 q: Union[int, float, None] = None, log: bool = False,
+                 meta: Optional[Dict] = None) -> None:
         """
         A float hyperparameter.
 
@@ -444,7 +460,7 @@ cdef class UniformFloatHyperparameter(FloatHyperparameter):
         >>> import ConfigSpace.hyperparameters as CSH
         >>> cs = CS.ConfigurationSpace(seed=1)
         >>> uniform_float_hp = CSH.UniformFloatHyperparameter('uni_float', lower=10,
-        ...                                                   upper=100, log=False)
+        ...                                                   upper=100, log = False)
         >>> cs.add_hyperparameter(uniform_float_hp)
         uni_float, Type: UniformFloat, Range: [10.0, 100.0], Default: 55.0
 
@@ -553,7 +569,8 @@ cdef class UniformFloatHyperparameter(FloatHyperparameter):
 
     def to_integer(self) -> 'UniformIntegerHyperparameter':
         # TODO check if conversion makes sense at all (at least two integer values possible!)
-        # todo check if params should be converted to int while class initialization or inside class itself
+        # todo check if params should be converted to int while class initialization
+        # or inside class itself
         return UniformIntegerHyperparameter(
             name=self.name,
             lower=int(self.lower),
@@ -563,7 +580,7 @@ cdef class UniformFloatHyperparameter(FloatHyperparameter):
             log=self.log,
         )
 
-    def _sample(self, rs: np.random, size: Optional[int]=None) -> Union[float, np.ndarray]:
+    def _sample(self, rs: np.random, size: Optional[int] = None) -> Union[float, np.ndarray]:
         return rs.uniform(size=size)
 
     cpdef np.ndarray _transform_vector(self, np.ndarray vector):
@@ -591,7 +608,8 @@ cdef class UniformFloatHyperparameter(FloatHyperparameter):
         scalar = min(self.upper, max(self.lower, scalar))
         return scalar
 
-    def _inverse_transform(self, vector: Union[np.ndarray, None]) -> Union[np.ndarray, float, int]:
+    def _inverse_transform(self, vector: Union[np.ndarray, None]
+                           ) -> Union[np.ndarray, float, int]:
         if vector is None:
             return np.NaN
         if self.log:
@@ -605,9 +623,9 @@ cdef class UniformFloatHyperparameter(FloatHyperparameter):
         self,
         value: Any,
         rs: np.random.RandomState,
-        number: int=4,
-        transform: bool=False,
-        std: float=0.2
+        number: int = 4,
+        transform: bool = False,
+        std: float = 0.2
     ) -> List[float]:
         neighbors = []  # type: List[float]
         while len(neighbors) < number:
@@ -626,9 +644,10 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
     cdef public sigma
 
     def __init__(self, name: str, mu: Union[int, float], sigma: Union[int, float],
-                 default_value: Union[None, float] = None, q: Union[int, float, None] = None, log: bool = False,
-                 meta: Optional[Dict]=None) -> None:
-        """
+                 default_value: Union[None, float] = None,
+                 q: Union[int, float, None] = None, log: bool = False,
+                 meta: Optional[Dict] = None) -> None:
+        r"""
         A float hyperparameter.
 
         Its values are sampled from a normal distribution
@@ -688,7 +707,8 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
         """
         Todo: With Cython 2.7 this function can be replaced by using the six
               Python special methods (__eq__(), __lt__(),...).
-        (--> https://cython.readthedocs.io/en/latest/src/userguide/special_methods.html#rich-comparisons)
+        (--> https://cython.readthedocs.io/en/latest/src/userguide/special_methods.html\
+        #rich-comparisons)
 
         Before 2.7 there were no separate methods for the individual rich
         comparison operations. Instead there is a single method __richcmp__()
@@ -771,7 +791,8 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
     cpdef bint is_legal_vector(self, DTYPE_t value):
         return isinstance(value, float) or isinstance(value, int)
 
-    def _sample(self, rs: np.random.RandomState, size: Optional[int]=None) -> Union[np.ndarray, float]:
+    def _sample(self, rs: np.random.RandomState, size: Optional[int] = None
+                ) -> Union[np.ndarray, float]:
         mu = self.mu
         sigma = self.sigma
         return rs.normal(mu, sigma, size=size)
@@ -802,7 +823,8 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
             vector = np.log(vector)
         return vector
 
-    def get_neighbors(self, value: float, rs: np.random.RandomState, number: int = 4, transform: bool = False) -> List[float]:
+    def get_neighbors(self, value: float, rs: np.random.RandomState, number: int = 4,
+                      transform: bool = False) -> List[float]:
         neighbors = []
         for i in range(number):
             neighbors.append(rs.normal(value, self.sigma))
@@ -811,7 +833,8 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
 
 cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
     def __init__(self, name: str, lower: int, upper: int, default_value: Union[int, None] = None,
-                 q: Union[int, None] = None, log: bool = False, meta: Optional[Dict]=None) -> None:
+                 q: Union[int, None] = None, log: bool = False,
+                 meta: Optional[Dict] = None) -> None:
         """
         An integer hyperparameter.
 
@@ -902,7 +925,8 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
         repr_str.seek(0)
         return repr_str.getvalue()
 
-    def _sample(self, rs: np.random.RandomState, size: Optional[int]=None) -> Union[np.ndarray, float]:
+    def _sample(self, rs: np.random.RandomState, size: Optional[int] = None
+                ) -> Union[np.ndarray, float]:
         value = self.ufhp._sample(rs, size=size)
         # Map all floats which belong to the same integer value to the same
         # float value by first transforming it to an integer and then
@@ -928,7 +952,8 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
             scalar = max(scalar, self.lower)
         return int(round(scalar))
 
-    def _inverse_transform(self, vector: Union[np.ndarray, float, int]) -> Union[np.ndarray, float, int]:
+    def _inverse_transform(self, vector: Union[np.ndarray, float, int]
+                           ) -> Union[np.ndarray, float, int]:
         return self.ufhp._inverse_transform(vector)
 
     def is_legal(self, value: int) -> bool:
@@ -972,16 +997,16 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
         else:
             return False
 
-    def get_num_neighbors(self, value=None) -> int:
+    def get_num_neighbors(self, value = None) -> int:
         return self.upper - self.lower
 
     def get_neighbors(
         self,
         value: Union[int, float],
         rs: np.random.RandomState,
-        number: int=4,
-        transform: bool=False,
-        std: float=0.2,
+        number: int = 4,
+        transform: bool = False,
+        std: float = 0.2,
     ) -> List[int]:
         cdef int n_requested = number
         cdef int idx = 0
@@ -1025,8 +1050,10 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
                     if int_value == new_int_value:
                         continue
                     elif i >= 200:
-                        # Fallback to uniform sampling if generating samples correctly takes too long
-                        values_to_sample = [j for j in range(self.lower, self.upper + 1) if j != int_value]
+                        # Fallback to uniform sampling if generating samples correctly
+                        # takes too long
+                        values_to_sample = [j for j in range(self.lower, self.upper + 1)
+                                            if j != int_value]
                         samples = rs.choice(
                             values_to_sample,
                             size=n_requested,
@@ -1061,9 +1088,10 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
     cdef nfhp
 
     def __init__(self, name: str, mu: int, sigma: Union[int, float],
-                 default_value: Union[int, None] = None, q: Union[None, int] = None, log: bool = False,
-                 meta: Optional[Dict]=None) -> None:
-        """
+                 default_value: Union[int, None] = None, q: Union[None, int] = None,
+                 log: bool = False,
+                 meta: Optional[Dict] = None) -> None:
+        r"""
         An integer hyperparameter.
 
         Its values are sampled from a normal distribution
@@ -1147,7 +1175,8 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
         """
         Todo: With Cython 2.7 this function can be replaced by using the six
               Python special methods (__eq__(), __lt__(),...).
-        (--> https://cython.readthedocs.io/en/latest/src/userguide/special_methods.html#rich-comparisons)
+        (--> https://cython.readthedocs.io/en/latest/src/userguide/special_methods.html\
+        #rich-comparisons)
 
         Before 2.7 there were no separate methods for the individual rich
         comparison operations. Instead there is a single method __richcmp__()
@@ -1219,7 +1248,8 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
         else:
             raise ValueError("Illegal default value %s" % str(default_value))
 
-    def _sample(self, rs: np.random.RandomState, size: Optional[int]=None) -> Union[np.ndarray, float]:
+    def _sample(self, rs: np.random.RandomState, size: Optional[int] = None
+                ) -> Union[np.ndarray, float]:
         value = self.nfhp._sample(rs, size=size)
         # Map all floats which belong to the same integer value to the same
         # float value by first transforming it to an integer and then
@@ -1236,7 +1266,8 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
         scalar = self.nfhp._transform_scalar(scalar)
         return int(round(scalar))
 
-    def _inverse_transform(self, vector: Union[np.ndarray, float, int]) -> Union[np.ndarray, float]:
+    def _inverse_transform(self, vector: Union[np.ndarray, float, int]
+                           ) -> Union[np.ndarray, float]:
         return self.nfhp._inverse_transform(vector)
 
     def has_neighbors(self) -> bool:
@@ -1246,8 +1277,8 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
         self,
         value: Union[int, float],
         rs: np.random.RandomState,
-        number: int=4,
-        transform: bool=False,
+        number: int = 4,
+        transform: bool = False,
     ) -> List[Union[np.ndarray, float, int]]:
         neighbors = []  # type: List[Union[np.ndarray, float, int]]
         while len(neighbors) < number:
@@ -1283,8 +1314,8 @@ cdef class CategoricalHyperparameter(Hyperparameter):
         self,
         name: str,
         choices: Union[List[Union[str, float, int]], Tuple[Union[float, int, str]]],
-        default_value: Union[int, float, str, None]=None,
-        meta: Optional[Dict]=None,
+        default_value: Union[int, float, str, None] = None,
+        meta: Optional[Dict] = None,
         weights: Union[List[float], Tuple[float]] = None
     ) -> None:
         """
@@ -1318,7 +1349,8 @@ cdef class CategoricalHyperparameter(Hyperparameter):
             Field for holding meta data provided by the user.
             Not used by the configuration space.
         weights: (list[float], optional)
-            List of weights for the choices to be used (after normalization) as probabilities during sampling, no negative values allowed
+            List of weights for the choices to be used (after normalization) as
+            probabilities during sampling, no negative values allowed
         """
 
         super(CategoricalHyperparameter, self).__init__(name, meta)
@@ -1366,7 +1398,8 @@ cdef class CategoricalHyperparameter(Hyperparameter):
         """
         Todo: With Cython 2.7 this function can be replaced by using the six
               Python special methods (__eq__(), __lt__(),...).
-        (--> https://cython.readthedocs.io/en/latest/src/userguide/special_methods.html#rich-comparisons)
+        (--> https://cython.readthedocs.io/en/latest/src/userguide/special_methods.html\
+        #rich-comparisons)
 
         Before 2.7 there were no separate methods for the individual rich
         comparison operations. Instead there is a single method __richcmp__()
@@ -1428,12 +1461,14 @@ cdef class CategoricalHyperparameter(Hyperparameter):
     cpdef bint is_legal_vector(self, DTYPE_t value):
         return value in self._choices_set
 
-    def _get_probabilities(self, choices: Tuple[Union[None, str, float, int]], weights: Union[None, List[float]]) -> Union[None, List[float]]:
+    def _get_probabilities(self, choices: Tuple[Union[None, str, float, int]],
+                           weights: Union[None, List[float]]) -> Union[None, List[float]]:
         if weights is None:
             return weights
 
         if len(weights) != len(choices):
-            raise ValueError("The list of weights and the list of choices are required to be of same length.")
+            raise ValueError(
+                "The list of weights and the list of choices are required to be of same length.")
 
         weights = np.array(weights)
 
@@ -1445,7 +1480,8 @@ cdef class CategoricalHyperparameter(Hyperparameter):
 
         return tuple(weights / np.sum(weights))
 
-    def check_default(self, default_value: Union[None, str, float, int]) -> Union[str, float, int]:
+    def check_default(self, default_value: Union[None, str, float, int]
+                      ) -> Union[str, float, int]:
         if default_value is None:
             return self.choices[0]
         elif self.is_legal(default_value):
@@ -1453,7 +1489,8 @@ cdef class CategoricalHyperparameter(Hyperparameter):
         else:
             raise ValueError("Illegal default value %s" % str(default_value))
 
-    def _sample(self, rs: np.random.RandomState, size: Optional[int]=None) -> Union[int, np.ndarray]:
+    def _sample(self, rs: np.random.RandomState, size: Optional[int] = None
+                ) -> Union[int, np.ndarray]:
         return rs.choice(a=self.num_choices, size=size, replace=True, p=self.probabilities)
 
     cpdef np.ndarray _transform_vector(self, np.ndarray vector):
@@ -1464,8 +1501,8 @@ cdef class CategoricalHyperparameter(Hyperparameter):
             return self.choices[vector.astype(int)]
 
         raise ValueError('Can only index the choices of the ordinal '
-                             'hyperparameter %s with an integer, but provided '
-                             'the following float: %f' % (self, vector))
+                         'hyperparameter %s with an integer, but provided '
+                         'the following float: %f' % (self, vector))
 
     def _transform_scalar(self, scalar: Union[float, int]) -> Union[float, int, str]:
         if scalar != scalar:
@@ -1475,10 +1512,11 @@ cdef class CategoricalHyperparameter(Hyperparameter):
             return self.choices[int(scalar)]
 
         raise ValueError('Can only index the choices of the ordinal '
-                             'hyperparameter %s with an integer, but provided '
-                             'the following float: %f' % (self, scalar))
+                         'hyperparameter %s with an integer, but provided '
+                         'the following float: %f' % (self, scalar))
 
-    def _transform(self, vector: Union[np.ndarray, float, int, str]) -> Optional[Union[np.ndarray, float, int]]:
+    def _transform(self, vector: Union[np.ndarray, float, int, str]
+                   ) -> Optional[Union[np.ndarray, float, int]]:
         try:
             if isinstance(vector, np.ndarray):
                 return self._transform_vector(vector)
@@ -1494,11 +1532,12 @@ cdef class CategoricalHyperparameter(Hyperparameter):
     def has_neighbors(self) -> bool:
         return len(self.choices) > 1
 
-    def get_num_neighbors(self, value=None) -> int:
+    def get_num_neighbors(self, value = None) -> int:
         return len(self.choices) - 1
 
-    def get_neighbors(self, value: int, rs: np.random.RandomState, number: Union[int, float] = np.inf, transform: bool = False) -> \
-            List[Union[float, int, str]]:
+    def get_neighbors(self, value: int, rs: np.random.RandomState,
+                      number: Union[int, float] = np.inf, transform: bool = False
+                      ) -> List[Union[float, int, str]]:
         neighbors = []  # type: List[Union[float, int, str]]
         if number < len(self.choices):
             while len(neighbors) < number:
@@ -1545,12 +1584,13 @@ cdef class OrdinalHyperparameter(Hyperparameter):
     cdef public int num_elements
     cdef sequence_vector
     cdef value_dict
+
     def __init__(
         self,
         name: str,
         sequence: Union[List[Union[float, int, str]], Tuple[Union[float, int, str]]],
-        default_value: Union[str, int, float, None]=None,
-        meta: Optional[Dict]=None
+        default_value: Union[str, int, float, None] = None,
+        meta: Optional[Dict] = None
     ) -> None:
         """
         An ordinal hyperparameter.
@@ -1591,7 +1631,8 @@ cdef class OrdinalHyperparameter(Hyperparameter):
         # numeric sequence according to their order/position.
         super(OrdinalHyperparameter, self).__init__(name, meta)
         if len(sequence) > len(set(sequence)):
-            raise ValueError("Ordinal Hyperparameter Sequence %s contain duplicate values." % sequence)
+            raise ValueError(
+                "Ordinal Hyperparameter Sequence %s contain duplicate values." % sequence)
         self.sequence = tuple(sequence)
         self.num_elements = len(sequence)
         self.sequence_vector = list(range(self.num_elements))
@@ -1604,7 +1645,7 @@ cdef class OrdinalHyperparameter(Hyperparameter):
             counter += 1
 
     def __hash__(self):
-            return hash((self.name, self.sequence))
+        return hash((self.name, self.sequence))
 
     def __repr__(self) -> str:
         """
@@ -1626,7 +1667,8 @@ cdef class OrdinalHyperparameter(Hyperparameter):
         """
         Todo: With Cython 2.7 this function can be replaced by using the six
               Python special methods (__eq__(), __lt__(),...).
-        (--> https://cython.readthedocs.io/en/latest/src/userguide/special_methods.html#rich-comparisons)
+        (--> https://cython.readthedocs.io/en/latest/src/userguide/special_methods.html\
+        #rich-comparisons)
 
         Before 2.7 there were no separate methods for the individual rich
         comparison operations. Instead there is a single method __richcmp__()
@@ -1688,7 +1730,8 @@ cdef class OrdinalHyperparameter(Hyperparameter):
     cpdef bint is_legal_vector(self, DTYPE_t value):
         return value in self.sequence_vector
 
-    def check_default(self, default_value: Optional[Union[int, float, str]]) -> Union[int, float, str]:
+    def check_default(self, default_value: Optional[Union[int, float, str]]
+                      ) -> Union[int, float, str]:
         """
         check if given default value is represented in the sequence.
         If there's no default value we simply choose the
@@ -1709,8 +1752,8 @@ cdef class OrdinalHyperparameter(Hyperparameter):
             return self.sequence[vector.astype(int)]
 
         raise ValueError('Can only index the choices of the ordinal '
-                             'hyperparameter %s with an integer, but provided '
-                             'the following float: %f' % (self, vector))
+                         'hyperparameter %s with an integer, but provided '
+                         'the following float: %f' % (self, vector))
 
     def _transform_scalar(self, scalar: Union[float, int]) -> Union[float, int, str]:
         if scalar != scalar:
@@ -1720,10 +1763,11 @@ cdef class OrdinalHyperparameter(Hyperparameter):
             return self.sequence[int(scalar)]
 
         raise ValueError('Can only index the choices of the ordinal '
-                             'hyperparameter %s with an integer, but provided '
-                             'the following float: %f' % (self, scalar))
+                         'hyperparameter %s with an integer, but provided '
+                         'the following float: %f' % (self, scalar))
 
-    def _transform(self, vector: Union[np.ndarray, float, int]) -> Optional[Union[np.ndarray, float, int]]:
+    def _transform(self, vector: Union[np.ndarray, float, int]
+                   ) -> Optional[Union[np.ndarray, float, int]]:
         try:
             if isinstance(vector, np.ndarray):
                 return self._transform_vector(vector)
@@ -1731,7 +1775,8 @@ cdef class OrdinalHyperparameter(Hyperparameter):
         except ValueError:
             return None
 
-    def _inverse_transform(self, vector: Optional[Union[np.ndarray, List, int, str, float]]) -> Union[float, List[int], List[str], List[float]]:
+    def _inverse_transform(self, vector: Optional[Union[np.ndarray, List, int, str, float]]
+                           ) -> Union[float, List[int], List[str], List[float]]:
         if vector is None:
             return np.NaN
         return self.sequence.index(vector)
@@ -1766,7 +1811,7 @@ cdef class OrdinalHyperparameter(Hyperparameter):
         else:
             return False
 
-    def _sample(self, rs: np.random.RandomState, size: Optional[int]=None) -> int:
+    def _sample(self, rs: np.random.RandomState, size: Optional[int] = None) -> int:
         """
         return a random sample from our sequence as order/position index
         """
@@ -1784,15 +1829,16 @@ cdef class OrdinalHyperparameter(Hyperparameter):
         return the number of existing neighbors in the sequence
         """
         max_idx = len(self.sequence) - 1
-        if value == self.sequence[0] and value == self.sequence[max_idx]:# check if there is only one value
+        # check if there is only one value
+        if value == self.sequence[0] and value == self.sequence[max_idx]:
             return 0
         elif value == self.sequence[0] or value == self.sequence[max_idx]:
             return 1
         else:
             return 2
 
-    def get_neighbors(self, value: Union[int, str, float], rs: None, number: int = 0, transform: bool = False) \
-            -> List[Union[str, float, int]]:
+    def get_neighbors(self, value: Union[int, str, float], rs: None, number: int = 0,
+                      transform: bool = False) -> List[Union[str, float, int]]:
         """
         Return the neighbors of a given value.
         Value must be in vector form. Ordinal name will not work.

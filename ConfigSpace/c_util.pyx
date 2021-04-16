@@ -3,6 +3,16 @@
 from collections import deque
 
 import numpy as np
+from ConfigSpace.forbidden import AbstractForbiddenComponent
+from ConfigSpace.forbidden cimport AbstractForbiddenComponent
+from ConfigSpace.hyperparameters import Hyperparameter
+from ConfigSpace.hyperparameters cimport Hyperparameter
+from ConfigSpace.conditions import ConditionComponent
+from ConfigSpace.conditions cimport ConditionComponent
+from ConfigSpace.conditions import OrConjunction
+from ConfigSpace.exceptions import ForbiddenValueError
+
+from libc.stdlib cimport malloc, free
 cimport numpy as np
 
 # We now need to fix a datatype for our arrays. I've used the variable
@@ -14,24 +24,12 @@ DTYPE = np.float
 # type with a _t-suffix.
 ctypedef np.float_t DTYPE_t
 
-from libc.stdlib cimport malloc, free
-
-from ConfigSpace.exceptions import ForbiddenValueError
-
-from ConfigSpace.forbidden import AbstractForbiddenComponent
-from ConfigSpace.forbidden cimport AbstractForbiddenComponent
-from ConfigSpace.hyperparameters import Hyperparameter
-from ConfigSpace.hyperparameters cimport Hyperparameter
-from ConfigSpace.conditions import ConditionComponent
-from ConfigSpace.conditions cimport ConditionComponent
-from ConfigSpace.conditions import OrConjunction
-
 
 cpdef int check_forbidden(list forbidden_clauses, np.ndarray vector) except 1:
-    cdef int I = len(forbidden_clauses)
+    cdef int Iforbidden = len(forbidden_clauses)
     cdef AbstractForbiddenComponent clause
 
-    for i in range(I):
+    for i in range(Iforbidden):
         clause = forbidden_clauses[i]
         if clause.c_is_forbidden_vector(vector, strict=False):
             raise ForbiddenValueError("Given vector violates forbidden clause %s" % (str(clause)))
@@ -108,7 +106,7 @@ cpdef int check_configuration(
     for hp_idx in self._idx_to_hyperparameter:
 
         if not allow_inactive_with_values and not active[hp_idx] and not np.isnan(vector[hp_idx]):
-                # Only look up the value (in the line above) if the hyperparameter is inactive!
+            # Only look up the value (in the line above) if the hyperparameter is inactive!
             hp_name = self._idx_to_hyperparameter[hp_idx]
             hp_value = vector[hp_idx]
             free(active)
@@ -157,7 +155,9 @@ cpdef np.ndarray correct_sampled_array(
             free(active)
             raise ForbiddenValueError(
                 "Given vector violates forbidden clause %s" % (
-                str(clause)))
+                    str(clause)
+                )
+            )
 
     hps = deque()
     visited = set()
@@ -187,7 +187,7 @@ cpdef np.ndarray correct_sampled_array(
                             vector[hyperparameter_idx] = NaN
                             inactive.add(child_name)
                             break
-                    if add == True:
+                    if add is True:
                         active[hyperparameter_idx] = 1
                         hps.appendleft(child_name)
 
@@ -213,7 +213,7 @@ cpdef np.ndarray correct_sampled_array(
                                 inactive.add(child_name)
                                 break
 
-                        if add == True:
+                        if add is True:
                             active[hyperparameter_idx] = 1
                             hps.appendleft(child_name)
 

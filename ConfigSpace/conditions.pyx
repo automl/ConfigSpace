@@ -28,6 +28,8 @@
 
 # cython: language_level=3
 
+import io
+from functools import reduce
 from abc import ABCMeta, abstractmethod
 import copy
 from itertools import combinations
@@ -37,21 +39,19 @@ import operator
 from libc.stdlib cimport malloc, free
 
 import numpy as np
-cimport numpy as np
+
+from ConfigSpace.hyperparameters import NumericalHyperparameter, OrdinalHyperparameter
+from ConfigSpace.hyperparameters cimport Hyperparameter
 
 # We now need to fix a datatype for our arrays. I've used the variable
 # DTYPE for this, which is assigned to the usual NumPy runtime
 # type info object.
-#DTYPE = np.float
+# DTYPE = np.float
 # "ctypedef" assigns a corresponding compile-time type to DTYPE_t. For
 # every type in the numpy module there's a corresponding compile-time
 # type with a _t-suffix.
-#ctypedef np.float_t DTYPE_t
-
-import io
-from functools import reduce
-from ConfigSpace.hyperparameters import NumericalHyperparameter, OrdinalHyperparameter
-from ConfigSpace.hyperparameters cimport Hyperparameter
+# ctypedef np.float_t DTYPE_t
+cimport numpy as np
 
 
 cdef class ConditionComponent(object):
@@ -80,7 +80,9 @@ cdef class ConditionComponent(object):
     def get_descendant_literal_conditions(self) ->List['AbstractCondition']:
         pass
 
-    def evaluate(self, instantiated_parent_hyperparameter: Dict[str, Union[None, int, float, str]]) -> bool:
+    def evaluate(self,
+                 instantiated_parent_hyperparameter: Dict[str, Union[None, int, float, str]]
+                 ) -> bool:
         pass
 
     def evaluate_vector(self, instantiated_vector):
@@ -117,7 +119,8 @@ cdef class AbstractCondition(ConditionComponent):
         """
         Todo: With Cython 2.7 this function can be replaced by using the six
               Python special methods (__eq__(), __lt__(),...).
-        (--> https://cython.readthedocs.io/en/latest/src/userguide/special_methods.html#rich-comparisons)
+        (--> https://cython.readthedocs.io/en/latest/src/userguide/special_methods.html\
+        #rich-comparisons)
 
         Before 2.7 there were no separate methods for the individual rich
         comparison operations. Instead there is a single method __richcmp__()
@@ -140,7 +143,8 @@ cdef class AbstractCondition(ConditionComponent):
                 return self.value == other.value
 
             elif op == 3:
-                if self.child != other.child or self.parent != other.parent or self.value != other.value:
+                if (self.child != other.child or
+                        self.parent != other.parent or self.value != other.value):
                     return True
                 else:
                     return False
@@ -166,7 +170,8 @@ cdef class AbstractCondition(ConditionComponent):
     def get_descendant_literal_conditions(self) -> List['AbstractCondition']:
         return [self]
 
-    def evaluate(self, instantiated_parent_hyperparameter: Dict[str, Union[int, float, str]]) -> bool:
+    def evaluate(self, instantiated_parent_hyperparameter: Dict[str, Union[int, float, str]]
+                 ) -> bool:
         hp_name = self.parent.name
         return self._evaluate(instantiated_parent_hyperparameter[hp_name])
 
@@ -184,7 +189,8 @@ cdef class AbstractCondition(ConditionComponent):
 
 cdef class EqualsCondition(AbstractCondition):
 
-    def __init__(self, child: Hyperparameter, parent: Hyperparameter, value: Union[str, float, int]) -> None:
+    def __init__(self, child: Hyperparameter, parent: Hyperparameter,
+                 value: Union[str, float, int]) -> None:
         """
         Hyperparameter ``child`` is conditional on the ``parent`` hyperparameter
         being *equal* to ``value``.
@@ -217,7 +223,6 @@ cdef class EqualsCondition(AbstractCondition):
             Value, which the parent is compared to
         """
 
-
         super(EqualsCondition, self).__init__(child, parent)
         if not parent.is_legal(value):
             raise ValueError("Hyperparameter '%s' is "
@@ -232,11 +237,11 @@ cdef class EqualsCondition(AbstractCondition):
                                   repr(self.value))
 
     def __copy__(self):
-            return self.__class__(
-                child=copy.copy(self.child),
-                parent=copy.copy(self.parent),
-                value=copy.copy(self.value),
-            )
+        return self.__class__(
+            child=copy.copy(self.child),
+            parent=copy.copy(self.parent),
+            value=copy.copy(self.value),
+        )
 
     def _evaluate(self, value: Union[str, float, int]) -> bool:
         # No need to check if the value to compare is a legal value; either it
@@ -260,7 +265,8 @@ cdef class EqualsCondition(AbstractCondition):
 
 
 cdef class NotEqualsCondition(AbstractCondition):
-    def __init__(self, child: Hyperparameter, parent: Hyperparameter, value: Union[str, float, int]) -> None:
+    def __init__(self, child: Hyperparameter, parent: Hyperparameter,
+                 value: Union[str, float, int]) -> None:
         """
         Hyperparameter ``child`` is conditional on the ``parent`` hyperparameter
         being *not equal* to ``value``.
@@ -308,11 +314,11 @@ cdef class NotEqualsCondition(AbstractCondition):
                                   repr(self.value))
 
     def __copy__(self):
-            return self.__class__(
-                child=copy.copy(self.child),
-                parent=copy.copy(self.parent),
-                value=copy.copy(self.value),
-            )
+        return self.__class__(
+            child=copy.copy(self.child),
+            parent=copy.copy(self.parent),
+            value=copy.copy(self.value),
+        )
 
     def _evaluate(self, value: Union[str, float, int]) -> bool:
         if not self.parent.is_legal(value):
@@ -336,7 +342,8 @@ cdef class NotEqualsCondition(AbstractCondition):
 
 
 cdef class LessThanCondition(AbstractCondition):
-    def __init__(self, child: Hyperparameter, parent: Hyperparameter, value: Union[str, float, int]) -> None:
+    def __init__(self, child: Hyperparameter, parent: Hyperparameter,
+                 value: Union[str, float, int]) -> None:
         """
         Hyperparameter ``child`` is conditional on the ``parent`` hyperparameter
         being *less than* ``value``.
@@ -385,11 +392,11 @@ cdef class LessThanCondition(AbstractCondition):
                                  repr(self.value))
 
     def __copy__(self):
-            return self.__class__(
-                child=copy.copy(self.child),
-                parent=copy.copy(self.parent),
-                value=copy.copy(self.value),
-            )
+        return self.__class__(
+            child=copy.copy(self.child),
+            parent=copy.copy(self.parent),
+            value=copy.copy(self.value),
+        )
 
     def _evaluate(self, value: Union[str, float, int]) -> bool:
         if not self.parent.is_legal(value):
@@ -413,7 +420,8 @@ cdef class LessThanCondition(AbstractCondition):
 
 
 cdef class GreaterThanCondition(AbstractCondition):
-    def __init__(self, child: Hyperparameter, parent: Hyperparameter, value: Union[str, float, int]) -> None:
+    def __init__(self, child: Hyperparameter, parent: Hyperparameter,
+                 value: Union[str, float, int]) -> None:
         """
         Hyperparameter ``child`` is conditional on the ``parent`` hyperparameter
         being *greater than* ``value``.
@@ -462,11 +470,11 @@ cdef class GreaterThanCondition(AbstractCondition):
                                  repr(self.value))
 
     def __copy__(self):
-            return self.__class__(
-                child=copy.copy(self.child),
-                parent=copy.copy(self.parent),
-                value=copy.copy(self.value),
-            )
+        return self.__class__(
+            child=copy.copy(self.child),
+            parent=copy.copy(self.parent),
+            value=copy.copy(self.value),
+        )
 
     def _evaluate(self, value: Union[str, float, int]) -> bool:
         if not self.parent.is_legal(value):
@@ -492,7 +500,8 @@ cdef class InCondition(AbstractCondition):
     cdef public values
     cdef public vector_values
 
-    def __init__(self, child: Hyperparameter, parent: Hyperparameter, values: List[Union[str, float, int]]) -> None:
+    def __init__(self, child: Hyperparameter, parent: Hyperparameter,
+                 values: List[Union[str, float, int]]) -> None:
         """
         Hyperparameter ``child`` is conditional on the ``parent`` hyperparameter
         being *in* a set of ``values``.
@@ -540,7 +549,8 @@ cdef class InCondition(AbstractCondition):
         """
         Todo: With Cython 2.7 this function can be replaced by using the six
               Python special methods (__eq__(), __lt__(),...).
-        (--> https://cython.readthedocs.io/en/latest/src/userguide/special_methods.html#rich-comparisons)
+        (--> https://cython.readthedocs.io/en/latest/src/userguide/special_methods.html\
+        #rich-comparisons)
 
         Before 2.7 there were no separate methods for the individual rich
         comparison operations. Instead there is a single method __richcmp__()
@@ -555,7 +565,6 @@ cdef class InCondition(AbstractCondition):
         """
         if isinstance(other, self.__class__):
 
-
             if op == 2:
                 if self.child != other.child:
                     return False
@@ -564,7 +573,8 @@ cdef class InCondition(AbstractCondition):
                 return self.values == other.values
 
             elif op == 3:
-                if self.child != other.child or self.parent != other.parent or self.values != other.values:
+                if (self.child != other.child or
+                        self.parent != other.parent or self.values != other.values):
                     return True
                 else:
                     return False
@@ -612,7 +622,8 @@ cdef class AbstractConjunction(ConditionComponent):
         """
         Todo: With Cython 2.7 this function can be replaced by using the six
               Python special methods (__eq__(), __lt__(),...).
-        (--> https://cython.readthedocs.io/en/latest/src/userguide/special_methods.html#rich-comparisons)
+        (--> https://cython.readthedocs.io/en/latest/src/userguide/special_methods.html\
+        #rich-comparisons)
 
         Before 2.7 there were no separate methods for the individual rich
         comparison operations. Instead there is a single method __richcmp__()
@@ -689,7 +700,8 @@ cdef class AbstractConjunction(ConditionComponent):
             parents.extend(component.get_parents())
         return parents
 
-    def evaluate(self, instantiated_hyperparameters: Dict[str, Union[None, int, float, str]]) -> bool:
+    def evaluate(self, instantiated_hyperparameters: Dict[str, Union[None, int, float, str]]
+                 ) -> bool:
         cdef int* arrptr
         arrptr = <int*> malloc(sizeof(int) * self.n_components)
 

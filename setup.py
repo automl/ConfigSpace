@@ -1,7 +1,8 @@
 """Setup.py for ConfigSpace"""
 
 import os
-from setuptools import setup, find_packages, Extension
+
+from setuptools import Extension, find_packages, setup
 from setuptools.command.build_ext import build_ext
 
 
@@ -94,6 +95,7 @@ extras_reqs = {
         "mypy",
         "pre-commit",
         "pytest-cov",
+        'flake8-per-file-ignores',
     ],
     "docs": ["sphinx", "sphinx-gallery", "sphinx_bootstrap_theme", "numpydoc"],
 }

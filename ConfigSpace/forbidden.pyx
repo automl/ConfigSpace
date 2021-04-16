@@ -30,24 +30,23 @@
 
 import copy
 import numpy as np
-cimport numpy as np
 import io
 from ConfigSpace.hyperparameters import Hyperparameter
 from ConfigSpace.hyperparameters cimport Hyperparameter
 from typing import List, Dict, Any, Union
-
-from libc.stdlib cimport malloc, free
 
 from ConfigSpace.forbidden cimport AbstractForbiddenComponent
 
 # We now need to fix a datatype for our arrays. I've used the variable
 # DTYPE for this, which is assigned to the usual NumPy runtime
 # type info object.
-#DTYPE = np.float
+# DTYPE = np.float
 # "ctypedef" assigns a corresponding compile-time type to DTYPE_t. For
 # every type in the numpy module there's a corresponding compile-time
 # type with a _t-suffix.
-#ctypedef np.float_t DTYPE_t
+# ctypedef np.float_t DTYPE_t
+from libc.stdlib cimport malloc, free
+cimport numpy as np
 
 
 cdef class AbstractForbiddenComponent(object):
@@ -58,12 +57,12 @@ cdef class AbstractForbiddenComponent(object):
     def __repr__(self):
         pass
 
-
     def __richcmp__(self, other: Any, int op):
         """
         Todo: With Cython 2.7 this function can be replaced by using the six
               Python special methods (__eq__(), __lt__(),...).
-        (--> https://cython.readthedocs.io/en/latest/src/userguide/special_methods.html#rich-comparisons)
+        (--> https://cython.readthedocs.io/en/latest/src/userguide/special_methods.html\
+        #rich-comparisons)
 
         Before 2.7 there were no separate methods for the individual rich
         comparison operations. Instead there is a single method __richcmp__()
@@ -83,12 +82,12 @@ cdef class AbstractForbiddenComponent(object):
             if other.value is None:
                 other.value = other.values
             if op == 2:
-                return (self.value == other.value
-                         and self.hyperparameter.name == other.hyperparameter.name)
+                return (self.value == other.value and
+                        self.hyperparameter.name == other.hyperparameter.name)
 
             elif op == 3:
-                return False == (self.value == other.value
-                         and self.hyperparameter.name == other.hyperparameter.name)
+                return False == (self.value == other.value and
+                                 self.hyperparameter.name == other.hyperparameter.name)
 
         return NotImplemented
 
@@ -193,7 +192,8 @@ cdef class MultipleValueForbiddenClause(AbstractForbiddenClause):
                                  "legal hyperparameter value for '%s', but got "
                                  "'%s'" % (self.hyperparameter, str(value)))
         self.values = values
-        self.vector_values = [self.hyperparameter._inverse_transform(value) for value in self.values]
+        self.vector_values = [self.hyperparameter._inverse_transform(value)
+                              for value in self.values]
 
     def __copy__(self):
         return self.__class__(
@@ -276,7 +276,8 @@ cdef class ForbiddenEqualsClause(SingleValueForbiddenClause):
 
 
 cdef class ForbiddenInClause(MultipleValueForbiddenClause):
-    def __init__(self, hyperparameter: Dict[str, Union[None, str, float, int]], values: Any) -> None:
+    def __init__(self, hyperparameter: Dict[str, Union[None, str, float, int]],
+                 values: Any) -> None:
         """
         A ForbiddenInClause.
 
@@ -356,7 +357,8 @@ cdef class AbstractForbiddenConjunction(AbstractForbiddenComponent):
         """
         Todo: With Cython 2.7 this function can be replaced by using the six
               Python special methods (__eq__(), __lt__(),...).
-        (--> https://cython.readthedocs.io/en/latest/src/userguide/special_methods.html#rich-comparisons)
+        (--> https://cython.readthedocs.io/en/latest/src/userguide/special_methods.html\
+        #rich-comparisons)
 
         Before 2.7 there were no separate methods for the individual rich
         comparison operations. Instead there is a single method __richcmp__()

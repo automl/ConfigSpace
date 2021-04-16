@@ -1,7 +1,13 @@
 [flake8]
+filename = *.py, *.pyx, *.pxd
 max-line-length = 100
 show-source = True
 application-import-names = ConfigSpace
 exclude =
     venv
     build
+    .eggs
+    *.egg
+per-file-ignores =
+    */*.pyx: E225, E226, E251, E999
+    */*.pxd: E225, E226, E251, E999
