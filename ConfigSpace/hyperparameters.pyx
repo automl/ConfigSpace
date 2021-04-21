@@ -202,33 +202,23 @@ cdef class Constant(Hyperparameter):
                     "Value: %s" % self.value]
         return ", ".join(repr_str)
 
-    def __richcmp__(self, other: Any, int op):
+    def __eq__(self, other: Any) -> bool:
         """
-        Todo: With Cython 2.7 this function can be replaced by using the six
-              Python special methods (__eq__(), __lt__(),...).
-        (--> https://cython.readthedocs.io/en/latest/src/userguide/special_methods.html\
-        #rich-comparisons)
+        This method implements a comparison between self and another
+        object.
 
-        Before 2.7 there were no separate methods for the individual rich
-        comparison operations. Instead there is a single method __richcmp__()
-        which takes an integer indicating which operation is to be performed,
-        as follows:
-        < 	0
-        == 2
-        > 	4
-        <=	1
-        !=	3
-        >=	5
+        Additionally, it defines the __ne__() as stated in the
+        documentation from python:
+            By default, object implements __eq__() by using is, returning NotImplemented 
+            in the case of a false comparison: True if x is y else NotImplemented. 
+            For __ne__(), by default it delegates to __eq__() and inverts the result 
+            unless it is NotImplemented.
+
         """
+        if not isinstance(other, self.__class__):
+            return NotImplemented
 
-        if isinstance(other, self.__class__):
-            if op == 2:
-                return self.value == other.value and self.name == other.name
-
-            elif op == 3:
-                return self.value != other.value or self.name != other.name
-
-        return NotImplemented
+        return self.value == other.value and self.name == other.name
 
     def __copy__(self):
         return Constant(self.name, self.value, meta=self.meta)
@@ -310,47 +300,30 @@ cdef class NumericalHyperparameter(Hyperparameter):
     def allow_greater_less_comparison(self) -> bool:
         return True
 
-    def __richcmp__(self, other: Any, int op):
+    def __eq__(self, other: Any) -> bool:
         """
-        Todo: With Cython 2.7 this function can be replaced by using the six
-              Python special methods (__eq__(), __lt__(),...).
-        (--> https://cython.readthedocs.io/en/latest/src/userguide/special_methods.html\
-        #rich-comparisons)
+        This method implements a comparison between self and another
+        object.
 
-        Before 2.7 there were no separate methods for the individual rich
-        comparison operations. Instead there is a single method __richcmp__()
-        which takes an integer indicating which operation is to be performed,
-        as follows:
-        < 	0
-        == 2
-        > 	4
-        <=	1
-        !=	3
-        >=	5
+        Additionally, it defines the __ne__() as stated in the
+        documentation from python:
+            By default, object implements __eq__() by using is, returning NotImplemented 
+            in the case of a false comparison: True if x is y else NotImplemented. 
+            For __ne__(), by default it delegates to __eq__() and inverts the result 
+            unless it is NotImplemented.
+
         """
+        if not isinstance(other, self.__class__):
+            return NotImplemented
 
-        if isinstance(other, self.__class__):
-            if op == 2:
-                return (
-                    self.name == other.name and
-                    self.default_value == other.default_value and
-                    self.lower == other.lower and
-                    self.upper == other.upper and
-                    self.log == other.log and
-                    self.q == other.q
-                )
-
-            elif op == 3:
-                return (
-                    self.name != other.name or
-                    self.default_value != other.default_value or
-                    self.lower != other.lower or
-                    self.upper != other.upper or
-                    self.log != other.log or
-                    self.q != other.q
-                )
-
-        return NotImplemented
+        return (
+            self.name == other.name and
+            self.default_value == other.default_value and
+            self.lower == other.lower and
+            self.upper == other.upper and
+            self.log == other.log and
+            self.q == other.q
+        )
 
     def __hash__(self):
         return hash(
@@ -703,47 +676,30 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
         repr_str.seek(0)
         return repr_str.getvalue()
 
-    def __richcmp__(self, other: Any, int op):
+    def __eq__(self, other: Any) -> bool:
         """
-        Todo: With Cython 2.7 this function can be replaced by using the six
-              Python special methods (__eq__(), __lt__(),...).
-        (--> https://cython.readthedocs.io/en/latest/src/userguide/special_methods.html\
-        #rich-comparisons)
+        This method implements a comparison between self and another
+        object.
 
-        Before 2.7 there were no separate methods for the individual rich
-        comparison operations. Instead there is a single method __richcmp__()
-        which takes an integer indicating which operation is to be performed,
-        as follows:
-        < 	0
-        == 2
-        > 	4
-        <=	1
-        !=	3
-        >=	5
+        Additionally, it defines the __ne__() as stated in the
+        documentation from python:
+            By default, object implements __eq__() by using is, returning NotImplemented 
+            in the case of a false comparison: True if x is y else NotImplemented. 
+            For __ne__(), by default it delegates to __eq__() and inverts the result 
+            unless it is NotImplemented.
+
         """
+        if not isinstance(other, self.__class__):
+            return NotImplemented
 
-        if isinstance(other, self.__class__):
-            if op == 2:
-                return (
-                    self.name == other.name and
-                    self.default_value == other.default_value and
-                    self.mu == other.mu and
-                    self.sigma == other.sigma and
-                    self.log == other.log and
-                    self.q == other.q
-                )
-
-            elif op == 3:
-                return (
-                    self.name != other.name or
-                    self.default_value != other.default_value or
-                    self.mu != other.mu or
-                    self.sigma != other.sigma or
-                    self.log != other.log or
-                    self.q != other.q
-                )
-
-        return NotImplemented
+        return (
+            self.name == other.name and
+            self.default_value == other.default_value and
+            self.mu == other.mu and
+            self.sigma == other.sigma and
+            self.log == other.log and
+            self.q == other.q
+        )
 
     def __copy__(self):
         return NormalFloatHyperparameter(
@@ -1171,45 +1127,29 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
         repr_str.seek(0)
         return repr_str.getvalue()
 
-    def __richcmp__(self, other: Any, int op):
+    def __eq__(self, other: Any) -> bool:
         """
-        Todo: With Cython 2.7 this function can be replaced by using the six
-              Python special methods (__eq__(), __lt__(),...).
-        (--> https://cython.readthedocs.io/en/latest/src/userguide/special_methods.html\
-        #rich-comparisons)
+        This method implements a comparison between self and another
+        object.
 
-        Before 2.7 there were no separate methods for the individual rich
-        comparison operations. Instead there is a single method __richcmp__()
-        which takes an integer indicating which operation is to be performed,
-        as follows:
-        < 	0
-        == 2
-        > 	4
-        <=	1
-        !=	3
-        >=	5
+        Additionally, it defines the __ne__() as stated in the
+        documentation from python:
+            By default, object implements __eq__() by using is, returning NotImplemented 
+            in the case of a false comparison: True if x is y else NotImplemented. 
+            For __ne__(), by default it delegates to __eq__() and inverts the result 
+            unless it is NotImplemented.
+
         """
+        if not isinstance(other, self.__class__):
+            return NotImplemented
 
-        if isinstance(other, self.__class__):
-            if op == 2:
-                return (
-                    self.name == other.name and
-                    self.mu == other.mu and
-                    self.sigma == other.sigma and
-                    self.log == other.log and
-                    self.q == other.q
-                )
-
-            elif op == 3:
-                return (
-                    self.name != other.name or
-                    self.mu != other.mu or
-                    self.sigma != other.sigma or
-                    self.log != other.log or
-                    self.q != other.q
-                )
-
-        return NotImplemented
+        return (
+            self.name == other.name and
+            self.mu == other.mu and
+            self.sigma == other.sigma and
+            self.log == other.log and
+            self.q == other.q
+        )
 
     def __hash__(self):
         return hash((self.name, self.mu, self.sigma, self.log, self.q))
@@ -1394,39 +1334,26 @@ cdef class CategoricalHyperparameter(Hyperparameter):
         repr_str.seek(0)
         return repr_str.getvalue()
 
-    def __richcmp__(self, other: Any, int op):
+    def __eq__(self, other: Any) -> bool:
         """
-        Todo: With Cython 2.7 this function can be replaced by using the six
-              Python special methods (__eq__(), __lt__(),...).
-        (--> https://cython.readthedocs.io/en/latest/src/userguide/special_methods.html\
-        #rich-comparisons)
+        This method implements a comparison between self and another
+        object.
 
-        Before 2.7 there were no separate methods for the individual rich
-        comparison operations. Instead there is a single method __richcmp__()
-        which takes an integer indicating which operation is to be performed,
-        as follows:
-        < 	0
-        == 2
-        > 	4
-        <=	1
-        !=	3
-        >=	5
+        Additionally, it defines the __ne__() as stated in the
+        documentation from python:
+            By default, object implements __eq__() by using is, returning NotImplemented 
+            in the case of a false comparison: True if x is y else NotImplemented. 
+            For __ne__(), by default it delegates to __eq__() and inverts the result 
+            unless it is NotImplemented.
+
         """
+        if not isinstance(other, self.__class__):
+            return NotImplemented
 
-        if isinstance(other, self.__class__):
-            if op == 2:
-                return (
-                    self.name == other.name and
-                    self.choices == other.choices
-                )
-
-            elif op == 3:
-                return (
-                    self.name != other.name or
-                    self.choices != other.choices
-                )
-
-        return NotImplemented
+        return (
+            self.name == other.name and
+            self.choices == other.choices
+        )
 
     def __hash__(self):
         return hash((self.name, self.choices))
@@ -1663,39 +1590,26 @@ cdef class OrdinalHyperparameter(Hyperparameter):
         repr_str.seek(0)
         return repr_str.getvalue()
 
-    def __richcmp__(self, other: Any, int op):
+    def __eq__(self, other: Any) -> bool:
         """
-        Todo: With Cython 2.7 this function can be replaced by using the six
-              Python special methods (__eq__(), __lt__(),...).
-        (--> https://cython.readthedocs.io/en/latest/src/userguide/special_methods.html\
-        #rich-comparisons)
+        This method implements a comparison between self and another
+        object.
 
-        Before 2.7 there were no separate methods for the individual rich
-        comparison operations. Instead there is a single method __richcmp__()
-        which takes an integer indicating which operation is to be performed,
-        as follows:
-        < 	0
-        == 2
-        > 	4
-        <=	1
-        !=	3
-        >=	5
+        Additionally, it defines the __ne__() as stated in the
+        documentation from python:
+            By default, object implements __eq__() by using is, returning NotImplemented 
+            in the case of a false comparison: True if x is y else NotImplemented. 
+            For __ne__(), by default it delegates to __eq__() and inverts the result 
+            unless it is NotImplemented.
+
         """
+        if not isinstance(other, self.__class__):
+            return NotImplemented
 
-        if isinstance(other, self.__class__):
-            if op == 2:
-                return (
-                    self.name == other.name and
-                    self.sequence == other.sequence
-                )
-
-            elif op == 3:
-                return (
-                    self.name != other.name or
-                    self.sequence != other.sequence
-                )
-
-        return NotImplemented
+        return (
+            self.name == other.name and
+            self.sequence == other.sequence
+        )
 
     def __copy__(self):
         return OrdinalHyperparameter(
