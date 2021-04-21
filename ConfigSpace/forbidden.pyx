@@ -71,7 +71,7 @@ cdef class AbstractForbiddenComponent(object):
 
         """
         if not isinstance(other, self.__class__):
-            return NotImplemented
+            return False
 
         if self.value is None:
             self.value = self.values
@@ -357,7 +357,7 @@ cdef class AbstractForbiddenConjunction(AbstractForbiddenComponent):
         """
 
         if not isinstance(other, self.__class__):
-            return NotImplemented
+            return False
 
         if self.n_components != other.n_components:
             return False

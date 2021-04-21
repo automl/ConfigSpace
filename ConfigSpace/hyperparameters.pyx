@@ -216,7 +216,7 @@ cdef class Constant(Hyperparameter):
 
         """
         if not isinstance(other, self.__class__):
-            return NotImplemented
+            return False
 
         return self.value == other.value and self.name == other.name
 
@@ -314,7 +314,7 @@ cdef class NumericalHyperparameter(Hyperparameter):
 
         """
         if not isinstance(other, self.__class__):
-            return NotImplemented
+            return False
 
         return (
             self.name == other.name and
@@ -690,7 +690,7 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
 
         """
         if not isinstance(other, self.__class__):
-            return NotImplemented
+            return False
 
         return (
             self.name == other.name and
@@ -1141,7 +1141,7 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
 
         """
         if not isinstance(other, self.__class__):
-            return NotImplemented
+            return False
 
         return (
             self.name == other.name and
@@ -1348,7 +1348,7 @@ cdef class CategoricalHyperparameter(Hyperparameter):
 
         """
         if not isinstance(other, self.__class__):
-            return NotImplemented
+            return False
 
         return (
             self.name == other.name and
@@ -1604,7 +1604,7 @@ cdef class OrdinalHyperparameter(Hyperparameter):
 
         """
         if not isinstance(other, self.__class__):
-            return NotImplemented
+            return False
 
         return (
             self.name == other.name and

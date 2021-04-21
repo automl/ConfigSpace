@@ -129,7 +129,7 @@ cdef class AbstractCondition(ConditionComponent):
 
         """
         if not isinstance(other, self.__class__):
-            return NotImplemented
+            return False
 
         if self.child != other.child:
             return False
@@ -531,29 +531,6 @@ cdef class InCondition(AbstractCondition):
         self.value = values
         self.vector_values = [self.parent._inverse_transform(value) for value in self.values]
 
-    def __eq__(self, other: Any) -> bool:
-        """
-        This method implements a comparison between self and another
-        object.
-
-        Additionally, it defines the __ne__() as stated in the
-        documentation from python:
-            By default, object implements __eq__() by using is, returning NotImplemented 
-            in the case of a false comparison: True if x is y else NotImplemented. 
-            For __ne__(), by default it delegates to __eq__() and inverts the result 
-            unless it is NotImplemented.
-
-        """
-
-        if not isinstance(other, self.__class__):
-            return NotImplemented
-
-        if self.child != other.child:
-            return False
-        elif self.parent != other.parent:
-            return False
-        return self.values == other.values
-
     def __repr__(self) -> str:
         return "%s | %s in {%s}" % (self.child.name, self.parent.name,
                                     ", ".join(
@@ -605,13 +582,13 @@ cdef class AbstractConjunction(ConditionComponent):
 
         """
         if not isinstance(other, self.__class__):
-            return NotImplemented
+            return False
 
         if len(self.components) != len(other.components):
             return False
 
         for component, other_component in zip(self.components, other.components):
-            if not (component == other_component):
+            if (component != other_component):
                 return False
 
         return True
