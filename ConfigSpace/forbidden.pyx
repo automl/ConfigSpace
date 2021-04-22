@@ -57,39 +57,29 @@ cdef class AbstractForbiddenComponent(object):
     def __repr__(self):
         pass
 
-    def __richcmp__(self, other: Any, int op):
+    def __eq__(self, other: Any) -> bool:
         """
-        Todo: With Cython 2.7 this function can be replaced by using the six
-              Python special methods (__eq__(), __lt__(),...).
-        (--> https://cython.readthedocs.io/en/latest/src/userguide/special_methods.html\
-        #rich-comparisons)
+        This method implements a comparison between self and another
+        object.
 
-        Before 2.7 there were no separate methods for the individual rich
-        comparison operations. Instead there is a single method __richcmp__()
-        which takes an integer indicating which operation is to be performed,
-        as follows:
-        < 	0
-        ==      2
-        > 	4
-        <=	1
-        !=	3
-        >=	5
+        Additionally, it defines the __ne__() as stated in the
+        documentation from python:
+            By default, object implements __eq__() by using is, returning NotImplemented 
+            in the case of a false comparison: True if x is y else NotImplemented. 
+            For __ne__(), by default it delegates to __eq__() and inverts the result 
+            unless it is NotImplemented.
+
         """
+        if not isinstance(other, self.__class__):
+            return False
+
         if self.value is None:
             self.value = self.values
+        if other.value is None:
+            other.value = other.values
 
-        if isinstance(other, self.__class__):
-            if other.value is None:
-                other.value = other.values
-            if op == 2:
-                return (self.value == other.value and
-                        self.hyperparameter.name == other.hyperparameter.name)
-
-            elif op == 3:
-                return False == (self.value == other.value and
-                                 self.hyperparameter.name == other.hyperparameter.name)
-
-        return NotImplemented
+        return (self.value == other.value and
+                self.hyperparameter.name == other.hyperparameter.name)
 
     def __hash__(self) -> int:
         """Override the default hash behavior (that returns the id or the object)"""
@@ -353,39 +343,28 @@ cdef class AbstractForbiddenConjunction(AbstractForbiddenComponent):
     def __copy__(self):
         return self.__class__([copy(comp) for comp in self.components])
 
-    def __richcmp__(self, other: Any, int op):
+    def __eq__(self, other: Any) -> bool:
         """
-        Todo: With Cython 2.7 this function can be replaced by using the six
-              Python special methods (__eq__(), __lt__(),...).
-        (--> https://cython.readthedocs.io/en/latest/src/userguide/special_methods.html\
-        #rich-comparisons)
+        This method implements a comparison between self and another
+        object.
 
-        Before 2.7 there were no separate methods for the individual rich
-        comparison operations. Instead there is a single method __richcmp__()
-        which takes an integer indicating which operation is to be performed,
-        as follows:
-        < 	0
-        ==      2
-        > 	4
-        <=	1
-        !=	3
-        >=	5
+        Additionally, it defines the __ne__() as stated in the
+        documentation from python:
+            By default, object implements __eq__() by using is, returning NotImplemented 
+            in the case of a false comparison: True if x is y else NotImplemented. 
+            For __ne__(), by default it delegates to __eq__() and inverts the result 
+            unless it is NotImplemented.
         """
 
-        if isinstance(other, self.__class__):
-            if op == 2:
-                if self.n_components != other.n_components:
-                    return False
-                return all([self.components[i] == other.components[i]
-                            for i in range(self.n_components)])
+        if not isinstance(other, self.__class__):
+            return False
 
-            elif op == 3:
-                if self.n_components == other.n_components:
-                    return False
-                return any([self.components[i] != other.components[i]
-                            for i in range(self.n_components)])
+        if self.n_components != other.n_components:
+            return False
 
-        return NotImplemented
+        return all([self.components[i] == other.components[i]
+                    for i in range(self.n_components)])
+
 
     cpdef set_vector_idx(self, hyperparameter_to_idx):
         for component in self.components:

@@ -115,41 +115,27 @@ cdef class AbstractCondition(ConditionComponent):
         self.child_vector_id = -1
         self.parent_vector_id = -1
 
-    def __richcmp__(self, other: Any, int op):
+    def __eq__(self, other: Any) -> bool:
         """
-        Todo: With Cython 2.7 this function can be replaced by using the six
-              Python special methods (__eq__(), __lt__(),...).
-        (--> https://cython.readthedocs.io/en/latest/src/userguide/special_methods.html\
-        #rich-comparisons)
+        This method implements a comparison between self and another
+        object.
 
-        Before 2.7 there were no separate methods for the individual rich
-        comparison operations. Instead there is a single method __richcmp__()
-        which takes an integer indicating which operation is to be performed,
-        as follows:
-        < 	0
-        == 2
-        > 	4
-        <=	1
-        !=	3
-        >=	5
+        Additionally, it defines the __ne__() as stated in the
+        documentation from python:
+            By default, object implements __eq__() by using is, returning NotImplemented 
+            in the case of a false comparison: True if x is y else NotImplemented. 
+            For __ne__(), by default it delegates to __eq__() and inverts the result 
+            unless it is NotImplemented.
+
         """
-        if isinstance(other, self.__class__):
+        if not isinstance(other, self.__class__):
+            return False
 
-            if op == 2:
-                if self.child != other.child:
-                    return False
-                elif self.parent != other.parent:
-                    return False
-                return self.value == other.value
-
-            elif op == 3:
-                if (self.child != other.child or
-                        self.parent != other.parent or self.value != other.value):
-                    return True
-                else:
-                    return False
-
-        return NotImplemented
+        if self.child != other.child:
+            return False
+        elif self.parent != other.parent:
+            return False
+        return self.value == other.value
 
     def set_vector_idx(self, hyperparameter_to_idx: dict):
         self.child_vector_id = hyperparameter_to_idx[self.child.name]
@@ -545,42 +531,6 @@ cdef class InCondition(AbstractCondition):
         self.value = values
         self.vector_values = [self.parent._inverse_transform(value) for value in self.values]
 
-    def __richcmp__(self, other: Any, int op):
-        """
-        Todo: With Cython 2.7 this function can be replaced by using the six
-              Python special methods (__eq__(), __lt__(),...).
-        (--> https://cython.readthedocs.io/en/latest/src/userguide/special_methods.html\
-        #rich-comparisons)
-
-        Before 2.7 there were no separate methods for the individual rich
-        comparison operations. Instead there is a single method __richcmp__()
-        which takes an integer indicating which operation is to be performed,
-        as follows:
-        < 	0
-        == 2
-        > 	4
-        <=	1
-        !=	3
-        >=	5
-        """
-        if isinstance(other, self.__class__):
-
-            if op == 2:
-                if self.child != other.child:
-                    return False
-                elif self.parent != other.parent:
-                    return False
-                return self.values == other.values
-
-            elif op == 3:
-                if (self.child != other.child or
-                        self.parent != other.parent or self.values != other.values):
-                    return True
-                else:
-                    return False
-
-        return NotImplemented
-
     def __repr__(self) -> str:
         return "%s | %s in {%s}" % (self.child.name, self.parent.name,
                                     ", ".join(
@@ -618,47 +568,31 @@ cdef class AbstractConjunction(ConditionComponent):
                 raise ValueError("All Conjunctions and Conditions must have "
                                  "the same child.")
 
-    def __richcmp__(self, other: Any, int op):
+    def __eq__(self, other: Any) -> bool:
         """
-        Todo: With Cython 2.7 this function can be replaced by using the six
-              Python special methods (__eq__(), __lt__(),...).
-        (--> https://cython.readthedocs.io/en/latest/src/userguide/special_methods.html\
-        #rich-comparisons)
+        This method implements a comparison between self and another
+        object.
 
-        Before 2.7 there were no separate methods for the individual rich
-        comparison operations. Instead there is a single method __richcmp__()
-        which takes an integer indicating which operation is to be performed,
-        as follows:
-        < 	0
-        == 2
-        > 	4
-        <=	1
-        !=	3
-        >=	5
+        Additionally, it defines the __ne__() as stated in the
+        documentation from python:
+            By default, object implements __eq__() by using is, returning NotImplemented 
+            in the case of a false comparison: True if x is y else NotImplemented. 
+            For __ne__(), by default it delegates to __eq__() and inverts the result 
+            unless it is NotImplemented.
+
         """
-        if isinstance(other, self.__class__):
-            if len(self.components) != len(other.components):
-                if op == 2:
-                    return False
-                if op == 3:
-                    return True
-                else:
-                    return NotImplemented
+        if not isinstance(other, self.__class__):
+            return False
 
-            for component, other_component in \
-                    zip(self.components, other.components):
-                eq = component == other_component
-                if op == 2:
-                    if not eq:
-                        return False
-                elif op == 3:
-                    if eq:
-                        return False
-                else:
-                    raise NotImplemented
-            return True
+        if len(self.components) != len(other.components):
+            return False
 
-        return NotImplemented
+        for component, other_component in zip(self.components, other.components):
+            if (component != other_component):
+                return False
+
+        return True
+
 
     def __copy__(self):
         return self.__class__(*[copy.copy(comp) for comp in self.components])
