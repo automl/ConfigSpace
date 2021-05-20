@@ -868,7 +868,7 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
         if self.log:
             repr_str.write(", on log-scale")
         if self.q is not None:
-            repr_str.write(", Q: %s" % repr(np.int64(self.q)))
+            repr_str.write(", Q: %s" % repr(self.q))
         repr_str.seek(0)
         return repr_str.getvalue()
 
