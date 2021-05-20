@@ -408,7 +408,7 @@ cdef class IntegerHyperparameter(NumericalHyperparameter):
         except ValueError:
             return None
 
-    cpdef long _transform_scalar(self, double scalar):
+    cpdef long long _transform_scalar(self, double scalar):
         raise NotImplementedError()
 
     cpdef np.ndarray _transform_vector(self, np.ndarray vector):
@@ -900,7 +900,7 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
 
         return np.rint(vector)
 
-    cpdef long _transform_scalar(self, double scalar):
+    cpdef long long _transform_scalar(self, double scalar):
         scalar = self.ufhp._transform_scalar(scalar)
         if self.q is not None:
             scalar = round((scalar - self.lower) / self.q) * self.q + self.lower
@@ -1202,7 +1202,7 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
         vector = self.nfhp._transform_vector(vector)
         return np.rint(vector)
 
-    cpdef long _transform_scalar(self, double scalar):
+    cpdef long long _transform_scalar(self, double scalar):
         scalar = self.nfhp._transform_scalar(scalar)
         return int(round(scalar))
 
