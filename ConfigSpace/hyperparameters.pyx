@@ -970,8 +970,8 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
         neighbors = []  # type: List[int]
         cdef int sampled_neighbors = 0
         _neighbors_as_int = set()  # type: Set[int]
-        cdef long int_value = self._transform(value)
-        cdef long new_int_value = 0
+        cdef long long int_value = self._transform(value)
+        cdef long long new_int_value = 0
         cdef float new_value = 0.0
         cdef np.ndarray samples
         cdef double[:] samples_view
