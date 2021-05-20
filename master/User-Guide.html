@@ -3,15 +3,16 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
     <title>User Guide &#8212; ConfigSpace  documentation</title>
-    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="_static/bootstrap-sphinx.css" type="text/css" />
-    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/bootstrap-sphinx.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
     <script src="_static/doctools.js"></script>
-    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="API-Documentation" href="API-Doc.html" />
@@ -136,14 +137,14 @@
       </div>
     <div class="body col-md-9 content" role="main">
       
-  <div class="section" id="user-guide">
+  <section id="user-guide">
 <h1>User Guide<a class="headerlink" href="#user-guide" title="Permalink to this headline">¶</a></h1>
 <p>In this user guide, the concepts of using different hyperparameters, applying
 conditions and forbidden clauses to
 a configuration space are explained.</p>
 <p>These concepts will be introduced by defining a more complex configuration space
 for a support vector machine.</p>
-<div class="section" id="st-example-integer-hyperparameters-and-float-hyperparameters">
+<section id="st-example-integer-hyperparameters-and-float-hyperparameters">
 <h2>1st Example: Integer hyperparameters and float hyperparameters<a class="headerlink" href="#st-example-integer-hyperparameters-and-float-hyperparameters" title="Permalink to this headline">¶</a></h2>
 <p>Assume that we want to use a support vector machine (=SVM) for classification
 tasks and therefore, we want to optimize its hyperparameters:</p>
@@ -197,8 +198,8 @@ of a parameter can be accessed or modified similar to a python dictionary.</p>
 <span class="go">42</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="nd-example-categorical-hyperparameters-and-conditions">
+</section>
+<section id="nd-example-categorical-hyperparameters-and-conditions">
 <h2>2nd Example: Categorical hyperparameters and conditions<a class="headerlink" href="#nd-example-categorical-hyperparameters-and-conditions" title="Permalink to this headline">¶</a></h2>
 <p>The scikit-learn SVM supports different kernels, such as an RBF, a sigmoid,
 a linear or a polynomial kernel. We want to include them in the configuration space.
@@ -282,8 +283,8 @@ To read more about conditions, please take a look at the <a class="reference int
 Due to floating-point inaccuracy, it is very unlikely that the
 <a class="reference internal" href="API-Doc.html#ConfigSpace.conditions.EqualsCondition" title="ConfigSpace.conditions.EqualsCondition"><code class="xref py py-class docutils literal notranslate"><span class="pre">EqualsCondition</span></code></a> is evaluated to True.</p>
 </div>
-</div>
-<div class="section" id="rd-example-forbidden-clauses">
+</section>
+<section id="rd-example-forbidden-clauses">
 <h2>3rd Example: Forbidden clauses<a class="headerlink" href="#rd-example-forbidden-clauses" title="Permalink to this headline">¶</a></h2>
 <p>It may occur that some states in the configuration space are not allowed.
 ConfigSpace supports this functionality by offering <a class="reference internal" href="API-Doc.html#forbidden-clauses"><span class="std std-ref">Forbidden Clauses</span></a>.</p>
@@ -338,8 +339,8 @@ configuration space.</p>
 <span class="go">[(Forbidden: penalty == &#39;l1&#39; &amp;&amp; Forbidden: loss == &#39;hinge&#39;), ...]</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="th-example-serialization">
+</section>
+<section id="th-example-serialization">
 <h2>4th Example Serialization<a class="headerlink" href="#th-example-serialization" title="Permalink to this headline">¶</a></h2>
 <p>If you want to use the configuration space in another tool, such as
 <a class="reference external" href="https://github.com/automl/CAVE">CAVE</a>, it is useful to store it to file.
@@ -359,8 +360,8 @@ object as json file</p>
 <span class="gp">... </span>    <span class="n">restored_conf</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">json_string</span><span class="p">)</span>
 </pre></div>
 </div>
-</div>
-</div>
+</section>
+</section>
 
 
     </div>
@@ -382,7 +383,7 @@ object as json file</p>
     </p>
     <p>
         &copy; Copyright 2014-2021, Matthias Feurer, Katharina Eggensperger, Syed Mohsin Ali, Christina Hernandez Wunsch, Julien-Charles Levesque, Jost Tobias Springenberg, Philipp Mueller, Marius Lindauer, Jorn Tuyls.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.4.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.0.2.<br/>
     </p>
   </div>
 </footer>

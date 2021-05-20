@@ -5,9 +5,9 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ConfigSpace.read_and_write.pcs_new &#8212; ConfigSpace  documentation</title>
-    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
-    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/bootstrap-sphinx.css" />
+    <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
     <script src="../../../_static/jquery.js"></script>
     <script src="../../../_static/underscore.js"></script>
     <script src="../../../_static/doctools.js"></script>
@@ -190,8 +190,11 @@
 <span class="n">pp_e_notation</span> <span class="o">=</span> <span class="n">pyparsing</span><span class="o">.</span><span class="n">Combine</span><span class="p">(</span><span class="n">pp_floatorint</span> <span class="o">+</span> <span class="n">pp_eorE</span> <span class="o">+</span> <span class="n">pp_int</span><span class="p">)</span>
 <span class="n">pp_number</span> <span class="o">=</span> <span class="n">pp_e_notation</span> <span class="o">|</span> <span class="n">pp_float</span> <span class="o">|</span> <span class="n">pp_int</span>
 <span class="n">pp_numberorname</span> <span class="o">=</span> <span class="n">pp_number</span> <span class="o">|</span> <span class="n">pp_param_name</span>
-<span class="n">pp_log</span> <span class="o">=</span> <span class="n">pyparsing</span><span class="o">.</span><span class="n">Word</span><span class="p">(</span><span class="s2">&quot;log&quot;</span><span class="p">)</span>
-<span class="n">pp_connective</span> <span class="o">=</span> <span class="n">pyparsing</span><span class="o">.</span><span class="n">Word</span><span class="p">(</span><span class="s2">&quot;||&quot;</span> <span class="o">+</span> <span class="s2">&quot;&amp;&amp;&quot;</span><span class="p">)</span>
+<span class="n">pp_log</span> <span class="o">=</span> <span class="n">pyparsing</span><span class="o">.</span><span class="n">Literal</span><span class="p">(</span><span class="s2">&quot;log&quot;</span><span class="p">)</span>
+<span class="c1"># A word matches each character as a set. So &amp;&amp; is processed as &amp;</span>
+<span class="c1"># https://pythonhosted.org/pyparsing/pyparsing.Word-class.html</span>
+<span class="n">pp_connectiveOR</span> <span class="o">=</span> <span class="n">pyparsing</span><span class="o">.</span><span class="n">Literal</span><span class="p">(</span><span class="s2">&quot;||&quot;</span><span class="p">)</span>
+<span class="n">pp_connectiveAND</span> <span class="o">=</span> <span class="n">pyparsing</span><span class="o">.</span><span class="n">Literal</span><span class="p">(</span><span class="s2">&quot;&amp;&amp;&quot;</span><span class="p">)</span>
 <span class="n">pp_choices</span> <span class="o">=</span> <span class="n">pp_param_name</span> <span class="o">+</span> <span class="n">pyparsing</span><span class="o">.</span><span class="n">Optional</span><span class="p">(</span><span class="n">pyparsing</span><span class="o">.</span><span class="n">OneOrMore</span><span class="p">(</span><span class="s2">&quot;,&quot;</span> <span class="o">+</span> <span class="n">pp_param_name</span><span class="p">))</span>
 <span class="n">pp_sequence</span> <span class="o">=</span> <span class="n">pp_param_name</span> <span class="o">+</span> <span class="n">pyparsing</span><span class="o">.</span><span class="n">Optional</span><span class="p">(</span><span class="n">pyparsing</span><span class="o">.</span><span class="n">OneOrMore</span><span class="p">(</span><span class="s2">&quot;,&quot;</span> <span class="o">+</span> <span class="n">pp_param_name</span><span class="p">))</span>
 <span class="n">pp_ord_param</span> <span class="o">=</span> <span class="n">pp_param_name</span> <span class="o">+</span> <span class="n">pp_param_type</span> <span class="o">+</span> <span class="s2">&quot;{&quot;</span> <span class="o">+</span> <span class="n">pp_sequence</span> <span class="o">+</span> <span class="s2">&quot;}&quot;</span> <span class="o">+</span> <span class="s2">&quot;[&quot;</span> <span class="o">+</span> <span class="n">pp_param_name</span> <span class="o">+</span> <span class="s2">&quot;]&quot;</span>
@@ -204,7 +207,7 @@
     <span class="n">pyparsing</span><span class="o">.</span><span class="n">Optional</span><span class="p">(</span><span class="s1">&#39;{&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">pp_param_val</span> <span class="o">+</span> <span class="n">pyparsing</span><span class="o">.</span><span class="n">Optional</span><span class="p">(</span><span class="s1">&#39;}&#39;</span><span class="p">)</span> <span class="o">+</span> \
     <span class="n">pyparsing</span><span class="o">.</span><span class="n">Optional</span><span class="p">(</span>
         <span class="n">pyparsing</span><span class="o">.</span><span class="n">OneOrMore</span><span class="p">(</span>
-            <span class="n">pp_connective</span> <span class="o">+</span> <span class="n">pp_param_name</span> <span class="o">+</span> <span class="n">pp_param_operation</span>
+            <span class="p">(</span><span class="n">pp_connectiveAND</span> <span class="o">|</span> <span class="n">pp_connectiveOR</span><span class="p">)</span> <span class="o">+</span> <span class="n">pp_param_name</span> <span class="o">+</span> <span class="n">pp_param_operation</span>
             <span class="o">+</span> <span class="n">pyparsing</span><span class="o">.</span><span class="n">Optional</span><span class="p">(</span><span class="s1">&#39;{&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">pp_param_val</span> <span class="o">+</span> <span class="n">pyparsing</span><span class="o">.</span><span class="n">Optional</span><span class="p">(</span><span class="s1">&#39;}&#39;</span><span class="p">)</span>
         <span class="p">)</span>
     <span class="p">)</span>
@@ -767,7 +770,7 @@
     </p>
     <p>
         &copy; Copyright 2014-2021, Matthias Feurer, Katharina Eggensperger, Syed Mohsin Ali, Christina Hernandez Wunsch, Julien-Charles Levesque, Jost Tobias Springenberg, Philipp Mueller, Marius Lindauer, Jorn Tuyls.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.4.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.0.2.<br/>
     </p>
   </div>
 </footer>
