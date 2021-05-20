@@ -37,15 +37,6 @@ from typing import List, Any, Dict, Union, Set, Tuple, Optional
 import numpy as np
 cimport numpy as np
 
-# We now need to fix a datatype for our arrays. I've used the variable
-# DTYPE for this, which is assigned to the usual NumPy runtime
-# type info object.
-# DTYPE = np.float
-# "ctypedef" assigns a corresponding compile-time type to DTYPE_t. For
-# every type in the numpy module there's a corresponding compile-time
-# type with a _t-suffix.
-# ctypedef np.float_t DTYPE_t
-
 
 cdef class Hyperparameter(object):
 
@@ -877,7 +868,7 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
         if self.log:
             repr_str.write(", on log-scale")
         if self.q is not None:
-            repr_str.write(", Q: %s" % repr(np.int(self.q)))
+            repr_str.write(", Q: %s" % repr(self.q))
         repr_str.seek(0)
         return repr_str.getvalue()
 
@@ -913,7 +904,7 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
         return self.ufhp._inverse_transform(vector)
 
     def is_legal(self, value: int) -> bool:
-        if not (isinstance(value, (int, np.int, np.int32, np.int64))):
+        if not (isinstance(value, (int, np.int32, np.int64))):
             return False
         elif self.upper >= value >= self.lower:
             return True
@@ -1174,7 +1165,7 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
                                             q=self.q, log=self.log)
 
     def is_legal(self, value: int) -> bool:
-        return isinstance(value, (int, np.int, np.int32, np.int64))
+        return isinstance(value, (int, np.int32, np.int64))
 
     cpdef bint is_legal_vector(self, DTYPE_t value):
         return isinstance(value, float) or isinstance(value, int)
