@@ -1105,3 +1105,36 @@ class TestHyperparameters(unittest.TestCase):
         f1.rvs(random_state=np.random)
         f1.rvs(random_state=np.random.default_rng(1))
         self.assertRaises(ValueError, f1.rvs, 1, "a")
+
+    def test_hyperparam_representation(self):
+        # Float
+        f1 = UniformFloatHyperparameter("param", 1, 100, log=True)
+        self.assertEqual(
+            "param, Type: UniformFloat, Range: [1.0, 100.0], Default: 10.0, on log-scale",
+            repr(f1)
+        )
+        f2 = NormalFloatHyperparameter("param", 8, 99.1, log=False)
+        self.assertEqual(
+            "param, Type: NormalFloat, Mu: 8.0 Sigma: 99.1, Default: 8.0",
+            repr(f2)
+        )
+        i1 = UniformIntegerHyperparameter("param", 0, 100)
+        self.assertEqual(
+            "param, Type: UniformInteger, Range: [0, 100], Default: 50",
+            repr(i1)
+        )
+        i2 = NormalIntegerHyperparameter("param", 5, 8)
+        self.assertEqual(
+            "param, Type: NormalInteger, Mu: 5 Sigma: 8, Default: 5",
+            repr(i2)
+        )
+        o1 = OrdinalHyperparameter("temp", ["freezing", "cold", "warm", "hot"])
+        self.assertEqual(
+            "temp, Type: Ordinal, Sequence: {freezing, cold, warm, hot}, Default: freezing",
+            repr(o1)
+        )
+        c1 = CategoricalHyperparameter("param", [True, False])
+        self.assertEqual(
+            "param, Type: Categorical, Choices: {True, False}, Default: True",
+            repr(c1)
+        )
