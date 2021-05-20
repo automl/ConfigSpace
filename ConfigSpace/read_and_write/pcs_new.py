@@ -66,7 +66,8 @@ pp_numberorname = pp_number | pp_param_name
 pp_log = pyparsing.Literal("log")
 # A word matches each character as a set. So && is processed as &
 # https://pythonhosted.org/pyparsing/pyparsing.Word-class.html
-pp_connective = pyparsing.Word("|" + "&")
+pp_connectiveOR = pyparsing.Literal("||")
+pp_connectiveAND = pyparsing.Literal("&&")
 pp_choices = pp_param_name + pyparsing.Optional(pyparsing.OneOrMore("," + pp_param_name))
 pp_sequence = pp_param_name + pyparsing.Optional(pyparsing.OneOrMore("," + pp_param_name))
 pp_ord_param = pp_param_name + pp_param_type + "{" + pp_sequence + "}" + "[" + pp_param_name + "]"
@@ -79,7 +80,7 @@ pp_condition = pp_param_name + "|" + pp_param_name + pp_param_operation + \
     pyparsing.Optional('{') + pp_param_val + pyparsing.Optional('}') + \
     pyparsing.Optional(
         pyparsing.OneOrMore(
-            pp_connective + pp_param_name + pp_param_operation
+            (pp_connectiveAND | pp_connectiveOR) + pp_param_name + pp_param_operation
             + pyparsing.Optional('{') + pp_param_val + pyparsing.Optional('}')
         )
     )
