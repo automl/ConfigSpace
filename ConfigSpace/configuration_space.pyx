@@ -1416,7 +1416,7 @@ class Configuration(object):
 
             self._query_values = True
             self._vector = np.ndarray((self._num_hyperparameters,),
-                                      dtype=np.float)
+                                      dtype=float)
 
             # Populate the vector
             # TODO very unintuitive calls...

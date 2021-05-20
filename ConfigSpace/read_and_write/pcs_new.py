@@ -64,7 +64,9 @@ pp_e_notation = pyparsing.Combine(pp_floatorint + pp_eorE + pp_int)
 pp_number = pp_e_notation | pp_float | pp_int
 pp_numberorname = pp_number | pp_param_name
 pp_log = pyparsing.Word("log")
-pp_connective = pyparsing.Word("||" + "&&")
+# A word matches each character as a set. So && is processed as &
+# https://pythonhosted.org/pyparsing/pyparsing.Word-class.html
+pp_connective = pyparsing.Word("|" + "&")
 pp_choices = pp_param_name + pyparsing.Optional(pyparsing.OneOrMore("," + pp_param_name))
 pp_sequence = pp_param_name + pyparsing.Optional(pyparsing.OneOrMore("," + pp_param_name))
 pp_ord_param = pp_param_name + pp_param_type + "{" + pp_sequence + "}" + "[" + pp_param_name + "]"
