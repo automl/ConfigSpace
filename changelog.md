@@ -1,3 +1,11 @@
+# Version 0.4.19
+
+* ADD #184: Wheels.
+* FIX #176: copy meta field in `add_configuration_space`
+* MAINT #181: Run Flake8 on Cython code
+* MAINT #182: Replace rich comparisons by `__eq__` in Cython code
+* MAINT #183: Cleanup warnings.
+
 # Version 0.4.18
 
 * ADD #164: New method `rvs` for hyperparameters to allow them being used with scikit-learn's
