@@ -399,7 +399,7 @@ cdef class IntegerHyperparameter(NumericalHyperparameter):
         except ValueError:
             return None
 
-    cpdef long _transform_scalar(self, double scalar):
+    cpdef long long _transform_scalar(self, double scalar):
         raise NotImplementedError()
 
     cpdef np.ndarray _transform_vector(self, np.ndarray vector):
@@ -891,7 +891,7 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
 
         return np.rint(vector)
 
-    cpdef long _transform_scalar(self, double scalar):
+    cpdef long long _transform_scalar(self, double scalar):
         scalar = self.ufhp._transform_scalar(scalar)
         if self.q is not None:
             scalar = round((scalar - self.lower) / self.q) * self.q + self.lower
@@ -961,8 +961,8 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
         neighbors = []  # type: List[int]
         cdef int sampled_neighbors = 0
         _neighbors_as_int = set()  # type: Set[int]
-        cdef long int_value = self._transform(value)
-        cdef long new_int_value = 0
+        cdef long long int_value = self._transform(value)
+        cdef long long new_int_value = 0
         cdef float new_value = 0.0
         cdef np.ndarray samples
         cdef double[:] samples_view
@@ -1193,7 +1193,7 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
         vector = self.nfhp._transform_vector(vector)
         return np.rint(vector)
 
-    cpdef long _transform_scalar(self, double scalar):
+    cpdef long long _transform_scalar(self, double scalar):
         scalar = self.nfhp._transform_scalar(scalar)
         return int(round(scalar))
 

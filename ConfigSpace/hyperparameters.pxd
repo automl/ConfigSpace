@@ -33,7 +33,7 @@ cdef class NumericalHyperparameter(Hyperparameter):
 
 cdef class IntegerHyperparameter(NumericalHyperparameter):
     cdef ufhp
-    cpdef long _transform_scalar(self, double scalar)
+    cpdef long long _transform_scalar(self, double scalar)
     cpdef np.ndarray _transform_vector(self, np.ndarray vector)
 
 cdef class FloatHyperparameter(NumericalHyperparameter):
