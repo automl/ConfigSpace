@@ -51,9 +51,8 @@ AUTHOR_EMAIL = 'feurerm@informatik.uni-freiburg.de'
 TEST_SUITE = "pytest"
 SETUP_REQS = ['numpy', 'cython']
 INSTALL_REQS = ['numpy', 'cython', 'pyparsing']
-MIN_PYTHON_VERSION = '>=3.6'
-CLASSIFIERS = ['Programming Language :: Python :: 3.6',
-               'Programming Language :: Python :: 3.7',
+MIN_PYTHON_VERSION = '>=3.7'
+CLASSIFIERS = ['Programming Language :: Python :: 3.7',
                'Programming Language :: Python :: 3.8',
                'Programming Language :: Python :: 3.9',
                'Development Status :: 4 - Beta',
