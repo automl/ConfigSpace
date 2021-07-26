@@ -433,7 +433,7 @@ cdef class UniformFloatHyperparameter(FloatHyperparameter):
         ----------
         name : str
             Name of the hyperparameter, with which it can be accessed
-        lower : int, floor
+        lower : int, float
             Lower bound of a range of values from which the hyperparameter will be sampled
         upper : int, float
             Upper bound
@@ -635,6 +635,10 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
         ----------
         name : str
             Name of the hyperparameter, with which it can be accessed
+        lower : int, float
+            Lower bound of a range of values from which the hyperparameter will be sampled
+        upper : int, float
+            Upper bound
         mu : int, float
             Mean of the distribution
         sigma : int, float
