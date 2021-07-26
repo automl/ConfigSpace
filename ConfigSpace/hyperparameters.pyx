@@ -35,6 +35,7 @@ from collections import OrderedDict, Counter
 from typing import List, Any, Dict, Union, Set, Tuple, Optional
 
 import numpy as np
+from scipy.stats import truncnorm
 cimport numpy as np
 
 
@@ -610,6 +611,8 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
     def __init__(self, name: str, mu: Union[int, float], sigma: Union[int, float],
                  default_value: Union[None, float] = None,
                  q: Union[int, float, None] = None, log: bool = False,
+                 lower: Union[int, None] = None,
+                 upper: Union[int, None] = None,
                  meta: Optional[Dict] = None) -> None:
         r"""
         A float hyperparameter.
@@ -655,6 +658,47 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
         self.default_value = self.check_default(default_value)
         self.normalized_default_value = self._inverse_transform(self.default_value)
 
+        if lower is not None and upper is not None:
+            self.lower = float(lower)
+            self.upper = float(upper)
+
+            if self.lower >= self.upper:
+                raise ValueError("Upper bound %f must be larger than lower bound "
+                                "%f for hyperparameter %s" %
+                                (self.upper, self.lower, name))
+            elif log and self.lower <= 0:
+                raise ValueError("Negative lower bound (%f) for log-scale "
+                                "hyperparameter %s is forbidden." %
+                                (self.lower, name))
+
+            self.default_value = self.check_default(default_value)
+
+            if self.log:
+                if self.q is not None:
+                    lower = self.lower - (np.float64(self.q) / 2. + 0.0001)
+                    upper = self.upper + (np.float64(self.q) / 2. - 0.0001)
+                else:
+                    lower = self.lower
+                    upper = self.upper
+                self._lower = np.log(lower)
+                self._upper = np.log(upper)
+            else:
+                if self.q is not None:
+                    self._lower = self.lower - (self.q / 2. + 0.0001)
+                    self._upper = self.upper + (self.q / 2. - 0.0001)
+                else:
+                    self._lower = self.lower
+                    self._upper = self.upper
+            if self.q is not None:
+                # There can be weird rounding errors, so we compare the result against self.q, see
+                # In [13]: 2.4 % 0.2
+                # Out[13]: 0.1999999999999998
+                if np.round((self.upper - self.lower) % self.q, 10) not in (0, self.q):
+                    raise ValueError(
+                        'Upper bound (%f) - lower bound (%f) must be a multiple of q (%f)'
+                        % (self.upper, self.lower, self.q)
+                    )
+
     def __repr__(self) -> str:
         repr_str = io.StringIO()
         repr_str.write("%s, Type: NormalFloat, Mu: %s Sigma: %s, Default: %s" %
@@ -689,7 +733,9 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
             self.mu == other.mu and
             self.sigma == other.sigma and
             self.log == other.log and
-            self.q == other.q
+            self.q == other.q and 
+            self.lower == other.lower and 
+            self.upper == other.upper
         )
 
     def __copy__(self):
@@ -700,6 +746,8 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
             sigma=self.sigma,
             log=self.log,
             q=self.q,
+            lower=self.lower, 
+            upper=self.upper,
             meta=self.meta
         )
 
@@ -707,9 +755,16 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
         return hash((self.name, self.mu, self.sigma, self.log, self.q))
 
     def to_uniform(self, z: int = 3) -> 'UniformFloatHyperparameter':
+        if self.lower is not None and self.upper is not None: 
+            lb = self.mu - (z * self.sigma)
+            ub = self.mu + (z * self.sigma)
+        else:
+            lb = self.lower
+            ub = self.upper
+
         return UniformFloatHyperparameter(self.name,
-                                          self.mu - (z * self.sigma),
-                                          self.mu + (z * self.sigma),
+                                          lb,
+                                          ub,
                                           default_value=int(
                                               np.round(self.default_value, 0)),
                                           q=self.q, log=self.log)
@@ -740,9 +795,19 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
 
     def _sample(self, rs: np.random.RandomState, size: Optional[int] = None
                 ) -> Union[np.ndarray, float]:
-        mu = self.mu
-        sigma = self.sigma
-        return rs.normal(mu, sigma, size=size)
+        
+        if self.lower == None:
+            mu = self.mu
+            sigma = self.sigma
+            return rs.normal(mu, sigma, size=size)
+        else:
+            mu = self.mu
+            sigma = self.sigma
+            lower = self.lower
+            upper = self.upper
+            a = (self.lower - mu) / sigma
+            b = (upper - mu) / sigma
+            return truncnorm.rvs(a, b, loc=mu, scale=sigma, size=size, random_state=rs)
 
     cpdef np.ndarray _transform_vector(self, np.ndarray vector):
         if np.isnan(vector).any():
@@ -1037,6 +1102,8 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
     def __init__(self, name: str, mu: int, sigma: Union[int, float],
                  default_value: Union[int, None] = None, q: Union[None, int] = None,
                  log: bool = False,
+                 lower: Union[int, None] = None,
+                 upper: Union[int, None] = None,
                  meta: Optional[Dict] = None) -> None:
         r"""
         An integer hyperparameter.
@@ -1077,6 +1144,7 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
 
         """
         super(NormalIntegerHyperparameter, self).__init__(name, default_value, meta)
+        
         self.mu = mu
         self.sigma = sigma
 
@@ -1097,11 +1165,28 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
 
         self.default_value = self.check_default(default_value)
 
+        if lower is not None and upper is not None:
+            self.upper = self.check_int(upper, "upper")
+            self.lower = self.check_int(lower, "lower")
+            if self.lower >= self.upper:
+                raise ValueError("Upper bound %d must be larger than lower bound "
+                                "%d for hyperparameter %s" %
+                                (self.lower, self.upper, name))
+            elif log and self.lower <= 0:
+                raise ValueError("Negative lower bound (%d) for log-scale "
+                                "hyperparameter %s is forbidden." %
+                                (self.lower, name))
+            self.lower = lower
+            self.upper = upper
+
+
         self.nfhp = NormalFloatHyperparameter(self.name,
                                               self.mu,
                                               self.sigma,
                                               log=self.log,
                                               q=self.q,
+                                              lower=self.lower,
+                                              upper=self.upper,
                                               default_value=self.default_value)
 
         self.normalized_default_value = self._inverse_transform(self.default_value)
@@ -1139,7 +1224,9 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
             self.mu == other.mu and
             self.sigma == other.sigma and
             self.log == other.log and
-            self.q == other.q
+            self.q == other.q and
+            self.lower == other.lower and 
+            self.upper == other.upper
         )
 
     def __hash__(self):
@@ -1153,6 +1240,8 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
             sigma=self.sigma,
             log=self.log,
             q=self.q,
+            lower=self.lower, 
+            upper=self.upper,
             meta=self.meta
         )
 
