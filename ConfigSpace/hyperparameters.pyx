@@ -705,8 +705,9 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
 
     def __repr__(self) -> str:
         repr_str = io.StringIO()
-        repr_str.write("%s, Type: NormalFloat, Mu: %s Sigma: %s, Default: %s" %
-                       (self.name, repr(self.mu), repr(self.sigma),
+
+        repr_str.write("%s, Type: NormalFloat, Range: [%s, %s], Mu: %s Sigma: %s, Default: %s" %
+                       (self.name, repr(self.lower), repr(self.upper), repr(self.mu), repr(self.sigma),
                         repr(self.default_value)))
         if self.log:
             repr_str.write(", on log-scale")
@@ -1130,6 +1131,10 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
         ----------
         name : str
             Name of the hyperparameter with which it can be accessed
+        lower : int
+            Lower bound of a range of values from which the hyperparameter will be sampled
+        upper : int
+            upper bound
         mu : int
             Mean of the distribution, from which hyperparameter is sampled
         sigma : int, float
@@ -1197,9 +1202,10 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
 
     def __repr__(self) -> str:
         repr_str = io.StringIO()
-        repr_str.write("%s, Type: NormalInteger, Mu: %s Sigma: %s, Default: "
-                       "%s" % (self.name, repr(self.mu),
+        repr_str.write("%s, Type: NormalInteger, Range: [%s, %s], Mu: %s Sigma: %s, Default: "
+                       "%s" % (self.name, repr(self.lower), repr(self.upper), repr(self.mu),
                                repr(self.sigma), repr(self.default_value)))
+
         if self.log:
             repr_str.write(", on log-scale")
         if self.q is not None:
