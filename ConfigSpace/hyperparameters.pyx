@@ -607,8 +607,6 @@ cdef class UniformFloatHyperparameter(FloatHyperparameter):
 cdef class NormalFloatHyperparameter(FloatHyperparameter):
     cdef public mu
     cdef public sigma
-    cdef public lower
-    cdef public upper
 
     def __init__(self, name: str, mu: Union[int, float], sigma: Union[int, float],
                  default_value: Union[None, float] = None,
@@ -1105,8 +1103,6 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
     cdef public mu
     cdef public sigma
     cdef nfhp
-    cdef public lower
-    cdef public upper
 
 
     def __init__(self, name: str, mu: int, sigma: Union[int, float],
