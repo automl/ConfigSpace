@@ -201,9 +201,9 @@ cdef class Constant(Hyperparameter):
 
         Additionally, it defines the __ne__() as stated in the
         documentation from python:
-            By default, object implements __eq__() by using is, returning NotImplemented 
-            in the case of a false comparison: True if x is y else NotImplemented. 
-            For __ne__(), by default it delegates to __eq__() and inverts the result 
+            By default, object implements __eq__() by using is, returning NotImplemented
+            in the case of a false comparison: True if x is y else NotImplemented.
+            For __ne__(), by default it delegates to __eq__() and inverts the result
             unless it is NotImplemented.
 
         """
@@ -299,9 +299,9 @@ cdef class NumericalHyperparameter(Hyperparameter):
 
         Additionally, it defines the __ne__() as stated in the
         documentation from python:
-            By default, object implements __eq__() by using is, returning NotImplemented 
-            in the case of a false comparison: True if x is y else NotImplemented. 
-            For __ne__(), by default it delegates to __eq__() and inverts the result 
+            By default, object implements __eq__() by using is, returning NotImplemented
+            in the case of a false comparison: True if x is y else NotImplemented.
+            For __ne__(), by default it delegates to __eq__() and inverts the result
             unless it is NotImplemented.
 
         """
@@ -607,6 +607,8 @@ cdef class UniformFloatHyperparameter(FloatHyperparameter):
 cdef class NormalFloatHyperparameter(FloatHyperparameter):
     cdef public mu
     cdef public sigma
+    cdef public lower
+    cdef public upper
 
     def __init__(self, name: str, mu: Union[int, float], sigma: Union[int, float],
                  default_value: Union[None, float] = None,
@@ -723,9 +725,9 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
 
         Additionally, it defines the __ne__() as stated in the
         documentation from python:
-            By default, object implements __eq__() by using is, returning NotImplemented 
-            in the case of a false comparison: True if x is y else NotImplemented. 
-            For __ne__(), by default it delegates to __eq__() and inverts the result 
+            By default, object implements __eq__() by using is, returning NotImplemented
+            in the case of a false comparison: True if x is y else NotImplemented.
+            For __ne__(), by default it delegates to __eq__() and inverts the result
             unless it is NotImplemented.
 
         """
@@ -738,8 +740,8 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
             self.mu == other.mu and
             self.sigma == other.sigma and
             self.log == other.log and
-            self.q == other.q and 
-            self.lower == other.lower and 
+            self.q == other.q and
+            self.lower == other.lower and
             self.upper == other.upper
         )
 
@@ -751,7 +753,7 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
             sigma=self.sigma,
             log=self.log,
             q=self.q,
-            lower=self.lower, 
+            lower=self.lower,
             upper=self.upper,
             meta=self.meta
         )
@@ -760,7 +762,7 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
         return hash((self.name, self.mu, self.sigma, self.log, self.q))
 
     def to_uniform(self, z: int = 3) -> 'UniformFloatHyperparameter':
-        if self.lower is not None and self.upper is not None: 
+        if self.lower is not None and self.upper is not None:
             lb = self.mu - (z * self.sigma)
             ub = self.mu + (z * self.sigma)
         else:
@@ -800,7 +802,7 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
 
     def _sample(self, rs: np.random.RandomState, size: Optional[int] = None
                 ) -> Union[np.ndarray, float]:
-        
+
         if self.lower == None:
             mu = self.mu
             sigma = self.sigma
@@ -1103,6 +1105,9 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
     cdef public mu
     cdef public sigma
     cdef nfhp
+    cdef public lower
+    cdef public upper
+
 
     def __init__(self, name: str, mu: int, sigma: Union[int, float],
                  default_value: Union[int, None] = None, q: Union[None, int] = None,
@@ -1153,7 +1158,7 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
 
         """
         super(NormalIntegerHyperparameter, self).__init__(name, default_value, meta)
-        
+
         self.mu = mu
         self.sigma = sigma
 
@@ -1220,9 +1225,9 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
 
         Additionally, it defines the __ne__() as stated in the
         documentation from python:
-            By default, object implements __eq__() by using is, returning NotImplemented 
-            in the case of a false comparison: True if x is y else NotImplemented. 
-            For __ne__(), by default it delegates to __eq__() and inverts the result 
+            By default, object implements __eq__() by using is, returning NotImplemented
+            in the case of a false comparison: True if x is y else NotImplemented.
+            For __ne__(), by default it delegates to __eq__() and inverts the result
             unless it is NotImplemented.
 
         """
@@ -1235,7 +1240,7 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
             self.sigma == other.sigma and
             self.log == other.log and
             self.q == other.q and
-            self.lower == other.lower and 
+            self.lower == other.lower and
             self.upper == other.upper
         )
 
@@ -1250,7 +1255,7 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
             sigma=self.sigma,
             log=self.log,
             q=self.q,
-            lower=self.lower, 
+            lower=self.lower,
             upper=self.upper,
             meta=self.meta
         )
@@ -1431,9 +1436,9 @@ cdef class CategoricalHyperparameter(Hyperparameter):
 
         Additionally, it defines the __ne__() as stated in the
         documentation from python:
-            By default, object implements __eq__() by using is, returning NotImplemented 
-            in the case of a false comparison: True if x is y else NotImplemented. 
-            For __ne__(), by default it delegates to __eq__() and inverts the result 
+            By default, object implements __eq__() by using is, returning NotImplemented
+            in the case of a false comparison: True if x is y else NotImplemented.
+            For __ne__(), by default it delegates to __eq__() and inverts the result
             unless it is NotImplemented.
 
         """
@@ -1687,9 +1692,9 @@ cdef class OrdinalHyperparameter(Hyperparameter):
 
         Additionally, it defines the __ne__() as stated in the
         documentation from python:
-            By default, object implements __eq__() by using is, returning NotImplemented 
-            in the case of a false comparison: True if x is y else NotImplemented. 
-            For __ne__(), by default it delegates to __eq__() and inverts the result 
+            By default, object implements __eq__() by using is, returning NotImplemented
+            in the case of a false comparison: True if x is y else NotImplemented.
+            For __ne__(), by default it delegates to __eq__() and inverts the result
             unless it is NotImplemented.
 
         """
