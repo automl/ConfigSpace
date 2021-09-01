@@ -771,6 +771,38 @@ class TestConfigurationSpace(unittest.TestCase):
         self.assertEqual("B", cs.get_hyperparameter("algo1_subspace:algo1_param1").default_value)
         self.assertEqual("Y", cs.get_hyperparameter("algo2_subspace:algo2_param1").default_value)
 
+    def test_acts_as_mapping(self):
+        """
+        Test that ConfigurationSpace can act as a mapping with iteration, 
+        indexing and items, values, keys.
+        """
+        cs = ConfigurationSpace()
+        names = [f"name{i}" for i in range(5)]
+        hyperparameters = [
+            UniformIntegerHyperparameter(name, 0, 10)
+            for name in names
+        ]
+        for hp in hyperparameters:
+            cs.add_hyperparameter(hp)
+
+        # Test indexing
+        assert cs['name3'] == hyperparameters[3]
+
+        # Test dict methods
+        assert list(cs.keys()) == names
+        assert list(cs.values()) == hyperparameters
+        assert list(cs.items()) == list(zip(names, hyperparameters))
+        assert len(cs) == 5
+
+        # Test __iter__
+        assert list(iter(cs)) == names
+
+        # Test unpacking
+        d = {**cs}
+        assert list(d.keys()) == names
+        assert list(d.values()) == hyperparameters
+        assert list(d.items()) == list(zip(names, hyperparameters))
+        assert len(d) == 5
 
 class ConfigurationTest(unittest.TestCase):
     def setUp(self):
@@ -927,6 +959,47 @@ class ConfigurationTest(unittest.TestCase):
         for i in range(10):
             config = cs.sample_configuration()
             {hp_name: config[hp_name] for hp_name in config if config[hp_name] is not None}
+
+    def test_acts_as_mapping(self):
+        """
+        This tests checks that a Configuration can be used as a a dictionary by
+        checking indexing[], iteration ..., items, keys
+        """
+        names = ['parent', 'child', 'friend']
+        values = [1, 2, 3]
+        values_dict = dict(zip(names, values))
+
+        config = Configuration(self.cs, values=values_dict)
+
+        # Test indexing
+        assert (
+            config['parent'] == values_dict['parent']
+            and config['child'] == values_dict['child']
+        )
+
+        # Test dict methods
+        assert set(config.keys()) == set(names)
+        assert set(config.values()) == set(values)
+        assert set(config.items()) == set(values_dict.items())
+        assert len(config) == 3
+
+        # Test __iter__
+        assert set(iter(config)) == set(names)
+
+        # Test unpacking
+        d = {**config}
+        assert d == values_dict
+
+    def test_order_of_hyperparameters_is_same_as_config_space(self):
+        """
+        Test the keys respect the contract that they follow the same order that
+        is present in the ConfigurationSpace.
+        """
+        # Deliberatily different values
+        config = Configuration(self.cs, values={
+            'child': 2, 'parent': 1, 'friend': 3
+        })
+        assert config.keys() == list(self.cs.keys())
 
     def test_multi_sample_quantized_uihp(self):
         # This unit test covers a problem with sampling multiple entries at a time from a

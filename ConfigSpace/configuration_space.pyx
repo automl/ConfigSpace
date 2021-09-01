@@ -28,6 +28,7 @@
 
 # cython: language_level=3
 
+import collections.abc
 from collections import defaultdict, deque, OrderedDict
 import copy
 from itertools import chain
@@ -52,12 +53,14 @@ from ConfigSpace.forbidden import (
     AbstractForbiddenClause,
     AbstractForbiddenConjunction,
 )
-from typing import Union, List, Any, Dict, Iterable, Set, Tuple, Optional
+from typing import (
+    Union, List, Any, Dict, Iterable, Set, Tuple, Optional, KeysView
+)
 from ConfigSpace.exceptions import ForbiddenValueError
 import ConfigSpace.c_util
 
 
-class ConfigurationSpace(object):
+class ConfigurationSpace(collections.abc.Mapping):
 
     # TODO add a method to add whole configuration spaces as a child "tree"
 
@@ -744,6 +747,9 @@ class ConfigurationSpace(object):
         """
         return list(self._hyperparameters.keys())
 
+    def __getitem__(self, key: str) -> Hyperparameter:
+        return self._hyperparameters[key]
+
     def get_hyperparameter(self, name: str) -> Hyperparameter:
         """
         Gives the hyperparameter from the configuration space given its name.
@@ -1229,6 +1235,12 @@ class ConfigurationSpace(object):
         """ Allows to iterate over the hyperparameter names in (hopefully?) the right order."""
         return iter(self._hyperparameters.keys())
 
+    def keys(self) -> KeysView[str]:
+        return self._hyperparameters.keys()
+
+    def __len__(self) -> int:
+        return len(self._hyperparameters)
+
     def sample_configuration(self, size: int = 1) -> Union['Configuration', List['Configuration']]:
         """
         Sample ``size`` configurations from the configuration space object.
@@ -1330,7 +1342,7 @@ class ConfigurationSpace(object):
         self.random = np.random.RandomState(seed)
 
 
-class Configuration(object):
+class Configuration(collections.abc.Mapping):
     def __init__(self, configuration_space: ConfigurationSpace,
                  values: Union[None,  Dict[str, Union[str, float, int]]] = None,
                  vector: Union[None, np.ndarray] = None,
@@ -1581,6 +1593,9 @@ class Configuration(object):
 
     def __iter__(self) -> Iterable:
         return iter(self.keys())
+
+    def __len__(self) -> int:
+        return len(self.configuration_space)
 
     def keys(self) -> List[str]:
         """
