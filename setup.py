@@ -94,7 +94,6 @@ extras_reqs = {
         "mypy",
         "pre-commit",
         "pytest-cov",
-        'flake8-per-file-ignores',
     ],
     "docs": ["sphinx", "sphinx-gallery", "sphinx_bootstrap_theme", "numpydoc"],
 }

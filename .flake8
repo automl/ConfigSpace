@@ -8,6 +8,4 @@ exclude =
     build
     .eggs
     *.egg
-per-file-ignores =
-    */*.pyx: E225, E226, E251, E999
-    */*.pxd: E225, E226, E251, E999
+
