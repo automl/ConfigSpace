@@ -782,8 +782,7 @@ class TestConfigurationSpace(unittest.TestCase):
             UniformIntegerHyperparameter(name, 0, 10)
             for name in names
         ]
-        for hp in hyperparameters:
-            cs.add_hyperparameter(hp)
+        cs.add_hyperparameters(hyperparameters)
 
         # Test indexing
         assert cs['name3'] == hyperparameters[3]

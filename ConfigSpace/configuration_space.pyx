@@ -748,7 +748,7 @@ class ConfigurationSpace(collections.abc.Mapping):
         return list(self._hyperparameters.keys())
 
     def __getitem__(self, key: str) -> Hyperparameter:
-        return self._hyperparameters[key]
+        return self.get_hyperparameter(key)
 
     def get_hyperparameter(self, name: str) -> Hyperparameter:
         """
