@@ -773,7 +773,7 @@ class TestConfigurationSpace(unittest.TestCase):
 
     def test_acts_as_mapping(self):
         """
-        Test that ConfigurationSpace can act as a mapping with iteration, 
+        Test that ConfigurationSpace can act as a mapping with iteration,
         indexing and items, values, keys.
         """
         cs = ConfigurationSpace()
@@ -803,6 +803,7 @@ class TestConfigurationSpace(unittest.TestCase):
         assert list(d.values()) == hyperparameters
         assert list(d.items()) == list(zip(names, hyperparameters))
         assert len(d) == 5
+
 
 class ConfigurationTest(unittest.TestCase):
     def setUp(self):
