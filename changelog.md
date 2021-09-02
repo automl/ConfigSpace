@@ -1,3 +1,9 @@
+# Version 0.4.20
+
+* MAINT #185: Drop support for Python 3.6
+* FIX #190: Remove old files with old GPL-3.0 license
+* ADD #191: Configuration and ConfigurationSpace can now act as mappings
+
 # Version 0.4.19
 
 * ADD #184: Wheels.
