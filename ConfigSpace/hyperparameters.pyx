@@ -611,8 +611,8 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
     def __init__(self, name: str, mu: Union[int, float], sigma: Union[int, float],
                  default_value: Union[None, float] = None,
                  q: Union[int, float, None] = None, log: bool = False,
-                 lower: Union[int, None] = None,
-                 upper: Union[int, None] = None,
+                 lower: Optional[Union[float, int]] = None,
+                 upper: Optional[Union[float, int]] = None,
                  meta: Optional[Dict] = None) -> None:
         r"""
         A float hyperparameter.
@@ -635,10 +635,6 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
         ----------
         name : str
             Name of the hyperparameter, with which it can be accessed
-        lower : int, float
-            Lower bound of a range of values from which the hyperparameter will be sampled
-        upper : int, float
-            Upper bound
         mu : int, float
             Mean of the distribution
         sigma : int, float
@@ -650,6 +646,10 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
         log : bool, optional
             If ``True``, the values of the hyperparameter will be sampled
             on a logarithmic scale. Default to ``False``
+        lower : int, float, optional
+            Lower bound of a range of values from which the hyperparameter will be sampled
+        upper : int, float, optional
+            Upper bound of a range of values from which the hyperparameter will be sampled
         meta : Dict, optional
             Field for holding meta data provided by the user.
             Not used by the configuration space.
@@ -706,9 +706,11 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
     def __repr__(self) -> str:
         repr_str = io.StringIO()
 
-        repr_str.write("%s, Type: NormalFloat, Range: [%s, %s], Mu: %s Sigma: %s, Default: %s" %
-                       (self.name, repr(self.lower), repr(self.upper), repr(self.mu), repr(self.sigma),
-                        repr(self.default_value)))
+        if self.lower is None or self.upper is None:
+            repr_str.write("%s, Type: NormalFloat, Mu: %s Sigma: %s, Default: %s" % (self.name, repr(self.mu), repr(self.sigma), repr(self.default_value)))
+        else:
+            repr_str.write("%s, Type: NormalFloat, Mu: %s Sigma: %s, Range: [%s, %s], Default: %s" % (self.name, repr(self.mu), repr(self.sigma), repr(self.lower), repr(self.upper), repr(self.default_value)))
+
         if self.log:
             repr_str.write(", on log-scale")
         if self.q is not None:
@@ -760,7 +762,7 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
         return hash((self.name, self.mu, self.sigma, self.log, self.q))
 
     def to_uniform(self, z: int = 3) -> 'UniformFloatHyperparameter':
-        if self.lower is not None and self.upper is not None:
+        if self.lower is None or self.upper is None:
             lb = self.mu - (z * self.sigma)
             ub = self.mu + (z * self.sigma)
         else:
@@ -1108,8 +1110,8 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
     def __init__(self, name: str, mu: int, sigma: Union[int, float],
                  default_value: Union[int, None] = None, q: Union[None, int] = None,
                  log: bool = False,
-                 lower: Union[int, None] = None,
-                 upper: Union[int, None] = None,
+                 lower: Optional[int] = None,
+                 upper: Optional[int] = None,
                  meta: Optional[Dict] = None) -> None:
         r"""
         An integer hyperparameter.
@@ -1132,10 +1134,6 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
         ----------
         name : str
             Name of the hyperparameter with which it can be accessed
-        lower : int
-            Lower bound of a range of values from which the hyperparameter will be sampled
-        upper : int
-            upper bound
         mu : int
             Mean of the distribution, from which hyperparameter is sampled
         sigma : int, float
@@ -1148,6 +1146,10 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
         log : bool, optional
             If ``True``, the values of the hyperparameter will be sampled
             on a logarithmic scale. Defaults to ``False``
+        lower : int, float, optional
+            Lower bound of a range of values from which the hyperparameter will be sampled
+        upper : int, float, optional
+            Upper bound of a range of values from which the hyperparameter will be sampled
         meta : Dict, optional
             Field for holding meta data provided by the user.
             Not used by the configuration space.
@@ -1203,9 +1205,11 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
 
     def __repr__(self) -> str:
         repr_str = io.StringIO()
-        repr_str.write("%s, Type: NormalInteger, Range: [%s, %s], Mu: %s Sigma: %s, Default: "
-                       "%s" % (self.name, repr(self.lower), repr(self.upper), repr(self.mu),
-                               repr(self.sigma), repr(self.default_value)))
+
+        if self.lower is None or self.upper is None:
+            repr_str.write("%s, Type: NormalInteger, Mu: %s Sigma: %s, Default: %s" % (self.name, repr(self.mu), repr(self.sigma), repr(self.default_value)))
+        else:
+            repr_str.write("%s, Type: NormalInteger, Mu: %s Sigma: %s, Range: [%s, %s], Default: %s" % (self.name, repr(self.mu), repr(self.sigma), repr(self.lower), repr(self.upper), repr(self.default_value)))
 
         if self.log:
             repr_str.write(", on log-scale")
