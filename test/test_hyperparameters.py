@@ -204,6 +204,14 @@ class TestHyperparameters(unittest.TestCase):
         self.assertAlmostEqual(f1.default_value, 0.5)
         self.assertAlmostEqual(f1.normalized_default_value, 0.5)
 
+        # Test copy
+        copy_f1 = copy.copy(f1)
+
+        self.assertEqual(copy_f1.name, f1.name)
+        self.assertEqual(copy_f1.mu, f1.mu)
+        self.assertEqual(copy_f1.sigma, f1.sigma)
+        self.assertEqual(copy_f1.default_value, f1.default_value)
+
         f2 = NormalFloatHyperparameter("param", 0, 10, q=0.1)
         f2_ = NormalFloatHyperparameter("param", 0, 10, q=0.1)
         self.assertEqual(f2, f2_)
@@ -241,6 +249,12 @@ class TestHyperparameters(unittest.TestCase):
 
         with pytest.raises(ValueError):
             f6 = NormalFloatHyperparameter("param", 5, 10, lower=0.1, upper=0.1, default_value=5.0, q=0.1, log=True)
+
+        with pytest.raises(ValueError):
+            f6 = NormalFloatHyperparameter("param", 5, 10, lower=0.1, default_value=5.0, q=0.1, log=True)
+
+        with pytest.raises(ValueError):
+            f6 = NormalFloatHyperparameter("param", 5, 10, upper=0.1, default_value=5.0, q=0.1, log=True)
 
         f6 = NormalFloatHyperparameter("param", 5, 10, lower=0.1, upper=10, default_value=5.0, q=0.1, log=True)
         f6_ = NormalFloatHyperparameter("param", 5, 10, lower=0.1, upper=10, default_value=5.0, q=0.1, log=True)

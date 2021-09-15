@@ -662,6 +662,9 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
         self.default_value = self.check_default(default_value)
         self.normalized_default_value = self._inverse_transform(self.default_value)
 
+        if (lower is not None) ^ (upper is not None):
+            raise ValueError("Only one bound was provided when both lower and upper bounds must be provided.")
+
         if lower is not None and upper is not None:
             self.lower = float(lower)
             self.upper = float(upper)
@@ -1177,6 +1180,9 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
 
         self.default_value = self.check_default(default_value)
 
+        if (lower is not None) ^ (upper is not None):
+            raise ValueError("Only one bound was provided when both lower and upper bounds must be provided.")
+
         if lower is not None and upper is not None:
             self.upper = self.check_int(upper, "upper")
             self.lower = self.check_int(lower, "lower")
@@ -1262,9 +1268,16 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
 
     # todo check if conversion should be done in initiation call or inside class itsel
     def to_uniform(self, z: int = 3) -> 'UniformIntegerHyperparameter':
+        if self.lower is None or self.upper is None:
+            lb = np.round(int(self.mu - (z * self.sigma)))
+            ub = np.round(int(self.mu + (z * self.sigma)))
+        else:
+            lb = self.lower
+            ub = self.upper
+
         return UniformIntegerHyperparameter(self.name,
-                                            np.round(int(self.mu - (z * self.sigma))),
-                                            np.round(int(self.mu + (z * self.sigma))),
+                                            lb,
+                                            ub,
                                             default_value=self.default_value,
                                             q=self.q, log=self.log)
 
