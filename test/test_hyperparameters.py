@@ -195,7 +195,8 @@ class TestHyperparameters(unittest.TestCase):
             "param, Type: NormalFloat, Mu: 0.5 Sigma: 10.5, Default: 0.5",
             str(f1))
         self.assertEqual(f1.get_neighbors(0.5, rs=np.random.RandomState(42)),
-                         [5.715498606617943, -0.9517751622974389, 7.300729650057271, 16.491813492284265])
+                         [5.715498606617943, -0.9517751622974389, 7.300729650057271,
+                          16.491813492284265])
 
         # Test attributes are accessible
         self.assertEqual(f1.name, "param")
@@ -250,21 +251,27 @@ class TestHyperparameters(unittest.TestCase):
         self.assertNotEqual(f1, "UniformFloat")
 
         with pytest.raises(ValueError):
-            f6 = NormalFloatHyperparameter("param", 5, 10, lower=0.1, upper=0.1, default_value=5.0, q=0.1, log=True)
+            f6 = NormalFloatHyperparameter("param", 5, 10, lower=0.1, upper=0.1,
+                                           default_value=5.0, q=0.1, log=True)
 
         with pytest.raises(ValueError):
-            f6 = NormalFloatHyperparameter("param", 5, 10, lower=0.1, default_value=5.0, q=0.1, log=True)
+            f6 = NormalFloatHyperparameter("param", 5, 10, lower=0.1, default_value=5.0,
+                                           q=0.1, log=True)
 
         with pytest.raises(ValueError):
-            f6 = NormalFloatHyperparameter("param", 5, 10, upper=0.1, default_value=5.0, q=0.1, log=True)
+            f6 = NormalFloatHyperparameter("param", 5, 10, upper=0.1, default_value=5.0,
+                                           q=0.1, log=True)
 
-        f6 = NormalFloatHyperparameter("param", 5, 10, lower=0.1, upper=10, default_value=5.0, q=0.1, log=True)
-        f6_ = NormalFloatHyperparameter("param", 5, 10, lower=0.1, upper=10, default_value=5.0, q=0.1, log=True)
+        f6 = NormalFloatHyperparameter("param", 5, 10, lower=0.1, upper=10,
+                                       default_value=5.0, q=0.1, log=True)
+        f6_ = NormalFloatHyperparameter("param", 5, 10, lower=0.1, upper=10,
+                                        default_value=5.0, q=0.1, log=True)
         self.assertEqual(f6, f6_)
         self.assertEqual(
-            "param, Type: NormalFloat, Mu: 5.0 Sigma: 10.0, Range: [0.1, 10.0], Default: 5.0, on log-scale, Q: 0.1", str(f6))
+            "param, Type: NormalFloat, Mu: 5.0 Sigma: 10.0, Range: [0.1, 10.0], " +
+            "Default: 5.0, on log-scale, Q: 0.1", str(f6))
         self.assertEqual(f6.get_neighbors(5, rs=np.random.RandomState(42)),
-                    [9.967141530112327, 3.6173569882881536, 10.0, 10.0])
+                         [9.967141530112327, 3.6173569882881536, 10.0, 10.0])
 
         self.assertNotEqual(f1, f2)
         self.assertNotEqual(f1, "UniformFloat")
