@@ -849,7 +849,12 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
                       transform: bool = False) -> List[float]:
         neighbors = []
         for i in range(number):
-            neighbors.append(rs.normal(value, self.sigma))
+            new_value = rs.normal(value, self.sigma)
+
+            if self.lower is not None and self.upper is not None:
+                    new_value = min(max(new_value, self.lower), self.upper)
+
+            neighbors.append(new_value)
         return neighbors
 
 
@@ -1337,6 +1342,11 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
                 new_value = rs.normal(value, self.sigma)
                 int_value = self._transform(value)
                 new_int_value = self._transform(new_value)
+
+                if self.lower is not None and self.upper is not None:
+                    int_value = min(max(int_value, self.lower), self.upper)
+                    new_int_value = min(max(new_int_value, self.lower), self.upper)
+
                 if int_value != new_int_value:
                     rejected = False
                 elif iteration > 100000:
