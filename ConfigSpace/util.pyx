@@ -215,7 +215,7 @@ def get_one_exchange_neighbourhood(
                     # Only rigorously check every tenth configuration (
                     # because moving around in the neighborhood should
                     # just work!)
-                    if np.random.random() > 0.95:
+                    if random.random() > 0.95:
                         new_configuration.is_valid_configuration()
                     else:
                         configuration_space._check_forbidden(new_array)
