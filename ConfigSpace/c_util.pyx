@@ -284,25 +284,16 @@ cpdef np.ndarray change_hp_value(
 
     configuration_array[index] = hp_value
 
-    # Hyperparameters which are going to be set to inactive
-    disabled = []
-
     # Activate hyperparameters if their parent node got activated
     children = children_of[hp_name]
     if len(children) > 0:
         to_visit = deque()  # type: deque
         to_visit.extendleft(children)
-        visited = set()  # type: Set[str]
         activated_values = dict()  # type: Dict[str, Union[int, float, str]]
 
         while len(to_visit) > 0:
             current = to_visit.pop()
             current_name = current.name
-            if current_name in visited:
-                continue
-            visited.add(current_name)
-            if current_name in disabled:
-                continue
 
             current_idx = configuration_space._hyperparameter_idx[current_name]
             current_value = configuration_array[current_idx]
@@ -330,19 +321,6 @@ cpdef np.ndarray change_hp_value(
                 children = children_of[current_name]
 
                 if len(children) > 0:
-                    to_disable = set()
-                    for ch in children:
-                        to_disable.add(ch.name)
-                    while len(to_disable) > 0:
-                        child = to_disable.pop()
-                        child_idx = configuration_space._hyperparameter_idx[child]
-                        disabled.append(child_idx)
-                        children = children_of[child]
-
-                        for ch in children:
-                            to_disable.add(ch.name)
-
-    for idx in disabled:
-        configuration_array[idx] = NaN
+                    to_visit.extendleft(children)
 
     return configuration_array
