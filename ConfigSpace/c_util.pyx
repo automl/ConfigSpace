@@ -266,8 +266,6 @@ cpdef np.ndarray change_hp_value(
     """
     cdef Hyperparameter current
     cdef str current_name
-    cdef list disabled
-    cdef set visited
     cdef dict activated_values
     cdef int active
     cdef ConditionComponent condition
@@ -277,8 +275,6 @@ cpdef np.ndarray change_hp_value(
     cdef list children
     cdef list children_
     cdef Hyperparameter ch
-    cdef str child
-    cdef set to_disable
     cdef DTYPE_t NaN = np.NaN
     cdef dict children_of = configuration_space._children_of
 
