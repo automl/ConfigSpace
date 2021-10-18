@@ -834,6 +834,8 @@ hyperparameter is sampled</p></li>
 <li><p><strong>q</strong> (<em>int</em><em>, </em><em>optional</em>) – Quantization factor</p></li>
 <li><p><strong>log</strong> (<em>bool</em><em>, </em><em>optional</em>) – If <code class="docutils literal notranslate"><span class="pre">True</span></code>, the values of the hyperparameter will be sampled
 on a logarithmic scale. Defaults to <code class="docutils literal notranslate"><span class="pre">False</span></code></p></li>
+<li><p><strong>lower</strong> (<em>int</em><em>, </em><em>float</em><em>, </em><em>optional</em>) – Lower bound of a range of values from which the hyperparameter will be sampled</p></li>
+<li><p><strong>upper</strong> (<em>int</em><em>, </em><em>float</em><em>, </em><em>optional</em>) – Upper bound of a range of values from which the hyperparameter will be sampled</p></li>
 <li><p><strong>meta</strong> (<em>Dict</em><em>, </em><em>optional</em>) – Field for holding meta data provided by the user.
 Not used by the configuration space.</p></li>
 </ul>
@@ -864,7 +866,7 @@ from <code class="docutils literal notranslate"><span class="pre">lower</span></
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>name</strong> (<em>str</em>) – Name of the hyperparameter, with which it can be accessed</p></li>
-<li><p><strong>lower</strong> (<em>int</em><em>, </em><em>floor</em>) – Lower bound of a range of values from which the hyperparameter will be sampled</p></li>
+<li><p><strong>lower</strong> (<em>int</em><em>, </em><em>float</em>) – Lower bound of a range of values from which the hyperparameter will be sampled</p></li>
 <li><p><strong>upper</strong> (<em>int</em><em>, </em><em>float</em>) – Upper bound</p></li>
 <li><p><strong>default_value</strong> (<em>int</em><em>, </em><em>float</em><em>, </em><em>optional</em>) – Sets the default value of a hyperparameter to a given value</p></li>
 <li><p><strong>q</strong> (<em>int</em><em>, </em><em>float</em><em>, </em><em>optional</em>) – Quantization factor</p></li>
@@ -903,6 +905,8 @@ Not used by the configuration space.</p></li>
 <li><p><strong>q</strong> (<em>int</em><em>, </em><em>float</em><em>, </em><em>optional</em>) – Quantization factor</p></li>
 <li><p><strong>log</strong> (<em>bool</em><em>, </em><em>optional</em>) – If <code class="docutils literal notranslate"><span class="pre">True</span></code>, the values of the hyperparameter will be sampled
 on a logarithmic scale. Default to <code class="docutils literal notranslate"><span class="pre">False</span></code></p></li>
+<li><p><strong>lower</strong> (<em>int</em><em>, </em><em>float</em><em>, </em><em>optional</em>) – Lower bound of a range of values from which the hyperparameter will be sampled</p></li>
+<li><p><strong>upper</strong> (<em>int</em><em>, </em><em>float</em><em>, </em><em>optional</em>) – Upper bound of a range of values from which the hyperparameter will be sampled</p></li>
 <li><p><strong>meta</strong> (<em>Dict</em><em>, </em><em>optional</em>) – Field for holding meta data provided by the user.
 Not used by the configuration space.</p></li>
 </ul>
