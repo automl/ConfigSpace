@@ -467,7 +467,7 @@ cdef class UniformFloatHyperparameter(FloatHyperparameter):
 
         if self.log:
             if self.q is not None:
-                lower = self.lower - (np.float64(self.q) / 2. + 0.0001)
+                lower = self.lower - (np.float64(self.q) / 2. - 0.0001)
                 upper = self.upper + (np.float64(self.q) / 2. - 0.0001)
             else:
                 lower = self.lower
@@ -476,7 +476,7 @@ cdef class UniformFloatHyperparameter(FloatHyperparameter):
             self._upper = np.log(upper)
         else:
             if self.q is not None:
-                self._lower = self.lower - (self.q / 2. + 0.0001)
+                self._lower = self.lower - (self.q / 2. - 0.0001)
                 self._upper = self.upper + (self.q / 2. - 0.0001)
             else:
                 self._lower = self.lower
@@ -682,7 +682,7 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
 
             if self.log:
                 if self.q is not None:
-                    lower = self.lower - (np.float64(self.q) / 2. + 0.0001)
+                    lower = self.lower - (np.float64(self.q) / 2. - 0.0001)
                     upper = self.upper + (np.float64(self.q) / 2. - 0.0001)
                 else:
                     lower = self.lower
@@ -691,7 +691,7 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
                 self._upper = np.log(upper)
             else:
                 if self.q is not None:
-                    self._lower = self.lower - (self.q / 2. + 0.0001)
+                    self._lower = self.lower - (self.q / 2. - 0.0001)
                     self._upper = self.upper + (self.q / 2. - 0.0001)
                 else:
                     self._lower = self.lower
