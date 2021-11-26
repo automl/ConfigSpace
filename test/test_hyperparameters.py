@@ -646,9 +646,15 @@ class TestHyperparameters(unittest.TestCase):
 
         counts_per_bin = sample(hp)
         self.assertEqual(counts_per_bin,
-                         [24368, 15778, 0, 11633, 0, 0, 9508, 7869, 0, 0, 6757,
-                          0, 5918, 0, 5114, 4797, 0, 0, 4340, 0, 3918])
+                         [24359, 15781, 0, 11635, 0, 0, 9506, 7867, 0, 0, 6763,
+                          0, 5919, 0, 5114, 4798, 0, 0, 4339, 0, 3919])
         self.assertEqual(sample(hp), sample(hp))
+
+        # Issue #199
+        hp = UniformFloatHyperparameter('uni_float_q', lower=1e-4, upper=1e-1, q=1e-5, log=True)
+        self.assertTrue(np.isfinite(hp._lower))
+        self.assertTrue(np.isfinite(hp._upper))
+        sample(hp)
 
     def test_sample_NormalFloatHyperparameter(self):
         hp = NormalFloatHyperparameter("nfhp", 0, 1)
