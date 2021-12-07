@@ -35,7 +35,7 @@ from collections import OrderedDict, Counter
 from typing import List, Any, Dict, Union, Set, Tuple, Optional
 
 import numpy as np
-from scipy.stats import truncnorm
+from scipy.stats import truncnorm, beta, norm, betabinom
 cimport numpy as np
 
 
@@ -604,6 +604,7 @@ cdef class UniformFloatHyperparameter(FloatHyperparameter):
         return neighbors
 
 
+# TODO - implement a .pdf method here, and make sure the log case is properly considerec
 cdef class NormalFloatHyperparameter(FloatHyperparameter):
     cdef public mu
     cdef public sigma
@@ -857,7 +858,20 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
             neighbors.append(new_value)
         return neighbors
 
+    def pdf(self, vector: np.ndarray) -> np.ndarray:
+        mu = self.mu
+        sigma = self.sigma
+        if self.lower == None:
+            return norm(loc=mu, scale=sigma).pdf(vector)
+        else:
+            lower = self.lower
+            upper = self.upper
+            a = (lower - mu) / sigma
+            b = (upper - mu) / sigma
+            return truncnorm(a, b, loc=mu, scale=sigma).pdf(vector)
 
+
+# TODO - implement a .pdf method here, and make sure the log case is properly considered
 cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
     def __init__(self, name: str, lower: int, upper: int, default_value: Union[int, None] = None,
                  q: Union[int, None] = None, log: bool = False,
@@ -1109,6 +1123,8 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
         return neighbors
 
 
+
+# TODO - implement a .pdf method here, and make sure the log case is properly considerec
 cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
     cdef public mu
     cdef public sigma
@@ -1132,8 +1148,6 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
 
             >>> import ConfigSpace as CS
             >>> import ConfigSpace.hyperparameters as CSH
-            >>> cs = CS.ConfigurationSpace(seed=1)
-            >>> normal_int_hp = CSH.NormalIntegerHyperparameter(name='normal_int', mu=0,
             ...                                                 sigma=1, log=False)
             >>> cs.add_hyperparameter(normal_int_hp)
             normal_int, Type: NormalInteger, Mu: 0 Sigma: 1, Default: 0
@@ -1359,6 +1373,16 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
         return neighbors
 
 
+# and this one if for defining custom discrete distributions over some space 
+# with the combination of the two, you can design most reasonable probability distributions
+# TODO - implement
+cdef class BetaBinomialIntegerHyperparameter(NumericalHyperparameter):
+    def __init__(self, name: str, default_value: int, meta: Optional[Dict] = None) -> None:
+        super(IntegerHyperparameter, self).__init__(name, default_value, meta)
+        pass
+
+
+# TODO - implement .pdf method
 cdef class CategoricalHyperparameter(Hyperparameter):
     cdef public tuple choices
     cdef public tuple probabilities
@@ -1624,6 +1648,8 @@ cdef class CategoricalHyperparameter(Hyperparameter):
                          "<cdef class 'ConfigSpace.hyperparameters.CategoricalHyperparameter'>")
 
 
+
+# TODO - implement .pdf method
 cdef class OrdinalHyperparameter(Hyperparameter):
     cdef public tuple sequence
     cdef public int num_elements
@@ -1908,3 +1934,4 @@ cdef class OrdinalHyperparameter(Hyperparameter):
 
     def allow_greater_less_comparison(self) -> bool:
         return True
+
