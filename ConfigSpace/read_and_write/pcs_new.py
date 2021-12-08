@@ -421,11 +421,13 @@ def read(pcs_string, debug=False):
                         elif isinstance(hp, FloatHyperparameter):
                             forbidden_value = float(tmp_list[2])
                         if forbidden_value < hp.lower or forbidden_value > hp.upper:
-                            # TODO alternatively we could raise an warning and ignore this forbidden
-                            raise ValueError(f'forbidden_value is set out of the bound, it needs to be set between'
-                                             f'[{hp.lower}, {hp.upper}] but its value is {forbidden_value}')
+                            # TODO alternatively we could raise an warning and ignore this
+                            raise ValueError(f'forbidden_value is set out of the bound, it needs to'
+                                             f' be set between [{hp.lower}, {hp.upper}]'
+                                             f' but its value is {forbidden_value}')
                     elif isinstance(hp, (CategoricalHyperparameter, OrdinalHyperparameter)):
-                        hp_values = hp.choices if isinstance(hp, CategoricalHyperparameter) else hp.sequence
+                        hp_values = hp.choices if isinstance(hp, CategoricalHyperparameter)\
+                            else hp.sequence
                         forbidden_value_in_hp_values = False
                         for hp_value in hp_values:
                             if str(hp_value) == tmp_list[2]:
@@ -433,8 +435,9 @@ def read(pcs_string, debug=False):
                                 forbidden_value_in_hp_values = True
                                 break
                         if not forbidden_value_in_hp_values:
-                            raise ValueError(f'forbidden_value is set out of the bound, it needs to be set as'
-                                             f'one member of {hp_values}  but its value is {forbidden_value}')
+                            raise ValueError(f'forbidden_value is set out of the bound, it needs to'
+                                             f' be set as one member of {hp_values}'
+                                             f' but its value is {forbidden_value}')
                     else:
                         raise ValueError('Unsupported Hyperparamter sorts')
 
