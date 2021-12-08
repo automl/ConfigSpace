@@ -35,7 +35,7 @@ from collections import OrderedDict, Counter
 from typing import List, Any, Dict, Union, Set, Tuple, Optional
 
 import numpy as np
-from scipy.stats import truncnorm, beta, norm, betabinom
+from scipy.stats import truncnorm, beta as spbeta, norm, betabinom
 cimport numpy as np
 
 
@@ -603,6 +603,10 @@ cdef class UniformFloatHyperparameter(FloatHyperparameter):
                 neighbors.append(neighbor)
         return neighbors
 
+    def pdf(self, vector: np.ndarray) -> np.ndarray:
+        ub = self._upper
+        lb = self._lower
+        return np.ones_like(vector) / (ub - lb)
 
 # TODO - implement a .pdf method here, and make sure the log case is properly considerec
 cdef class NormalFloatHyperparameter(FloatHyperparameter):
@@ -789,7 +793,7 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
         else:
             raise ValueError("Illegal default value %s" % str(default_value))
 
-    def to_integer(self) -> 'NormalIntegerHyperparameter':
+    def to_integer(self) -> NormalIntegerHyperparameter:
         if self.q is None:
             q_int = None
         else:
@@ -818,6 +822,7 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
             upper = self.upper
             a = (self.lower - mu) / sigma
             b = (upper - mu) / sigma
+            
             return truncnorm.rvs(a, b, loc=mu, scale=sigma, size=size, random_state=rs)
 
     cpdef np.ndarray _transform_vector(self, np.ndarray vector):
@@ -869,6 +874,284 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
             a = (lower - mu) / sigma
             b = (upper - mu) / sigma
             return truncnorm(a, b, loc=mu, scale=sigma).pdf(vector)
+
+
+
+# and this one if for defining custom discrete distributions over some space 
+# with the combination of the two, you can design most reasonable probability distributions
+# TODO - implement
+cdef class BetaFloatHyperparameter(FloatHyperparameter):
+    cdef public alpha
+    cdef public beta
+
+    def __init__(self, name: str, alpha: Union[int, float], beta: Union[int, float],
+                 default_value: Union[None, float] = None,
+                 q: Union[int, float, None] = None, log: bool = False,
+                 lower: Optional[Union[float, int]] = None,
+                 upper: Optional[Union[float, int]] = None,
+                 meta: Optional[Dict] = None) -> None:
+        r"""
+        A float hyperparameter.
+
+        Its values are sampled from a beta distribution
+        :math:`Beta(\alpha, \beta)`.
+
+        Example
+        -------
+
+        >>> import ConfigSpace as CS
+        >>> import ConfigSpace.hyperparameters as CSH
+        >>> cs = CS.ConfigurationSpace(seed=1)
+        >>> normal_float_hp = CSH.BetaFloatHyperparameter('beta_float', alpha=3,
+        ...                                                 beta=1, log=False)
+        >>> cs.add_hyperparameter(beta_float_hp)
+        beta_float, Type: BetaFloat, Alpha: 3.0 beta: 1.0, Default: 0.5
+
+        Parameters
+        ----------
+        name : str
+            Name of the hyperparameter, with which it can be accessed
+        alpha : int, float
+            Alpha parameter of the normalized beta distribution
+        beta : int, float
+            Beta parameter of the normalized beta distribution
+        default_value : int, float, optional
+            Sets the default value of a hyperparameter to a given value
+        q : int, float, optional
+            Quantization factor
+        log : bool, optional
+            If ``True``, the values of the hyperparameter will be sampled
+            on a logarithmic scale. Default to ``False``
+        lower : int, float, optional
+            Lower bound of a range of values from which the hyperparameter will be sampled.
+            The Beta disribution gets scaled by the total range of the hyperparameter.
+        upper : int, float, optional
+            Upper bound of a range of values from which the hyperparameter will be sampled.
+            The Beta disribution gets scaled by the total range of the hyperparameter.
+        meta : Dict, optional
+            Field for holding meta data provided by the user.
+            Not used by the configuration space.
+        """
+        super(BetaFloatHyperparameter, self).__init__(name, default_value, meta)
+        self.alpha = float(alpha)
+        self.beta = float(beta)
+        self.q = float(q) if q is not None else None
+        self.log = bool(log)
+        self.default_value = self.check_default(default_value)
+        self.normalized_default_value = self._inverse_transform(self.default_value)
+
+        if (lower is not None) ^ (upper is not None):
+            raise ValueError("Only one bound was provided when both lower and upper bounds must be provided.")
+
+        if lower is not None and upper is not None:
+            self.lower = float(lower)
+            self.upper = float(upper)
+
+            if self.lower >= self.upper:
+                raise ValueError("Upper bound %f must be larger than lower bound "
+                                "%f for hyperparameter %s" %
+                                (self.upper, self.lower, name))
+            elif log and self.lower <= 0:
+                raise ValueError("Negative lower bound (%f) for log-scale "
+                                "hyperparameter %s is forbidden." %
+                                (self.lower, name))
+
+            self.default_value = self.check_default(default_value)
+
+            if self.log:
+                if self.q is not None:
+                    lower = self.lower - (np.float64(self.q) / 2. - 0.0001)
+                    upper = self.upper + (np.float64(self.q) / 2. - 0.0001)
+                else:
+                    lower = self.lower
+                    upper = self.upper
+                self._lower = np.log(lower)
+                self._upper = np.log(upper)
+            else:
+                if self.q is not None:
+                    self._lower = self.lower - (self.q / 2. - 0.0001)
+                    self._upper = self.upper + (self.q / 2. - 0.0001)
+                else:
+                    self._lower = self.lower
+                    self._upper = self.upper
+            if self.q is not None:
+                # There can be weird rounding errors, so we compare the result against self.q, see
+                # In [13]: 2.4 % 0.2
+                # Out[13]: 0.1999999999999998
+                if np.round((self.upper - self.lower) % self.q, 10) not in (0, self.q):
+                    raise ValueError(
+                        'Upper bound (%f) - lower bound (%f) must be a multiple of q (%f)'
+                        % (self.upper, self.lower, self.q)
+                    )
+
+    def __repr__(self) -> str:
+        repr_str = io.StringIO()
+        repr_str.write("%s, Type: BetaFloat, Alpha: %s Beta: %s, Range: [%s, %s], Default: %s" % (self.name, repr(self.alpha), repr(self.beta), repr(self.lower), repr(self.upper), repr(self.default_value)))
+
+        if self.log:
+            repr_str.write(", on log-scale")
+        if self.q is not None:
+            repr_str.write(", Q: %s" % str(self.q))
+        repr_str.seek(0)
+        return repr_str.getvalue()
+
+    def __eq__(self, other: Any) -> bool:
+        """
+        This method implements a comparison between self and another
+        object.
+
+        Additionally, it defines the __ne__() as stated in the
+        documentation from python:
+            By default, object implements __eq__() by using is, returning NotImplemented
+            in the case of a false comparison: True if x is y else NotImplemented.
+            For __ne__(), by default it delegates to __eq__() and inverts the result
+            unless it is NotImplemented.
+
+        """
+        if not isinstance(other, self.__class__):
+            return False
+
+        return (
+            self.name == other.name and
+            self.default_value == other.default_value and
+            self.alpha == other.alpha and
+            self.beta == other.beta and
+            self.log == other.log and
+            self.q == other.q and
+            self.lower == other.lower and
+            self.upper == other.upper
+        )
+
+    def __copy__(self):
+        return BetaFloatHyperparameter(
+            name=self.name,
+            default_value=self.default_value,
+            alpha=self.alpha,
+            beta=self.beta,
+            log=self.log,
+            q=self.q,
+            lower=self.lower,
+            upper=self.upper,
+            meta=self.meta
+        )
+
+    def __hash__(self):
+        return hash((self.name, self.alpha, self.beta, self.log, self.q))
+
+    def to_uniform(self) -> UniformFloatHyperparameter:
+        lb = self.lower
+        ub = self.upper
+
+        return UniformFloatHyperparameter(self.name,
+                                          lb,
+                                          ub,
+                                          default_value=self.default_value,
+                                          q=self.q, log=self.log)
+
+    def check_default(self, default_value: Union[int, float]) -> Union[int, float]:
+        # return mode as default
+        lb = self.lower
+        ub = self.upper
+        
+        if default_value is None:
+            if (self.alpha > 1) and (self.beta > 1):
+                return (self.alpha - 1) / (self.alpha + self.beta - 2)
+            elif self.alpha > self.beta:
+                return lb
+            elif self.alpha > self.beta:
+                return ub
+            else: 
+                return (ub - lb) / 2
+
+        elif self.is_legal(default_value):
+            return default_value
+        else:
+            raise ValueError("Illegal default value %s" % str(default_value))
+
+    def to_integer(self) -> BetaIntegerHyperparameter:
+        if self.q is None:
+            q_int = None
+        else:
+            q_int = int(self.q)
+        return BetaIntegerHyperparameter(self.name, int(self.mu), self.sigma,
+                                           default_value=int(np.round(self.default_value, 0)),
+                                           q=q_int, log=self.log)
+
+    def is_legal(self, value: Union[float]) -> bool:
+        return isinstance(value, float) or isinstance(value, int)
+
+    cpdef bint is_legal_vector(self, DTYPE_t value):
+        return isinstance(value, float) or isinstance(value, int)
+
+    def _sample(self, rs: np.random.RandomState, size: Optional[int] = None
+                ) -> Union[np.ndarray, float]:
+
+        if self.lower == None:
+            return ValueError('The beta hyperparameter must have both bounds specified.')
+        else:
+            alpha = self.alpha
+            beta = self.beta
+            lower = self.lower
+            upper = self.upper
+            return spbeta(alpha, beta, loc=lower, scale=upper-lower).rvs(size=size, random_state=rs)
+
+    cpdef np.ndarray _transform_vector(self, np.ndarray vector):
+        if np.isnan(vector).any():
+            raise ValueError('Vector %s contains NaN\'s' % vector)
+        if self.log:
+            vector = np.exp(vector)
+        if self.q is not None:
+            vector = np.rint(vector / self.q) * self.q
+        return vector
+
+    cpdef double _transform_scalar(self, double scalar):
+        if scalar != scalar:
+            raise ValueError('Number %s is NaN' % scalar)
+        if self.log:
+            scalar = math.exp(scalar)
+        if self.q is not None:
+            scalar = round(scalar / self.q) * self.q
+        return scalar
+
+    def _inverse_transform(self, vector: Optional[np.ndarray]) -> Union[float, np.ndarray]:
+        if vector is None:
+            return np.NaN
+
+        if self.log:
+            vector = np.log(vector)
+        return vector
+
+    def get_neighbors(
+        self,
+        value: Any,
+        rs: np.random.RandomState,
+        number: int = 4,
+        transform: bool = False,
+        std: float = 0.2
+    ) -> List[float]:
+        neighbors = []  # type: List[float]
+        while len(neighbors) < number:
+            neighbor = rs.normal(value, std)  # type: float
+            if neighbor < 0 or neighbor > 1:
+                continue
+            if transform:
+                neighbors.append(self._transform(neighbor))
+            else:
+                neighbors.append(neighbor)
+        return neighbors
+
+    def pdf(self, vector: np.ndarray) -> np.ndarray:
+        alpha = self.alpha
+        beta = self.beta
+        if self.lower == None:
+            return ValueError('The beta hyperparameter must have both bounds specified.')
+        else:
+            lower = self.lower
+            upper = self.upper
+            return spbeta(alpha, beta, loc=lower, scale=upper-lower).pdf(vector)
+
+    
+
 
 
 # TODO - implement a .pdf method here, and make sure the log case is properly considered
@@ -1376,7 +1659,7 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
 # and this one if for defining custom discrete distributions over some space 
 # with the combination of the two, you can design most reasonable probability distributions
 # TODO - implement
-cdef class BetaBinomialIntegerHyperparameter(NumericalHyperparameter):
+cdef class BetaIntegerHyperparameter(NumericalHyperparameter):
     def __init__(self, name: str, default_value: int, meta: Optional[Dict] = None) -> None:
         super(IntegerHyperparameter, self).__init__(name, default_value, meta)
         pass
