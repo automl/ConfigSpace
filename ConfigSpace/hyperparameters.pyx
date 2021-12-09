@@ -151,6 +151,9 @@ cdef class Hyperparameter(object):
     cpdef int compare_vector(self, DTYPE_t value, DTYPE_t value2):
         raise NotImplementedError()
 
+    def pdf(self, value):
+        raise NotImplementedError()
+
 
 cdef class Constant(Hyperparameter):
     cdef public value
@@ -255,6 +258,9 @@ cdef class Constant(Hyperparameter):
                       transform: bool = False) -> List:
         return []
 
+    def pdf(self, vector: np.ndarray) -> np.ndarray:
+        return np.ones(len(vector))
+
 
 cdef class UnParametrizedHyperparameter(Constant):
     pass
@@ -339,6 +345,9 @@ cdef class NumericalHyperparameter(Hyperparameter):
             meta=self.meta
         )
 
+    def pdf(self, vector):
+        raise NotImplementedError()
+
 
 cdef class FloatHyperparameter(NumericalHyperparameter):
     def __init__(self, name: str, default_value: Union[int, float], meta: Optional[Dict] = None
@@ -369,6 +378,9 @@ cdef class FloatHyperparameter(NumericalHyperparameter):
     cpdef np.ndarray _transform_vector(self, np.ndarray vector):
         raise NotImplementedError()
 
+    def pdf(self, vector):
+        raise NotImplementedError()
+    
 
 cdef class IntegerHyperparameter(NumericalHyperparameter):
     def __init__(self, name: str, default_value: int, meta: Optional[Dict] = None) -> None:
@@ -404,6 +416,9 @@ cdef class IntegerHyperparameter(NumericalHyperparameter):
         raise NotImplementedError()
 
     cpdef np.ndarray _transform_vector(self, np.ndarray vector):
+        raise NotImplementedError()
+
+    def pdf(self, vector):
         raise NotImplementedError()
 
 
@@ -607,6 +622,7 @@ cdef class UniformFloatHyperparameter(FloatHyperparameter):
         ub = self._upper
         lb = self._lower
         return np.ones_like(vector) / (ub - lb)
+
 
 # TODO - implement a .pdf method here, and make sure the log case is properly considerec
 cdef class NormalFloatHyperparameter(FloatHyperparameter):
@@ -818,9 +834,9 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
         else:
             mu = self.mu
             sigma = self.sigma
-            lower = self.lower
-            upper = self.upper
-            a = (self.lower - mu) / sigma
+            lower = self._lower
+            upper = self._upper
+            a = (lower - mu) / sigma
             b = (upper - mu) / sigma
             
             return truncnorm.rvs(a, b, loc=mu, scale=sigma, size=size, random_state=rs)
@@ -1056,7 +1072,7 @@ cdef class BetaFloatHyperparameter(FloatHyperparameter):
         if default_value is None:
             if (self.alpha > 1) and (self.beta > 1):
                 return (self.alpha - 1) / (self.alpha + self.beta - 2)
-            elif self.alpha > self.beta:
+            elif self.alpha < self.beta:
                 return lb
             elif self.alpha > self.beta:
                 return ub
@@ -1073,7 +1089,7 @@ cdef class BetaFloatHyperparameter(FloatHyperparameter):
             q_int = None
         else:
             q_int = int(self.q)
-        return BetaIntegerHyperparameter(self.name, int(self.mu), self.sigma,
+        return BetaIntegerHyperparameter(self.name, self.alpha, self.beta,
                                            default_value=int(np.round(self.default_value, 0)),
                                            q=q_int, log=self.log)
 
@@ -1086,7 +1102,7 @@ cdef class BetaFloatHyperparameter(FloatHyperparameter):
     def _sample(self, rs: np.random.RandomState, size: Optional[int] = None
                 ) -> Union[np.ndarray, float]:
 
-        if self.lower == None:
+        if (self.lower == None) or (self.upper == None):
             return ValueError('The beta hyperparameter must have both bounds specified.')
         else:
             alpha = self.alpha
@@ -1149,9 +1165,6 @@ cdef class BetaFloatHyperparameter(FloatHyperparameter):
             lower = self.lower
             upper = self.upper
             return spbeta(alpha, beta, loc=lower, scale=upper-lower).pdf(vector)
-
-    
-
 
 
 # TODO - implement a .pdf method here, and make sure the log case is properly considered
@@ -1405,6 +1418,11 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
 
         return neighbors
 
+    def pdf(self, vector: np.ndarray) -> np.ndarray:
+        lb = self.lower
+        ub = self.upper
+        return np.ones(len(vector)) / (ub - lb)
+
 
 
 # TODO - implement a .pdf method here, and make sure the log case is properly considerec
@@ -1655,6 +1673,9 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
                 neighbors.append(new_value)
         return neighbors
 
+    # not that it's essential, but to properly compute the pdf, we need to use a binomial
+    def pdf(self, vector: np.ndarray) -> np.ndarray:
+        return np.ones(len(vector))
 
 # and this one if for defining custom discrete distributions over some space 
 # with the combination of the two, you can design most reasonable probability distributions
