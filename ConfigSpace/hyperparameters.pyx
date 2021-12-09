@@ -883,14 +883,13 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
         mu = self.mu
         sigma = self.sigma
         if self.lower == None:
-            return norm(loc=mu, scale=sigma).pdf(vector)
+            raise ValueError('Need upper and lower limits when using user priors.')
         else:
-            lower = self.lower
-            upper = self.upper
-            a = (lower - mu) / sigma
-            b = (upper - mu) / sigma
-            return truncnorm(a, b, loc=mu, scale=sigma).pdf(vector)
-
+            # regardless of whether we have log input or not, this yields the correct answer,
+            # as the data always comes in transformed
+            lower = self._lower
+            upper = self._upper
+            return truncnorm(lower, upper, loc=mu, scale=sigma).pdf(vector)
 
 
 # and this one if for defining custom discrete distributions over some space 
