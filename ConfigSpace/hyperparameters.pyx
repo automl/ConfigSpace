@@ -379,8 +379,9 @@ cdef class FloatHyperparameter(NumericalHyperparameter):
         raise NotImplementedError()
 
     def pdf(self, vector):
-        raise NotImplementedError()
-    
+        vector = self._inverse_transform(vector)
+        return self._pdf(vector)
+
 
 cdef class IntegerHyperparameter(NumericalHyperparameter):
     def __init__(self, name: str, default_value: int, meta: Optional[Dict] = None) -> None:
@@ -417,9 +418,10 @@ cdef class IntegerHyperparameter(NumericalHyperparameter):
 
     cpdef np.ndarray _transform_vector(self, np.ndarray vector):
         raise NotImplementedError()
-
+    
     def pdf(self, vector):
-        raise NotImplementedError()
+        vector = self._inverse_transform(vector)
+        return self._pdf(vector)
 
 
 cdef class UniformFloatHyperparameter(FloatHyperparameter):
@@ -618,7 +620,7 @@ cdef class UniformFloatHyperparameter(FloatHyperparameter):
                 neighbors.append(neighbor)
         return neighbors
 
-    def pdf(self, vector: np.ndarray) -> np.ndarray:
+    def _pdf(self, vector: np.ndarray) -> np.ndarray:
         ub = self._upper
         lb = self._lower
         return np.ones_like(vector) / (ub - lb)
@@ -838,7 +840,7 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
             upper = self._upper
             a = (lower - mu) / sigma
             b = (upper - mu) / sigma
-            
+
             return truncnorm.rvs(a, b, loc=mu, scale=sigma, size=size, random_state=rs)
 
     cpdef np.ndarray _transform_vector(self, np.ndarray vector):
@@ -879,7 +881,7 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
             neighbors.append(new_value)
         return neighbors
 
-    def pdf(self, vector: np.ndarray) -> np.ndarray:
+    def _pdf(self, vector: np.ndarray) -> np.ndarray:
         mu = self.mu
         sigma = self.sigma
         if self.lower == None:
@@ -889,7 +891,10 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
             # as the data always comes in transformed
             lower = self._lower
             upper = self._upper
-            return truncnorm(lower, upper, loc=mu, scale=sigma).pdf(vector)
+            a = (lower - mu) / sigma
+            b = (upper - mu) / sigma
+                
+            return truncnorm(a, b, loc=mu, scale=sigma).pdf(vector)
 
 
 # and this one if for defining custom discrete distributions over some space 
@@ -1106,8 +1111,8 @@ cdef class BetaFloatHyperparameter(FloatHyperparameter):
         else:
             alpha = self.alpha
             beta = self.beta
-            lower = self.lower
-            upper = self.upper
+            lower = self._lower
+            upper = self._upper
             return spbeta(alpha, beta, loc=lower, scale=upper-lower).rvs(size=size, random_state=rs)
 
     cpdef np.ndarray _transform_vector(self, np.ndarray vector):
@@ -1155,14 +1160,14 @@ cdef class BetaFloatHyperparameter(FloatHyperparameter):
                 neighbors.append(neighbor)
         return neighbors
 
-    def pdf(self, vector: np.ndarray) -> np.ndarray:
+    def _pdf(self, vector: np.ndarray) -> np.ndarray:
         alpha = self.alpha
         beta = self.beta
         if self.lower == None:
             return ValueError('The beta hyperparameter must have both bounds specified.')
         else:
-            lower = self.lower
-            upper = self.upper
+            lower = self._lower
+            upper = self._upper
             return spbeta(alpha, beta, loc=lower, scale=upper-lower).pdf(vector)
 
 
@@ -1417,7 +1422,7 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
 
         return neighbors
 
-    def pdf(self, vector: np.ndarray) -> np.ndarray:
+    def _pdf(self, vector: np.ndarray) -> np.ndarray:
         lb = self.lower
         ub = self.upper
         return np.ones(len(vector)) / (ub - lb)
@@ -1429,6 +1434,7 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
     cdef public mu
     cdef public sigma
     cdef nfhp
+    cdef normalization_constant
 
 
     def __init__(self, name: str, mu: int, sigma: Union[int, float],
@@ -1527,6 +1533,7 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
                                               default_value=self.default_value)
 
         self.normalized_default_value = self._inverse_transform(self.default_value)
+        self.normalization_constant = self._compute_normalization()
 
     def __repr__(self) -> str:
         repr_str = io.StringIO()
@@ -1672,17 +1679,349 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
                 neighbors.append(new_value)
         return neighbors
 
-    # not that it's essential, but to properly compute the pdf, we need to use a binomial
-    def pdf(self, vector: np.ndarray) -> np.ndarray:
-        return np.ones(len(vector))
+    def _compute_normalization(self):
+        # to use the same pdfs, transforms etc. (and have something that generalizes)
+        # across discrete parameter types, we compute the pdf for the corresponding
+        # float parameter type for all possible values and renormalize
+        # for the normal in particular, we could have used the binomial distribution - 
+        # but this is not true in general
+        # Lastly, _compute_normalization could be lifted to the superclass 
+        #IntegerParameter, but then we need to create a method to_float as well
+        upper = self.upper
+        lower = self.lower
+        all_integer_values = np.arange(self.lower, self.upper+1)
+        all_probabilities = self.nfhp.pdf(all_integer_values)
+        return np.sum(all_probabilities)
+
+    # TODO remove
+    def get_probs(self):
+        upper = self.upper
+        lower = self.lower
+        all_integer_values = np.arange(self.lower, self.upper+1)
+        all_probabilities = self.nfhp.pdf(all_integer_values)
+        return all_integer_values, all_probabilities
+
+    def _pdf(self, vector: np.ndarray) -> np.ndarray:
+        return self.nfhp._pdf(vector) / self.normalization_constant
+
 
 # and this one if for defining custom discrete distributions over some space 
 # with the combination of the two, you can design most reasonable probability distributions
 # TODO - implement
-cdef class BetaIntegerHyperparameter(NumericalHyperparameter):
-    def __init__(self, name: str, default_value: int, meta: Optional[Dict] = None) -> None:
-        super(IntegerHyperparameter, self).__init__(name, default_value, meta)
-        pass
+cdef class BetaIntegerHyperparameter(IntegerHyperparameter):
+    cdef public alpha
+    cdef public beta
+    cdef bfhp
+    cdef normalization_constant
+
+
+    def __init__(self, name: str, alpha: int, beta: Union[int, float],
+                 default_value: Union[int, None] = None, q: Union[None, int] = None,
+                 log: bool = False,
+                 lower: Optional[int] = None,
+                 upper: Optional[int] = None,
+                 meta: Optional[Dict] = None) -> None:
+        r"""
+        An integer hyperparameter.
+
+        Its values are sampled from a normal distribution
+        :math:`\mathcal{N}(\mu, \sigma^2)`.
+
+        Example
+        -------
+
+            >>> import ConfigSpace as CS
+            >>> import ConfigSpace.hyperparameters as CSH
+            ...                                                 beta=1, log=False)
+            >>> cs.add_hyperparameter(beta_int_hp)
+            beta_int, Type: NormalInteger, Alpha: 3 Beta: 1, Default: 1
+
+        Parameters
+        ----------
+        name : str
+            Name of the hyperparameter with which it can be accessed
+        alpha : int, float
+            Alpha parameter of the distribution, from which hyperparameter is sampled
+        beta : int, float
+            Beta parameter of the distribution, from which
+            hyperparameter is sampled
+        default_value : int, optional
+            Sets the default value of a hyperparameter to a given value
+        q : int, optional
+            Quantization factor
+        log : bool, optional
+            If ``True``, the values of the hyperparameter will be sampled
+            on a logarithmic scale. Defaults to ``False``
+        lower : int, float, optional
+            Lower bound of a range of values from which the hyperparameter will be sampled
+        upper : int, float, optional
+            Upper bound of a range of values from which the hyperparameter will be sampled
+        meta : Dict, optional
+            Field for holding meta data provided by the user.
+            Not used by the configuration space.
+
+        """
+        super(BetaIntegerHyperparameter, self).__init__(name, default_value, meta)
+
+        self.alpha = alpha
+        self.beta = beta
+
+        if default_value is not None:
+            default_value = self.check_int(default_value, self.name)
+
+        if q is not None:
+            if q < 1:
+                warnings.warn("Setting quantization < 1 for Integer "
+                              "Hyperparameter '%s' has no effect." %
+                              name)
+                self.q = None
+            else:
+                self.q = self.check_int(q, "q")
+        else:
+            self.q = None
+        self.log = bool(log)
+
+        self.default_value = self.check_default(default_value)
+
+        if (lower is None) or (upper is None):
+            raise ValueError("Both bounds must be provided for a Beta parameter.")
+
+        if lower is not None and upper is not None:
+            self.upper = self.check_int(upper, "upper")
+            self.lower = self.check_int(lower, "lower")
+            if self.lower >= self.upper:
+                raise ValueError("Upper bound %d must be larger than lower bound "
+                                "%d for hyperparameter %s" %
+                                (self.lower, self.upper, name))
+            elif log and self.lower <= 0:
+                raise ValueError("Negative lower bound (%d) for log-scale "
+                                "hyperparameter %s is forbidden." %
+                                (self.lower, name))
+            self.lower = lower
+            self.upper = upper
+
+        self.bfhp = BetaFloatHyperparameter(self.name,
+                                              self.alpha,
+                                              self.beta,
+                                              log=self.log,
+                                              q=self.q,
+                                              lower=self.lower,
+                                              upper=self.upper,
+                                              default_value=self.default_value)
+
+        self.normalized_default_value = self._inverse_transform(self.default_value)
+        self.normalization_constant = self._compute_normalization()
+
+    def __repr__(self) -> str:
+        repr_str = io.StringIO()
+        repr_str.write("%s, Type: BetaInteger, Alpha: %s Beta: %s, Default: %s" % (self.name, repr(self.alpha), repr(self.beta), repr(self.default_value)))
+        
+        if self.log:
+            repr_str.write(", on log-scale")
+        if self.q is not None:
+            repr_str.write(", Q: %s" % str(self.q))
+        repr_str.seek(0)
+        return repr_str.getvalue()
+
+    def __eq__(self, other: Any) -> bool:
+        """
+        This method implements a comparison between self and another
+        object.
+
+        Additionally, it defines the __ne__() as stated in the
+        documentation from python:
+            By default, object implements __eq__() by using is, returning NotImplemented
+            in the case of a false comparison: True if x is y else NotImplemented.
+            For __ne__(), by default it delegates to __eq__() and inverts the result
+            unless it is NotImplemented.
+
+        """
+        if not isinstance(other, self.__class__):
+            return False
+
+        return (
+            self.name == other.name and
+            self.alpha == other.alpha and
+            self.beta == other.beta and
+            self.log == other.log and
+            self.q == other.q and
+            self.lower == other.lower and
+            self.upper == other.upper
+        )
+
+    def __hash__(self):
+        return hash((self.name, self.alpha, self.beta, self.log, self.q))
+
+    def __copy__(self):
+        return BetaIntegerHyperparameter(
+            name=self.name,
+            default_value=self.default_value,
+            alpha=self.alpha,
+            beta=self.beta,
+            log=self.log,
+            q=self.q,
+            lower=self.lower,
+            upper=self.upper,
+            meta=self.meta
+        )
+
+    # todo check if conversion should be done in initiation call or inside class itsel
+    def to_uniform(self, z: int = 3) -> 'UniformIntegerHyperparameter':
+        lb = self.lower
+        ub = self.upper
+
+        return UniformIntegerHyperparameter(self.name,
+                                            lb,
+                                            ub,
+                                            default_value=self.default_value,
+                                            q=self.q, log=self.log)
+
+    def is_legal(self, value: int) -> bool:
+        return isinstance(value, (int, np.int32, np.int64))
+
+    cpdef bint is_legal_vector(self, DTYPE_t value):
+        return isinstance(value, float) or isinstance(value, int)
+
+    def check_default(self, default_value: int) -> int:
+        if default_value is None:
+            return int(round(self.bfhs.check_default()))
+
+        elif self.is_legal(default_value):
+            return default_value
+        else:
+            raise ValueError("Illegal default value %s" % str(default_value))
+
+    def _sample(self, rs: np.random.RandomState, size: Optional[int] = None
+                ) -> Union[np.ndarray, float]:
+        value = self.bfhp._sample(rs, size=size)
+        # Map all floats which belong to the same integer value to the same
+        # float value by first transforming it to an integer and then
+        # transforming it back to a float between zero and one
+        value = self._transform(value)
+        value = self._inverse_transform(value)
+        return value
+
+    cpdef np.ndarray _transform_vector(self, np.ndarray vector):
+        vector = self.bfhp._transform_vector(vector)
+        return np.rint(vector)
+
+    cpdef long long _transform_scalar(self, double scalar):
+        scalar = self.bfhp._transform_scalar(scalar)
+        return int(round(scalar))
+
+    def _inverse_transform(self, vector: Union[np.ndarray, float, int]
+                           ) -> Union[np.ndarray, float]:
+        return self.bfhp._inverse_transform(vector)
+
+    def has_neighbors(self) -> bool:
+        return True
+
+    def get_neighbors(
+        self,
+        value: Union[int, float],
+        rs: np.random.RandomState,
+        number: int = 4,
+        transform: bool = False,
+        std: float = 0.2,
+    ) -> List[int]:
+        cdef int n_requested = number
+        cdef int idx = 0
+        cdef int i = 0
+        neighbors = []  # type: List[int]
+        cdef int sampled_neighbors = 0
+        _neighbors_as_int = set()  # type: Set[int]
+        cdef long long int_value = self._transform(value)
+        cdef long long new_int_value = 0
+        cdef float new_value = 0.0
+        cdef np.ndarray samples
+        cdef double[:] samples_view
+
+        if self.upper - self.lower <= n_requested:
+            transformed_value = self._transform(value)
+            for n in range(self.lower, self.upper + 1):
+                if n != int_value:
+                    if transform:
+                        neighbors.append(n)
+                    else:
+                        n = self._inverse_transform(n)
+                        neighbors.append(n)
+
+        else:
+            samples = rs.normal(loc=value, scale=std, size=250)
+            samples_view = samples
+
+            while sampled_neighbors < n_requested:
+
+                while True:
+                    new_value = samples_view[idx]
+                    idx += 1
+                    i += 1
+                    if idx >= 250:
+                        samples = rs.normal(loc=value, scale=std, size=250)
+                        samples_view = samples
+                        idx = 0
+                    if new_value < 0 or new_value > 1:
+                        continue
+                    new_int_value = self._transform(new_value)
+                    if int_value == new_int_value:
+                        continue
+                    elif i >= 200:
+                        # Fallback to uniform sampling if generating samples correctly
+                        # takes too long
+                        values_to_sample = [j for j in range(self.lower, self.upper + 1)
+                                            if j != int_value]
+                        samples = rs.choice(
+                            values_to_sample,
+                            size=n_requested,
+                            replace=False,
+                        )
+                        for sample in samples:
+                            if transform:
+                                neighbors.append(sample)
+                            else:
+                                sample = self._inverse_transform(sample)
+                                neighbors.append(sample)
+                        break
+                    elif new_int_value in _neighbors_as_int:
+                        continue
+                    elif int_value != new_int_value:
+                        break
+
+                _neighbors_as_int.add(new_int_value)
+                sampled_neighbors += 1
+                if transform:
+                    neighbors.append(new_int_value)
+                else:
+                    new_value = self._inverse_transform(new_int_value)
+                    neighbors.append(new_value)
+
+        return neighbors
+
+        
+    def _compute_normalization(self):
+        # to use the same pdfs, transforms etc. (and have something that generalizes)
+        # across discrete parameter types, we compute the pdf for the corresponding
+        # float parameter type for all possible values and renormalize
+        # for the normal in particular, we could have used the binomial distribution - 
+        # but this is not true in general
+        # Lastly, _compute_normalization could be lifted to the superclass 
+        #IntegerParameter, but then we need to create a method to_float as well
+        upper = self.upper
+        lower = self.lower
+        all_integer_values = np.arange(self.lower, self.upper+1)
+        all_probabilities = self.bfhp.pdf(all_integer_values)
+        return np.sum(all_probabilities)
+
+    # TODO remove
+    def get_probs(self):
+        upper = self.upper
+        lower = self.lower
+        all_integer_values = np.arange(self.lower, self.upper+1)
+        all_probabilities = self.bfhp.pdf(all_integer_values)
+        return all_integer_values, all_probabilities
+        
+    def _pdf(self, vector: np.ndarray) -> np.ndarray:
+        return self.bfhp._pdf(vector) / self.normalization_constant
 
 
 # TODO - implement .pdf method
