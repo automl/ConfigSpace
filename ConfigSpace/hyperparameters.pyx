@@ -2235,10 +2235,13 @@ cdef class CategoricalHyperparameter(Hyperparameter):
         except ValueError:
             return None
 
-    def _inverse_transform(self, vector: Union[None, str, float, int]) -> Union[int, float]:
+
+    # TODO - encountered something of a bug here when this was passed through .pdf
+    # for some reason, it wanted a numpy array as output
+    def _inverse_transform(self, vector: Union[None, np.ndarray, str, float, int]) -> Union[np.ndarray, int, float]:
         if vector is None:
             return np.NaN
-        return self.choices.index(vector)
+        return np.array(self.choices.index(vector))
 
     def has_neighbors(self) -> bool:
         return len(self.choices) > 1
@@ -2289,6 +2292,12 @@ cdef class CategoricalHyperparameter(Hyperparameter):
                          "OrdinalHyperparameter, but is "
                          "<cdef class 'ConfigSpace.hyperparameters.CategoricalHyperparameter'>")
 
+    def _pdf(self, vector: np.ndarray) -> np.ndarray:
+        return np.array(self.probabilities[vector])
+
+    def pdf(self, vector: np.ndarray) -> np.ndarray:
+        vector = self._inverse_transform(vector)
+        return self._pdf(vector)
 
 
 # TODO - implement .pdf method
@@ -2577,3 +2586,8 @@ cdef class OrdinalHyperparameter(Hyperparameter):
     def allow_greater_less_comparison(self) -> bool:
         return True
 
+    def _pdf(self, vector: np.ndarray) -> np.ndarray:
+        return self.ones_like(vector) / self.num_elements
+
+    def pdf(self, vector: np.ndarray) -> np.ndarray:
+        return self._pdf(vector) 
