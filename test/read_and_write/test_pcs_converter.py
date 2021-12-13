@@ -415,8 +415,8 @@ class TestPCSConverter(unittest.TestCase):
 
         cat_hp_str_forbidden = ForbiddenAndConjunction(ForbiddenEqualsClause(cat_hp_str, 'a'))
         ord_hp_float_forbidden = ForbiddenAndConjunction(ForbiddenEqualsClause(ord_hp_str, 'a'))
-        cs_with_forbidden.add_forbidden_clauses([int_hp_forbidden, float_hp_forbidden, cat_hp_str_forbidden,
-                                                ord_hp_float_forbidden])
+        cs_with_forbidden.add_forbidden_clauses([int_hp_forbidden, float_hp_forbidden,
+                                                 cat_hp_str_forbidden, ord_hp_float_forbidden])
 
         complex_cs = list()
         complex_cs.append("int_hp integer [0,50] [30]")
