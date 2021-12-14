@@ -541,11 +541,34 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="c1"># So far, only equals is supported by SMAC</span>
                 <span class="k">if</span> <span class="n">tmp_list</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;=&#39;</span><span class="p">:</span>
-                    <span class="c1"># TODO maybe add a check if the hyperparameter is</span>
-                    <span class="c1"># actually in the configuration space</span>
+                    <span class="n">hp</span> <span class="o">=</span> <span class="n">configuration_space</span><span class="o">.</span><span class="n">get_hyperparameter</span><span class="p">(</span><span class="n">tmp_list</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">hp</span><span class="p">,</span> <span class="n">NumericalHyperparameter</span><span class="p">):</span>
+                        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">hp</span><span class="p">,</span> <span class="n">IntegerHyperparameter</span><span class="p">):</span>
+                            <span class="n">forbidden_value</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">tmp_list</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+                        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">hp</span><span class="p">,</span> <span class="n">FloatHyperparameter</span><span class="p">):</span>
+                            <span class="n">forbidden_value</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">tmp_list</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+                        <span class="k">if</span> <span class="n">forbidden_value</span> <span class="o">&lt;</span> <span class="n">hp</span><span class="o">.</span><span class="n">lower</span> <span class="ow">or</span> <span class="n">forbidden_value</span> <span class="o">&gt;</span> <span class="n">hp</span><span class="o">.</span><span class="n">upper</span><span class="p">:</span>
+                            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;forbidden_value is set out of the bound, it needs to&#39;</span>
+                                             <span class="sa">f</span><span class="s1">&#39; be set between [</span><span class="si">{</span><span class="n">hp</span><span class="o">.</span><span class="n">lower</span><span class="si">}</span><span class="s1">, </span><span class="si">{</span><span class="n">hp</span><span class="o">.</span><span class="n">upper</span><span class="si">}</span><span class="s1">]&#39;</span>
+                                             <span class="sa">f</span><span class="s1">&#39; but its value is </span><span class="si">{</span><span class="n">forbidden_value</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+                    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">hp</span><span class="p">,</span> <span class="p">(</span><span class="n">CategoricalHyperparameter</span><span class="p">,</span> <span class="n">OrdinalHyperparameter</span><span class="p">)):</span>
+                        <span class="n">hp_values</span> <span class="o">=</span> <span class="n">hp</span><span class="o">.</span><span class="n">choices</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">hp</span><span class="p">,</span> <span class="n">CategoricalHyperparameter</span><span class="p">)</span>\
+                            <span class="k">else</span> <span class="n">hp</span><span class="o">.</span><span class="n">sequence</span>
+                        <span class="n">forbidden_value_in_hp_values</span> <span class="o">=</span> <span class="n">tmp_list</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="ow">in</span> <span class="n">hp_values</span>
+                        <span class="k">if</span> <span class="n">forbidden_value_in_hp_values</span><span class="p">:</span>
+                            <span class="n">forbidden_value</span> <span class="o">=</span> <span class="n">tmp_list</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;forbidden_value is set out of the allowed value &#39;</span>
+                                             <span class="sa">f</span><span class="s1">&#39;sets, it needs to be one member from </span><span class="si">{</span><span class="n">hp_values</span><span class="si">}</span><span class="s1"> &#39;</span>
+                                             <span class="sa">f</span><span class="s1">&#39;but its value is </span><span class="si">{</span><span class="n">forbidden_value</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Unsupported Hyperparamter sorts&#39;</span><span class="p">)</span>
+
                     <span class="n">clause_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ForbiddenEqualsClause</span><span class="p">(</span>
                         <span class="n">configuration_space</span><span class="o">.</span><span class="n">get_hyperparameter</span><span class="p">(</span><span class="n">tmp_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
-                        <span class="n">tmp_list</span><span class="p">[</span><span class="mi">2</span><span class="p">]))</span>
+                        <span class="n">forbidden_value</span><span class="p">))</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span>
                 <span class="n">tmp_list</span> <span class="o">=</span> <span class="p">[]</span>
