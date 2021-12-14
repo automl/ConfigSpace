@@ -39,7 +39,7 @@ from ConfigSpace.hyperparameters import CategoricalHyperparameter, \
 from ConfigSpace.conditions import EqualsCondition, InCondition, \
     AndConjunction, OrConjunction, NotEqualsCondition, \
     GreaterThanCondition
-from ConfigSpace.forbidden import ForbiddenInClause, ForbiddenAndConjunction
+from ConfigSpace.forbidden import ForbiddenInClause, ForbiddenAndConjunction, ForbiddenEqualsClause
 
 # More complex search space
 classifier = CategoricalHyperparameter("classifier", ["svm", "nn"])
@@ -397,6 +397,40 @@ class TestPCSConverter(unittest.TestCase):
 
         value = pcs_new.write(cs)
         self.assertEqual(expected, value)
+
+    def test_read_new_configuration_space_forbidden(self):
+        cs_with_forbidden = ConfigurationSpace()
+        int_hp = UniformIntegerHyperparameter('int_hp', 0, 50, 30)
+        float_hp = UniformFloatHyperparameter('float_hp', 0., 50., 30.)
+        cat_hp_str = CategoricalHyperparameter('cat_hp_str', ['a', 'b', 'c'], 'b')
+        ord_hp_str = OrdinalHyperparameter('ord_hp_str', ['a', 'b', 'c'], 'b')
+
+        cs_with_forbidden.add_hyperparameters([int_hp, float_hp, cat_hp_str, ord_hp_str])
+
+        int_hp_forbidden = ForbiddenAndConjunction(ForbiddenEqualsClause(int_hp, 1))
+
+        float_hp_forbidden_1 = ForbiddenEqualsClause(float_hp, 1.0)
+        float_hp_forbidden_2 = ForbiddenEqualsClause(float_hp, 2.0)
+        float_hp_forbidden = ForbiddenAndConjunction(float_hp_forbidden_1, float_hp_forbidden_2)
+
+        cat_hp_str_forbidden = ForbiddenAndConjunction(ForbiddenEqualsClause(cat_hp_str, 'a'))
+        ord_hp_float_forbidden = ForbiddenAndConjunction(ForbiddenEqualsClause(ord_hp_str, 'a'))
+        cs_with_forbidden.add_forbidden_clauses([int_hp_forbidden, float_hp_forbidden,
+                                                 cat_hp_str_forbidden, ord_hp_float_forbidden])
+
+        complex_cs = list()
+        complex_cs.append("int_hp integer [0,50] [30]")
+        complex_cs.append("float_hp real [0.0, 50.0] [30.0]")
+        complex_cs.append("cat_hp_str categorical {a, b, c} [b]")
+        complex_cs.append("ord_hp_str ordinal {a, b, c} [b]")
+        complex_cs.append("# Forbiddens:")
+        complex_cs.append("{int_hp=1}")
+        complex_cs.append("{float_hp=1.0, float_hp=2.0}")
+        complex_cs.append("{cat_hp_str=a}")
+        complex_cs.append("{ord_hp_str=a}")
+        cs_new = pcs_new.read(complex_cs)
+
+        self.assertEqual(cs_new, cs_with_forbidden)
 
     def test_read_new_configuration_space_complex_conditionals(self):
         classi = OrdinalHyperparameter(

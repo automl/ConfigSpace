@@ -414,11 +414,34 @@ def read(pcs_string, debug=False):
             else:
                 # So far, only equals is supported by SMAC
                 if tmp_list[1] == '=':
-                    # TODO maybe add a check if the hyperparameter is
-                    # actually in the configuration space
+                    hp = configuration_space.get_hyperparameter(tmp_list[0])
+                    if isinstance(hp, NumericalHyperparameter):
+                        if isinstance(hp, IntegerHyperparameter):
+                            forbidden_value = int(tmp_list[2])
+                        elif isinstance(hp, FloatHyperparameter):
+                            forbidden_value = float(tmp_list[2])
+                        else:
+                            raise NotImplementedError
+                        if forbidden_value < hp.lower or forbidden_value > hp.upper:
+                            raise ValueError(f'forbidden_value is set out of the bound, it needs to'
+                                             f' be set between [{hp.lower}, {hp.upper}]'
+                                             f' but its value is {forbidden_value}')
+                    elif isinstance(hp, (CategoricalHyperparameter, OrdinalHyperparameter)):
+                        hp_values = hp.choices if isinstance(hp, CategoricalHyperparameter)\
+                            else hp.sequence
+                        forbidden_value_in_hp_values = tmp_list[2] in hp_values
+                        if forbidden_value_in_hp_values:
+                            forbidden_value = tmp_list[2]
+                        else:
+                            raise ValueError(f'forbidden_value is set out of the allowed value '
+                                             f'sets, it needs to be one member from {hp_values} '
+                                             f'but its value is {forbidden_value}')
+                    else:
+                        raise ValueError('Unsupported Hyperparamter sorts')
+
                     clause_list.append(ForbiddenEqualsClause(
                         configuration_space.get_hyperparameter(tmp_list[0]),
-                        tmp_list[2]))
+                        forbidden_value))
                 else:
                     raise NotImplementedError()
                 tmp_list = []
