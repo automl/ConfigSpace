@@ -1044,3 +1044,18 @@ class ConfigurationTest(unittest.TestCase):
         self.assertEqual(parent.get_hyperparameter("sub:chp").meta, dict(chp=True))
         self.assertEqual(parent.get_hyperparameter("sub:ohp").meta, dict(ohp=True))
         self.assertEqual(parent.get_hyperparameter("sub:const").meta, dict(const=True))
+
+    def test_repr_roundtrip(self):
+        cs = ConfigurationSpace()
+        cs.add_hyperparameter(UniformIntegerHyperparameter("uihp", lower=1, upper=10))
+        cs.add_hyperparameter(NormalIntegerHyperparameter("nihp", mu=0, sigma=1))
+        cs.add_hyperparameter(UniformFloatHyperparameter("ufhp", lower=1, upper=10))
+        cs.add_hyperparameter(NormalFloatHyperparameter("nfhp", mu=0, sigma=1))
+        cs.add_hyperparameter(CategoricalHyperparameter("chp", choices=['1', '2', '3']))
+        cs.add_hyperparameter(OrdinalHyperparameter("ohp", sequence=['1', '2', '3']))
+        cs.add_hyperparameter(Constant("const", value=1))
+        default = cs.get_default_configuration()
+        repr = default.__repr__()
+        repr = repr.replace('})', '}, configuration_space=cs)')
+        config = eval(repr)
+        self.assertEqual(default, config)
