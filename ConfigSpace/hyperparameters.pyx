@@ -151,6 +151,9 @@ cdef class Hyperparameter(object):
     cpdef int compare_vector(self, DTYPE_t value, DTYPE_t value2):
         raise NotImplementedError()
 
+    def get_size(self) -> float:
+        raise NotImplementedError()
+
 
 cdef class Constant(Hyperparameter):
     cdef public value
@@ -255,6 +258,8 @@ cdef class Constant(Hyperparameter):
                       transform: bool = False) -> List:
         return []
 
+    def get_size(self) -> float:
+        return 1.0
 
 cdef class UnParametrizedHyperparameter(Constant):
     pass
@@ -603,6 +608,12 @@ cdef class UniformFloatHyperparameter(FloatHyperparameter):
                 neighbors.append(neighbor)
         return neighbors
 
+    def get_size(self) -> float:
+        if self.q is None:
+            return np.inf
+        else:
+            return np.rint((self.upper - self.lower) / self.q) + 1
+
 
 cdef class NormalFloatHyperparameter(FloatHyperparameter):
     cdef public mu
@@ -857,6 +868,14 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
             neighbors.append(new_value)
         return neighbors
 
+    def get_size(self) -> float:
+        if self.q is None:
+            return np.inf
+        elif self.lower is None:
+            return np.inf
+        else:
+            return np.rint((self.upper - self.lower) / self.q) + 1
+
 
 cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
     def __init__(self, name: str, lower: int, upper: int, default_value: Union[int, None] = None,
@@ -1108,6 +1127,13 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
 
         return neighbors
 
+    def get_size(self) -> float:
+        if self.q is None:
+            q = 1
+        else:
+            q = self.q
+        return np.rint((self.upper - self.lower) / q) + 1
+
 
 cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
     cdef public mu
@@ -1357,6 +1383,16 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
             else:
                 neighbors.append(new_value)
         return neighbors
+
+    def get_size(self) -> float:
+        if self.lower is None:
+            return np.inf
+        else:
+            if self.q is None:
+                q = 1
+            else:
+                q = self.q
+            return np.rint((self.upper - self.lower) / self.q) + 1
 
 
 cdef class CategoricalHyperparameter(Hyperparameter):
@@ -1622,6 +1658,9 @@ cdef class CategoricalHyperparameter(Hyperparameter):
                          "NumericalHyperparameter or "
                          "OrdinalHyperparameter, but is "
                          "<cdef class 'ConfigSpace.hyperparameters.CategoricalHyperparameter'>")
+
+    def get_size(self) -> float:
+        return len(self.choices)
 
 
 cdef class OrdinalHyperparameter(Hyperparameter):
@@ -1908,3 +1947,6 @@ cdef class OrdinalHyperparameter(Hyperparameter):
 
     def allow_greater_less_comparison(self) -> bool:
         return True
+
+    def get_size(self) -> float:
+        return len(self.sequence)

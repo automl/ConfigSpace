@@ -1341,6 +1341,30 @@ class ConfigurationSpace(collections.abc.Mapping):
         """
         self.random = np.random.RandomState(seed)
 
+    def get_size(self) -> Union[float, int]:
+        """
+        Get the size of the current configuration space.
+
+        This is ``np.inf`` in case if there is a single hyperparameter of size ``np.inf``, otherwise
+        it is the product of the size of all hyperparameters. The function currently ignores
+        conditional effects. Use :func:`~ConfigSpace.util.generate_grid` to generate all valid
+        configurations if required.
+
+        Returns
+        -------
+        Union[float, int]
+        """
+        sizes = []
+        for hp in self._hyperparameters.values():
+            sizes.append(hp.get_size())
+        if len(sizes) == 0:
+            return 0.0
+        else:
+            size = sizes[0]
+            for i in range(1, len(sizes)):
+                size = size * sizes[i]
+            return size
+
 
 class Configuration(collections.abc.Mapping):
     def __init__(self, configuration_space: ConfigurationSpace,
