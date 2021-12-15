@@ -180,9 +180,10 @@ For demonstration  purpose, we sample a configuration from it.</p>
 <div class="highlight-pycon3 notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">cs</span><span class="o">.</span><span class="n">add_hyperparameters</span><span class="p">([</span><span class="n">c</span><span class="p">,</span> <span class="n">max_iter</span><span class="p">])</span>
 <span class="go">[C, Type: UniformFloat, Range: [-1.0, 1.0], Default: 0.0, max_iter, Type: ...]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cs</span><span class="o">.</span><span class="n">sample_configuration</span><span class="p">()</span>
-<span class="go">Configuration:</span>
-<span class="go">  C, Value: -0.6169610992422154</span>
-<span class="go">  max_iter, Value: 66</span>
+<span class="go">Configuration(values={</span>
+<span class="go">  &#39;C&#39;: -0.6169610992422154,</span>
+<span class="go">  &#39;max_iter&#39;: 66,</span>
+<span class="go">})</span>
 </pre></div>
 </div>
 <p>Now, the <a class="reference internal" href="API-Doc.html#ConfigSpace.configuration_space.ConfigurationSpace" title="ConfigSpace.configuration_space.ConfigurationSpace"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigurationSpace</span></code></a> object <em>cs</em>
