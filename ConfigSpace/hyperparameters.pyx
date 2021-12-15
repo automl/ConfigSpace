@@ -2011,14 +2011,6 @@ cdef class BetaIntegerHyperparameter(IntegerHyperparameter):
         all_probabilities = self.bfhp.pdf(all_integer_values)
         return np.sum(all_probabilities)
 
-    # TODO remove
-    def get_probs(self):
-        upper = self.upper
-        lower = self.lower
-        all_integer_values = np.arange(self.lower, self.upper+1)
-        all_probabilities = self.bfhp.pdf(all_integer_values)
-        return all_integer_values, all_probabilities
-        
     def _pdf(self, vector: np.ndarray) -> np.ndarray:
         return self.bfhp._pdf(vector) / self.normalization_constant
 
