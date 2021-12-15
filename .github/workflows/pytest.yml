@@ -14,8 +14,8 @@ jobs:
     name: Unit-tests for cp${{ matrix.python }}-${{ matrix.os}}
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
-        fail-fast: false
         os: [windows-latest, ubuntu-latest, macos-latest]
         python-version: ["3.7", "3.8", "3.9", "3.10"]
         use-conda: [true, false]
