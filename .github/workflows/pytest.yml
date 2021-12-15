@@ -11,7 +11,7 @@ on:
   # Triggers with push to a pr aimed at master
   pull_request:
     branches:
-      - main:
+      - master
 
   schedule:
     # Every Monday at 7AM UTC
