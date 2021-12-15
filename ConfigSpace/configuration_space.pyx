@@ -1573,7 +1573,7 @@ class Configuration(collections.abc.Mapping):
         self._populate_values()
 
         representation = io.StringIO()
-        representation.write("Configuration:\n")
+        representation.write("Configuration(values={\n")
 
         hyperparameters = self.configuration_space.get_hyperparameters()
         hyperparameters.sort(key=lambda t: t.name)
@@ -1581,14 +1581,10 @@ class Configuration(collections.abc.Mapping):
             hp_name = hyperparameter.name
             if hp_name in self._values and self._values[hp_name] is not None:
                 representation.write("  ")
-
                 value = repr(self._values[hp_name])
-                if isinstance(hyperparameter, Constant):
-                    representation.write("%s, Constant: %s" % (hp_name, value))
-                else:
-                    representation.write("%s, Value: %s" % (hp_name, value))
-                representation.write("\n")
+                representation.write("'%s': %s,\n" % (hp_name, value))
 
+        representation.write("})\n")
         return representation.getvalue()
 
     def __iter__(self) -> Iterable:
