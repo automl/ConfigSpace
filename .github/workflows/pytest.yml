@@ -3,7 +3,6 @@ name: Tests
 on:
   # Allow to manually trigger through github API
   workflow_dispatch:
-
   # Triggers with push to master
   push:
     branches:
@@ -110,9 +109,10 @@ jobs:
       run: |
         if [[ ${{ matrix.kind }} == 'conda' ]]; then
           PYTHON=$CONDA/envs/testenv/bin/python3
-        else:
+        else
           PYTHON=$(which python3)
         fi
+
         if [ ${{ matrix.code-cov }} ]; then
           $PYTHON -m pytest ${{ env.pytest-args }} ${{ env.code-cov-args }} test
         else
