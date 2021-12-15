@@ -551,6 +551,11 @@ class TestHyperparameters(unittest.TestCase):
         self.assertNotEqual(f1, f2)
         self.assertNotEqual(f1, "UniformFloat")
 
+        # Test that order of categoricals does not matter
+        f7 = CategoricalHyperparameter("param", ["a", "b"])
+        f7_ = CategoricalHyperparameter("param", ["b", "a"])
+        assert f7 == f7_
+
         # test that meta-data is stored correctly
         f_meta = CategoricalHyperparameter("param", ["a", "b"], default_value="a",
                                            meta=dict(self.meta_data))
