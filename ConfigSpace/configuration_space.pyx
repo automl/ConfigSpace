@@ -1341,14 +1341,16 @@ class ConfigurationSpace(collections.abc.Mapping):
         """
         self.random = np.random.RandomState(seed)
 
-    def get_size(self) -> Union[float, int]:
+    def estimate_size(self) -> Union[float, int]:
         """
-        Get the size of the current configuration space.
+        Estimate the size of the current configuration space (i.e. unique configurations).
 
-        This is ``np.inf`` in case if there is a single hyperparameter of size ``np.inf``, otherwise
-        it is the product of the size of all hyperparameters. The function currently ignores
-        conditional effects. Use :func:`~ConfigSpace.util.generate_grid` to generate all valid
-        configurations if required.
+        This is ``np.inf`` in case if there is a single hyperparameter of size ``np.inf`` (i.e. a
+        :class:`~ConfigSpace.hyperparameters.UniformFloatHyperparameter`), otherwise
+        it is the product of the size of all hyperparameters. The function correctly guesses the
+        number of unique configurations if there are no condition and forbidden statements in the
+        configuration spaces. Otherwise, this is an upper bound. Use
+        :func:`~ConfigSpace.util.generate_grid` to generate all valid configurations if required.
 
         Returns
         -------
