@@ -32,7 +32,7 @@ env:
 jobs:
 
   unit-test:
-    name: ${{ matrix.python }}-${{ matrix.os }}-${{ matrix.kind }}
+    name: ${{ matrix.python-version }}-${{ matrix.os }}-${{ matrix.kind }}
 
     runs-on: ${{ matrix.os }}
     strategy:
