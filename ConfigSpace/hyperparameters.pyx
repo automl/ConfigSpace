@@ -1997,7 +1997,6 @@ cdef class BetaIntegerHyperparameter(IntegerHyperparameter):
 
         return neighbors
 
-        
     def _compute_normalization(self):
         # to use the same pdfs, transforms etc. (and have something that generalizes)
         # across discrete parameter types, we compute the pdf for the corresponding
@@ -2148,6 +2147,16 @@ cdef class CategoricalHyperparameter(Hyperparameter):
             choices=copy.deepcopy(self.choices),
             default_value=self.default_value,
             weights=copy.deepcopy(self.probabilities),
+            meta=self.meta
+        )
+
+    # TODO review the name for this - it's just for producing a categorical hyperparameter
+    # with equal weights for all choices
+    def to_uniform(self):
+        return CategoricalHyperparameter(
+            name=self.name,
+            choices=copy.deepcopy(self.choices),
+            default_value=self.default_value,
             meta=self.meta
         )
 
