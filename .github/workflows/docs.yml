@@ -37,6 +37,11 @@ jobs:
         cd docs
         make html
 
+    - name: Run doctests
+      run: |
+        cd docs
+        make doctest
+
     - name: Pull latest gh-pages
       if: (contains(github.ref, 'master')) && github.event_name == 'push'
       run: |
