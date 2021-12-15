@@ -1506,7 +1506,7 @@ cdef class CategoricalHyperparameter(Hyperparameter):
 
         return (
             self.name == other.name and
-            self.choices == other.choices
+            set(self.choices) == set(other.choices)
         )
 
     def __hash__(self):
