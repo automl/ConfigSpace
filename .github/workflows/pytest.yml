@@ -98,7 +98,7 @@ jobs:
         sudo apt-get update
         python setup.py sdist
         last_dist=$(ls -t dist/ConfigSpace-*.tar.gz | head -n 1)
-        pip install $last_dist[test]
+        python -m pip install $last_dist[test]
 
     - name: Store git status
       id: status-before
@@ -111,7 +111,7 @@ jobs:
         if [[ ${{ matrix.kind }} == 'conda' ]]; then
           PYTHON=$CONDA/envs/testenv/bin/python3
         else
-          PYTHON=$(which python3)
+          PYTHON=$(which python)
         fi
 
         if [ ${{ matrix.code-cov }} ]; then
