@@ -1,8 +1,8 @@
 # Workflow to build and test wheels
 # =================================
 # This github action gets triggered whenever there
-# is a push to the master branch or a release is created. 
-# It generates both wheels and distributions files, 
+# is a push to the master branch or a release is created.
+# It generates both wheels and distributions files,
 # making sure their contents are correct via unit-testing.
 #
 # However, only in the case of a github release, the assets
@@ -15,10 +15,10 @@
 # 2- Whenever there is enough PRs in the master branch, we expect the user
 #    to create a release following github guidelines from here:
 #    https://docs.github.com/en/github/administering-a-repository/releasing-projects-on-github/managing-releases-in-a-repository
-#    During a github release, you create a tagged-version (something like v2.3.4.), 
+#    During a github release, you create a tagged-version (something like v2.3.4.),
 #    add a title to the release and a description. Then you publish the release via the
 #    publish-button. This effectively creates a github release, triggering this action.
-#    When this triggered action finished, the release files are automatically uploaded 
+#    When this triggered action finished, the release files are automatically uploaded
 #    to your github release page. Check for example:
 #    https://github.com/automl/ConfigSpace/releases
 #
@@ -29,6 +29,8 @@
 name: Wheel builder
 
 on:
+  workflow_dispatch:
+
   push:
     branches:
       - master
@@ -37,6 +39,7 @@ on:
   create:
     tags:
       - v*
+
 
 jobs:
   # Build the wheels for Linux
@@ -48,21 +51,149 @@ jobs:
       # Ensure that a wheel builder finishes even if another fails
       fail-fast: false
       matrix:
-        os: [ubuntu-latest]
-        python: [37, 38, 39]
-        bitness: [32, 64]
-        manylinux_image: [manylinux2014]
         include:
+          # Window 64 bit
+          - os: windows-latest
+            python: 37
+            bitness: 64
+            platform_id: win_amd64
+          - os: windows-latest
+            python: 38
+            bitness: 64
+            platform_id: win_amd64
+          - os: windows-latest
+            python: 39
+            bitness: 64
+            platform_id: win_amd64
+          - os: windows-latest
+            python: 310
+            bitness: 64
+            platform_id: win_amd64
+
+          # Window 32 bit
+          - os: windows-latest
+            python: 37
+            bitness: 32
+            platform_id: win32
+          - os: windows-latest
+            python: 38
+            bitness: 32
+            platform_id: win32
+          - os: windows-latest
+            python: 39
+            bitness: 32
+            platform_id: win32
+
+          # Linux 64 bit manylinux1
           - os: ubuntu-latest
+            python: 37
             bitness: 64
             platform_id: manylinux_x86_64
+            manylinux_image: manylinux1
           - os: ubuntu-latest
+            python: 38
+            bitness: 64
+            platform_id: manylinux_x86_64
+            manylinux_image: manylinux1
+          - os: ubuntu-latest
+            python: 39
+            bitness: 64
+            platform_id: manylinux_x86_64
+            manylinux_image: manylinux1
+
+          # Linux 64 bit manylinux2010
+          - os: ubuntu-latest
+            python: 37
+            bitness: 64
+            platform_id: manylinux_x86_64
+            manylinux_image: manylinux2010
+          - os: ubuntu-latest
+            python: 38
+            bitness: 64
+            platform_id: manylinux_x86_64
+            manylinux_image: manylinux2010
+          - os: ubuntu-latest
+            python: 39
+            bitness: 64
+            platform_id: manylinux_x86_64
+            manylinux_image: manylinux2010
+
+          # NumPy on Python 3.10 only supports 64bit and is only available with manylinux2014
+          - os: ubuntu-latest
+            python: 310
+            bitness: 64
+            platform_id: manylinux_x86_64
+            manylinux_image: manylinux2014
+
+          # Linux 32 bit manylinux1
+          - os: ubuntu-latest
+            python: 37
             bitness: 32
             platform_id: manylinux_i686
+            manylinux_image: manylinux1
+          - os: ubuntu-latest
+            python: 38
+            bitness: 32
+            platform_id: manylinux_i686
+            manylinux_image: manylinux1
+          - os: ubuntu-latest
+            python: 39
+            bitness: 32
+            platform_id: manylinux_i686
+            manylinux_image: manylinux1
+
+          # Linux 32 bit manylinux2010
+          - os: ubuntu-latest
+            python: 37
+            bitness: 32
+            platform_id: manylinux_i686
+            manylinux_image: manylinux2010
+          - os: ubuntu-latest
+            python: 38
+            bitness: 32
+            platform_id: manylinux_i686
+            manylinux_image: manylinux2010
+          - os: ubuntu-latest
+            python: 39
+            bitness: 32
+            platform_id: manylinux_i686
+            manylinux_image: manylinux2010
+
+          # MacOS x86_64
+          - os: macos-latest
+            bitness: 64
+            python: 37
+            platform_id: macosx_x86_64
+          - os: macos-latest
+            bitness: 64
+            python: 38
+            platform_id: macosx_x86_64
+          - os: macos-latest
+            bitness: 64
+            python: 39
+            platform_id: macosx_x86_64
+          - os: macos-latest
+            bitness: 64
+            python: 310
+            platform_id: macosx_x86_64
+
+          # MacOS arm64
+          #- os: macos-latest
+          #  bitness: 64
+          #  python: 38
+          #  platform_id: macosx_arm64
+          #- os: macos-latest
+          #  bitness: 64
+          #  python: 39
+          #  platform_id: macosx_arm64
+          #- os: macos-latest
+          #  bitness: 64
+          #  python: 310
+          #  platform_id: macosx_arm64
 
     steps:
       - name: Checkout ConfigSpace
-        uses: actions/checkout@v1
+        uses: actions/checkout@v2
 
       - name: Setup Python
         uses: actions/setup-python@v2
@@ -73,7 +204,7 @@ jobs:
           CIBW_MANYLINUX_X86_64_IMAGE: ${{ matrix.manylinux_image }}
           CIBW_MANYLINUX_I686_IMAGE: ${{ matrix.manylinux_image }}
           CIBW_TEST_REQUIRES: pytest threadpoolctl numpy
-          CIBW_TEST_COMMAND: pytest -v /project/test
+          CIBW_TEST_COMMAND: pytest -v {project}/test
 
         run: |
           python -m pip install cibuildwheel
@@ -91,7 +222,7 @@ jobs:
 
     steps:
       - name: Checkout ConfigSpace
-        uses: actions/checkout@v1
+        uses: actions/checkout@v2
 
       - name: Setup Python
         uses: actions/setup-python@v2
@@ -106,10 +237,12 @@ jobs:
           last_dist=$(ls -t dist/ConfigSpace-*.tar.gz | head -n 1)
           twine_output=`twine check "$last_dist"`
           if [[ "$twine_output" != "Checking $last_dist: PASSED" ]]; then echo $twine_output && exit 1;fi
+
       - name: Install dist
         run: |
           last_dist=$(ls -t dist/ConfigSpace-*.tar.gz | head -n 1)
           pip install $last_dist
+
       - name: PEP 561 Compliance
         run: |
           pip install mypy
