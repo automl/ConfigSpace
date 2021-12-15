@@ -1,6 +1,7 @@
 name: Tests
 
 on:
+  workflow_dispatch:
   push:
   pull_request:
   schedule:
@@ -8,31 +9,41 @@ on:
     - cron: '0 07 * * 5'
 
 jobs:
-  ubuntu:
+  unit-test:
 
-    runs-on: ubuntu-18.04
+    name: Unit-tests for cp${{ matrix.python }}-${{ matrix.os}}
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        python-version: [3.7, 3.8, 3.9]
+        fail-fast: false
+        os: [windows-latest, ubuntu-latest, macos-latest]
+        python-version: ["3.7", "3.8", "3.9", "3.10"]
         use-conda: [true, false]
         use-dist: [false]
         include:
-          - python-version: 3.8
+
+          - os: ubuntu-latest
+            python-version: "3.8"
             code-cov: true
-          - python-version: 3.7
+
+          - os: ubuntu-latest
+            python-version: "3.7"
             use-conda: false
             use-dist: true
-      fail-fast:  false
 
     steps:
-    - uses: actions/checkout@v2
-    - name: Setup Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
+
       # A note on checkout: When checking out the repository that
       # triggered a workflow, this defaults to the reference or SHA for that event.
       # Otherwise, uses the default branch (master) is used.
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python-version }}
+
     - name: Conda Install test dependencies
       if: matrix.use-conda == true
       run: |
@@ -40,29 +51,27 @@ jobs:
         $CONDA/bin/conda create -n testenv --yes pip wheel python=${{ matrix.python-version }}
         $CONDA/envs/testenv/bin/python3 -m pip install --upgrade pip
         $CONDA/envs/testenv/bin/pip3 install -e .[test]
+
     - name: Install test dependencies
       if: matrix.use-conda == false && matrix.use-dist == false
       run: |
         python -m pip install --upgrade pip
-        if [[ `python -c 'import platform; print(platform.python_version())' | cut -d '.' -f 2` -eq 6 ]]; then
-          # Numpy 1.20 dropped suppert for Python3.6
-          pip install "numpy<=1.19"
-        fi
         pip install -e .[test]
-        sudo apt-get update
+
     - name: Dist Install test dependencies
       if: matrix.use-conda == false && matrix.use-dist == true
       run: |
         python -m pip install --upgrade pip
-        sudo apt-get update
         # We need to install for the dependencies, like pytest
         python setup.py sdist
         last_dist=$(ls -t dist/ConfigSpace-*.tar.gz | head -n 1)
         pip install $last_dist[test]
+
     - name: Store repository status
       id: status-before
       run: |
         echo "::set-output name=BEFORE::$(git status --porcelain -b)"
+
     - name: Conda Run tests
       timeout-minutes: 45
       if: matrix.use-conda == true
@@ -70,12 +79,14 @@ jobs:
         export PATH="$CONDA/envs/testenv/bin:$PATH"
         if [ ${{ matrix.code-cov }} ]; then codecov='--cov=ConfigSpace --cov-report=xml'; fi
         $CONDA/envs/testenv/bin/python3 -m pytest --durations=20  -v $codecov test
+
     - name: Run tests
       timeout-minutes: 45
       if: matrix.use-conda == false
       run: |
         if [ ${{ matrix.code-cov }} ]; then codecov='--cov=ConfigSpace --cov-report=xml'; fi
         pytest --durations=20 -v $codecov test
+
     - name: Check for files left behind by test
       if: ${{ always() }}
       run: |
@@ -87,6 +98,7 @@ jobs:
             echo "Not all generated files have been deleted!"
             exit 1
         fi
+
     - name: Upload coverage
       if: matrix.code-cov && always()
       uses: codecov/codecov-action@v1
