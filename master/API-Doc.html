@@ -349,6 +349,26 @@ forbidden clauses</p></li>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="ConfigSpace.configuration_space.ConfigurationSpace.estimate_size">
+<span class="sig-name descname"><span class="pre">estimate_size</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#ConfigSpace.configuration_space.ConfigurationSpace.estimate_size" title="Permalink to this definition">¶</a></dt>
+<dd><p>Estimate the size of the current configuration space (i.e. unique configurations).</p>
+<p>This is <code class="docutils literal notranslate"><span class="pre">np.inf</span></code> in case if there is a single hyperparameter of size <code class="docutils literal notranslate"><span class="pre">np.inf</span></code> (i.e. a
+<a class="reference internal" href="#ConfigSpace.hyperparameters.UniformFloatHyperparameter" title="ConfigSpace.hyperparameters.UniformFloatHyperparameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">UniformFloatHyperparameter</span></code></a>), otherwise
+it is the product of the size of all hyperparameters. The function correctly guesses the
+number of unique configurations if there are no condition and forbidden statements in the
+configuration spaces. Otherwise, this is an upper bound. Use
+<a class="reference internal" href="#ConfigSpace.util.generate_grid" title="ConfigSpace.util.generate_grid"><code class="xref py py-func docutils literal notranslate"><span class="pre">generate_grid()</span></code></a> to generate all valid configurations if required.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>Union[float, int]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="ConfigSpace.configuration_space.ConfigurationSpace.generate_all_continuous_from_bounds">
 <span class="sig-name descname"><span class="pre">generate_all_continuous_from_bounds</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bounds</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#ConfigSpace.configuration_space.ConfigurationSpace.generate_all_continuous_from_bounds" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generate <a class="reference internal" href="#ConfigSpace.hyperparameters.UniformFloatHyperparameter" title="ConfigSpace.hyperparameters.UniformFloatHyperparameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">UniformFloatHyperparameter</span></code></a>
