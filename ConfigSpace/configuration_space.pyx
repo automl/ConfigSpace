@@ -41,6 +41,9 @@ from ConfigSpace.hyperparameters import (
     Hyperparameter,
     Constant,
     FloatHyperparameter,
+    UniformFloatHyperparameter,
+    UniformIntegerHyperparameter,
+    OrdinalHyperparameter
 )
 from ConfigSpace.conditions import (
     ConditionComponent,
@@ -1341,6 +1344,19 @@ class ConfigurationSpace(collections.abc.Mapping):
         """
         self.random = np.random.RandomState(seed)
 
+    def to_uniform(self) -> 'ConfigurationSpace':
+        uniform_config_space = ConfigurationSpace()
+        for parameter in self.get_hyperparameters():
+            if type(parameter) not in [UniformFloatHyperparameter, UniformIntegerHyperparameter, OrdinalHyperparameter]:
+                uniform_config_space.add_hyperparameter(parameter.to_uniform())
+            else:
+                uniform_config_space.add_hyperparameter(parameter)
+
+        # TODO - check that this is certainly correct    
+        uniform_config_space.add_conditions(self.get_conditions())
+        uniform_config_space.add_forbidden_clauses(self.get_forbiddens())
+        
+        return uniform_config_space
 
 class Configuration(collections.abc.Mapping):
     def __init__(self, configuration_space: ConfigurationSpace,

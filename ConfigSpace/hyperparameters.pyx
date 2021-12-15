@@ -811,7 +811,7 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
         else:
             raise ValueError("Illegal default value %s" % str(default_value))
 
-    def to_integer(self) -> NormalIntegerHyperparameter:
+    def to_integer(self) -> 'NormalIntegerHyperparameter':
         if self.q is None:
             q_int = None
         else:
@@ -1058,7 +1058,7 @@ cdef class BetaFloatHyperparameter(FloatHyperparameter):
     def __hash__(self):
         return hash((self.name, self.alpha, self.beta, self.log, self.q))
 
-    def to_uniform(self) -> UniformFloatHyperparameter:
+    def to_uniform(self) -> 'UniformFloatHyperparameter':
         lb = self.lower
         ub = self.upper
 
@@ -1088,7 +1088,7 @@ cdef class BetaFloatHyperparameter(FloatHyperparameter):
         else:
             raise ValueError("Illegal default value %s" % str(default_value))
 
-    def to_integer(self) -> BetaIntegerHyperparameter:
+    def to_integer(self) -> 'BetaIntegerHyperparameter':
         if self.q is None:
             q_int = None
         else:
@@ -2152,7 +2152,7 @@ cdef class CategoricalHyperparameter(Hyperparameter):
 
     # TODO review the name for this - it's just for producing a categorical hyperparameter
     # with equal weights for all choices
-    def to_uniform(self):
+    def to_uniform(self) -> 'CategoricalHyperparameter':
         return CategoricalHyperparameter(
             name=self.name,
             choices=copy.deepcopy(self.choices),
