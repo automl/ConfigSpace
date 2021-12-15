@@ -803,17 +803,17 @@ class TestConfigurationSpace(unittest.TestCase):
         assert list(d.items()) == list(zip(names, hyperparameters))
         assert len(d) == 5
 
-    def test_get_size(self):
+    def test_estimate_size(self):
         cs = ConfigurationSpace()
-        self.assertEqual(cs.get_size(), 0)
+        self.assertEqual(cs.estimate_size(), 0)
         cs.add_hyperparameter(Constant('constant', 0))
-        self.assertEqual(cs.get_size(), 1)
+        self.assertEqual(cs.estimate_size(), 1)
         cs.add_hyperparameter(UniformIntegerHyperparameter('integer', 0, 5))
-        self.assertEqual(cs.get_size(), 6)
+        self.assertEqual(cs.estimate_size(), 6)
         cs.add_hyperparameter(CategoricalHyperparameter('cat', [0, 1, 2]))
-        self.assertEqual(cs.get_size(), 18)
+        self.assertEqual(cs.estimate_size(), 18)
         cs.add_hyperparameter(UniformFloatHyperparameter('float', 0, 1))
-        self.assertTrue(np.isinf(cs.get_size()))
+        self.assertTrue(np.isinf(cs.estimate_size()))
 
 
 class ConfigurationTest(unittest.TestCase):
