@@ -960,49 +960,48 @@ cdef class BetaFloatHyperparameter(FloatHyperparameter):
         self.default_value = self.check_default(default_value)
         self.normalized_default_value = self._inverse_transform(self.default_value)
 
-        if (lower is not None) ^ (upper is not None):
-            raise ValueError("Only one bound was provided when both lower and upper bounds must be provided.")
+        if (lower is None) or (upper is None):
+            raise ValueError("Both lower and upper bounds must be provided for a beta distribution.")
 
-        if lower is not None and upper is not None:
-            self.lower = float(lower)
-            self.upper = float(upper)
+        self.lower = float(lower)
+        self.upper = float(upper)
 
-            if self.lower >= self.upper:
-                raise ValueError("Upper bound %f must be larger than lower bound "
-                                "%f for hyperparameter %s" %
-                                (self.upper, self.lower, name))
-            elif log and self.lower <= 0:
-                raise ValueError("Negative lower bound (%f) for log-scale "
-                                "hyperparameter %s is forbidden." %
-                                (self.lower, name))
+        if self.lower >= self.upper:
+            raise ValueError("Upper bound %f must be larger than lower bound "
+                            "%f for hyperparameter %s" %
+                            (self.upper, self.lower, name))
+        elif log and self.lower <= 0:
+            raise ValueError("Negative lower bound (%f) for log-scale "
+                            "hyperparameter %s is forbidden." %
+                            (self.lower, name))
 
-            self.default_value = self.check_default(default_value)
+        self.default_value = self.check_default(default_value)
 
-            if self.log:
-                if self.q is not None:
-                    lower = self.lower - (np.float64(self.q) / 2. - 0.0001)
-                    upper = self.upper + (np.float64(self.q) / 2. - 0.0001)
-                else:
-                    lower = self.lower
-                    upper = self.upper
-                self._lower = np.log(lower)
-                self._upper = np.log(upper)
-            else:
-                if self.q is not None:
-                    self._lower = self.lower - (self.q / 2. - 0.0001)
-                    self._upper = self.upper + (self.q / 2. - 0.0001)
-                else:
-                    self._lower = self.lower
-                    self._upper = self.upper
+        if self.log:
             if self.q is not None:
-                # There can be weird rounding errors, so we compare the result against self.q, see
-                # In [13]: 2.4 % 0.2
-                # Out[13]: 0.1999999999999998
-                if np.round((self.upper - self.lower) % self.q, 10) not in (0, self.q):
-                    raise ValueError(
-                        'Upper bound (%f) - lower bound (%f) must be a multiple of q (%f)'
-                        % (self.upper, self.lower, self.q)
-                    )
+                lower = self.lower - (np.float64(self.q) / 2. - 0.0001)
+                upper = self.upper + (np.float64(self.q) / 2. - 0.0001)
+            else:
+                lower = self.lower
+                upper = self.upper
+            self._lower = np.log(lower)
+            self._upper = np.log(upper)
+        else:
+            if self.q is not None:
+                self._lower = self.lower - (self.q / 2. - 0.0001)
+                self._upper = self.upper + (self.q / 2. - 0.0001)
+            else:
+                self._lower = self.lower
+                self._upper = self.upper
+        if self.q is not None:
+            # There can be weird rounding errors, so we compare the result against self.q, see
+            # In [13]: 2.4 % 0.2
+            # Out[13]: 0.1999999999999998
+            if np.round((self.upper - self.lower) % self.q, 10) not in (0, self.q):
+                raise ValueError(
+                    'Upper bound (%f) - lower bound (%f) must be a multiple of q (%f)'
+                    % (self.upper, self.lower, self.q)
+                )
 
     def __repr__(self) -> str:
         repr_str = io.StringIO()
@@ -1123,6 +1122,10 @@ cdef class BetaFloatHyperparameter(FloatHyperparameter):
         if self.q is not None:
             vector = np.rint(vector / self.q) * self.q
         return vector
+        #    vector = np.rint((vector - self.lower) / self.q) * self.q + self.lower
+        #    vector = np.minimum(vector, self.upper)
+        #    vector = np.maximum(vector, self.lower)
+        #return np.maximum(self.lower, np.minimum(self.upper, vector))
 
     cpdef double _transform_scalar(self, double scalar):
         if scalar != scalar:
@@ -1131,14 +1134,20 @@ cdef class BetaFloatHyperparameter(FloatHyperparameter):
             scalar = math.exp(scalar)
         if self.q is not None:
             scalar = round(scalar / self.q) * self.q
-        return scalar
-
+        return scalar#    scalar = round((scalar - self.lower) / self.q) * self.q + self.lower
+        #    scalar = min(scalar, self.upper)
+        #    scalar = max(scalar, self.lower)
+        #scalar = min(self.upper, max(self.lower, scalar))
+        
     def _inverse_transform(self, vector: Optional[np.ndarray]) -> Union[float, np.ndarray]:
         if vector is None:
             return np.NaN
 
         if self.log:
             vector = np.log(vector)
+        #vector = (vector - self._lower) / (self._upper - self._lower)
+        #vector = np.minimum(1.0, vector)
+        #vector = np.maximum(0.0, vector)
         return vector
 
     def get_neighbors(
@@ -1149,10 +1158,12 @@ cdef class BetaFloatHyperparameter(FloatHyperparameter):
         transform: bool = False,
         std: float = 0.2
     ) -> List[float]:
+        # TODO - fix the standard deviation - since space is unnormalized
+        std = (self._lower - self._upper) * std
         neighbors = []  # type: List[float]
         while len(neighbors) < number:
             neighbor = rs.normal(value, std)  # type: float
-            if neighbor < 0 or neighbor > 1:
+            if neighbor < self._lower or neighbor > self._upper:
                 continue
             if transform:
                 neighbors.append(self._transform(neighbor))
