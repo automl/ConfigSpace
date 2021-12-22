@@ -869,16 +869,24 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
             vector = np.log(vector)
         return vector
 
-    def get_neighbors(self, value: float, rs: np.random.RandomState, number: int = 4,
-                      transform: bool = False) -> List[float]:
-        neighbors = []
-        for i in range(number):
-            new_value = rs.normal(value, self.sigma)
-
-            if self.lower is not None and self.upper is not None:
-                    new_value = min(max(new_value, self.lower), self.upper)
-
-            neighbors.append(new_value)
+    def get_neighbors(
+        self,
+        value: Any,
+        rs: np.random.RandomState,
+        number: int = 4,
+        transform: bool = False,
+        std: float = 0.2
+    ) -> List[float]:
+        neighbors = []  # type: List[float]
+        norm_std = std * (self._upper - self._lower)
+        while len(neighbors) < number:
+            neighbor = rs.normal(value, norm_std)  # type: float
+            if neighbor < self._lower or neighbor > self._upper:
+                continue
+            if transform:
+                neighbors.append(self._transform(neighbor))
+            else:
+                neighbors.append(neighbor)
         return neighbors
 
     def _pdf(self, vector: np.ndarray) -> np.ndarray:
@@ -1158,11 +1166,10 @@ cdef class BetaFloatHyperparameter(FloatHyperparameter):
         transform: bool = False,
         std: float = 0.2
     ) -> List[float]:
-        # TODO - fix the standard deviation - since space is unnormalized
-        std = (self._lower - self._upper) * std
         neighbors = []  # type: List[float]
+        norm_std = std * (self._upper - self._lower)
         while len(neighbors) < number:
-            neighbor = rs.normal(value, std)  # type: float
+            neighbor = rs.normal(value, norm_std)  # type: float
             if neighbor < self._lower or neighbor > self._upper:
                 continue
             if transform:
@@ -1182,7 +1189,6 @@ cdef class BetaFloatHyperparameter(FloatHyperparameter):
             return spbeta(alpha, beta, loc=lower, scale=upper-lower).pdf(vector)
 
 
-# TODO - implement a .pdf method here, and make sure the log case is properly considered
 cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
     def __init__(self, name: str, lower: int, upper: int, default_value: Union[int, None] = None,
                  q: Union[int, None] = None, log: bool = False,
@@ -1439,12 +1445,10 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
         return np.ones(len(vector)) / (ub - lb)
 
 
-
-# TODO - implement a .pdf method here, and make sure the log case is properly considerec
 cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
     cdef public mu
     cdef public sigma
-    cdef nfhp
+    cdef public nfhp
     cdef normalization_constant
 
 
@@ -1664,30 +1668,80 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
         rs: np.random.RandomState,
         number: int = 4,
         transform: bool = False,
-    ) -> List[Union[np.ndarray, float, int]]:
-        neighbors = []  # type: List[Union[np.ndarray, float, int]]
-        while len(neighbors) < number:
-            rejected = True
-            iteration = 0
-            while rejected:
-                iteration += 1
-                new_value = rs.normal(value, self.sigma)
-                int_value = self._transform(value)
-                new_int_value = self._transform(new_value)
+        std: float = 0.2,
+    ) -> List[int]:
+        cdef int n_requested = number
+        cdef int idx = 0
+        cdef int i = 0
+        neighbors = []  # type: List[int]
+        cdef int sampled_neighbors = 0
+        _neighbors_as_int = set()  # type: Set[int]
+        cdef long long int_value = self._transform(value)
+        cdef long long new_int_value = 0
+        cdef float new_value = 0.0
+        cdef np.ndarray samples
+        cdef double[:] samples_view
 
-                if self.lower is not None and self.upper is not None:
-                    int_value = min(max(int_value, self.lower), self.upper)
-                    new_int_value = min(max(new_int_value, self.lower), self.upper)
+        norm_std = std * (self.upper - self.lower) 
+        if self.upper - self.lower <= n_requested:
+            transformed_value = self._transform(value)
+            for n in range(self.lower, self.upper + 1):
+                if n != int_value:
+                    if transform:
+                        neighbors.append(n)
+                    else:
+                        n = self._inverse_transform(n)
+                        neighbors.append(n)
 
-                if int_value != new_int_value:
-                    rejected = False
-                elif iteration > 100000:
-                    raise ValueError('Probably caught in an infinite loop.')
+        else:
+            samples = rs.normal(loc=value, scale=norm_std, size=250)
+            samples_view = samples
 
-            if transform:
-                neighbors.append(self._transform(new_value))
-            else:
-                neighbors.append(new_value)
+            while sampled_neighbors < n_requested:
+
+                while True:
+                    new_value = samples_view[idx]
+                    idx += 1
+                    i += 1
+                    if idx >= 250:
+                        samples = rs.normal(loc=value, scale=norm_std, size=250)
+                        samples_view = samples
+                        idx = 0
+                    if new_value < 0 or new_value > 1:
+                        continue
+                    new_int_value = self._transform(new_value)
+                    if int_value == new_int_value:
+                        continue
+                    elif i >= 200:
+                        # Fallback to uniform sampling if generating samples correctly
+                        # takes too long
+                        values_to_sample = [j for j in range(self.lower, self.upper + 1)
+                                            if j != int_value]
+                        samples = rs.choice(
+                            values_to_sample,
+                            size=n_requested,
+                            replace=False,
+                        )
+                        for sample in samples:
+                            if transform:
+                                neighbors.append(sample)
+                            else:
+                                sample = self._inverse_transform(sample)
+                                neighbors.append(sample)
+                        break
+                    elif new_int_value in _neighbors_as_int:
+                        continue
+                    elif int_value != new_int_value:
+                        break
+
+                _neighbors_as_int.add(new_int_value)
+                sampled_neighbors += 1
+                if transform:
+                    neighbors.append(new_int_value)
+                else:
+                    new_value = self._inverse_transform(new_int_value)
+                    neighbors.append(new_value)
+
         return neighbors
 
     def _compute_normalization(self):
@@ -1704,14 +1758,6 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
         all_probabilities = self.nfhp.pdf(all_integer_values)
         return np.sum(all_probabilities)
 
-    # TODO remove
-    def get_probs(self):
-        upper = self.upper
-        lower = self.lower
-        all_integer_values = np.arange(self.lower, self.upper+1)
-        all_probabilities = self.nfhp.pdf(all_integer_values)
-        return all_integer_values, all_probabilities
-
     def _pdf(self, vector: np.ndarray) -> np.ndarray:
         return self.nfhp._pdf(vector) / self.normalization_constant
 
@@ -1722,7 +1768,7 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
 cdef class BetaIntegerHyperparameter(IntegerHyperparameter):
     cdef public alpha
     cdef public beta
-    cdef bfhp
+    cdef public bfhp
     cdef normalization_constant
 
 
@@ -1946,7 +1992,8 @@ cdef class BetaIntegerHyperparameter(IntegerHyperparameter):
         cdef float new_value = 0.0
         cdef np.ndarray samples
         cdef double[:] samples_view
-
+        
+        norm_std = std * (self.upper - self.lower) 
         if self.upper - self.lower <= n_requested:
             transformed_value = self._transform(value)
             for n in range(self.lower, self.upper + 1):
@@ -1958,7 +2005,7 @@ cdef class BetaIntegerHyperparameter(IntegerHyperparameter):
                         neighbors.append(n)
 
         else:
-            samples = rs.normal(loc=value, scale=std, size=250)
+            samples = rs.normal(loc=value, scale=norm_std, size=250)
             samples_view = samples
 
             while sampled_neighbors < n_requested:
@@ -1968,7 +2015,7 @@ cdef class BetaIntegerHyperparameter(IntegerHyperparameter):
                     idx += 1
                     i += 1
                     if idx >= 250:
-                        samples = rs.normal(loc=value, scale=std, size=250)
+                        samples = rs.normal(loc=value, scale=norm_std, size=250)
                         samples_view = samples
                         idx = 0
                     if new_value < 0 or new_value > 1:
