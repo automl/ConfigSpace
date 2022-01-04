@@ -83,6 +83,10 @@ class TestHyperparameters(unittest.TestCase):
         c1_meta = Constant("value", 1, dict(self.meta_data))
         self.assertEqual(c1_meta.meta, self.meta_data)
 
+        # Test getting the size
+        for constant in (c1, c2, c3, c4, c5, c1_meta):
+            self.assertEqual(constant.get_size(), 1)
+
     def test_uniformfloat(self):
         # TODO test non-equality
         # TODO test sampling from a log-distribution which has a negative
@@ -142,6 +146,12 @@ class TestHyperparameters(unittest.TestCase):
         f_meta = UniformFloatHyperparameter("param", 0.1, 10, q=0.1, log=True,
                                             default_value=1.0, meta=dict(self.meta_data))
         self.assertEqual(f_meta.meta, self.meta_data)
+
+        # Test get_size
+        for float_hp in (f1, f3, f4):
+            self.assertTrue(np.isinf(float_hp.get_size()))
+        self.assertEqual(f2.get_size(), 101)
+        self.assertEqual(f5.get_size(), 100)
 
     def test_uniformfloat_to_integer(self):
         f1 = UniformFloatHyperparameter("param", 1, 10, q=0.1, log=True)
@@ -281,6 +291,11 @@ class TestHyperparameters(unittest.TestCase):
                                            default_value=1.0, meta=dict(self.meta_data))
         self.assertEqual(f_meta.meta, self.meta_data)
 
+        # Test get_size
+        for float_hp in (f1, f2, f3, f4, f5):
+            self.assertTrue(np.isinf(float_hp.get_size()))
+        self.assertEqual(f6.get_size(), 100)
+
     def test_normalfloat_to_uniformfloat(self):
         f1 = NormalFloatHyperparameter("param", 0, 10, q=0.1)
         f1_expected = UniformFloatHyperparameter("param", -30, 30, q=0.1)
@@ -343,12 +358,12 @@ class TestHyperparameters(unittest.TestCase):
             "param, Type: UniformInteger, Range: [0, 10], Default: 5",
             str(f2))
 
-        # f2_large_q = UniformIntegerHyperparameter("param", 0, 10, q=2)
-        # f2_large_q_ = UniformIntegerHyperparameter("param", 0, 10, q=2)
-        # self.assertEqual(f2_large_q, f2_large_q_)
-        # self.assertEqual(
-        #    "param, Type: UniformInteger, Range: [0, 10], Default: 5, Q: 2",
-        #    str(f2_large_q))
+        f2_large_q = UniformIntegerHyperparameter("param", 0, 10, q=2)
+        f2_large_q_ = UniformIntegerHyperparameter("param", 0, 10, q=2)
+        self.assertEqual(f2_large_q, f2_large_q_)
+        self.assertEqual(
+           "param, Type: UniformInteger, Range: [0, 10], Default: 5, Q: 2",
+           str(f2_large_q))
 
         f3 = UniformIntegerHyperparameter("param", 1, 10, log=True)
         f3_ = UniformIntegerHyperparameter("param", 1, 10, log=True)
@@ -381,6 +396,13 @@ class TestHyperparameters(unittest.TestCase):
             f_meta = UniformIntegerHyperparameter("param", 1, 10, q=0.1, log=True,
                                                   default_value=1, meta=dict(self.meta_data))
         self.assertEqual(f_meta.meta, self.meta_data)
+
+        self.assertEqual(f1.get_size(), 6)
+        self.assertEqual(f2.get_size(), 11)
+        self.assertEqual(f2_large_q.get_size(), 6)
+        self.assertEqual(f3.get_size(), 10)
+        self.assertEqual(f4.get_size(), 10)
+        self.assertEqual(f5.get_size(), 10)
 
     def test_uniformint_legal_float_values(self):
         n_iter = UniformIntegerHyperparameter("n_iter", 5., 1000., default_value=20.0)
@@ -475,6 +497,10 @@ class TestHyperparameters(unittest.TestCase):
                                              meta=dict(self.meta_data))
         self.assertEqual(f_meta.meta, self.meta_data)
 
+        # Test get_size
+        for int_hp in (f1, f2, f3, f4, f5):
+            self.assertTrue(np.isinf(int_hp.get_size()))
+
     def test_normalint_legal_float_values(self):
         n_iter = NormalIntegerHyperparameter("n_iter", 0, 1., default_value=2.0)
         self.assertIsInstance(n_iter.default_value, int)
@@ -551,10 +577,22 @@ class TestHyperparameters(unittest.TestCase):
         self.assertNotEqual(f1, f2)
         self.assertNotEqual(f1, "UniformFloat")
 
+        # Test that order of categoricals does not matter
+        f7 = CategoricalHyperparameter("param", ["a", "b"])
+        f7_ = CategoricalHyperparameter("param", ["b", "a"])
+        assert f7 == f7_
+
         # test that meta-data is stored correctly
         f_meta = CategoricalHyperparameter("param", ["a", "b"], default_value="a",
                                            meta=dict(self.meta_data))
         self.assertEqual(f_meta.meta, self.meta_data)
+
+        self.assertEqual(f1.get_size(), 2)
+        self.assertEqual(f2.get_size(), 1000)
+        self.assertEqual(f3.get_size(), 999)
+        self.assertEqual(f4.get_size(), 1000)
+        self.assertEqual(f5.get_size(), 1000)
+        self.assertEqual(f6.get_size(), 2)
 
     def test_categorical_strings(self):
         f1 = CategoricalHyperparameter("param", ["a", "b"])
@@ -1154,6 +1192,10 @@ class TestHyperparameters(unittest.TestCase):
         self.assertEqual(f1.get_num_neighbors("freezing"), 1)
         self.assertEqual(f1.get_num_neighbors("hot"), 1)
         self.assertEqual(f1.get_num_neighbors("cold"), 2)
+
+    def test_ordinal_get_size(self):
+        f1 = OrdinalHyperparameter("temp", ["freezing", "cold", "warm", "hot"])
+        self.assertEqual(f1.get_size(), 4)
 
     def test_rvs(self):
         f1 = UniformFloatHyperparameter("param", 0, 10)

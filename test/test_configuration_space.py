@@ -803,6 +803,18 @@ class TestConfigurationSpace(unittest.TestCase):
         assert list(d.items()) == list(zip(names, hyperparameters))
         assert len(d) == 5
 
+    def test_estimate_size(self):
+        cs = ConfigurationSpace()
+        self.assertEqual(cs.estimate_size(), 0)
+        cs.add_hyperparameter(Constant('constant', 0))
+        self.assertEqual(cs.estimate_size(), 1)
+        cs.add_hyperparameter(UniformIntegerHyperparameter('integer', 0, 5))
+        self.assertEqual(cs.estimate_size(), 6)
+        cs.add_hyperparameter(CategoricalHyperparameter('cat', [0, 1, 2]))
+        self.assertEqual(cs.estimate_size(), 18)
+        cs.add_hyperparameter(UniformFloatHyperparameter('float', 0, 1))
+        self.assertTrue(np.isinf(cs.estimate_size()))
+
 
 class ConfigurationTest(unittest.TestCase):
     def setUp(self):
@@ -1044,3 +1056,18 @@ class ConfigurationTest(unittest.TestCase):
         self.assertEqual(parent.get_hyperparameter("sub:chp").meta, dict(chp=True))
         self.assertEqual(parent.get_hyperparameter("sub:ohp").meta, dict(ohp=True))
         self.assertEqual(parent.get_hyperparameter("sub:const").meta, dict(const=True))
+
+    def test_repr_roundtrip(self):
+        cs = ConfigurationSpace()
+        cs.add_hyperparameter(UniformIntegerHyperparameter("uihp", lower=1, upper=10))
+        cs.add_hyperparameter(NormalIntegerHyperparameter("nihp", mu=0, sigma=1))
+        cs.add_hyperparameter(UniformFloatHyperparameter("ufhp", lower=1, upper=10))
+        cs.add_hyperparameter(NormalFloatHyperparameter("nfhp", mu=0, sigma=1))
+        cs.add_hyperparameter(CategoricalHyperparameter("chp", choices=['1', '2', '3']))
+        cs.add_hyperparameter(OrdinalHyperparameter("ohp", sequence=['1', '2', '3']))
+        cs.add_hyperparameter(Constant("const", value=1))
+        default = cs.get_default_configuration()
+        repr = default.__repr__()
+        repr = repr.replace('})', '}, configuration_space=cs)')
+        config = eval(repr)
+        self.assertEqual(default, config)

@@ -44,9 +44,10 @@ Basic usage
     >>> cs.add_hyperparameters([a, b])
     [a, Type: UniformInteger, Range: [10, 100], Default: 55,...]
     >>> cs.sample_configuration()
-    Configuration:
-      a, Value: 27
-      b, Value: 'blue'
+    Configuration(values={
+      'a': 27,
+      'b': 'blue',
+    })
     <BLANKLINE>
 
 Installation
