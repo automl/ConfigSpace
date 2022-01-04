@@ -267,6 +267,7 @@ cpdef np.ndarray change_hp_value(
     cdef Hyperparameter current
     cdef str current_name
     cdef list disabled
+    cdef set hps_to_be_activate
     cdef set visited
     cdef dict activated_values
     cdef int active
@@ -287,6 +288,11 @@ cpdef np.ndarray change_hp_value(
     # Hyperparameters which are going to be set to inactive
     disabled = []
 
+    # Hyperparameters which are going to be set activate, this is applicable to diamond conditional space:
+    # Suppose that we have a parent HP_p whose possible values are A, B, C; a child HP_d is activate if
+    # HP_p is A or B. Then when HP_p switches from A to B, HP_d needs to remain activate.
+    hps_to_be_activate = set()
+
     # Activate hyperparameters if their parent node got activated
     children = children_of[hp_name]
     if len(children) > 0:
@@ -301,7 +307,7 @@ cpdef np.ndarray change_hp_value(
             if current_name in visited:
                 continue
             visited.add(current_name)
-            if current_name in disabled:
+            if current_name in hps_to_be_activate:
                 continue
 
             current_idx = configuration_space._hyperparameter_idx[current_name]
@@ -314,6 +320,16 @@ cpdef np.ndarray change_hp_value(
                 if not condition._evaluate_vector(configuration_array):
                     active = False
                     break
+
+            if active:
+                hps_to_be_activate.add(current_idx)
+                if current_value == current_value:
+                    children_ = children_of[current_name]
+                    if len(children_) > 0:
+                        to_visit.extendleft(children_)
+
+            if current_name in disabled:
+                continue
 
             if active and not current_value == current_value:
                 default_value = current.normalized_default_value
@@ -343,6 +359,7 @@ cpdef np.ndarray change_hp_value(
                             to_disable.add(ch.name)
 
     for idx in disabled:
-        configuration_array[idx] = NaN
+        if idx not in hps_to_be_activate:
+            configuration_array[idx] = NaN
 
     return configuration_array
