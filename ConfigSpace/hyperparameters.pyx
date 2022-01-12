@@ -898,9 +898,6 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
             return truncnorm(a, b, loc=mu, scale=sigma).pdf(vector)
 
 
-# and this one if for defining custom discrete distributions over some space 
-# with the combination of the two, you can design most reasonable probability distributions
-# TODO - implement
 cdef class BetaFloatHyperparameter(FloatHyperparameter):
     cdef public alpha
     cdef public beta
@@ -1600,7 +1597,6 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
             meta=self.meta
         )
 
-    # todo check if conversion should be done in initiation call or inside class itsel
     def to_uniform(self, z: int = 3) -> 'UniformIntegerHyperparameter':
         if self.lower is None or self.upper is None:
             lb = np.round(int(self.mu - (z * self.sigma)))
@@ -1705,9 +1701,6 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
         return self.nfhp._pdf(vector) / self.normalization_constant
 
 
-# and this one if for defining custom discrete distributions over some space 
-# with the combination of the two, you can design most reasonable probability distributions
-# TODO - implement
 cdef class BetaIntegerHyperparameter(IntegerHyperparameter):
     cdef public alpha
     cdef public beta
@@ -1865,7 +1858,6 @@ cdef class BetaIntegerHyperparameter(IntegerHyperparameter):
             meta=self.meta
         )
 
-    # todo check if conversion should be done in initiation call or inside class itsel
     def to_uniform(self, z: int = 3) -> 'UniformIntegerHyperparameter':
         lb = self.lower
         ub = self.upper
@@ -2016,7 +2008,6 @@ cdef class BetaIntegerHyperparameter(IntegerHyperparameter):
         return self.bfhp._pdf(vector) / self.normalization_constant
 
 
-# TODO - implement .pdf method
 cdef class CategoricalHyperparameter(Hyperparameter):
     cdef public tuple choices
     cdef public tuple probabilities
@@ -2143,8 +2134,8 @@ cdef class CategoricalHyperparameter(Hyperparameter):
             meta=self.meta
         )
 
-    # TODO review the name for this - it's just for producing a categorical hyperparameter
-    # with equal weights for all choices
+    # This is just for the uniform configspace for PiBO
+    # It creates a categorical parameter with equal weights for all choices
     def to_uniform(self) -> 'CategoricalHyperparameter':
         return CategoricalHyperparameter(
             name=self.name,
@@ -2238,8 +2229,8 @@ cdef class CategoricalHyperparameter(Hyperparameter):
             return None
 
 
-    # TODO - encountered something of a bug here when this was passed through .pdf
-    # for some reason, it wanted a numpy array as output
+    # TEncountered something of a bug here when this was passed through .pdf
+    # for some reason, it wanted a numpy array as output (and as such, it is now changed)
     def _inverse_transform(self, vector: Union[None, np.ndarray, str, float, int]) -> Union[np.ndarray, int, float]:
         if vector is None:
             return np.NaN
@@ -2302,7 +2293,6 @@ cdef class CategoricalHyperparameter(Hyperparameter):
         return self._pdf(vector)
 
 
-# TODO - implement .pdf method
 cdef class OrdinalHyperparameter(Hyperparameter):
     cdef public tuple sequence
     cdef public int num_elements
