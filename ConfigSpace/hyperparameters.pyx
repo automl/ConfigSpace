@@ -869,37 +869,16 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
             vector = np.log(vector)
         return vector
 
+    def get_neighbors(self, value: float, rs: np.random.RandomState, number: int = 4,
+                      transform: bool = False) -> List[float]:
+        neighbors = []
+        for i in range(number):
+            new_value = rs.normal(value, self.sigma)
 
-    def get_neighbors(
-        self,
-        value: Union[int, float],
-        rs: np.random.RandomState,
-        number: int = 4,
-        transform: bool = False,
-    ) -> List[Union[np.ndarray, float, int]]:
-        neighbors = []  # type: List[Union[np.ndarray, float, int]]
-        while len(neighbors) < number:
-            rejected = True
-            iteration = 0
-            while rejected:
-                iteration += 1
-                new_value = rs.normal(value, self.sigma)
-                int_value = self._transform(value)
-                new_int_value = self._transform(new_value)
+            if self.lower is not None and self.upper is not None:
+                    new_value = min(max(new_value, self.lower), self.upper)
 
-                if self.lower is not None and self.upper is not None:
-                    int_value = min(max(int_value, self.lower), self.upper)
-                    new_int_value = min(max(new_int_value, self.lower), self.upper)
-
-                if int_value != new_int_value:
-                    rejected = False
-                elif iteration > 100000:
-                    raise ValueError('Probably caught in an infinite loop.')
-
-            if transform:
-                neighbors.append(self._transform(new_value))
-            else:
-                neighbors.append(new_value)
+            neighbors.append(new_value)
         return neighbors
 
 
