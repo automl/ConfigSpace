@@ -151,7 +151,7 @@ cdef class Hyperparameter(object):
     cpdef int compare_vector(self, DTYPE_t value, DTYPE_t value2):
         raise NotImplementedError()
 
-    def pdf(self, value):
+    def pdf(self, vector: np.ndarray) -> np.ndarray:
         raise NotImplementedError()
 
 
@@ -345,7 +345,7 @@ cdef class NumericalHyperparameter(Hyperparameter):
             meta=self.meta
         )
 
-    def pdf(self, vector):
+    def pdf(self, vector: np.ndarray) -> np.ndarray:
         raise NotImplementedError()
 
 
@@ -378,7 +378,7 @@ cdef class FloatHyperparameter(NumericalHyperparameter):
     cpdef np.ndarray _transform_vector(self, np.ndarray vector):
         raise NotImplementedError()
 
-    def pdf(self, vector):
+    def pdf(self, vector: np.ndarray) -> np.ndarray:
         vector = self._inverse_transform(vector)
         return self._pdf(vector)
 
@@ -419,7 +419,7 @@ cdef class IntegerHyperparameter(NumericalHyperparameter):
     cpdef np.ndarray _transform_vector(self, np.ndarray vector):
         raise NotImplementedError()
     
-    def pdf(self, vector):
+    def pdf(self, vector: np.ndarray) -> np.ndarray:
         vector = self._inverse_transform(vector)
         return self._pdf(vector)
 
@@ -626,7 +626,6 @@ cdef class UniformFloatHyperparameter(FloatHyperparameter):
         return np.ones_like(vector) / (ub - lb)
 
 
-# TODO - implement a .pdf method here, and make sure the log case is properly considerec
 cdef class NormalFloatHyperparameter(FloatHyperparameter):
     cdef public mu
     cdef public sigma
