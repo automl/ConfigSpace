@@ -254,19 +254,16 @@ Consider the case of optimizing the accuracy of an MLP with three hyperparameter
 >>> import numpy as np
 >>> import ConfigSpace.hyperparameters as CSH
 >>> from ConfigSpace.configuration_space import ConfigurationSpace
-
 >>> # convert 10 log to natural log for learning rate, mean 1e-3
 >>> logmean = np.log(np.power(10.0, -3))
 #two standard deviations on either side of the mean to cover the search space
 >>> logstd = np.log(10.0) 
-
 >>> learning_rate = CSH.NormalFloatHyperparameter(name='learning_rate', lower=1e-5, upper=1e-1, default_value=1e-3, mu=logmean, sigma=logstd, log=True)
 >>> dropout = CSH.BetaFloatHyperparameter(name='dropout', lower=0, upper=0.99, default_value=0.25, alpha=2, beta=4, log=False)
 >>> activation = CSH.CategoricalHyperparameter(name='activation', choices=['tanh', 'relu'], weights=[0.2, 0.8])
 
 >>> cs = ConfigurationSpace()
 >>> cs.add_hyperparameters([learning_rate, dropout, activation])
-
 Configuration space object:
   Hyperparameters:
     activation, Type: Categorical, Choices: {tanh, relu}, Default: tanh, Probabilities: (0.2, 0.8)
@@ -278,7 +275,6 @@ To check that your prior makes sense for each hyperparameter, you can easily do 
 >>> test_points = np.logspace(-5, -1, 5) 
 >>> test_points
 [1.e-05 1.e-04 1.e-03 1.e-02 1.e-01]                    
-
 >>> learning_rate.pdf(test_points)
 [0.02456573 0.11009594 0.18151753 0.11009594 0.02456573]
 
