@@ -401,6 +401,14 @@ cdef class FloatHyperparameter(NumericalHyperparameter):
         """
         raise NotImplementedError()
 
+    def get_max_density(self) -> float:
+        """
+        Returns the maximal density on the pdf for the parameter (so not 
+        the mode, but the value of the pdf on the mode).
+        """
+        raise NotImplementedError()
+
+
 
 cdef class IntegerHyperparameter(NumericalHyperparameter):
     def __init__(self, name: str, default_value: int, meta: Optional[Dict] = None) -> None:
@@ -467,6 +475,12 @@ cdef class IntegerHyperparameter(NumericalHyperparameter):
         """
         raise NotImplementedError()
         
+    def get_max_density(self) -> float:
+        """
+        Returns the maximal density on the pdf for the parameter (so not 
+        the mode, but the value of the pdf on the mode).
+        """
+        raise NotImplementedError()
 
 
 cdef class UniformFloatHyperparameter(FloatHyperparameter):
@@ -669,6 +683,11 @@ cdef class UniformFloatHyperparameter(FloatHyperparameter):
         ub = self._upper
         lb = self._lower
         return np.ones_like(vector) / (ub - lb)
+
+    def get_max_density(self) -> float:
+        ub = self._upper
+        lb = self._lower
+        return 1 / (ub - lb)
 
 
 cdef class NormalFloatHyperparameter(FloatHyperparameter):
@@ -939,6 +958,14 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
                 
             return truncnorm(a, b, loc=mu, scale=sigma).pdf(vector)
 
+    def get_max_density(self) -> float:
+        if self.mu < self._lower:
+            return self._pdf(np.array([self._lower]))[0]
+        elif self.mu > self._upper:
+            return self._pdf(np.array([self._upper]))[0]
+        else:
+            return self._pdf(np.array([self.mu]))[0]
+
 
 cdef class BetaFloatHyperparameter(FloatHyperparameter):
     cdef public alpha
@@ -993,12 +1020,13 @@ cdef class BetaFloatHyperparameter(FloatHyperparameter):
             Not used by the configuration space.
         """
         super(BetaFloatHyperparameter, self).__init__(name, default_value, meta)
+        if (alpha < 1) or (beta < 1):
+            raise ValueError("Please provide values of alpha and beta larger than or equal to\
+             1 so that the probability density is finite.")
         self.alpha = float(alpha)
         self.beta = float(beta)
         self.q = float(q) if q is not None else None
         self.log = bool(log)
-        self.default_value = self.check_default(default_value)
-        self.normalized_default_value = self._inverse_transform(self.default_value)
 
         if (lower is None) or (upper is None):
             raise ValueError("Both lower and upper bounds must be provided for a beta distribution.")
@@ -1014,8 +1042,6 @@ cdef class BetaFloatHyperparameter(FloatHyperparameter):
             raise ValueError("Negative lower bound (%f) for log-scale "
                             "hyperparameter %s is forbidden." %
                             (self.lower, name))
-
-        self.default_value = self.check_default(default_value)
 
         if self.log:
             if self.q is not None:
@@ -1033,6 +1059,10 @@ cdef class BetaFloatHyperparameter(FloatHyperparameter):
             else:
                 self._lower = self.lower
                 self._upper = self.upper
+        
+        self.default_value = self.check_default(default_value)
+        self.normalized_default_value = self._inverse_transform(self.default_value)
+
         if self.q is not None:
             # There can be weird rounding errors, so we compare the result against self.q, see
             # In [13]: 2.4 % 0.2
@@ -1114,7 +1144,8 @@ cdef class BetaFloatHyperparameter(FloatHyperparameter):
         
         if default_value is None:
             if (self.alpha > 1) and (self.beta > 1):
-                return (self.alpha - 1) / (self.alpha + self.beta - 2)
+                normalized_mode = (self.alpha - 1) / (self.alpha + self.beta - 2)
+                return self._transform_scalar((self._upper - self._lower) * normalized_mode + self._lower)
             elif self.alpha < self.beta:
                 return lb
             elif self.alpha > self.beta:
@@ -1209,6 +1240,20 @@ cdef class BetaFloatHyperparameter(FloatHyperparameter):
             lower = self._lower
             upper = self._upper
             return spbeta(alpha, beta, loc=lower, scale=upper-lower).pdf(vector)
+
+    def get_max_density(self) -> float:
+        lb = self.lower
+        ub = self.upper
+
+        if (self.alpha > 1) and (self.beta > 1):
+            normalized_mode = (self.alpha - 1) / (self.alpha + self.beta - 2)
+            return self._pdf(np.array([(self._upper - self._lower) * normalized_mode + self._lower]))[0]
+        elif self.alpha < self.beta:
+            return self._pdf(np.array([lb]))[0]
+        elif self.alpha > self.beta:
+            return self._pdf(np.array([ub]))[0]
+        else: 
+            return self._pdf(np.array([(ub - lb) / 2]))[0]
 
 
 cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
@@ -1465,6 +1510,11 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
         lb = self.lower
         ub = self.upper
         return np.ones(len(vector)) / (ub - lb)
+
+    def get_max_density(self) -> float:
+        lb = self.lower
+        ub = self.upper
+        1 / (ub - lb)
 
 
 cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
@@ -1732,6 +1782,9 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
     def _pdf(self, vector: np.ndarray) -> np.ndarray:
         return self.nfhp._pdf(vector) / self.normalization_constant
 
+    def get_max_density(self):
+        return self.nfhp.get_max_density() / self.normalization_constant
+
 
 cdef class BetaIntegerHyperparameter(IntegerHyperparameter):
     cdef public alpha
@@ -1806,8 +1859,6 @@ cdef class BetaIntegerHyperparameter(IntegerHyperparameter):
             self.q = None
         self.log = bool(log)
 
-        self.default_value = self.check_default(default_value)
-
         if (lower is None) or (upper is None):
             raise ValueError("Both bounds must be provided for a Beta parameter.")
 
@@ -1834,6 +1885,7 @@ cdef class BetaIntegerHyperparameter(IntegerHyperparameter):
                                               upper=self.upper,
                                               default_value=self.default_value)
 
+        self.default_value = self.check_default(default_value)
         self.normalized_default_value = self._inverse_transform(self.default_value)
         self.normalization_constant = self._compute_normalization()
 
@@ -1908,7 +1960,7 @@ cdef class BetaIntegerHyperparameter(IntegerHyperparameter):
 
     def check_default(self, default_value: int) -> int:
         if default_value is None:
-            return int(round(self.bfhs.check_default()))
+            return int(round(self.bfhp.check_default(None)))
 
         elif self.is_legal(default_value):
             return default_value
@@ -2038,6 +2090,10 @@ cdef class BetaIntegerHyperparameter(IntegerHyperparameter):
 
     def _pdf(self, vector: np.ndarray) -> np.ndarray:
         return self.bfhp._pdf(vector) / self.normalization_constant
+
+
+    def get_max_density(self):
+        return self.bfhp.get_max_density() / self.normalization_constant
 
 
 cdef class CategoricalHyperparameter(Hyperparameter):
@@ -2323,6 +2379,9 @@ cdef class CategoricalHyperparameter(Hyperparameter):
     def pdf(self, vector: np.ndarray) -> np.ndarray:
         vector = self._inverse_transform(vector)
         return self._pdf(vector)
+
+    def get_max_density(self) -> float:
+        return np.max(self.probabilities)
 
 
 cdef class OrdinalHyperparameter(Hyperparameter):
@@ -2615,3 +2674,6 @@ cdef class OrdinalHyperparameter(Hyperparameter):
 
     def pdf(self, vector: np.ndarray) -> np.ndarray:
         return self._pdf(vector) 
+
+    def get_max_density(self) -> float:
+        return 1 / self.num_elements
