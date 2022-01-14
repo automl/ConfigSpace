@@ -241,3 +241,47 @@ To read it from file
     >>> with open('configspace.json', 'r') as fh:
     ...     json_string = fh.read()
     ...     restored_conf = json.read(json_string)
+
+
+
+4th Example: Placing priors on the hyperparameters
+-------------------------
+
+If you want to conduct black-box optimization in SMAC, and you have prior knowledge about the which regions of the search space are more likely to contain the optimum, you may include this knowledge when designing the configuration space. More specifically, you place prior distributions over the optimum on the parameters, either by a (log)-normal or (log)-Beta distribution.
+
+Consider the case of optimizing the accuracy of an MLP with three hyperparameters: learning rate [1e-5, 1e-1], dropout [0, 0.99] and activation {Tanh, ReLU}. From prior experience, you believe the optimal learning rate to be around 1e-3, a good dropout to be around 0.25, and the optimal activation function to be ReLU about 80% of the time. This can be represented accordingly:
+
+>>> import numpy as np
+>>> import ConfigSpace.hyperparameters as CSH
+>>> from ConfigSpace.configuration_space import ConfigurationSpace
+
+>>> # convert 10 log to natural log for learning rate, mean 1e-3
+>>> logmean = np.log(np.power(10.0, -3))
+#two standard deviations on either side of the mean to cover the search space
+>>> logstd = np.log(10.0) 
+
+>>> learning_rate = CSH.NormalFloatHyperparameter(name='learning_rate', lower=1e-5, upper=1e-1, default_value=1e-3, mu=logmean, sigma=logstd, log=True)
+>>> dropout = CSH.BetaFloatHyperparameter(name='dropout', lower=0, upper=0.99, default_value=0.25, alpha=2, beta=4, log=False)
+>>> activation = CSH.CategoricalHyperparameter(name='activation', choices=['tanh', 'relu'], weights=[0.2, 0.8])
+
+>>> cs = ConfigurationSpace()
+>>> cs.add_hyperparameters([learning_rate, dropout, activation])
+
+Configuration space object:
+  Hyperparameters:
+    activation, Type: Categorical, Choices: {tanh, relu}, Default: tanh, Probabilities: (0.2, 0.8)
+    dropout, Type: BetaFloat, Alpha: 2.0 Beta: 4.0, Range: [0.0, 0.99], Default: 0.25
+    learning_rate, Type: NormalFloat, Mu: -6.907755278982137 Sigma: 2.302585092994046, Range: [1e-05, 0.1], Default: 0.001, on log-scale
+
+To check that your prior makes sense for each hyperparameter, you can easily do so with the __pdf__ method:
+
+>>> test_points = np.logspace(-5, -1, 5) 
+>>> test_points
+[1.e-05 1.e-04 1.e-03 1.e-02 1.e-01]                    
+
+>>> learning_rate.pdf(test_points)
+[0.02456573 0.11009594 0.18151753 0.11009594 0.02456573]
+
+
+
+
