@@ -151,9 +151,6 @@ cdef class Hyperparameter(object):
     cpdef int compare_vector(self, DTYPE_t value, DTYPE_t value2):
         raise NotImplementedError()
 
-    def pdf(self, vector: np.ndarray) -> np.ndarray:
-        raise NotImplementedError()
-
 
 cdef class Constant(Hyperparameter):
     cdef public value
@@ -259,8 +256,10 @@ cdef class Constant(Hyperparameter):
         return []
 
     def pdf(self, vector: np.ndarray) -> np.ndarray:
-        return np.ones(len(vector))
+        return self._pdf(vector)
 
+    def _pdf(self, vector: np.ndarray) -> np.ndarray:
+        return np.ones(len(vector))
 
 cdef class UnParametrizedHyperparameter(Constant):
     pass
@@ -345,9 +344,6 @@ cdef class NumericalHyperparameter(Hyperparameter):
             meta=self.meta
         )
 
-    def pdf(self, vector: np.ndarray) -> np.ndarray:
-        raise NotImplementedError()
-
 
 cdef class FloatHyperparameter(NumericalHyperparameter):
     def __init__(self, name: str, default_value: Union[int, float], meta: Optional[Dict] = None
@@ -379,8 +375,31 @@ cdef class FloatHyperparameter(NumericalHyperparameter):
         raise NotImplementedError()
 
     def pdf(self, vector: np.ndarray) -> np.ndarray:
+        """
+        Computes the probability density function of the parameter in 
+        the original parameter space (the one specified by the user).
+        For each parameter type, there is also a method _pdf which 
+        operates on the transformed (and possibly normalized) parameter
+        space. 
+        vector: np.ndarray
+            the (N, ) vector of imputs for which the probability density
+            function is to be computed.
+        """
         vector = self._inverse_transform(vector)
         return self._pdf(vector)
+        
+    def _pdf(self, vector: np.ndarray) -> np.ndarray:
+        """
+        Computes the probability density function of the parameter in 
+        the transformed (and possibly normalized, depends on the parameter 
+        type) space. As such, one never has to worry about log-normal 
+        distributions, only normal distributions (as the inverse_transform
+         in the pdf method handles these).
+        vector: np.ndarray
+            the (N, ) vector of imputs for which the probability density
+            function is to be computed.
+        """
+        raise NotImplementedError()
 
 
 cdef class IntegerHyperparameter(NumericalHyperparameter):
@@ -420,8 +439,34 @@ cdef class IntegerHyperparameter(NumericalHyperparameter):
         raise NotImplementedError()
     
     def pdf(self, vector: np.ndarray) -> np.ndarray:
+        """
+        Computes the probability density function of the parameter in 
+        the original parameter space (the one specified by the user).
+        For each parameter type, there is also a method _pdf which 
+        operates on the transformed (and possibly normalized) parameter
+        space. 
+        vector: np.ndarray
+            the (N, ) vector of imputs for which the probability density
+            function is to be computed.
+        """
         vector = self._inverse_transform(vector)
         return self._pdf(vector)
+        
+    def _pdf(self, vector: np.ndarray) -> np.ndarray:
+        """
+        Computes the probability density function of the parameter in 
+        the transformed (and possibly normalized, depends on the parameter 
+        type) space. As such, one never has to worry about log-normal 
+        distributions, only normal distributions (as the inverse_transform
+        in the pdf method handles these). Optimally, an IntegerHyperparameter
+        should have a corresponding float, which can be utlized for the calls
+        to the probability density function (see e.g. NormalIntegerHyperparameter)
+        vector: np.ndarray
+            the (N, ) vector of imputs for which the probability density
+            function is to be computed.
+        """
+        raise NotImplementedError()
+        
 
 
 cdef class UniformFloatHyperparameter(FloatHyperparameter):
@@ -887,8 +932,6 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
         if self.lower == None:
             raise ValueError('Need upper and lower limits when using user priors.')
         else:
-            # regardless of whether we have log input or not, this yields the correct answer,
-            # as the data always comes in transformed
             lower = self._lower
             upper = self._upper
             a = (lower - mu) / sigma
@@ -1119,10 +1162,6 @@ cdef class BetaFloatHyperparameter(FloatHyperparameter):
         if self.q is not None:
             vector = np.rint(vector / self.q) * self.q
         return vector
-        #    vector = np.rint((vector - self.lower) / self.q) * self.q + self.lower
-        #    vector = np.minimum(vector, self.upper)
-        #    vector = np.maximum(vector, self.lower)
-        #return np.maximum(self.lower, np.minimum(self.upper, vector))
 
     cpdef double _transform_scalar(self, double scalar):
         if scalar != scalar:
@@ -1131,10 +1170,7 @@ cdef class BetaFloatHyperparameter(FloatHyperparameter):
             scalar = math.exp(scalar)
         if self.q is not None:
             scalar = round(scalar / self.q) * self.q
-        return scalar#    scalar = round((scalar - self.lower) / self.q) * self.q + self.lower
-        #    scalar = min(scalar, self.upper)
-        #    scalar = max(scalar, self.lower)
-        #scalar = min(self.upper, max(self.lower, scalar))
+        return scalar
         
     def _inverse_transform(self, vector: Optional[np.ndarray]) -> Union[float, np.ndarray]:
         if vector is None:
@@ -1142,9 +1178,6 @@ cdef class BetaFloatHyperparameter(FloatHyperparameter):
 
         if self.log:
             vector = np.log(vector)
-        #vector = (vector - self._lower) / (self._upper - self._lower)
-        #vector = np.minimum(1.0, vector)
-        #vector = np.maximum(0.0, vector)
         return vector
 
     def get_neighbors(
