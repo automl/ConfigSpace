@@ -1344,7 +1344,7 @@ class ConfigurationSpace(collections.abc.Mapping):
         """
         self.random = np.random.RandomState(seed)
 
-    def to_uniform(self) -> 'ConfigurationSpace':
+    def remove_parameter_priors(self) -> 'ConfigurationSpace':
         uniform_config_space = ConfigurationSpace()
         for parameter in self.get_hyperparameters():
             if type(parameter) not in [UniformFloatHyperparameter, UniformIntegerHyperparameter, OrdinalHyperparameter]:

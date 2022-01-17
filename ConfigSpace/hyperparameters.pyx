@@ -35,7 +35,7 @@ from collections import OrderedDict, Counter
 from typing import List, Any, Dict, Union, Set, Tuple, Optional
 
 import numpy as np
-from scipy.stats import truncnorm, beta as spbeta, norm, betabinom
+from scipy.stats import truncnorm, beta as spbeta, norm
 cimport numpy as np
 
 
@@ -262,7 +262,7 @@ cdef class Constant(Hyperparameter):
         return self._pdf(vector)
 
     def _pdf(self, vector: np.ndarray) -> np.ndarray:
-        return np.ones(len(vector))
+        return np.ones_like(vector)
 
     def get_size(self) -> float:
         return 1.0
@@ -2716,6 +2716,6 @@ cdef class OrdinalHyperparameter(Hyperparameter):
 
     def get_max_density(self) -> float:
         return 1 / self.num_elements
-        
+
     def get_size(self) -> float:
         return len(self.sequence)
