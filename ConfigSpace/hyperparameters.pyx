@@ -861,8 +861,7 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
         return UniformFloatHyperparameter(self.name,
                                           lb,
                                           ub,
-                                          default_value=int(
-                                              np.round(self.default_value, 0)),
+                                          default_value=self.default_value,
                                           q=self.q, log=self.log)
 
     def check_default(self, default_value: Union[int, float]) -> Union[int, float]:
@@ -1942,7 +1941,7 @@ cdef class BetaIntegerHyperparameter(IntegerHyperparameter):
             meta=self.meta
         )
 
-    def to_uniform(self, z: int = 3) -> 'UniformIntegerHyperparameter':
+    def to_uniform(self) -> 'UniformIntegerHyperparameter':
         lb = self.lower
         ub = self.upper
 

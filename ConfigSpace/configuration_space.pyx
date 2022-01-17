@@ -1352,7 +1352,6 @@ class ConfigurationSpace(collections.abc.Mapping):
             else:
                 uniform_config_space.add_hyperparameter(parameter)
 
-        # TODO - check that this is certainly correct    
         uniform_config_space.add_conditions(self.get_conditions())
         uniform_config_space.add_forbidden_clauses(self.get_forbiddens())
         
