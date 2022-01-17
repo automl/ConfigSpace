@@ -258,16 +258,14 @@ cdef class Constant(Hyperparameter):
                       transform: bool = False) -> List:
         return []
 
-<<<<<<< HEAD
     def pdf(self, vector: np.ndarray) -> np.ndarray:
         return self._pdf(vector)
 
     def _pdf(self, vector: np.ndarray) -> np.ndarray:
         return np.ones(len(vector))
-=======
+
     def get_size(self) -> float:
         return 1.0
->>>>>>> 4d69931de5540fc6be4230731ddebf6a25d2e1a8
 
 cdef class UnParametrizedHyperparameter(Constant):
     pass
@@ -687,7 +685,6 @@ cdef class UniformFloatHyperparameter(FloatHyperparameter):
                 neighbors.append(neighbor)
         return neighbors
 
-<<<<<<< HEAD
     def _pdf(self, vector: np.ndarray) -> np.ndarray:
         ub = self._upper
         lb = self._lower
@@ -697,13 +694,12 @@ cdef class UniformFloatHyperparameter(FloatHyperparameter):
         ub = self._upper
         lb = self._lower
         return 1 / (ub - lb)
-=======
+        
     def get_size(self) -> float:
         if self.q is None:
             return np.inf
         else:
             return np.rint((self.upper - self.lower) / self.q) + 1
->>>>>>> 4d69931de5540fc6be4230731ddebf6a25d2e1a8
 
 
 cdef class NormalFloatHyperparameter(FloatHyperparameter):
@@ -1529,7 +1525,6 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
 
         return neighbors
 
-<<<<<<< HEAD
     def _pdf(self, vector: np.ndarray) -> np.ndarray:
         lb = self.lower
         ub = self.upper
@@ -1539,14 +1534,13 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
         lb = self.lower
         ub = self.upper
         1 / (ub - lb)
-=======
+
     def get_size(self) -> float:
         if self.q is None:
             q = 1
         else:
             q = self.q
         return np.rint((self.upper - self.lower) / q) + 1
->>>>>>> 4d69931de5540fc6be4230731ddebf6a25d2e1a8
 
 
 cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
@@ -2415,7 +2409,6 @@ cdef class CategoricalHyperparameter(Hyperparameter):
                          "OrdinalHyperparameter, but is "
                          "<cdef class 'ConfigSpace.hyperparameters.CategoricalHyperparameter'>")
 
-<<<<<<< HEAD
     def _pdf(self, vector: np.ndarray) -> np.ndarray:
         return np.array(self.probabilities[vector])
 
@@ -2425,10 +2418,9 @@ cdef class CategoricalHyperparameter(Hyperparameter):
 
     def get_max_density(self) -> float:
         return np.max(self.probabilities)
-=======
+
     def get_size(self) -> float:
         return len(self.choices)
->>>>>>> 4d69931de5540fc6be4230731ddebf6a25d2e1a8
 
 
 cdef class OrdinalHyperparameter(Hyperparameter):
@@ -2716,7 +2708,6 @@ cdef class OrdinalHyperparameter(Hyperparameter):
     def allow_greater_less_comparison(self) -> bool:
         return True
 
-<<<<<<< HEAD
     def _pdf(self, vector: np.ndarray) -> np.ndarray:
         return self.ones_like(vector) / self.num_elements
 
@@ -2725,7 +2716,6 @@ cdef class OrdinalHyperparameter(Hyperparameter):
 
     def get_max_density(self) -> float:
         return 1 / self.num_elements
-=======
+        
     def get_size(self) -> float:
         return len(self.sequence)
->>>>>>> 4d69931de5540fc6be4230731ddebf6a25d2e1a8
