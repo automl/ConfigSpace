@@ -1161,7 +1161,7 @@ cdef class BetaFloatHyperparameter(FloatHyperparameter):
         lb = self.lower
         ub = self.upper
         
-        if default_value is None:
+        if (default_value is None) or (default_value < lb) or (default_value > ub):
             if (self.alpha > 1) and (self.beta > 1):
                 normalized_mode = (self.alpha - 1) / (self.alpha + self.beta - 2)
                 return self._transform_scalar((self._upper - self._lower) * normalized_mode + self._lower)
@@ -1182,15 +1182,23 @@ cdef class BetaFloatHyperparameter(FloatHyperparameter):
             q_int = None
         else:
             q_int = int(self.q)
-        return BetaIntegerHyperparameter(self.name, self.alpha, self.beta,
+        return BetaIntegerHyperparameter(self.name, lower=self.lower, upper=self.upper, alpha=self.alpha, beta=self.beta,
                                            default_value=int(np.round(self.default_value, 0)),
                                            q=q_int, log=self.log)
 
     def is_legal(self, value: Union[float]) -> bool:
-        return isinstance(value, float) or isinstance(value, int)
+        if not (isinstance(value, float) or isinstance(value, int)):
+            return False
+        elif self.upper >= value >= self.lower:
+            return True
+        else:
+            return False
 
     cpdef bint is_legal_vector(self, DTYPE_t value):
-        return isinstance(value, float) or isinstance(value, int)
+        if self.upper >= value >= self.lower:
+            return True
+        else:
+            return False
 
     def _sample(self, rs: np.random.RandomState, size: Optional[int] = None
                 ) -> Union[np.ndarray, float]:
@@ -1273,6 +1281,12 @@ cdef class BetaFloatHyperparameter(FloatHyperparameter):
             return self._pdf(np.array([ub]))[0]
         else: 
             return self._pdf(np.array([(ub - lb) / 2]))[0]
+
+    def get_size(self) -> float:
+        if self.q is None:
+            return np.inf
+        else:
+            return np.rint((self.upper - self.lower) / self.q) + 1
 
 
 cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
@@ -1994,10 +2008,18 @@ cdef class BetaIntegerHyperparameter(IntegerHyperparameter):
                                             q=self.q, log=self.log)
 
     def is_legal(self, value: int) -> bool:
-        return isinstance(value, (int, np.int32, np.int64))
+        if not (isinstance(value, (int, np.int32, np.int64))):
+            return False
+        elif self.upper >= value >= self.lower:
+            return True
+        else:
+            return False
 
     cpdef bint is_legal_vector(self, DTYPE_t value):
-        return isinstance(value, float) or isinstance(value, int)
+        if 1.0 >= value >= 0.0:
+            return True
+        else:
+            return False
 
     def check_default(self, default_value: int) -> int:
         if default_value is None:
@@ -2132,9 +2154,15 @@ cdef class BetaIntegerHyperparameter(IntegerHyperparameter):
     def _pdf(self, vector: np.ndarray) -> np.ndarray:
         return self.bfhp._pdf(vector) / self.normalization_constant
 
-
     def get_max_density(self):
         return self.bfhp.get_max_density() / self.normalization_constant
+
+    def get_size(self) -> float:
+        if self.q is None:
+            q = 1
+        else:
+            q = self.q
+        return np.rint((self.upper - self.lower) / q) + 1
 
 
 cdef class CategoricalHyperparameter(Hyperparameter):
