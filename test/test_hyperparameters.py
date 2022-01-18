@@ -33,10 +33,11 @@ import pytest
 
 import numpy as np
 
-from ConfigSpace.hyperparameters import Constant, \
-    UniformFloatHyperparameter, NormalFloatHyperparameter, \
-    UniformIntegerHyperparameter, NormalIntegerHyperparameter, \
-    CategoricalHyperparameter, OrdinalHyperparameter
+from ConfigSpace.hyperparameters import (Constant, \
+    UniformFloatHyperparameter, NormalFloatHyperparameter, 
+    BetaFloatHyperparameter, UniformIntegerHyperparameter, \
+    NormalIntegerHyperparameter, BetaIntegerHyperparameter, \
+    CategoricalHyperparameter, OrdinalHyperparameter)
 
 
 class TestHyperparameters(unittest.TestCase):
@@ -325,6 +326,164 @@ class TestHyperparameters(unittest.TestCase):
     def test_normalfloat_to_integer(self):
         f1 = NormalFloatHyperparameter("param", 0, 10)
         f2_expected = NormalIntegerHyperparameter("param", 0, 10)
+        f2_actual = f1.to_integer()
+        self.assertEqual(f2_expected, f2_actual)
+
+    def test_betafloat(self):
+        # TODO test non-equality
+        f1 = BetaFloatHyperparameter("param", lower=-2.0, upper=2.0, alpha=3.0, beta=1.0)
+        f1_ = BetaFloatHyperparameter("param", lower=-2, upper=2, alpha=3, beta=1)
+        self.assertEqual(f1, f1_)
+        self.assertEqual(
+            "param, Type: BetaFloat, Alpha: 3.0 Beta: 1.0, Range: [-2.0, 2.0], Default: 2.0",
+            str(f1_))
+
+        # test parameters that do not create a legit beta distribution    
+        with self.assertRaises(ValueError):
+            f1_error_a = BetaFloatHyperparameter("param", lower=-2, upper=2, alpha=5, beta=-11)
+            f1_error_b = BetaFloatHyperparameter("param", lower=-2, upper=2, alpha=-11, beta=5)
+        
+        # test parameters that do not yield a finite co-domain
+        with self.assertRaises(ValueError):
+            f1_error_a = BetaFloatHyperparameter("param", lower=-2, upper=2, alpha=0.5, beta=11)
+            f1_error_b = BetaFloatHyperparameter("param", lower=-2, upper=2, alpha=11, beta=0.5)
+          
+        u1 = UniformFloatHyperparameter("param", lower=0.0, upper=1.0)
+        b1 = BetaFloatHyperparameter("param", lower=0.0, upper=1.0, alpha=3.0, beta=1.0)
+        
+        # with identical domains, beta and uniform should sample the same points
+        self.assertEqual(u1.get_neighbors(0.5, rs=np.random.RandomState(42)),
+                         b1.get_neighbors(0.5, rs=np.random.RandomState(42)),
+        )
+        self.assertEqual(f1.get_neighbors(0.5, rs=np.random.RandomState(42)),
+                         [0.8973713224089861, 0.38938855906305225, 1.018150830480554, 1.7184238851264204])
+
+        # Test attributes are accessible
+        self.assertEqual(f1.name, "param")
+        self.assertAlmostEqual(f1.alpha, 3.0)
+        self.assertAlmostEqual(f1.beta, 1.0) 
+        self.assertAlmostEqual(f1.q, None)
+        self.assertEqual(f1.log, False)
+        self.assertAlmostEqual(f1.default_value, 2.0)
+        # beta parameters are not normalized (as normal parameters are not, either. Not sure if that's best.)
+        self.assertAlmostEqual(f1.normalized_default_value, 2.0)
+
+        # Test copy
+        copy_f1 = copy.copy(f1)
+
+        self.assertEqual(copy_f1.name, f1.name)
+        self.assertEqual(copy_f1.alpha, f1.alpha)
+        self.assertEqual(copy_f1.beta, f1.beta)
+        self.assertEqual(copy_f1.default_value, f1.default_value)
+
+        
+        f2 = BetaFloatHyperparameter("param", lower=-2.0, upper=2.0, alpha=3.0, beta=1.0, q=0.1)
+        f2_ = BetaFloatHyperparameter("param", lower=-2, upper=2, alpha=3, beta=1, q=0.1)
+        self.assertEqual(f2, f2_)
+ 
+        self.assertEqual(
+            "param, Type: BetaFloat, Alpha: 3.0 Beta: 1.0, Range: [-2.0, 2.0], Default: 2.0, "
+            "Q: 0.1", str(f2))
+        
+        f3 = BetaFloatHyperparameter("param", lower=10**(-5), upper=10.0, alpha=6.0, beta=2.0, log=True)
+        f3_ = BetaFloatHyperparameter("param", lower=10**(-5), upper=10.0, alpha=6.0, beta=2.0, log=True)
+        self.assertEqual(f3, f3_)
+        self.assertEqual(
+            "param, Type: BetaFloat, Alpha: 6.0 Beta: 2.0, Range: [1e-05, 10.0], Default: 1.0, "
+            "on log-scale", str(f3))
+
+        with self.assertRaises(ValueError):
+            f3_error = BetaFloatHyperparameter("param", lower=-1, upper=10.0, alpha=6.0, beta=2.0, log=True)
+        
+        
+        f4 = BetaFloatHyperparameter("param", lower=1, upper=1000.0, alpha=2.0, beta=2.0, log=True, q=1.0)
+        f4_ = BetaFloatHyperparameter("param", lower=1, upper=1000.0, alpha=2.0, beta=2.0, log=True, q=1.0)
+        
+        self.assertEqual(f4, f4_)
+        self.assertEqual(
+            "param, Type: BetaFloat, Alpha: 2.0 Beta: 2.0, Range: [1.0, 1000.0], Default: 22.0, "
+            "on log-scale, Q: 1.0", str(f4))
+        
+        f5_illegal_nolog = BetaFloatHyperparameter("param", lower=1, upper=10.0, alpha=3.0, beta=2.0, default_value=0, log=False)
+        f5_illegal_log = BetaFloatHyperparameter("param", lower=1, upper=1000.0, alpha=3.0, beta=2.0, default_value=0, log=True)
+        f5_legal_nolog = BetaFloatHyperparameter("param", lower=1, upper=10.0, alpha=3.0, beta=2.0, default_value=1, log=True)
+        f5_legal_log = BetaFloatHyperparameter("param", lower=1, upper=10.0, alpha=3.0, beta=2.0, default_value=1, log=False)
+        self.assertAlmostEqual(f5_illegal_nolog.default_value, 7)
+        self.assertAlmostEqual(f5_illegal_log.default_value, 100)
+        self.assertAlmostEqual(f5_legal_nolog.default_value, 1)
+        self.assertAlmostEqual(f5_legal_log.default_value, 1)
+
+        
+        # test that meta-data is stored correctly
+        f_meta = BetaFloatHyperparameter("param", lower=1, upper=10.0, alpha=3.0, beta=2.0, log=False, meta=dict(self.meta_data))
+        self.assertEqual(f_meta.meta, self.meta_data)
+        
+        for float_hp in (f1, f3):
+            self.assertTrue(np.isinf(float_hp.get_size()))
+        self.assertEqual(f4.get_size(), 1000)
+    
+    def test_sample_betafloat(self):
+        rs = np.random.RandomState(1)
+        f1 = BetaFloatHyperparameter("param", lower=-2.0, upper=2.0, alpha=1.2, beta=1.1)
+        f1_log = BetaFloatHyperparameter("param", lower=1, upper=1000, alpha=1.2, beta=1.1, log=True)
+        samples = f1._sample(rs=rs, size=10000)
+        samples_log = f1_log._sample(rs=rs, size=10000)
+        self.assertTrue(np.all(samples > f1._lower))
+        self.assertTrue(np.all(samples < f1._upper))
+        self.assertTrue(np.all(samples_log > f1_log._lower))
+        self.assertTrue(np.all(samples_log < f1_log._upper))
+    
+        for i in range(100):  
+            self.assertTrue((f1.sample(rs) > f1.lower) and (f1.sample(rs) < f1.upper))
+            self.assertTrue((f1_log.sample(rs) > f1_log.lower) and (f1_log.sample(rs) < f1_log.upper))
+
+    
+    def test_betafloat_to_uniformfloat(self):
+        f1 = BetaFloatHyperparameter("param", lower=-2.0, upper=2.0, alpha=4, beta=2, q=0.1)
+        f1_expected = UniformFloatHyperparameter("param", lower=-2.0, upper=2.0, q=0.1, default_value=1)
+        f1_actual = f1.to_uniform()
+        self.assertEqual(f1_expected, f1_actual)
+
+        f2 = BetaFloatHyperparameter("param", lower=1, upper=1000, alpha=3, beta=2, log=True)
+        f2_expected = UniformFloatHyperparameter("param", lower=1, upper=1000, log=True, default_value=100)
+        f2_actual = f2.to_uniform()
+        self.assertEqual(f2_expected, f2_actual)
+
+    
+    def test_betafloat_is_legal(self):
+        f1 = BetaFloatHyperparameter("param", lower=-2.0, upper=2.0, alpha=4, beta=2)
+        
+        self.assertFalse(f1.is_legal(3.0))
+        self.assertTrue(f1.is_legal(2))
+        self.assertFalse(f1.is_legal("Hahaha"))
+
+        # Test legal vector values
+        self.assertTrue(f1.is_legal_vector(1.0))
+        self.assertTrue(f1.is_legal_vector(0.0))
+        self.assertTrue(f1.is_legal_vector(-0.1))
+        self.assertFalse(f1.is_legal_vector(3))
+        self.assertFalse(f1.is_legal_vector(-2.1))
+        self.assertRaises(TypeError, f1.is_legal_vector, "Hahaha")
+
+
+        f1_log = BetaFloatHyperparameter("param", lower=0.1, upper=100, alpha=4, beta=2)
+        self.assertTrue(f1_log.is_legal(1.0))
+        self.assertTrue(f1_log.is_legal(100))
+        self.assertFalse(f1_log.is_legal(0.0))
+        self.assertFalse(f1_log.is_legal(-0.1))
+        self.assertFalse(f1_log.is_legal(-0.1))
+        self.assertFalse(f1_log.is_legal(100.01))
+
+        self.assertTrue(f1_log.is_legal_vector(0.1))
+        self.assertTrue(f1_log.is_legal_vector(100))
+        self.assertFalse(f1_log.is_legal_vector(0.0))
+        self.assertFalse(f1_log.is_legal_vector(-0.1))
+        self.assertFalse(f1_log.is_legal_vector(-0.1))
+        self.assertFalse(f1_log.is_legal_vector(100.01))
+    
+    def test_betafloat_to_integer(self):
+        f1 = BetaFloatHyperparameter("param", lower=-2.0, upper=2.0, alpha=4, beta=2)
+        f2_expected = BetaIntegerHyperparameter("param", lower=-2.0, upper=2.0, alpha=4, beta=2)
         f2_actual = f1.to_integer()
         self.assertEqual(f2_expected, f2_actual)
 
