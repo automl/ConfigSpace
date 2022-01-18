@@ -1646,7 +1646,12 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
                                               default_value=self.default_value)
 
         self.normalized_default_value = self._inverse_transform(self.default_value)
-        self.normalization_constant = self._compute_normalization()
+        
+        if (self.lower is None) or (self.upper is None):
+            # Since a bound is missing, the pdf cannot be normalized. Working with the unnormalized variant)
+            self.normalization_constant = 1
+        else:
+            self.normalization_constant = self._compute_normalization()
 
     def __repr__(self) -> str:
         repr_str = io.StringIO()
@@ -1810,6 +1815,16 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
 
     def get_max_density(self):
         return self.nfhp.get_max_density() / self.normalization_constant
+
+    def get_size(self) -> float:
+        if self.lower is None:
+            return np.inf
+        else:
+            if self.q is None:
+                q = 1
+            else:
+                q = self.q
+            return np.rint((self.upper - self.lower) / self.q) + 1
 
 
 cdef class BetaIntegerHyperparameter(IntegerHyperparameter):
@@ -2120,16 +2135,6 @@ cdef class BetaIntegerHyperparameter(IntegerHyperparameter):
 
     def get_max_density(self):
         return self.bfhp.get_max_density() / self.normalization_constant
-
-    def get_size(self) -> float:
-        if self.lower is None:
-            return np.inf
-        else:
-            if self.q is None:
-                q = 1
-            else:
-                q = self.q
-            return np.rint((self.upper - self.lower) / self.q) + 1
 
 
 cdef class CategoricalHyperparameter(Hyperparameter):
