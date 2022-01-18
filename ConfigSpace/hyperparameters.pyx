@@ -1848,7 +1848,7 @@ cdef class BetaIntegerHyperparameter(IntegerHyperparameter):
     cdef normalization_constant
 
 
-    def __init__(self, name: str, alpha: int, beta: Union[int, float],
+    def __init__(self, name: str, alpha: Union[int, float], beta: Union[int, float],
                  default_value: Union[int, None] = None, q: Union[None, int] = None,
                  log: bool = False,
                  lower: Optional[int] = None,
@@ -1917,19 +1917,16 @@ cdef class BetaIntegerHyperparameter(IntegerHyperparameter):
         if (lower is None) or (upper is None):
             raise ValueError("Both bounds must be provided for a Beta parameter.")
 
-        if lower is not None and upper is not None:
-            self.upper = self.check_int(upper, "upper")
-            self.lower = self.check_int(lower, "lower")
-            if self.lower >= self.upper:
-                raise ValueError("Upper bound %d must be larger than lower bound "
-                                "%d for hyperparameter %s" %
-                                (self.lower, self.upper, name))
-            elif log and self.lower <= 0:
-                raise ValueError("Negative lower bound (%d) for log-scale "
-                                "hyperparameter %s is forbidden." %
-                                (self.lower, name))
-            self.lower = lower
-            self.upper = upper
+        self.upper = self.check_int(upper, "upper")
+        self.lower = self.check_int(lower, "lower")
+        if self.lower >= self.upper:
+            raise ValueError("Upper bound %d must be larger than lower bound "
+                            "%d for hyperparameter %s" %
+                            (self.lower, self.upper, name))
+        elif log and self.lower <= 0:
+            raise ValueError("Negative lower bound (%d) for log-scale "
+                            "hyperparameter %s is forbidden." %
+                            (self.lower, name))
 
         self.bfhp = BetaFloatHyperparameter(self.name,
                                               self.alpha,
@@ -1940,13 +1937,15 @@ cdef class BetaIntegerHyperparameter(IntegerHyperparameter):
                                               upper=self.upper,
                                               default_value=self.default_value)
 
+        self._lower = self.bfhp._lower
+        self._upper = self.bfhp._upper
         self.default_value = self.check_default(default_value)
         self.normalized_default_value = self._inverse_transform(self.default_value)
         self.normalization_constant = self._compute_normalization()
 
     def __repr__(self) -> str:
         repr_str = io.StringIO()
-        repr_str.write("%s, Type: BetaInteger, Alpha: %s Beta: %s, Default: %s" % (self.name, repr(self.alpha), repr(self.beta), repr(self.default_value)))
+        repr_str.write("%s, Type: BetaInteger, Alpha: %s Beta: %s, Range: [%s, %s], Default: %s" % (self.name, repr(self.alpha), repr(self.beta), repr(self.lower), repr(self.upper), repr(self.default_value)))
         
         if self.log:
             repr_str.write(", on log-scale")
@@ -2016,20 +2015,18 @@ cdef class BetaIntegerHyperparameter(IntegerHyperparameter):
             return False
 
     cpdef bint is_legal_vector(self, DTYPE_t value):
-        if 1.0 >= value >= 0.0:
+        if self.upper >= value >= self.lower:
             return True
         else:
             return False
 
     def check_default(self, default_value: int) -> int:
-        if default_value is None:
-            return int(round(self.bfhp.check_default(None)))
-
-        elif self.is_legal(default_value):
+        if self.is_legal(default_value):
             return default_value
         else:
-            raise ValueError("Illegal default value %s" % str(default_value))
+            return int(round(self.bfhp.check_default(None)))
 
+        
     def _sample(self, rs: np.random.RandomState, size: Optional[int] = None
                 ) -> Union[np.ndarray, float]:
         value = self.bfhp._sample(rs, size=size)
@@ -2075,7 +2072,7 @@ cdef class BetaIntegerHyperparameter(IntegerHyperparameter):
         cdef np.ndarray samples
         cdef double[:] samples_view
         
-        norm_std = std * (self.upper - self.lower) 
+        norm_std = std * (self._upper - self._lower) 
         if self.upper - self.lower <= n_requested:
             transformed_value = self._transform(value)
             for n in range(self.lower, self.upper + 1):
@@ -2100,7 +2097,7 @@ cdef class BetaIntegerHyperparameter(IntegerHyperparameter):
                         samples = rs.normal(loc=value, scale=norm_std, size=250)
                         samples_view = samples
                         idx = 0
-                    if new_value < 0 or new_value > 1:
+                    if new_value < self._lower or new_value > self._upper:
                         continue
                     new_int_value = self._transform(new_value)
                     if int_value == new_int_value:
