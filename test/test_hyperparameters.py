@@ -88,6 +88,12 @@ class TestHyperparameters(unittest.TestCase):
         for constant in (c1, c2, c3, c4, c5, c1_meta):
             self.assertEqual(constant.get_size(), 1)
 
+    def test_constant_pdf(self):
+        pass
+
+    def test_constant_get_max_density(self):
+        pass
+
     def test_uniformfloat(self):
         # TODO test non-equality
         # TODO test sampling from a log-distribution which has a negative
@@ -196,6 +202,12 @@ class TestHyperparameters(unittest.TestCase):
             ValueError, "Upper bound 0.000000 must be larger than lower bound "
             "1.000000 for hyperparameter param", UniformFloatHyperparameter,
             "param", 1, 0)
+
+    def test_uniformfloat_pdf(self):
+        pass
+
+    def test_uniformfloat_get_max_density(self):
+        pass
 
     def test_normalfloat(self):
         # TODO test non-equality
@@ -328,6 +340,12 @@ class TestHyperparameters(unittest.TestCase):
         f2_expected = NormalIntegerHyperparameter("param", 0, 10)
         f2_actual = f1.to_integer()
         self.assertEqual(f2_expected, f2_actual)
+
+    def test_normalfloat_pdf(self):
+        pass
+
+    def test_normalfloat_get_max_density(self):
+        pass
 
     def test_betafloat(self):
         # TODO test non-equality
@@ -498,6 +516,12 @@ class TestHyperparameters(unittest.TestCase):
         f2_actual = f1.to_integer()
         self.assertEqual(f2_expected, f2_actual)
 
+    def test_betafloat_pdf(self):
+        pass
+
+    def test_betafloat_get_max_density(self):
+        pass
+
     def test_uniforminteger(self):
         # TODO: rounding or converting or error message?
 
@@ -597,6 +621,12 @@ class TestHyperparameters(unittest.TestCase):
             ValueError,
             "Upper bound 1 must be larger than lower bound 0 for "
             "hyperparameter param", UniformIntegerHyperparameter, "param", 1, 0)
+
+    def test_uniformint_pdf(self):
+        pass
+
+    def test_uniformint_get_max_density(self):
+        pass
 
     def test_normalint(self):
         # TODO test for unequal!
@@ -707,6 +737,12 @@ class TestHyperparameters(unittest.TestCase):
         self.assertTrue(f1.is_legal_vector(-0.1))
         self.assertTrue(f1.is_legal_vector(1.1))
         self.assertRaises(TypeError, f1.is_legal_vector, "Hahaha")
+
+    def test_normalint_pdf(self):
+        pass
+
+    def test_normalint_get_max_density(self):
+        pass
 
     ############################################################
     def test_betaint(self):
@@ -840,6 +876,12 @@ class TestHyperparameters(unittest.TestCase):
         self.assertTrue(f1.is_legal_vector(-0.1))
         self.assertTrue(f1.is_legal_vector(1.1))
         self.assertRaises(TypeError, f1.is_legal_vector, "Hahaha")
+
+    def test_betaint_pdf(self):
+        pass
+
+    def test_betaint_get_max_density(self):
+        pass
 
     def test_categorical(self):
         # TODO test for inequality
@@ -997,6 +1039,12 @@ class TestHyperparameters(unittest.TestCase):
         self.assertTrue(np.isfinite(hp._upper))
         sample(hp)
 
+    def test_categorical_pdf(self):
+        pass
+
+    def test_categorical_get_max_density(self):
+        pass
+
     def test_sample_NormalFloatHyperparameter(self):
         hp = NormalFloatHyperparameter("nfhp", 0, 1)
 
@@ -1034,6 +1082,12 @@ class TestHyperparameters(unittest.TestCase):
             return counts_per_bin
 
         self.assertEqual(actual_test(), actual_test())
+
+    def test_sample_BetaFloatHyperparameter(self):
+        pass
+    
+    def test_sample_BetaFloatHyperparameter(self):
+        pass
 
     def test_sample_UniformIntegerHyperparameter(self):
         # TODO: disentangle, actually test _sample and test sample on the
@@ -1217,6 +1271,12 @@ class TestHyperparameters(unittest.TestCase):
         for i in range(100):
             values.append(hp._sample(rs))
         self.assertEqual(len(np.unique(values)), 5)
+
+    def test_sample_BetaIntegerHyperparameter(self):
+        pass
+    
+    def test_sample_BetaIntegerHyperparameter(self):
+        pass
 
     def test_sample_CategoricalHyperparameter(self):
         hp = CategoricalHyperparameter("chp", [0, 2, "Bla", u"Blub"])
