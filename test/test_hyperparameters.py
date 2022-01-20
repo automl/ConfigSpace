@@ -287,30 +287,38 @@ class TestHyperparameters(unittest.TestCase):
         point_1 = np.array([3])
         point_2 = np.array([7])
         point_3 = np.array([0.3])
-        array_1 = np.array([3, 7])
+        array_1 = np.array([3, 7, 5])
         point_outside_range = np.array([-1])
         point_outside_range_log = np.array([0.1])
         wrong_shape_1 = np.array([[3]])
         wrong_shape_2 = np.array([3, 5, 7]).reshape(1, -1)
         wrong_shape_3 = np.array([3, 5, 7]).reshape(-1, 1)
         
-        self.assertEqual(c1.pdf(point_1), np.array([0.1]))
-        self.assertEqual(c2.pdf(point_2), np.array([0.1]))
-        self.assertEqual(c1.pdf(point_1), np.array([0.1]))
-        self.assertEqual(c2.pdf(point_2), np.array([0.1]))
-        self.assertEqual(c3.pdf(point_3), np.array([2.0]))
+        self.assertAlmostEqual(c1.pdf(point_1)[0], 0.1)
+        self.assertAlmostEqual(c2.pdf(point_2)[0], 4.539992976248485e-05)
+        self.assertAlmostEqual(c1.pdf(point_1)[0], 0.1)
+        self.assertAlmostEqual(c2.pdf(point_2)[0], 4.539992976248485e-05)
+        self.assertAlmostEqual(c3.pdf(point_3)[0], 2.0)
         
         # TODO - change this once the is_legal support is there
         # but does not have an actual impact of now
         # since inverse_transform pulls everything into range, even points outside get evaluated in range
-        self.assertEqual(c1.pdf(point_outside_range), np.array([0.1]))
-        self.assertEqual(c2.pdf(point_outside_range_log), np.array([0.1]))
+        self.assertAlmostEqual(c1.pdf(point_outside_range)[0], 0.1)
+        self.assertAlmostEqual(c2.pdf(point_outside_range_log)[0], 4.539992976248485e-05)
 
         # this, however, is a negative value on a log param, which cannot be pulled into range
-        self.assertEqual(c2.pdf(point_outside_range), np.array([0.0]))
+        self.assertEqual(c2.pdf(point_outside_range)[0], 0.0)
         
-        self.assertEqual(tuple(c1.pdf(array_1)), tuple(np.array([0.1, 0.1])))
-        self.assertEqual(tuple(c2.pdf(array_1)), tuple(np.array([0.1, 0.1])))
+        array_results = c1.pdf(array_1)
+        array_results_log = c2.pdf(array_1)
+        expected_results = np.array([0.1, 0.1, 0.1])
+        expected_log_results = np.array([4.539992976248485e-05, 4.539992976248485e-05, 4.539992976248485e-05])
+        self.assertEqual(array_results.shape, expected_results.shape)
+        self.assertEqual(array_results_log.shape, expected_log_results.shape)
+        for res, log_res, exp_res, exp_log_res in zip(array_results, array_results_log, expected_results, expected_log_results):
+            self.assertAlmostEqual(res, exp_res)
+            self.assertAlmostEqual(log_res, exp_log_res)
+        
         
         # pdf must take a numpy array
         with self.assertRaises(TypeError):
@@ -340,22 +348,29 @@ class TestHyperparameters(unittest.TestCase):
         accepted_shape_2 = np.array([0.3, 0.5, 1.1]).reshape(1, -1)
         accepted_shape_3 = np.array([1.1, 0.5, 0.3]).reshape(-1, 1)
         
-        self.assertEqual(c1._pdf(point_1), np.array([0.1]))
-        self.assertEqual(c2._pdf(point_2), np.array([0.1]))
-        self.assertEqual(c1._pdf(point_1), np.array([0.1]))
-        self.assertEqual(c2._pdf(point_2), np.array([0.1]))
-        self.assertEqual(c3._pdf(point_3), np.array([2.0]))
+        self.assertAlmostEqual(c1._pdf(point_1)[0], 0.1)
+        self.assertAlmostEqual(c2._pdf(point_2)[0], 4.539992976248485e-05)
+        self.assertAlmostEqual(c1._pdf(point_1)[0], 0.1)
+        self.assertAlmostEqual(c2._pdf(point_2)[0], 4.539992976248485e-05)
+        self.assertAlmostEqual(c3._pdf(point_3)[0], 2.0)
         
         # TODO - change this once the is_legal support is there
         # but does not have an actual impact of now
         # since inverse_transform pulls everything into range, even points outside get evaluated in range
-        self.assertEqual(c1._pdf(point_outside_range_1), np.array([0.0]))
-        self.assertEqual(c2._pdf(point_outside_range_2), np.array([0.0]))
-        self.assertEqual(c1._pdf(point_outside_range_2), np.array([0.0]))
-        self.assertEqual(c2._pdf(point_outside_range_1), np.array([0.0]))
+        self.assertAlmostEqual(c1._pdf(point_outside_range_1)[0], 0.0)
+        self.assertAlmostEqual(c2._pdf(point_outside_range_2)[0], 0.0)
+        self.assertAlmostEqual(c1._pdf(point_outside_range_2)[0], 0.0)
+        self.assertAlmostEqual(c2._pdf(point_outside_range_1)[0], 0.0)
 
-        self.assertEqual(tuple(c1._pdf(array_1)), tuple(np.array([0.1, 0.1, 0.0])))
-        self.assertEqual(tuple(c2._pdf(array_1)), tuple(np.array([0.1, 0.1, 0.0])))
+        array_results = c1._pdf(array_1)
+        array_results_log = c2._pdf(array_1)
+        expected_results = np.array([0.1, 0.1, 0])
+        expected_log_results = np.array([4.539992976248485e-05, 4.539992976248485e-05, 0.0])
+        self.assertEqual(array_results.shape, expected_results.shape)
+        self.assertEqual(array_results_log.shape, expected_log_results.shape)
+        for res, log_res, exp_res, exp_log_res in zip(array_results, array_results_log, expected_results, expected_log_results):
+            self.assertAlmostEqual(res, exp_res)
+            self.assertAlmostEqual(log_res, exp_log_res)
         
         # pdf must take a numpy array
         with self.assertRaises(TypeError):
@@ -999,7 +1014,108 @@ class TestHyperparameters(unittest.TestCase):
             "hyperparameter param", UniformIntegerHyperparameter, "param", 1, 0)
 
     def test_uniformint_pdf(self):
-        pass
+        c1 = UniformIntegerHyperparameter("param", lower=0, upper=4)
+        c2 = UniformIntegerHyperparameter("logparam", lower=1, upper=10000, log=True)
+        c3 = UniformIntegerHyperparameter("param", lower=-1, upper=12)
+        point_1 = np.array([0])
+        point_1_log = np.array([1])
+        point_2 = np.array([3.0])
+        point_2_log = np.array([3.0])
+        non_integer_point = np.array([3.7])
+        array_1 = np.array([1, 3, 3.7])
+        point_outside_range = np.array([-1])
+        point_outside_range_log = np.array([10001])
+        wrong_shape_1 = np.array([[3]])
+        wrong_shape_2 = np.array([3, 5, 7]).reshape(1, -1)
+        wrong_shape_3 = np.array([3, 5, 7]).reshape(-1, 1)
+
+        # need to lower the amount of places since the bounds are inexact (._lower=-0.49999, ._upper=4.49999)
+        self.assertAlmostEqual(c1.pdf(point_1)[0], 0.2, places=5)
+        self.assertAlmostEqual(c2.pdf(point_1_log)[0], 0.0001, places=5)
+        self.assertAlmostEqual(c1.pdf(point_2)[0], 0.2, places=5)
+        self.assertAlmostEqual(c2.pdf(point_2_log)[0], 0.0001, places=5)
+        self.assertAlmostEqual(c1.pdf(non_integer_point)[0], 0.0, places=5)
+        self.assertAlmostEqual(c2.pdf(non_integer_point)[0], 0.0, places=5)
+        self.assertAlmostEqual(c3.pdf(point_1)[0], 0.07142857142857142, places=5)
+        
+        # TODO - change this once the is_legal support is there
+        # but does not have an actual impact of now
+        # since inverse_transform pulls everything into range, even points outside get evaluated in range
+        self.assertAlmostEqual(c1.pdf(point_outside_range)[0], 0.2, places=5)
+        self.assertAlmostEqual(c2.pdf(point_outside_range_log)[0], 0.0001, places=5)
+
+        # this, however, is a negative value on a log param, which cannot be pulled into range
+        self.assertEqual(c2.pdf(point_outside_range)[0], 0.0)
+        
+        array_results = c1.pdf(array_1)
+        array_results_log = c2.pdf(array_1)
+        expected_results = np.array([0.2, 0.2, 0])
+        expected_results_log = np.array([0.0001, 0.0001, 0])
+        self.assertAlmostEqual(array_results.shape, expected_results.shape)
+        self.assertEqual(array_results_log.shape, expected_results.shape)
+        for res, log_res, exp_res, exp_log_res in zip(array_results, array_results, expected_results, expected_results_log):
+            self.assertAlmostEqual(res, exp_res, places=5)
+            self.assertAlmostEqual(log_res, exp_res, places=5)
+
+        # pdf must take a numpy array
+        with self.assertRaises(TypeError):
+            c1.pdf(0.2)
+        with self.assertRaises(TypeError):
+            c1.pdf('pdf')
+
+        with self.assertRaisesRegex(ValueError, "Method pdf expects a one-dimensional numpy array"):
+            c1.pdf(wrong_shape_1)
+        with self.assertRaisesRegex(ValueError, "Method pdf expects a one-dimensional numpy array"):
+            c1.pdf(wrong_shape_2)
+        with self.assertRaisesRegex(ValueError, "Method pdf expects a one-dimensional numpy array"):
+            c1.pdf(wrong_shape_3)
+
+    def test_uniformint__pdf(self):
+        c1 = UniformIntegerHyperparameter("param", lower=0, upper=4)
+        c2 = UniformIntegerHyperparameter("logparam", lower=1, upper=10000, log=True)
+        c3 = UniformIntegerHyperparameter("param", lower=-1, upper=12)
+        point_1 = np.array([0])
+        point_2 = np.array([0.7])
+        array_1 = np.array([0, 0.7, 1.1])
+        point_outside_range = np.array([-0.1])
+        accepted_shape_1 = np.array([[0.7]])
+        accepted_shape_2 = np.array([0, 0.7, 1.1]).reshape(1, -1)
+        accepted_shape_3 = np.array([1.1, 0.7, 0]).reshape(-1, 1)
+
+        # need to lower the amount of places since the bounds are inexact (._lower=-0.49999, ._upper=4.49999)
+        self.assertAlmostEqual(c1._pdf(point_1)[0], 0.2, places=5)
+        self.assertAlmostEqual(c2._pdf(point_1)[0], 0.0001, places=5)
+        self.assertAlmostEqual(c1._pdf(point_2)[0], 0.2, places=5)
+        self.assertAlmostEqual(c2._pdf(point_2)[0], 0.0001, places=5)
+        
+        # TODO - change this once the is_legal support is there
+        # but does not have an actual impact of now
+        # since inverse_transform pulls everything into range, even points outside get evaluated in range
+        self.assertAlmostEqual(c1._pdf(point_outside_range)[0], 0.0, places=5)
+        self.assertAlmostEqual(c2._pdf(point_outside_range)[0], 0.0, places=5)
+        
+        array_results = c1._pdf(array_1)
+        array_results_log = c2._pdf(array_1)
+        expected_results = np.array([0.2, 0.2, 0])
+        expected_results_log = np.array([0.0001, 0.0001, 0])
+        self.assertAlmostEqual(array_results.shape, expected_results.shape)
+        self.assertEqual(array_results_log.shape, expected_results.shape)
+        for res, log_res, exp_res, exp_log_res in zip(array_results, array_results, expected_results, expected_results_log):
+            self.assertAlmostEqual(res, exp_res, places=5)
+            self.assertAlmostEqual(log_res, exp_res, places=5)
+
+        # pdf must take a numpy array
+        with self.assertRaises(TypeError):
+            c1._pdf(0.2)
+        with self.assertRaises(TypeError):
+            c1._pdf('pdf')
+   
+        # Simply check that it runs, since _pdf does not restrict shape (only public method does)
+        self.assertAlmostEqual(c1._pdf(accepted_shape_1)[0][0], 0.2, places=5)
+        self.assertAlmostEqual(c1._pdf(accepted_shape_2)[0][0], 0.2, places=5)
+        self.assertAlmostEqual(c1._pdf(accepted_shape_2)[0][2], 0.0, places=5)
+        self.assertAlmostEqual(c1._pdf(accepted_shape_3)[0][0], 0.0, places=5)
+        self.assertAlmostEqual(c1._pdf(accepted_shape_3)[2][0], 0.2, places=5)
 
     def test_uniformint_get_max_density(self):
         pass
