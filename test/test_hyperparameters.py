@@ -1231,7 +1231,112 @@ class TestHyperparameters(unittest.TestCase):
         self.assertRaises(TypeError, f1.is_legal_vector, "Hahaha")
 
     def test_normalint_pdf(self):
-        pass
+        c1 = NormalIntegerHyperparameter("param", lower=0, upper=10, mu=3, sigma=2)
+        c2 = NormalIntegerHyperparameter("logparam", lower=1, upper=1000, mu=3, sigma=2, log=True)
+        c3 = NormalIntegerHyperparameter("param", lower=0, upper=2, mu=-1.2, sigma=0.5)
+        
+        point_1 = np.array([3])
+        point_1_log = np.array([10])
+        point_2 = np.array([10])
+        point_2_log = np.array([1000])
+        point_3 = np.array([0])
+        array_1 = np.array([3, 10, 11])
+        array_1_log = np.array([10, 570, 1001])
+        point_outside_range_1 = np.array([-1])
+        point_outside_range_2 = np.array([11])
+        point_outside_range_1_log = np.array([0])
+        point_outside_range_2_log = np.array([1001])
+        non_integer_point = np.array([5.7])
+        wrong_shape_1 = np.array([[3]])
+        wrong_shape_2 = np.array([3, 5, 7]).reshape(1, -1)
+        wrong_shape_3 = np.array([3, 5, 7]).reshape(-1, 1)
+        
+        self.assertAlmostEqual(c1.pdf(point_1)[0], 0.20747194595587332)
+        self.assertAlmostEqual(c2.pdf(point_1_log)[0], 0.002625781612612434)
+        self.assertAlmostEqual(c1.pdf(point_2)[0], 0.00045384303905059246)
+        self.assertAlmostEqual(c2.pdf(point_2_log)[0], 0.0004136885586376241)
+        self.assertAlmostEqual(c3.pdf(point_3)[0], 0.9988874412972069)        
+        # TODO - change this once the is_legal support is there
+        # but does not have an actual impact of now
+        self.assertEqual(c1.pdf(point_outside_range_1)[0], 0.0)
+        self.assertEqual(c1.pdf(point_outside_range_2)[0], 0.0)
+        self.assertEqual(c2.pdf(point_outside_range_1_log)[0], 0.0)
+        self.assertEqual(c2.pdf(point_outside_range_2_log)[0], 0.0)
+
+        self.assertEqual(c1.pdf(non_integer_point)[0], 0.0)
+        self.assertEqual(c2.pdf(non_integer_point)[0], 0.0)
+        
+        array_results = c1.pdf(array_1)
+        array_results_log = c2.pdf(array_1_log)
+        expected_results = np.array([0.20747194595587332, 0.00045384303905059246, 0])
+        expected_results_log = np.array([0.002625781612612434, 0.000688676747843256, 0])
+        self.assertEqual(array_results.shape, expected_results.shape)
+        self.assertEqual(array_results_log.shape, expected_results.shape)
+        for res, log_res, exp_res, exp_log_res in zip(array_results, array_results_log, expected_results, expected_results_log):
+            self.assertAlmostEqual(res, exp_res)
+            self.assertAlmostEqual(log_res, exp_log_res)
+        
+        # pdf must take a numpy array
+        with self.assertRaises(TypeError):
+            c1.pdf(0.2)
+        with self.assertRaises(TypeError):
+            c1.pdf('pdf')
+
+        c_error = NormalIntegerHyperparameter("param", mu=3, sigma=2)
+        with self.assertRaisesRegex(ValueError, "Need upper and lower limits when using user priors."):
+            c_error.pdf(np.array([2]))
+           
+        with self.assertRaisesRegex(ValueError, "Method pdf expects a one-dimensional numpy array"):
+            c1.pdf(wrong_shape_1)
+        with self.assertRaisesRegex(ValueError, "Method pdf expects a one-dimensional numpy array"):
+            c1.pdf(wrong_shape_2)
+        with self.assertRaisesRegex(ValueError, "Method pdf expects a one-dimensional numpy array"):
+            c1.pdf(wrong_shape_3)
+
+    def test_normalint__pdf(self):
+        c1 = NormalIntegerHyperparameter("param", lower=0, upper=10, mu=3, sigma=2)
+        c2 = NormalIntegerHyperparameter("logparam", lower=1, upper=1000, mu=3, sigma=2, log=True)
+        c3 = NormalIntegerHyperparameter("param", lower=0, upper=2, mu=-1.2, sigma=0.5)
+        
+        point_1 = np.array([3])
+        point_2 = np.array([5.2])
+        array_1 = np.array([3, 5.2, 11])
+        point_outside_range_1 = np.array([-1])
+        point_outside_range_2 = np.array([11])
+        wrong_shape_1 = np.array([[3]])
+        wrong_shape_2 = np.array([3, 5, 7]).reshape(1, -1)
+        wrong_shape_3 = np.array([3, 5, 7]).reshape(-1, 1)
+        
+        self.assertAlmostEqual(c1._pdf(point_1)[0], 0.20747194595587332)
+        self.assertAlmostEqual(c2._pdf(point_1)[0], 0.0027903779510164133)
+        self.assertAlmostEqual(c1._pdf(point_2)[0], 0.1132951239316783)
+        self.assertAlmostEqual(c2._pdf(point_2)[0], 0.001523754039709375)
+        # TODO - change this once the is_legal support is there
+        # but does not have an actual impact of now
+        self.assertEqual(c1._pdf(point_outside_range_1)[0], 0.0)
+        self.assertEqual(c1._pdf(point_outside_range_2)[0], 0.0)
+        self.assertEqual(c2._pdf(point_outside_range_1)[0], 0.0)
+        self.assertEqual(c2._pdf(point_outside_range_2)[0], 0.0)
+        
+        array_results = c1._pdf(array_1)
+        array_results_log = c2._pdf(array_1)
+        expected_results = np.array([0.20747194595587332, 0.1132951239316783, 0])
+        expected_results_log = np.array([0.0027903779510164133, 0.001523754039709375, 0])
+        self.assertEqual(array_results.shape, expected_results.shape)
+        self.assertEqual(array_results_log.shape, expected_results.shape)
+        for res, log_res, exp_res, exp_log_res in zip(array_results, array_results_log, expected_results, expected_results_log):
+            self.assertAlmostEqual(res, exp_res)
+            self.assertAlmostEqual(log_res, exp_log_res)
+        
+        # pdf must take a numpy array
+        with self.assertRaises(TypeError):
+            c1.pdf(0.2)
+        with self.assertRaises(TypeError):
+            c1.pdf('pdf')
+
+        c_error = NormalIntegerHyperparameter("param", mu=3, sigma=2)
+        with self.assertRaisesRegex(ValueError, "Need upper and lower limits when using user priors."):
+            c_error.pdf(np.array([0.2]))
 
     def test_normalint_get_max_density(self):
         pass
