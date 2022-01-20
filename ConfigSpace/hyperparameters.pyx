@@ -287,6 +287,9 @@ cdef class Constant(Hyperparameter):
         """
         return (vector == self.value).astype(float)
 
+    def get_max_density(self):
+        return 1.0
+
     def get_size(self) -> float:
         return 1.0
 
@@ -722,9 +725,9 @@ cdef class UniformFloatHyperparameter(FloatHyperparameter):
         return inside_range / (self.upper - self.lower)
 
     def get_max_density(self) -> float:
-        ub = self._upper
-        lb = self._lower
-        return 1 / (ub - lb)
+        ub = self.upper
+        lb = self.lower
+        return 1 / (self.upper - self.lower)
         
     def get_size(self) -> float:
         if self.q is None:
@@ -1196,10 +1199,6 @@ cdef class BetaFloatHyperparameter(FloatHyperparameter):
             if (self.alpha > 1) and (self.beta > 1):
                 normalized_mode = (self.alpha - 1) / (self.alpha + self.beta - 2)
                 return self._transform_scalar((self._upper - self._lower) * normalized_mode + self._lower)
-            elif self.alpha < self.beta:
-                return lb
-            elif self.alpha > self.beta:
-                return ub
             else: 
                 return (ub - lb) / 2
 
@@ -1575,9 +1574,9 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
         return self.ufhp._pdf(vector)
 
     def get_max_density(self) -> float:
-        lb = self.upper
+        lb = self.lower
         ub = self.upper
-        1 / (ub - lb)
+        return 1 / (ub - lb + 1)
 
     def get_size(self) -> float:
         if self.q is None:
@@ -1841,8 +1840,6 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
         return neighbors
         
     def _compute_normalization(self):
-        upper = self.upper
-        lower = self.lower
         all_integer_values = np.arange(self.lower, self.upper+1)
         all_probabilities = self.nfhp.pdf(all_integer_values)
         return np.sum(all_probabilities)
@@ -1851,7 +1848,9 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
         return self.nfhp._pdf(vector) / self.normalization_constant
 
     def get_max_density(self):
-        return self.nfhp.get_max_density() / self.normalization_constant
+        all_integer_values = np.arange(self.lower, self.upper+1)
+        all_probabilities = self.nfhp.pdf(all_integer_values)
+        return np.max(all_probabilities) / self.normalization_constant
 
     def get_size(self) -> float:
         if self.lower is None:
@@ -2158,8 +2157,6 @@ cdef class BetaIntegerHyperparameter(IntegerHyperparameter):
         return neighbors
 
     def _compute_normalization(self):
-        upper = self.upper
-        lower = self.lower
         all_integer_values = np.arange(self.lower, self.upper+1)
         all_probabilities = self.bfhp.pdf(all_integer_values)
         return np.sum(all_probabilities)
@@ -2168,7 +2165,9 @@ cdef class BetaIntegerHyperparameter(IntegerHyperparameter):
         return self.bfhp._pdf(vector) / self.normalization_constant
 
     def get_max_density(self):
-        return self.bfhp.get_max_density() / self.normalization_constant
+        all_integer_values = np.arange(self.lower, self.upper+1)
+        all_probabilities = self.bfhp.pdf(all_integer_values)
+        return np.max(all_probabilities) / self.normalization_constant
 
     def get_size(self) -> float:
         if self.q is None:
