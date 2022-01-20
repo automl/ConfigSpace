@@ -83,14 +83,90 @@ class TestHyperparameters(unittest.TestCase):
         # test that meta-data is stored correctly
         c1_meta = Constant("value", 1, dict(self.meta_data))
         self.assertEqual(c1_meta.meta, self.meta_data)
-
         # Test getting the size
         for constant in (c1, c2, c3, c4, c5, c1_meta):
             self.assertEqual(constant.get_size(), 1)
 
     def test_constant_pdf(self):
-        pass
+        c1 = Constant("valuee", 1)
+        c2 = Constant("valueee", -2)
+        
+        # TODO - change this once the is_legal support is there - should then be zero
+        # but does not have an actual impact of now
+        point_1 = np.array([1])
+        point_2 = np.array([-2])
+        array_1 = np.array([1, 1])
+        array_2 = np.array([-2, -2])
+        array_3 = np.array([1, -2])
+        
+        wrong_shape_1 = np.array([[1]])
+        wrong_shape_2 = np.array([1, 2, 3]).reshape(1, -1)
+        wrong_shape_3 = np.array([1, 2, 3]).reshape(-1, 1)
+        
+        self.assertEqual(c1.pdf(point_1), np.array([1.0]))
+        self.assertEqual(c2.pdf(point_2), np.array([1.0]))
+        self.assertEqual(c1.pdf(point_2), np.array([0.0]))
+        self.assertEqual(c2.pdf(point_1), np.array([0.0]))
+        
+        self.assertEqual(tuple(c1.pdf(array_1)), tuple(np.array([1.0, 1.0])))
+        self.assertEqual(tuple(c2.pdf(array_2)), tuple(np.array([1.0, 1.0])))
+        self.assertEqual(tuple(c1.pdf(array_2)), tuple(np.array([0.0, 0.0])))
+        self.assertEqual(tuple(c1.pdf(array_3)), tuple(np.array([1.0, 0.0])))
+        
+        # pdf must take a numpy array
+        with self.assertRaises(TypeError):
+            c1.pdf(0.2)
+        with self.assertRaises(TypeError):
+            c1.pdf('pdf')
+        
+        # and it must be one-dimensional
+        with self.assertRaisesRegex(ValueError, "Method pdf expects a one-dimensional numpy array"):
+            c1.pdf(wrong_shape_1)
+        with self.assertRaisesRegex(ValueError, "Method pdf expects a one-dimensional numpy array"):
+            c1.pdf(wrong_shape_2)
+        with self.assertRaisesRegex(ValueError, "Method pdf expects a one-dimensional numpy array"):
+            c1.pdf(wrong_shape_3)
+            
+    def test_constant__pdf(self):
+        c1 = Constant("valuee", 1)
+        c2 = Constant("valueee", -2)
 
+        point_1 = np.array([1])
+        point_2 = np.array([-2])
+        array_1 = np.array([1, 1])
+        array_2 = np.array([-2, -2])
+        array_3 = np.array([1, -2])
+        
+        # These shapes are allowed in _pdf
+        accepted_shape_1 = np.array([[1]])
+        accepted_shape_2 = np.array([1, 2, 3]).reshape(1, -1)
+        accepted_shape_3 = np.array([3, 2, 1]).reshape(-1, 1)
+        
+        self.assertEqual(c1._pdf(point_1), np.array([1.0]))
+        self.assertEqual(c2._pdf(point_2), np.array([1.0]))
+        self.assertEqual(c1._pdf(point_2), np.array([0.0]))
+        self.assertEqual(c2._pdf(point_1), np.array([0.0]))
+        
+        # Only (N, ) numpy arrays are seamlessly converted to tuples
+        # so the __eq__ method works as intended
+        self.assertEqual(tuple(c1._pdf(array_1)), tuple(np.array([1.0, 1.0])))
+        self.assertEqual(tuple(c2._pdf(array_2)), tuple(np.array([1.0, 1.0])))
+        self.assertEqual(tuple(c1._pdf(array_2)), tuple(np.array([0.0, 0.0])))
+        self.assertEqual(tuple(c1._pdf(array_3)), tuple(np.array([1.0, 0.0])))
+
+        # pdf must take a numpy array
+        with self.assertRaises(TypeError):
+            c1.pdf(0.2)
+        with self.assertRaises(TypeError):
+            c1.pdf('pdf')
+
+        # Simply check that it runs, since _pdf does not restrict shape (only public method does)
+        self.assertEqual(c1._pdf(accepted_shape_1)[0][0], 1.0)
+        self.assertEqual(c1._pdf(accepted_shape_2)[0][0], 1.0)
+        self.assertEqual(c1._pdf(accepted_shape_2)[0][2], 0.0)
+        self.assertEqual(c1._pdf(accepted_shape_3)[0][0], 0.0)
+        self.assertEqual(c1._pdf(accepted_shape_3)[2][0], 1.0)
+        
     def test_constant_get_max_density(self):
         pass
 
@@ -204,7 +280,83 @@ class TestHyperparameters(unittest.TestCase):
             "param", 1, 0)
 
     def test_uniformfloat_pdf(self):
-        pass
+        c1 = UniformFloatHyperparameter("param", lower=0, upper=10)
+        c2 = UniformFloatHyperparameter("logparam", lower=np.exp(0), upper=np.exp(10), log=True)
+        c3 = UniformFloatHyperparameter("param", lower=0, upper=0.5)
+        
+        point_1 = np.array([3])
+        point_2 = np.array([7])
+        point_3 = np.array([0.3])
+        array_1 = np.array([3, 7])
+        point_outside_range = np.array([-1])
+        point_outside_range_log = np.array([0.1])
+        wrong_shape_1 = np.array([[3]])
+        wrong_shape_2 = np.array([3, 5, 7]).reshape(1, -1)
+        wrong_shape_3 = np.array([3, 5, 7]).reshape(-1, 1)
+        
+        self.assertEqual(c1.pdf(point_1), np.array([0.1]))
+        self.assertEqual(c2.pdf(point_2), np.array([0.1]))
+        self.assertEqual(c1.pdf(point_1), np.array([0.1]))
+        self.assertEqual(c2.pdf(point_2), np.array([0.1]))
+        self.assertEqual(c3.pdf(point_3), np.array([2.0]))
+        
+        # TODO - change this once the is_legal support is there
+        # but does not have an actual impact of now
+        # since inverse_transform pulls everything into range, even points outside get evaluated in range
+        self.assertEqual(c1.pdf(point_outside_range), np.array([0.1]))
+        self.assertEqual(c2.pdf(point_outside_range_log), np.array([0.1]))
+
+        # this, however, is a negative value on a log param, which cannot be pulled into range
+        self.assertEqual(c2.pdf(point_outside_range), np.array([0.0]))
+        
+        self.assertEqual(tuple(c1.pdf(array_1)), tuple(np.array([0.1, 0.1])))
+        self.assertEqual(tuple(c2.pdf(array_1)), tuple(np.array([0.1, 0.1])))
+
+        with self.assertRaisesRegex(ValueError, "Method pdf expects a one-dimensional numpy array"):
+            c1.pdf(wrong_shape_1)
+        with self.assertRaisesRegex(ValueError, "Method pdf expects a one-dimensional numpy array"):
+            c1.pdf(wrong_shape_2)
+        with self.assertRaisesRegex(ValueError, "Method pdf expects a one-dimensional numpy array"):
+            c1.pdf(wrong_shape_3)
+
+    def test_uniformfloat__pdf(self):
+        c1 = UniformFloatHyperparameter("param", lower=0, upper=10)
+        c2 = UniformFloatHyperparameter("logparam", lower=np.exp(0), upper=np.exp(10), log=True)
+        c3 = UniformFloatHyperparameter("param", lower=0, upper=0.5)
+        
+        point_1 = np.array([0.3])
+        point_2 = np.array([1])
+        point_3 = np.array([0.0])
+        array_1 = np.array([0.3, 0.7, 1.01])
+        point_outside_range_1 = np.array([-1])
+        point_outside_range_2 = np.array([1.1])
+        accepted_shape_1 = np.array([[0.3]])
+        accepted_shape_2 = np.array([0.3, 0.5, 1.1]).reshape(1, -1)
+        accepted_shape_3 = np.array([1.1, 0.5, 0.3]).reshape(-1, 1)
+        
+        self.assertEqual(c1._pdf(point_1), np.array([0.1]))
+        self.assertEqual(c2._pdf(point_2), np.array([0.1]))
+        self.assertEqual(c1._pdf(point_1), np.array([0.1]))
+        self.assertEqual(c2._pdf(point_2), np.array([0.1]))
+        self.assertEqual(c3._pdf(point_3), np.array([2.0]))
+        
+        # TODO - change this once the is_legal support is there
+        # but does not have an actual impact of now
+        # since inverse_transform pulls everything into range, even points outside get evaluated in range
+        self.assertEqual(c1._pdf(point_outside_range_1), np.array([0.0]))
+        self.assertEqual(c2._pdf(point_outside_range_2), np.array([0.0]))
+        self.assertEqual(c1._pdf(point_outside_range_2), np.array([0.0]))
+        self.assertEqual(c2._pdf(point_outside_range_1), np.array([0.0]))
+
+        self.assertEqual(tuple(c1._pdf(array_1)), tuple(np.array([0.1, 0.1, 0.0])))
+        self.assertEqual(tuple(c2._pdf(array_1)), tuple(np.array([0.1, 0.1, 0.0])))
+
+        # Simply check that it runs, since _pdf does not restrict shape (only public method does)
+        self.assertEqual(c1._pdf(accepted_shape_1)[0][0], 0.1)
+        self.assertEqual(c1._pdf(accepted_shape_2)[0][0], 0.1)
+        self.assertEqual(c1._pdf(accepted_shape_2)[0][2], 0.0)
+        self.assertEqual(c1._pdf(accepted_shape_3)[0][0], 0.0)
+        self.assertEqual(c1._pdf(accepted_shape_3)[2][0], 0.1)
 
     def test_uniformfloat_get_max_density(self):
         pass
@@ -343,7 +495,7 @@ class TestHyperparameters(unittest.TestCase):
 
     def test_normalfloat_pdf(self):
         pass
-
+            
     def test_normalfloat_get_max_density(self):
         pass
 
