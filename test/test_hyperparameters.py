@@ -156,9 +156,9 @@ class TestHyperparameters(unittest.TestCase):
 
         # pdf must take a numpy array
         with self.assertRaises(TypeError):
-            c1.pdf(0.2)
+            c1._pdf(0.2)
         with self.assertRaises(TypeError):
-            c1.pdf('pdf')
+            c1._pdf('pdf')
 
         # Simply check that it runs, since _pdf does not restrict shape (only public method does)
         self.assertEqual(c1._pdf(accepted_shape_1)[0][0], 1.0)
@@ -311,6 +311,12 @@ class TestHyperparameters(unittest.TestCase):
         
         self.assertEqual(tuple(c1.pdf(array_1)), tuple(np.array([0.1, 0.1])))
         self.assertEqual(tuple(c2.pdf(array_1)), tuple(np.array([0.1, 0.1])))
+        
+        # pdf must take a numpy array
+        with self.assertRaises(TypeError):
+            c1.pdf(0.2)
+        with self.assertRaises(TypeError):
+            c1.pdf('pdf')
 
         with self.assertRaisesRegex(ValueError, "Method pdf expects a one-dimensional numpy array"):
             c1.pdf(wrong_shape_1)
@@ -350,7 +356,13 @@ class TestHyperparameters(unittest.TestCase):
 
         self.assertEqual(tuple(c1._pdf(array_1)), tuple(np.array([0.1, 0.1, 0.0])))
         self.assertEqual(tuple(c2._pdf(array_1)), tuple(np.array([0.1, 0.1, 0.0])))
-
+        
+        # pdf must take a numpy array
+        with self.assertRaises(TypeError):
+            c1._pdf(0.2)
+        with self.assertRaises(TypeError):
+            c1._pdf('pdf')
+        
         # Simply check that it runs, since _pdf does not restrict shape (only public method does)
         self.assertEqual(c1._pdf(accepted_shape_1)[0][0], 0.1)
         self.assertEqual(c1._pdf(accepted_shape_2)[0][0], 0.1)
@@ -494,8 +506,107 @@ class TestHyperparameters(unittest.TestCase):
         self.assertEqual(f2_expected, f2_actual)
 
     def test_normalfloat_pdf(self):
-        pass
-            
+        c1 = NormalFloatHyperparameter("param", lower=0, upper=10, mu=3, sigma=2)
+        c2 = NormalFloatHyperparameter("logparam", lower=np.exp(0), upper=np.exp(10), mu=3, sigma=2, log=True)
+        c3 = NormalFloatHyperparameter("param", lower=0, upper=0.5, mu=-1, sigma=0.2)
+        
+        point_1 = np.array([3])
+        point_1_log = np.array([np.exp(3)])
+        point_2 = np.array([10])
+        point_2_log = np.array([np.exp(10)])
+        point_3 = np.array([0])
+        array_1 = np.array([3, 10, 10.01])
+        array_1_log = np.array([np.exp(3), np.exp(10), np.exp(10.01)])
+        point_outside_range_1 = np.array([-0.01])
+        point_outside_range_2 = np.array([10.01])
+        point_outside_range_1_log = np.array([np.exp(-0.01)])
+        point_outside_range_2_log = np.array([np.exp(10.01)])
+        wrong_shape_1 = np.array([[3]])
+        wrong_shape_2 = np.array([3, 5, 7]).reshape(1, -1)
+        wrong_shape_3 = np.array([3, 5, 7]).reshape(-1, 1)
+        
+        self.assertAlmostEqual(c1.pdf(point_1)[0], 0.2138045617479014)
+        self.assertAlmostEqual(c2.pdf(point_1_log)[0], 0.2138045617479014)
+        self.assertAlmostEqual(c1.pdf(point_2)[0], 0.000467695579850518)
+        self.assertAlmostEqual(c2.pdf(point_2_log)[0], 0.000467695579850518)
+        self.assertAlmostEqual(c3.pdf(point_3)[0], 25.932522722334905)        
+        # TODO - change this once the is_legal support is there
+        # but does not have an actual impact of now
+        self.assertEqual(c1.pdf(point_outside_range_1)[0], 0.0)
+        self.assertEqual(c1.pdf(point_outside_range_2)[0], 0.0)
+        self.assertEqual(c2.pdf(point_outside_range_1_log)[0], 0.0)
+        self.assertEqual(c2.pdf(point_outside_range_2_log)[0], 0.0)
+        
+        self.assertEqual(tuple(c1.pdf(array_1)), tuple(np.array([0.2138045617479014, 0.0004676955798505186, 0])))
+        self.assertEqual(tuple(c2.pdf(array_1_log)), tuple(np.array([0.2138045617479014, 0.0004676955798505186, 0])))
+
+        # pdf must take a numpy array
+        with self.assertRaises(TypeError):
+            c1.pdf(0.2)
+        with self.assertRaises(TypeError):
+            c1.pdf('pdf')
+
+        c_error = NormalFloatHyperparameter("param", mu=3, sigma=2)
+        with self.assertRaisesRegex(ValueError, "Need upper and lower limits when using user priors."):
+            c_error.pdf(np.array([2]))
+           
+        with self.assertRaisesRegex(ValueError, "Method pdf expects a one-dimensional numpy array"):
+            c1.pdf(wrong_shape_1)
+        with self.assertRaisesRegex(ValueError, "Method pdf expects a one-dimensional numpy array"):
+            c1.pdf(wrong_shape_2)
+        with self.assertRaisesRegex(ValueError, "Method pdf expects a one-dimensional numpy array"):
+            c1.pdf(wrong_shape_3)
+
+    def test_normalfloat__pdf(self):
+        c1 = NormalFloatHyperparameter("param", lower=0, upper=10, mu=3, sigma=2)
+        c2 = NormalFloatHyperparameter("logparam", lower=np.exp(0), upper=np.exp(10), mu=3, sigma=2, log=True)
+        c3 = NormalFloatHyperparameter("param", lower=0, upper=0.5, mu=-1, sigma=0.2)
+        
+        # since there is no logtransformation, the logged and unlogged parameters should output the same
+        # given the same input
+
+        point_1 = np.array([3])
+        point_2 = np.array([10])
+        point_3 = np.array([0])
+        array_1 = np.array([3, 10, 10.01])
+        point_outside_range_1 = np.array([-0.01])
+        point_outside_range_2 = np.array([10.01])
+        accepted_shape_1 = np.array([[3]])
+        accepted_shape_2 = np.array([3, 5, 7]).reshape(1, -1)
+        accepted_shape_3 = np.array([7, 5, 3]).reshape(-1, 1)
+        
+        self.assertAlmostEqual(c1._pdf(point_1)[0], 0.2138045617479014)
+        self.assertAlmostEqual(c2._pdf(point_1)[0], 0.2138045617479014)
+        self.assertAlmostEqual(c1._pdf(point_2)[0], 0.000467695579850518)
+        self.assertAlmostEqual(c2._pdf(point_2)[0], 0.000467695579850518)
+        self.assertAlmostEqual(c3._pdf(point_3)[0], 25.932522722334905)        
+        # TODO - change this once the is_legal support is there
+        # but does not have an actual impact of now
+        self.assertEqual(c1._pdf(point_outside_range_1)[0], 0.0)
+        self.assertEqual(c1._pdf(point_outside_range_2)[0], 0.0)
+        self.assertEqual(c2._pdf(point_outside_range_1)[0], 0.0)
+        self.assertEqual(c2._pdf(point_outside_range_2)[0], 0.0)
+        
+        self.assertEqual(tuple(c1._pdf(array_1)), tuple(np.array([0.2138045617479014, 0.0004676955798505186, 0])))
+        self.assertEqual(tuple(c2._pdf(array_1)), tuple(np.array([0.2138045617479014, 0.0004676955798505186, 0])))
+
+        # pdf must take a numpy array
+        with self.assertRaises(TypeError):
+            c1.pdf(0.2)
+        with self.assertRaises(TypeError):
+            c1.pdf('pdf')
+
+        c_error = NormalFloatHyperparameter("param", mu=3, sigma=2)
+        with self.assertRaisesRegex(ValueError, "Need upper and lower limits when using user priors."):
+            c_error._pdf(np.array([2]))
+
+        # Simply check that it runs, since _pdf does not restrict shape (only public method does)
+        self.assertEqual(c1._pdf(accepted_shape_1)[0][0], 0.2138045617479014)
+        self.assertEqual(c1._pdf(accepted_shape_2)[0][0], 0.2138045617479014)
+        self.assertEqual(c1._pdf(accepted_shape_2)[0][2], 0.028935300921432087)
+        self.assertEqual(c1._pdf(accepted_shape_3)[0][0], 0.028935300921432087)
+        self.assertEqual(c1._pdf(accepted_shape_3)[2][0], 0.2138045617479014)
+
     def test_normalfloat_get_max_density(self):
         pass
 
