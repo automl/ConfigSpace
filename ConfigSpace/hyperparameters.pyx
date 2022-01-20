@@ -270,7 +270,7 @@ cdef class Constant(Hyperparameter):
             the (N, ) vector of imputs for which the probability density
             function is to be computed.
         """
-        if type(vector[0]) is np.ndarray:
+        if vector.ndim != 1:
             raise ValueError("Method pdf expects a one-dimensional numpy array")
         return self._pdf(vector)
 
@@ -415,7 +415,7 @@ cdef class FloatHyperparameter(NumericalHyperparameter):
             the (N, ) vector of imputs for which the probability density
             function is to be computed.
         """
-        if type(vector[0]) is np.ndarray:
+        if vector.ndim != 1:
             raise ValueError("Method pdf expects a one-dimensional numpy array")
         vector = self._inverse_transform(vector)
         return self._pdf(vector)
@@ -490,7 +490,7 @@ cdef class IntegerHyperparameter(NumericalHyperparameter):
             the (N, ) vector of imputs for which the probability density
             function is to be computed.
         """
-        if type(vector[0]) is np.ndarray:
+        if vector.ndim != 1:
             raise ValueError("Method pdf expects a one-dimensional numpy array")
         is_integer = (np.round(vector) == vector).astype(int)
         vector = self._inverse_transform(vector)
@@ -2266,7 +2266,8 @@ cdef class CategoricalHyperparameter(Hyperparameter):
         repr_str.write("}")
         repr_str.write(", Default: ")
         repr_str.write(str(self.default_value))
-        if self.probabilities is not None:
+        # if the probability distribution is not uniform, write out the probabilities
+        if not np.all(self.probabilities == self.probabilities[0]):
             repr_str.write(", Probabilities: %s" % str(self.probabilities))
         repr_str.seek(0)
         return repr_str.getvalue()
@@ -2338,7 +2339,7 @@ cdef class CategoricalHyperparameter(Hyperparameter):
     def _get_probabilities(self, choices: Tuple[Union[None, str, float, int]],
                            weights: Union[None, List[float]]) -> Union[None, List[float]]:
         if weights is None:
-            return weights
+            return tuple(np.ones(len(choices)) / len(choices))
 
         if len(weights) != len(choices):
             raise ValueError(
@@ -2468,7 +2469,7 @@ cdef class CategoricalHyperparameter(Hyperparameter):
             function is to be computed.
         """
         # this check is to ensure shape is right (and np.shape does not work in cython)
-        if type(vector[0]) is np.ndarray:
+        if vector.ndim != 1:
             raise ValueError("Method pdf expects a one-dimensional numpy array")
         vector = self._inverse_transform(vector)
         return self._pdf(vector)
@@ -2484,7 +2485,11 @@ cdef class CategoricalHyperparameter(Hyperparameter):
             the (N, ) vector of imputs for which the probability density
             function is to be computed.
         """
-        return np.array(self.probabilities[vector])
+        probs = np.array(self.probabilities)
+        res = np.array(probs[vector])
+        if res.ndim == 0:
+            return res.reshape(-1)
+        return res
 
     def get_max_density(self) -> float:
         return np.max(self.probabilities)
@@ -2790,9 +2795,8 @@ cdef class OrdinalHyperparameter(Hyperparameter):
             the (N, ) vector of imputs for which the probability density
             function is to be computed.
         """
-        if type(vector[0]) is np.ndarray:
+        if vector.ndim != 1:
             raise ValueError("Method pdf expects a one-dimensional numpy array")
-        vector = self._inverse_transform(vector)
         return self._pdf(vector)
         
     def _pdf(self, vector: np.ndarray) -> np.ndarray:
@@ -2806,8 +2810,9 @@ cdef class OrdinalHyperparameter(Hyperparameter):
             the (N, ) vector of imputs for which the probability density
             function is to be computed.
         """
-    def _pdf(self, vector: np.ndarray) -> np.ndarray:
-        return self.ones_like(vector) / self.num_elements
+        if not np.all(np.isin(vector, self.sequence)):
+            raise IndexError(f'Some element in the vector {vector} is not in the sequence {self.sequence}.')
+        return np.ones_like(vector, dtype=np.float64) / self.num_elements
 
     def get_max_density(self) -> float:
         return 1 / self.num_elements
