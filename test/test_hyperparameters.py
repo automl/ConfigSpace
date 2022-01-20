@@ -1597,7 +1597,8 @@ class TestHyperparameters(unittest.TestCase):
         self.assertEqual(f1.num_choices, 2)
         self.assertEqual(f1.default_value, 0)
         self.assertEqual(f1.normalized_default_value, 0)
-
+        self.assertTupleEqual(f1.probabilities, (0.5, 0.5))
+        
         f2 = CategoricalHyperparameter("param", list(range(0, 1000)))
         f2_ = CategoricalHyperparameter("param", list(range(0, 1000)))
         self.assertEqual(f2, f2_)
@@ -1741,7 +1742,72 @@ class TestHyperparameters(unittest.TestCase):
         sample(hp)
 
     def test_categorical_pdf(self):
-        pass
+        c1 = CategoricalHyperparameter('x1', choices=['one', 'two', 'three'], weights=[2, 1, 2])
+        c2 = CategoricalHyperparameter('x1', choices=['one', 'two', 'three'], weights=[5, 0, 2])
+        c3 = CategoricalHyperparameter('x1', choices=['one', 'two', 'three', 'four'])
+        
+        point_1 = np.array(['one'])
+        point_2 = np.array(['two'])
+        point_3 = np.array(['three'])
+        
+        wrong_shape_1 = np.array([["one"]])
+        wrong_shape_2 = np.array(["one", "two"]).reshape(1, -1)
+        wrong_shape_3 = np.array(["one", "two"]).reshape(-1, 1)
+        
+        self.assertEqual(c1.pdf(point_1)[0], 0.4)
+        self.assertEqual(c1.pdf(point_2)[0], 0.2)
+        self.assertAlmostEqual(c2.pdf(point_1)[0], 0.7142857142857143)
+        self.assertEqual(c2.pdf(point_2)[0], 0.0)
+        self.assertEqual(c3.pdf(point_1)[0], 0.25)
+
+        # pdf must take a numpy array
+        with self.assertRaises(TypeError):
+            c1.pdf(0.2)
+        with self.assertRaises(TypeError):
+            c1.pdf('pdf')
+        with self.assertRaises(TypeError):
+            c1.pdf('one')
+        with self.assertRaises(ValueError):
+            c1.pdf(np.array(['zero']))
+
+
+        with self.assertRaisesRegex(ValueError, "Method pdf expects a one-dimensional numpy array"):
+            c1.pdf(wrong_shape_1)
+        with self.assertRaisesRegex(ValueError, "Method pdf expects a one-dimensional numpy array"):
+            c1.pdf(wrong_shape_2)
+        with self.assertRaisesRegex(ValueError, "Method pdf expects a one-dimensional numpy array"):
+            c1.pdf(wrong_shape_3)
+
+    def test_categorical__pdf(self):
+        c1 = CategoricalHyperparameter('x1', choices=['one', 'two', 'three'], weights=[2, 1, 2])
+        c2 = CategoricalHyperparameter('x1', choices=['one', 'two', 'three'], weights=[5, 0, 2])
+        c3 = CategoricalHyperparameter('x1', choices=['one', 'two', 'three'])
+        
+        point_1 = np.array([0])
+        point_2 = np.array([1])
+        point_3 = np.array([2])
+        array_1 = np.array([1, 0, 2])
+        self.assertEqual(c1._pdf(point_1)[0], 0.4)
+        self.assertEqual(c1._pdf(point_2)[0], 0.2)
+        self.assertAlmostEqual(c2._pdf(point_1)[0], 0.7142857142857143)
+        self.assertEqual(c2._pdf(point_2)[0], 0.0)
+
+        array_results = c1._pdf(array_1)
+        expected_results = np.array([0.2, 0.4, 0.4])
+        self.assertEqual(array_results.shape, expected_results.shape)
+        for res, exp_res in zip(array_results, expected_results):
+            self.assertEqual(res, exp_res)
+
+        # pdf must take a numpy array
+        with self.assertRaises(TypeError):
+            c1._pdf(0.2)
+        with self.assertRaises(TypeError):
+            c1._pdf('pdf')
+        with self.assertRaises(TypeError):
+            c1._pdf('one')
+        with self.assertRaises(IndexError):
+            c1._pdf(np.array(['zero']))
+        
 
     def test_categorical_get_max_density(self):
         pass
@@ -1988,9 +2054,9 @@ class TestHyperparameters(unittest.TestCase):
             for i in range(10000):
                 value = hp.sample(rs)
                 counts_per_bin[value] += 1
-
+            
             self.assertEqual(
-                {0: 2456, 2: 2485, 'Bla': 2550, u'Blub': 2509},
+                {0: 2539, 2: 2451, 'Bla': 2549, 'Blub': 2461},
                 dict(counts_per_bin.items()))
             return counts_per_bin
 
@@ -2047,8 +2113,7 @@ class TestHyperparameters(unittest.TestCase):
         self.assertTupleEqual(copy_hp.choices, orig_hp.choices)
         self.assertEqual(copy_hp.default_value, orig_hp.default_value)
         self.assertEqual(copy_hp.num_choices, orig_hp.num_choices)
-        self.assertIsNone(copy_hp.probabilities)
-        self.assertIsNone(orig_hp.probabilities)
+        self.assertTupleEqual(copy_hp.probabilities, orig_hp.probabilities)
 
     def test_categorical_with_weights(self):
         rs = np.random.RandomState()
@@ -2260,6 +2325,66 @@ class TestHyperparameters(unittest.TestCase):
     def test_ordinal_get_size(self):
         f1 = OrdinalHyperparameter("temp", ["freezing", "cold", "warm", "hot"])
         self.assertEqual(f1.get_size(), 4)
+
+    def test_ordinal_pdf(self):
+        c1 = OrdinalHyperparameter("temp", ["freezing", "cold", "warm", "hot"])
+        point_1 = np.array(["freezing"])
+        point_2 = np.array(["warm"])
+        array_1 = np.array(["freezing", "warm"])
+
+        wrong_shape_1 = np.array([["freezing"]])
+        wrong_shape_2 = np.array(["freezing", "warm"]).reshape(1, -1)
+        wrong_shape_3 = np.array(["freezing", "warm"]).reshape(-1, 1)
+
+        self.assertEqual(c1.pdf(point_1)[0], 0.25)
+        self.assertEqual(c1.pdf(point_2)[0], 0.25)
+
+        array_results = c1.pdf(array_1)
+        expected_results = np.array([0.25, 0.25])
+        self.assertEqual(array_results.shape, expected_results.shape)
+        for res, exp_res in zip(array_results, expected_results):
+            self.assertEqual(res, exp_res)
+
+        # pdf must take a numpy array
+        with self.assertRaises(TypeError):
+            c1.pdf(0.2)
+        with self.assertRaises(TypeError):
+            c1.pdf('pdf')
+        with self.assertRaises(TypeError):
+            c1.pdf('one')
+        with self.assertRaises(IndexError):
+            c1.pdf(np.array(['zero']))
+
+        with self.assertRaisesRegex(ValueError, "Method pdf expects a one-dimensional numpy array"):
+            c1.pdf(wrong_shape_1)
+        with self.assertRaisesRegex(ValueError, "Method pdf expects a one-dimensional numpy array"):
+            c1.pdf(wrong_shape_2)
+        with self.assertRaisesRegex(ValueError, "Method pdf expects a one-dimensional numpy array"):
+            c1.pdf(wrong_shape_3)
+
+    def test_ordinal__pdf(self):
+        c1 = OrdinalHyperparameter("temp", ["freezing", "cold", "warm", "hot"])
+        point_1 = np.array(["freezing"])
+        point_2 = np.array(["warm"])
+        array_1 = np.array(["freezing", "warm"])
+        self.assertEqual(c1._pdf(point_1)[0], 0.25)
+        self.assertEqual(c1._pdf(point_2)[0], 0.25)
+
+        array_results = c1._pdf(array_1)
+        expected_results = np.array([0.25, 0.25])
+        self.assertEqual(array_results.shape, expected_results.shape)
+        for res, exp_res in zip(array_results, expected_results):
+            self.assertEqual(res, exp_res)
+
+        # pdf must take a numpy array
+        with self.assertRaises(TypeError):
+            c1._pdf(0.2)
+        with self.assertRaises(TypeError):
+            c1._pdf('pdf')
+        with self.assertRaises(TypeError):
+            c1._pdf('one')
+        with self.assertRaises(IndexError):
+            c1._pdf(np.array(['zero']))
 
     def test_rvs(self):
         f1 = UniformFloatHyperparameter("param", 0, 10)
