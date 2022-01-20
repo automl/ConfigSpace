@@ -168,7 +168,10 @@ class TestHyperparameters(unittest.TestCase):
         self.assertEqual(c1._pdf(accepted_shape_3)[2][0], 1.0)
         
     def test_constant_get_max_density(self):
-        pass
+        c1 = Constant("valuee", 1)
+        c2 = Constant("valueee", -2)
+        self.assertEqual(c1.get_max_density(), 1.0)
+        self.assertEqual(c2.get_max_density(), 1.0)
 
     def test_uniformfloat(self):
         # TODO test non-equality
@@ -386,7 +389,12 @@ class TestHyperparameters(unittest.TestCase):
         self.assertEqual(c1._pdf(accepted_shape_3)[2][0], 0.1)
 
     def test_uniformfloat_get_max_density(self):
-        pass
+        c1 = UniformFloatHyperparameter("param", lower=0, upper=10)
+        c2 = UniformFloatHyperparameter("logparam", lower=np.exp(0), upper=np.exp(10), log=True)
+        c3 = UniformFloatHyperparameter("param", lower=0, upper=0.5)
+        self.assertEqual(c1.get_max_density(), 0.1)
+        self.assertAlmostEqual(c2.get_max_density(), 4.539992976248485e-05)
+        self.assertEqual(c3.get_max_density(), 2)
 
     def test_normalfloat(self):
         # TODO test non-equality
@@ -635,7 +643,12 @@ class TestHyperparameters(unittest.TestCase):
         self.assertAlmostEqual(c1._pdf(accepted_shape_3)[2][0], 0.2138045617479014)
 
     def test_normalfloat_get_max_density(self):
-        pass
+        c1 = NormalFloatHyperparameter("param", lower=0, upper=10, mu=3, sigma=2)
+        c2 = NormalFloatHyperparameter("logparam", lower=np.exp(0), upper=np.exp(10), mu=3, sigma=2, log=True)
+        c3 = NormalFloatHyperparameter("param", lower=0, upper=0.5, mu=-1, sigma=0.2)
+        self.assertEqual(c1.get_max_density(), 0.2138045617479014)
+        self.assertAlmostEqual(c2.get_max_density(), 0.2138045617479014)
+        self.assertEqual(c3.get_max_density(), 25.932522722334905)
 
     def test_betafloat(self):
         # TODO test non-equality
@@ -740,23 +753,7 @@ class TestHyperparameters(unittest.TestCase):
         for float_hp in (f1, f3):
             self.assertTrue(np.isinf(float_hp.get_size()))
         self.assertEqual(f4.get_size(), 1000)
-    
-    def test_sample_betafloat(self):
-        rs = np.random.RandomState(1)
-        f1 = BetaFloatHyperparameter("param", lower=-2.0, upper=2.0, alpha=1.2, beta=1.1)
-        f1_log = BetaFloatHyperparameter("param", lower=1, upper=1000, alpha=1.2, beta=1.1, log=True)
-        samples = f1._sample(rs=rs, size=10000)
-        samples_log = f1_log._sample(rs=rs, size=10000)
-        self.assertTrue(np.all(samples > f1._lower))
-        self.assertTrue(np.all(samples < f1._upper))
-        self.assertTrue(np.all(samples_log > f1_log._lower))
-        self.assertTrue(np.all(samples_log < f1_log._upper))
-    
-        for i in range(100):  
-            self.assertTrue((f1.sample(rs) > f1.lower) and (f1.sample(rs) < f1.upper))
-            self.assertTrue((f1_log.sample(rs) > f1_log.lower) and (f1_log.sample(rs) < f1_log.upper))
-
-    
+        
     def test_betafloat_to_uniformfloat(self):
         f1 = BetaFloatHyperparameter("param", lower=-2.0, upper=2.0, alpha=4, beta=2, q=0.1)
         f1_expected = UniformFloatHyperparameter("param", lower=-2.0, upper=2.0, q=0.1, default_value=1)
@@ -911,7 +908,12 @@ class TestHyperparameters(unittest.TestCase):
         self.assertAlmostEqual(c1._pdf(accepted_shape_3)[2][0], 0.07559999999999997)
 
     def test_betafloat_get_max_density(self):
-        pass
+        c1 = BetaFloatHyperparameter("param", lower=0, upper=10, alpha=3, beta=2)
+        c2 = BetaFloatHyperparameter("logparam", lower=np.exp(0), upper=np.exp(10), alpha=3, beta=2, log=True)
+        c3 = BetaFloatHyperparameter("param", lower=0, upper=0.5, alpha=1.1, beta=25)
+        self.assertAlmostEqual(c1.get_max_density(), 0.17777777777777776)
+        self.assertAlmostEqual(c2.get_max_density(), 0.17777777777777776)
+        self.assertAlmostEqual(c3.get_max_density(), 38.00408137865127)
 
     def test_uniforminteger(self):
         # TODO: rounding or converting or error message?
@@ -1118,7 +1120,13 @@ class TestHyperparameters(unittest.TestCase):
         self.assertAlmostEqual(c1._pdf(accepted_shape_3)[2][0], 0.2, places=5)
 
     def test_uniformint_get_max_density(self):
-        pass
+        c1 = UniformIntegerHyperparameter("param", lower=0, upper=4)
+        c2 = UniformIntegerHyperparameter("logparam", lower=1, upper=10000, log=True)
+        c3 = UniformIntegerHyperparameter("param", lower=-1, upper=12)
+        self.assertAlmostEqual(c1.get_max_density(), 0.2)
+        self.assertAlmostEqual(c2.get_max_density(), 0.0001)
+        self.assertAlmostEqual(c3.get_max_density(), 0.07142857142857142)
+        
 
     def test_normalint(self):
         # TODO test for unequal!
@@ -1339,7 +1347,12 @@ class TestHyperparameters(unittest.TestCase):
             c_error.pdf(np.array([0.2]))
 
     def test_normalint_get_max_density(self):
-        pass
+        c1 = NormalIntegerHyperparameter("param", lower=0, upper=10, mu=3, sigma=2)
+        c2 = NormalIntegerHyperparameter("logparam", lower=1, upper=1000, mu=3, sigma=2, log=True)
+        c3 = NormalIntegerHyperparameter("param", lower=0, upper=2, mu=-1.2, sigma=0.5)
+        self.assertAlmostEqual(c1.get_max_density(), 0.20747194595587332)
+        self.assertAlmostEqual(c2.get_max_density(), 0.002790371598208875)
+        self.assertAlmostEqual(c3.get_max_density(), 0.9988874412972069)
 
     ############################################################
     def test_betaint(self):
@@ -1582,7 +1595,13 @@ class TestHyperparameters(unittest.TestCase):
             c1.pdf(wrong_shape_3)
 
     def test_betaint_get_max_density(self):
-        pass
+        c1 = BetaIntegerHyperparameter("param", alpha=3, beta=2, lower=0, upper=10)
+        c2 = BetaIntegerHyperparameter("logparam", alpha=3, beta=2, lower=1, upper=1000, log=True)
+        c3 = BetaIntegerHyperparameter("param", alpha=1.1, beta=10, lower=0, upper=3)
+        self.assertAlmostEqual(c1.get_max_density(), 0.1781818181818181)
+        self.assertAlmostEqual(c2.get_max_density(), 0.0018733953504422762)
+        self.assertAlmostEqual(c3.get_max_density(), 0.9979110652388783)
+        
 
     def test_categorical(self):
         # TODO test for inequality
@@ -1753,7 +1772,7 @@ class TestHyperparameters(unittest.TestCase):
         wrong_shape_1 = np.array([["one"]])
         wrong_shape_2 = np.array(["one", "two"]).reshape(1, -1)
         wrong_shape_3 = np.array(["one", "two"]).reshape(-1, 1)
-        
+
         self.assertEqual(c1.pdf(point_1)[0], 0.4)
         self.assertEqual(c1.pdf(point_2)[0], 0.2)
         self.assertAlmostEqual(c2.pdf(point_1)[0], 0.7142857142857143)
@@ -1808,9 +1827,13 @@ class TestHyperparameters(unittest.TestCase):
         with self.assertRaises(IndexError):
             c1._pdf(np.array(['zero']))
         
-
     def test_categorical_get_max_density(self):
-        pass
+        c1 = CategoricalHyperparameter('x1', choices=['one', 'two', 'three'], weights=[2, 1, 2])
+        c2 = CategoricalHyperparameter('x1', choices=['one', 'two', 'three'], weights=[5, 0, 2])
+        c3 = CategoricalHyperparameter('x1', choices=['one', 'two', 'three'])
+        self.assertEqual(c1.get_max_density(), 0.4)
+        self.assertEqual(c2.get_max_density(), 0.7142857142857143)
+        self.assertAlmostEqual(c3.get_max_density(), 0.33333333333333)
 
     def test_sample_NormalFloatHyperparameter(self):
         hp = NormalFloatHyperparameter("nfhp", 0, 1)
@@ -1851,10 +1874,19 @@ class TestHyperparameters(unittest.TestCase):
         self.assertEqual(actual_test(), actual_test())
 
     def test_sample_BetaFloatHyperparameter(self):
-        pass
+        rs = np.random.RandomState(1)
+        f1 = BetaFloatHyperparameter("param", lower=-2.0, upper=2.0, alpha=1.2, beta=1.1)
+        f1_log = BetaFloatHyperparameter("param", lower=1, upper=1000, alpha=1.2, beta=1.1, log=True)
+        samples = f1._sample(rs=rs, size=10000)
+        samples_log = f1_log._sample(rs=rs, size=10000)
+        self.assertTrue(np.all(samples > f1._lower))
+        self.assertTrue(np.all(samples < f1._upper))
+        self.assertTrue(np.all(samples_log > f1_log._lower))
+        self.assertTrue(np.all(samples_log < f1_log._upper))
     
-    def test_sample_BetaFloatHyperparameter(self):
-        pass
+        for i in range(100):  
+            self.assertTrue((f1.sample(rs) > f1.lower) and (f1.sample(rs) < f1.upper))
+            self.assertTrue((f1_log.sample(rs) > f1_log.lower) and (f1_log.sample(rs) < f1_log.upper))
 
     def test_sample_UniformIntegerHyperparameter(self):
         # TODO: disentangle, actually test _sample and test sample on the
@@ -2039,9 +2071,6 @@ class TestHyperparameters(unittest.TestCase):
             values.append(hp._sample(rs))
         self.assertEqual(len(np.unique(values)), 5)
 
-    def test_sample_BetaIntegerHyperparameter(self):
-        pass
-    
     def test_sample_BetaIntegerHyperparameter(self):
         pass
 
@@ -2385,6 +2414,12 @@ class TestHyperparameters(unittest.TestCase):
             c1._pdf('one')
         with self.assertRaises(IndexError):
             c1._pdf(np.array(['zero']))
+
+    def test_ordinal_get_max_density(self):
+        c1 = OrdinalHyperparameter("temp", ["freezing", "cold", "warm", "hot"])
+        c2 = OrdinalHyperparameter("temp", ["freezing", "cold"])
+        self.assertEqual(c1.get_max_density(), 0.25)
+        self.assertEqual(c2.get_max_density(), 0.5)
 
     def test_rvs(self):
         f1 = UniformFloatHyperparameter("param", 0, 10)
