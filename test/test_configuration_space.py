@@ -40,7 +40,8 @@ from ConfigSpace import ConfigurationSpace, \
     AndConjunction, OrConjunction, ForbiddenEqualsClause, \
     ForbiddenAndConjunction, UniformFloatHyperparameter
 from ConfigSpace.hyperparameters import NormalFloatHyperparameter, \
-    NormalIntegerHyperparameter, OrdinalHyperparameter
+    NormalIntegerHyperparameter, OrdinalHyperparameter, \
+    BetaFloatHyperparameter, BetaIntegerHyperparameter
 from ConfigSpace.exceptions import ForbiddenValueError
 
 
@@ -764,7 +765,7 @@ class TestConfigurationSpace(unittest.TestCase):
         self.assertEqual((0.25, 0.75), cs.get_hyperparameter("switch").probabilities)
         self.assertEqual((0.3, 0.7),
                          cs.get_hyperparameter("algo1_subspace:algo1_param1").probabilities)
-        self.assertEqual(None, cs.get_hyperparameter("algo2_subspace:algo2_param1").probabilities)
+        self.assertTupleEqual((0.5, 0.5), cs.get_hyperparameter("algo2_subspace:algo2_param1").probabilities)
 
         # check default values in the final configuration space
         self.assertEqual("algo1", cs.get_hyperparameter("switch").default_value)
@@ -803,6 +804,24 @@ class TestConfigurationSpace(unittest.TestCase):
         assert list(d.items()) == list(zip(names, hyperparameters))
         assert len(d) == 5
 
+    def test_remove_parameter_priors(self):
+        cs = ConfigurationSpace()
+        cs.add_hyperparameter(UniformIntegerHyperparameter('integer', 1, 5, log=True))
+        cs.add_hyperparameter(CategoricalHyperparameter('cat', [0, 1, 2], weights=[1, 2, 3]))
+        cs.add_hyperparameter(BetaFloatHyperparameter("beta", alpha=8, beta=2, lower=-1, upper=11))
+        cs.add_hyperparameter(NormalIntegerHyperparameter("norm", mu=5, sigma=4, lower=1, upper=15))
+
+        uniform_cs = cs.remove_parameter_priors()
+        
+        expected_cs = ConfigurationSpace()
+        expected_cs.add_hyperparameter(UniformIntegerHyperparameter('integer', 1, 5, log=True))
+        expected_cs.add_hyperparameter(CategoricalHyperparameter('cat', [0, 1, 2]))
+        # These default values are computed closed form for beta, trivial for normal
+        expected_cs.add_hyperparameter(UniformFloatHyperparameter("beta", lower=-1, upper=11, default_value=9.5))
+        expected_cs.add_hyperparameter(UniformIntegerHyperparameter("norm", lower=1, upper=15, default_value=5))
+        # __eq__ not implemented, so this is the next best thing
+        self.assertEqual(repr(uniform_cs), repr(expected_cs))
+        
     def test_estimate_size(self):
         cs = ConfigurationSpace()
         self.assertEqual(cs.estimate_size(), 0)

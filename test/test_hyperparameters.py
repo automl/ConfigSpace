@@ -1874,19 +1874,22 @@ class TestHyperparameters(unittest.TestCase):
         self.assertEqual(actual_test(), actual_test())
 
     def test_sample_BetaFloatHyperparameter(self):
-        rs = np.random.RandomState(1)
-        f1 = BetaFloatHyperparameter("param", lower=-2.0, upper=2.0, alpha=1.2, beta=1.1)
-        f1_log = BetaFloatHyperparameter("param", lower=1, upper=1000, alpha=1.2, beta=1.1, log=True)
-        samples = f1._sample(rs=rs, size=10000)
-        samples_log = f1_log._sample(rs=rs, size=10000)
-        self.assertTrue(np.all(samples > f1._lower))
-        self.assertTrue(np.all(samples < f1._upper))
-        self.assertTrue(np.all(samples_log > f1_log._lower))
-        self.assertTrue(np.all(samples_log < f1_log._upper))
-    
-        for i in range(100):  
-            self.assertTrue((f1.sample(rs) > f1.lower) and (f1.sample(rs) < f1.upper))
-            self.assertTrue((f1_log.sample(rs) > f1_log.lower) and (f1_log.sample(rs) < f1_log.upper))
+        hp = BetaFloatHyperparameter("bfhp", alpha=8, beta=1.5, lower=-1, upper=10)
+
+        def actual_test():
+            rs = np.random.RandomState(1)
+            counts_per_bin = [0 for i in range(11)]
+            for i in range(1000):
+                value = hp.sample(rs)
+                index = np.floor(value).astype(int)
+                counts_per_bin[index] += 1
+
+            self.assertEqual([0, 2, 2, 4, 15, 39, 101, 193, 289, 355, 0], counts_per_bin)
+
+            self.assertIsInstance(value, float)
+            return counts_per_bin
+
+        self.assertEqual(actual_test(), actual_test())
 
     def test_sample_UniformIntegerHyperparameter(self):
         # TODO: disentangle, actually test _sample and test sample on the
@@ -2072,8 +2075,23 @@ class TestHyperparameters(unittest.TestCase):
         self.assertEqual(len(np.unique(values)), 5)
 
     def test_sample_BetaIntegerHyperparameter(self):
-        pass
+        hp = BetaIntegerHyperparameter("bihp", alpha=8, beta=1.5, lower=-1, upper=10)
 
+        def actual_test():
+            rs = np.random.RandomState(1)
+            counts_per_bin = [0 for i in range(11)]
+            for i in range(1000):
+                value = hp.sample(rs)
+                index = np.floor(value).astype(int)
+                counts_per_bin[index] += 1
+
+            self.assertEqual([0, 0, 2, 3, 7, 25, 63, 145, 248, 355, 152], counts_per_bin)
+
+            self.assertIsInstance(value, int)
+            return counts_per_bin
+
+        self.assertEqual(actual_test(), actual_test())
+        
     def test_sample_CategoricalHyperparameter(self):
         hp = CategoricalHyperparameter("chp", [0, 2, "Bla", u"Blub"])
 
