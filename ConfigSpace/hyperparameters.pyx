@@ -484,7 +484,7 @@ cdef class IntegerHyperparameter(NumericalHyperparameter):
         the original parameter space (the one specified by the user).
         For each parameter type, there is also a method _pdf which 
         operates on the transformed (and possibly normalized) parameter
-        space. Only legal values return a positive probability density,
+        space. Only legal values and integers return a positive probability density,
         otherwise zero.
         vector: np.ndarray
             the (N, ) vector of imputs for which the probability density
@@ -492,8 +492,9 @@ cdef class IntegerHyperparameter(NumericalHyperparameter):
         """
         if type(vector[0]) is np.ndarray:
             raise ValueError("Method pdf expects a one-dimensional numpy array")
+        is_integer = (np.round(vector) == vector).astype(int)
         vector = self._inverse_transform(vector)
-        return self._pdf(vector)
+        return self._pdf(vector) * is_integer
         
     def _pdf(self, vector: np.ndarray) -> np.ndarray:
         """
@@ -718,7 +719,7 @@ cdef class UniformFloatHyperparameter(FloatHyperparameter):
         ub = 1
         lb = 0
         inside_range = ((lb <= vector) & (vector <= ub)).astype(int)
-        return inside_range / (self._upper - self._lower)
+        return inside_range / (self.upper - self.lower)
 
     def get_max_density(self) -> float:
         ub = self._upper
@@ -1004,7 +1005,7 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
             upper = self._upper
             a = (lower - mu) / sigma
             b = (upper - mu) / sigma
-                
+            
             return truncnorm(a, b, loc=mu, scale=sigma).pdf(vector)
 
     def get_max_density(self) -> float:
@@ -1399,8 +1400,7 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
                                                self.upper + 0.49999,
                                                log=self.log,
                                                default_value=self.default_value)
-        self._upper = self.ufhp._upper
-        self._lower = self.ufhp._lower
+
         self.normalized_default_value = self._inverse_transform(self.default_value)
 
     def __repr__(self) -> str:
@@ -1478,8 +1478,8 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
             upper = np.exp(self.ufhp._upper)
             lower = np.exp(self.ufhp._lower)
         else:
-            upper = self._upper
-            lower = self._lower
+            upper = self.ufhp._upper
+            lower = self.ufhp._lower
 
         # If there is only one active value, this is not enough
         if upper - lower >= 1:
@@ -1572,13 +1572,10 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
         return neighbors
 
     def _pdf(self, vector: np.ndarray) -> np.ndarray:
-        ub = 1
-        lb = 0
-        inside_range = ((lb <= vector) & (vector <= ub)).astype(int)
-        return inside_range / (self._upper - self._lower)
+        return self.ufhp._pdf(vector)
 
     def get_max_density(self) -> float:
-        lb = self.lower
+        lb = self.upper
         ub = self.upper
         1 / (ub - lb)
 
@@ -1844,13 +1841,6 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
         return neighbors
         
     def _compute_normalization(self):
-        # to use the same pdfs, transforms etc. (and have something that generalizes)
-        # across discrete parameter types, we compute the pdf for the corresponding
-        # float parameter type for all possible values and renormalize
-        # for the normal in particular, we could have used the binomial distribution - 
-        # but this is not true in general
-        # Lastly, _compute_normalization could be lifted to the superclass 
-        #IntegerParameter, but then we need to create a method to_float as well
         upper = self.upper
         lower = self.lower
         all_integer_values = np.arange(self.lower, self.upper+1)
@@ -2168,13 +2158,6 @@ cdef class BetaIntegerHyperparameter(IntegerHyperparameter):
         return neighbors
 
     def _compute_normalization(self):
-        # to use the same pdfs, transforms etc. (and have something that generalizes)
-        # across discrete parameter types, we compute the pdf for the corresponding
-        # float parameter type for all possible values and renormalize
-        # for the normal in particular, we could have used the binomial distribution - 
-        # but this is not true in general
-        # Lastly, _compute_normalization could be lifted to the superclass 
-        #IntegerParameter, but then we need to create a method to_float as well
         upper = self.upper
         lower = self.lower
         all_integer_values = np.arange(self.lower, self.upper+1)
