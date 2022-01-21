@@ -912,7 +912,10 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
 
     def check_default(self, default_value: Union[int, float]) -> Union[int, float]:
         if default_value is None:
-            return self.mu
+            if self.log:
+                return self._transform_scalar(self.mu)
+            else:
+                return self.mu
 
         elif self.is_legal(default_value):
             return default_value
@@ -1659,8 +1662,6 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
             self.q = None
         self.log = bool(log)
 
-        self.default_value = self.check_default(default_value)
-
         if (lower is not None) ^ (upper is not None):
             raise ValueError("Only one bound was provided when both lower and upper bounds must be provided.")
 
@@ -1678,7 +1679,6 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
             self.lower = lower
             self.upper = upper
 
-
         self.nfhp = NormalFloatHyperparameter(self.name,
                                               self.mu,
                                               self.sigma,
@@ -1686,8 +1686,9 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
                                               q=self.q,
                                               lower=self.lower,
                                               upper=self.upper,
-                                              default_value=self.default_value)
+                                              default_value=default_value)
 
+        self.default_value = self.check_default(default_value)
         self.normalized_default_value = self._inverse_transform(self.default_value)
         
         if (self.lower is None) or (self.upper is None):
@@ -1775,7 +1776,10 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
 
     def check_default(self, default_value: int) -> int:
         if default_value is None:
-            return self.mu
+            if self.log:
+                return self._transform_scalar(self.mu)
+            else:
+                return self.mu
 
         elif self.is_legal(default_value):
             return default_value
