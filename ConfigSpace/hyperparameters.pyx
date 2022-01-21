@@ -151,6 +151,36 @@ cdef class Hyperparameter(object):
     cpdef int compare_vector(self, DTYPE_t value, DTYPE_t value2):
         raise NotImplementedError()
 
+    def pdf(self, vector: np.ndarray) -> np.ndarray:
+        """
+        Computes the probability density function of the parameter in 
+        the original parameter space (the one specified by the user).
+        For each parameter type, there is also a method _pdf which 
+        operates on the transformed (and possibly normalized) parameter
+        space. Only legal values return a positive probability density,
+        otherwise zero.
+        
+        Parameters
+        ----------
+        vector: np.ndarray
+            the (N, ) vector of imputs for which the probability density
+            function is to be computed.
+        """
+        raise NotImplementedError()
+        
+    def _pdf(self, vector: np.ndarray) -> np.ndarray:
+        """
+        Computes the probability density function of the parameter in 
+        the transformed (and possibly normalized, depends on the parameter 
+        type) space. As such, one never has to worry about log-normal 
+        distributions, only normal distributions (as the inverse_transform
+         in the pdf method handles these).
+        vector: np.ndarray
+            the (N, ) vector of imputs for which the probability density
+            function is to be computed.
+        """
+        raise NotImplementedError()
+
     def get_size(self) -> float:
         raise NotImplementedError()
 
@@ -266,6 +296,9 @@ cdef class Constant(Hyperparameter):
         operates on the transformed (and possibly normalized) parameter
         space. Only legal values return a positive probability density,
         otherwise zero.
+        
+        Parameters
+        ----------
         vector: np.ndarray
             the (N, ) vector of imputs for which the probability density
             function is to be computed.
@@ -280,7 +313,10 @@ cdef class Constant(Hyperparameter):
         the transformed (and possibly normalized, depends on the parameter 
         type) space. As such, one never has to worry about log-normal 
         distributions, only normal distributions (as the inverse_transform
-         in the pdf method handles these).
+        in the pdf method handles these).
+        
+        Parameters
+        ----------
         vector: np.ndarray
             the (N, ) vector of imputs for which the probability density
             function is to be computed.
@@ -414,6 +450,9 @@ cdef class FloatHyperparameter(NumericalHyperparameter):
         operates on the transformed (and possibly normalized) parameter
         space. Only legal values return a positive probability density,
         otherwise zero.
+        
+        Parameters
+        ----------
         vector: np.ndarray
             the (N, ) vector of imputs for which the probability density
             function is to be computed.
@@ -429,7 +468,10 @@ cdef class FloatHyperparameter(NumericalHyperparameter):
         the transformed (and possibly normalized, depends on the parameter 
         type) space. As such, one never has to worry about log-normal 
         distributions, only normal distributions (as the inverse_transform
-         in the pdf method handles these).
+        in the pdf method handles these).
+        
+        Parameters
+        ----------
         vector: np.ndarray
             the (N, ) vector of imputs for which the probability density
             function is to be computed.
@@ -487,8 +529,11 @@ cdef class IntegerHyperparameter(NumericalHyperparameter):
         the original parameter space (the one specified by the user).
         For each parameter type, there is also a method _pdf which 
         operates on the transformed (and possibly normalized) parameter
-        space. Only legal values and integers return a positive probability density,
+        space. Only legal values return a positive probability density,
         otherwise zero.
+        
+        Parameters
+        ----------
         vector: np.ndarray
             the (N, ) vector of imputs for which the probability density
             function is to be computed.
@@ -508,6 +553,9 @@ cdef class IntegerHyperparameter(NumericalHyperparameter):
         in the pdf method handles these). Optimally, an IntegerHyperparameter
         should have a corresponding float, which can be utlized for the calls
         to the probability density function (see e.g. NormalIntegerHyperparameter)
+        
+        Parameters
+        ----------
         vector: np.ndarray
             the (N, ) vector of imputs for which the probability density
             function is to be computed.
@@ -2456,6 +2504,9 @@ cdef class CategoricalHyperparameter(Hyperparameter):
         operates on the transformed (and possibly normalized) parameter
         space. Only legal values return a positive probability density,
         otherwise zero.
+        
+        Parameters
+        ----------
         vector: np.ndarray
             the (N, ) vector of imputs for which the probability density
             function is to be computed.
@@ -2472,7 +2523,10 @@ cdef class CategoricalHyperparameter(Hyperparameter):
         the transformed (and possibly normalized, depends on the parameter 
         type) space. As such, one never has to worry about log-normal 
         distributions, only normal distributions (as the inverse_transform
-         in the pdf method handles these).
+        in the pdf method handles these).
+        
+        Parameters
+        ----------
         vector: np.ndarray
             the (N, ) vector of imputs for which the probability density
             function is to be computed.
@@ -2783,6 +2837,9 @@ cdef class OrdinalHyperparameter(Hyperparameter):
         operates on the transformed (and possibly normalized) parameter
         space. Only legal values return a positive probability density,
         otherwise zero.
+        
+        Parameters
+        ----------
         vector: np.ndarray
             the (N, ) vector of imputs for which the probability density
             function is to be computed.
@@ -2797,7 +2854,10 @@ cdef class OrdinalHyperparameter(Hyperparameter):
         the transformed (and possibly normalized, depends on the parameter 
         type) space. As such, one never has to worry about log-normal 
         distributions, only normal distributions (as the inverse_transform
-         in the pdf method handles these).
+        in the pdf method handles these).
+        
+        Parameters
+        ----------
         vector: np.ndarray
             the (N, ) vector of imputs for which the probability density
             function is to be computed.

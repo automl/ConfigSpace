@@ -256,7 +256,7 @@ Consider the case of optimizing the accuracy of an MLP with three hyperparameter
 >>> import ConfigSpace.hyperparameters as CSH
 >>> from ConfigSpace.configuration_space import ConfigurationSpace
 >>> # convert 10 log to natural log for learning rate, mean 1e-3
->>> logmean = np.log(np.power(10.0, -3))
+>>> logmean = np.log(1e-3)
 >>> # two standard deviations on either side of the mean to cover the search space
 >>> logstd = np.log(10.0) 
 >>> learning_rate = CSH.NormalFloatHyperparameter(name='learning_rate', lower=1e-5, upper=1e-1, default_value=1e-3, mu=logmean, sigma=logstd, log=True)
