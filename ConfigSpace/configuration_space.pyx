@@ -1355,13 +1355,12 @@ class ConfigurationSpace(collections.abc.Mapping):
         :class:`~ConfigSpace.configuration_space.ConfigurationSpace`
             The resulting configuration space, without priors on the hyperparameters
         """
-        uniform_types = (UniformFloatHyperparameter, UniformIntegerHyperparameter, OrdinalHyperparameter)
         uniform_config_space = ConfigurationSpace()
         for parameter in self.get_hyperparameters():
-            if isinstance(parameter, uniform_types):
-                uniform_config_space.add_hyperparameter(parameter)
-            else:
+            if hasattr(parameter, 'to_uniform'):
                 uniform_config_space.add_hyperparameter(parameter.to_uniform())
+            else:
+                uniform_config_space.add_hyperparameter(parameter)
 
         uniform_config_space.add_conditions(self.get_conditions())
         uniform_config_space.add_forbidden_clauses(self.get_forbiddens())
