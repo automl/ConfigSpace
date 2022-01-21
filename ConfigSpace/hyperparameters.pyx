@@ -1002,11 +1002,11 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
 
 
     def _pdf(self, vector: np.ndarray) -> np.ndarray:
-        mu = self.mu
-        sigma = self.sigma
         if self.lower == None:
             raise ValueError('Need upper and lower limits when using user priors.')
         else:
+            mu = self.mu
+            sigma = self.sigma
             lower = self._lower
             upper = self._upper
             a = (lower - mu) / sigma
@@ -1028,10 +1028,10 @@ cdef class BetaFloatHyperparameter(FloatHyperparameter):
     cdef public beta
 
     def __init__(self, name: str, alpha: Union[int, float], beta: Union[int, float],
+                 lower: Union[float, int],
+                 upper: Union[float, int],
                  default_value: Union[None, float] = None,
                  q: Union[int, float, None] = None, log: bool = False,
-                 lower: Optional[Union[float, int]] = None,
-                 upper: Optional[Union[float, int]] = None,
                  meta: Optional[Dict] = None) -> None:
         r"""
         A float hyperparameter.
@@ -1058,6 +1058,12 @@ cdef class BetaFloatHyperparameter(FloatHyperparameter):
             Alpha parameter of the normalized beta distribution
         beta : int, float
             Beta parameter of the normalized beta distribution
+        lower : int, float
+            Lower bound of a range of values from which the hyperparameter will be sampled.
+            The Beta disribution gets scaled by the total range of the hyperparameter.
+        upper : int, float
+            Upper bound of a range of values from which the hyperparameter will be sampled.
+            The Beta disribution gets scaled by the total range of the hyperparameter.
         default_value : int, float, optional
             Sets the default value of a hyperparameter to a given value
         q : int, float, optional
@@ -1065,12 +1071,6 @@ cdef class BetaFloatHyperparameter(FloatHyperparameter):
         log : bool, optional
             If ``True``, the values of the hyperparameter will be sampled
             on a logarithmic scale. Default to ``False``
-        lower : int, float, optional
-            Lower bound of a range of values from which the hyperparameter will be sampled.
-            The Beta disribution gets scaled by the total range of the hyperparameter.
-        upper : int, float, optional
-            Upper bound of a range of values from which the hyperparameter will be sampled.
-            The Beta disribution gets scaled by the total range of the hyperparameter.
         meta : Dict, optional
             Field for holding meta data provided by the user.
             Not used by the configuration space.
@@ -1083,10 +1083,6 @@ cdef class BetaFloatHyperparameter(FloatHyperparameter):
         self.beta = float(beta)
         self.q = float(q) if q is not None else None
         self.log = bool(log)
-
-        if (lower is None) or (upper is None):
-            raise ValueError("Both lower and upper bounds must be provided for a beta distribution.")
-
         self.lower = float(lower)
         self.upper = float(upper)
 
@@ -1235,15 +1231,11 @@ cdef class BetaFloatHyperparameter(FloatHyperparameter):
 
     def _sample(self, rs: np.random.RandomState, size: Optional[int] = None
                 ) -> Union[np.ndarray, float]:
-
-        if (self.lower == None) or (self.upper == None):
-            return ValueError('The beta hyperparameter must have both bounds specified.')
-        else:
-            alpha = self.alpha
-            beta = self.beta
-            lower = self._lower
-            upper = self._upper
-            return spbeta(alpha, beta, loc=lower, scale=upper-lower).rvs(size=size, random_state=rs)
+        alpha = self.alpha
+        beta = self.beta
+        lower = self._lower
+        upper = self._upper
+        return spbeta(alpha, beta, loc=lower, scale=upper-lower).rvs(size=size, random_state=rs)
 
     cpdef np.ndarray _transform_vector(self, np.ndarray vector):
         if np.isnan(vector).any():
@@ -1294,16 +1286,13 @@ cdef class BetaFloatHyperparameter(FloatHyperparameter):
     def _pdf(self, vector: np.ndarray) -> np.ndarray:
         alpha = self.alpha
         beta = self.beta
-        if self.lower == None:
-            return ValueError('The beta hyperparameter must have both bounds specified.')
-        else:
-            lower = self._lower
-            upper = self._upper
-            return spbeta(alpha, beta, loc=lower, scale=upper-lower).pdf(vector)
+        lower = self._lower
+        upper = self._upper
+        return spbeta(alpha, beta, loc=lower, scale=upper-lower).pdf(vector)
 
     def get_max_density(self) -> float:
-        lb = self.lower
-        ub = self.upper
+        lb = self._lower
+        ub = self._upper
 
         if (self.alpha > 1) and (self.beta > 1):
             normalized_mode = (self.alpha - 1) / (self.alpha + self.beta - 2)
@@ -1875,10 +1864,10 @@ cdef class BetaIntegerHyperparameter(IntegerHyperparameter):
 
 
     def __init__(self, name: str, alpha: Union[int, float], beta: Union[int, float],
+                 lower: Union[int, float],
+                 upper: Union[int, float],
                  default_value: Union[int, None] = None, q: Union[None, int] = None,
                  log: bool = False,
-                 lower: Optional[int] = None,
-                 upper: Optional[int] = None,
                  meta: Optional[Dict] = None) -> None:
         r"""
         An integer hyperparameter.
@@ -1904,6 +1893,10 @@ cdef class BetaIntegerHyperparameter(IntegerHyperparameter):
         beta : int, float
             Beta parameter of the distribution, from which
             hyperparameter is sampled
+        lower : int, float
+            Lower bound of a range of values from which the hyperparameter will be sampled
+        upper : int, float
+            Upper bound of a range of values from which the hyperparameter will be sampled
         default_value : int, optional
             Sets the default value of a hyperparameter to a given value
         q : int, optional
@@ -1911,10 +1904,6 @@ cdef class BetaIntegerHyperparameter(IntegerHyperparameter):
         log : bool, optional
             If ``True``, the values of the hyperparameter will be sampled
             on a logarithmic scale. Defaults to ``False``
-        lower : int, float, optional
-            Lower bound of a range of values from which the hyperparameter will be sampled
-        upper : int, float, optional
-            Upper bound of a range of values from which the hyperparameter will be sampled
         meta : Dict, optional
             Field for holding meta data provided by the user.
             Not used by the configuration space.
@@ -1939,9 +1928,6 @@ cdef class BetaIntegerHyperparameter(IntegerHyperparameter):
         else:
             self.q = None
         self.log = bool(log)
-
-        if (lower is None) or (upper is None):
-            raise ValueError("Both bounds must be provided for a Beta parameter.")
 
         self.upper = self.check_int(upper, "upper")
         self.lower = self.check_int(lower, "lower")
