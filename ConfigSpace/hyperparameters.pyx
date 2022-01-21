@@ -262,7 +262,7 @@ cdef class Constant(Hyperparameter):
         """
         Computes the probability density function of the parameter in 
         the original parameter space (the one specified by the user).
-        For each parameter type, there is also a method _pdf which 
+        For each hyperparameter type, there is also a method _pdf which 
         operates on the transformed (and possibly normalized) parameter
         space. Only legal values return a positive probability density,
         otherwise zero.
