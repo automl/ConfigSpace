@@ -719,6 +719,9 @@ cdef class UniformFloatHyperparameter(FloatHyperparameter):
         return neighbors
 
     def _pdf(self, vector: np.ndarray) -> np.ndarray:
+        # everything that comes into _pdf for a uniform variable should
+        # already be in [0, 1]-range, and if not, it's outside the upper
+        # or lower bound.
         ub = 1
         lb = 0
         inside_range = ((lb <= vector) & (vector <= ub)).astype(int)
@@ -1224,7 +1227,7 @@ cdef class BetaFloatHyperparameter(FloatHyperparameter):
             return False
 
     cpdef bint is_legal_vector(self, DTYPE_t value):
-        if self.upper >= value >= self.lower:
+        if self._upper >= value >= self._lower:
             return True
         else:
             return False
@@ -1296,7 +1299,7 @@ cdef class BetaFloatHyperparameter(FloatHyperparameter):
 
         if (self.alpha > 1) and (self.beta > 1):
             normalized_mode = (self.alpha - 1) / (self.alpha + self.beta - 2)
-            return self._pdf(np.array([(self._upper - self._lower) * normalized_mode + self._lower]))[0]
+            return self._pdf(np.array([(ub - lb) * normalized_mode + lb]))[0]
         elif self.alpha < self.beta:
             return self._pdf(np.array([lb]))[0]
         elif self.alpha > self.beta:
@@ -2027,7 +2030,7 @@ cdef class BetaIntegerHyperparameter(IntegerHyperparameter):
             return False
 
     cpdef bint is_legal_vector(self, DTYPE_t value):
-        if self.upper >= value >= self.lower:
+        if self._upper >= value >= self._lower:
             return True
         else:
             return False

@@ -161,11 +161,9 @@ class TestHyperparameters(unittest.TestCase):
             c1._pdf('pdf')
 
         # Simply check that it runs, since _pdf does not restrict shape (only public method does)
-        self.assertEqual(c1._pdf(accepted_shape_1)[0][0], 1.0)
-        self.assertEqual(c1._pdf(accepted_shape_2)[0][0], 1.0)
-        self.assertEqual(c1._pdf(accepted_shape_2)[0][2], 0.0)
-        self.assertEqual(c1._pdf(accepted_shape_3)[0][0], 0.0)
-        self.assertEqual(c1._pdf(accepted_shape_3)[2][0], 1.0)
+        c1._pdf(accepted_shape_1)
+        c1._pdf(accepted_shape_2)
+        c1._pdf(accepted_shape_3)
         
     def test_constant_get_max_density(self):
         c1 = Constant("valuee", 1)
@@ -310,7 +308,8 @@ class TestHyperparameters(unittest.TestCase):
         self.assertAlmostEqual(c2.pdf(point_outside_range_log)[0], 4.539992976248485e-05)
 
         # this, however, is a negative value on a log param, which cannot be pulled into range
-        self.assertEqual(c2.pdf(point_outside_range)[0], 0.0)
+        with pytest.warns(RuntimeWarning, match='invalid value encountered in log'):
+            self.assertEqual(c2.pdf(point_outside_range)[0], 0.0)
         
         array_results = c1.pdf(array_1)
         array_results_log = c2.pdf(array_1)
@@ -382,11 +381,9 @@ class TestHyperparameters(unittest.TestCase):
             c1._pdf('pdf')
         
         # Simply check that it runs, since _pdf does not restrict shape (only public method does)
-        self.assertEqual(c1._pdf(accepted_shape_1)[0][0], 0.1)
-        self.assertEqual(c1._pdf(accepted_shape_2)[0][0], 0.1)
-        self.assertEqual(c1._pdf(accepted_shape_2)[0][2], 0.0)
-        self.assertEqual(c1._pdf(accepted_shape_3)[0][0], 0.0)
-        self.assertEqual(c1._pdf(accepted_shape_3)[2][0], 0.1)
+        c1._pdf(accepted_shape_1)
+        c1._pdf(accepted_shape_2)
+        c1._pdf(accepted_shape_3)
 
     def test_uniformfloat_get_max_density(self):
         c1 = UniformFloatHyperparameter("param", lower=0, upper=10)
@@ -432,13 +429,11 @@ class TestHyperparameters(unittest.TestCase):
             "param, Type: NormalFloat, Mu: 0.0 Sigma: 10.0, Default: 0.0, "
             "Q: 0.1", str(f2))
 
-        with pytest.warns(RuntimeWarning, match='divide by zero encountered in log'):
-            f3 = NormalFloatHyperparameter("param", 0, 10, log=True)
-        with pytest.warns(RuntimeWarning, match='divide by zero encountered in log'):
-            f3_ = NormalFloatHyperparameter("param", 0, 10, log=True)
+        f3 = NormalFloatHyperparameter("param", 0, 10, log=True)
+        f3_ = NormalFloatHyperparameter("param", 0, 10, log=True)
         self.assertEqual(f3, f3_)
         self.assertEqual(
-            "param, Type: NormalFloat, Mu: 0.0 Sigma: 10.0, Default: 0.0, "
+            "param, Type: NormalFloat, Mu: 0.0 Sigma: 10.0, Default: 1.0, "
             "on log-scale", str(f3))
 
         f4 = NormalFloatHyperparameter("param", 0, 10, default_value=1.0)
@@ -448,13 +443,13 @@ class TestHyperparameters(unittest.TestCase):
             "param, Type: NormalFloat, Mu: 0.0 Sigma: 10.0, Default: 1.0",
             str(f4))
 
-        f5 = NormalFloatHyperparameter("param", 0, 10, default_value=1.0,
+        f5 = NormalFloatHyperparameter("param", 0, 10, default_value=3.0,
                                        q=0.1, log=True)
-        f5_ = NormalFloatHyperparameter("param", 0, 10, default_value=1.0,
+        f5_ = NormalFloatHyperparameter("param", 0, 10, default_value=3.0,
                                         q=0.1, log=True)
         self.assertEqual(f5, f5_)
         self.assertEqual(
-            "param, Type: NormalFloat, Mu: 0.0 Sigma: 10.0, Default: 1.0, "
+            "param, Type: NormalFloat, Mu: 0.0 Sigma: 10.0, Default: 3.0, "
             "on log-scale, Q: 0.1", str(f5))
 
         self.assertNotEqual(f1, f2)
@@ -636,11 +631,9 @@ class TestHyperparameters(unittest.TestCase):
             c_error._pdf(np.array([2]))
 
         # Simply check that it runs, since _pdf does not restrict shape (only public method does)
-        self.assertAlmostEqual(c1._pdf(accepted_shape_1)[0][0], 0.2138045617479014)
-        self.assertAlmostEqual(c1._pdf(accepted_shape_2)[0][0], 0.2138045617479014)
-        self.assertAlmostEqual(c1._pdf(accepted_shape_2)[0][2], 0.028935300921432087)
-        self.assertAlmostEqual(c1._pdf(accepted_shape_3)[0][0], 0.028935300921432087)
-        self.assertAlmostEqual(c1._pdf(accepted_shape_3)[2][0], 0.2138045617479014)
+        c1._pdf(accepted_shape_1)
+        c1._pdf(accepted_shape_2)
+        c1._pdf(accepted_shape_3)
 
     def test_normalfloat_get_max_density(self):
         c1 = NormalFloatHyperparameter("param", lower=0, upper=10, mu=3, sigma=2)
@@ -901,11 +894,9 @@ class TestHyperparameters(unittest.TestCase):
             c1.pdf('pdf')
    
         # Simply check that it runs, since _pdf does not restrict shape (only public method does)
-        self.assertAlmostEqual(c1._pdf(accepted_shape_1)[0][0], 0.07559999999999997)
-        self.assertAlmostEqual(c1._pdf(accepted_shape_2)[0][0], 0.07559999999999997)
-        self.assertAlmostEqual(c1._pdf(accepted_shape_2)[0][2], 0.1764)
-        self.assertAlmostEqual(c1._pdf(accepted_shape_3)[0][0], 0.1764)
-        self.assertAlmostEqual(c1._pdf(accepted_shape_3)[2][0], 0.07559999999999997)
+        c1._pdf(accepted_shape_1)
+        c1._pdf(accepted_shape_2)
+        c1._pdf(accepted_shape_3)
 
     def test_betafloat_get_max_density(self):
         c1 = BetaFloatHyperparameter("param", lower=0, upper=10, alpha=3, beta=2)
@@ -1047,7 +1038,8 @@ class TestHyperparameters(unittest.TestCase):
         self.assertAlmostEqual(c2.pdf(point_outside_range_log)[0], 0.0001, places=5)
 
         # this, however, is a negative value on a log param, which cannot be pulled into range
-        self.assertEqual(c2.pdf(point_outside_range)[0], 0.0)
+        with pytest.warns(RuntimeWarning, match='invalid value encountered in log'):
+            self.assertEqual(c2.pdf(point_outside_range)[0], 0.0)
         
         array_results = c1.pdf(array_1)
         array_results_log = c2.pdf(array_1)
@@ -1113,11 +1105,9 @@ class TestHyperparameters(unittest.TestCase):
             c1._pdf('pdf')
    
         # Simply check that it runs, since _pdf does not restrict shape (only public method does)
-        self.assertAlmostEqual(c1._pdf(accepted_shape_1)[0][0], 0.2, places=5)
-        self.assertAlmostEqual(c1._pdf(accepted_shape_2)[0][0], 0.2, places=5)
-        self.assertAlmostEqual(c1._pdf(accepted_shape_2)[0][2], 0.0, places=5)
-        self.assertAlmostEqual(c1._pdf(accepted_shape_3)[0][0], 0.0, places=5)
-        self.assertAlmostEqual(c1._pdf(accepted_shape_3)[2][0], 0.2, places=5)
+        c1._pdf(accepted_shape_1)
+        c1._pdf(accepted_shape_2)
+        c1._pdf(accepted_shape_3)
 
     def test_uniformint_get_max_density(self):
         c1 = UniformIntegerHyperparameter("param", lower=0, upper=4)
@@ -1164,29 +1154,27 @@ class TestHyperparameters(unittest.TestCase):
             "param, Type: NormalInteger, Mu: 0 Sigma: 10, Default: 0, Q: 2",
             str(f2_large_q))
 
-        with pytest.warns(RuntimeWarning, match='divide by zero encountered in log'):
-            f3 = NormalIntegerHyperparameter("param", 0, 10, log=True)
-        with pytest.warns(RuntimeWarning, match='divide by zero encountered in log'):
-            f3_ = NormalIntegerHyperparameter("param", 0, 10, log=True)
+        f3 = NormalIntegerHyperparameter("param", 0, 10, log=True)
+        f3_ = NormalIntegerHyperparameter("param", 0, 10, log=True)
         self.assertEqual(f3, f3_)
         self.assertEqual(
-            "param, Type: NormalInteger, Mu: 0 Sigma: 10, Default: 0, "
+            "param, Type: NormalInteger, Mu: 0 Sigma: 10, Default: 1, "
             "on log-scale", str(f3))
 
-        f4 = NormalIntegerHyperparameter("param", 0, 10, default_value=1, log=True)
-        f4_ = NormalIntegerHyperparameter("param", 0, 10, default_value=1, log=True)
+        f4 = NormalIntegerHyperparameter("param", 0, 10, default_value=3, log=True)
+        f4_ = NormalIntegerHyperparameter("param", 0, 10, default_value=3, log=True)
         self.assertEqual(f4, f4_)
         self.assertEqual(
-            "param, Type: NormalInteger, Mu: 0 Sigma: 10, Default: 1, "
+            "param, Type: NormalInteger, Mu: 0 Sigma: 10, Default: 3, "
             "on log-scale", str(f4))
 
-        with pytest.warns(RuntimeWarning, match='divide by zero encountered in log'):
+        with pytest.warns(UserWarning, match="Setting quantization < 1 for Integer "
+                                             "Hyperparameter 'param' has no effect"):
             f5 = NormalIntegerHyperparameter("param", 0, 10, q=0.1, log=True)
-        with pytest.warns(RuntimeWarning, match='divide by zero encountered in log'):
             f5_ = NormalIntegerHyperparameter("param", 0, 10, q=0.1, log=True)
         self.assertEqual(f5, f5_)
         self.assertEqual(
-            "param, Type: NormalInteger, Mu: 0 Sigma: 10, Default: 0, "
+            "param, Type: NormalInteger, Mu: 0 Sigma: 10, Default: 1, "
             "on log-scale", str(f5))
 
         self.assertNotEqual(f1, f2)
@@ -1221,7 +1209,8 @@ class TestHyperparameters(unittest.TestCase):
         self.assertEqual(f1_expected, f1_actual)
 
     def test_normalint_is_legal(self):
-        with pytest.warns(RuntimeWarning, match='divide by zero encountered in log'):
+        with pytest.warns(UserWarning, match="Setting quantization < 1 for Integer "
+                                             "Hyperparameter 'param' has no effect"):
             f1 = NormalIntegerHyperparameter("param", 0, 10, q=0.1, log=True)
         self.assertFalse(f1.is_legal(3.1))
         self.assertFalse(f1.is_legal(3.0))   # 3.0 behaves like an Integer
@@ -1268,7 +1257,8 @@ class TestHyperparameters(unittest.TestCase):
         # but does not have an actual impact of now
         self.assertEqual(c1.pdf(point_outside_range_1)[0], 0.0)
         self.assertEqual(c1.pdf(point_outside_range_2)[0], 0.0)
-        self.assertEqual(c2.pdf(point_outside_range_1_log)[0], 0.0)
+        with pytest.warns(RuntimeWarning, match='divide by zero encountered in log'):
+            self.assertEqual(c2.pdf(point_outside_range_1_log)[0], 0.0)
         self.assertEqual(c2.pdf(point_outside_range_2_log)[0], 0.0)
 
         self.assertEqual(c1.pdf(non_integer_point)[0], 0.0)
@@ -1516,7 +1506,8 @@ class TestHyperparameters(unittest.TestCase):
         
         self.assertEqual(c1.pdf(point_outside_range_1)[0], 0.0)
         self.assertEqual(c1.pdf(point_outside_range_2)[0], 0.0)
-        self.assertEqual(c2.pdf(point_outside_range_1_log)[0], 0.0)
+        with pytest.warns(RuntimeWarning, match='divide by zero encountered in log'):
+            self.assertEqual(c2.pdf(point_outside_range_1_log)[0], 0.0)
         self.assertEqual(c2.pdf(point_outside_range_2_log)[0], 0.0)
 
         self.assertEqual(c1.pdf(non_integer_point)[0], 0.0)

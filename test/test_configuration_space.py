@@ -810,15 +810,17 @@ class TestConfigurationSpace(unittest.TestCase):
         cs.add_hyperparameter(CategoricalHyperparameter('cat', [0, 1, 2], weights=[1, 2, 3]))
         cs.add_hyperparameter(BetaFloatHyperparameter("beta", alpha=8, beta=2, lower=-1, upper=11))
         cs.add_hyperparameter(NormalIntegerHyperparameter("norm", mu=5, sigma=4, lower=1, upper=15))
-
+        cat_default = cs['cat'].default_value
+        norm_default = cs['norm'].default_value
+        beta_default = cs['beta'].default_value
         uniform_cs = cs.remove_parameter_priors()
         
         expected_cs = ConfigurationSpace()
         expected_cs.add_hyperparameter(UniformIntegerHyperparameter('integer', 1, 5, log=True))
-        expected_cs.add_hyperparameter(CategoricalHyperparameter('cat', [0, 1, 2]))
-        # These default values are computed closed form for beta, trivial for normal
-        expected_cs.add_hyperparameter(UniformFloatHyperparameter("beta", lower=-1, upper=11, default_value=9.5))
-        expected_cs.add_hyperparameter(UniformIntegerHyperparameter("norm", lower=1, upper=15, default_value=5))
+        expected_cs.add_hyperparameter(CategoricalHyperparameter('cat', [0, 1, 2], default_value=cat_default))
+        # These default values are computed closed form for beta (see Wikipedia), trivial for normal
+        expected_cs.add_hyperparameter(UniformFloatHyperparameter("beta", lower=-1, upper=11, default_value=beta_default))
+        expected_cs.add_hyperparameter(UniformIntegerHyperparameter("norm", lower=1, upper=15, default_value=norm_default))
         # __eq__ not implemented, so this is the next best thing
         self.assertEqual(repr(uniform_cs), repr(expected_cs))
         
