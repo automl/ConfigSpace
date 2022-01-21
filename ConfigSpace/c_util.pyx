@@ -288,7 +288,8 @@ cpdef np.ndarray change_hp_value(
     # Hyperparameters which are going to be set to inactive
     disabled = []
 
-    # Hyperparameters which are going to be set activate, this is applicable to diamond conditional space:
+    # Hyperparameters which are going to be set activate, we introduce this to resolve the conflict that might be raised
+    # by OrConjunction:
     # Suppose that we have a parent HP_p whose possible values are A, B, C; a child HP_d is activate if
     # HP_p is A or B. Then when HP_p switches from A to B, HP_d needs to remain activate.
     hps_to_be_activate = set()

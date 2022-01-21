@@ -277,7 +277,7 @@ class UtilTest(unittest.TestCase):
 
         np.testing.assert_almost_equal(new_array, expected_array)
 
-    def test_check_neighbouring_config_hierarchical_diamond(self):
+    def test_check_neighbouring_config_diamond_or_conjunction(self):
         diamond = ConfigurationSpace()
         top = CategoricalHyperparameter('top', [0, 1], 0)
         middle = CategoricalHyperparameter('middle', [0, 1], 1)
