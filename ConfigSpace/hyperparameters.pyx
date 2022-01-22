@@ -2537,7 +2537,7 @@ cdef class CategoricalHyperparameter(Hyperparameter):
             function is to be computed.
         """
         probs = np.array(self.probabilities)
-        res = np.array(probs[vector])
+        res = np.array(probs[vector.astype(int)])
         if res.ndim == 0:
             return res.reshape(-1)
         return res
