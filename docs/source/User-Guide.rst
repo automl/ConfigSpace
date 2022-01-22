@@ -265,21 +265,17 @@ Consider the case of optimizing the accuracy of an MLP with three hyperparameter
 
 >>> cs = ConfigurationSpace()
 >>> cs.add_hyperparameters([learning_rate, dropout, activation])
-Configuration space object:
-  Hyperparameters:
-    activation, Type: Categorical, Choices: {tanh, relu}, Default: relu, Probabilities: (0.2, 0.8)
-    dropout, Type: BetaFloat, Alpha: 2.0 Beta: 4.0, Range: [0.0, 0.99], Default: 0.25
-    learning_rate, Type: NormalFloat, Mu: -6.907755278982137 Sigma: 2.302585092994046, Range: [1e-05, 0.1], Default: 0.001, on log-scale
+[learning_rate, Type: NormalFloat, Mu: -6.907755278982137 Sigma: 2.302585092994046, Range: [1e-05, 0.1], Default: 0.001, on log-scale, dropout, Type: BetaFloat, Alpha: 2.0 Beta: 4.0, Range: [0.0, 0.99], Default: 0.25, activation, Type: Categorical, Choices: {tanh, relu}, Default: tanh, Probabilities: (0.2, 0.8)]
 
 To check that your prior makes sense for each hyperparameter, you can easily do so with the __pdf__ method. There, you will see that the probability of the optimal learning rate peaks at 10^-3, and decays as we go further away from it:
 
 >>> test_points = np.logspace(-5, -1, 5) 
 >>> test_points
-[1.e-05 1.e-04 1.e-03 1.e-02 1.e-01]
+array([1.e-05, 1.e-04, 1.e-03, 1.e-02, 1.e-01])
 
 # the pdf function accepts an (N, ) numpy array as input.                 
 >>> learning_rate.pdf(test_points)
-[0.02456573 0.11009594 0.18151753 0.11009594 0.02456573]
+array([0.02456573, 0.11009594, 0.18151753, 0.11009594, 0.02456573])
 
 
 
