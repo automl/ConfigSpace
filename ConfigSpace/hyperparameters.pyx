@@ -1093,13 +1093,13 @@ cdef class BetaFloatHyperparameter(FloatHyperparameter):
         Example
         -------
 
-        >>> import ConfigSpace as CS
-        >>> import ConfigSpace.hyperparameters as CSH
-        >>> cs = CS.ConfigurationSpace(seed=1)
-        >>> normal_float_hp = CSH.BetaFloatHyperparameter('beta_float', alpha=3,
-        ...                                                 beta=1, log=False)
-        >>> cs.add_hyperparameter(beta_float_hp)
-        beta_float, Type: BetaFloat, Alpha: 3.0 beta: 1.0, Default: 0.5
+            >>> import ConfigSpace as CS
+            >>> import ConfigSpace.hyperparameters as CSH
+            >>> cs = CS.ConfigurationSpace(seed=1)
+            >>> beta_float_hp = CSH.BetaFloatHyperparameter('beta_float', alpha=3,
+            ...                                                 beta=2, lower=1, upper=4, log=False)
+            >>> cs.add_hyperparameter(beta_float_hp)
+            beta_float, Type: BetaFloat, Alpha: 3.0 Beta: 2.0, Range: [1.0, 4.0], Default: 3.0
 
         Parameters
         ----------
@@ -1653,6 +1653,8 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
 
             >>> import ConfigSpace as CS
             >>> import ConfigSpace.hyperparameters as CSH
+            >>> cs = CS.ConfigurationSpace(seed=1)
+            >>> normal_int_hp = CSH.NormalIntegerHyperparameter(name='normal_int', mu=0,
             ...                                                 sigma=1, log=False)
             >>> cs.add_hyperparameter(normal_int_hp)
             normal_int, Type: NormalInteger, Mu: 0 Sigma: 1, Default: 0
@@ -1931,9 +1933,12 @@ cdef class BetaIntegerHyperparameter(IntegerHyperparameter):
 
             >>> import ConfigSpace as CS
             >>> import ConfigSpace.hyperparameters as CSH
-            ...                                                 beta=1, log=False)
+            >>> cs = CS.ConfigurationSpace(seed=1)
+            >>> beta_int_hp = CSH.BetaFloatHyperparameter('beta_int', alpha=3,
+            ...                                                 beta=2, lower=1, upper=4, log=False)
             >>> cs.add_hyperparameter(beta_int_hp)
-            beta_int, Type: NormalInteger, Alpha: 3 Beta: 1, Default: 1
+            beta_int, Type: BetaFloat, Alpha: 3.0 Beta: 2.0, Range: [1.0, 4.0], Default: 3.0
+
 
         Parameters
         ----------

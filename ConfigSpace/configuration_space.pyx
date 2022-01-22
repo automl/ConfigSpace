@@ -1344,7 +1344,7 @@ class ConfigurationSpace(collections.abc.Mapping):
         """
         self.random = np.random.RandomState(seed)
 
-    def remove_parameter_priors(self) -> 'ConfigurationSpace':
+    def remove_hyperparameter_priors(self) -> 'ConfigurationSpace':
         """
         Produces a new ConfigurationSpace where all priors on parameters are removed.
         Non-uniform pararmeters are replaced with uniform ones, and 

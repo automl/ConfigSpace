@@ -804,7 +804,7 @@ class TestConfigurationSpace(unittest.TestCase):
         assert list(d.items()) == list(zip(names, hyperparameters))
         assert len(d) == 5
 
-    def test_remove_parameter_priors(self):
+    def test_remove_hyperparameter_priors(self):
         cs = ConfigurationSpace()
         cs.add_hyperparameter(UniformIntegerHyperparameter('integer', 1, 5, log=True))
         cs.add_hyperparameter(CategoricalHyperparameter('cat', [0, 1, 2], weights=[1, 2, 3]))
@@ -813,7 +813,7 @@ class TestConfigurationSpace(unittest.TestCase):
         cat_default = cs['cat'].default_value
         norm_default = cs['norm'].default_value
         beta_default = cs['beta'].default_value
-        uniform_cs = cs.remove_parameter_priors()
+        uniform_cs = cs.remove_hyperparameter_priors()
         
         expected_cs = ConfigurationSpace()
         expected_cs.add_hyperparameter(UniformIntegerHyperparameter('integer', 1, 5, log=True))
