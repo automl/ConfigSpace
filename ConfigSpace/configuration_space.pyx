@@ -1360,7 +1360,7 @@ class ConfigurationSpace(collections.abc.Mapping):
             if hasattr(parameter, 'to_uniform'):
                 uniform_config_space.add_hyperparameter(parameter.to_uniform())
             else:
-                uniform_config_space.add_hyperparameter(parameter)
+                uniform_config_space.add_hyperparameter(copy.copy(parameter))
 
         uniform_config_space.add_conditions(self.get_conditions())
         uniform_config_space.add_forbidden_clauses(self.get_forbiddens())
