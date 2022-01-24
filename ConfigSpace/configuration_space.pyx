@@ -1361,12 +1361,49 @@ class ConfigurationSpace(collections.abc.Mapping):
                 uniform_config_space.add_hyperparameter(parameter.to_uniform())
             else:
                 uniform_config_space.add_hyperparameter(copy.copy(parameter))
-
-        uniform_config_space.add_conditions(self.get_conditions())
-        uniform_config_space.add_forbidden_clauses(self.get_forbiddens())
+        
+        new_conditions = self.substitute_hyperparameters_in_conditions(self.get_conditions(), uniform_config_space)
+        uniform_config_space.add_conditions(new_conditions)
+        #uniform_config_space.add_forbidden_clauses(self.get_forbiddens())
         
         return uniform_config_space
-    
+
+    def substitute_hyperparameters_in_conditions(self, conditions, new_configspace):
+        """
+        Takes a set of conditions and generates a new set of conditions with the same structure, where 
+        each hyperparameter is replaced with its namesake in new_configspace. As such, the set of conditions
+        remain unchanged, but the included hyperparameters are changed to match those types that exist in
+        new_configspace.
+
+        Parameters
+        ----------
+        new_configspace: ConfigurationSpace 
+            A ConfigurationSpace containing hyperparameters with the same names as those in the conditions.
+
+        Returns
+        -------
+        List[ConditionComponent]: 
+            The list of conditions, adjusted to fit the new ConfigurationSpace
+        """    
+        new_conditions = []
+        for condition in conditions:
+            if isinstance(condition, AbstractConjunction):
+                conjunction_type = type(condition)
+                children = condition.get_descendant_literal_conditions()
+                substituted_children = self.substitute_hyperparameters_in_conditions(children, new_configspace)
+                substituted_conjunction = conjunction_type(*substituted_children)
+                new_conditions.append(substituted_conjunction)
+            else:
+                condition_type = type(condition)
+                child_name = condition.get_children()[0].name
+                parent_name = condition.get_parents()[0].name
+                new_child = new_configspace[child_name]
+                new_parent = new_configspace[parent_name]
+                value = condition.value
+                substituted_condition = condition_type(child=new_child, parent=new_parent, value=value)
+                new_conditions.append(substituted_condition)
+        return new_conditions
+
     def estimate_size(self) -> Union[float, int]:
         """
         Estimate the size of the current configuration space (i.e. unique configurations).
