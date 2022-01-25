@@ -48,6 +48,20 @@ def generate(configuration_space_path):
             with open(configuration_space_path) as fh:
                 cs = pcs_new_parser.read(fh)
 
+        visited = set()
+        for hp in cs.get_hyperparameters():
+            # Assert that the sequence returned by `get_hyperparameters` is topologically sorted with respect to `get_parents_of`
+            self.assertTrue(set(cs.get_parents_of(hp.name)) <= visited)
+            # Assert that the sequence returned by `get_hyperparameters` is topologically sorted with respect to `get_children_of`
+            self.assertFalse(set(cs.get_children_of(hp.name)) & visited)
+            # Assert that the sequence stored in `_children_of` is ordered the same as `get_hyperparameters`
+            i = 0
+            for c in cs._children_of[hp.name]:
+                i_new = cs.get_hyperparameters().index(c)
+                self.assertTrue(i_new >= i)
+                i = i_new
+            visited.add(hp)
+
         default = cs.get_default_configuration()
         cs._check_configuration_rigorous(default)
         for i in range(10):
