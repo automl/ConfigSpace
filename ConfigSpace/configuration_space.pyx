@@ -1369,6 +1369,32 @@ class ConfigurationSpace(collections.abc.Mapping):
         
         return uniform_config_space
 
+    def estimate_size(self) -> Union[float, int]:
+        """
+        Estimate the size of the current configuration space (i.e. unique configurations).
+
+        This is ``np.inf`` in case if there is a single hyperparameter of size ``np.inf`` (i.e. a
+        :class:`~ConfigSpace.hyperparameters.UniformFloatHyperparameter`), otherwise
+        it is the product of the size of all hyperparameters. The function correctly guesses the
+        number of unique configurations if there are no condition and forbidden statements in the
+        configuration spaces. Otherwise, this is an upper bound. Use
+        :func:`~ConfigSpace.util.generate_grid` to generate all valid configurations if required.
+
+        Returns
+        -------
+        Union[float, int]
+        """
+        sizes = []
+        for hp in self._hyperparameters.values():
+            sizes.append(hp.get_size())
+        if len(sizes) == 0:
+            return 0.0
+        else:
+            size = sizes[0]
+            for i in range(1, len(sizes)):
+                size = size * sizes[i]
+            return size
+
     @staticmethod
     def substitute_hyperparameters_in_conditions(conditions, new_configspace):
         """
@@ -1464,32 +1490,6 @@ class ConfigurationSpace(collections.abc.Mapping):
                 raise TypeError(f'Did not expect the supplied forbidden type {type(forbidden)}.')
         
         return new_forbiddens
-
-    def estimate_size(self) -> Union[float, int]:
-        """
-        Estimate the size of the current configuration space (i.e. unique configurations).
-
-        This is ``np.inf`` in case if there is a single hyperparameter of size ``np.inf`` (i.e. a
-        :class:`~ConfigSpace.hyperparameters.UniformFloatHyperparameter`), otherwise
-        it is the product of the size of all hyperparameters. The function correctly guesses the
-        number of unique configurations if there are no condition and forbidden statements in the
-        configuration spaces. Otherwise, this is an upper bound. Use
-        :func:`~ConfigSpace.util.generate_grid` to generate all valid configurations if required.
-
-        Returns
-        -------
-        Union[float, int]
-        """
-        sizes = []
-        for hp in self._hyperparameters.values():
-            sizes.append(hp.get_size())
-        if len(sizes) == 0:
-            return 0.0
-        else:
-            size = sizes[0]
-            for i in range(1, len(sizes)):
-                size = size * sizes[i]
-            return size
 
 
 class Configuration(collections.abc.Mapping):
