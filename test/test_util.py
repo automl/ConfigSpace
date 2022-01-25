@@ -308,6 +308,22 @@ class UtilTest(unittest.TestCase):
 
         np.testing.assert_almost_equal(new_array, expected_array)
 
+    def test_check_neighbouring_config_invalid(self):
+        cs = ConfigurationSpace()
+        parent = CategoricalHyperparameter('parent', ['red', 'green'])
+        child = CategoricalHyperparameter('child', ['red', 'green'])
+        cs.add_hyperparameters([parent, child])
+        cs.add_condition(EqualsCondition(child, parent, 'red'))
+
+        config = Configuration(cs, {'parent': 'green'})
+        hp_name = 'child'
+        index = cs.get_idx_by_hyperparameter_name(hp_name)
+        neighbor_value = 1
+
+        with self.assertRaisesRegex(ValueError,
+                                    'Attempting to change the value of the inactive hyperparameter \'child\' to \'1.0\'.'):
+            ConfigSpace.c_util.change_hp_value(cs, config.get_array(), hp_name, neighbor_value, index)
+
     def test_fix_types(self):
         # Test categorical and ordinal
         for hyperparameter_type in [CategoricalHyperparameter, OrdinalHyperparameter]:
