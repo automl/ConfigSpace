@@ -10,7 +10,6 @@ from ConfigSpace.hyperparameters import Hyperparameter
 from ConfigSpace.hyperparameters cimport Hyperparameter
 from ConfigSpace.conditions import ConditionComponent
 from ConfigSpace.conditions cimport ConditionComponent
-from ConfigSpace.conditions import OrConjunction
 from ConfigSpace.exceptions import ForbiddenValueError
 
 from libc.stdlib cimport malloc, free
@@ -122,110 +121,48 @@ cpdef np.ndarray correct_sampled_array(
     np.ndarray[DTYPE_t, ndim=1] vector,
     list forbidden_clauses_unconditionals,
     list forbidden_clauses_conditionals,
-    list hyperparameters_with_children,
-    int num_hyperparameters,
-    list unconditional_hyperparameters,
+    list conditional_hyperparameters,
     dict hyperparameter_to_idx,
     dict parent_conditions_of,
-    dict parents_of,
-    dict children_of,
 ):
+    """Ensure that the array values of inactive hyperparameters are NaN.
+    
+    The output array does not violate any condition or forbidden clause.
+
+    Parameters
+    ----------
+    vector : np.ndarray
+        Vector of hyperparameter values. It is assumed that none of the active hyperparameters has a NaN value assigned.
+    
+    conditional_hyperparameters : list[str]
+        Names of conditional hyperparameters ordered topologically
+
+    Returns
+    -------
+    np.ndarray
+        Updated vector
+    """
     cdef AbstractForbiddenComponent clause
     cdef ConditionComponent condition
-    cdef int hyperparameter_idx
     cdef DTYPE_t NaN = np.NaN
-    cdef set visited
-    cdef set inactive
-    cdef Hyperparameter child
-    cdef list children
-    cdef str child_name
-    cdef list parents
-    cdef Hyperparameter parent
-    cdef int parents_visited
-    cdef list conditions
-    cdef int add
-
-    cdef int* active
-    active = <int*> malloc(sizeof(int) * num_hyperparameters)
-    for j in range(num_hyperparameters):
-        active[j] = 0
+    cdef str current_name
 
     for j in range(len(forbidden_clauses_unconditionals)):
         clause = forbidden_clauses_unconditionals[j]
         if clause.c_is_forbidden_vector(vector, strict=False):
-            free(active)
             raise ForbiddenValueError(
                 "Given vector violates forbidden clause %s" % (
                     str(clause)
                 )
             )
+    
+    # We assume that the conditional hyperparameters are ordered in topological order.
+    for current_name in conditional_hyperparameters:
+        for condition in parent_conditions_of[current_name]:
+            if not condition._evaluate_vector(vector):
+                vector[hyperparameter_to_idx[current_name]] = NaN
+                break            
 
-    hps = deque()
-    visited = set()
-    hps.extendleft(hyperparameters_with_children)
-
-    for ch in unconditional_hyperparameters:
-        active[hyperparameter_to_idx[ch]] = 1
-
-    inactive = set()
-
-    while len(hps) > 0:
-        hp = hps.pop()
-        visited.add(hp)
-        children = children_of[hp]
-        for child in children:
-            child_name = child.name
-            if child_name not in inactive:
-                parents = parents_of[child_name]
-                hyperparameter_idx = hyperparameter_to_idx[child_name]
-                if len(parents) == 1:
-                    conditions = parent_conditions_of[child_name]
-                    add = True
-                    for j in range(len(conditions)):
-                        condition = conditions[j]
-                        if not condition._evaluate_vector(vector):
-                            add = False
-                            vector[hyperparameter_idx] = NaN
-                            inactive.add(child_name)
-                            break
-                    if add is True:
-                        active[hyperparameter_idx] = 1
-                        hps.appendleft(child_name)
-
-                else:
-                    parents_visited = 0
-                    for parent in parents:
-                        if parent.name in visited:
-                            parents_visited += 1
-                    if parents_visited > 0:  # make sure at least one parent was visited
-                        conditions = parent_conditions_of[child_name]
-                        if isinstance(conditions[0], OrConjunction):
-                            pass
-                        else:  # AndCondition
-                            if parents_visited != len(parents):
-                                continue
-
-                        add = True
-                        for j in range(len(conditions)):
-                            condition = conditions[j]
-                            if not condition._evaluate_vector(vector):
-                                add = False
-                                vector[hyperparameter_idx] = NaN
-                                inactive.add(child_name)
-                                break
-
-                        if add is True:
-                            active[hyperparameter_idx] = 1
-                            hps.appendleft(child_name)
-
-                    else:
-                        continue
-
-    for j in range(len(vector)):
-        if not active[j]:
-            vector[j] = NaN
-
-    free(active)
     for j in range(len(forbidden_clauses_conditionals)):
         clause = forbidden_clauses_conditionals[j]
         if clause.c_is_forbidden_vector(vector, strict=False):

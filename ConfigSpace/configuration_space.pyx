@@ -1269,6 +1269,7 @@ class ConfigurationSpace(collections.abc.Mapping):
 
         unconditional_hyperparameters = self.get_all_unconditional_hyperparameters()
         hyperparameters_with_children = list()
+        conditional_hyperparameters = sorted(self.get_all_conditional_hyperparameters(), key=lambda hp_name: self._hyperparameter_idx[hp_name])
 
         _forbidden_clauses_unconditionals = []
         _forbidden_clauses_conditionals = []
@@ -1306,13 +1307,9 @@ class ConfigurationSpace(collections.abc.Mapping):
                             vector[i].copy(),
                             _forbidden_clauses_unconditionals,
                             _forbidden_clauses_conditionals,
-                            hyperparameters_with_children,
-                            num_hyperparameters,
-                            unconditional_hyperparameters,
+                            conditional_hyperparameters,
                             self._hyperparameter_idx,
                             self._parent_conditions_of,
-                            self._parents_of,
-                            self._children_of,
                         ))
                     accepted_configurations.append(configuration)
                 except ForbiddenValueError:
