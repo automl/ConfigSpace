@@ -35,7 +35,7 @@ from collections import OrderedDict, Counter
 from typing import List, Any, Dict, Union, Set, Tuple, Optional
 
 import numpy as np
-from scipy.stats import truncnorm, beta as spbeta, norm
+from scipy.stats import truncnorm
 cimport numpy as np
 
 
@@ -613,7 +613,7 @@ cdef class UniformFloatHyperparameter(FloatHyperparameter):
             return np.inf
         else:
             return np.rint((self.upper - self.lower) / self.q) + 1
-            
+
 cdef class NormalFloatHyperparameter(FloatHyperparameter):
     cdef public mu
     cdef public sigma
@@ -1150,8 +1150,6 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
     cdef public mu
     cdef public sigma
     cdef public nfhp
-    cdef normalization_constant
-
 
     def __init__(self, name: str, mu: int, sigma: Union[int, float],
                  default_value: Union[int, None] = None, q: Union[None, int] = None,
