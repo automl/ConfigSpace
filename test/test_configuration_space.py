@@ -860,6 +860,41 @@ class TestConfigurationSpace(unittest.TestCase):
         # __eq__ not implemented, so this is the next best thing
         self.assertEqual(repr(uniform_cs), repr(expected_cs))
         
+    def test_substitute_hyperparameters_in_conditions(self):
+        cs1 = ConfigurationSpace()
+        orig_hp1 = CategoricalHyperparameter("input1", [0, 1])
+        orig_hp2 = CategoricalHyperparameter("input2", [0, 1])
+        orig_hp3 = UniformIntegerHyperparameter("child1", 0, 10)
+        orig_hp4 = UniformIntegerHyperparameter("child2", 0, 10)
+        cs1.add_hyperparameters([orig_hp1, orig_hp2, orig_hp3, orig_hp4])
+        cond1 = EqualsCondition(orig_hp2, orig_hp3, 0)
+        cond2 = EqualsCondition(orig_hp1, orig_hp3, 5)
+        cond3 = EqualsCondition(orig_hp1, orig_hp4, 1)
+        andCond = AndConjunction(cond2, cond3)
+        cs1.add_conditions([cond1, andCond])
+        
+        cs2 = ConfigurationSpace()
+        sub_hp1 = CategoricalHyperparameter("input1", [0, 1, 2])
+        sub_hp2 = CategoricalHyperparameter("input2", [0, 1, 3])
+        sub_hp3 = NormalIntegerHyperparameter("child1", lower=0, upper=10, mu=5, sigma=2)
+        sub_hp4 = BetaIntegerHyperparameter("child2", lower=0, upper=10, alpha=3, beta=5)
+        cs2.add_hyperparameters([sub_hp1, sub_hp2, sub_hp3, sub_hp4])
+        new_conditions = cs1.substitute_hyperparameters_in_conditions(cs1.get_conditions(), cs2)
+        
+        test_cond1 = EqualsCondition(sub_hp2, sub_hp3, 0)
+        test_cond2 = EqualsCondition(sub_hp1, sub_hp3, 5)
+        test_cond3 = EqualsCondition(sub_hp1, sub_hp4, 1)
+        test_andCond = AndConjunction(test_cond2, test_cond3)
+        cs2.add_conditions([test_cond1, test_andCond])
+        test_conditions = cs2.get_conditions()
+
+        self.assertEqual(new_conditions[0], test_conditions[0])
+        self.assertEqual(new_conditions[1], test_conditions[1])
+    
+    def test_substitute_hyperparameters_in_forbiddens(self):
+        pass
+
+
     def test_estimate_size(self):
         cs = ConfigurationSpace()
         self.assertEqual(cs.estimate_size(), 0)
