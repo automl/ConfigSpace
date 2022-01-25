@@ -531,9 +531,10 @@ cdef class IntegerHyperparameter(NumericalHyperparameter):
         raise NotImplemented
 
     def check_default(self, default_value) -> int:
-        raise NotImplementedc
+        raise NotImplemented
+
     def check_int(self, parameter: int, name: str) -> int:
-    if abs(int(parameter) - parameter) > 0.00000001 and \
+        if abs(int(parameter) - parameter) > 0.00000001 and \
                         type(parameter) is not int:
             raise ValueError("For the Integer parameter %s, the value must be "
                              "an Integer, too. Right now it is a %s with value"
