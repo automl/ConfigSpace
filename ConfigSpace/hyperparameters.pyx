@@ -531,10 +531,9 @@ cdef class IntegerHyperparameter(NumericalHyperparameter):
         raise NotImplemented
 
     def check_default(self, default_value) -> int:
-        raise NotImplemented
-
+        raise NotImplementedc
     def check_int(self, parameter: int, name: str) -> int:
-        if abs(int(parameter) - parameter) > 0.00000001 and \
+    if abs(int(parameter) - parameter) > 0.00000001 and \
                         type(parameter) is not int:
             raise ValueError("For the Integer parameter %s, the value must be "
                              "an Integer, too. Right now it is a %s with value"
@@ -744,10 +743,10 @@ cdef class UniformFloatHyperparameter(FloatHyperparameter):
         # or inside class itself
         return UniformIntegerHyperparameter(
             name=self.name,
-            lower=int(self.lower),
-            upper=int(self.upper),
-            default_value=int(np.round(self.default_value)),
-            q=int(self.q),
+            lower=int(np.ceil(self.lower)),
+            upper=int(np.floor(self.upper)),
+            default_value=int(np.rint(self.default_value)),
+            q=int(np.rint(self.q)),
             log=self.log,
         )
 
@@ -1038,9 +1037,17 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
         if self.q is None:
             q_int = None
         else:
-            q_int = int(self.q)
-        return NormalIntegerHyperparameter(self.name, int(self.mu), self.sigma,
-                                           default_value=int(np.round(self.default_value, 0)),
+            q_int = int(np.rint(self.q))
+        if self.lower is None:
+            lower = None
+            upper = None
+        else:
+            lower=np.ceil(self.lower)
+            upper=np.floor(self.upper)
+                                           
+        return NormalIntegerHyperparameter(self.name, int(np.rint(self.mu)), self.sigma,
+                                           lower=lower, upper=upper,
+                                           default_value=int(np.rint(self.default_value)),
                                            q=q_int, log=self.log)
 
     def is_legal(self, value: Union[float]) -> bool:
@@ -1312,7 +1319,7 @@ cdef class BetaFloatHyperparameter(FloatHyperparameter):
         )
 
     def __hash__(self):
-        return hash((self.name, self.alpha, self.beta, self.log, self.q))
+        return hash((self.name, self.alpha, self.beta, self.lower, self.upper, self.log, self.q))
 
     def to_uniform(self) -> 'UniformFloatHyperparameter':
         lb = self.lower
@@ -1329,7 +1336,7 @@ cdef class BetaFloatHyperparameter(FloatHyperparameter):
         lb = self.lower
         ub = self.upper
         
-        if (default_value is None) or (default_value < lb) or (default_value > ub):
+        if default_value is None:
             if (self.alpha > 1) and (self.beta > 1):
                 normalized_mode = (self.alpha - 1) / (self.alpha + self.beta - 2)
                 return self._transform_scalar((self._upper - self._lower) * normalized_mode + self._lower)
@@ -1345,9 +1352,13 @@ cdef class BetaFloatHyperparameter(FloatHyperparameter):
         if self.q is None:
             q_int = None
         else:
-            q_int = int(self.q)
-        return BetaIntegerHyperparameter(self.name, lower=self.lower, upper=self.upper, alpha=self.alpha, beta=self.beta,
-                                           default_value=int(np.round(self.default_value, 0)),
+            q_int = int(np.rint(self.q))
+        
+        lower = int(np.ceil(self.lower))
+        upper = int(np.floor(self.upper))
+        default_value = int(np.rint(self.default_value))
+        return BetaIntegerHyperparameter(self.name, lower=lower, upper=upper, alpha=self.alpha, beta=self.beta,
+                                           default_value=int(np.rint(self.default_value)),
                                            q=q_int, log=self.log)
 
     def is_legal(self, value: Union[float]) -> bool:
@@ -2197,7 +2208,7 @@ cdef class BetaIntegerHyperparameter(IntegerHyperparameter):
         )
 
     def __hash__(self):
-        return hash((self.name, self.alpha, self.beta, self.log, self.q))
+        return hash((self.name, self.alpha, self.beta, self.lower, self.upper, self.log, self.q))
 
     def __copy__(self):
         return BetaIntegerHyperparameter(
@@ -2611,11 +2622,8 @@ cdef class CategoricalHyperparameter(Hyperparameter):
             return self._transform_scalar(vector)
         except ValueError:
             return None
-
-
-    # TEncountered something of a bug here when this was passed through .pdf
-    # for some reason, it wanted a numpy array as output (and as such, it is now changed)
-    def _inverse_transform(self, vector: Union[None, np.ndarray, str, float, int]) -> Union[np.ndarray, int, float]:
+    
+    def _inverse_transform(self, vector: Union[None, np.ndarray, str, float, int]) -> Union[np.ndarray, float]:
         if vector is None:
             return np.NaN
         return np.array(self.choices.index(vector))

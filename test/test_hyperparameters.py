@@ -726,14 +726,15 @@ class TestHyperparameters(unittest.TestCase):
             "param, Type: BetaFloat, Alpha: 2.0 Beta: 2.0, Range: [1.0, 1000.0], Default: 22.0, "
             "on log-scale, Q: 1.0", str(f4))
         
-        f5_illegal_nolog = BetaFloatHyperparameter("param", lower=1, upper=10.0, alpha=3.0, beta=2.0, default_value=0, log=False)
-        f5_illegal_log = BetaFloatHyperparameter("param", lower=1, upper=1000.0, alpha=3.0, beta=2.0, default_value=0, log=True)
+        with self.assertRaisesRegex(ValueError, "Illegal default value 0"):
+            f5_illegal_nolog = BetaFloatHyperparameter("param", lower=1, upper=10.0, alpha=3.0, beta=2.0, default_value=0, log=False)
+        with self.assertRaisesRegex(ValueError, "Illegal default value 0"):
+            f5_illegal_log = BetaFloatHyperparameter("param", lower=1, upper=1000.0, alpha=3.0, beta=2.0, default_value=0, log=True)
+        
         f5_legal_nolog = BetaFloatHyperparameter("param", lower=1, upper=10.0, alpha=3.0, beta=2.0, default_value=1, log=True)
         f5_legal_log = BetaFloatHyperparameter("param", lower=1, upper=10.0, alpha=3.0, beta=2.0, default_value=1, log=False)
         f5_q = BetaFloatHyperparameter("param", lower=1, upper=1000.0, alpha=2.0, beta=3.0, q=3.0)
         
-        self.assertAlmostEqual(f5_illegal_nolog.default_value, 7)
-        self.assertAlmostEqual(f5_illegal_log.default_value, 100)
         self.assertAlmostEqual(f5_legal_nolog.default_value, 1)
         self.assertAlmostEqual(f5_legal_log.default_value, 1)
         
@@ -1415,12 +1416,13 @@ class TestHyperparameters(unittest.TestCase):
         with self.assertRaises(ValueError):
             f3_error = BetaIntegerHyperparameter("param", lower=-1, upper=10.0, alpha=6.0, beta=2.0, log=True)
         
-        f4_illegal_nolog = BetaIntegerHyperparameter("param", lower=1, upper=10.0, alpha=3.0, beta=2.0, default_value=0, log=False)
-        f4_illegal_log = BetaIntegerHyperparameter("param", lower=1, upper=1000.0, alpha=3.0, beta=2.0, default_value=0, log=True)
+        with self.assertRaisesRegex(ValueError, "Illegal default value 0"):
+            f4_illegal_nolog = BetaIntegerHyperparameter("param", lower=1, upper=10.0, alpha=3.0, beta=2.0, default_value=0, log=False)
+        with self.assertRaisesRegex(ValueError, "Illegal default value 0"):
+            f4_illegal_log = BetaIntegerHyperparameter("param", lower=1, upper=1000.0, alpha=3.0, beta=2.0, default_value=0, log=True)
         f4_legal_nolog = BetaIntegerHyperparameter("param", lower=1, upper=10.0, alpha=3.0, beta=2.0, default_value=1, log=True)
         f4_legal_log = BetaIntegerHyperparameter("param", lower=1, upper=10.0, alpha=3.0, beta=2.0, default_value=1, log=False)
-        self.assertAlmostEqual(f4_illegal_nolog.default_value, 7)
-        self.assertAlmostEqual(f4_illegal_log.default_value, 100)
+        
         self.assertAlmostEqual(f4_legal_nolog.default_value, 1)
         self.assertAlmostEqual(f4_legal_log.default_value, 1)
   
