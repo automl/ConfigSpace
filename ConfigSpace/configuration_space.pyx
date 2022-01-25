@@ -47,7 +47,6 @@ from ConfigSpace.conditions import (
     AbstractCondition,
     AbstractConjunction,
     EqualsCondition,
-    OrConjunction,
 )
 from ConfigSpace.forbidden import (
     AbstractForbiddenComponent,
@@ -1130,8 +1129,7 @@ class ConfigurationSpace(collections.abc.Mapping):
                 # active! Else we have to check this
                 # Note from trying to optimize this - this is faster than using
                 # dedicated numpy functions and indexing
-                if not isinstance(condition, OrConjunction) and \
-                        any([vector[i] != vector[i] for i in parent_vector_idx]):
+                if all([vector[i] != vector[i] for i in parent_vector_idx]):
                     active = False
                     break
 
