@@ -892,8 +892,35 @@ class TestConfigurationSpace(unittest.TestCase):
         self.assertEqual(new_conditions[1], test_conditions[1])
     
     def test_substitute_hyperparameters_in_forbiddens(self):
-        pass
+        cs1 = ConfigurationSpace()
+        orig_hp1 = CategoricalHyperparameter("input1", [0, 1])
+        orig_hp2 = CategoricalHyperparameter("input2", [0, 1])
+        orig_hp3 = UniformIntegerHyperparameter("input3", 0, 10)
+        orig_hp4 = UniformIntegerHyperparameter("input4", 0, 10)
+        cs1.add_hyperparameters([orig_hp1, orig_hp2, orig_hp3, orig_hp4])
+        forb_1 = ForbiddenEqualsClause(orig_hp1, 0)
+        forb_2 = ForbiddenEqualsClause(orig_hp2, 1)
+        forb_3 = ForbiddenEqualsClause(orig_hp3, 10)
+        forb_4 = ForbiddenAndConjunction(forb_1, forb_2)
+        cs1.add_forbidden_clauses([forb_3, forb_4])
+        
+        cs2 = ConfigurationSpace()
+        sub_hp1 = CategoricalHyperparameter("input1", [0, 1, 2])
+        sub_hp2 = CategoricalHyperparameter("input2", [0, 1, 3])
+        sub_hp3 = NormalIntegerHyperparameter("input3", lower=0, upper=10, mu=5, sigma=2)
+        sub_hp4 = BetaIntegerHyperparameter("input4", lower=0, upper=10, alpha=3, beta=5)
+        cs2.add_hyperparameters([sub_hp1, sub_hp2, sub_hp3, sub_hp4])
+        new_forbiddens = cs1.substitute_hyperparameters_in_forbiddens(cs1.get_forbiddens(), cs2)
+        
+        test_forb_1 = ForbiddenEqualsClause(sub_hp1, 0)
+        test_forb_2 = ForbiddenEqualsClause(sub_hp2, 1)
+        test_forb_3 = ForbiddenEqualsClause(sub_hp3, 10)
+        test_forb_4 = ForbiddenAndConjunction(test_forb_1, test_forb_2)
+        cs2.add_forbidden_clauses([test_forb_3, test_forb_4])
+        test_forbiddens = cs2.get_forbiddens()
 
+        self.assertEqual(new_forbiddens[1], test_forbiddens[1])
+        self.assertEqual(new_forbiddens[0], test_forbiddens[0])
 
     def test_estimate_size(self):
         cs = ConfigurationSpace()

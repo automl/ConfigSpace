@@ -1369,7 +1369,8 @@ class ConfigurationSpace(collections.abc.Mapping):
         
         return uniform_config_space
 
-    def substitute_hyperparameters_in_conditions(self, conditions, new_configspace):
+    @staticmethod
+    def substitute_hyperparameters_in_conditions(conditions, new_configspace):
         """
         Takes a set of conditions and generates a new set of conditions with the same structure, where 
         each hyperparameter is replaced with its namesake in new_configspace. As such, the set of conditions
@@ -1391,7 +1392,7 @@ class ConfigurationSpace(collections.abc.Mapping):
             if isinstance(condition, AbstractConjunction):
                 conjunction_type = type(condition)
                 children = condition.get_descendant_literal_conditions()
-                substituted_children = self.substitute_hyperparameters_in_conditions(children, new_configspace)
+                substituted_children = ConfigurationSpace.substitute_hyperparameters_in_conditions(children, new_configspace)
                 substituted_conjunction = conjunction_type(*substituted_children)
                 new_conditions.append(substituted_conjunction)
             
@@ -1417,7 +1418,8 @@ class ConfigurationSpace(collections.abc.Mapping):
                 
         return new_conditions
 
-    def substitute_hyperparameters_in_forbiddens(self, forbiddens, new_configspace):
+    @staticmethod
+    def substitute_hyperparameters_in_forbiddens(forbiddens, new_configspace):
         """
         Takes a set of forbidden clauses and generates a new set of forbidden clauses with the same structure, 
         where each hyperparameter is replaced with its namesake in new_configspace. As such, the set of forbidden 
@@ -1439,7 +1441,7 @@ class ConfigurationSpace(collections.abc.Mapping):
             if isinstance(forbidden, AbstractForbiddenConjunction):
                 conjunction_type = type(forbidden)
                 children = forbidden.get_descendant_literal_clauses()
-                substituted_children = self.substitute_hyperparameters_in_forbiddens(children, new_configspace)
+                substituted_children = ConfigurationSpace.substitute_hyperparameters_in_forbiddens(children, new_configspace)
                 substituted_conjunction = conjunction_type(*substituted_children)
                 new_forbiddens.append(substituted_conjunction)
             
