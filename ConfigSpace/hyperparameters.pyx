@@ -1132,8 +1132,10 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
         np.ndarray(N, )
             Probability density values of the input vector
         """        
+        mu = self.mu
+        sigma = self.sigma
         if self.lower == None:
-            raise ValueError('Need upper and lower limits when using user priors.')
+            return norm(loc=mu, scale=sigma).pdf(vector)
         else:
             mu = self.mu
             sigma = self.sigma
@@ -1145,6 +1147,9 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
             return truncnorm(a, b, loc=mu, scale=sigma).pdf(vector)
 
     def get_max_density(self) -> float:
+        if self.lower is None:
+            return self._pdf(np.array([self.mu]))[0]
+
         if self.mu < self._lower:
             return self._pdf(np.array([self._lower]))[0]
         elif self.mu > self._upper:
@@ -2003,9 +2008,15 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
         return neighbors
         
     def _compute_normalization(self):
-        all_integer_values = np.arange(self.lower, self.upper+1)
-        all_probabilities = self.nfhp.pdf(all_integer_values)
-        return np.sum(all_probabilities)
+        if self.lower is None:
+            warnings.warn('Cannot normalize the pdf exactly for a NormalIntegerHyperparameter'
+            f'{self.name} without bounds. Skipping normalization for that hyperparameter.')
+            return 1
+
+        else:
+            all_integer_values = np.arange(self.lower, self.upper+1)
+            all_probabilities = self.nfhp.pdf(all_integer_values)
+            return np.sum(all_probabilities)
 
     def _pdf(self, vector: np.ndarray) -> np.ndarray:
         """

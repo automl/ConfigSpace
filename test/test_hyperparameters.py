@@ -570,10 +570,9 @@ class TestHyperparameters(unittest.TestCase):
         with self.assertRaises(TypeError):
             c1.pdf('pdf')
 
-        c_error = NormalFloatHyperparameter("param", mu=3, sigma=2)
-        with self.assertRaisesRegex(ValueError, "Need upper and lower limits when using user priors."):
-            c_error.pdf(np.array([2]))
-           
+        c_nobounds = NormalFloatHyperparameter("param", mu=3, sigma=2)
+        self.assertAlmostEqual(c_nobounds.pdf(np.array([2])), 0.17603266338214976)
+
         with self.assertRaisesRegex(ValueError, "Method pdf expects a one-dimensional numpy array"):
             c1.pdf(wrong_shape_1)
         with self.assertRaisesRegex(ValueError, "Method pdf expects a one-dimensional numpy array"):
@@ -626,9 +625,8 @@ class TestHyperparameters(unittest.TestCase):
         with self.assertRaises(TypeError):
             c1.pdf('pdf')
 
-        c_error = NormalFloatHyperparameter("param", mu=3, sigma=2)
-        with self.assertRaisesRegex(ValueError, "Need upper and lower limits when using user priors."):
-            c_error._pdf(np.array([2]))
+        c_nobounds = NormalFloatHyperparameter("param", mu=3, sigma=2)
+        self.assertAlmostEqual(c_nobounds.pdf(np.array([2])), 0.17603266338214976)
 
         # Simply check that it runs, since _pdf does not restrict shape (only public method does)
         c1._pdf(accepted_shape_1)
@@ -1280,10 +1278,9 @@ class TestHyperparameters(unittest.TestCase):
         with self.assertRaises(TypeError):
             c1.pdf('pdf')
 
-        c_error = NormalIntegerHyperparameter("param", mu=3, sigma=2)
-        with self.assertRaisesRegex(ValueError, "Need upper and lower limits when using user priors."):
-            c_error.pdf(np.array([2]))
-           
+        c_nobounds = NormalFloatHyperparameter("param", mu=3, sigma=2)
+        self.assertAlmostEqual(c_nobounds.pdf(np.array([2])), 0.17603266338214976)
+   
         with self.assertRaisesRegex(ValueError, "Method pdf expects a one-dimensional numpy array"):
             c1.pdf(wrong_shape_1)
         with self.assertRaisesRegex(ValueError, "Method pdf expects a one-dimensional numpy array"):
@@ -1332,10 +1329,9 @@ class TestHyperparameters(unittest.TestCase):
         with self.assertRaises(TypeError):
             c1.pdf('pdf')
 
-        c_error = NormalIntegerHyperparameter("param", mu=3, sigma=2)
-        with self.assertRaisesRegex(ValueError, "Need upper and lower limits when using user priors."):
-            c_error.pdf(np.array([0.2]))
-
+        c_nobounds = NormalFloatHyperparameter("param", mu=3, sigma=2)
+        self.assertAlmostEqual(c_nobounds.pdf(np.array([2])), 0.17603266338214976)
+        
     def test_normalint_get_max_density(self):
         c1 = NormalIntegerHyperparameter("param", lower=0, upper=10, mu=3, sigma=2)
         c2 = NormalIntegerHyperparameter("logparam", lower=1, upper=1000, mu=3, sigma=2, log=True)
@@ -1815,7 +1811,7 @@ class TestHyperparameters(unittest.TestCase):
             c1._pdf('pdf')
         with self.assertRaises(TypeError):
             c1._pdf('one')
-        with self.assertRaises(IndexError):
+        with self.assertRaises(ValueError):
             c1._pdf(np.array(['zero']))
         
     def test_categorical_get_max_density(self):
