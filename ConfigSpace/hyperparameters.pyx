@@ -2518,7 +2518,7 @@ cdef class CategoricalHyperparameter(Hyperparameter):
             meta=self.meta
         )
 
-    # This is just for the uniform configspace for PiBO
+    # This is just used for the uniform configspace for PiBO: https://openreview.net/forum?id=MMAeCXIa89
     # It creates a categorical parameter with equal weights for all choices
     def to_uniform(self) -> 'CategoricalHyperparameter':
         return CategoricalHyperparameter(

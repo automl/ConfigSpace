@@ -248,7 +248,7 @@ To read it from file
 4th Example: Placing priors on the hyperparameters
 -------------------------
 
-If you want to conduct black-box optimization in SMAC, and you have prior knowledge about the which regions of the search space are more likely to contain the optimum, you may include this knowledge when designing the configuration space. More specifically, you place prior distributions over the optimum on the parameters, either by a (log)-normal or (log)-Beta distribution.
+If you want to conduct black-box optimization in SMAC, and you have prior knowledge about the which regions of the search space are more likely to contain the optimum, you may include this knowledge when designing the configuration space. More specifically, you place prior distributions over the optimum on the parameters, either by a (log)-normal or (log)-Beta distribution. SMAC then considers the given priors through the optimization by using PiBO (https://openreview.net/forum?id=MMAeCXIa89). 
 
 Consider the case of optimizing the accuracy of an MLP with three hyperparameters: learning rate [1e-5, 1e-1], dropout [0, 0.99] and activation {Tanh, ReLU}. From prior experience, you believe the optimal learning rate to be around 1e-3, a good dropout to be around 0.25, and the optimal activation function to be ReLU about 80% of the time. This can be represented accordingly:
 
