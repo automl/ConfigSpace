@@ -806,21 +806,57 @@ class TestConfigurationSpace(unittest.TestCase):
 
     def test_remove_hyperparameter_priors(self):
         cs = ConfigurationSpace()
-        cs.add_hyperparameter(UniformIntegerHyperparameter('integer', 1, 5, log=True))
-        cs.add_hyperparameter(CategoricalHyperparameter('cat', [0, 1, 2], weights=[1, 2, 3]))
-        cs.add_hyperparameter(BetaFloatHyperparameter("beta", alpha=8, beta=2, lower=-1, upper=11))
-        cs.add_hyperparameter(NormalIntegerHyperparameter("norm", mu=5, sigma=4, lower=1, upper=15))
-        cat_default = cs['cat'].default_value
-        norm_default = cs['norm'].default_value
-        beta_default = cs['beta'].default_value
+        integer = UniformIntegerHyperparameter('integer', 1, 5, log=True)
+        cat = CategoricalHyperparameter('cat', [0, 1, 2], weights=[1, 2, 3])
+        beta = BetaFloatHyperparameter("beta", alpha=8, beta=2, lower=-1, upper=11)
+        norm = NormalIntegerHyperparameter("norm", mu=5, sigma=4, lower=1, upper=15)
+        cs.add_hyperparameters([integer, cat, beta, norm])
+        cat_default = cat.default_value
+        norm_default = norm.default_value
+        beta_default = beta.default_value
+        
+        # add some conditions, to test that remove_parameter_priors keeps the forbiddens
+        cond_1 = EqualsCondition(norm, cat, 2)
+        cond_2 = OrConjunction(EqualsCondition(beta, cat, 0),
+                                EqualsCondition(beta, cat, 1))
+        cond_3 = OrConjunction(EqualsCondition(norm, integer, 1),
+                                EqualsCondition(norm, integer, 3),
+                                EqualsCondition(norm, integer, 5))
+        cs.add_conditions([cond_1, cond_2, cond_3])
+        
+        # add some forbidden clauses too, to test that remove_parameter_priors keeps the forbiddens
+        forbidden_clause_a = ForbiddenEqualsClause(cat, 0)
+        forbidden_clause_b = ForbiddenEqualsClause(cat, 2)
+        forbidden_clause_c = ForbiddenEqualsClause(integer, 3)
+        forbidden_clause_d = ForbiddenAndConjunction(forbidden_clause_a, forbidden_clause_c)
+        cs.add_forbidden_clauses([forbidden_clause_c, forbidden_clause_d])
         uniform_cs = cs.remove_hyperparameter_priors()
         
         expected_cs = ConfigurationSpace()
-        expected_cs.add_hyperparameter(UniformIntegerHyperparameter('integer', 1, 5, log=True))
-        expected_cs.add_hyperparameter(CategoricalHyperparameter('cat', [0, 1, 2], default_value=cat_default))
+        unif_integer = UniformIntegerHyperparameter('integer', 1, 5, log=True)
+        unif_cat = CategoricalHyperparameter('cat', [0, 1, 2], default_value=cat_default)
+        
         # These default values are computed closed form for beta (see Wikipedia), trivial for normal
-        expected_cs.add_hyperparameter(UniformFloatHyperparameter("beta", lower=-1, upper=11, default_value=beta_default))
-        expected_cs.add_hyperparameter(UniformIntegerHyperparameter("norm", lower=1, upper=15, default_value=norm_default))
+        unif_beta = UniformFloatHyperparameter("beta", lower=-1, upper=11, default_value=beta_default)
+        unif_norm = UniformIntegerHyperparameter("norm", lower=1, upper=15, default_value=norm_default)
+        expected_cs.add_hyperparameters([unif_integer, unif_cat, unif_beta, unif_norm])
+        
+        # add some conditions, to test that remove_parameter_priors keeps the forbiddens
+        cond_1 = EqualsCondition(unif_norm, unif_cat, 2)
+        cond_2 = OrConjunction(EqualsCondition(unif_beta, unif_cat, 0),
+                                EqualsCondition(unif_beta, unif_cat, 1))
+        cond_3 = OrConjunction(EqualsCondition(unif_norm, unif_integer, 1),
+                                EqualsCondition(unif_norm, unif_integer, 3),
+                                EqualsCondition(unif_norm, unif_integer, 5))
+        expected_cs.add_conditions([cond_1, cond_2, cond_3])
+        
+        # add some forbidden clauses too, to test that remove_parameter_priors keeps the forbiddens
+        forbidden_clause_a = ForbiddenEqualsClause(unif_cat, 0)
+        forbidden_clause_b = ForbiddenEqualsClause(unif_cat, 2)
+        forbidden_clause_c = ForbiddenEqualsClause(unif_integer, 3)
+        forbidden_clause_d = ForbiddenAndConjunction(forbidden_clause_a, forbidden_clause_c)
+        expected_cs.add_forbidden_clauses([forbidden_clause_c, forbidden_clause_d])
+        
         # __eq__ not implemented, so this is the next best thing
         self.assertEqual(repr(uniform_cs), repr(expected_cs))
         
