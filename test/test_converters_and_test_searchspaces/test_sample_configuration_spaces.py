@@ -50,11 +50,14 @@ def generate(configuration_space_path):
 
         visited = set()
         for hp in cs.get_hyperparameters():
-            # Assert that the sequence returned by `get_hyperparameters` is topologically sorted with respect to `get_parents_of`
+            # Assert that the sequence returned by `get_hyperparameters` is topologically sorted
+            # with respect to `get_parents_of`
             self.assertTrue(set(cs.get_parents_of(hp.name)) <= visited)
-            # Assert that the sequence returned by `get_hyperparameters` is topologically sorted with respect to `get_children_of`
+            # Assert that the sequence returned by `get_hyperparameters` is topologically sorted
+            # with respect to `get_children_of`
             self.assertFalse(set(cs.get_children_of(hp.name)) & visited)
-            # Assert that the sequence stored in `_children_of` is ordered the same as `get_hyperparameters`
+            # Assert that the sequence stored in `_children_of`
+            # is ordered the same as `get_hyperparameters`
             i = 0
             for c in cs._children_of[hp.name]:
                 i_new = cs.get_hyperparameters().index(c)

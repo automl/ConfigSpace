@@ -320,9 +320,10 @@ class UtilTest(unittest.TestCase):
         index = cs.get_idx_by_hyperparameter_name(hp_name)
         neighbor_value = 1
 
-        with self.assertRaisesRegex(ValueError,
-                                    'Attempting to change the value of the inactive hyperparameter \'child\' to \'1.0\'.'):
-            ConfigSpace.c_util.change_hp_value(cs, config.get_array(), hp_name, neighbor_value, index)
+        with self.assertRaisesRegex(ValueError, 'Attempting to change the value of the inactive '
+                                                'hyperparameter \'child\' to \'1.0\'.'):
+            ConfigSpace.c_util.change_hp_value(cs, config.get_array(), hp_name, neighbor_value,
+                                               index)
 
     def test_fix_types(self):
         # Test categorical and ordinal
