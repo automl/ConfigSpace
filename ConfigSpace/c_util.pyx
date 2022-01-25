@@ -1,5 +1,6 @@
 # cython: language_level=3
 
+import heapq
 from collections import deque
 
 import numpy as np
@@ -266,57 +267,64 @@ cpdef np.ndarray change_hp_value(
     """
     cdef Hyperparameter current
     cdef str current_name
-    cdef dict activated_values
     cdef int active
+    cdef int update
     cdef ConditionComponent condition
     cdef int current_idx
     cdef DTYPE_t current_value
+    cdef DTYPE_t target_value
     cdef DTYPE_t default_value
-    cdef list children
-    cdef list children_
-    cdef Hyperparameter ch
     cdef DTYPE_t NaN = np.NaN
     cdef dict children_of = configuration_space._children_of
 
-    configuration_array[index] = hp_value
+    # We maintain to_visit as a minimum heap of indices of hyperparameters that may need to be updated.
+    # We assume that the hyperparameters are sorted topologically by their index.
+    to_visit = [index]
+    
+    # Since one hyperparameter may be reachable in several ways, we need to make sure we don't process it twice.
+    scheduled = np.zeros(len(configuration_space), dtype=bool)
+    scheduled[index] = True
 
     # Activate hyperparameters if their parent node got activated
-    children = children_of[hp_name]
-    if len(children) > 0:
-        to_visit = deque()  # type: deque
-        to_visit.extendleft(children)
-        activated_values = dict()  # type: Dict[str, Union[int, float, str]]
+    while len(to_visit) > 0:
+        current_idx = heapq.heappop(to_visit)
+        current_name = configuration_space._idx_to_hyperparameter[current_idx]
+        conditions = configuration_space._parent_conditions_of[current_name]
 
-        while len(to_visit) > 0:
-            current = to_visit.pop()
-            current_name = current.name
+        active = True
+        for condition in conditions:
+            if not condition._evaluate_vector(configuration_array):
+                active = False
+                break
 
-            current_idx = configuration_space._hyperparameter_idx[current_name]
+        update = False
+        if current_idx == index:
+            if not active:
+                raise ValueError(
+                    "Attempting to change the value of the inactive hyperparameter '%s' to '%s'." % (hp_name, hp_value))
+            target_value = hp_value
+            update = True
+        else:
+            assert current_idx > index
             current_value = configuration_array[current_idx]
-
-            conditions = configuration_space._parent_conditions_of[current_name]
-
-            active = True
-            for condition in conditions:
-                if not condition._evaluate_vector(configuration_array):
-                    active = False
-                    break
-
             if active and not current_value == current_value:
-                default_value = current.normalized_default_value
-                configuration_array[current_idx] = default_value
-                children_ = children_of[current_name]
-                if len(children_) > 0:
-                    to_visit.extendleft(children_)
-
-            # If the hyperparameter was made inactive,
-            # all its children need to be deactivade as well
-            if not active and current_value == current_value:
-                configuration_array[current_idx] = NaN
-
-                children = children_of[current_name]
-
-                if len(children) > 0:
-                    to_visit.extendleft(children)
+                current = configuration_space._hyperparameters[current_name]
+                target_value = current.normalized_default_value
+                update = True
+            elif not active and current_value == current_value:
+                # If the hyperparameter was made inactive,
+                # all its children need to be deactivated as well
+                target_value = NaN
+                update = True
+        
+        if update:
+            configuration_array[current_idx] = target_value
+            for child in children_of[current_name]:
+                child_idx = configuration_space._hyperparameter_idx[child.name]
+                assert child_idx > current_idx
+                if not scheduled[child_idx]:
+                    heapq.heappush(to_visit, child_idx)
+                    scheduled[child_idx] = True
+        assert len(to_visit) == 0 or to_visit[0] > current_idx
 
     return configuration_array
