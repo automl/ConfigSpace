@@ -83,6 +83,10 @@ class TestHyperparameters(unittest.TestCase):
         c1_meta = Constant("value", 1, dict(self.meta_data))
         self.assertEqual(c1_meta.meta, self.meta_data)
 
+        # Test getting the size
+        for constant in (c1, c2, c3, c4, c5, c1_meta):
+            self.assertEqual(constant.get_size(), 1)
+
     def test_uniformfloat(self):
         # TODO test non-equality
         # TODO test sampling from a log-distribution which has a negative
@@ -143,6 +147,12 @@ class TestHyperparameters(unittest.TestCase):
                                             default_value=1.0, meta=dict(self.meta_data))
         self.assertEqual(f_meta.meta, self.meta_data)
 
+        # Test get_size
+        for float_hp in (f1, f3, f4):
+            self.assertTrue(np.isinf(float_hp.get_size()))
+        self.assertEqual(f2.get_size(), 101)
+        self.assertEqual(f5.get_size(), 100)
+
     def test_uniformfloat_to_integer(self):
         f1 = UniformFloatHyperparameter("param", 1, 10, q=0.1, log=True)
         with pytest.warns(UserWarning, match="Setting quantization < 1 for Integer "
@@ -194,6 +204,9 @@ class TestHyperparameters(unittest.TestCase):
         self.assertEqual(
             "param, Type: NormalFloat, Mu: 0.5 Sigma: 10.5, Default: 0.5",
             str(f1))
+        self.assertEqual(f1.get_neighbors(0.5, rs=np.random.RandomState(42)),
+                         [5.715498606617943, -0.9517751622974389, 7.300729650057271,
+                          16.491813492284265])
 
         # Test attributes are accessible
         self.assertEqual(f1.name, "param")
@@ -203,6 +216,14 @@ class TestHyperparameters(unittest.TestCase):
         self.assertEqual(f1.log, False)
         self.assertAlmostEqual(f1.default_value, 0.5)
         self.assertAlmostEqual(f1.normalized_default_value, 0.5)
+
+        # Test copy
+        copy_f1 = copy.copy(f1)
+
+        self.assertEqual(copy_f1.name, f1.name)
+        self.assertEqual(copy_f1.mu, f1.mu)
+        self.assertEqual(copy_f1.sigma, f1.sigma)
+        self.assertEqual(copy_f1.default_value, f1.default_value)
 
         f2 = NormalFloatHyperparameter("param", 0, 10, q=0.1)
         f2_ = NormalFloatHyperparameter("param", 0, 10, q=0.1)
@@ -239,16 +260,52 @@ class TestHyperparameters(unittest.TestCase):
         self.assertNotEqual(f1, f2)
         self.assertNotEqual(f1, "UniformFloat")
 
+        with pytest.raises(ValueError):
+            f6 = NormalFloatHyperparameter("param", 5, 10, lower=0.1, upper=0.1,
+                                           default_value=5.0, q=0.1, log=True)
+
+        with pytest.raises(ValueError):
+            f6 = NormalFloatHyperparameter("param", 5, 10, lower=0.1, default_value=5.0,
+                                           q=0.1, log=True)
+
+        with pytest.raises(ValueError):
+            f6 = NormalFloatHyperparameter("param", 5, 10, upper=0.1, default_value=5.0,
+                                           q=0.1, log=True)
+
+        f6 = NormalFloatHyperparameter("param", 5, 10, lower=0.1, upper=10,
+                                       default_value=5.0, q=0.1, log=True)
+        f6_ = NormalFloatHyperparameter("param", 5, 10, lower=0.1, upper=10,
+                                        default_value=5.0, q=0.1, log=True)
+        self.assertEqual(f6, f6_)
+        self.assertEqual(
+            "param, Type: NormalFloat, Mu: 5.0 Sigma: 10.0, Range: [0.1, 10.0], " +
+            "Default: 5.0, on log-scale, Q: 0.1", str(f6))
+        self.assertEqual(f6.get_neighbors(5, rs=np.random.RandomState(42)),
+                         [9.967141530112327, 3.6173569882881536, 10.0, 10.0])
+
+        self.assertNotEqual(f1, f2)
+        self.assertNotEqual(f1, "UniformFloat")
+
         # test that meta-data is stored correctly
         f_meta = NormalFloatHyperparameter("param", 0.1, 10, q=0.1, log=True,
                                            default_value=1.0, meta=dict(self.meta_data))
         self.assertEqual(f_meta.meta, self.meta_data)
+
+        # Test get_size
+        for float_hp in (f1, f2, f3, f4, f5):
+            self.assertTrue(np.isinf(float_hp.get_size()))
+        self.assertEqual(f6.get_size(), 100)
 
     def test_normalfloat_to_uniformfloat(self):
         f1 = NormalFloatHyperparameter("param", 0, 10, q=0.1)
         f1_expected = UniformFloatHyperparameter("param", -30, 30, q=0.1)
         f1_actual = f1.to_uniform()
         self.assertEqual(f1_expected, f1_actual)
+
+        f2 = NormalFloatHyperparameter("param", 0, 10, lower=-20, upper=20, q=0.1)
+        f2_expected = UniformFloatHyperparameter("param", -20, 20, q=0.1)
+        f2_actual = f2.to_uniform()
+        self.assertEqual(f2_expected, f2_actual)
 
     def test_normalfloat_is_legal(self):
         f1 = NormalFloatHyperparameter("param", 0, 10)
@@ -301,12 +358,12 @@ class TestHyperparameters(unittest.TestCase):
             "param, Type: UniformInteger, Range: [0, 10], Default: 5",
             str(f2))
 
-        # f2_large_q = UniformIntegerHyperparameter("param", 0, 10, q=2)
-        # f2_large_q_ = UniformIntegerHyperparameter("param", 0, 10, q=2)
-        # self.assertEqual(f2_large_q, f2_large_q_)
-        # self.assertEqual(
-        #    "param, Type: UniformInteger, Range: [0, 10], Default: 5, Q: 2",
-        #    str(f2_large_q))
+        f2_large_q = UniformIntegerHyperparameter("param", 0, 10, q=2)
+        f2_large_q_ = UniformIntegerHyperparameter("param", 0, 10, q=2)
+        self.assertEqual(f2_large_q, f2_large_q_)
+        self.assertEqual(
+           "param, Type: UniformInteger, Range: [0, 10], Default: 5, Q: 2",
+           str(f2_large_q))
 
         f3 = UniformIntegerHyperparameter("param", 1, 10, log=True)
         f3_ = UniformIntegerHyperparameter("param", 1, 10, log=True)
@@ -339,6 +396,13 @@ class TestHyperparameters(unittest.TestCase):
             f_meta = UniformIntegerHyperparameter("param", 1, 10, q=0.1, log=True,
                                                   default_value=1, meta=dict(self.meta_data))
         self.assertEqual(f_meta.meta, self.meta_data)
+
+        self.assertEqual(f1.get_size(), 6)
+        self.assertEqual(f2.get_size(), 11)
+        self.assertEqual(f2_large_q.get_size(), 6)
+        self.assertEqual(f3.get_size(), 10)
+        self.assertEqual(f4.get_size(), 10)
+        self.assertEqual(f5.get_size(), 10)
 
     def test_uniformint_legal_float_values(self):
         n_iter = UniformIntegerHyperparameter("n_iter", 5., 1000., default_value=20.0)
@@ -433,6 +497,10 @@ class TestHyperparameters(unittest.TestCase):
                                              meta=dict(self.meta_data))
         self.assertEqual(f_meta.meta, self.meta_data)
 
+        # Test get_size
+        for int_hp in (f1, f2, f3, f4, f5):
+            self.assertTrue(np.isinf(int_hp.get_size()))
+
     def test_normalint_legal_float_values(self):
         n_iter = NormalIntegerHyperparameter("n_iter", 0, 1., default_value=2.0)
         self.assertIsInstance(n_iter.default_value, int)
@@ -509,10 +577,22 @@ class TestHyperparameters(unittest.TestCase):
         self.assertNotEqual(f1, f2)
         self.assertNotEqual(f1, "UniformFloat")
 
+        # Test that order of categoricals does not matter
+        f7 = CategoricalHyperparameter("param", ["a", "b"])
+        f7_ = CategoricalHyperparameter("param", ["b", "a"])
+        assert f7 == f7_
+
         # test that meta-data is stored correctly
         f_meta = CategoricalHyperparameter("param", ["a", "b"], default_value="a",
                                            meta=dict(self.meta_data))
         self.assertEqual(f_meta.meta, self.meta_data)
+
+        self.assertEqual(f1.get_size(), 2)
+        self.assertEqual(f2.get_size(), 1000)
+        self.assertEqual(f3.get_size(), 999)
+        self.assertEqual(f4.get_size(), 1000)
+        self.assertEqual(f5.get_size(), 1000)
+        self.assertEqual(f6.get_size(), 2)
 
     def test_categorical_strings(self):
         f1 = CategoricalHyperparameter("param", ["a", "b"])
@@ -604,9 +684,15 @@ class TestHyperparameters(unittest.TestCase):
 
         counts_per_bin = sample(hp)
         self.assertEqual(counts_per_bin,
-                         [24368, 15778, 0, 11633, 0, 0, 9508, 7869, 0, 0, 6757,
-                          0, 5918, 0, 5114, 4797, 0, 0, 4340, 0, 3918])
+                         [24359, 15781, 0, 11635, 0, 0, 9506, 7867, 0, 0, 6763,
+                          0, 5919, 0, 5114, 4798, 0, 0, 4339, 0, 3919])
         self.assertEqual(sample(hp), sample(hp))
+
+        # Issue #199
+        hp = UniformFloatHyperparameter('uni_float_q', lower=1e-4, upper=1e-1, q=1e-5, log=True)
+        self.assertTrue(np.isfinite(hp._lower))
+        self.assertTrue(np.isfinite(hp._upper))
+        sample(hp)
 
     def test_sample_NormalFloatHyperparameter(self):
         hp = NormalFloatHyperparameter("nfhp", 0, 1)
@@ -621,6 +707,25 @@ class TestHyperparameters(unittest.TestCase):
 
             self.assertEqual([0, 4, 138, 2113, 13394, 34104, 34282, 13683,
                               2136, 146, 0], counts_per_bin)
+
+            self.assertIsInstance(value, float)
+            return counts_per_bin
+
+        self.assertEqual(actual_test(), actual_test())
+
+    def test_sample_NormalFloatHyperparameter_with_bounds(self):
+        hp = NormalFloatHyperparameter("nfhp", 0, 1, lower=-3, upper=3)
+
+        def actual_test():
+            rs = np.random.RandomState(1)
+            counts_per_bin = [0 for i in range(11)]
+            for i in range(100000):
+                value = hp.sample(rs)
+                index = min(max(int((np.round(value + 0.5)) + 5), 0), 9)
+                counts_per_bin[index] += 1
+
+            self.assertEqual([0, 0, 0, 2184, 13752, 34078, 34139, 13669,
+                              2178, 0, 0], counts_per_bin)
 
             self.assertIsInstance(value, float)
             return counts_per_bin
@@ -1088,6 +1193,10 @@ class TestHyperparameters(unittest.TestCase):
         self.assertEqual(f1.get_num_neighbors("hot"), 1)
         self.assertEqual(f1.get_num_neighbors("cold"), 2)
 
+    def test_ordinal_get_size(self):
+        f1 = OrdinalHyperparameter("temp", ["freezing", "cold", "warm", "hot"])
+        self.assertEqual(f1.get_size(), 4)
+
     def test_rvs(self):
         f1 = UniformFloatHyperparameter("param", 0, 10)
 
@@ -1118,6 +1227,11 @@ class TestHyperparameters(unittest.TestCase):
             "param, Type: NormalFloat, Mu: 8.0 Sigma: 99.1, Default: 8.0",
             repr(f2)
         )
+        f3 = NormalFloatHyperparameter("param", 8, 99.1, log=False, lower=1, upper=16)
+        self.assertEqual(
+            "param, Type: NormalFloat, Mu: 8.0 Sigma: 99.1, Range: [1.0, 16.0], Default: 8.0",
+            repr(f3)
+        )
         i1 = UniformIntegerHyperparameter("param", 0, 100)
         self.assertEqual(
             "param, Type: UniformInteger, Range: [0, 100], Default: 50",
@@ -1127,6 +1241,11 @@ class TestHyperparameters(unittest.TestCase):
         self.assertEqual(
             "param, Type: NormalInteger, Mu: 5 Sigma: 8, Default: 5",
             repr(i2)
+        )
+        i3 = NormalIntegerHyperparameter("param", 5, 8, lower=1, upper=10)
+        self.assertEqual(
+            "param, Type: NormalInteger, Mu: 5 Sigma: 8, Range: [1, 10], Default: 5",
+            repr(i3)
         )
         o1 = OrdinalHyperparameter("temp", ["freezing", "cold", "warm", "hot"])
         self.assertEqual(

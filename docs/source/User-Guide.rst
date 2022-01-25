@@ -49,9 +49,10 @@ For demonstration  purpose, we sample a configuration from it.
     >>> cs.add_hyperparameters([c, max_iter])
     [C, Type: UniformFloat, Range: [-1.0, 1.0], Default: 0.0, max_iter, Type: ...]
     >>> cs.sample_configuration()
-    Configuration:
-      C, Value: -0.6169610992422154
-      max_iter, Value: 66
+    Configuration(values={
+      'C': -0.6169610992422154,
+      'max_iter': 66,
+    })
     <BLANKLINE>
 
 

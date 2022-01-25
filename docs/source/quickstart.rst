@@ -57,8 +57,9 @@ For demonstration purpose, we sample a configuration from the :class:`~ConfigSpa
 .. doctest::
 
     >>> cs.sample_configuration()
-    Configuration:
-      alpha, Value: 0.1915194503788923
+    Configuration(values={
+      'alpha': 0.1915194503788923,
+    })
     <BLANKLINE>
 
 And that's it.

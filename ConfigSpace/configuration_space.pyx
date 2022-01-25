@@ -1343,6 +1343,32 @@ class ConfigurationSpace(collections.abc.Mapping):
         """
         self.random = np.random.RandomState(seed)
 
+    def estimate_size(self) -> Union[float, int]:
+        """
+        Estimate the size of the current configuration space (i.e. unique configurations).
+
+        This is ``np.inf`` in case if there is a single hyperparameter of size ``np.inf`` (i.e. a
+        :class:`~ConfigSpace.hyperparameters.UniformFloatHyperparameter`), otherwise
+        it is the product of the size of all hyperparameters. The function correctly guesses the
+        number of unique configurations if there are no condition and forbidden statements in the
+        configuration spaces. Otherwise, this is an upper bound. Use
+        :func:`~ConfigSpace.util.generate_grid` to generate all valid configurations if required.
+
+        Returns
+        -------
+        Union[float, int]
+        """
+        sizes = []
+        for hp in self._hyperparameters.values():
+            sizes.append(hp.get_size())
+        if len(sizes) == 0:
+            return 0.0
+        else:
+            size = sizes[0]
+            for i in range(1, len(sizes)):
+                size = size * sizes[i]
+            return size
+
 
 class Configuration(collections.abc.Mapping):
     def __init__(self, configuration_space: ConfigurationSpace,
@@ -1575,7 +1601,7 @@ class Configuration(collections.abc.Mapping):
         self._populate_values()
 
         representation = io.StringIO()
-        representation.write("Configuration:\n")
+        representation.write("Configuration(values={\n")
 
         hyperparameters = self.configuration_space.get_hyperparameters()
         hyperparameters.sort(key=lambda t: t.name)
@@ -1583,14 +1609,10 @@ class Configuration(collections.abc.Mapping):
             hp_name = hyperparameter.name
             if hp_name in self._values and self._values[hp_name] is not None:
                 representation.write("  ")
-
                 value = repr(self._values[hp_name])
-                if isinstance(hyperparameter, Constant):
-                    representation.write("%s, Constant: %s" % (hp_name, value))
-                else:
-                    representation.write("%s, Value: %s" % (hp_name, value))
-                representation.write("\n")
+                representation.write("'%s': %s,\n" % (hp_name, value))
 
+        representation.write("})\n")
         return representation.getvalue()
 
     def __iter__(self) -> Iterable:
