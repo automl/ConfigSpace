@@ -51,7 +51,7 @@ on:
 jobs:
 
   build_wheels:
-    name: name: ${{ matrix.py }}-${{ matrix.os }}-${{ matrix.arch }}
+    name: ${{ matrix.py }}-${{ matrix.os }}-${{ matrix.arch }}
     runs-on: ${{ matrix.os }}
 
     strategy:
