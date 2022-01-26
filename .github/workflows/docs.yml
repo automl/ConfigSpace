@@ -1,31 +1,53 @@
 name: Docs
-on: [pull_request, push]
+
+on:
+
+  # Trigger manually
+  workflow_dispatch:
+
+  # Trigger on any push to the master
+  push:
+    branches:
+      - master
+
+  # Trigger on any push to a PR that targets master
+  pull_request:
+    branches:
+      - master
 
 jobs:
+
   build-and-deploy:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - name: Checkout
+      uses: actions/checkout@v2
+
     - name: Setup Python
       uses: actions/setup-python@v2
       with:
         python-version: 3.8
+
     - name: Install dependencies
       run: |
         pip install -e .[docs,examples,examples_unix]
+
     - name: Make docs
       run: |
         cd docs
         make html
+
     - name: Run doctests
       run: |
         cd docs
         make doctest
+
     - name: Pull latest gh-pages
       if: (contains(github.ref, 'master')) && github.event_name == 'push'
       run: |
         cd ..
         git clone https://github.com/automl/ConfigSpace.git --branch gh-pages --single-branch gh-pages
+
     - name: Copy new docs into gh-pages
       if: (contains(github.ref, 'develop') || contains(github.ref, 'master')) && github.event_name == 'push'
       run: |
@@ -33,6 +55,7 @@ jobs:
         cd ../gh-pages
         rm -rf $branch_name
         cp -r ../ConfigSpace/docs/build/html $branch_name
+
     - name: Push to gh-pages
       if: (contains(github.ref, 'master')) && github.event_name == 'push'
       run: |
