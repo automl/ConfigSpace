@@ -35,44 +35,36 @@ jobs:
     name: ${{ matrix.python-version }}-${{ matrix.os }}-${{ matrix.kind }}
 
     runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash  # Default to using bash on all os
+
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, ubuntu-latest, macos-latest]
+        os: ["windows-latest", "ubuntu-latest", "macos-latest"]
         python-version: ["3.7", "3.8", "3.9", "3.10"]
-        kind: ['conda', 'source', 'dist']
-
-        exclude:
-          # Exclude all configurations *-*-dist, include one later
-          - kind: 'dist'
-
-          # Exclude windows as bash commands wont work in windows runner
-          - os: windows-latest
-
-          # Exclude macos as there are permission errors using conda as we do
-          - os: macos-latest
+        kind: ['conda', 'source']
+        code-cov: false
 
         include:
-          # Add the tag code-cov to ubuntu-3.7-source
-          - os: ubuntu-latest
+          # Have one config for code coverage
+          - os: "ubuntu-latest"
             python-version: 3.7
             kind: 'source'
             code-cov: true
 
-          # Include one config with dist, ubuntu-3.7-dist
-          - os: ubuntu-latest
+          # Have one config for dist
+          - os: "ubuntu-latest"
             python-version: 3.7
             kind: 'dist'
+            code-cov: false
 
     steps:
-
-      # A note on checkout: When checking out the repository that
-      # triggered a workflow, this defaults to the reference or SHA for that event.
-      # Otherwise, uses the default branch (master) is used.
     - name: Checkout
       uses: actions/checkout@v2
 
-    - name: Setup Python ${{ matrix.python-version }}
+    - name: Setup Python
       uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python-version }}
@@ -80,10 +72,9 @@ jobs:
     - name: Conda install
       if: matrix.kind == 'conda'
       run: |
-        # Miniconda is available in $CONDA env var
-        $CONDA/bin/conda create -n testenv --yes pip wheel python=${{ matrix.python-version }}
-        $CONDA/envs/testenv/bin/python3 -m pip install --upgrade pip
-        $CONDA/envs/testenv/bin/pip3 install -e .[test]
+        conda create --name testenv --yes pip wheel python=${{ matrix.python-version }}
+        conda activate testenv
+        python -m pip install -e .[test]
 
     - name: Source install
       if: matrix.kind == 'source'
@@ -107,10 +98,6 @@ jobs:
     - name: Tests
       timeout-minutes: 45
       run: |
-        if [[ ${{ matrix.kind }} == 'conda' ]]; then
-          export PATH="$CONDA/envs/testenv/bin:$PATH"
-        fi
-
         if [ ${{ matrix.code-cov }} ]; then
           pytest ${{ env.pytest-args }} ${{ env.code-cov-args }} test
         else
@@ -118,7 +105,6 @@ jobs:
         fi
 
     - name: Check for files left behind by test
-      if: ${{ always() }}
       run: |
         before="${{ steps.status-before.outputs.BEFORE }}"
         after="$(git status --porcelain -b)"
