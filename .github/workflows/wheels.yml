@@ -87,7 +87,7 @@ jobs:
             py: cp310
             arch: aarch64
 
-          # Macos universal2 not included in `auto`
+          # Macos `universal2` not included in `auto`
           # There run on macOS/Intel so we can't build `arm64` wheels
           # cp37 does not allow for a `universal2` build
           - os: macos-latest
