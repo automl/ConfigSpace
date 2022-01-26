@@ -89,10 +89,7 @@ jobs:
 
           # Macos universal2 not included in `auto`
           # There run on macOS/Intel so we can't build `arm64` wheels
-          - os: macos-latest
-            py: cp37
-            arch: universal2
-
+          # cp37 does not allow for a `universal2` build
           - os: macos-latest
             py: cp38
             arch: universal2
