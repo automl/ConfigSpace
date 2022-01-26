@@ -64,9 +64,17 @@ jobs:
       fail-fast: false
       matrix:
 
-        os: ["ubuntu-latest", "windows-latest", "macos-latest"]
+        os: [ubuntu-latest, windows-latest, macos-latest]
         py: [cp37, cp38, cp39, cp310]
         arch: [auto]  # https://cibuildwheel.readthedocs.io/en/stable/options/#archs
+
+        exclude:
+
+          # We can't build win32 (x86) with cp310 because numpy doesn't have a wheel
+          # for it. We however reinclude the win_amd64 version below
+          # Please see https://cibuildwheel.readthedocs.io/en/stable/options/#archs
+          - os: windows-latest
+            py: cp310
 
         include:
 
@@ -102,10 +110,17 @@ jobs:
             py: cp310
             arch: universal2
 
+          # Windows-latest cp310, we can only include win_amd64 builds as numpy
+          # does not support win
+          # Please see https://cibuildwheel.readthedocs.io/en/stable/options/#archs
+          - os: windows-latest
+            py: cp310
+            arch: AMD64
+
     env:
       CIBW_BUILD: ${{ matrix.py }}-*  # Build every type of image https://cibuildwheel.readthedocs.io/en/stable/options/#build-skip
       CIBW_ARCHS: ${{ matrix.arch }}
-      CIBW_TEST_REQUIRES: pytest threadpoolctl numpy
+      CIBW_TEST_REQUIRES: pytest threadpoolctl numpy scipy  # Seems to try install scipy instead
       CIBW_TEST_COMMAND: pytest -v {project}/test
 
     steps:
