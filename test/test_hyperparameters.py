@@ -205,9 +205,8 @@ class TestHyperparameters(unittest.TestCase):
             "param, Type: NormalFloat, Mu: 0.5 Sigma: 10.5, Default: 0.5",
             str(f1))
 
-        # Due to seemingly different numbers when built with a wheel, we check that it
-        # is almost equal
-        # Recieved theses numbers, where last two are slightly different
+        # Due to seemingly different numbers with x86_64 and i686 architectures
+        # we got these numbers, where last two are slightly different
         # [
         #   5.715498606617943, -0.9517751622974389,
         #   7.3007296500572725, 16.49181349228427
