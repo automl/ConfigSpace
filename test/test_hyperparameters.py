@@ -204,9 +204,23 @@ class TestHyperparameters(unittest.TestCase):
         self.assertEqual(
             "param, Type: NormalFloat, Mu: 0.5 Sigma: 10.5, Default: 0.5",
             str(f1))
-        self.assertEqual(f1.get_neighbors(0.5, rs=np.random.RandomState(42)),
-                         [5.715498606617943, -0.9517751622974389, 7.300729650057271,
-                          16.491813492284265])
+
+        # Due to seemingly different numbers with x86_64 and i686 architectures
+        # we got these numbers, where last two are slightly different
+        # [
+        #   5.715498606617943, -0.9517751622974389,
+        #   7.3007296500572725, 16.49181349228427
+        # ]
+        # They are equal up to 14 decimal places
+        expected = [
+            5.715498606617943, -0.9517751622974389,
+            7.300729650057271, 16.491813492284265
+        ]
+        np.testing.assert_almost_equal(
+            f1.get_neighbors(0.5, rs=np.random.RandomState(42)),
+            expected,
+            decimal=14
+         )
 
         # Test attributes are accessible
         self.assertEqual(f1.name, "param")
