@@ -122,47 +122,6 @@ jobs:
         with:
           path: wheelhouse/*.whl
 
-  # Build the source distribution under Linux
-  build_sdist:
-    name: Source distribution
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout ConfigSpace
-        uses: actions/checkout@v2
-
-      - name: Setup Python
-        uses: actions/setup-python@v2
-
-      - name: Build source distribution
-        run: python setup.py sdist
-
-        # Full unit-testing is handled in pytest.yml
-      - name: Twine check
-        run: |
-          pip install twine
-          last_dist=$(ls -t dist/ConfigSpace-*.tar.gz | head -n 1)
-          twine_output=`twine check "$last_dist"`
-          if [[ "$twine_output" != "Checking $last_dist: PASSED" ]]; then
-            echo $twine_output && exit 1;
-          fi
-
-      - name: Install dist
-        run: |
-          last_dist=$(ls -t dist/ConfigSpace-*.tar.gz | head -n 1)
-          pip install $last_dist
-
-      - name: PEP 561 Compliance
-        run: |
-          pip install mypy
-          cd ..  # required to use the installed version of ConfigSpace
-          if ! python -c "import ConfigSpace"; then exit 1; fi
-
-      - name: Store artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          path: dist/*.tar.gz
-
   # Upload the wheels
   release_assets:
     name: Upload Release
