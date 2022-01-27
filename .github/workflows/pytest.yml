@@ -119,10 +119,6 @@ jobs:
 
     - name: Install ${{ env.package-name }}
       run: |
-        # https://github.com/actions/setup-python/issues/132
-        if ${{ matrix.os == "macos-latest" }}; then
-          export PATH="$pythonLocation:$PATH"
-        fi
         python -V
         python -m pip install --upgrade pip
         python -m pip install wheel
