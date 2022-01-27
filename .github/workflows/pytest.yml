@@ -48,7 +48,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     defaults:
       run:
-        shell: bash -l {0}  # Default to using bash on all and load (-l) .bashrc
+        shell: bash # Default to using bash on all
 
     strategy:
       fail-fast: false
@@ -67,13 +67,13 @@ jobs:
 
     - name: Install ${{ env.package-name }}
       run: |
-        python -V
         python -m pip install --upgrade pip
         python -m pip install wheel
         python -m pip install ".${{ env.extra-requires }}"
 
     - name: Store git status
       id: status-before
+      shell: bash
       run: |
         echo "::set-output name=BEFORE::$(git status --porcelain -b)"
 
@@ -99,7 +99,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     defaults:
       run:
-        shell: bash -l {0}  # Default to using bash on all and load (-l) .bashrc
+        shell: bash -l {0}  # Default to using bash on all and load (-l) .bashrc which miniconda uses
 
     strategy:
       fail-fast: false
@@ -119,6 +119,10 @@ jobs:
 
     - name: Install ${{ env.package-name }}
       run: |
+        # https://github.com/actions/setup-python/issues/132
+        if ${{ matrix.os == "macos-latest" }}; then
+          export PATH="$pythonLocation:$PATH"
+        fi
         python -V
         python -m pip install --upgrade pip
         python -m pip install wheel
@@ -136,7 +140,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     defaults:
       run:
-        shell: bash -l {0}  # Default to using bash on all and load (-l) .bashrc
+        shell: bash
 
     strategy:
       fail-fast: false
@@ -177,7 +181,7 @@ jobs:
     runs-on: "ubuntu-latest"
     defaults:
       run:
-        shell: bash -l {0}  # Default to using bash on all and load (-l) .bashrc
+        shell: bash
 
     steps:
     - name: Checkout
