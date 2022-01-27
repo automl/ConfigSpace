@@ -1,39 +1,4 @@
-# Workflow to build and test wheels
-# =================================
-# This github action gets triggered whenever there
-# is a push to the master branch or a release is created.
-# It generates both wheels and distributions files,
-# making sure their contents are correct via unit-testing.
-#
-# However, only in the case of a github release, the assets
-# are uploaded and attached to a release. In other words, we
-# expect the following workflow:
-# 1- users adds new features to the master branch via PRs. Every
-#    time a new feature gets merged to the master branch, this github
-#    action gets triggered, and wheels/distribution files are generated
-#    to make sure this new change did not break the distribution files.
-# 2- Whenever there is enough PRs in the master branch, we expect the user
-#    to create a release following github guidelines from here:
-#    https://docs.github.com/en/github/administering-a-repository/releasing-projects-on-github/managing-releases-in-a-repository
-#    During a github release, you create a tagged-version (something like v2.3.4.),
-#    add a title to the release and a description. Then you publish the release via the
-#    publish-button. This effectively creates a github release, triggering this action.
-#    When this triggered action finished, the release files are automatically uploaded
-#    to your github release page. Check for example:
-#    https://github.com/automl/ConfigSpace/releases
-#
-# Please note that creating a git tag and pushing it (git tag <>; git push --tags) is not
-# sufficient to append the wheels and distribution files to your release.
-# You need to generate a new release using github, not git.
-#
-# Guides
-# ------
-# Ref:
-# * https://github.com/scikit-hep/iminuit/blob/develop/.github/workflows/wheels.yml
-# cibuildwheel docs:
-# * https://cibuildwheel.readthedocs.io/en/stable/options/
-
-name: Wheel builder
+name: Build sdist
 
 on:
   workflow_dispatch:
@@ -53,6 +18,10 @@ on:
     tags:
       - v*
 
+env:
+  package-name: ConfigSpace
+  python-version: "3.7"
+
 jobs:
 
   build_sdist:
@@ -60,11 +29,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout ConfigSpace
+      - name: Checkout ${{ env.package-name }}
         uses: actions/checkout@v2
 
       - name: Setup Python
         uses: actions/setup-python@v2
+        with:
+          python-version: ${{ env.python-version }}
 
       - name: Build source distribution
         run: python setup.py sdist
@@ -73,7 +44,7 @@ jobs:
       - name: Twine check
         run: |
           pip install twine
-          last_dist=$(ls -t dist/ConfigSpace-*.tar.gz | head -n 1)
+          last_dist=$(ls -t dist/${{ env.package-name }}-*.tar.gz | head -n 1)
           twine_output=`twine check "$last_dist"`
           if [[ "$twine_output" != "Checking $last_dist: PASSED" ]]; then
             echo $twine_output && exit 1;
@@ -81,14 +52,14 @@ jobs:
 
       - name: Install dist
         run: |
-          last_dist=$(ls -t dist/ConfigSpace-*.tar.gz | head -n 1)
+          last_dist=$(ls -t dist/{{ env.package-name }}-*.tar.gz | head -n 1)
           pip install $last_dist
 
       - name: PEP 561 Compliance
         run: |
           pip install mypy
-          cd ..  # required to use the installed version of ConfigSpace
-          if ! python -c "import ConfigSpace"; then exit 1; fi
+          cd ..  # required to use the installed version
+          if ! python -c "import ${{ env.package-name }}"; then exit 1; fi
 
       - name: Store artifacts
         uses: actions/upload-artifact@v2
@@ -105,7 +76,7 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/v')  && github.event_name != 'pull_request'
 
     steps:
-      - name: Checkout ConfigSpace
+      - name: Checkout ${{ env.package-name }}
         uses: actions/checkout@v2
 
       - name: Download artifacts
@@ -115,6 +86,8 @@ jobs:
 
       - name: Setup Python
         uses: actions/setup-python@v2
+        with:
+          python-version: ${{ env.python-version }}
 
       - name: Install dependencies
         run: |
