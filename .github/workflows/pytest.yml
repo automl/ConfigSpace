@@ -30,8 +30,10 @@ env:
     -v
 
   # Version to run code-cov on
-  code-cov-active: true
-  code-cov-os: ubuntu-latest
+  # NOTE: These are only acessible inside a jobs **steps** and not in the job setup,
+  #   Hence, some of these varialbes are copied and are just here for reference
+  code-cov-active: true  # Copied in job setup
+  code-cov-os: ubuntu-latest  # Copied in job setup
   code-cov-python-version: "3.7"
   code-cov-args: >-
     --cov=ConfigSpace
@@ -174,10 +176,9 @@ jobs:
 
   # Testing with codecov coverage uploaded
   codecov-test:
-    if: ${{ env.code-cov-active == true }}
-    name: ${{ matrix.python-version }}-${{ matrix.os }}-${{ matrix.kind }}
+    name: codecov-test
 
-    runs-on: env.code-cov-os
+    runs-on: "ubuntu-latest"
     defaults:
       run:
         shell: bash -l {0}  # Default to using bash on all and load (-l) .bashrc
