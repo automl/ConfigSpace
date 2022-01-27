@@ -133,7 +133,7 @@ jobs:
           #
   # Testing a dist install
   dist-test:
-    name: ${{ matrix.python-version }}-${{ matrix.os }}
+    name: dist-${{ matrix.python-version }}-${{ matrix.os }}
 
     runs-on: ${{ matrix.os }}
     defaults:
