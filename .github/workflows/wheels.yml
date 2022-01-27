@@ -93,7 +93,7 @@ jobs:
         with:
           path: wheelhouse/*.whl
 
-  build_mac_wheels:
+  build_macos_wheels:
     name: ${{ matrix.py }}-macos-${{ matrix.arch }}
     runs-on: macos-latest
     strategy:
