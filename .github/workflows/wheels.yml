@@ -72,7 +72,7 @@ jobs:
           - system: "musllinux"
 
     env:
-      CIBW_BUILD: ${{ matrix.py }}-${{ matrix.system }}  # Build every type of image https://cibuildwheel.readthedocs.io/en/stable/options/#build-skip
+      CIBW_BUILD: ${{ matrix.py }}-${{ matrix.system }}-*
       CIBW_ARCHS: ${{ matrix.arch }}
       CIBW_TEST_REQUIRES: pytest
       CIBW_TEST_COMMAND: pytest -v {project}/test
@@ -111,7 +111,7 @@ jobs:
           - arch: "arm64"
 
     env:
-      CIBW_BUILD: ${{ matrix.py }}-*  # Build every type of image https://cibuildwheel.readthedocs.io/en/stable/options/#build-skip
+      CIBW_BUILD: ${{ matrix.py }}-*
       CIBW_ARCHS: ${{ matrix.arch }}
       CIBW_TEST_REQUIRES: pytest
       CIBW_TEST_COMMAND: pytest -v {project}/test
@@ -143,7 +143,7 @@ jobs:
             arch: "x86"
 
     env:
-      CIBW_BUILD: ${{ matrix.py }}-*  # Build every type of image https://cibuildwheel.readthedocs.io/en/stable/options/#build-skip
+      CIBW_BUILD: ${{ matrix.py }}-*
       CIBW_ARCHS: ${{ matrix.arch }}
       CIBW_TEST_REQUIRES: pytest
       CIBW_TEST_COMMAND: pytest -v {project}/test
