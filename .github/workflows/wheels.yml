@@ -56,7 +56,7 @@ on:
 jobs:
 
   build_linux_wheels:
-    name: ${{ matrix.py }}-linux-${{ matrix.arch }}
+    name: ${{ matrix.py }}-linux-${{ matrix.system }}-${{ matrix.arch }}
     runs-on: ubuntu-latest
 
     strategy:
