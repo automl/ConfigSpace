@@ -294,8 +294,17 @@ class TestHyperparameters(unittest.TestCase):
         self.assertEqual(
             "param, Type: NormalFloat, Mu: 5.0 Sigma: 10.0, Range: [0.1, 10.0], " +
             "Default: 5.0, on log-scale, Q: 0.1", str(f6))
-        self.assertEqual(f6.get_neighbors(5, rs=np.random.RandomState(42)),
-                         [9.967141530112327, 3.6173569882881536, 10.0, 10.0])
+
+        # Due to seemingly different numbers with x86_64 and i686 architectures
+        # we got these numbers, where the first one is slightly different
+        # [9.967141530112325, 3.6173569882881536, 10.0, 10.0]
+        # They are equal up to 14 decimal places
+        expected = [9.967141530112327, 3.6173569882881536, 10.0, 10.0]
+        np.testing.assert_almost_equal(
+            f6.get_neighbors(5, rs=np.random.RandomState(42)),
+            expected,
+            decimal=14
+        )
 
         self.assertNotEqual(f1, f2)
         self.assertNotEqual(f1, "UniformFloat")
