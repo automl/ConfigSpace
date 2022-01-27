@@ -52,7 +52,7 @@ jobs:
 
       - name: Install dist
         run: |
-          last_dist=$(ls -t dist/{{ env.package-name }}-*.tar.gz | head -n 1)
+          last_dist=$(ls -t dist/${{ env.package-name }}-*.tar.gz | head -n 1)
           pip install $last_dist
 
       - name: PEP 561 Compliance
