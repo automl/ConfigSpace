@@ -32,6 +32,7 @@ env:
   # Version to run code-cov on
   # NOTE: These are only acessible inside a jobs **steps** and not in the job setup,
   #   Hence, some of these varialbes are copied and are just here for reference
+  #
   code-cov-active: true  # Copied in job setup
   code-cov-os: ubuntu-latest  # Copied in job setup
   code-cov-python-version: "3.7"
@@ -186,7 +187,7 @@ jobs:
     - name: Setup Python
       uses: actions/setup-python@v2
       with:
-        python-version: "3.7"
+        python-version: ${{ env.code-cov-python-version }}
 
     - name: Install ${{ env.package-name }}
       run: |
