@@ -67,7 +67,7 @@ jobs:
 
     - name: Install ${{ env.package-name }}
       env:
-        install-arg: ${{ format(".{0}", env.extra-requires) }}
+        install-arg: ${{ format('.{0}', env.extra-requires) }}
       run: |
         python -m pip install --upgrade pip
         pip install wheel
@@ -120,7 +120,7 @@ jobs:
 
     - name: Install ${{ env.package-name }}
       env:
-        install-arg: ${{format(".{0}", env.extra-requires)}}
+        install-arg: ${{format('.{0}', env.extra-requires)}}
       run: |
         pip install --upgrade pip
         pip install wheel
@@ -164,7 +164,7 @@ jobs:
 
     - name: Install ${{ env.package-name }}
       env:
-        install-arg: ${{ format("{0}{1}", steps.sdist.ouputs.name, env.extra-requires) }}
+        install-arg: ${{ format('{0}{1}', steps.sdist.ouputs.name, env.extra-requires) }}
       run: |
         pip install ${{ env.install-arg }}
 
@@ -194,7 +194,7 @@ jobs:
 
     - name: Install ${{ env.package-name }}
       env:
-        install-arg: ${{ format(".{0}", env.extra-requires) }}
+        install-arg: ${{ format('.{0}', env.extra-requires) }}
       run: |
         pip install --upgrade pip
         pip install wheel
