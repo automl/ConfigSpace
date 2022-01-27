@@ -174,7 +174,7 @@ jobs:
 
   # Testing with codecov coverage uploaded
   codecov-test:
-    if: ${{ env.code-cov-active }}
+    if: env.code-cov-active == true
     name: ${{ matrix.python-version }}-${{ matrix.os }}-${{ matrix.kind }}
 
     runs-on: ${{ env.code-cov-os }}
