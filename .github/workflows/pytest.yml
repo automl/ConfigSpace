@@ -201,7 +201,6 @@ jobs:
         pytest ${{ env.pytest-args }} ${{ env.code-cov-args }} ${{ env.test-dir }}
 
     - name: Upload coverage
-      if: matrix.code-cov && always()
       uses: codecov/codecov-action@v1
       with:
         fail_ci_if_error: true
