@@ -92,7 +92,7 @@ jobs:
         env:
           CIBW_BUILD: ${{ matrix.py }}-${{ matrix.system }}_*
           CIBW_ARCHS: ${{ matrix.arch }}
-          CIBW_TEST_REQUIRES: ${{ test-reqs }}
+          CIBW_TEST_REQUIRES: ${{ env.test-reqs }}
           CIBW_TEST_COMMAND: ${{ env.test-cmd }} {project}/${{ env.test-dir }}
 
       - name: Upload artifacts
