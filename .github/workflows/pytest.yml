@@ -96,7 +96,7 @@ jobs:
 
   # Testing with conda
   conda-tests:
-    name: conda-${{ matrix.python-version }}-${{ matrix.os }}}
+    name: conda-${{ matrix.python-version }}-${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     defaults:
       run:
