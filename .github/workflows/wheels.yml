@@ -72,7 +72,7 @@ jobs:
           - system: "musllinux"
 
     env:
-      CIBW_BUILD: ${{ matrix.py }}-${{ matrix.system }}-*
+      CIBW_BUILD: ${{ matrix.py }}-${{ matrix.system }}_*
       CIBW_ARCHS: ${{ matrix.arch }}
       CIBW_TEST_REQUIRES: pytest
       CIBW_TEST_COMMAND: pytest -v {project}/test
