@@ -153,13 +153,17 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
-    - name: Install ${{ env.package-name }}
-      env:
-        install-arg: format("${{last_dist}}{0}", env.extra-requires)
+    - name: Create sdist
+      id: sdist
       run: |
         pip install --upgrade pip
         python setup.py sdist
-        last_dist=$(ls -t dist/ConfigSpace-*.tar.gz | head -n 1)
+        echo "::set-output name=name::$(ls -t dist/ConfigSpace-*.tar.gz | head -n 1)"
+
+    - name: Install ${{ env.package-name }}
+      env:
+        install-arg: format("{0}{1}", steps.status.sdist.name, env.extra-requires)
+      run: |
         pip install ${{ env.install-arg }}
 
     - name: Tests
