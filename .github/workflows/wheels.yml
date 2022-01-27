@@ -53,6 +53,13 @@ on:
     tags:
       - v*
 
+env:
+  package-name: ConfigSpace
+
+  test-dir: test
+  test-reqs: "pytest"
+  test-cmd: "pytest -v"
+
 jobs:
 
   build_linux_wheels:
@@ -71,14 +78,9 @@ jobs:
           # Not supported by numpy
           - system: "musllinux"
 
-    env:
-      CIBW_BUILD: ${{ matrix.py }}-${{ matrix.system }}_*
-      CIBW_ARCHS: ${{ matrix.arch }}
-      CIBW_TEST_REQUIRES: pytest
-      CIBW_TEST_COMMAND: pytest -v {project}/test
 
     steps:
-      - name: Checkout ConfigSpace
+      - name: Checkout ${{ env.package-name }}
         uses: actions/checkout@v2
 
       # This allows us to build for 'aarch64' on linux
@@ -87,6 +89,11 @@ jobs:
 
       - name: Build wheels with cibuildwheel to wheelhouse/*.whl
         uses: pypa/cibuildwheel@v2.3.1
+        env:
+          CIBW_BUILD: ${{ matrix.py }}-${{ matrix.system }}_*
+          CIBW_ARCHS: ${{ matrix.arch }}
+          CIBW_TEST_REQUIRES: ${{ test-reqs }}
+          CIBW_TEST_COMMAND: ${{ env.test-cmd }} {project}/${{ env.test-dir }}
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v2
@@ -110,18 +117,17 @@ jobs:
           # arm64 isn't supported on macos github workers
           - arch: "arm64"
 
-    env:
-      CIBW_BUILD: ${{ matrix.py }}-*
-      CIBW_ARCHS: ${{ matrix.arch }}
-      CIBW_TEST_REQUIRES: pytest
-      CIBW_TEST_COMMAND: pytest -v {project}/test
-
     steps:
-      - name: Checkout ConfigSpace
+      - name: Checkout ${{ env.package-name }}
         uses: actions/checkout@v2
 
       - name: Build wheels with cibuildwheel to wheelhouse/*.whl
         uses: pypa/cibuildwheel@v2.3.1
+        env:
+          CIBW_BUILD: ${{ matrix.py }}-*
+          CIBW_ARCHS: ${{ matrix.arch }}
+          CIBW_TEST_REQUIRES: ${{ env.test-reqs }}
+          CIBW_TEST_COMMAND: ${{ env.test-cmd }} {project}/${{ env.test-dir }}
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v2
@@ -142,18 +148,18 @@ jobs:
           - py: cp310
             arch: "x86"
 
-    env:
-      CIBW_BUILD: ${{ matrix.py }}-*
-      CIBW_ARCHS: ${{ matrix.arch }}
-      CIBW_TEST_REQUIRES: pytest
-      CIBW_TEST_COMMAND: pytest -v {project}/test
 
     steps:
-      - name: Checkout ConfigSpace
+      - name: Checkout ${{ env.package-name }}
         uses: actions/checkout@v2
 
       - name: Build wheels with cibuildwheel to wheelhouse/*.whl
         uses: pypa/cibuildwheel@v2.3.1
+        env:
+          CIBW_BUILD: ${{ matrix.py }}-*
+          CIBW_ARCHS: ${{ matrix.arch }}
+          CIBW_TEST_REQUIRES: ${{ env.test-reqs }}
+          CIBW_TEST_COMMAND: ${{ env.test-reqs }} {project}/${{ env.test-dir }}
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v2
@@ -170,7 +176,7 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/v')  && github.event_name != 'pull_request'
 
     steps:
-      - name: Checkout ConfigSpace
+      - name: Checkout ${{ env.package-name }}
         uses: actions/checkout@v2
 
       - name: Download artifacts
