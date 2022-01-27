@@ -23,8 +23,6 @@ env:
   package-name: ConfigSpace
   test-dir: test
   extra-requires: "[test]"  # "" for no extra_requires
-  python-versions: ["3.7", "3.8", "3.9", "3.10"]
-  os-list: ["ubuntu-latest", "macos-latest", "windows-latest"]
 
   # Arguments used for pytest
   pytest-args: >-
@@ -53,8 +51,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: ${{ env.os-list }}
-        python-version: $${ env.python-versions }
+        python-version: ["3.7", "3.8", "3.9", "3.10"]
+        os: ["ubuntu-latest", "macos-latest", "windows-latest"]
 
     steps:
     - name: Checkout
@@ -105,8 +103,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: ${{ env.os-list }}
-        python-version: ${{ env.python-versions }}
+        python-version: ["3.7", "3.8", "3.9", "3.10"]
+        os: ["ubuntu-latest", "macos-latest", "windows-latest"]
 
     steps:
     - name: Checkout
@@ -143,8 +141,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: ${{ env.os-list }}
-        python-version: $${ env.python-versions }
+        python-version: ["3.7", "3.8", "3.9", "3.10"]
+        os: ["ubuntu-latest", "macos-latest", "windows-latest"]
 
     steps:
     - name: Checkout
