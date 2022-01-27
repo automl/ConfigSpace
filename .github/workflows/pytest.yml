@@ -177,7 +177,7 @@ jobs:
     if: env.code-cov-active == true
     name: ${{ matrix.python-version }}-${{ matrix.os }}-${{ matrix.kind }}
 
-    runs-on: ${{ env.code-cov-os }}
+    runs-on: env.code-cov-os
     defaults:
       run:
         shell: bash -l {0}  # Default to using bash on all and load (-l) .bashrc
