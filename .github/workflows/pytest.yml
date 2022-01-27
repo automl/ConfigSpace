@@ -3,6 +3,7 @@ name: Tests
 on:
   # Allow to manually trigger through github API
   workflow_dispatch:
+
   # Triggers with push to master
   push:
     branches:
@@ -45,7 +46,7 @@ jobs:
         os: ["windows-latest", "ubuntu-latest", "macos-latest"]
         python-version: ["3.7", "3.8", "3.9", "3.10"]
         kind: ['conda', 'source']
-        code-cov: false
+        code-cov: [false]
 
         include:
           # Have one config for code coverage
