@@ -162,7 +162,7 @@ jobs:
 
     - name: Install ${{ env.package-name }}
       env:
-        install-arg: format("{0}{1}", steps.status.sdist.name, env.extra-requires)
+        install-arg: format("{0}{1}", steps.sdist.ouputs.name, env.extra-requires)
       run: |
         pip install ${{ env.install-arg }}
 
@@ -174,7 +174,7 @@ jobs:
 
   # Testing with codecov coverage uploaded
   codecov-test:
-    if: env.code-cov-active == true
+    if: ${{ env.code-cov-active == true }}
     name: ${{ matrix.python-version }}-${{ matrix.os }}-${{ matrix.kind }}
 
     runs-on: env.code-cov-os
