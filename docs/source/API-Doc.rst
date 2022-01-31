@@ -167,33 +167,36 @@ importance with `CAVE <https://github.com/automl/CAVE>`_.
 
 .. _pcs_new:
 
-6.2 Serialization with pcs-new
-------------------------------
+6.2 Serialization with pcs-new (new format)
+-------------------------------------------
 
-Pcs is a simple, human-readable file format for the description of an
+PCS (parameter configuration space) is a simple, human-readable file format for the description of an
 algorithm's configurable parameters, their possible values, as well as any
-parameter dependencies.
+parameter dependencies. There exist an old and a new version.
 
-Pcs is part of the `Algorithm Configuration Library <http://aclib.net/#>`_.
-A detailed explanation of the pcs format can be found
-`here. <http://aclib.net/cssc2014/pcs-format.pdf>`_ A short summary is also
-given in the
-`SMAC Documentation <https://automl.github.io/SMAC3/dev/options.html#paramcs>`_.
-Further examples are provided in the
-`pysmac documentation <https://pysmac.readthedocs.io/en/latest/pcs.html>`_
+The new PCS format is part of the
+`Algorithm Configuration Library 2.0 <https://bitbucket.org/mlindauer/aclib2/src/master/>`_. A detailed description
+of the **new** format can be found in the
+`ACLIB 2.0 docs <https://bitbucket.org/mlindauer/aclib2/src/aclib2/AClib_Format.md>`_, in the
+`SMACv2 docs <https://www.cs.ubc.ca/labs/beta/Projects/SMAC/v2.10.03/manual.pdf>`_ and further examples are provided
+in the `pysmac docs <https://pysmac.readthedocs.io/en/latest/pcs.html>`_
 
 .. note::
 
-    The pcs format definition has changed in the year 2016 and is supported by
-    AClib 2.0, as well as SMAC. To write or to read the old version of pcs, please
+    The PCS format definition has changed in the year 2016 and is supported by
+    AClib 2.0, as well as SMAC (v2 and v3). To write or to read the **old** version of pcs, please
     use the :class:`~ConfigSpace.read_and_write.pcs` module.
 
 .. automodule:: ConfigSpace.read_and_write.pcs_new
    :members: read, write
    :undoc-members:
 
-6.3 Serialization with pcs
---------------------------
+6.3 Serialization with pcs (old format)
+---------------------------------------
+The old PCS format is part of the `Algorithm Configuration Library <http://aclib.net/#>`_.
+
+A detailed explanation of the **old** PCS format can be found
+`here. <http://aclib.net/cssc2014/pcs-format.pdf>`_
 
 .. automodule:: ConfigSpace.read_and_write.pcs
    :members: read, write
