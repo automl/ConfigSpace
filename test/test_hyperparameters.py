@@ -1280,3 +1280,14 @@ class TestHyperparameters(unittest.TestCase):
             "param, Type: Categorical, Choices: {True, False}, Default: True",
             repr(c1)
         )
+
+    def test_cat_equal(self):
+        c1 = CategoricalHyperparameter("param", ["a", "b"], weights=[2, 2])
+        other = CategoricalHyperparameter("param", ["a", "b"])
+        self.assertEqual(c1, other)
+
+        c1 = CategoricalHyperparameter("param", ["a", "b"], weights=[1, 2])
+        other = CategoricalHyperparameter("param", ["a", "b"], weights=[10, 20])
+        self.assertEqual(c1, other)
+
+

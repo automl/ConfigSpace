@@ -213,7 +213,11 @@ cdef class Constant(Hyperparameter):
         if not isinstance(other, self.__class__):
             return False
 
-        return self.value == other.value and self.name == other.name
+        return (
+                self.value == other.value and
+                self.name == other.name and
+                self.default_value == other.default_value
+        )
 
     def __copy__(self):
         return Constant(self.name, self.value, meta=self.meta)
@@ -1278,7 +1282,8 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
             self.log == other.log and
             self.q == other.q and
             self.lower == other.lower and
-            self.upper == other.upper
+            self.upper == other.upper and
+            self.default_value == other.default_value
         )
 
     def __hash__(self):
@@ -1506,7 +1511,13 @@ cdef class CategoricalHyperparameter(Hyperparameter):
 
         return (
             self.name == other.name and
-            set(self.choices) == set(other.choices)
+            set(self.choices) == set(other.choices) and
+            self.default_value == other.default_value and
+            (
+                    self.probabilities == other.probabilities or
+                    (self.probabilities is None and len(np.unique(other.probabilities)) == 1) or
+                    (other.probabilities is None and len(np.unique(self.probabilities)) == 1)
+             )
         )
 
     def __hash__(self):
@@ -1765,7 +1776,8 @@ cdef class OrdinalHyperparameter(Hyperparameter):
 
         return (
             self.name == other.name and
-            self.sequence == other.sequence
+            self.sequence == other.sequence and
+            self.default_value == other.default_value
         )
 
     def __copy__(self):
