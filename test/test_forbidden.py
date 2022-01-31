@@ -90,6 +90,9 @@ class TestForbidden(unittest.TestCase):
         # print("\nneq9:")
         self.assertTrue(forb1.is_forbidden({'parent': 1}, True))
 
+        self.assertTrue(forb3.is_forbidden({'grandchild': 'hot'}, True))
+        self.assertFalse(forb3.is_forbidden({'grandchild': 'cold'}, True))
+
         # Test forbidden on vector values
         hyperparameter_idx = {
             hp1.name: 0,
@@ -153,6 +156,10 @@ class TestForbidden(unittest.TestCase):
         # print("\nTest8:")
         for i in range(5, 10):
             self.assertTrue(forb1.is_forbidden({'child': i}, True))
+
+        self.assertTrue(forb4.is_forbidden({'grandchild': 'hot'}, True))
+        self.assertTrue(forb4.is_forbidden({'grandchild': 'cold'}, True))
+        self.assertFalse(forb4.is_forbidden({'grandchild': 'warm'}, True))
 
         # Test forbidden on vector values
         hyperparameter_idx = {
