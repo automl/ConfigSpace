@@ -3,6 +3,7 @@ name: Tests
 on:
   # Allow to manually trigger through github API
   workflow_dispatch:
+
   # Triggers with push to master
   push:
     branches:
@@ -19,106 +20,70 @@ on:
 
 env:
 
+  package-name: ConfigSpace
+  test-dir: test
+  extra-requires: "[test]"  # "" for no extra_requires
+
   # Arguments used for pytest
   pytest-args: >-
     --durations=20
     -v
 
-  # Arguments used for code-cov which is later used to annotate PR's on github
+  # Version to run code-cov on
+  # NOTE: These are only acessible inside a jobs **steps** and not in the job setup,
+  #   Hence, some of these varialbes are copied and are just here for reference
+  #
+  code-cov-active: true  # Copied in job setup
+  code-cov-os: ubuntu-latest  # Copied in job setup
+  code-cov-python-version: "3.7"
   code-cov-args: >-
     --cov=ConfigSpace
     --cov-report=xml
 
 jobs:
 
-  unit-test:
-    name: ${{ matrix.python-version }}-${{ matrix.os }}-${{ matrix.kind }}
+  # General unit tests
+  source-test:
+    name: ${{ matrix.python-version }}-${{ matrix.os }}
 
     runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash # Default to using bash on all
+
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, ubuntu-latest, macos-latest]
         python-version: ["3.7", "3.8", "3.9", "3.10"]
-        kind: ['conda', 'source', 'dist']
-
-        exclude:
-          # Exclude all configurations *-*-dist, include one later
-          - kind: 'dist'
-
-          # Exclude windows as bash commands wont work in windows runner
-          - os: windows-latest
-
-          # Exclude macos as there are permission errors using conda as we do
-          - os: macos-latest
-
-        include:
-          # Add the tag code-cov to ubuntu-3.7-source
-          - os: ubuntu-latest
-            python-version: 3.7
-            kind: 'source'
-            code-cov: true
-
-          # Include one config with dist, ubuntu-3.7-dist
-          - os: ubuntu-latest
-            python-version: 3.7
-            kind: 'dist'
+        os: ["ubuntu-latest", "macos-latest", "windows-latest"]
 
     steps:
-
-      # A note on checkout: When checking out the repository that
-      # triggered a workflow, this defaults to the reference or SHA for that event.
-      # Otherwise, uses the default branch (master) is used.
     - name: Checkout
       uses: actions/checkout@v2
 
-    - name: Setup Python ${{ matrix.python-version }}
+    - name: Setup Python
       uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python-version }}
 
-    - name: Conda install
-      if: matrix.kind == 'conda'
-      run: |
-        # Miniconda is available in $CONDA env var
-        $CONDA/bin/conda create -n testenv --yes pip wheel python=${{ matrix.python-version }}
-        $CONDA/envs/testenv/bin/python3 -m pip install --upgrade pip
-        $CONDA/envs/testenv/bin/pip3 install -e .[test]
-
-    - name: Source install
-      if: matrix.kind == 'source'
+    - name: Install ${{ env.package-name }}
       run: |
         python -m pip install --upgrade pip
-        pip install -e .[test]
-
-    - name: Dist install
-      if: matrix.kind == 'dist'
-      run: |
-        python -m pip install --upgrade pip
-        python setup.py sdist
-        last_dist=$(ls -t dist/ConfigSpace-*.tar.gz | head -n 1)
-        python -m pip install $last_dist[test]
+        python -m pip install wheel
+        python -m pip install -e ".${{ env.extra-requires }}"
 
     - name: Store git status
       id: status-before
+      shell: bash
       run: |
         echo "::set-output name=BEFORE::$(git status --porcelain -b)"
 
     - name: Tests
       timeout-minutes: 45
       run: |
-        if [[ ${{ matrix.kind }} == 'conda' ]]; then
-          export PATH="$CONDA/envs/testenv/bin:$PATH"
-        fi
-
-        if [ ${{ matrix.code-cov }} ]; then
-          pytest ${{ env.pytest-args }} ${{ env.code-cov-args }} test
-        else
-          pytest ${{ env.pytest-args }} test
-        fi
+        pytest ${{ env.pytest-args }} ${{ env.test-dir }}
 
     - name: Check for files left behind by test
-      if: ${{ always() }}
       run: |
         before="${{ steps.status-before.outputs.BEFORE }}"
         after="$(git status --porcelain -b)"
@@ -129,9 +94,114 @@ jobs:
             exit 1
         fi
 
+  # Testing with conda
+  conda-tests:
+    name: conda-${{ matrix.python-version }}-${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash -l {0}  # Default to using bash on all and load (-l) .bashrc which miniconda uses
+
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.7", "3.8", "3.9", "3.10"]
+        os: ["ubuntu-latest", "macos-latest", "windows-latest"]
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Conda install
+      uses: conda-incubator/setup-miniconda@v2
+      with:
+        auto-update-conda: true
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install ${{ env.package-name }}
+      run: |
+        python -V
+        python -m pip install --upgrade pip
+        python -m pip install wheel
+        python -m pip install -e ".${{ env.extra-requires }}"
+
+    - name: Tests
+      timeout-minutes: 45
+      run: |
+          pytest ${{ env.pytest-args }} ${{ env.test-dir }}
+          #
+  # Testing a dist install
+  dist-test:
+    name: dist-${{ matrix.python-version }}-${{ matrix.os }}
+
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.7", "3.8", "3.9", "3.10"]
+        os: ["ubuntu-latest", "macos-latest", "windows-latest"]
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Create sdist
+      id: sdist
+      run: |
+        python -m pip install --upgrade pip
+        python setup.py sdist
+        echo "sdist_name=$(ls -t dist/${{ env.package-name }}-*.tar.gz | head -n 1)" >> $GITHUB_ENV
+
+    - name: Install ${{ env.package-name }}
+      run: |
+        python -m pip install ${{ env.sdist_name }}${{ env.extra-requires }}
+
+    - name: Tests
+      timeout-minutes: 45
+      run: |
+        pytest ${{ env.pytest-args }} ${{ env.test-dir }}
+
+
+  # Testing with codecov coverage uploaded
+  codecov-test:
+    name: codecov-test
+
+    runs-on: "ubuntu-latest"
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ env.code-cov-python-version }}
+
+    - name: Install ${{ env.package-name }}
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install wheel
+        python -m pip install -e ".${{ env.extra-requires }}"
+
+    - name: Tests
+      timeout-minutes: 45
+      run: |
+        pytest ${{ env.pytest-args }} ${{ env.code-cov-args }} ${{ env.test-dir }}
+
     - name: Upload coverage
-      if: matrix.code-cov && always()
-      uses: codecov/codecov-action@v1
+      uses: codecov/codecov-action@v2
       with:
         fail_ci_if_error: true
         verbose: true
