@@ -1,4 +1,5 @@
 # Version 0.4.21
+
 * Add #224: Now builds binary wheels for Windows/Mac/Linux, available on PyPI.
 * Maint #227: Include automated testing for windows and mac.
 * Maint #228: #226: Account for test differences with `i686` architectures.
