@@ -9,9 +9,9 @@
 * Add #210: `print(config)` is now produces a string representation of a valid python dictionary that is suitable for copy and paste.
 * Fix #203: Parser for `pcs` files now correctly coverts types for forbidden clauses, checking for the validaty as well.
 * Maint #f71508c: Clean up in `README.md` and fix link for new `SMAC` [example docs](https://automl.github.io/SMAC3/master/pages/examples/index.html).
-# Fix #202: Fix numerical underflow when performing quantization of log sampled `UniformFloat`.
-# Add #188: Support for a **truncated** `NormalIntegerHyperparameter` or `NormalFloatHyperparameter` by providing `lower` and `upper` bounds.
-# Fix #195: Sampling configurations to perform validity checks for during `get_one_exchange_neighborhood` is now deterministic w.r.t. a seed.
+* Fix #202: Fix numerical underflow when performing quantization of log sampled `UniformFloat`.
+* Add #188: Support for a **truncated** `NormalIntegerHyperparameter` or `NormalFloatHyperparameter` by providing `lower` and `upper` bounds.
+* Fix #195: Sampling configurations to perform validity checks for during `get_one_exchange_neighborhood` is now deterministic w.r.t. a seed.
 
 # Version 0.4.20
 
