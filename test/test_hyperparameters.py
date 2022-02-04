@@ -600,11 +600,6 @@ class TestHyperparameters(unittest.TestCase):
         self.assertNotEqual(f1, f2)
         self.assertNotEqual(f1, "UniformFloat")
 
-        # Test that order of categoricals does not matter
-        f7 = CategoricalHyperparameter("param", ["a", "b"])
-        f7_ = CategoricalHyperparameter("param", ["b", "a"])
-        assert f7 == f7_
-
         # test that meta-data is stored correctly
         f_meta = CategoricalHyperparameter("param", ["a", "b"], default_value="a",
                                            meta=dict(self.meta_data))
@@ -616,6 +611,43 @@ class TestHyperparameters(unittest.TestCase):
         self.assertEqual(f4.get_size(), 1000)
         self.assertEqual(f5.get_size(), 1000)
         self.assertEqual(f6.get_size(), 2)
+
+    def test_cat_equal(self):
+        c1 = CategoricalHyperparameter("param", ["a", "b"], weights=[2, 2])
+        other = CategoricalHyperparameter("param", ["a", "b"])
+        self.assertEqual(c1, other)
+
+        c1 = CategoricalHyperparameter("param", ["a", "b"])
+        other = CategoricalHyperparameter("param", ["a", "b"], weights=[2, 2])
+        self.assertEqual(c1, other)
+
+        c1 = CategoricalHyperparameter("param", ["a", "b"], weights=[1, 2])
+        other = CategoricalHyperparameter("param", ["a", "b"], weights=[10, 20])
+        self.assertEqual(c1, other)
+
+        c1 = CategoricalHyperparameter("param", ["a", "b"])
+        c2 = CategoricalHyperparameter("param", ["b", "a"])
+        self.assertNotEqual(c1, c2)
+
+        c1 = CategoricalHyperparameter("param", ["a", "b"], default_value="a")
+        c2 = CategoricalHyperparameter("param", ["b", "a"], default_value="a")
+        self.assertEqual(c1, c2)
+
+        c1 = CategoricalHyperparameter("param", ["a", "b"], weights=[1, 2], default_value="a")
+        c2 = CategoricalHyperparameter("param", ["b", "a"], weights=[2, 1], default_value="a")
+        self.assertEqual(c1, c2)
+
+        c1 = CategoricalHyperparameter("param", ["a", "b"], weights=[1, 2], default_value="a")
+        c2 = CategoricalHyperparameter("param", ["b", "a"], weights=[1, 2], default_value="a")
+        self.assertNotEqual(c1, c2)
+
+        c1 = CategoricalHyperparameter("param", ["a", "b"], weights=[1, 2], default_value="a")
+        c2 = CategoricalHyperparameter("param", ["b", "a"], default_value="a")
+        self.assertNotEqual(c1, c2)
+
+        c1 = CategoricalHyperparameter("param", ["a", "b"], default_value="a")
+        c2 = CategoricalHyperparameter("param", ["b", "a"], weights=[1, 2], default_value="a")
+        self.assertNotEqual(c1, c2)
 
     def test_categorical_strings(self):
         f1 = CategoricalHyperparameter("param", ["a", "b"])
@@ -1280,14 +1312,3 @@ class TestHyperparameters(unittest.TestCase):
             "param, Type: Categorical, Choices: {True, False}, Default: True",
             repr(c1)
         )
-
-    def test_cat_equal(self):
-        c1 = CategoricalHyperparameter("param", ["a", "b"], weights=[2, 2])
-        other = CategoricalHyperparameter("param", ["a", "b"])
-        self.assertEqual(c1, other)
-
-        c1 = CategoricalHyperparameter("param", ["a", "b"], weights=[1, 2])
-        other = CategoricalHyperparameter("param", ["a", "b"], weights=[10, 20])
-        self.assertEqual(c1, other)
-
-

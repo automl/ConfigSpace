@@ -214,9 +214,9 @@ cdef class Constant(Hyperparameter):
             return False
 
         return (
-                self.value == other.value and
-                self.name == other.name and
-                self.default_value == other.default_value
+            self.value == other.value and
+            self.name == other.name and
+            self.default_value == other.default_value
         )
 
     def __copy__(self):
@@ -1509,14 +1509,29 @@ cdef class CategoricalHyperparameter(Hyperparameter):
         if not isinstance(other, self.__class__):
             return False
 
+        if self.probabilities is not None:
+            ordered_probabilities_self = {
+                choice: self.probabilities[i] for i, choice in enumerate(self.choices)
+            }
+        else:
+            ordered_probabilities_self = None
+        if other.probabilities is not None:
+            ordered_probabilities_other = {
+                choice: other.probabilities[other.choices.index(choice)]
+                for choice in self.choices
+            }
+        else:
+            ordered_probabilities_other = None
+
         return (
             self.name == other.name and
             set(self.choices) == set(other.choices) and
             self.default_value == other.default_value and
             (
-                    self.probabilities == other.probabilities or
-                    (self.probabilities is None and len(np.unique(other.probabilities)) == 1) or
-                    (other.probabilities is None and len(np.unique(self.probabilities)) == 1)
+                (self.probabilities is None and other.probabilities is None) or
+                ordered_probabilities_self == ordered_probabilities_other or
+                (self.probabilities is None and len(np.unique(other.probabilities)) == 1) or
+                (other.probabilities is None and len(np.unique(self.probabilities)) == 1)
              )
         )
 
