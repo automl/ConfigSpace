@@ -1517,7 +1517,11 @@ cdef class CategoricalHyperparameter(Hyperparameter):
             ordered_probabilities_self = None
         if other.probabilities is not None:
             ordered_probabilities_other = {
-                choice: other.probabilities[other.choices.index(choice)]
+                choice: (
+                    other.probabilities[other.choices.index(choice)]
+                    if choice in other.choices else
+                    None
+                )
                 for choice in self.choices
             }
         else:
