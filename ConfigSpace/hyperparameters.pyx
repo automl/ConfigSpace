@@ -1532,10 +1532,10 @@ cdef class CategoricalHyperparameter(Hyperparameter):
             set(self.choices) == set(other.choices) and
             self.default_value == other.default_value and
             (
-                (self.probabilities is None and other.probabilities is None) or
+                (ordered_probabilities_self is None and ordered_probabilities_other is None) or
                 ordered_probabilities_self == ordered_probabilities_other or
-                (self.probabilities is None and len(np.unique(other.probabilities)) == 1) or
-                (other.probabilities is None and len(np.unique(self.probabilities)) == 1)
+                (ordered_probabilities_self is None and len(np.unique(ordered_probabilities_other)) == 1) or
+                (ordered_probabilities_other is None and len(np.unique(ordered_probabilities_self)) == 1)
              )
         )
 
