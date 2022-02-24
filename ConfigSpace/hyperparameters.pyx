@@ -2624,10 +2624,10 @@ cdef class CategoricalHyperparameter(Hyperparameter):
         except ValueError:
             return None
     
-    def _inverse_transform(self, vector: Union[None, np.ndarray, str, float, int]) -> Union[np.ndarray, float]:
+    def _inverse_transform(self, vector: Union[None, np.ndarray, str, float, int]) -> Union[int, float]:
         if vector is None:
             return np.NaN
-        return np.array(self.choices.index(vector))
+        return self.choices.index(vector)
 
     def has_neighbors(self) -> bool:
         return len(self.choices) > 1
@@ -2701,7 +2701,7 @@ cdef class CategoricalHyperparameter(Hyperparameter):
         # this check is to ensure shape is right (and np.shape does not work in cython)
         if vector.ndim != 1:
             raise ValueError("Method pdf expects a one-dimensional numpy array")
-        vector = self._inverse_transform(vector)
+        vector = np.array(self._inverse_transform(vector))
         return self._pdf(vector)
         
     def _pdf(self, vector: np.ndarray) -> np.ndarray:
