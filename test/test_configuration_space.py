@@ -34,14 +34,17 @@ import unittest
 
 import numpy as np
 
-from ConfigSpace import ConfigurationSpace, \
-    Configuration, CategoricalHyperparameter, UniformIntegerHyperparameter, \
-    Constant, EqualsCondition, NotEqualsCondition, InCondition, \
-    AndConjunction, OrConjunction, ForbiddenEqualsClause, \
-    ForbiddenAndConjunction, UniformFloatHyperparameter
-from ConfigSpace.hyperparameters import NormalFloatHyperparameter, \
-    NormalIntegerHyperparameter, OrdinalHyperparameter, \
-    BetaFloatHyperparameter, BetaIntegerHyperparameter
+from ConfigSpace import (ConfigurationSpace,
+                         Configuration, CategoricalHyperparameter, UniformIntegerHyperparameter,
+                         Constant, EqualsCondition, NotEqualsCondition, InCondition,
+                         AndConjunction, OrConjunction, ForbiddenEqualsClause,
+                         ForbiddenAndConjunction)
+from ConfigSpace.hyperparameters import (UniformFloatHyperparameter,
+                                         NormalFloatHyperparameter,
+                                         BetaFloatHyperparameter,
+                                         NormalIntegerHyperparameter,
+                                         BetaIntegerHyperparameter,
+                                         OrdinalHyperparameter)
 from ConfigSpace.exceptions import ForbiddenValueError
 
 
@@ -765,7 +768,8 @@ class TestConfigurationSpace(unittest.TestCase):
         self.assertEqual((0.25, 0.75), cs.get_hyperparameter("switch").probabilities)
         self.assertEqual((0.3, 0.7),
                          cs.get_hyperparameter("algo1_subspace:algo1_param1").probabilities)
-        self.assertTupleEqual((0.5, 0.5), cs.get_hyperparameter("algo2_subspace:algo2_param1").probabilities)
+        self.assertTupleEqual((0.5, 0.5), cs.get_hyperparameter(
+            "algo2_subspace:algo2_param1").probabilities)
 
         # check default values in the final configuration space
         self.assertEqual("algo1", cs.get_hyperparameter("switch").default_value)
