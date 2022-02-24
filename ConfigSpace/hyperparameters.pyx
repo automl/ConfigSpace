@@ -1626,10 +1626,10 @@ cdef class CategoricalHyperparameter(Hyperparameter):
         except ValueError:
             return None
     
-    def _inverse_transform(self, vector: Union[None, np.ndarray, str, float, int]) -> Union[np.ndarray, float]:
+    def inverse_transform(self, vector: Union[None, str, float, int]) -> Union[int, float]:
         if vector is None:
             return np.NaN
-        return np.array(self.choices.index(vector))
+        return self.choices.index(vector)
 
     def has_neighbors(self) -> bool:
         return len(self.choices) > 1

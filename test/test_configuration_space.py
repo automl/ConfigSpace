@@ -705,8 +705,9 @@ class TestConfigurationSpace(unittest.TestCase):
 
         for cfg, fixture in zip(
                 cs.sample_configuration(10),
-                [[1, np.NaN, 2], [0, 2, np.NaN], [0, 1, 1], [1, np.NaN, 2], [1, np.NaN, 2]]
+                [[1, np.NaN, 2], [2, np.NaN, np.NaN], [0, 0, np.NaN], [0, 2, np.NaN], [0, 0, np.NaN]]
         ):
+          
             np.testing.assert_array_almost_equal(cfg.get_array(), fixture)
 
     def test_sample_wrong_argument(self):
