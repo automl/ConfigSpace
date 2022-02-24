@@ -55,7 +55,7 @@ class UtilTest(unittest.TestCase):
         self.assertEqual(len(new_configuration._values), 11)
         for key in new_configuration:
             self.assertIsNotNone(new_configuration[key])
-        self.assertEqual(new_configuration['random_forest:max_features'], 10)
+        self.assertEqual(new_configuration['random_forest:max_features'], 9)
 
     def _test_random_neigbor(self, hp):
         cs = ConfigurationSpace()

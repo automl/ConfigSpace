@@ -1634,7 +1634,7 @@ cdef class CategoricalHyperparameter(Hyperparameter):
         except ValueError:
             return None
     
-    def inverse_transform(self, vector: Union[None, str, float, int]) -> Union[int, float]:
+    def _inverse_transform(self, vector: Union[None, str, float, int]) -> Union[int, float]:
         if vector is None:
             return np.NaN
         return self.choices.index(vector)
@@ -1979,4 +1979,3 @@ cdef class OrdinalHyperparameter(Hyperparameter):
 
     def get_size(self) -> float:
         return len(self.sequence)
- []
