@@ -1532,9 +1532,17 @@ cdef class CategoricalHyperparameter(Hyperparameter):
             meta=self.meta
         )
 
-    # This is used for the uniform configspace for PiBO: https://openreview.net/forum?id=MMAeCXIa89
-    # It creates a categorical parameter with equal weights for all choices
     def to_uniform(self) -> 'CategoricalHyperparameter':
+        """
+        Creates a categorical parameter with equal weights for all choices
+        This is used for the uniform configspace when sampling configurations in the local search
+        in PiBO: https://openreview.net/forum?id=MMAeCXIa89
+        
+        Returns
+        ----------
+        CategoricalHyperparameter
+            An identical parameter as the original, except that all weights are uniform.
+        """
         return CategoricalHyperparameter(
             name=self.name,
             choices=copy.deepcopy(self.choices),
@@ -1971,4 +1979,4 @@ cdef class OrdinalHyperparameter(Hyperparameter):
 
     def get_size(self) -> float:
         return len(self.sequence)
- 
+ []

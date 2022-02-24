@@ -426,7 +426,6 @@ class TestHyperparameters(unittest.TestCase):
             "Upper bound 1 must be larger than lower bound 0 for "
             "hyperparameter param", UniformIntegerHyperparameter, "param", 1, 0)
 
-
     def test_normalint(self):
         # TODO test for unequal!
         f1 = NormalIntegerHyperparameter("param", 0.5, 5.5)
@@ -535,6 +534,7 @@ class TestHyperparameters(unittest.TestCase):
         self.assertTrue(f1.is_legal_vector(-0.1))
         self.assertTrue(f1.is_legal_vector(1.1))
         self.assertRaises(TypeError, f1.is_legal_vector, "Hahaha")
+
     def test_categorical(self):
         # TODO test for inequality
         f1 = CategoricalHyperparameter("param", [0, 1])
@@ -980,8 +980,10 @@ class TestHyperparameters(unittest.TestCase):
         self.assertTupleEqual(copy_hp.choices, orig_hp.choices)
         self.assertEqual(copy_hp.default_value, orig_hp.default_value)
         self.assertEqual(copy_hp.num_choices, orig_hp.num_choices)
-        self.assertTupleEqual(copy_hp.probabilities, (0.3333333333333333, 0.3333333333333333, 0.3333333333333333))
-        self.assertTupleEqual(orig_hp.probabilities, (0.3333333333333333, 0.3333333333333333, 0.3333333333333333))
+        self.assertTupleEqual(copy_hp.probabilities, (
+            0.3333333333333333, 0.3333333333333333, 0.3333333333333333))
+        self.assertTupleEqual(orig_hp.probabilities, (
+            0.3333333333333333, 0.3333333333333333, 0.3333333333333333))
 
     def test_categorical_with_weights(self):
         rs = np.random.RandomState()
