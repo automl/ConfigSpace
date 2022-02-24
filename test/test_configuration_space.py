@@ -705,8 +705,8 @@ class TestConfigurationSpace(unittest.TestCase):
                 InCondition(hyper_params["hp7"], hyper_params["hp5"], ['1'])))
 
         for cfg, fixture in zip(
-                cs.sample_configuration(10),
-                [[1, np.NaN, 2], [0, 2, np.NaN], [0, 1, 1], [1, np.NaN, 2], [1, np.NaN, 2]]
+            cs.sample_configuration(10),
+            [[1, np.NaN, 2], [2, np.NaN, np.NaN], [0, 0, np.NaN], [0, 2, np.NaN], [0, 0, np.NaN]]
         ):
             np.testing.assert_array_almost_equal(cfg.get_array(), fixture)
 
@@ -765,7 +765,8 @@ class TestConfigurationSpace(unittest.TestCase):
         self.assertEqual((0.25, 0.75), cs.get_hyperparameter("switch").probabilities)
         self.assertEqual((0.3, 0.7),
                          cs.get_hyperparameter("algo1_subspace:algo1_param1").probabilities)
-        self.assertTupleEqual((0.5, 0.5), cs.get_hyperparameter("algo2_subspace:algo2_param1").probabilities)
+        self.assertTupleEqual((0.5, 0.5), cs.get_hyperparameter(
+            "algo2_subspace:algo2_param1").probabilities)
 
         # check default values in the final configuration space
         self.assertEqual("algo1", cs.get_hyperparameter("switch").default_value)

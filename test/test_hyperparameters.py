@@ -1303,7 +1303,10 @@ class TestHyperparameters(unittest.TestCase):
         self.assertTupleEqual(copy_hp.choices, orig_hp.choices)
         self.assertEqual(copy_hp.default_value, orig_hp.default_value)
         self.assertEqual(copy_hp.num_choices, orig_hp.num_choices)
-        self.assertTupleEqual(copy_hp.probabilities, orig_hp.probabilities)
+        self.assertTupleEqual(copy_hp.probabilities, (
+            0.3333333333333333, 0.3333333333333333, 0.3333333333333333))
+        self.assertTupleEqual(orig_hp.probabilities, (
+            0.3333333333333333, 0.3333333333333333, 0.3333333333333333))
 
     def test_categorical_with_weights(self):
         rs = np.random.RandomState()

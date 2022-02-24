@@ -202,8 +202,6 @@ class TestPCSConverter(unittest.TestCase):
         self.assertEqual(expected, value)
 
     def test_build_forbidden(self):
-        expected = "a {a, b, c} [a]\nb {a, b, c} [c]\n\n" \
-                   "{a=a, b=a}\n{a=a, b=b}\n{a=b, b=a}\n{a=b, b=b}"
         cs = ConfigurationSpace()
         a = CategoricalHyperparameter("a", ["a", "b", "c"], "a")
         b = CategoricalHyperparameter("b", ["a", "b", "c"], "c")
@@ -212,8 +210,9 @@ class TestPCSConverter(unittest.TestCase):
         fb = ForbiddenAndConjunction(ForbiddenInClause(a, ["a", "b"]),
                                      ForbiddenInClause(b, ["a", "b"]))
         cs.add_forbidden_clause(fb)
-        value = pcs.write(cs)
-        self.assertIn(expected, value)
+        # Cannot currently write to PCS for categorical HPs
+        with self.assertRaises(ValueError):
+            pcs.write(cs)
 
     """
     Tests for the "newer pcs" version in order to check
@@ -327,8 +326,6 @@ class TestPCSConverter(unittest.TestCase):
         self.assertEqual(expected, value)
 
     def test_build_new_forbidden(self):
-        expected = "a categorical {a, b, c} [a]\nb categorical {a, b, c} [c]\n\n" \
-                   "{a=a, b=a}\n{a=a, b=b}\n{a=b, b=a}\n{a=b, b=b}\n"
         cs = ConfigurationSpace()
         a = CategoricalHyperparameter("a", ["a", "b", "c"], "a")
         b = CategoricalHyperparameter("b", ["a", "b", "c"], "c")
@@ -337,8 +334,9 @@ class TestPCSConverter(unittest.TestCase):
         fb = ForbiddenAndConjunction(ForbiddenInClause(a, ["a", "b"]),
                                      ForbiddenInClause(b, ["a", "b"]))
         cs.add_forbidden_clause(fb)
-        value = pcs_new.write(cs)
-        self.assertEqual(expected, value)
+        # Cannot currently write to PCS for categorical HPs
+        with self.assertRaises(ValueError):
+            pcs_new.write(cs)
 
     def test_build_new_GreaterThanFloatCondition(self):
         expected = "b integer [0, 10] [5]\n" \
@@ -545,13 +543,12 @@ class TestPCSConverter(unittest.TestCase):
         tf = tempfile.NamedTemporaryFile()
         name = tf.name
         tf.close()
-        with open(name, 'w') as fh:
-            pcs_string = pcs.write(cs)
-            fh.write(pcs_string)
+        # Cannot currently write to PCS for categorical HPs
+        with self.assertRaises(ValueError):
+            with open(name, 'w') as fh:
+                pcs.write(cs)
         with open(name, 'r') as fh:
-            pcs_new = pcs.read(fh)
-
-        self.assertEqual(pcs_new, cs, msg=(pcs_new, cs))
+            pcs.read(fh)
 
     def test_write_categorical_with_weights(self):
         cat = CategoricalHyperparameter('a', ['a', 'b'], weights=[0.3, 0.7])
