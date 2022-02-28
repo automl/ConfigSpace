@@ -1054,7 +1054,7 @@ cdef class BetaFloatHyperparameter(FloatHyperparameter):
                                           default_value=self.default_value,
                                           q=self.q, log=self.log)
 
-    def check_default(self, default_value: Union[int, float]) -> Union[int, float]:
+    def check_default(self, default_value: Union[int, float, None]) -> Union[int, float]:
         # return mode as default
         lb = self.lower
         ub = self.upper
@@ -1085,18 +1085,10 @@ cdef class BetaFloatHyperparameter(FloatHyperparameter):
                                            q=q_int, log=self.log)
 
     def is_legal(self, value: Union[float]) -> bool:
-        if not (isinstance(value, float) or isinstance(value, int)):
-            return False
-        elif self.upper >= value >= self.lower:
-            return True
-        else:
-            return False
+        return isinstance(value, (float, int)) and (self._lower <= value <= self._upper)
 
     cpdef bint is_legal_vector(self, DTYPE_t value):
-        if self._upper >= value >= self._lower:
-            return True
-        else:
-            return False
+        return self._upper >= value >= self._lower
 
     def _sample(self, rs: np.random.RandomState, size: Optional[int] = None
                 ) -> Union[np.ndarray, float]:
@@ -1853,7 +1845,7 @@ cdef class BetaIntegerHyperparameter(IntegerHyperparameter):
         else:
             return False
 
-    def check_default(self, default_value: int) -> int:
+    def check_default(self, default_value: Union[int, float, None]) -> int:
         if self.is_legal(default_value):
             return default_value
         else:
@@ -1932,6 +1924,7 @@ cdef class BetaIntegerHyperparameter(IntegerHyperparameter):
                         idx = 0
                     if new_value < self._lower or new_value > self._upper:
                         continue
+                        
                     new_int_value = self._transform(new_value)
                     if int_value == new_int_value:
                         continue
