@@ -1177,7 +1177,9 @@ cdef class BetaFloatHyperparameter(FloatHyperparameter):
                  q: Union[int, float, None] = None, log: bool = False,
                  meta: Optional[Dict] = None) -> None:
         r"""
-        A beta distributed float hyperparameter.
+        A beta distributed float hyperparameter. The bounds 'lower' and 'upper' move and scale
+        the distibution, so that the shape of the distribution is preserved as if it were in the
+        typical [0, 1]-range.
 
         Its values are sampled from a beta distribution
         :math:`Beta(\alpha, \beta)`.
@@ -1323,26 +1325,20 @@ cdef class BetaFloatHyperparameter(FloatHyperparameter):
         return hash((self.name, self.alpha, self.beta, self.lower, self.upper, self.log, self.q))
 
     def to_uniform(self) -> 'UniformFloatHyperparameter':
-        lb = self.lower
-        ub = self.upper
-
         return UniformFloatHyperparameter(self.name,
-                                          lb,
-                                          ub,
+                                          self.lower,
+                                          self.upper,
                                           default_value=self.default_value,
                                           q=self.q, log=self.log)
 
     def check_default(self, default_value: Union[int, float, None]) -> Union[int, float]:
         # return mode as default
-        lb = self.lower
-        ub = self.upper
-        
         if default_value is None:
             if (self.alpha > 1) and (self.beta > 1):
                 normalized_mode = (self.alpha - 1) / (self.alpha + self.beta - 2)
                 return self._transform_scalar((self._upper - self._lower) * normalized_mode + self._lower)
             else: 
-                return (ub - lb) / 2
+                return (self.upper - self.lowerb) / 2
 
         elif self.is_legal(default_value):
             return default_value
