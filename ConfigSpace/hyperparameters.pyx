@@ -1363,7 +1363,10 @@ cdef class BetaFloatHyperparameter(FloatHyperparameter):
                                            q=q_int, log=self.log)
 
     def is_legal(self, value: Union[float]) -> bool:
-        return isinstance(value, (float, int)) and (self._lower <= value <= self._upper)
+        if isinstance(value, (float, int)):
+            return self.upper >= value >= self.lower
+        return False
+
 
     cpdef bint is_legal_vector(self, DTYPE_t value):
         return self._upper >= value >= self._lower
@@ -2227,18 +2230,12 @@ cdef class BetaIntegerHyperparameter(IntegerHyperparameter):
                                             q=self.q, log=self.log)
 
     def is_legal(self, value: int) -> bool:
-        if not (isinstance(value, (int, np.int32, np.int64))):
-            return False
-        elif self.upper >= value >= self.lower:
-            return True
-        else:
-            return False
+        if isinstance(value, (int, np.int32, np.int64)):
+            return self.upper >= value >= self.lower
+        return False
 
     cpdef bint is_legal_vector(self, DTYPE_t value):
-        if self._upper >= value >= self._lower:
-            return True
-        else:
-            return False
+        return self._upper >= value >= self._lower
 
     def check_default(self, default_value: Union[int, float, None]) -> int:
         if self.is_legal(default_value):
