@@ -1024,7 +1024,7 @@ cdef class BetaFloatHyperparameter(UniformFloatHyperparameter):
     def check_default(self, default_value: Union[int, float, None]) -> Union[int, float]:
         # return mode as default
         if default_value is None:
-            if (self.alpha >= 1) and (self.beta >= 1):
+            if (self.alpha > 1) or (self.beta > 1):
                 normalized_mode = (self.alpha - 1) / (self.alpha + self.beta - 2)
                 return self._transform_scalar(normalized_mode)
             else: 
@@ -1587,7 +1587,7 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
             return np.rint((self.upper - self.lower) / self.q) + 1
 
 
-cdef class BetaIntegerHyperparameter(IntegerHyperparameter):
+cdef class BetaIntegerHyperparameter(UniformIntegerHyperparameter):
     cdef public alpha
     cdef public beta
     cdef public bfhp
@@ -1641,37 +1641,13 @@ cdef class BetaIntegerHyperparameter(IntegerHyperparameter):
             Not used by the configuration space.
 
         """
-        super(BetaIntegerHyperparameter, self).__init__(name, default_value, meta)
-
-        self.alpha = alpha
-        self.beta = beta
-
-        if default_value is not None:
-            default_value = self.check_int(default_value, self.name)
-
-        if q is not None:
-            if q < 1:
-                warnings.warn("Setting quantization < 1 for Integer "
-                              "Hyperparameter '%s' has no effect." %
-                              name)
-                self.q = None
-            else:
-                self.q = self.check_int(q, "q")
-        else:
-            self.q = None
-        self.log = bool(log)
-
-        self.upper = self.check_int(upper, "upper")
-        self.lower = self.check_int(lower, "lower")
-        if self.lower >= self.upper:
-            raise ValueError("Upper bound %d must be larger than lower bound "
-                            "%d for hyperparameter %s" %
-                            (self.lower, self.upper, name))
-        elif log and self.lower <= 0:
-            raise ValueError("Negative lower bound (%d) for log-scale "
-                            "hyperparameter %s is forbidden." %
-                            (self.lower, name))
-
+        super(BetaIntegerHyperparameter, self).__init__(
+            name, lower, upper, round((upper - lower) / 2), q, log, meta)
+        self.alpha = float(alpha)
+        self.beta = float(beta)
+        if (alpha < 1) or (beta < 1):
+            raise ValueError("Please provide values of alpha and beta larger than or equal to\
+             1 so that the probability density is finite.")
         self.bfhp = BetaFloatHyperparameter(self.name,
                                               self.alpha,
                                               self.beta,
@@ -1681,8 +1657,6 @@ cdef class BetaIntegerHyperparameter(IntegerHyperparameter):
                                               upper=self.upper,
                                               default_value=self.default_value)
 
-        self._lower = self.bfhp._lower
-        self._upper = self.bfhp._upper
         self.default_value = self.check_default(default_value)
         self.normalized_default_value = self._inverse_transform(self.default_value)
         
@@ -1749,21 +1723,21 @@ cdef class BetaIntegerHyperparameter(IntegerHyperparameter):
                                             default_value=self.default_value,
                                             q=self.q, log=self.log)
 
-    def is_legal(self, value: int) -> bool:
-        if isinstance(value, (int, np.int32, np.int64)):
-            return self.upper >= value >= self.lower
-        return False
-
-    cpdef bint is_legal_vector(self, DTYPE_t value):
-        return self._upper >= value >= self._lower
 
     def check_default(self, default_value: Union[int, float, None]) -> int:
+        if default_value is None:
+            # Here, we just let the BetaFloat take care of the default value
+            # computation, and just tansform it accordingly
+            value = self.bfhp.check_default(None)   
+            value = self._inverse_transform(value)
+            value = self._transform(value)
+            return value
+        
         if self.is_legal(default_value):
             return default_value
         else:
-            return int(round(self.bfhp.check_default(None)))
-
-        
+            raise ValueError('Illegal default value {}'.format(default_value))
+          
     def _sample(self, rs: np.random.RandomState, size: Optional[int] = None
                 ) -> Union[np.ndarray, float]:
         value = self.bfhp._sample(rs, size=size)
@@ -1774,110 +1748,6 @@ cdef class BetaIntegerHyperparameter(IntegerHyperparameter):
         value = self._inverse_transform(value)
         return value
 
-    cpdef np.ndarray _transform_vector(self, np.ndarray vector):
-        vector = self.bfhp._transform_vector(vector)
-        return np.rint(vector)
-
-    cpdef long long _transform_scalar(self, double scalar):
-        scalar = self.bfhp._transform_scalar(scalar)
-        return int(round(scalar))
-
-    def _inverse_transform(self, vector: Union[np.ndarray, float, int]
-                           ) -> Union[np.ndarray, float]:
-        return self.bfhp._inverse_transform(vector)
-
-    def has_neighbors(self) -> bool:
-        return True
-
-    def get_neighbors(
-        self,
-        value: Union[int, float],
-        rs: np.random.RandomState,
-        number: int = 4,
-        transform: bool = False,
-        std: float = 0.2,
-    ) -> List[int]:
-        cdef int n_requested = number
-        cdef int idx = 0
-        cdef int i = 0
-        neighbors = []  # type: List[int]
-        cdef int sampled_neighbors = 0
-        _neighbors_as_int = set()  # type: Set[int]
-        cdef long long int_value = self._transform(value)
-        cdef long long new_int_value = 0
-        cdef float new_value = 0.0
-        cdef np.ndarray samples
-        cdef double[:] samples_view
-        
-        norm_std = std * (self._upper - self._lower) 
-        if self.upper - self.lower <= n_requested:
-            transformed_value = self._transform(value)
-            for n in range(self.lower, self.upper + 1):
-                if n != int_value:
-                    if transform:
-                        neighbors.append(n)
-                    else:
-                        n = self._inverse_transform(n)
-                        neighbors.append(n)
-
-        else:
-            samples = rs.normal(loc=value, scale=norm_std, size=250)
-            samples_view = samples
-
-            while sampled_neighbors < n_requested:
-
-                while True:
-                    new_value = samples_view[idx]
-                    idx += 1
-                    i += 1
-                    if idx >= 250:
-                        samples = rs.normal(loc=value, scale=norm_std, size=250)
-                        samples_view = samples
-                        idx = 0
-                    if new_value < self._lower or new_value > self._upper:
-                        continue
-                        
-                    new_int_value = self._transform(new_value)
-                    if int_value == new_int_value:
-                        continue
-                    elif i >= 200:
-                        # Fallback to uniform sampling if generating samples correctly
-                        # takes too long
-                        values_to_sample = [j for j in range(self.lower, self.upper + 1)
-                                            if j != int_value]
-                        samples = rs.choice(
-                            values_to_sample,
-                            size=n_requested,
-                            replace=False,
-                        )
-                        for sample in samples:
-                            if transform:
-                                neighbors.append(sample)
-                            else:
-                                sample = self._inverse_transform(sample)
-                                neighbors.append(sample)
-                        break
-                    elif new_int_value in _neighbors_as_int:
-                        continue
-                    elif int_value != new_int_value:
-                        break
-
-                _neighbors_as_int.add(new_int_value)
-                sampled_neighbors += 1
-                if transform:
-                    neighbors.append(new_int_value)
-                else:
-                    new_value = self._inverse_transform(new_int_value)
-                    neighbors.append(new_value)
-
-        return neighbors
-
-    def get_size(self) -> float:
-        if self.q is None:
-            q = 1
-        else:
-            q = self.q
-        return np.rint((self.upper - self.lower) / q) + 1
 
 
 cdef class CategoricalHyperparameter(Hyperparameter):

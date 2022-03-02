@@ -732,19 +732,23 @@ class TestHyperparameters(unittest.TestCase):
             f2 = BetaIntegerHyperparameter("param", lower=-2, upper=2, alpha=5, beta=11, q=0.1)
 
         b1 = BetaIntegerHyperparameter("param", lower=-3, upper=10, alpha=3.0, beta=1.0)
-        self.assertEqual(b1.get_neighbors(2, rs=np.random.RandomState(42)),
-                         [3.0, 4.0, 6.0, 1.0])
+        self.assertEqual(b1.get_neighbors(0.05, transform=False, rs=np.random.RandomState(42)),
+                         [0.1785709708929062, 0.3214283287525177,
+                          0.39285698533058167, 0.10714229941368103])
+
+        self.assertEqual(b1.get_neighbors(0.05, transform=True, rs=np.random.RandomState(42)),
+                         [-1, 1, 2, -2])
 
         b1_ext = BetaIntegerHyperparameter("param", lower=-12.0, upper=12.0, alpha=3.0, beta=1.0)
-        self.assertEqual(b1_ext.get_neighbors(12, rs=np.random.RandomState(42)),
-                         [11.0, 10.0, 3.0, 4.0])
+        self.assertEqual(b1_ext.get_neighbors(0.9, transform=True, rs=np.random.RandomState(42)),
+                         [12, 9, 8, 11])
 
         b1_log = BetaIntegerHyperparameter(
             "param", lower=1.0, upper=1000.0, alpha=3.0, beta=1.0, log=True)
         self.assertEqual(b1_log.get_neighbors(
-            np.log(1000), rs=np.random.RandomState(42), transform=True), [826, 724, 523, 527])
+            0.99, rs=np.random.RandomState(42), transform=True), [751, 650, 454, 458])
         self.assertEqual(b1_log.get_neighbors(
-            np.log(1), rs=np.random.RandomState(42), transform=True), [2, 8, 9, 3])
+            0.01, rs=np.random.RandomState(42), transform=True), [5, 6, 2, 9])
 
         # Test attributes are accessible
         self.assertEqual(f1.name, "param")
@@ -753,8 +757,10 @@ class TestHyperparameters(unittest.TestCase):
         self.assertAlmostEqual(f1.q, None)
         self.assertEqual(f1.log, False)
         self.assertEqual(f1.default_value, 2)
-        # beta parameters are not normalized (as normal parameters are not, either.)
-        self.assertEqual(f1.normalized_default_value, 2)
+        # beta parameters are normalized scaled to the unit cube, so for the parameter
+        # in [-2, 2]-range, the values are staggered from 0.1 to 0.9
+        #
+        self.assertAlmostEqual(f1.normalized_default_value, 0.9, places=4)
 
         # Test copy
         copy_f1 = copy.copy(f1)
@@ -808,11 +814,7 @@ class TestHyperparameters(unittest.TestCase):
     def test_betaint_legal_float_values(self):
         f1 = BetaIntegerHyperparameter("param", lower=-2.0, upper=2.0, alpha=3.0, beta=1.1)
         self.assertIsInstance(f1.default_value, int)
-        self.assertRaisesRegex(ValueError, r"For the Integer parameter param, "
-                                           r"the value must be an Integer, too."
-                                           r" Right now it is a "
-                                           r"<(type|class) 'float'>"
-                                           r" with value 0.5.",
+        self.assertRaisesRegex(ValueError, "Illegal default value 0.5",
                                            BetaIntegerHyperparameter, "param",
                                            lower=-2.0,
                                            upper=2.0,
@@ -846,8 +848,9 @@ class TestHyperparameters(unittest.TestCase):
         self.assertTrue(f1.is_legal_vector(0.0))
         self.assertTrue(f1.is_legal_vector(0))
         self.assertTrue(f1.is_legal_vector(0.3))
-        self.assertTrue(f1.is_legal_vector(-0.1))
-        self.assertTrue(f1.is_legal_vector(1.1))
+        # Since this is outside of [0, 1]-range
+        self.assertFalse(f1.is_legal_vector(-0.1))
+        self.assertFalse(f1.is_legal_vector(1.1))
         self.assertRaises(TypeError, f1.is_legal_vector, "Hahaha")
 
     def test_categorical(self):
@@ -1247,19 +1250,18 @@ class TestHyperparameters(unittest.TestCase):
         self.assertEqual(len(np.unique(values)), 5)
 
     def test_sample_BetaIntegerHyperparameter(self):
-        hp = BetaIntegerHyperparameter("bihp", alpha=8, beta=1.5, lower=-1, upper=10)
+        hp = BetaIntegerHyperparameter("bihp", alpha=4, beta=4, lower=0, upper=10)
 
         def actual_test():
             rs = np.random.RandomState(1)
             counts_per_bin = [0 for i in range(11)]
             for i in range(1000):
                 value = hp.sample(rs)
-                index = np.floor(value).astype(int)
-                counts_per_bin[index] += 1
+                counts_per_bin[value] += 1
 
-            self.assertEqual([0, 0, 2, 3, 7, 25, 63, 145, 248, 355, 152], counts_per_bin)
+            # The chosen distribution is symmetric, so we expect to see a symmetry in the bins
+            self.assertEqual([1, 23, 82, 121, 174, 197, 174, 115, 86, 27, 0], counts_per_bin)
 
-            self.assertIsInstance(value, int)
             return counts_per_bin
 
         self.assertEqual(actual_test(), actual_test())
