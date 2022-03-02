@@ -391,7 +391,7 @@ cdef class IntegerHyperparameter(NumericalHyperparameter):
 
     def check_default(self, default_value) -> int:
         raise NotImplemented
-
+    
     def check_int(self, parameter: int, name: str) -> int:
         if abs(int(parameter) - parameter) > 0.00000001 and \
                         type(parameter) is not int:
@@ -422,7 +422,7 @@ cdef class UniformFloatHyperparameter(FloatHyperparameter):
                  q: Union[int, float, None] = None, log: bool = False,
                  meta: Optional[Dict] = None) -> None:
         """
-        A float hyperparameter.
+        A uniformly distributed float hyperparameter.
 
         Its values are sampled from a uniform distribution with values
         from ``lower`` to ``upper``.
@@ -547,10 +547,10 @@ cdef class UniformFloatHyperparameter(FloatHyperparameter):
         # or inside class itself
         return UniformIntegerHyperparameter(
             name=self.name,
-            lower=int(self.lower),
-            upper=int(self.upper),
-            default_value=int(np.round(self.default_value)),
-            q=int(self.q),
+            lower=int(np.ceil(self.lower)),
+            upper=int(np.floor(self.upper)),
+            default_value=int(np.rint(self.default_value)),
+            q=int(np.rint(self.q)),
             log=self.log,
         )
 
@@ -618,7 +618,6 @@ cdef class UniformFloatHyperparameter(FloatHyperparameter):
         else:
             return np.rint((self.upper - self.lower) / self.q) + 1
 
-
 cdef class NormalFloatHyperparameter(FloatHyperparameter):
     cdef public mu
     cdef public sigma
@@ -630,7 +629,7 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
                  upper: Optional[Union[float, int]] = None,
                  meta: Optional[Dict] = None) -> None:
         r"""
-        A float hyperparameter.
+        A normally distributed float hyperparameter.
 
         Its values are sampled from a normal distribution
         :math:`\mathcal{N}(\mu, \sigma^2)`.
@@ -790,13 +789,15 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
         return UniformFloatHyperparameter(self.name,
                                           lb,
                                           ub,
-                                          default_value=int(
-                                              np.round(self.default_value, 0)),
+                                          default_value=self.default_value,
                                           q=self.q, log=self.log)
 
     def check_default(self, default_value: Union[int, float]) -> Union[int, float]:
         if default_value is None:
-            return self.mu
+            if self.log:
+                return self._transform_scalar(self.mu)
+            else:
+                return self.mu
 
         elif self.is_legal(default_value):
             return default_value
@@ -807,9 +808,17 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
         if self.q is None:
             q_int = None
         else:
-            q_int = int(self.q)
-        return NormalIntegerHyperparameter(self.name, int(self.mu), self.sigma,
-                                           default_value=int(np.round(self.default_value, 0)),
+            q_int = int(np.rint(self.q))
+        if self.lower is None:
+            lower = None
+            upper = None
+        else:
+            lower=np.ceil(self.lower)
+            upper=np.floor(self.upper)
+                                           
+        return NormalIntegerHyperparameter(self.name, int(np.rint(self.mu)), self.sigma,
+                                           lower=lower, upper=upper,
+                                           default_value=int(np.rint(self.default_value)),
                                            q=q_int, log=self.log)
 
     def is_legal(self, value: Union[float]) -> bool:
@@ -828,10 +837,11 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
         else:
             mu = self.mu
             sigma = self.sigma
-            lower = self.lower
-            upper = self.upper
-            a = (self.lower - mu) / sigma
+            lower = self._lower
+            upper = self._upper
+            a = (lower - mu) / sigma
             b = (upper - mu) / sigma
+
             return truncnorm.rvs(a, b, loc=mu, scale=sigma, size=size, random_state=rs)
 
     cpdef np.ndarray _transform_vector(self, np.ndarray vector):
@@ -886,7 +896,7 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
                  q: Union[int, None] = None, log: bool = False,
                  meta: Optional[Dict] = None) -> None:
         """
-        An integer hyperparameter.
+        A uniformly distributed integer hyperparameter.
 
         Its values are sampled from a uniform distribution
         with bounds ``lower`` and ``upper``.
@@ -961,6 +971,7 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
                                                self.upper + 0.49999,
                                                log=self.log,
                                                default_value=self.default_value)
+
         self.normalized_default_value = self._inverse_transform(self.default_value)
 
     def __repr__(self) -> str:
@@ -1142,8 +1153,7 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
 cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
     cdef public mu
     cdef public sigma
-    cdef nfhp
-
+    cdef public nfhp
 
     def __init__(self, name: str, mu: int, sigma: Union[int, float],
                  default_value: Union[int, None] = None, q: Union[None, int] = None,
@@ -1152,7 +1162,7 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
                  upper: Optional[int] = None,
                  meta: Optional[Dict] = None) -> None:
         r"""
-        An integer hyperparameter.
+        A normally distributed integer hyperparameter.
 
         Its values are sampled from a normal distribution
         :math:`\mathcal{N}(\mu, \sigma^2)`.
@@ -1160,13 +1170,13 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
         Example
         -------
 
-            >>> import ConfigSpace as CS
-            >>> import ConfigSpace.hyperparameters as CSH
-            >>> cs = CS.ConfigurationSpace(seed=1)
-            >>> normal_int_hp = CSH.NormalIntegerHyperparameter(name='normal_int', mu=0,
-            ...                                                 sigma=1, log=False)
-            >>> cs.add_hyperparameter(normal_int_hp)
-            normal_int, Type: NormalInteger, Mu: 0 Sigma: 1, Default: 0
+        >>> import ConfigSpace as CS
+        >>> import ConfigSpace.hyperparameters as CSH
+        >>> cs = CS.ConfigurationSpace(seed=1)
+        >>> normal_int_hp = CSH.NormalIntegerHyperparameter(name='normal_int', mu=0,
+        ...                                                 sigma=1, log=False)
+        >>> cs.add_hyperparameter(normal_int_hp)
+        normal_int, Type: NormalInteger, Mu: 0 Sigma: 1, Default: 0
 
         Parameters
         ----------
@@ -1213,8 +1223,6 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
             self.q = None
         self.log = bool(log)
 
-        self.default_value = self.check_default(default_value)
-
         if (lower is not None) ^ (upper is not None):
             raise ValueError("Only one bound was provided when both lower and upper bounds must be provided.")
 
@@ -1232,7 +1240,6 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
             self.lower = lower
             self.upper = upper
 
-
         self.nfhp = NormalFloatHyperparameter(self.name,
                                               self.mu,
                                               self.sigma,
@@ -1240,8 +1247,9 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
                                               q=self.q,
                                               lower=self.lower,
                                               upper=self.upper,
-                                              default_value=self.default_value)
+                                              default_value=default_value)
 
+        self.default_value = self.check_default(default_value)
         self.normalized_default_value = self._inverse_transform(self.default_value)
 
     def __repr__(self) -> str:
@@ -1302,7 +1310,6 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
             meta=self.meta
         )
 
-    # todo check if conversion should be done in initiation call or inside class itsel
     def to_uniform(self, z: int = 3) -> 'UniformIntegerHyperparameter':
         if self.lower is None or self.upper is None:
             lb = np.round(int(self.mu - (z * self.sigma)))
@@ -1325,7 +1332,10 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
 
     def check_default(self, default_value: int) -> int:
         if default_value is None:
-            return self.mu
+            if self.log:
+                return self._transform_scalar(self.mu)
+            else:
+                return self.mu
 
         elif self.is_legal(default_value):
             return default_value
@@ -1388,7 +1398,7 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
             else:
                 neighbors.append(new_value)
         return neighbors
-
+        
     def get_size(self) -> float:
         if self.lower is None:
             return np.inf
@@ -1402,11 +1412,12 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
 
 cdef class CategoricalHyperparameter(Hyperparameter):
     cdef public tuple choices
-    cdef public tuple probabilities
+    cdef public tuple weights
     cdef public int num_choices
+    cdef public tuple probabilities
     cdef list choices_vector
     cdef set _choices_set
-
+    
     # TODO add more magic for automated type recognition
     # TODO move from list to tuple for choices argument
     def __init__(
@@ -1471,6 +1482,8 @@ cdef class CategoricalHyperparameter(Hyperparameter):
             raise TypeError('Using a set of weights is prohibited as it can result in '
                             'non-deterministic behavior. Please use a list or a tuple.')
         self.choices = tuple(choices)
+        if weights is not None:
+            self.weights = tuple(weights)
         self.probabilities = self._get_probabilities(choices=self.choices, weights=weights)
         self.num_choices = len(choices)
         self.choices_vector = list(range(self.num_choices))
@@ -1488,7 +1501,8 @@ cdef class CategoricalHyperparameter(Hyperparameter):
         repr_str.write("}")
         repr_str.write(", Default: ")
         repr_str.write(str(self.default_value))
-        if self.probabilities is not None:
+        # if the probability distribution is not uniform, write out the probabilities
+        if not np.all(self.probabilities == self.probabilities[0]):
             repr_str.write(", Probabilities: %s" % str(self.probabilities))
         repr_str.seek(0)
         return repr_str.getvalue()
@@ -1553,7 +1567,25 @@ cdef class CategoricalHyperparameter(Hyperparameter):
             name=self.name,
             choices=copy.deepcopy(self.choices),
             default_value=self.default_value,
-            weights=copy.deepcopy(self.probabilities),
+            weights=copy.deepcopy(self.weights),
+            meta=self.meta
+        )
+
+    def to_uniform(self) -> 'CategoricalHyperparameter':
+        """
+        Creates a categorical parameter with equal weights for all choices
+        This is used for the uniform configspace when sampling configurations in the local search
+        in PiBO: https://openreview.net/forum?id=MMAeCXIa89
+        
+        Returns
+        ----------
+        CategoricalHyperparameter
+            An identical parameter as the original, except that all weights are uniform.
+        """
+        return CategoricalHyperparameter(
+            name=self.name,
+            choices=copy.deepcopy(self.choices),
+            default_value=self.default_value,
             meta=self.meta
         )
 
@@ -1581,7 +1613,7 @@ cdef class CategoricalHyperparameter(Hyperparameter):
     def _get_probabilities(self, choices: Tuple[Union[None, str, float, int]],
                            weights: Union[None, List[float]]) -> Union[None, List[float]]:
         if weights is None:
-            return weights
+            return tuple(np.ones(len(choices)) / len(choices))
 
         if len(weights) != len(choices):
             raise ValueError(
@@ -1640,7 +1672,7 @@ cdef class CategoricalHyperparameter(Hyperparameter):
             return self._transform_scalar(vector)
         except ValueError:
             return None
-
+    
     def _inverse_transform(self, vector: Union[None, str, float, int]) -> Union[int, float]:
         if vector is None:
             return np.NaN
