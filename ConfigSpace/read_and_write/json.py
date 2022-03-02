@@ -308,7 +308,7 @@ def write(configuration_space, indent=2):
 
         >>> with open('configspace.json', 'w') as f:
         ...      f.write(json.write(cs))
-        305
+        299
 
     Parameters
     ----------
