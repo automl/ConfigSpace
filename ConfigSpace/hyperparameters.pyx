@@ -911,7 +911,7 @@ cdef class BetaFloatHyperparameter(UniformFloatHyperparameter):
         >>> import ConfigSpace.hyperparameters as CSH
         >>> cs = CS.ConfigurationSpace(seed=1)
         >>> beta_float_hp = CSH.BetaFloatHyperparameter('beta_float', alpha=3,
-        ...                                                 beta=2, lower=1, upper=4, log=False)
+        ...                                             beta=2, lower=1, upper=4, log=False)
         >>> cs.add_hyperparameter(beta_float_hp)
         beta_float, Type: BetaFloat, Alpha: 3.0 Beta: 2.0, Range: [1.0, 4.0], Default: 3.0
 
