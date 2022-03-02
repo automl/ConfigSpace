@@ -1332,7 +1332,7 @@ cdef class BetaFloatHyperparameter(FloatHyperparameter):
                                           default_value=self.default_value,
                                           q=self.q, log=self.log)
 
-    def check_default(self, default_value: Union[int, float]) -> Union[int, float]:
+    def check_default(self, default_value: Union[int, float, None]) -> Union[int, float]:
         # return mode as default
         lb = self.lower
         ub = self.upper
@@ -1363,18 +1363,10 @@ cdef class BetaFloatHyperparameter(FloatHyperparameter):
                                            q=q_int, log=self.log)
 
     def is_legal(self, value: Union[float]) -> bool:
-        if not (isinstance(value, float) or isinstance(value, int)):
-            return False
-        elif self.upper >= value >= self.lower:
-            return True
-        else:
-            return False
+        return isinstance(value, (float, int)) and (self._lower <= value <= self._upper)
 
     cpdef bint is_legal_vector(self, DTYPE_t value):
-        if self._upper >= value >= self._lower:
-            return True
-        else:
-            return False
+        return self._upper >= value >= self._lower
 
     def _sample(self, rs: np.random.RandomState, size: Optional[int] = None
                 ) -> Union[np.ndarray, float]:
@@ -2248,7 +2240,7 @@ cdef class BetaIntegerHyperparameter(IntegerHyperparameter):
         else:
             return False
 
-    def check_default(self, default_value: int) -> int:
+    def check_default(self, default_value: Union[int, float, None]) -> int:
         if self.is_legal(default_value):
             return default_value
         else:
@@ -2327,6 +2319,7 @@ cdef class BetaIntegerHyperparameter(IntegerHyperparameter):
                         idx = 0
                     if new_value < self._lower or new_value > self._upper:
                         continue
+                        
                     new_int_value = self._transform(new_value)
                     if int_value == new_int_value:
                         continue
@@ -2405,11 +2398,12 @@ cdef class BetaIntegerHyperparameter(IntegerHyperparameter):
 
 cdef class CategoricalHyperparameter(Hyperparameter):
     cdef public tuple choices
-    cdef public tuple probabilities
+    cdef public tuple weights
     cdef public int num_choices
+    cdef public tuple probabilities
     cdef list choices_vector
     cdef set _choices_set
-
+    
     # TODO add more magic for automated type recognition
     # TODO move from list to tuple for choices argument
     def __init__(
@@ -2474,6 +2468,8 @@ cdef class CategoricalHyperparameter(Hyperparameter):
             raise TypeError('Using a set of weights is prohibited as it can result in '
                             'non-deterministic behavior. Please use a list or a tuple.')
         self.choices = tuple(choices)
+        if weights is not None:
+            self.weights = tuple(weights)
         self.probabilities = self._get_probabilities(choices=self.choices, weights=weights)
         self.num_choices = len(choices)
         self.choices_vector = list(range(self.num_choices))
@@ -2526,7 +2522,7 @@ cdef class CategoricalHyperparameter(Hyperparameter):
             name=self.name,
             choices=copy.deepcopy(self.choices),
             default_value=self.default_value,
-            weights=copy.deepcopy(self.probabilities),
+            weights=copy.deepcopy(self.weights),
             meta=self.meta
         )
 
