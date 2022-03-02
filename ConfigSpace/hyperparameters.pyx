@@ -899,7 +899,9 @@ cdef class BetaFloatHyperparameter(UniformFloatHyperparameter):
                  q: Union[int, float, None] = None, log: bool = False,
                  meta: Optional[Dict] = None) -> None:
         r"""
-        A beta distributed float hyperparameter.
+        A beta distributed float hyperparameter. The 'lower' and 'upper' parameters move the
+        distribution from the [0, 1]-range and scale it appropriately, but the shape of the
+        distribution is preserved as if it were in [0, 1]-range.
 
         Its values are sampled from a beta distribution
         :math:`Beta(\alpha, \beta)`.
@@ -1012,12 +1014,9 @@ cdef class BetaFloatHyperparameter(UniformFloatHyperparameter):
         return hash((self.name, self.alpha, self.beta, self.lower, self.upper, self.log, self.q))
 
     def to_uniform(self) -> 'UniformFloatHyperparameter':
-        lb = self.lower
-        ub = self.upper
-
         return UniformFloatHyperparameter(self.name,
-                                          lb,
-                                          ub,
+                                          self.lower,
+                                          self.upper,
                                           default_value=self.default_value,
                                           q=self.q, log=self.log)
 
@@ -1599,10 +1598,12 @@ cdef class BetaIntegerHyperparameter(UniformIntegerHyperparameter):
                  log: bool = False,
                  meta: Optional[Dict] = None) -> None:
         r"""
-        A beta distributed integer hyperparameter.
+        A beta distributed integer hyperparameter. The 'lower' and 'upper' parameters move the
+        distribution from the [0, 1]-range and scale it appropriately, but the shape of the
+        distribution is preserved as if it were in [0, 1]-range.
 
-        Its values are sampled from a normal distribution
-        :math:`\mathcal{N}(\mu, \sigma^2)`.
+        Its values are sampled from a beta distribution
+        :math:`Beta(\alpha, \beta)`.
 
         Example
         -------
@@ -1610,10 +1611,10 @@ cdef class BetaIntegerHyperparameter(UniformIntegerHyperparameter):
         >>> import ConfigSpace as CS
         >>> import ConfigSpace.hyperparameters as CSH
         >>> cs = CS.ConfigurationSpace(seed=1)
-        >>> beta_int_hp = CSH.BetaFloatHyperparameter('beta_int', alpha=3,
-        ...                                                 beta=2, lower=1, upper=4, log=False)
+        >>> beta_int_hp = CSH.BetaIntegerHyperparameter('beta_int', alpha=3,
+        ...                                             beta=2, lower=1, upper=4, log=False)
         >>> cs.add_hyperparameter(beta_int_hp)
-        beta_int, Type: BetaFloat, Alpha: 3.0 Beta: 2.0, Range: [1.0, 4.0], Default: 3.0
+        beta_int, Type: BetaInteger, Alpha: 3.0 Beta: 2.0, Range: [1, 4], Default: 3
 
 
         Parameters
@@ -1714,12 +1715,9 @@ cdef class BetaIntegerHyperparameter(UniformIntegerHyperparameter):
         )
 
     def to_uniform(self) -> 'UniformIntegerHyperparameter':
-        lb = self.lower
-        ub = self.upper
-
         return UniformIntegerHyperparameter(self.name,
-                                            lb,
-                                            ub,
+                                            self.lower,
+                                            self.upper,
                                             default_value=self.default_value,
                                             q=self.q, log=self.log)
 
