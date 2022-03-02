@@ -1407,7 +1407,7 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
 
 cdef class CategoricalHyperparameter(Hyperparameter):
     cdef public tuple choices
-    cdef public list weights
+    cdef public tuple weights
     cdef public int num_choices
     cdef public tuple probabilities
     cdef list choices_vector
@@ -1477,7 +1477,8 @@ cdef class CategoricalHyperparameter(Hyperparameter):
             raise TypeError('Using a set of weights is prohibited as it can result in '
                             'non-deterministic behavior. Please use a list or a tuple.')
         self.choices = tuple(choices)
-        self.weights = weights
+        if weights is not None:
+            self.weights = tuple(weights)
         self.probabilities = self._get_probabilities(choices=self.choices, weights=weights)
         self.num_choices = len(choices)
         self.choices_vector = list(range(self.num_choices))
