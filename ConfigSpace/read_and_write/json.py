@@ -106,7 +106,7 @@ def _build_categorical(param: CategoricalHyperparameter) -> Dict:
         'type': 'categorical',
         'choices': param.choices,
         'default': param.default_value,
-        'probabilities': param.probabilities,
+        'weights': param.weights,
     }
 
 
@@ -462,7 +462,7 @@ def _construct_hyperparameter(hyperparameter: Dict) -> Hyperparameter:
             name=name,
             choices=hyperparameter['choices'],
             default_value=hyperparameter['default'],
-            weights=hyperparameter.get('probabilities'),
+            weights=hyperparameter.get('weights'),
         )
     elif hp_type == 'ordinal':
         return OrdinalHyperparameter(
