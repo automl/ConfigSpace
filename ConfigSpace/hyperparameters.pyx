@@ -888,7 +888,7 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
             return np.rint((self.upper - self.lower) / self.q) + 1
 
 
-cdef class BetaFloatHyperparameter(FloatHyperparameter):
+cdef class BetaFloatHyperparameter(UniformFloatHyperparameter):
     cdef public alpha
     cdef public beta
 
@@ -940,56 +940,23 @@ cdef class BetaFloatHyperparameter(FloatHyperparameter):
             Field for holding meta data provided by the user.
             Not used by the configuration space.
         """
-        super(BetaFloatHyperparameter, self).__init__(name, default_value, meta)
+        # TODO - we cannot use the check_default of UniformFloat (but everything else),
+        # but we still need to overwrite it. Thus, we first just need it not to raise an
+        # error, which we do by setting default_value = upper - lower / 2 to not raise an error,
+        # then actually call check_default once we have alpha and beta, and are not inside 
+        # UniformFloatHP.
+        super(BetaFloatHyperparameter, self).__init__(
+            name, lower, upper, (upper - lower) / 2, q, log, meta)
+        self.alpha = float(alpha)
+        self.beta = float(beta)
         if (alpha < 1) or (beta < 1):
             raise ValueError("Please provide values of alpha and beta larger than or equal to\
              1 so that the probability density is finite.")
-        self.alpha = float(alpha)
-        self.beta = float(beta)
-        self.q = float(q) if q is not None else None
-        self.log = bool(log)
-        self.lower = float(lower)
-        self.upper = float(upper)
-
-        if self.lower >= self.upper:
-            raise ValueError("Upper bound %f must be larger than lower bound "
-                            "%f for hyperparameter %s" %
-                            (self.upper, self.lower, name))
-        elif log and self.lower <= 0:
-            raise ValueError("Negative lower bound (%f) for log-scale "
-                            "hyperparameter %s is forbidden." %
-                            (self.lower, name))
-
-        if self.log:
-            if self.q is not None:
-                lower = self.lower - (np.float64(self.q) / 2. - 0.0001)
-                upper = self.upper + (np.float64(self.q) / 2. - 0.0001)
-            else:
-                lower = self.lower
-                upper = self.upper
-            self._lower = np.log(lower)
-            self._upper = np.log(upper)
-        else:
-            if self.q is not None:
-                self._lower = self.lower - (self.q / 2. - 0.0001)
-                self._upper = self.upper + (self.q / 2. - 0.0001)
-            else:
-                self._lower = self.lower
-                self._upper = self.upper
-        
         self.default_value = self.check_default(default_value)
         self.normalized_default_value = self._inverse_transform(self.default_value)
+        
 
-        if self.q is not None:
-            # There can be weird rounding errors, so we compare the result against self.q, see
-            # In [13]: 2.4 % 0.2
-            # Out[13]: 0.1999999999999998
-            if np.round((self.upper - self.lower) % self.q, 10) not in (0, self.q):
-                raise ValueError(
-                    'Upper bound (%f) - lower bound (%f) must be a multiple of q (%f)'
-                    % (self.upper, self.lower, self.q)
-                )
-
+        
     def __repr__(self) -> str:
         repr_str = io.StringIO()
         repr_str.write("%s, Type: BetaFloat, Alpha: %s Beta: %s, Range: [%s, %s], Default: %s" % (self.name, repr(self.alpha), repr(self.beta), repr(self.lower), repr(self.upper), repr(self.default_value)))
@@ -1056,15 +1023,15 @@ cdef class BetaFloatHyperparameter(FloatHyperparameter):
 
     def check_default(self, default_value: Union[int, float, None]) -> Union[int, float]:
         # return mode as default
-        lb = self.lower
-        ub = self.upper
-        
         if default_value is None:
-            if (self.alpha > 1) and (self.beta > 1):
+            if (self.alpha >= 1) and (self.beta >= 1):
                 normalized_mode = (self.alpha - 1) / (self.alpha + self.beta - 2)
-                return self._transform_scalar((self._upper - self._lower) * normalized_mode + self._lower)
+                return self._transform_scalar(normalized_mode)
             else: 
-                return (ub - lb) / 2
+                # If both alpha and beta are 1, we have a uniform distribution, and thus
+                # return the center of the unnormalized distribution, or what's closest
+                # to it in the case of quantization
+                return self._transform_scalar(0.5)
 
         elif self.is_legal(default_value):
             return default_value
@@ -1099,59 +1066,7 @@ cdef class BetaFloatHyperparameter(FloatHyperparameter):
         beta = self.beta
         lower = self._lower
         upper = self._upper
-        return spbeta(alpha, beta, loc=lower, scale=upper-lower).rvs(size=size, random_state=rs)
-
-    cpdef np.ndarray _transform_vector(self, np.ndarray vector):
-        if np.isnan(vector).any():
-            raise ValueError('Vector %s contains NaN\'s' % vector)
-        if self.log:
-            vector = np.exp(vector)
-        if self.q is not None:
-            vector = np.rint(vector / self.q) * self.q
-        return vector
-
-    cpdef double _transform_scalar(self, double scalar):
-        if scalar != scalar:
-            raise ValueError('Number %s is NaN' % scalar)
-        if self.log:
-            scalar = math.exp(scalar)
-        if self.q is not None:
-            scalar = round(scalar / self.q) * self.q
-        return scalar
-        
-    def _inverse_transform(self, vector: Optional[np.ndarray]) -> Union[float, np.ndarray]:
-        if vector is None:
-            return np.NaN
-
-        if self.log:
-            vector = np.log(vector)
-        return vector
-
-    def get_neighbors(
-        self,
-        value: Any,
-        rs: np.random.RandomState,
-        number: int = 4,
-        transform: bool = False,
-        std: float = 0.2
-    ) -> List[float]:
-        neighbors = []  # type: List[float]
-        norm_std = std * (self._upper - self._lower)
-        while len(neighbors) < number:
-            neighbor = rs.normal(value, norm_std)  # type: float
-            if neighbor < self._lower or neighbor > self._upper:
-                continue
-            if transform:
-                neighbors.append(self._transform(neighbor))
-            else:
-                neighbors.append(neighbor)
-        return neighbors
-
-    def get_size(self) -> float:
-        if self.q is None:
-            return np.inf
-        else:
-            return np.rint((self.upper - self.lower) / self.q) + 1
+        return spbeta(alpha, beta).rvs(size=size, random_state=rs)
 
 
 cdef class UniformIntegerHyperparameter(IntegerHyperparameter):

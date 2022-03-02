@@ -353,24 +353,25 @@ class TestHyperparameters(unittest.TestCase):
                          b1.get_neighbors(0.5, rs=np.random.RandomState(42)),
                          )
         self.assertEqual(f1.get_neighbors(0.5, rs=np.random.RandomState(42)), [
-                         0.8973713224089861, 0.38938855906305225,
-                         1.018150830480554, 1.7184238851264204])
+                         0.5993428306022466, 0.4723471397657631,
+                         0.6295377076201385, 0.8046059712816052])
 
         b1_ext = BetaFloatHyperparameter("param", lower=-12.0, upper=12.0, alpha=3.0, beta=1.0)
-        self.assertEqual(b1_ext.get_neighbors(11.99, rs=np.random.RandomState(42)), [
-                         11.326331354378313, 10.866063801327988,
-                         10.866142606643933, 9.73652294751223])
+        self.assertEqual(b1_ext.get_neighbors(0.99, transform=True,
+                                              rs=np.random.RandomState(42)),
+                         [11.096331354378314, 10.636063801327985,
+                          10.636142606643933, 9.50652294751223])
 
         b1_log = BetaFloatHyperparameter(
             "param", lower=1.0, upper=1000.0, alpha=3.0, beta=1.0, log=True)
-        self.assertEqual(b1_log.get_neighbors(np.log(1000),
+        self.assertEqual(b1_log.get_neighbors(0.01,
+                         rs=np.random.RandomState(42)), [
+                             0.10934283060224653, 0.1395377076201385,
+                             0.3146059712816051, 0.3258425631014783])
+        self.assertEqual(b1_log.get_neighbors(0.9,
                          rs=np.random.RandomState(42), transform=True), [
-                         826.1167337763767, 723.6156902737724,
-                         723.6321035060932, 522.7756713749886])
-        self.assertEqual(b1_log.get_neighbors(np.log(1),
-                         rs=np.random.RandomState(42), transform=True), [
-                         1.986225219010177, 2.4468825448117744,
-                         8.200076685608781, 8.861917227659887])
+                             995.4707228764338, 414.0391604545797,
+                             362.66694601760116, 362.6751721201029])
 
         # Test attributes are accessible
         self.assertEqual(f1.name, "param")
@@ -379,8 +380,8 @@ class TestHyperparameters(unittest.TestCase):
         self.assertAlmostEqual(f1.q, None)
         self.assertEqual(f1.log, False)
         self.assertAlmostEqual(f1.default_value, 2.0)
-        # beta parameters are not normalized (as normal parameters are not, either.)
-        self.assertAlmostEqual(f1.normalized_default_value, 2.0)
+        # beta parameters are scaled to the unit hypercube
+        self.assertAlmostEqual(f1.normalized_default_value, 1.0)
 
         # Test copy
         copy_f1 = copy.copy(f1)
