@@ -41,6 +41,9 @@ from ConfigSpace.hyperparameters import (
     Hyperparameter,
     Constant,
     FloatHyperparameter,
+    UniformFloatHyperparameter,
+    UniformIntegerHyperparameter,
+    OrdinalHyperparameter
 )
 from ConfigSpace.conditions import (
     ConditionComponent,

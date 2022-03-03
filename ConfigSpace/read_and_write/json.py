@@ -16,6 +16,8 @@ from ConfigSpace.hyperparameters import (
     OrdinalHyperparameter,
     Constant,
     UnParametrizedHyperparameter,
+    BetaFloatHyperparameter,
+    BetaIntegerHyperparameter
 )
 from ConfigSpace.conditions import (
     AbstractCondition,
@@ -78,6 +80,17 @@ def _build_normal_float(param: NormalFloatHyperparameter) -> Dict:
     }
 
 
+def _build_beta_float(param: BetaFloatHyperparameter) -> Dict:
+    return {
+        'name': param.name,
+        'type': 'beta_float',
+        'log': param.log,
+        'alpha': param.alpha,
+        'beta': param.beta,
+        'default': param.default_value
+    }
+
+
 def _build_uniform_int(param: UniformIntegerHyperparameter) -> Dict:
     return {
         'name': param.name,
@@ -96,6 +109,17 @@ def _build_normal_int(param: NormalIntegerHyperparameter) -> Dict:
         'log': param.log,
         'mu': param.mu,
         'sigma': param.sigma,
+        'default': param.default_value
+    }
+
+
+def _build_beta_int(param: BetaIntegerHyperparameter) -> Dict:
+    return {
+        'name': param.name,
+        'type': 'beta_int',
+        'log': param.log,
+        'alpha': param.alpha,
+        'beta': param.beta,
         'default': param.default_value
     }
 
@@ -320,10 +344,14 @@ def write(configuration_space, indent=2):
             hyperparameters.append(_build_uniform_float(hyperparameter))
         elif isinstance(hyperparameter, NormalFloatHyperparameter):
             hyperparameters.append(_build_normal_float(hyperparameter))
+        elif isinstance(hyperparameter, BetaFloatHyperparameter):
+            hyperparameters.append(_build_beta_float(hyperparameter))
         elif isinstance(hyperparameter, UniformIntegerHyperparameter):
             hyperparameters.append(_build_uniform_int(hyperparameter))
         elif isinstance(hyperparameter, NormalIntegerHyperparameter):
             hyperparameters.append(_build_normal_int(hyperparameter))
+        elif isinstance(hyperparameter, BetaIntegerHyperparameter):
+            hyperparameters.append(_build_beta_int(hyperparameter))
         elif isinstance(hyperparameter, CategoricalHyperparameter):
             hyperparameters.append(_build_categorical(hyperparameter))
         elif isinstance(hyperparameter, OrdinalHyperparameter):

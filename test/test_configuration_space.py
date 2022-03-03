@@ -34,13 +34,15 @@ import unittest
 
 import numpy as np
 
-from ConfigSpace import ConfigurationSpace, \
-    Configuration, CategoricalHyperparameter, UniformIntegerHyperparameter, \
-    Constant, EqualsCondition, NotEqualsCondition, InCondition, \
-    AndConjunction, OrConjunction, ForbiddenEqualsClause, \
-    ForbiddenAndConjunction, UniformFloatHyperparameter
-from ConfigSpace.hyperparameters import NormalFloatHyperparameter, \
-    NormalIntegerHyperparameter, OrdinalHyperparameter
+from ConfigSpace import (ConfigurationSpace,
+                         Configuration, CategoricalHyperparameter, UniformIntegerHyperparameter,
+                         Constant, EqualsCondition, NotEqualsCondition, InCondition,
+                         AndConjunction, OrConjunction, ForbiddenEqualsClause,
+                         ForbiddenAndConjunction)
+from ConfigSpace.hyperparameters import (UniformFloatHyperparameter,
+                                         NormalFloatHyperparameter,
+                                         NormalIntegerHyperparameter,
+                                         OrdinalHyperparameter)
 from ConfigSpace.exceptions import ForbiddenValueError
 
 
