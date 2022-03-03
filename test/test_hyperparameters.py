@@ -338,11 +338,13 @@ class TestHyperparameters(unittest.TestCase):
         # test parameters that do not create a legit beta distribution
         with self.assertRaises(ValueError):
             BetaFloatHyperparameter("param", lower=-2, upper=2, alpha=-11, beta=5)
+        with self.assertRaises(ValueError):
             BetaFloatHyperparameter("param", lower=-2, upper=2, alpha=5, beta=-11)
 
         # test parameters that do not yield a finite co-domain
         with self.assertRaises(ValueError):
             BetaFloatHyperparameter("param", lower=-2, upper=2, alpha=0.5, beta=11)
+        with self.assertRaises(ValueError):
             BetaFloatHyperparameter("param", lower=-2, upper=2, alpha=11, beta=0.5)
 
         u1 = UniformFloatHyperparameter("param", lower=0.0, upper=1.0)

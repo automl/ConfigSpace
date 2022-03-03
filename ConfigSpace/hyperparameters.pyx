@@ -787,7 +787,7 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
                                           lb,
                                           ub,
                                           default_value=self.default_value,
-                                          q=self.q, log=self.log)
+                                          q=self.q, log=self.log, meta=self.meta)
 
     def check_default(self, default_value: Union[int, float]) -> Union[int, float]:
         if default_value is None:
@@ -1018,7 +1018,7 @@ cdef class BetaFloatHyperparameter(UniformFloatHyperparameter):
                                           self.lower,
                                           self.upper,
                                           default_value=self.default_value,
-                                          q=self.q, log=self.log)
+                                          q=self.q, log=self.log, meta=self.meta)
 
     def check_default(self, default_value: Union[int, float, None]) -> Union[int, float]:
         # return mode as default
@@ -1498,7 +1498,7 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
                                             lb,
                                             ub,
                                             default_value=self.default_value,
-                                            q=self.q, log=self.log)
+                                            q=self.q, log=self.log, meta=self.meta)
 
     def is_legal(self, value: int) -> bool:
         return isinstance(value, (int, np.int32, np.int64))
@@ -1719,7 +1719,7 @@ cdef class BetaIntegerHyperparameter(UniformIntegerHyperparameter):
                                             self.lower,
                                             self.upper,
                                             default_value=self.default_value,
-                                            q=self.q, log=self.log)
+                                            q=self.q, log=self.log, meta=self.meta)
 
 
     def check_default(self, default_value: Union[int, float, None]) -> int:
