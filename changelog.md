@@ -1,3 +1,18 @@
+# Version 0.4.21
+
+* Add #224: Now builds binary wheels for Windows/Mac/Linux, available on PyPI.
+* Maint #227: Include automated testing for windows and mac.
+* Maint #228: #226: Account for test differences with `i686` architectures.
+* Maint #213, #215: Prevent double trigger of github workflows.
+* Fix #212: Equality (`==`) on `CategoricalHyperparameter` objects are now invariant to ordering.
+* Add #208: [`ConfigurationSpace::estimate_size()`](https://github.com/automl/ConfigSpace/commit/9856e6291fc5e1ff829292d85f299aabd9f52683#diff-904dab96369ff6bcc3e44a0269724131d796cc3771142edeef4100bd35929040R1344) to get the size of a configuration space without considering constraints.
+* Add #210: `print(config)` is now produces a string representation of a valid python dictionary that is suitable for copy and paste.
+* Fix #203: Parser for `pcs` files now correctly coverts types for forbidden clauses, checking for the validaty as well.
+* Maint #f71508c: Clean up in `README.md` and fix link for new `SMAC` [example docs](https://automl.github.io/SMAC3/master/pages/examples/index.html).
+* Fix #202: Fix numerical underflow when performing quantization of log sampled `UniformFloat`.
+* Add #188: Support for a **truncated** `NormalIntegerHyperparameter` or `NormalFloatHyperparameter` by providing `lower` and `upper` bounds.
+* Fix #195: Sampling configurations to perform validity checks for during `get_one_exchange_neighborhood` is now deterministic w.r.t. a seed.
+
 # Version 0.4.20
 
 * MAINT #185: Drop support for Python 3.6

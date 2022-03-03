@@ -1,0 +1,255 @@
+# Workflow to build and test wheels
+# =================================
+# This github action gets triggered whenever there
+# is a push to the master branch or a release is created.
+# It generates both wheels and distributions files,
+# making sure their contents are correct via unit-testing.
+#
+# However, only in the case of a github release, the assets
+# are uploaded and attached to a release. In other words, we
+# expect the following workflow:
+# 1- users adds new features to the master branch via PRs. Every
+#    time a new feature gets merged to the master branch, this github
+#    action gets triggered, and wheels/distribution files are generated
+#    to make sure this new change did not break the distribution files.
+# 2- Whenever there is enough PRs in the master branch, we expect the user
+#    to create a release following github guidelines from here:
+#    https://docs.github.com/en/github/administering-a-repository/releasing-projects-on-github/managing-releases-in-a-repository
+#    During a github release, you create a tagged-version (something like v2.3.4.),
+#    add a title to the release and a description. Then you publish the release via the
+#    publish-button. This effectively creates a github release, triggering this action.
+#    When this triggered action finished, the release files are automatically uploaded
+#    to your github release page. Check for example:
+#    https://github.com/automl/ConfigSpace/releases
+#
+# Please note that creating a git tag and pushing it (git tag <>; git push --tags) is not
+# sufficient to append the wheels and distribution files to your release.
+# You need to generate a new release using github, not git.
+#
+# Guides
+# ------
+# Ref:
+# * https://github.com/scikit-hep/iminuit/blob/develop/.github/workflows/wheels.yml
+# cibuildwheel docs:
+# * https://cibuildwheel.readthedocs.io/en/stable/options/
+
+name: Wheel builder
+
+on:
+  workflow_dispatch:
+
+  push:
+    branches:
+      - master
+      # Release branches
+      - "[0-9]+.[0-9]+.X"
+
+  create:
+    tags:
+      - v*
+
+env:
+  package-name: ConfigSpace
+
+  test-dir: test
+  test-reqs: "pytest"
+  test-cmd: "pytest -v"
+  extra-requires: "[test]"
+
+jobs:
+
+  build_linux_wheels:
+    name: ${{ matrix.py }}-linux-${{ matrix.system }}-${{ matrix.arch }}
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        py: [cp37, cp38, cp39, cp310]
+        arch: ["x86_64", "i686", "aarch64"]
+        system: ["manylinux", "musllinux"]
+
+        exclude:
+
+          # Not supported by numpy
+          - system: "musllinux"
+
+        # Scipy doesn't have a wheel for cp310 i686
+          - py: cp310
+            arch: "i686"
+
+
+    steps:
+      - name: Checkout ${{ env.package-name }}
+        uses: actions/checkout@v2
+
+      # This allows us to build for 'aarch64' on linux
+      - if: ${{ matrix.arch == 'aarch64' }}
+        uses: docker/setup-qemu-action@v1
+
+      - name: Build wheels with cibuildwheel to wheelhouse/*.whl
+        uses: pypa/cibuildwheel@v2.3.1
+        env:
+          CIBW_BUILD: ${{ matrix.py }}-${{ matrix.system }}_*
+          CIBW_ARCHS: ${{ matrix.arch }}
+          CIBW_TEST_REQUIRES: ${{ env.test-reqs }}
+          CIBW_TEST_COMMAND: ${{ env.test-cmd }} {project}/${{ env.test-dir }}
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          path: wheelhouse/*.whl
+
+  build_macos_wheels:
+    name: ${{ matrix.py }}-macos-${{ matrix.arch }}
+    runs-on: macos-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        py: [cp37, cp38, cp39, cp310]
+        arch: ["x86_64", "universal2", "arm64"]
+        exclude:
+
+          # cp37 doesn't allow a univeral2 build
+          - py: cp37
+            arch: "universal2"
+
+          # arm64 isn't supported on macos github workers
+          - arch: "arm64"
+
+    steps:
+      - name: Checkout ${{ env.package-name }}
+        uses: actions/checkout@v2
+
+      - name: Build wheels with cibuildwheel to wheelhouse/*.whl
+        uses: pypa/cibuildwheel@v2.3.1
+        env:
+          CIBW_BUILD: ${{ matrix.py }}-*
+          CIBW_ARCHS: ${{ matrix.arch }}
+          CIBW_TEST_REQUIRES: ${{ env.test-reqs }}
+          CIBW_TEST_COMMAND: ${{ env.test-cmd }} {project}/${{ env.test-dir }}
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          path: wheelhouse/*.whl
+
+  build_windows_wheels:
+    name: ${{ matrix.py }}-windows-${{ matrix.arch }}
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        py: [cp37, cp38, cp39, cp310]
+        arch: ["AMD64", "x86"]
+        exclude:
+
+          # We can't build win32 (x86) with cp310 because numpy doesn't have a win32 wheel
+          - py: cp310
+            arch: "x86"
+
+
+    steps:
+      - name: Checkout ${{ env.package-name }}
+        uses: actions/checkout@v2
+
+      - name: Build wheels with cibuildwheel to wheelhouse/*.whl
+        uses: pypa/cibuildwheel@v2.3.1
+        env:
+          CIBW_BUILD: ${{ matrix.py }}-*
+          CIBW_ARCHS: ${{ matrix.arch }}
+          CIBW_TEST_REQUIRES: ${{ env.test-reqs }}
+          CIBW_TEST_COMMAND: ${{ env.test-reqs }} {project}/${{ env.test-dir }}
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          path: wheelhouse/*.whl
+
+  build_sdist:
+    name: sdist-${{ matrix.py }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        py: ["3.7", "3.8", "3.9", "3.10"]
+
+    steps:
+      - name: Checkout ${{ env.package-name }}
+        uses: actions/checkout@v2
+
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.py }}
+
+      - name: Build source distribution
+        run: |
+          python -m pip install --upgrade pip
+          python setup.py sdist
+          echo "sdist_name=$(ls -t dist/${{ env.package-name }}-*.tar.gz | head -n 1)" >> $GITHUB_ENV
+
+      - name: Twine check ${{ env.package-name }}
+        run: |
+          python -m pip install twine
+          twine_output=`twine check ${{ env.sdist_name }}`
+          if [[ "$twine_output" != "Checking ${{ env.sdist_name }}: PASSED" ]]; then
+            echo $twine_output && exit 1;
+          fi
+
+      - name: Install dist
+        run: |
+          python -m pip install ${{ env.sdist_name }}${{ env.extra-requires }}
+
+      - name: PEP 561 Compliance
+        run: |
+          pip install mypy
+          cd ..  # required to use the installed version
+          if ! python -c "import ${{ env.package-name }}"; then exit 1; fi
+
+      - name: Tests
+        timeout-minutes: 45
+        run: |
+          ${{ env.test-cmd }} ${{env.test-dir}}
+
+
+      - name: Store artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          path: dist/*.tar.gz
+
+
+  # Upload the wheels
+  release_assets:
+    name: Upload Release
+    runs-on: ubuntu-latest
+    needs: [build_linux_wheels, build_macos_wheels, build_windows_wheels, build_sdist]
+
+    # Only on a tagged release, push
+    if: startsWith(github.ref, 'refs/tags/v')  && github.event_name != 'pull_request'
+
+    steps:
+      - name: Checkout ${{ env.package-name }}
+        uses: actions/checkout@v2
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v2
+        with:
+          path: dist
+
+      - name: Setup Python
+        uses: actions/setup-python@v2
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install setuptools wheel twine
+
+      - name: Upload Release Asset
+        id: upload-release-asset
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          tag_name="${GITHUB_REF##*/}"
+          echo Uploading `(find ./dist -type f -printf "-a %p ")`
+          hub release edit $(find ./dist -type f -printf "-a %p ") -m "" "$tag_name"

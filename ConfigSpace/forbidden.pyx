@@ -154,7 +154,7 @@ cdef class SingleValueForbiddenClause(AbstractForbiddenClause):
 
         return self._is_forbidden_vector(value)
 
-    cdef int _is_forbidden(self, float value):
+    cdef int _is_forbidden(self, value):
         pass
 
     cdef int _is_forbidden_vector(self, DTYPE_t value):
@@ -210,7 +210,7 @@ cdef class MultipleValueForbiddenClause(AbstractForbiddenClause):
 
         return self._is_forbidden_vector(value)
 
-    cdef int _is_forbidden(self, float value):
+    cdef int _is_forbidden(self, value):
         pass
 
     cdef int _is_forbidden_vector(self, DTYPE_t value):
@@ -250,7 +250,7 @@ cdef class ForbiddenEqualsClause(SingleValueForbiddenClause):
         return "Forbidden: %s == %s" % (self.hyperparameter.name,
                                         repr(self.value))
 
-    cdef int _is_forbidden(self, float value):
+    cdef int _is_forbidden(self, value):
         return value == self.value
 
     cdef int _is_forbidden_vector(self, DTYPE_t value):
@@ -303,7 +303,7 @@ cdef class ForbiddenInClause(MultipleValueForbiddenClause):
             "{" + ", ".join((repr(value)
                              for value in sorted(self.values))) + "}")
 
-    cdef int _is_forbidden(self, float value):
+    cdef int _is_forbidden(self, value):
         return value in self.values
 
     cdef int _is_forbidden_vector(self, DTYPE_t value):
