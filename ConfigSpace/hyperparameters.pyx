@@ -957,10 +957,13 @@ cdef class BetaFloatHyperparameter(UniformFloatHyperparameter):
         if (alpha < 1) or (beta < 1):
             raise ValueError("Please provide values of alpha and beta larger than or equal to\
              1 so that the probability density is finite.")
+             
+        if (self.q is not None) and (self.log is not None) and (default_value is None):        
+            warnings.warn('Logscale and quantization together results in incorrect default values. '
+                          'We recommend specifying a default value manually for this specific case.')
+        
         self.default_value = self.check_default(default_value)
         self.normalized_default_value = self._inverse_transform(self.default_value)
-        
-
         
     def __repr__(self) -> str:
         repr_str = io.StringIO()

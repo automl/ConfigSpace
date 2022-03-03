@@ -401,6 +401,13 @@ class TestHyperparameters(unittest.TestCase):
             "param", lower=1, upper=10.0, alpha=3.0, beta=2.0, log=False, meta=dict(self.meta_data))
         self.assertEqual(f_meta.meta, self.meta_data)
 
+                # test that meta-data is stored correctly
+        with self.assertWarnsRegex(UserWarning, 'Logscale and quantization together results in '
+                                   'incorrect default values. We recommend specifying a default '
+                                   'value manually for this specific case.'):
+            BetaFloatHyperparameter(
+                "param", lower=1, upper=100.0, alpha=3.0, beta=2.0, log=True, q=1)
+        
     def test_betafloat_dist_parameters(self):
         # This one should just be created without raising an error - corresponds to uniform dist.
         f1 = BetaFloatHyperparameter("param", lower=0, upper=10.0, alpha=1, beta=1)
@@ -492,10 +499,9 @@ class TestHyperparameters(unittest.TestCase):
             "param", lower=1, upper=np.ceil(np.exp(4)), alpha=4, beta=2, q=1, log=True)
         
         # TODO log and quantization together does not yield a correct default for the beta
-        # hyperparameter, but it is relatively close to being correct.
-        self.assertAlmostEqual(f_quant_log.default_value, 17)
-        self.assertAlmostEqual(f_quant_log.normalized_default_value, 0.7487608063196409)
-        
+        # hyperparameter, but it is relatively close to being correct. However, it is not
+        # being
+    
         # The default value is independent of whether you log the parameter or not
         f_legal_nolog = BetaFloatHyperparameter(
             "param", lower=1, upper=10.0, alpha=3.0, beta=2.0, default_value=1, log=True)
@@ -750,56 +756,11 @@ class TestHyperparameters(unittest.TestCase):
             "param, Type: BetaInteger, Alpha: 3.0 Beta: 1.1, Range: [-2, 2], Default: 2",
             str(f1))
 
-        # test parameters that do not create a legit beta distribution
-        with self.assertRaises(ValueError):
-            BetaIntegerHyperparameter("param", lower=-2, upper=2, alpha=5, beta=-11)
-        with self.assertRaises(ValueError):
-            BetaIntegerHyperparameter("param", lower=-2, upper=2, alpha=-11, beta=5)
-
-        # test parameters that do not yield a finite co-domain
-        with self.assertRaises(ValueError):
-            BetaIntegerHyperparameter("param", lower=-2, upper=2, alpha=0.5, beta=11)
-        with self.assertRaises(ValueError):
-            BetaIntegerHyperparameter("param", lower=-2, upper=2, alpha=11, beta=0.5)
-
-        with pytest.warns(UserWarning, match="Setting quantization < 1 for Integer "
-                          "Hyperparameter 'param' has no effect"):
-            f2 = BetaIntegerHyperparameter("param", lower=-2, upper=2, alpha=5, beta=11, q=0.1)
-
-        b1 = BetaIntegerHyperparameter("param", lower=-3, upper=10, alpha=3.0, beta=1.0)
-        self.assertEqual(b1.get_neighbors(0.05, transform=False, rs=np.random.RandomState(42)),
-                         [0.1785709708929062, 0.3214283287525177,
-                          0.39285698533058167, 0.10714229941368103])
-
-        self.assertEqual(b1.get_neighbors(0.05, transform=True, rs=np.random.RandomState(42)),
-                         [-1, 1, 2, -2])
-
-        b1_ext = BetaIntegerHyperparameter("param", lower=-12.0, upper=12.0, alpha=3.0, beta=1.0)
-        self.assertEqual(b1_ext.get_neighbors(0.9, transform=True, rs=np.random.RandomState(42)),
-                         [12, 9, 8, 11])
-
-        b1_log = BetaIntegerHyperparameter(
-            "param", lower=1.0, upper=1000.0, alpha=3.0, beta=1.0, log=True)
-        self.assertEqual(b1_log.get_neighbors(
-            0.99, rs=np.random.RandomState(42), transform=True), [751, 650, 454, 458])
-        self.assertEqual(b1_log.get_neighbors(
-            0.01, rs=np.random.RandomState(42), transform=True), [5, 6, 2, 9])
-
-        # Test attributes are accessible
-        self.assertEqual(f1.name, "param")
         self.assertAlmostEqual(f1.alpha, 3.0)
         self.assertAlmostEqual(f1.beta, 1.1)
-        self.assertAlmostEqual(f1.q, None)
-        self.assertEqual(f1.log, False)
-        self.assertEqual(f1.default_value, 2)
-        # beta parameters are normalized scaled to the unit cube, so for the parameter
-        # in [-2, 2]-range, the values are staggered from 0.1 to 0.9
-        #
-        self.assertAlmostEqual(f1.normalized_default_value, 0.9, places=4)
-
+        
         # Test copy
         copy_f1 = copy.copy(f1)
-
         self.assertEqual(copy_f1.name, f1.name)
         self.assertEqual(copy_f1.alpha, f1.alpha)
         self.assertEqual(copy_f1.beta, f1.beta)
@@ -823,30 +784,97 @@ class TestHyperparameters(unittest.TestCase):
         with self.assertRaises(ValueError):
             BetaIntegerHyperparameter("param", lower=-1, upper=10.0, alpha=6.0, beta=2.0, log=True)
 
-        with self.assertRaisesRegex(ValueError, "Illegal default value 0"):
-            BetaIntegerHyperparameter(
-                "param", lower=1, upper=10.0, alpha=3.0, beta=2.0, default_value=0, log=False)
-        with self.assertRaisesRegex(ValueError, "Illegal default value 0"):
-            BetaIntegerHyperparameter(
-                "param", lower=1, upper=1000.0, alpha=3.0, beta=2.0, default_value=0, log=True)
-        f4_legal_nolog = BetaIntegerHyperparameter(
-            "param", lower=1, upper=10.0, alpha=3.0, beta=2.0, default_value=1, log=True)
-        f4_legal_log = BetaIntegerHyperparameter(
-            "param", lower=1, upper=10.0, alpha=3.0, beta=2.0, default_value=1, log=False)
-
-        self.assertAlmostEqual(f4_legal_nolog.default_value, 1)
-        self.assertAlmostEqual(f4_legal_log.default_value, 1)
-
         # test that meta-data is stored correctly
         f_meta = BetaFloatHyperparameter("param", lower=1, upper=10.0, alpha=3.0, beta=2.0,
                                          log=False, meta=dict(self.meta_data))
         self.assertEqual(f_meta.meta, self.meta_data)
 
-        self.assertEqual(f1.get_size(), 5)
-        self.assertEqual(f2.get_size(), 4)
-        self.assertEqual(f3.get_size(), 1000)
+    def test_betaint_default_value(self):
+        # should default to the maximal value in the search space
+        f_max = BetaIntegerHyperparameter("param", lower=-2.0, upper=2.0, alpha=3.0, beta=1.0)
+        self.assertAlmostEqual(f_max.default_value, 2.0)
+        # since integer values are staggered over the normalized space
+        self.assertAlmostEqual(f_max.normalized_default_value, 0.9, places=4)
+        
+        # The normalized log defaults should be the same as if one were to create a uniform
+        # distribution with the same default value as is generated by the beta
+        f_max_log = BetaIntegerHyperparameter(
+            "param", lower=1.0, upper=10.0, alpha=3.0, beta=1.0, log=True)
+        self.assertAlmostEqual(f_max_log.default_value, 10.0)
+        self.assertAlmostEqual(f_max_log.normalized_default_value, 0.983974646746037)
+        
+        # should default to the minimal value in the search space
+        f_min = BetaIntegerHyperparameter("param", lower=-2.0, upper=2.0, alpha=1.0, beta=1.5)
+        self.assertAlmostEqual(f_min.default_value, -2.0)
+        self.assertAlmostEqual(f_min.normalized_default_value, 0.1, places=4)
+        
+        f_min_log = BetaIntegerHyperparameter(
+            "param", lower=1.0, upper=10.0, alpha=1.0, beta=1.5, log=True)
+        self.assertAlmostEqual(f_min_log.default_value, 1.0)
+        self.assertAlmostEqual(f_min_log.normalized_default_value, 0.22766524636349278)
+        
+        # Symmeric, should default to the middle
+        f_symm = BetaIntegerHyperparameter("param", lower=5, upper=9, alpha=4.6, beta=4.6)
+        self.assertAlmostEqual(f_symm.default_value, 7)
+        self.assertAlmostEqual(f_symm.normalized_default_value, 0.5)
+        
+        # This should yield a value that's approximately halfway towards the max in logspace
+        f_symm_log = BetaIntegerHyperparameter(
+            "param", lower=1, upper=round(np.exp(10)), alpha=4.6, beta=4.6, log=True)
+        self.assertAlmostEqual(f_symm_log.default_value, 148)
+        self.assertAlmostEqual(f_symm_log.normalized_default_value, 0.5321491582577761)
+        
+        # Uniform, should also default to the middle
+        f_unif = BetaIntegerHyperparameter("param", lower=2, upper=6, alpha=1.0, beta=1.0)
+        self.assertAlmostEqual(f_unif.default_value, 4)
+        self.assertAlmostEqual(f_unif.normalized_default_value, 0.5)
+        
+        # This should yield a value that's halfway towards the max in logspace
+        f_unif_log = BetaIntegerHyperparameter(
+            "param", lower=1, upper=round(np.exp(10)), alpha=1, beta=1, log=True)
+        self.assertAlmostEqual(f_symm_log.default_value, 148)
+        self.assertAlmostEqual(f_symm_log.normalized_default_value, 0.5321491582577761)
+        
+        # Then, test a case where the default value is the mode of the beta dist somewhere in
+        # the interior of the search space - but not the center
+        f_max = BetaIntegerHyperparameter("param", lower=-2.0, upper=2.0, alpha=4.7, beta=2.12)
+        self.assertAlmostEqual(f_max.default_value, 1.0)
+        self.assertAlmostEqual(f_max.normalized_default_value, 0.7, places=4)
+        
+        f_max_log = BetaIntegerHyperparameter(
+            "param", lower=1, upper=round(np.exp(10)), alpha=4.7, beta=2.12, log=True)
+        self.assertAlmostEqual(f_max_log.default_value, 2157)
+        self.assertAlmostEqual(f_max_log.normalized_default_value, 0.7827083200774537)
+        
+        # These parameters yield a mode at approximately 1.1, so should thus yield default at 2
+        f_quant =  BetaIntegerHyperparameter(
+            "param", lower=-2.0, upper=2.0, alpha=4.7, beta=2.12, q=2)
+        self.assertAlmostEqual(f_quant.default_value, 2.0)
+        
+        # since it's quantized, it gets distributed evenly among the search space
+        # as such, the possible normalized defaults are 0.1, 0.3, 0.5, 0.7, 0.9
+        self.assertAlmostEqual(f_quant.normalized_default_value, 0.9, places=4)
 
+        # TODO log and quantization together does not yield a correct default for the beta
+        # hyperparameter, but it is relatively close to being correct.
+        
+        # The default value is independent of whether you log the parameter or not
+        f_legal_nolog = BetaIntegerHyperparameter(
+            "param", lower=1, upper=10.0, alpha=3.0, beta=2.0, default_value=1, log=True)
+        f_legal_log = BetaIntegerHyperparameter(
+            "param", lower=1, upper=10.0, alpha=3.0, beta=2.0, default_value=1, log=False)
+        
+        self.assertAlmostEqual(f_legal_nolog.default_value, 1)
+        self.assertAlmostEqual(f_legal_log.default_value, 1)
 
+        # These are necessary, as we bypass the same check in the UniformFloatHP by design
+        with self.assertRaisesRegex(ValueError, "Illegal default value 0"):
+            BetaFloatHyperparameter("param", lower=1, upper=10.0, alpha=3.0,
+                                    beta=2.0, default_value=0, log=False)
+        with self.assertRaisesRegex(ValueError, "Illegal default value 0"):
+            BetaFloatHyperparameter("param", lower=1, upper=1000.0, alpha=3.0,
+                                    beta=2.0, default_value=0, log=True)
+    
     def test_betaint_dist_parameters(self):
         # This one should just be created without raising an error - corresponds to uniform dist.
         f1 = BetaIntegerHyperparameter("param", lower=0, upper=10.0, alpha=1, beta=1)
