@@ -401,7 +401,6 @@ class TestHyperparameters(unittest.TestCase):
             "param", lower=1, upper=10.0, alpha=3.0, beta=2.0, log=False, meta=dict(self.meta_data))
         self.assertEqual(f_meta.meta, self.meta_data)
 
-        # test that meta-data is stored correctly
         with self.assertWarnsRegex(UserWarning, 'Logscale and quantization together results in '
                                    'incorrect default values. We recommend specifying a default '
                                    'value manually for this specific case.'):
