@@ -213,7 +213,11 @@ cdef class Constant(Hyperparameter):
         if not isinstance(other, self.__class__):
             return False
 
-        return self.value == other.value and self.name == other.name
+        return (
+            self.value == other.value and
+            self.name == other.name and
+            self.default_value == other.default_value
+        )
 
     def __copy__(self):
         return Constant(self.name, self.value, meta=self.meta)
@@ -387,7 +391,7 @@ cdef class IntegerHyperparameter(NumericalHyperparameter):
 
     def check_default(self, default_value) -> int:
         raise NotImplemented
-
+    
     def check_int(self, parameter: int, name: str) -> int:
         if abs(int(parameter) - parameter) > 0.00000001 and \
                         type(parameter) is not int:
@@ -613,7 +617,6 @@ cdef class UniformFloatHyperparameter(FloatHyperparameter):
             return np.inf
         else:
             return np.rint((self.upper - self.lower) / self.q) + 1
-
 
 cdef class NormalFloatHyperparameter(FloatHyperparameter):
     cdef public mu
@@ -1467,7 +1470,8 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
             self.log == other.log and
             self.q == other.q and
             self.lower == other.lower and
-            self.upper == other.upper
+            self.upper == other.upper and
+            self.default_value == other.default_value
         )
 
     def __hash__(self):
@@ -1861,9 +1865,40 @@ cdef class CategoricalHyperparameter(Hyperparameter):
         if not isinstance(other, self.__class__):
             return False
 
+        if self.probabilities is not None:
+            ordered_probabilities_self = {
+                choice: self.probabilities[i] for i, choice in enumerate(self.choices)
+            }
+        else:
+            ordered_probabilities_self = None
+        if other.probabilities is not None:
+            ordered_probabilities_other = {
+                choice: (
+                    other.probabilities[other.choices.index(choice)]
+                    if choice in other.choices else
+                    None
+                )
+                for choice in self.choices
+            }
+        else:
+            ordered_probabilities_other = None
+
         return (
             self.name == other.name and
-            set(self.choices) == set(other.choices)
+            set(self.choices) == set(other.choices) and
+            self.default_value == other.default_value and
+            (
+                (ordered_probabilities_self is None and ordered_probabilities_other is None) or
+                ordered_probabilities_self == ordered_probabilities_other or
+                (
+                    ordered_probabilities_self is None
+                    and len(np.unique(list(ordered_probabilities_other.values()))) == 1
+                ) or
+                (
+                    ordered_probabilities_other is None
+                    and len(np.unique(list(ordered_probabilities_self.values()))) == 1
+                )
+             )
         )
 
     def __hash__(self):
@@ -2140,7 +2175,8 @@ cdef class OrdinalHyperparameter(Hyperparameter):
 
         return (
             self.name == other.name and
-            self.sequence == other.sequence
+            self.sequence == other.sequence and
+            self.default_value == other.default_value
         )
 
     def __copy__(self):

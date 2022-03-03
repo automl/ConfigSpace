@@ -167,38 +167,19 @@ importance with `CAVE <https://github.com/automl/CAVE>`_.
 
 .. _pcs_new:
 
-6.2 Serialization with pcs-new
-------------------------------
-
-Pcs is a simple, human-readable file format for the description of an
-algorithm's configurable parameters, their possible values, as well as any
-parameter dependencies.
-
-Pcs is part of the `Algorithm Configuration Library <http://aclib.net/#>`_.
-A detailed explanation of the pcs format can be found
-`here. <http://aclib.net/cssc2014/pcs-format.pdf>`_ A short summary is also
-given in the
-`SMAC Documentation <https://automl.github.io/SMAC3/dev/options.html#paramcs>`_.
-Further examples are provided in the
-`pysmac documentation <https://pysmac.readthedocs.io/en/latest/pcs.html>`_
-
-.. note::
-
-    The pcs format definition has changed in the year 2016 and is supported by
-    AClib 2.0, as well as SMAC. To write or to read the old version of pcs, please
-    use the :class:`~ConfigSpace.read_and_write.pcs` module.
+6.2 Serialization with pcs-new (new format)
+-------------------------------------------
 
 .. automodule:: ConfigSpace.read_and_write.pcs_new
    :members: read, write
    :undoc-members:
 
-6.3 Serialization with pcs
---------------------------
+6.3 Serialization with pcs (old format)
+---------------------------------------
 
 .. automodule:: ConfigSpace.read_and_write.pcs
    :members: read, write
    :undoc-members:
-
 
 Utils
 =====
