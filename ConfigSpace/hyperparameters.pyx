@@ -1363,19 +1363,22 @@ cdef class BetaFloatHyperparameter(UniformFloatHyperparameter):
         """
         alpha = self.alpha
         beta = self.beta
-        return spbeta(alpha, beta).pdf(vector)
+        return spbeta(alpha, beta).pdf(vector) / (self._upper - self._lower)
 
     def get_max_density(self) -> float:
-        if (self.alpha > 1) and (self.beta > 1):
+        if (self.alpha > 1) or (self.beta > 1):
             normalized_mode = (self.alpha - 1) / (self.alpha + self.beta - 2)
-            return self._pdf(np.array([normalized_mode]))[0]
         elif self.alpha < self.beta:
-            return self._pdf(np.array(np.array([0])))[0]
+            normalized_mode = 0
         elif self.alpha > self.beta:
-            return self._pdf(np.array(np.array([1])))[0]
+            normalized_mode = 1
         else: 
-            return self._pdf(np.array(np.array([0.5])))[0]
-
+            normalized_mode = 0.5
+        
+        # Since _pdf takes only a numpy array, we have to create the array, 
+        # and retrieve the element in the first (and only) spot in the array
+        return self._pdf(np.array([normalized_mode]))[0]
+        
 cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
     def __init__(self, name: str, lower: int, upper: int, default_value: Union[int, None] = None,
                  q: Union[int, None] = None, log: bool = False,
@@ -1926,7 +1929,7 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
             return 1
 
         else:
-            all_integer_values = np.arange(self.lower, self.upper+1)
+            all_integer_values = np.arange(self.lower, self.upper + 1)
             all_probabilities = self.nfhp.pdf(all_integer_values)
             return np.sum(all_probabilities)
 
@@ -1954,7 +1957,7 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
         return self.nfhp._pdf(vector) / self.normalization_constant
 
     def get_max_density(self):
-        all_integer_values = np.arange(self.lower, self.upper+1)
+        all_integer_values = np.arange(self.lower, self.upper + 1)
         all_probabilities = self.nfhp.pdf(all_integer_values)
         return np.max(all_probabilities) / self.normalization_constant
 
@@ -2133,7 +2136,7 @@ cdef class BetaIntegerHyperparameter(UniformIntegerHyperparameter):
         return value
 
     def _compute_normalization(self):
-        all_integer_values = np.arange(self.lower, self.upper+1)
+        all_integer_values = np.arange(self.lower, self.upper + 1)
         all_probabilities = self.bfhp.pdf(all_integer_values)
         return np.sum(all_probabilities)
 
@@ -2161,7 +2164,7 @@ cdef class BetaIntegerHyperparameter(UniformIntegerHyperparameter):
         return self.bfhp._pdf(vector) / self.normalization_constant
 
     def get_max_density(self):
-        all_integer_values = np.arange(self.lower, self.upper+1)
+        all_integer_values = np.arange(self.lower, self.upper + 1)
         all_probabilities = self.bfhp.pdf(all_integer_values)
         return np.max(all_probabilities) / self.normalization_constant
 
