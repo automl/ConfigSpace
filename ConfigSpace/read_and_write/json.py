@@ -37,7 +37,7 @@ from ConfigSpace.forbidden import (
 )
 
 
-JSON_FORMAT_VERSION = 0.2
+JSON_FORMAT_VERSION = 0.3
 
 
 ################################################################################
