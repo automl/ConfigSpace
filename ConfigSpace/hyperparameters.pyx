@@ -948,7 +948,7 @@ cdef class BetaFloatHyperparameter(UniformFloatHyperparameter):
         # then actually call check_default once we have alpha and beta, and are not inside 
         # UniformFloatHP.
         super(BetaFloatHyperparameter, self).__init__(
-            name, lower, upper, (upper - lower) / 2, q, log, meta)
+            name, lower, upper, (upper + lower) / 2, q, log, meta)
         self.alpha = float(alpha)
         self.beta = float(beta)
         if (alpha < 1) or (beta < 1):
@@ -1022,14 +1022,15 @@ cdef class BetaFloatHyperparameter(UniformFloatHyperparameter):
 
     def check_default(self, default_value: Union[int, float, None]) -> Union[int, float]:
         # return mode as default
+        # TODO - for log AND quantization together specifially, this does not give the exact right
+        # value, due to the bounds _lower and _upper being adjusted when quantizing in 
+        # UniformFloat.
         if default_value is None:
             if (self.alpha > 1) or (self.beta > 1):
                 normalized_mode = (self.alpha - 1) / (self.alpha + self.beta - 2)
                 return self._transform_scalar(normalized_mode)
             else: 
-                # If both alpha and beta are 1, we have a uniform distribution, and thus
-                # return the center of the unnormalized distribution, or what's closest
-                # to it in the case of quantization
+                # If both alpha and beta are 1, we have a uniform distribution.
                 return self._transform_scalar(0.5)
 
         elif self.is_legal(default_value):
@@ -1063,8 +1064,6 @@ cdef class BetaFloatHyperparameter(UniformFloatHyperparameter):
                 ) -> Union[np.ndarray, float]:
         alpha = self.alpha
         beta = self.beta
-        lower = self._lower
-        upper = self._upper
         return spbeta(alpha, beta).rvs(size=size, random_state=rs)
 
 
@@ -1643,7 +1642,7 @@ cdef class BetaIntegerHyperparameter(UniformIntegerHyperparameter):
 
         """
         super(BetaIntegerHyperparameter, self).__init__(
-            name, lower, upper, round((upper - lower) / 2), q, log, meta)
+            name, lower, upper, round((upper + lower) / 2), q, log, meta)
         self.alpha = float(alpha)
         self.beta = float(beta)
         if (alpha < 1) or (beta < 1):
