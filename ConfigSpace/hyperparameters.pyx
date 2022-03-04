@@ -2169,6 +2169,8 @@ cdef class BetaIntegerHyperparameter(UniformIntegerHyperparameter):
         np.ndarray(N, )
             Probability density values of the input vector
         """
+        print(vector)
+        print('self.normalization_constant', self.normalization_constant)
         return self.bfhp._pdf(vector) / self.normalization_constant
 
     def get_max_density(self):
@@ -2515,6 +2517,8 @@ cdef class CategoricalHyperparameter(Hyperparameter):
             Probability density values of the input vector
         """
         # this check is to ensure shape is right (and np.shape does not work in cython)
+        print('Before transform')
+        print(vector)
         if vector.ndim != 1:
             raise ValueError("Method pdf expects a one-dimensional numpy array")
         vector = np.array(self._inverse_transform(vector))

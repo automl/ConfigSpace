@@ -1641,13 +1641,13 @@ class TestHyperparameters(unittest.TestCase):
     def test_betaint__pdf(self):
         c1 = BetaIntegerHyperparameter("param", alpha=3, beta=2, lower=0, upper=10)
         c2 = BetaIntegerHyperparameter("logparam", alpha=3, beta=2, 
-                                       lower=1, upper=np.exp(10), log=True)
+                                       lower=1, upper=round(np.exp(10)), log=True)
         c3 = BetaIntegerHyperparameter("param", alpha=1.1, beta=10, lower=0, upper=3)
 
         point_1 = np.array([0.3])
         point_2 = np.array([0.57])
         point_3 = np.array([0.1])
-        array_1 = np.array([0.3, 0.57, 0.11])
+        array_1 = np.array([0.3, 0.57, 1.01])
         point_outside_range_1 = np.array([-0.01])
         point_outside_range_2 = np.array([1.01])
         accepted_shape_1 = np.array([[3]])
@@ -1655,10 +1655,10 @@ class TestHyperparameters(unittest.TestCase):
         accepted_shape_3 = np.array([3, 5, 7]).reshape(-1, 1)
 
         self.assertAlmostEqual(c1._pdf(point_1)[0], 0.07636363636363634)
-        self.assertAlmostEqual(c2._pdf(point_1)[0], 0.07636363636363634)
+        self.assertAlmostEqual(c2._pdf(point_1)[0], 0.00004333793743670)
         self.assertAlmostEqual(c1._pdf(point_2)[0], 0.16934181818181823)
-        self.assertAlmostEqual(c2._pdf(point_2)[0], 0.16934181818181823)
-        self.assertAlmostEqual(c3._pdf(point_3)[0], 0.9979110652388783)
+        self.assertAlmostEqual(c2._pdf(point_2)[0], 0.00009610497183286)
+        self.assertAlmostEqual(c3._pdf(point_3)[0], 13.176737074414989)
 
         self.assertEqual(c1._pdf(point_outside_range_1)[0], 0.0)
         self.assertEqual(c1._pdf(point_outside_range_2)[0], 0.0)
@@ -1668,7 +1668,7 @@ class TestHyperparameters(unittest.TestCase):
         array_results = c1._pdf(array_1)
         array_results_log = c2._pdf(array_1)
         expected_results = np.array([0.07636363636363634, 0.16934181818181823, 0])
-        expected_results_log = np.array([0.07636363636363634, 0.16934181818181823, 0])
+        expected_results_log = np.array([0.00004333793743670, 0.00009610497183286, 0])
         self.assertEqual(array_results.shape, expected_results.shape)
         self.assertEqual(array_results_log.shape, expected_results.shape)
         for res, log_res, exp_res, exp_log_res in zip(array_results, array_results_log,
