@@ -39,6 +39,8 @@ from scipy.stats import truncnorm, beta as spbeta, norm
 cimport numpy as np
 
 
+Q_CONST = 0.0001
+
 cdef class Hyperparameter(object):
 
     def __init__(self, name: str, meta: Optional[Dict]) -> None:
@@ -491,8 +493,19 @@ cdef class FloatHyperparameter(NumericalHyperparameter):
         """
         if vector.ndim != 1:
             raise ValueError("Method pdf expects a one-dimensional numpy array")
-        vector = self._inverse_transform(vector)
-        return self._pdf(vector)
+        
+        if self.q is not None:
+            # The ratio by which the quantization expands the search space (._lower and ._upper)
+            # in relation to what the user actually defines
+            q_extended_range_factor = 1 + (self.q - 2 * Q_CONST) / (self.upper - self.lower)
+            q_transformed_vector = vector * q_extended_range_factor - (self.q / 2 - Q_CONST)
+        else:
+            q_transformed_vector = vector
+        
+        # Now, we have a vector that is always in the range [0, 1], instead of the shrunk range
+        # that quantization naturally yields (and which is unpredictable for pdf purposes)
+        zero_one_vector = self._inverse_transform(q_transformed_vector)
+        return self._pdf(zero_one_vector)
         
     def _pdf(self, vector: np.ndarray) -> np.ndarray:
         """
@@ -583,8 +596,26 @@ cdef class IntegerHyperparameter(NumericalHyperparameter):
         if vector.ndim != 1:
             raise ValueError("Method pdf expects a one-dimensional numpy array")
         is_integer = (np.round(vector) == vector).astype(int)
-        vector = self._inverse_transform(vector)
+        
+        if self.lower is None:
+            return self._pdf(vector) * is_integer
+        
+        if self.q is None:
+            q = 1
+        else:
+            q = self.q
+        
+        #print('vector', vector)
+        # The ratio by which the quantization expands the search space (._lower and ._upper)
+        # in relation to what the user actually defines
+        q_extended_range_factor = 1 + (q - 2 * Q_CONST) / (self.upper - self.lower)
+        q_transformed_vector = vector * q_extended_range_factor - (q / 2 - Q_CONST)
+        # Now, we have a vector that is always in the range [0, 1], instead of the shrunk range
+        # that quantization naturally yields (and which is unpredictable for pdf purposes)
+        zero_one_vector = self._inverse_transform(q_transformed_vector)
+        #print('zero_one_vector', zero_one_vector)
         return self._pdf(vector) * is_integer
+            
         
     def _pdf(self, vector: np.ndarray) -> np.ndarray:
         """
@@ -677,8 +708,8 @@ cdef class UniformFloatHyperparameter(FloatHyperparameter):
 
         if self.log:
             if self.q is not None:
-                lower = self.lower - (np.float64(self.q) / 2. - 0.0001)
-                upper = self.upper + (np.float64(self.q) / 2. - 0.0001)
+                lower = self.lower - (np.float64(self.q) / 2. - Q_CONST)
+                upper = self.upper + (np.float64(self.q) / 2. - Q_CONST)
             else:
                 lower = self.lower
                 upper = self.upper
@@ -686,8 +717,8 @@ cdef class UniformFloatHyperparameter(FloatHyperparameter):
             self._upper = np.log(upper)
         else:
             if self.q is not None:
-                self._lower = self.lower - (self.q / 2. - 0.0001)
-                self._upper = self.upper + (self.q / 2. - 0.0001)
+                self._lower = self.lower - (self.q / 2. - Q_CONST)
+                self._upper = self.upper + (self.q / 2. - Q_CONST)
             else:
                 self._lower = self.lower
                 self._upper = self.upper
@@ -789,6 +820,7 @@ cdef class UniformFloatHyperparameter(FloatHyperparameter):
             return np.NaN
         if self.log:
             vector = np.log(vector)
+        print('self._lower, self._upper', self._lower, self._upper)
         vector = (vector - self._lower) / (self._upper - self._lower)
         vector = np.minimum(1.0, vector)
         vector = np.maximum(0.0, vector)
@@ -929,8 +961,8 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
 
             if self.log:
                 if self.q is not None:
-                    lower = self.lower - (np.float64(self.q) / 2. - 0.0001)
-                    upper = self.upper + (np.float64(self.q) / 2. - 0.0001)
+                    lower = self.lower - (np.float64(self.q) / 2. - Q_CONST)
+                    upper = self.upper + (np.float64(self.q) / 2. - Q_CONST)
                 else:
                     lower = self.lower
                     upper = self.upper
@@ -938,8 +970,8 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
                 self._upper = np.log(upper)
             else:
                 if self.q is not None:
-                    self._lower = self.lower - (self.q / 2. - 0.0001)
-                    self._upper = self.upper + (self.q / 2. - 0.0001)
+                    self._lower = self.lower - (self.q / 2. - Q_CONST)
+                    self._upper = self.upper + (self.q / 2. - Q_CONST)
                 else:
                     self._lower = self.lower
                     self._upper = self.upper
@@ -1235,7 +1267,7 @@ cdef class BetaFloatHyperparameter(UniformFloatHyperparameter):
             raise ValueError("Please provide values of alpha and beta larger than or equal to\
              1 so that the probability density is finite.")
              
-        if (self.q is not None) and (self.log is not None) and (default_value is None):        
+        if (self.q is not None) and self.log and (default_value is None):        
             warnings.warn('Logscale and quantization together results in incorrect default values. '
                           'We recommend specifying a default value manually for this specific case.')
         
@@ -2169,8 +2201,6 @@ cdef class BetaIntegerHyperparameter(UniformIntegerHyperparameter):
         np.ndarray(N, )
             Probability density values of the input vector
         """
-        print(vector)
-        print('self.normalization_constant', self.normalization_constant)
         return self.bfhp._pdf(vector) / self.normalization_constant
 
     def get_max_density(self):
