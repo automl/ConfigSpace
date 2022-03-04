@@ -708,9 +708,8 @@ class TestConfigurationSpace(unittest.TestCase):
                 InCondition(hyper_params["hp7"], hyper_params["hp5"], ['1'])))
 
         for cfg, fixture in zip(
-                cs.sample_configuration(10),
-                [[1, np.NaN, 2], [2, np.NaN, np.NaN],
-                 [0, 0, np.NaN], [0, 2, np.NaN], [0, 0, np.NaN]]
+            cs.sample_configuration(10),
+            [[1, np.NaN, 2], [2, np.NaN, np.NaN], [0, 0, np.NaN], [0, 2, np.NaN], [0, 0, np.NaN]]
         ):
             np.testing.assert_array_almost_equal(cfg.get_array(), fixture)
 

@@ -256,7 +256,11 @@ cdef class Constant(Hyperparameter):
         if not isinstance(other, self.__class__):
             return False
 
-        return self.value == other.value and self.name == other.name
+        return (
+            self.value == other.value and
+            self.name == other.name and
+            self.default_value == other.default_value
+        )
 
     def __copy__(self):
         return Constant(self.name, self.value, meta=self.meta)
@@ -532,7 +536,7 @@ cdef class IntegerHyperparameter(NumericalHyperparameter):
 
     def check_default(self, default_value) -> int:
         raise NotImplemented
-
+    
     def check_int(self, parameter: int, name: str) -> int:
         if abs(int(parameter) - parameter) > 0.00000001 and \
                         type(parameter) is not int:
@@ -847,7 +851,6 @@ cdef class UniformFloatHyperparameter(FloatHyperparameter):
         else:
             return np.rint((self.upper - self.lower) / self.q) + 1
 
-
 cdef class NormalFloatHyperparameter(FloatHyperparameter):
     cdef public mu
     cdef public sigma
@@ -1020,7 +1023,7 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
                                           lb,
                                           ub,
                                           default_value=self.default_value,
-                                          q=self.q, log=self.log)
+                                          q=self.q, log=self.log, meta=self.meta)
 
     def check_default(self, default_value: Union[int, float]) -> Union[int, float]:
         if default_value is None:
@@ -1225,16 +1228,19 @@ cdef class BetaFloatHyperparameter(UniformFloatHyperparameter):
         # then actually call check_default once we have alpha and beta, and are not inside 
         # UniformFloatHP.
         super(BetaFloatHyperparameter, self).__init__(
-            name, lower, upper, (upper - lower) / 2, q, log, meta)
+            name, lower, upper, (upper + lower) / 2, q, log, meta)
         self.alpha = float(alpha)
         self.beta = float(beta)
         if (alpha < 1) or (beta < 1):
             raise ValueError("Please provide values of alpha and beta larger than or equal to\
              1 so that the probability density is finite.")
+             
+        if (self.q is not None) and (self.log is not None) and (default_value is None):        
+            warnings.warn('Logscale and quantization together results in incorrect default values. '
+                          'We recommend specifying a default value manually for this specific case.')
+        
         self.default_value = self.check_default(default_value)
         self.normalized_default_value = self._inverse_transform(self.default_value)
-        
-
         
     def __repr__(self) -> str:
         repr_str = io.StringIO()
@@ -1295,18 +1301,19 @@ cdef class BetaFloatHyperparameter(UniformFloatHyperparameter):
                                           self.lower,
                                           self.upper,
                                           default_value=self.default_value,
-                                          q=self.q, log=self.log)
+                                          q=self.q, log=self.log, meta=self.meta)
 
     def check_default(self, default_value: Union[int, float, None]) -> Union[int, float]:
         # return mode as default
+        # TODO - for log AND quantization together specifially, this does not give the exact right
+        # value, due to the bounds _lower and _upper being adjusted when quantizing in 
+        # UniformFloat.
         if default_value is None:
             if (self.alpha > 1) or (self.beta > 1):
                 normalized_mode = (self.alpha - 1) / (self.alpha + self.beta - 2)
                 return self._transform_scalar(normalized_mode)
             else: 
-                # If both alpha and beta are 1, we have a uniform distribution, and thus
-                # return the center of the unnormalized distribution, or what's closest
-                # to it in the case of quantization
+                # If both alpha and beta are 1, we have a uniform distribution.
                 return self._transform_scalar(0.5)
 
         elif self.is_legal(default_value):
@@ -1814,7 +1821,8 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
             self.log == other.log and
             self.q == other.q and
             self.lower == other.lower and
-            self.upper == other.upper
+            self.upper == other.upper and
+            self.default_value == other.default_value
         )
 
     def __hash__(self):
@@ -1845,7 +1853,7 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
                                             lb,
                                             ub,
                                             default_value=self.default_value,
-                                            q=self.q, log=self.log)
+                                            q=self.q, log=self.log, meta=self.meta)
 
     def is_legal(self, value: int) -> bool:
         return isinstance(value, (int, np.int32, np.int64))
@@ -2031,7 +2039,7 @@ cdef class BetaIntegerHyperparameter(UniformIntegerHyperparameter):
 
         """
         super(BetaIntegerHyperparameter, self).__init__(
-            name, lower, upper, round((upper - lower) / 2), q, log, meta)
+            name, lower, upper, round((upper + lower) / 2), q, log, meta)
         self.alpha = float(alpha)
         self.beta = float(beta)
         if (alpha < 1) or (beta < 1):
@@ -2108,12 +2116,12 @@ cdef class BetaIntegerHyperparameter(UniformIntegerHyperparameter):
                                             self.lower,
                                             self.upper,
                                             default_value=self.default_value,
-                                            q=self.q, log=self.log)
+                                            q=self.q, log=self.log, meta=self.meta)
 
 
     def check_default(self, default_value: Union[int, float, None]) -> int:
         if default_value is None:
-            # Here, we just let the BetaFloat take care of the default valueub
+            # Here, we just let the BetaFloat take care of the default value
             # computation, and just tansform it accordingly
             value = self.bfhp.check_default(None)   
             value = self._inverse_transform(value)
@@ -2282,9 +2290,40 @@ cdef class CategoricalHyperparameter(Hyperparameter):
         if not isinstance(other, self.__class__):
             return False
 
+        if self.probabilities is not None:
+            ordered_probabilities_self = {
+                choice: self.probabilities[i] for i, choice in enumerate(self.choices)
+            }
+        else:
+            ordered_probabilities_self = None
+        if other.probabilities is not None:
+            ordered_probabilities_other = {
+                choice: (
+                    other.probabilities[other.choices.index(choice)]
+                    if choice in other.choices else
+                    None
+                )
+                for choice in self.choices
+            }
+        else:
+            ordered_probabilities_other = None
+
         return (
             self.name == other.name and
-            set(self.choices) == set(other.choices)
+            set(self.choices) == set(other.choices) and
+            self.default_value == other.default_value and
+            (
+                (ordered_probabilities_self is None and ordered_probabilities_other is None) or
+                ordered_probabilities_self == ordered_probabilities_other or
+                (
+                    ordered_probabilities_self is None
+                    and len(np.unique(list(ordered_probabilities_other.values()))) == 1
+                ) or
+                (
+                    ordered_probabilities_other is None
+                    and len(np.unique(list(ordered_probabilities_self.values()))) == 1
+                )
+             )
         )
 
     def __hash__(self):
@@ -2615,7 +2654,8 @@ cdef class OrdinalHyperparameter(Hyperparameter):
 
         return (
             self.name == other.name and
-            self.sequence == other.sequence
+            self.sequence == other.sequence and
+            self.default_value == other.default_value
         )
 
     def __copy__(self):

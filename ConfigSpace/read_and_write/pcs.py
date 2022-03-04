@@ -1,5 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+"""
+The old PCS format is part of the `Algorithm Configuration Library <http://aclib.net/#>`_.
+
+A detailed explanation of the **old** PCS format can be found
+`here. <http://aclib.net/cssc2014/pcs-format.pdf>`_
+"""
 
 __authors__ = ["Katharina Eggensperger", "Matthias Feurer"]
 __contact__ = "automl.org"
