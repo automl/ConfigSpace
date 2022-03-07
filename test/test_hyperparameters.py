@@ -87,6 +87,90 @@ class TestHyperparameters(unittest.TestCase):
         for constant in (c1, c2, c3, c4, c5, c1_meta):
             self.assertEqual(constant.get_size(), 1)
 
+    def test_constant_pdf(self):
+        c1 = Constant("valuee", 1)
+        c2 = Constant("valueee", -2)
+
+        # TODO - change this once the is_legal support is there - should then be zero
+        # but does not have an actual impact of now
+        point_1 = np.array([1])
+        point_2 = np.array([-2])
+        array_1 = np.array([1, 1])
+        array_2 = np.array([-2, -2])
+        array_3 = np.array([1, -2])
+
+        wrong_shape_1 = np.array([[1]])
+        wrong_shape_2 = np.array([1, 2, 3]).reshape(1, -1)
+        wrong_shape_3 = np.array([1, 2, 3]).reshape(-1, 1)
+
+        self.assertEqual(c1.pdf(point_1), np.array([1.0]))
+        self.assertEqual(c2.pdf(point_2), np.array([1.0]))
+        self.assertEqual(c1.pdf(point_2), np.array([0.0]))
+        self.assertEqual(c2.pdf(point_1), np.array([0.0]))
+
+        self.assertEqual(tuple(c1.pdf(array_1)), tuple(np.array([1.0, 1.0])))
+        self.assertEqual(tuple(c2.pdf(array_2)), tuple(np.array([1.0, 1.0])))
+        self.assertEqual(tuple(c1.pdf(array_2)), tuple(np.array([0.0, 0.0])))
+        self.assertEqual(tuple(c1.pdf(array_3)), tuple(np.array([1.0, 0.0])))
+
+        # pdf must take a numpy array
+        with self.assertRaises(TypeError):
+            c1.pdf(0.2)
+        with self.assertRaises(TypeError):
+            c1.pdf('pdf')
+
+        # and it must be one-dimensional
+        with self.assertRaisesRegex(ValueError, "Method pdf expects a one-dimensional numpy array"):
+            c1.pdf(wrong_shape_1)
+        with self.assertRaisesRegex(ValueError, "Method pdf expects a one-dimensional numpy array"):
+            c1.pdf(wrong_shape_2)
+        with self.assertRaisesRegex(ValueError, "Method pdf expects a one-dimensional numpy array"):
+            c1.pdf(wrong_shape_3)
+
+    def test_constant__pdf(self):
+        c1 = Constant("valuee", 1)
+        c2 = Constant("valueee", -2)
+
+        point_1 = np.array([1])
+        point_2 = np.array([-2])
+        array_1 = np.array([1, 1])
+        array_2 = np.array([-2, -2])
+        array_3 = np.array([1, -2])
+
+        # These shapes are allowed in _pdf
+        accepted_shape_1 = np.array([[1]])
+        accepted_shape_2 = np.array([1, 2, 3]).reshape(1, -1)
+        accepted_shape_3 = np.array([3, 2, 1]).reshape(-1, 1)
+
+        self.assertEqual(c1._pdf(point_1), np.array([1.0]))
+        self.assertEqual(c2._pdf(point_2), np.array([1.0]))
+        self.assertEqual(c1._pdf(point_2), np.array([0.0]))
+        self.assertEqual(c2._pdf(point_1), np.array([0.0]))
+
+        # Only (N, ) numpy arrays are seamlessly converted to tuples
+        # so the __eq__ method works as intended
+        self.assertEqual(tuple(c1._pdf(array_1)), tuple(np.array([1.0, 1.0])))
+        self.assertEqual(tuple(c2._pdf(array_2)), tuple(np.array([1.0, 1.0])))
+        self.assertEqual(tuple(c1._pdf(array_2)), tuple(np.array([0.0, 0.0])))
+        self.assertEqual(tuple(c1._pdf(array_3)), tuple(np.array([1.0, 0.0])))
+
+        # pdf must take a numpy array
+        with self.assertRaises(TypeError):
+            c1._pdf(0.2)
+        with self.assertRaises(TypeError):
+            c1._pdf('pdf')
+
+        # Simply check that it runs, since _pdf does not restrict shape (only public method does)
+        c1._pdf(accepted_shape_1)
+        c1._pdf(accepted_shape_2)
+        c1._pdf(accepted_shape_3)
+
+    def test_constant_get_max_density(self):
+        c1 = Constant("valuee", 1)
+        c2 = Constant("valueee", -2)
+        self.assertEqual(c1.get_max_density(), 1.0)
+        self.assertEqual(c2.get_max_density(), 1.0)
+
     def test_uniformfloat(self):
         # TODO test non-equality
         # TODO test sampling from a log-distribution which has a negative
@@ -195,6 +279,123 @@ class TestHyperparameters(unittest.TestCase):
             ValueError, "Upper bound 0.000000 must be larger than lower bound "
             "1.000000 for hyperparameter param", UniformFloatHyperparameter,
             "param", 1, 0)
+
+    def test_uniformfloat_pdf(self):
+        c1 = UniformFloatHyperparameter("param", lower=0, upper=10)
+        c2 = UniformFloatHyperparameter("logparam", lower=np.exp(0), upper=np.exp(10), log=True)
+        c3 = UniformFloatHyperparameter("param", lower=0, upper=0.5)
+
+        point_1 = np.array([3])
+        point_2 = np.array([7])
+        point_3 = np.array([0.3])
+        array_1 = np.array([3, 7, 5])
+        point_outside_range = np.array([-1])
+        point_outside_range_log = np.array([0.1])
+        wrong_shape_1 = np.array([[3]])
+        wrong_shape_2 = np.array([3, 5, 7]).reshape(1, -1)
+        wrong_shape_3 = np.array([3, 5, 7]).reshape(-1, 1)
+
+        self.assertAlmostEqual(c1.pdf(point_1)[0], 0.1)
+        self.assertAlmostEqual(c2.pdf(point_2)[0], 4.539992976248485e-05)
+        self.assertAlmostEqual(c1.pdf(point_1)[0], 0.1)
+        self.assertAlmostEqual(c2.pdf(point_2)[0], 4.539992976248485e-05)
+        self.assertAlmostEqual(c3.pdf(point_3)[0], 2.0)
+
+        # TODO - change this once the is_legal support is there
+        # but does not have an actual impact of now
+        # since inverse_transform pulls everything into range,
+        # even points outside get evaluated in range
+        self.assertAlmostEqual(c1.pdf(point_outside_range)[0], 0.1)
+        self.assertAlmostEqual(c2.pdf(point_outside_range_log)[0], 4.539992976248485e-05)
+
+        # this, however, is a negative value on a log param, which cannot be pulled into range
+        with pytest.warns(RuntimeWarning, match='invalid value encountered in log'):
+            self.assertEqual(c2.pdf(point_outside_range)[0], 0.0)
+
+        array_results = c1.pdf(array_1)
+        array_results_log = c2.pdf(array_1)
+        expected_results = np.array([0.1, 0.1, 0.1])
+        expected_log_results = np.array(
+            [4.539992976248485e-05, 4.539992976248485e-05, 4.539992976248485e-05])
+        self.assertEqual(array_results.shape, expected_results.shape)
+        self.assertEqual(array_results_log.shape, expected_log_results.shape)
+        for res, log_res, exp_res, exp_log_res in zip(array_results, array_results_log,
+                                                      expected_results, expected_log_results):
+            self.assertAlmostEqual(res, exp_res)
+            self.assertAlmostEqual(log_res, exp_log_res)
+
+        # pdf must take a numpy array
+        with self.assertRaises(TypeError):
+            c1.pdf(0.2)
+        with self.assertRaises(TypeError):
+            c1.pdf('pdf')
+
+        with self.assertRaisesRegex(ValueError, "Method pdf expects a one-dimensional numpy array"):
+            c1.pdf(wrong_shape_1)
+        with self.assertRaisesRegex(ValueError, "Method pdf expects a one-dimensional numpy array"):
+            c1.pdf(wrong_shape_2)
+        with self.assertRaisesRegex(ValueError, "Method pdf expects a one-dimensional numpy array"):
+            c1.pdf(wrong_shape_3)
+
+    def test_uniformfloat__pdf(self):
+        c1 = UniformFloatHyperparameter("param", lower=0, upper=10)
+        c2 = UniformFloatHyperparameter("logparam", lower=np.exp(0), upper=np.exp(10), log=True)
+        c3 = UniformFloatHyperparameter("param", lower=0, upper=0.5)
+
+        point_1 = np.array([0.3])
+        point_2 = np.array([1])
+        point_3 = np.array([0.0])
+        array_1 = np.array([0.3, 0.7, 1.01])
+        point_outside_range_1 = np.array([-1])
+        point_outside_range_2 = np.array([1.1])
+        accepted_shape_1 = np.array([[0.3]])
+        accepted_shape_2 = np.array([0.3, 0.5, 1.1]).reshape(1, -1)
+        accepted_shape_3 = np.array([1.1, 0.5, 0.3]).reshape(-1, 1)
+
+        self.assertAlmostEqual(c1._pdf(point_1)[0], 0.1)
+        self.assertAlmostEqual(c2._pdf(point_2)[0], 4.539992976248485e-05)
+        self.assertAlmostEqual(c1._pdf(point_1)[0], 0.1)
+        self.assertAlmostEqual(c2._pdf(point_2)[0], 4.539992976248485e-05)
+        self.assertAlmostEqual(c3._pdf(point_3)[0], 2.0)
+
+        # TODO - change this once the is_legal support is there
+        # but does not have an actual impact of now
+        # since inverse_transform pulls everything into range,
+        # even points outside get evaluated in range
+        self.assertAlmostEqual(c1._pdf(point_outside_range_1)[0], 0.0)
+        self.assertAlmostEqual(c2._pdf(point_outside_range_2)[0], 0.0)
+        self.assertAlmostEqual(c1._pdf(point_outside_range_2)[0], 0.0)
+        self.assertAlmostEqual(c2._pdf(point_outside_range_1)[0], 0.0)
+
+        array_results = c1._pdf(array_1)
+        array_results_log = c2._pdf(array_1)
+        expected_results = np.array([0.1, 0.1, 0])
+        expected_log_results = np.array([4.539992976248485e-05, 4.539992976248485e-05, 0.0])
+        self.assertEqual(array_results.shape, expected_results.shape)
+        self.assertEqual(array_results_log.shape, expected_log_results.shape)
+        for res, log_res, exp_res, exp_log_res in zip(array_results, array_results_log,
+                                                      expected_results, expected_log_results):
+            self.assertAlmostEqual(res, exp_res)
+            self.assertAlmostEqual(log_res, exp_log_res)
+
+        # pdf must take a numpy array
+        with self.assertRaises(TypeError):
+            c1._pdf(0.2)
+        with self.assertRaises(TypeError):
+            c1._pdf('pdf')
+
+        # Simply check that it runs, since _pdf does not restrict shape (only public method does)
+        c1._pdf(accepted_shape_1)
+        c1._pdf(accepted_shape_2)
+        c1._pdf(accepted_shape_3)
+
+    def test_uniformfloat_get_max_density(self):
+        c1 = UniformFloatHyperparameter("param", lower=0, upper=10)
+        c2 = UniformFloatHyperparameter("logparam", lower=np.exp(0), upper=np.exp(10), log=True)
+        c3 = UniformFloatHyperparameter("param", lower=0, upper=0.5)
+        self.assertEqual(c1.get_max_density(), 0.1)
+        self.assertAlmostEqual(c2.get_max_density(), 4.539992976248485e-05)
+        self.assertEqual(c3.get_max_density(), 2)
 
     def test_normalfloat(self):
         # TODO test non-equality
@@ -349,6 +550,127 @@ class TestHyperparameters(unittest.TestCase):
         f2_actual = f1.to_integer()
         self.assertEqual(f2_expected, f2_actual)
 
+    def test_normalfloat_pdf(self):
+        c1 = NormalFloatHyperparameter("param", lower=0, upper=10, mu=3, sigma=2)
+        c2 = NormalFloatHyperparameter("logparam", lower=np.exp(
+            0), upper=np.exp(10), mu=3, sigma=2, log=True)
+        c3 = NormalFloatHyperparameter("param", lower=0, upper=0.5, mu=-1, sigma=0.2)
+
+        point_1 = np.array([3])
+        point_1_log = np.array([np.exp(3)])
+        point_2 = np.array([10])
+        point_2_log = np.array([np.exp(10)])
+        point_3 = np.array([0])
+        array_1 = np.array([3, 10, 10.01])
+        array_1_log = np.array([np.exp(3), np.exp(10), np.exp(10.01)])
+        point_outside_range_1 = np.array([-0.01])
+        point_outside_range_2 = np.array([10.01])
+        point_outside_range_1_log = np.array([np.exp(-0.01)])
+        point_outside_range_2_log = np.array([np.exp(10.01)])
+        wrong_shape_1 = np.array([[3]])
+        wrong_shape_2 = np.array([3, 5, 7]).reshape(1, -1)
+        wrong_shape_3 = np.array([3, 5, 7]).reshape(-1, 1)
+
+        self.assertAlmostEqual(c1.pdf(point_1)[0], 0.2138045617479014)
+        self.assertAlmostEqual(c2.pdf(point_1_log)[0], 0.2138045617479014)
+        self.assertAlmostEqual(c1.pdf(point_2)[0], 0.000467695579850518)
+        self.assertAlmostEqual(c2.pdf(point_2_log)[0], 0.000467695579850518)
+        self.assertAlmostEqual(c3.pdf(point_3)[0], 25.932522722334905)
+        # TODO - change this once the is_legal support is there
+        # but does not have an actual impact of now
+        self.assertEqual(c1.pdf(point_outside_range_1)[0], 0.0)
+        self.assertEqual(c1.pdf(point_outside_range_2)[0], 0.0)
+        self.assertEqual(c2.pdf(point_outside_range_1_log)[0], 0.0)
+        self.assertEqual(c2.pdf(point_outside_range_2_log)[0], 0.0)
+
+        array_results = c1.pdf(array_1)
+        array_results_log = c2.pdf(array_1_log)
+        expected_results = np.array([0.2138045617479014, 0.0004676955798505186, 0])
+        self.assertEqual(array_results.shape, expected_results.shape)
+        self.assertEqual(array_results_log.shape, expected_results.shape)
+        for res, log_res, exp_res in zip(array_results, array_results, expected_results):
+            self.assertAlmostEqual(res, exp_res)
+            self.assertAlmostEqual(log_res, exp_res)
+
+        # pdf must take a numpy array
+        with self.assertRaises(TypeError):
+            c1.pdf(0.2)
+        with self.assertRaises(TypeError):
+            c1.pdf('pdf')
+
+        c_nobounds = NormalFloatHyperparameter("param", mu=3, sigma=2)
+        self.assertAlmostEqual(c_nobounds.pdf(np.array([2])), 0.17603266338214976)
+
+        with self.assertRaisesRegex(ValueError, "Method pdf expects a one-dimensional numpy array"):
+            c1.pdf(wrong_shape_1)
+        with self.assertRaisesRegex(ValueError, "Method pdf expects a one-dimensional numpy array"):
+            c1.pdf(wrong_shape_2)
+        with self.assertRaisesRegex(ValueError, "Method pdf expects a one-dimensional numpy array"):
+            c1.pdf(wrong_shape_3)
+
+    def test_normalfloat__pdf(self):
+        c1 = NormalFloatHyperparameter("param", lower=0, upper=10, mu=3, sigma=2)
+        c2 = NormalFloatHyperparameter("logparam", lower=np.exp(
+            0), upper=np.exp(10), mu=3, sigma=2, log=True)
+        c3 = NormalFloatHyperparameter("param", lower=0, upper=0.5, mu=-1, sigma=0.2)
+
+        # since there is no logtransformation, the logged and unlogged parameters
+        # should output the same given the same input
+
+        point_1 = np.array([3])
+        point_2 = np.array([10])
+        point_3 = np.array([0])
+        array_1 = np.array([3, 10, 10.01])
+        point_outside_range_1 = np.array([-0.01])
+        point_outside_range_2 = np.array([10.01])
+        accepted_shape_1 = np.array([[3]])
+        accepted_shape_2 = np.array([3, 5, 7]).reshape(1, -1)
+        accepted_shape_3 = np.array([7, 5, 3]).reshape(-1, 1)
+
+        self.assertAlmostEqual(c1._pdf(point_1)[0], 0.2138045617479014)
+        self.assertAlmostEqual(c2._pdf(point_1)[0], 0.2138045617479014)
+        self.assertAlmostEqual(c1._pdf(point_2)[0], 0.000467695579850518)
+        self.assertAlmostEqual(c2._pdf(point_2)[0], 0.000467695579850518)
+        self.assertAlmostEqual(c3._pdf(point_3)[0], 25.932522722334905)
+        # TODO - change this once the is_legal support is there
+        # but does not have an actual impact of now
+        self.assertEqual(c1._pdf(point_outside_range_1)[0], 0.0)
+        self.assertEqual(c1._pdf(point_outside_range_2)[0], 0.0)
+        self.assertEqual(c2._pdf(point_outside_range_1)[0], 0.0)
+        self.assertEqual(c2._pdf(point_outside_range_2)[0], 0.0)
+
+        array_results = c1.pdf(array_1)
+        array_results_log = c2.pdf(array_1)
+        expected_results = np.array([0.2138045617479014, 0.0004676955798505186, 0])
+        self.assertEqual(array_results.shape, expected_results.shape)
+        self.assertEqual(array_results_log.shape, expected_results.shape)
+        for res, log_res, exp_res in zip(array_results, array_results, expected_results):
+            self.assertAlmostEqual(res, exp_res)
+            self.assertAlmostEqual(log_res, exp_res)
+
+        # pdf must take a numpy array
+        with self.assertRaises(TypeError):
+            c1.pdf(0.2)
+        with self.assertRaises(TypeError):
+            c1.pdf('pdf')
+
+        c_nobounds = NormalFloatHyperparameter("param", mu=3, sigma=2)
+        self.assertAlmostEqual(c_nobounds.pdf(np.array([2])), 0.17603266338214976)
+
+        # Simply check that it runs, since _pdf does not restrict shape (only public method does)
+        c1._pdf(accepted_shape_1)
+        c1._pdf(accepted_shape_2)
+        c1._pdf(accepted_shape_3)
+
+    def test_normalfloat_get_max_density(self):
+        c1 = NormalFloatHyperparameter("param", lower=0, upper=10, mu=3, sigma=2)
+        c2 = NormalFloatHyperparameter("logparam", lower=np.exp(
+            0), upper=np.exp(10), mu=3, sigma=2, log=True)
+        c3 = NormalFloatHyperparameter("param", lower=0, upper=0.5, mu=-1, sigma=0.2)
+        self.assertEqual(c1.get_max_density(), 0.2138045617479014)
+        self.assertAlmostEqual(c2.get_max_density(), 0.2138045617479014)
+        self.assertAlmostEqual(c3.get_max_density(), 25.932522722334905)
+
     def test_betafloat(self):
         # TODO test non-equality
         f1 = BetaFloatHyperparameter("param", lower=-2.0, upper=2.0, alpha=3.0, beta=1.0)
@@ -393,7 +715,7 @@ class TestHyperparameters(unittest.TestCase):
 
         self.assertEqual(f4, f4_)
         self.assertEqual(
-            "param, Type: BetaFloat, Alpha: 2.0 Beta: 2.0, Range: [1.0, 1000.0], Default: 22.0, "
+            "param, Type: BetaFloat, Alpha: 2.0 Beta: 2.0, Range: [1.0, 1000.0], Default: 32.0, "
             "on log-scale, Q: 1.0", str(f4))
 
         # test that meta-data is stored correctly
@@ -488,6 +810,10 @@ class TestHyperparameters(unittest.TestCase):
             "param", lower=-2.0, upper=2.0, alpha=4.7, beta=2.12, q=1)
         self.assertAlmostEqual(f_quant.default_value, 1.0)
 
+        f_log_quant = BetaFloatHyperparameter(
+            "param", lower=1, upper=100000, alpha=2, beta=2, q=1, log=True)
+        self.assertAlmostEqual(f_log_quant.default_value, 316)
+
         # since it's quantized, it gets distributed evenly among the search space
         # as such, the possible normalized defaults are 0.1, 0.3, 0.5, 0.7, 0.9
         self.assertAlmostEqual(f_quant.normalized_default_value, 0.7, places=4)
@@ -531,6 +857,119 @@ class TestHyperparameters(unittest.TestCase):
         f2_expected = BetaIntegerHyperparameter("param", lower=-2.0, upper=2.0, alpha=4, beta=2)
         f2_actual = f1.to_integer()
         self.assertEqual(f2_expected, f2_actual)
+
+    def test_betafloat_pdf(self):
+        c1 = BetaFloatHyperparameter("param", lower=0, upper=10, alpha=3, beta=2)
+        c2 = BetaFloatHyperparameter("logparam", lower=np.exp(
+            0), upper=np.exp(10), alpha=3, beta=2, log=True)
+        c3 = BetaFloatHyperparameter("param", lower=0, upper=0.5, alpha=1.1, beta=25)
+
+        point_1 = np.array([3])
+        point_1_log = np.array([np.exp(3)])
+        point_2 = np.array([9.9])
+        point_2_log = np.array([np.exp(9.9)])
+        point_3 = np.array([0.01])
+        array_1 = np.array([3, 9.9, 10.01])
+        array_1_log = np.array([np.exp(3), np.exp(9.9), np.exp(10.01)])
+        point_outside_range_1 = np.array([-0.01])
+        point_outside_range_2 = np.array([10.01])
+        point_outside_range_1_log = np.array([np.exp(-0.01)])
+        point_outside_range_2_log = np.array([np.exp(10.01)])
+        wrong_shape_1 = np.array([[3]])
+        wrong_shape_2 = np.array([3, 5, 7]).reshape(1, -1)
+        wrong_shape_3 = np.array([3, 5, 7]).reshape(-1, 1)
+
+        self.assertAlmostEqual(c1.pdf(point_1)[0], 0.07559999999999997)
+        self.assertAlmostEqual(c2.pdf(point_1_log)[0], 0.07559999999999997)
+        self.assertAlmostEqual(c1.pdf(point_2)[0], 0.011761200000000013)
+        self.assertAlmostEqual(c2.pdf(point_2_log)[0], 0.011761200000000013)
+        self.assertAlmostEqual(c3.pdf(point_3)[0], 30.262164001861198)
+        # TODO - change this once the is_legal support is there
+        # but does not have an actual impact of now
+        self.assertEqual(c1.pdf(point_outside_range_1)[0], 0.0)
+        self.assertEqual(c1.pdf(point_outside_range_2)[0], 0.0)
+        self.assertEqual(c2.pdf(point_outside_range_1_log)[0], 0.0)
+        self.assertEqual(c2.pdf(point_outside_range_2_log)[0], 0.0)
+
+        array_results = c1.pdf(array_1)
+        array_results_log = c2.pdf(array_1_log)
+        expected_results = np.array([0.07559999999999997, 0.011761200000000013, 0])
+        self.assertEqual(array_results.shape, expected_results.shape)
+        self.assertEqual(array_results_log.shape, expected_results.shape)
+        for res, log_res, exp_res in zip(array_results, array_results, expected_results):
+            self.assertAlmostEqual(res, exp_res)
+            self.assertAlmostEqual(log_res, exp_res)
+
+        # pdf must take a numpy array
+        with self.assertRaises(TypeError):
+            c1.pdf(0.2)
+        with self.assertRaises(TypeError):
+            c1.pdf('pdf')
+
+        with self.assertRaisesRegex(ValueError, "Method pdf expects a one-dimensional numpy array"):
+            c1.pdf(wrong_shape_1)
+        with self.assertRaisesRegex(ValueError, "Method pdf expects a one-dimensional numpy array"):
+            c1.pdf(wrong_shape_2)
+        with self.assertRaisesRegex(ValueError, "Method pdf expects a one-dimensional numpy array"):
+            c1.pdf(wrong_shape_3)
+
+    def test_betafloat__pdf(self):
+        c1 = BetaFloatHyperparameter("param", lower=0, upper=10, alpha=3, beta=2)
+        c2 = BetaFloatHyperparameter("logparam", lower=np.exp(
+            0), upper=np.exp(10), alpha=3, beta=2, log=True)
+        c3 = BetaFloatHyperparameter("param", lower=0, upper=0.5, alpha=1.1, beta=25)
+
+        point_1 = np.array([0.3])
+        point_2 = np.array([0.99])
+        point_3 = np.array([0.02])
+        array_1 = np.array([0.3, 0.99, 1.01])
+        point_outside_range_1 = np.array([-0.01])
+        point_outside_range_2 = np.array([1.01])
+        accepted_shape_1 = np.array([[0.3]])
+        accepted_shape_2 = np.array([0.3, 0.5, 0.7]).reshape(1, -1)
+        accepted_shape_3 = np.array([0.7, 0.5, 0.3]).reshape(-1, 1)
+
+        self.assertAlmostEqual(c1._pdf(point_1)[0], 0.07559999999999997)
+        self.assertAlmostEqual(c2._pdf(point_1)[0], 0.07559999999999997)
+        self.assertAlmostEqual(c1._pdf(point_2)[0], 0.011761200000000013)
+        self.assertAlmostEqual(c2._pdf(point_2)[0], 0.011761200000000013)
+        self.assertAlmostEqual(c3._pdf(point_3)[0], 30.262164001861198)
+
+        # TODO - change this once the is_legal support is there
+        # but does not have an actual impact of now
+        self.assertEqual(c1._pdf(point_outside_range_1)[0], 0.0)
+        self.assertEqual(c1._pdf(point_outside_range_2)[0], 0.0)
+        self.assertEqual(c2._pdf(point_outside_range_1)[0], 0.0)
+        self.assertEqual(c2._pdf(point_outside_range_2)[0], 0.0)
+
+        array_results = c1._pdf(array_1)
+        array_results_log = c2._pdf(array_1)
+        expected_results = np.array([0.07559999999999997, 0.011761200000000013, 0])
+        self.assertEqual(array_results.shape, expected_results.shape)
+        self.assertEqual(array_results_log.shape, expected_results.shape)
+        for res, log_res, exp_res in zip(array_results, array_results, expected_results):
+            self.assertAlmostEqual(res, exp_res)
+            self.assertAlmostEqual(log_res, exp_res)
+
+        # pdf must take a numpy array
+        with self.assertRaises(TypeError):
+            c1.pdf(0.2)
+        with self.assertRaises(TypeError):
+            c1.pdf('pdf')
+
+        # Simply check that it runs, since _pdf does not restrict shape (only public method does)
+        c1._pdf(accepted_shape_1)
+        c1._pdf(accepted_shape_2)
+        c1._pdf(accepted_shape_3)
+
+    def test_betafloat_get_max_density(self):
+        c1 = BetaFloatHyperparameter("param", lower=0, upper=10, alpha=3, beta=2)
+        c2 = BetaFloatHyperparameter("logparam", lower=np.exp(
+            0), upper=np.exp(10), alpha=3, beta=2, log=True)
+        c3 = BetaFloatHyperparameter("param", lower=0, upper=0.5, alpha=1.1, beta=25)
+        self.assertAlmostEqual(c1.get_max_density(), 0.17777777777777776)
+        self.assertAlmostEqual(c2.get_max_density(), 0.17777777777777776)
+        self.assertAlmostEqual(c3.get_max_density(), 38.00408137865127)
 
     def test_uniforminteger(self):
         # TODO: rounding or converting or error message?
@@ -631,6 +1070,123 @@ class TestHyperparameters(unittest.TestCase):
             ValueError,
             "Upper bound 1 must be larger than lower bound 0 for "
             "hyperparameter param", UniformIntegerHyperparameter, "param", 1, 0)
+
+    def test_uniformint_pdf(self):
+        c1 = UniformIntegerHyperparameter("param", lower=0, upper=4)
+        c2 = UniformIntegerHyperparameter("logparam", lower=1, upper=10000, log=True)
+        c3 = UniformIntegerHyperparameter("param", lower=-1, upper=12)
+        point_1 = np.array([0])
+        point_1_log = np.array([1])
+        point_2 = np.array([3.0])
+        point_2_log = np.array([3.0])
+        non_integer_point = np.array([3.7])
+        array_1 = np.array([1, 3, 3.7])
+        point_outside_range = np.array([-1])
+        point_outside_range_log = np.array([10001])
+        wrong_shape_1 = np.array([[3]])
+        wrong_shape_2 = np.array([3, 5, 7]).reshape(1, -1)
+        wrong_shape_3 = np.array([3, 5, 7]).reshape(-1, 1)
+
+        # need to lower the amount of places since the bounds
+        # are inexact (._lower=-0.49999, ._upper=4.49999)
+        self.assertAlmostEqual(c1.pdf(point_1)[0], 0.2, places=5)
+        self.assertAlmostEqual(c2.pdf(point_1_log)[0], 0.0001, places=5)
+        self.assertAlmostEqual(c1.pdf(point_2)[0], 0.2, places=5)
+        self.assertAlmostEqual(c2.pdf(point_2_log)[0], 0.0001, places=5)
+        self.assertAlmostEqual(c1.pdf(non_integer_point)[0], 0.0, places=5)
+        self.assertAlmostEqual(c2.pdf(non_integer_point)[0], 0.0, places=5)
+        self.assertAlmostEqual(c3.pdf(point_1)[0], 0.07142857142857142, places=5)
+
+        # TODO - change this once the is_legal support is there
+        # but does not have an actual impact of now
+        # since inverse_transform pulls everything into range,
+        # even points outside get evaluated in range
+        self.assertAlmostEqual(c1.pdf(point_outside_range)[0], 0.2, places=5)
+        self.assertAlmostEqual(c2.pdf(point_outside_range_log)[0], 0.0001, places=5)
+
+        # this, however, is a negative value on a log param, which cannot be pulled into range
+        with pytest.warns(RuntimeWarning, match='invalid value encountered in log'):
+            self.assertEqual(c2.pdf(point_outside_range)[0], 0.0)
+
+        array_results = c1.pdf(array_1)
+        array_results_log = c2.pdf(array_1)
+        expected_results = np.array([0.2, 0.2, 0])
+        expected_results_log = np.array([0.0001, 0.0001, 0])
+        self.assertAlmostEqual(array_results.shape, expected_results.shape)
+        self.assertEqual(array_results_log.shape, expected_results.shape)
+        for res, log_res, exp_res, exp_log_res in zip(array_results, array_results,
+                                                      expected_results, expected_results_log):
+            self.assertAlmostEqual(res, exp_res, places=5)
+            self.assertAlmostEqual(log_res, exp_res, places=5)
+
+        # pdf must take a numpy array
+        with self.assertRaises(TypeError):
+            c1.pdf(0.2)
+        with self.assertRaises(TypeError):
+            c1.pdf('pdf')
+
+        with self.assertRaisesRegex(ValueError, "Method pdf expects a one-dimensional numpy array"):
+            c1.pdf(wrong_shape_1)
+        with self.assertRaisesRegex(ValueError, "Method pdf expects a one-dimensional numpy array"):
+            c1.pdf(wrong_shape_2)
+        with self.assertRaisesRegex(ValueError, "Method pdf expects a one-dimensional numpy array"):
+            c1.pdf(wrong_shape_3)
+
+    def test_uniformint__pdf(self):
+        c1 = UniformIntegerHyperparameter("param", lower=0, upper=4)
+        c2 = UniformIntegerHyperparameter("logparam", lower=1, upper=10000, log=True)
+
+        point_1 = np.array([0])
+        point_2 = np.array([0.7])
+        array_1 = np.array([0, 0.7, 1.1])
+        point_outside_range = np.array([-0.1])
+        accepted_shape_1 = np.array([[0.7]])
+        accepted_shape_2 = np.array([0, 0.7, 1.1]).reshape(1, -1)
+        accepted_shape_3 = np.array([1.1, 0.7, 0]).reshape(-1, 1)
+
+        # need to lower the amount of places since the bounds
+        # are inexact (._lower=-0.49999, ._upper=4.49999)
+        self.assertAlmostEqual(c1._pdf(point_1)[0], 0.2, places=5)
+        self.assertAlmostEqual(c2._pdf(point_1)[0], 0.0001, places=5)
+        self.assertAlmostEqual(c1._pdf(point_2)[0], 0.2, places=5)
+        self.assertAlmostEqual(c2._pdf(point_2)[0], 0.0001, places=5)
+
+        # TODO - change this once the is_legal support is there
+        # but does not have an actual impact of now
+        # since inverse_transform pulls everything into range,
+        # even points outside get evaluated in range
+        self.assertAlmostEqual(c1._pdf(point_outside_range)[0], 0.0, places=5)
+        self.assertAlmostEqual(c2._pdf(point_outside_range)[0], 0.0, places=5)
+
+        array_results = c1._pdf(array_1)
+        array_results_log = c2._pdf(array_1)
+        expected_results = np.array([0.2, 0.2, 0])
+        expected_results_log = np.array([0.0001, 0.0001, 0])
+        self.assertAlmostEqual(array_results.shape, expected_results.shape)
+        self.assertEqual(array_results_log.shape, expected_results.shape)
+        for res, log_res, exp_res, exp_log_res in zip(array_results, array_results_log,
+                                                      expected_results, expected_results_log):
+            self.assertAlmostEqual(res, exp_res, places=5)
+            self.assertAlmostEqual(log_res, exp_log_res, places=5)
+
+        # pdf must take a numpy array
+        with self.assertRaises(TypeError):
+            c1._pdf(0.2)
+        with self.assertRaises(TypeError):
+            c1._pdf('pdf')
+
+        # Simply check that it runs, since _pdf does not restrict shape (only public method does)
+        c1._pdf(accepted_shape_1)
+        c1._pdf(accepted_shape_2)
+        c1._pdf(accepted_shape_3)
+
+    def test_uniformint_get_max_density(self):
+        c1 = UniformIntegerHyperparameter("param", lower=0, upper=4)
+        c2 = UniformIntegerHyperparameter("logparam", lower=1, upper=10000, log=True)
+        c3 = UniformIntegerHyperparameter("param", lower=-1, upper=12)
+        self.assertAlmostEqual(c1.get_max_density(), 0.2)
+        self.assertAlmostEqual(c2.get_max_density(), 0.0001)
+        self.assertAlmostEqual(c3.get_max_density(), 0.07142857142857142)
 
     def test_normalint(self):
         # TODO test for unequal!
@@ -741,6 +1297,120 @@ class TestHyperparameters(unittest.TestCase):
         self.assertTrue(f1.is_legal_vector(1.1))
         self.assertRaises(TypeError, f1.is_legal_vector, "Hahaha")
 
+    def test_normalint_pdf(self):
+        c1 = NormalIntegerHyperparameter("param", lower=0, upper=10, mu=3, sigma=2)
+        c2 = NormalIntegerHyperparameter("logparam", lower=1, upper=1000, mu=3, sigma=2, log=True)
+        c3 = NormalIntegerHyperparameter("param", lower=0, upper=2, mu=-1.2, sigma=0.5)
+
+        point_1 = np.array([3])
+        point_1_log = np.array([10])
+        point_2 = np.array([10])
+        point_2_log = np.array([1000])
+        point_3 = np.array([0])
+        array_1 = np.array([3, 10, 11])
+        array_1_log = np.array([10, 570, 1001])
+        point_outside_range_1 = np.array([-1])
+        point_outside_range_2 = np.array([11])
+        point_outside_range_1_log = np.array([0])
+        point_outside_range_2_log = np.array([1001])
+        non_integer_point = np.array([5.7])
+        wrong_shape_1 = np.array([[3]])
+        wrong_shape_2 = np.array([3, 5, 7]).reshape(1, -1)
+        wrong_shape_3 = np.array([3, 5, 7]).reshape(-1, 1)
+
+        self.assertAlmostEqual(c1.pdf(point_1)[0], 0.20747194595587332)
+        self.assertAlmostEqual(c2.pdf(point_1_log)[0], 0.002625781612612434)
+        self.assertAlmostEqual(c1.pdf(point_2)[0], 0.00045384303905059246)
+        self.assertAlmostEqual(c2.pdf(point_2_log)[0], 0.0004136885586376241)
+        self.assertAlmostEqual(c3.pdf(point_3)[0], 0.9988874412972069)
+        # TODO - change this once the is_legal support is there
+        # but does not have an actual impact of now
+        self.assertEqual(c1.pdf(point_outside_range_1)[0], 0.0)
+        self.assertEqual(c1.pdf(point_outside_range_2)[0], 0.0)
+        with pytest.warns(RuntimeWarning, match='divide by zero encountered in log'):
+            self.assertEqual(c2.pdf(point_outside_range_1_log)[0], 0.0)
+        self.assertEqual(c2.pdf(point_outside_range_2_log)[0], 0.0)
+
+        self.assertEqual(c1.pdf(non_integer_point)[0], 0.0)
+        self.assertEqual(c2.pdf(non_integer_point)[0], 0.0)
+
+        array_results = c1.pdf(array_1)
+        array_results_log = c2.pdf(array_1_log)
+        expected_results = np.array([0.20747194595587332, 0.00045384303905059246, 0])
+        expected_results_log = np.array([0.002625781612612434, 0.000688676747843256, 0])
+        self.assertEqual(array_results.shape, expected_results.shape)
+        self.assertEqual(array_results_log.shape, expected_results.shape)
+        for res, log_res, exp_res, exp_log_res in zip(array_results, array_results_log,
+                                                      expected_results, expected_results_log):
+            self.assertAlmostEqual(res, exp_res)
+            self.assertAlmostEqual(log_res, exp_log_res)
+
+        # pdf must take a numpy array
+        with self.assertRaises(TypeError):
+            c1.pdf(0.2)
+        with self.assertRaises(TypeError):
+            c1.pdf('pdf')
+
+        c_nobounds = NormalFloatHyperparameter("param", mu=3, sigma=2)
+        self.assertAlmostEqual(c_nobounds.pdf(np.array([2])), 0.17603266338214976)
+
+        with self.assertRaisesRegex(ValueError, "Method pdf expects a one-dimensional numpy array"):
+            c1.pdf(wrong_shape_1)
+        with self.assertRaisesRegex(ValueError, "Method pdf expects a one-dimensional numpy array"):
+            c1.pdf(wrong_shape_2)
+        with self.assertRaisesRegex(ValueError, "Method pdf expects a one-dimensional numpy array"):
+            c1.pdf(wrong_shape_3)
+
+    def test_normalint__pdf(self):
+        c1 = NormalIntegerHyperparameter("param", lower=0, upper=10, mu=3, sigma=2)
+        c2 = NormalIntegerHyperparameter("logparam", lower=1, upper=1000, mu=3, sigma=2, log=True)
+
+        point_1 = np.array([3])
+        point_2 = np.array([5.2])
+        array_1 = np.array([3, 5.2, 11])
+        point_outside_range_1 = np.array([-1])
+        point_outside_range_2 = np.array([11])
+
+        self.assertAlmostEqual(c1._pdf(point_1)[0], 0.20747194595587332)
+        self.assertAlmostEqual(c2._pdf(point_1)[0], 0.0027903779510164133)
+        self.assertAlmostEqual(c1._pdf(point_2)[0], 0.1132951239316783)
+        self.assertAlmostEqual(c2._pdf(point_2)[0], 0.001523754039709375)
+        # TODO - change this once the is_legal support is there
+        # but does not have an actual impact of now
+        self.assertEqual(c1._pdf(point_outside_range_1)[0], 0.0)
+        self.assertEqual(c1._pdf(point_outside_range_2)[0], 0.0)
+        self.assertEqual(c2._pdf(point_outside_range_1)[0], 0.0)
+        self.assertEqual(c2._pdf(point_outside_range_2)[0], 0.0)
+
+        array_results = c1._pdf(array_1)
+        array_results_log = c2._pdf(array_1)
+        expected_results = np.array([0.20747194595587332, 0.1132951239316783, 0])
+        expected_results_log = np.array([0.0027903779510164133, 0.001523754039709375, 0])
+        self.assertEqual(array_results.shape, expected_results.shape)
+        self.assertEqual(array_results_log.shape, expected_results.shape)
+        for res, log_res, exp_res, exp_log_res in zip(array_results, array_results_log,
+                                                      expected_results, expected_results_log):
+            self.assertAlmostEqual(res, exp_res)
+            self.assertAlmostEqual(log_res, exp_log_res)
+
+        # pdf must take a numpy array
+        with self.assertRaises(TypeError):
+            c1.pdf(0.2)
+        with self.assertRaises(TypeError):
+            c1.pdf('pdf')
+
+        c_nobounds = NormalFloatHyperparameter("param", mu=3, sigma=2)
+        self.assertAlmostEqual(c_nobounds.pdf(np.array([2])), 0.17603266338214976)
+
+    def test_normalint_get_max_density(self):
+        c1 = NormalIntegerHyperparameter("param", lower=0, upper=10, mu=3, sigma=2)
+        c2 = NormalIntegerHyperparameter("logparam", lower=1, upper=1000, mu=3, sigma=2, log=True)
+        c3 = NormalIntegerHyperparameter("param", lower=0, upper=2, mu=-1.2, sigma=0.5)
+        self.assertAlmostEqual(c1.get_max_density(), 0.20747194595587332)
+        self.assertAlmostEqual(c2.get_max_density(), 0.002790371598208875)
+        self.assertAlmostEqual(c3.get_max_density(), 0.9988874412972069)
+
+    ############################################################
     def test_betaint(self):
         # TODO test non-equality
         f1 = BetaIntegerHyperparameter("param", lower=-2.0, upper=2.0, alpha=3.0, beta=1.1)
@@ -911,6 +1581,129 @@ class TestHyperparameters(unittest.TestCase):
         f1_expected = UniformIntegerHyperparameter("param", -30, 30, default_value=20)
         f1_actual = f1.to_uniform()
         self.assertEqual(f1_expected, f1_actual)
+
+    def test_betaint_pdf(self):
+        c1 = BetaIntegerHyperparameter("param", alpha=3, beta=2, lower=0, upper=10)
+        c2 = BetaIntegerHyperparameter("logparam", alpha=3, beta=2, lower=1, upper=1000, log=True)
+        c3 = BetaIntegerHyperparameter("param", alpha=1.1, beta=10, lower=0, upper=3)
+
+        point_1 = np.array([3])
+        point_1_log = np.array([9])
+        point_2 = np.array([9])
+        point_2_log = np.array([570])
+        point_3 = np.array([1])
+        array_1 = np.array([3, 9, 11])
+        array_1_log = np.array([9, 570, 1001])
+        point_outside_range_1 = np.array([-1])
+        point_outside_range_2 = np.array([11])
+        point_outside_range_1_log = np.array([0])
+        point_outside_range_2_log = np.array([1001])
+        non_integer_point = np.array([5.7])
+        wrong_shape_1 = np.array([[3]])
+        wrong_shape_2 = np.array([3, 5, 7]).reshape(1, -1)
+        wrong_shape_3 = np.array([3, 5, 7]).reshape(-1, 1)
+
+        # The quantization constant (0.4999) dictates the accuracy of the integer beta pdf
+        self.assertAlmostEqual(c1.pdf(point_1)[0], 0.07636363636363634, places=3)
+        self.assertAlmostEqual(c2.pdf(point_1_log)[0], 0.0008724511426701984, places=3)
+        self.assertAlmostEqual(c1.pdf(point_2)[0], 0.09818181818181816, places=3)
+        self.assertAlmostEqual(c2.pdf(point_2_log)[0], 0.0008683622684160343, places=3)
+        self.assertAlmostEqual(c3.pdf(point_3)[0], 0.9979110652388783, places=3)
+
+        self.assertEqual(c1.pdf(point_outside_range_1)[0], 0.0)
+        self.assertEqual(c1.pdf(point_outside_range_2)[0], 0.0)
+        with pytest.warns(RuntimeWarning, match='divide by zero encountered in log'):
+            self.assertEqual(c2.pdf(point_outside_range_1_log)[0], 0.0)
+        self.assertEqual(c2.pdf(point_outside_range_2_log)[0], 0.0)
+
+        self.assertEqual(c1.pdf(non_integer_point)[0], 0.0)
+        self.assertEqual(c2.pdf(non_integer_point)[0], 0.0)
+
+        array_results = c1.pdf(array_1)
+        array_results_log = c2.pdf(array_1_log)
+        expected_results = np.array([0.07636363636363634, 0.09818181818181816, 0])
+        expected_results_log = np.array([0.0008724511426701984, 0.0008683622684160343, 0])
+        self.assertEqual(array_results.shape, expected_results.shape)
+        self.assertEqual(array_results_log.shape, expected_results.shape)
+        for res, log_res, exp_res, exp_log_res in zip(array_results, array_results_log,
+                                                      expected_results, expected_results_log):
+            self.assertAlmostEqual(res, exp_res, places=3)
+            self.assertAlmostEqual(log_res, exp_log_res, places=3)
+
+        # pdf must take a numpy array
+        with self.assertRaises(TypeError):
+            c1.pdf(0.2)
+        with self.assertRaises(TypeError):
+            c1.pdf('pdf')
+
+        with self.assertRaisesRegex(ValueError, "Method pdf expects a one-dimensional numpy array"):
+            c1.pdf(wrong_shape_1)
+        with self.assertRaisesRegex(ValueError, "Method pdf expects a one-dimensional numpy array"):
+            c1.pdf(wrong_shape_2)
+        with self.assertRaisesRegex(ValueError, "Method pdf expects a one-dimensional numpy array"):
+            c1.pdf(wrong_shape_3)
+
+    def test_betaint__pdf(self):
+        c1 = BetaIntegerHyperparameter("param", alpha=3, beta=2, lower=0, upper=10)
+        c2 = BetaIntegerHyperparameter("logparam", alpha=3, beta=2,
+                                       lower=1, upper=round(np.exp(10)), log=True)
+
+        # since the logged and unlogged parameters will have different active domains
+        # in the unit range, they will not evaluate identically under _pdf
+        point_1 = np.array([0.249995])
+        point_1_log = np.array([0.345363])
+        point_2 = np.array([0.850001])
+        point_2_log = np.array([0.906480])
+        array_1 = np.array([0.249995, 0.850001, 0.045])
+        array_1_log = np.array([0.345363, 0.906480, 0.065])
+        point_outside_range_1 = np.array([0.045])
+        point_outside_range_1_log = np.array([0.06])
+        point_outside_range_2 = np.array([0.96])
+
+        accepted_shape_1 = np.array([[3]])
+        accepted_shape_2 = np.array([3, 5, 7]).reshape(1, -1)
+        accepted_shape_3 = np.array([3, 5, 7]).reshape(-1, 1)
+
+        self.assertAlmostEqual(c1._pdf(point_1)[0], 0.0475566)
+        self.assertAlmostEqual(c2._pdf(point_1_log)[0], 0.00004333811)
+        self.assertAlmostEqual(c1._pdf(point_2)[0], 0.1091810)
+        self.assertAlmostEqual(c2._pdf(point_2_log)[0], 0.00005571951)
+
+        # test points that are actually outside of the _pdf range due to the skewing
+        # of the unit hypercube space
+        self.assertEqual(c1._pdf(point_outside_range_1)[0], 0.0)
+        self.assertEqual(c1._pdf(point_outside_range_2)[0], 0.0)
+        self.assertEqual(c2._pdf(point_outside_range_1_log)[0], 0.0)
+
+        array_results = c1._pdf(array_1)
+        array_results_log = c2._pdf(array_1_log)
+        expected_results = np.array([0.0475566, 0.1091810, 0])
+        expected_results_log = np.array([0.00004333811, 0.00005571951, 0])
+        self.assertEqual(array_results.shape, expected_results.shape)
+        self.assertEqual(array_results_log.shape, expected_results_log.shape)
+        for res, log_res, exp_res, exp_log_res in zip(array_results, array_results_log,
+                                                      expected_results, expected_results_log):
+            self.assertAlmostEqual(res, exp_res)
+            self.assertAlmostEqual(log_res, exp_log_res)
+
+        # pdf must take a numpy array
+        with self.assertRaises(TypeError):
+            c1._pdf(0.2)
+        with self.assertRaises(TypeError):
+            c1._pdf('pdf')
+
+        # Simply check that it runs, since _pdf does not restrict shape (only public method does)
+        c1._pdf(accepted_shape_1)
+        c1._pdf(accepted_shape_2)
+        c1._pdf(accepted_shape_3)
+
+    def test_betaint_get_max_density(self):
+        c1 = BetaIntegerHyperparameter("param", alpha=3, beta=2, lower=0, upper=10)
+        c2 = BetaIntegerHyperparameter("logparam", alpha=3, beta=2, lower=1, upper=1000, log=True)
+        c3 = BetaIntegerHyperparameter("param", alpha=1.1, beta=10, lower=0, upper=3)
+        self.assertAlmostEqual(c1.get_max_density(), 0.1781818181818181)
+        self.assertAlmostEqual(c2.get_max_density(), 0.0018733953504422762)
+        self.assertAlmostEqual(c3.get_max_density(), 0.9979110652388783)
 
     def test_categorical(self):
         # TODO test for inequality
@@ -1109,6 +1902,77 @@ class TestHyperparameters(unittest.TestCase):
         self.assertTrue(np.isfinite(hp._lower))
         self.assertTrue(np.isfinite(hp._upper))
         sample(hp)
+
+    def test_categorical_pdf(self):
+        c1 = CategoricalHyperparameter('x1', choices=['one', 'two', 'three'], weights=[2, 1, 2])
+        c2 = CategoricalHyperparameter('x1', choices=['one', 'two', 'three'], weights=[5, 0, 2])
+        c3 = CategoricalHyperparameter('x1', choices=['one', 'two', 'three', 'four'])
+
+        point_1 = np.array(['one'])
+        point_2 = np.array(['two'])
+
+        wrong_shape_1 = np.array([["one"]])
+        wrong_shape_2 = np.array(["one", "two"]).reshape(1, -1)
+        wrong_shape_3 = np.array(["one", "two"]).reshape(-1, 1)
+
+        self.assertEqual(c1.pdf(point_1)[0], 0.4)
+        self.assertEqual(c1.pdf(point_2)[0], 0.2)
+        self.assertAlmostEqual(c2.pdf(point_1)[0], 0.7142857142857143)
+        self.assertEqual(c2.pdf(point_2)[0], 0.0)
+        self.assertEqual(c3.pdf(point_1)[0], 0.25)
+
+        # pdf must take a numpy array
+        with self.assertRaises(TypeError):
+            c1.pdf(0.2)
+        with self.assertRaises(TypeError):
+            c1.pdf('pdf')
+        with self.assertRaises(TypeError):
+            c1.pdf('one')
+        with self.assertRaises(ValueError):
+            c1.pdf(np.array(['zero']))
+
+        with self.assertRaisesRegex(ValueError, "Method pdf expects a one-dimensional numpy array"):
+            c1.pdf(wrong_shape_1)
+        with self.assertRaisesRegex(ValueError, "Method pdf expects a one-dimensional numpy array"):
+            c1.pdf(wrong_shape_2)
+        with self.assertRaisesRegex(ValueError, "Method pdf expects a one-dimensional numpy array"):
+            c1.pdf(wrong_shape_3)
+
+    def test_categorical__pdf(self):
+        c1 = CategoricalHyperparameter('x1', choices=['one', 'two', 'three'], weights=[2, 1, 2])
+        c2 = CategoricalHyperparameter('x1', choices=['one', 'two', 'three'], weights=[5, 0, 2])
+
+        point_1 = np.array([0])
+        point_2 = np.array([1])
+        array_1 = np.array([1, 0, 2])
+        self.assertEqual(c1._pdf(point_1)[0], 0.4)
+        self.assertEqual(c1._pdf(point_2)[0], 0.2)
+        self.assertAlmostEqual(c2._pdf(point_1)[0], 0.7142857142857143)
+        self.assertEqual(c2._pdf(point_2)[0], 0.0)
+
+        array_results = c1._pdf(array_1)
+        expected_results = np.array([0.2, 0.4, 0.4])
+        self.assertEqual(array_results.shape, expected_results.shape)
+        for res, exp_res in zip(array_results, expected_results):
+            self.assertEqual(res, exp_res)
+
+        # pdf must take a numpy array
+        with self.assertRaises(TypeError):
+            c1._pdf(0.2)
+        with self.assertRaises(TypeError):
+            c1._pdf('pdf')
+        with self.assertRaises(TypeError):
+            c1._pdf('one')
+        with self.assertRaises(ValueError):
+            c1._pdf(np.array(['zero']))
+
+    def test_categorical_get_max_density(self):
+        c1 = CategoricalHyperparameter('x1', choices=['one', 'two', 'three'], weights=[2, 1, 2])
+        c2 = CategoricalHyperparameter('x1', choices=['one', 'two', 'three'], weights=[5, 0, 2])
+        c3 = CategoricalHyperparameter('x1', choices=['one', 'two', 'three'])
+        self.assertEqual(c1.get_max_density(), 0.4)
+        self.assertEqual(c2.get_max_density(), 0.7142857142857143)
+        self.assertAlmostEqual(c3.get_max_density(), 0.33333333333333)
 
     def test_sample_NormalFloatHyperparameter(self):
         hp = NormalFloatHyperparameter("nfhp", 0, 1)
@@ -1649,6 +2513,72 @@ class TestHyperparameters(unittest.TestCase):
     def test_ordinal_get_size(self):
         f1 = OrdinalHyperparameter("temp", ["freezing", "cold", "warm", "hot"])
         self.assertEqual(f1.get_size(), 4)
+
+    def test_ordinal_pdf(self):
+        c1 = OrdinalHyperparameter("temp", ["freezing", "cold", "warm", "hot"])
+        point_1 = np.array(["freezing"])
+        point_2 = np.array(["warm"])
+        array_1 = np.array(["freezing", "warm"])
+
+        wrong_shape_1 = np.array([["freezing"]])
+        wrong_shape_2 = np.array(["freezing", "warm"]).reshape(1, -1)
+        wrong_shape_3 = np.array(["freezing", "warm"]).reshape(-1, 1)
+
+        self.assertEqual(c1.pdf(point_1)[0], 0.25)
+        self.assertEqual(c1.pdf(point_2)[0], 0.25)
+
+        array_results = c1.pdf(array_1)
+        expected_results = np.array([0.25, 0.25])
+        self.assertEqual(array_results.shape, expected_results.shape)
+        for res, exp_res in zip(array_results, expected_results):
+            self.assertEqual(res, exp_res)
+
+        # pdf must take a numpy array
+        with self.assertRaises(TypeError):
+            c1.pdf(0.2)
+        with self.assertRaises(TypeError):
+            c1.pdf('pdf')
+        with self.assertRaises(TypeError):
+            c1.pdf('one')
+        with self.assertRaises(ValueError):
+            c1.pdf(np.array(['zero']))
+
+        with self.assertRaisesRegex(ValueError, "Method pdf expects a one-dimensional numpy array"):
+            c1.pdf(wrong_shape_1)
+        with self.assertRaisesRegex(ValueError, "Method pdf expects a one-dimensional numpy array"):
+            c1.pdf(wrong_shape_2)
+        with self.assertRaisesRegex(ValueError, "Method pdf expects a one-dimensional numpy array"):
+            c1.pdf(wrong_shape_3)
+
+    def test_ordinal__pdf(self):
+        c1 = OrdinalHyperparameter("temp", ["freezing", "cold", "warm", "hot"])
+        point_1 = np.array(["freezing"])
+        point_2 = np.array(["warm"])
+        array_1 = np.array(["freezing", "warm"])
+        self.assertEqual(c1._pdf(point_1)[0], 0.25)
+        self.assertEqual(c1._pdf(point_2)[0], 0.25)
+
+        array_results = c1._pdf(array_1)
+        expected_results = np.array([0.25, 0.25])
+        self.assertEqual(array_results.shape, expected_results.shape)
+        for res, exp_res in zip(array_results, expected_results):
+            self.assertEqual(res, exp_res)
+
+        # pdf must take a numpy array
+        with self.assertRaises(TypeError):
+            c1._pdf(0.2)
+        with self.assertRaises(TypeError):
+            c1._pdf('pdf')
+        with self.assertRaises(TypeError):
+            c1._pdf('one')
+        with self.assertRaises(ValueError):
+            c1._pdf(np.array(['zero']))
+
+    def test_ordinal_get_max_density(self):
+        c1 = OrdinalHyperparameter("temp", ["freezing", "cold", "warm", "hot"])
+        c2 = OrdinalHyperparameter("temp", ["freezing", "cold"])
+        self.assertEqual(c1.get_max_density(), 0.25)
+        self.assertEqual(c2.get_max_density(), 0.5)
 
     def test_rvs(self):
         f1 = UniformFloatHyperparameter("param", 0, 10)
