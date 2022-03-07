@@ -794,7 +794,7 @@ or normal distribution. Example usages are shown in the
 <dl class="py class">
 <dt class="sig sig-object py" id="ConfigSpace.hyperparameters.UniformIntegerHyperparameter">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ConfigSpace.hyperparameters.</span></span><span class="sig-name descname"><span class="pre">UniformIntegerHyperparameter</span></span><a class="headerlink" href="#ConfigSpace.hyperparameters.UniformIntegerHyperparameter" title="Permalink to this definition">¶</a></dt>
-<dd><p>An integer hyperparameter.</p>
+<dd><p>A uniformly distributed integer hyperparameter.</p>
 <p>Its values are sampled from a uniform distribution
 with bounds <code class="docutils literal notranslate"><span class="pre">lower</span></code> and <code class="docutils literal notranslate"><span class="pre">upper</span></code>.</p>
 <p class="rubric">Example</p>
@@ -827,7 +827,7 @@ Not used by the configuration space.</p></li>
 <dl class="py class">
 <dt class="sig sig-object py" id="ConfigSpace.hyperparameters.NormalIntegerHyperparameter">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ConfigSpace.hyperparameters.</span></span><span class="sig-name descname"><span class="pre">NormalIntegerHyperparameter</span></span><a class="headerlink" href="#ConfigSpace.hyperparameters.NormalIntegerHyperparameter" title="Permalink to this definition">¶</a></dt>
-<dd><p>An integer hyperparameter.</p>
+<dd><p>A normally distributed integer hyperparameter.</p>
 <p>Its values are sampled from a normal distribution
 <span class="math notranslate nohighlight">\(\mathcal{N}(\mu, \sigma^2)\)</span>.</p>
 <p class="rubric">Example</p>
@@ -866,7 +866,7 @@ Not used by the configuration space.</p></li>
 <dl class="py class">
 <dt class="sig sig-object py" id="ConfigSpace.hyperparameters.UniformFloatHyperparameter">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ConfigSpace.hyperparameters.</span></span><span class="sig-name descname"><span class="pre">UniformFloatHyperparameter</span></span><a class="headerlink" href="#ConfigSpace.hyperparameters.UniformFloatHyperparameter" title="Permalink to this definition">¶</a></dt>
-<dd><p>A float hyperparameter.</p>
+<dd><p>A uniformly distributed float hyperparameter.</p>
 <p>Its values are sampled from a uniform distribution with values
 from <code class="docutils literal notranslate"><span class="pre">lower</span></code> to <code class="docutils literal notranslate"><span class="pre">upper</span></code>.</p>
 <p class="rubric">Example</p>
@@ -899,7 +899,7 @@ Not used by the configuration space.</p></li>
 <dl class="py class">
 <dt class="sig sig-object py" id="ConfigSpace.hyperparameters.NormalFloatHyperparameter">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ConfigSpace.hyperparameters.</span></span><span class="sig-name descname"><span class="pre">NormalFloatHyperparameter</span></span><a class="headerlink" href="#ConfigSpace.hyperparameters.NormalFloatHyperparameter" title="Permalink to this definition">¶</a></dt>
-<dd><p>A float hyperparameter.</p>
+<dd><p>A normally distributed float hyperparameter.</p>
 <p>Its values are sampled from a normal distribution
 <span class="math notranslate nohighlight">\(\mathcal{N}(\mu, \sigma^2)\)</span>.</p>
 <p class="rubric">Example</p>
@@ -1433,7 +1433,7 @@ This string can be written to file.</p>
 
 <span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;configspace.json&#39;</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
 <span class="gp">... </span>     <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">cs</span><span class="p">))</span>
-<span class="go">305</span>
+<span class="go">299</span>
 </pre></div>
 </div>
 <dl class="field-list simple">
