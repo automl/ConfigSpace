@@ -46,7 +46,7 @@ Basic usage
     >>> cs.sample_configuration()
     Configuration(values={
       'a': 27,
-      'b': 'blue',
+      'b': 'green',
     })
     <BLANKLINE>
 

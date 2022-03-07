@@ -37,7 +37,7 @@ from ConfigSpace.forbidden import (
 )
 
 
-JSON_FORMAT_VERSION = 0.2
+JSON_FORMAT_VERSION = 0.3
 
 
 ################################################################################
@@ -308,7 +308,7 @@ def write(configuration_space, indent=2):
 
         >>> with open('configspace.json', 'w') as f:
         ...      f.write(json.write(cs))
-        305
+        299
 
     Parameters
     ----------
