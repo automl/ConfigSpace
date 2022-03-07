@@ -110,7 +110,7 @@ pp_forbidden_clause = "{" + pp_param_name + "=" + pp_numberorname + \
 def build_categorical(param):
     if param.weights is not None:
         raise ValueError('The pcs format does not support categorical hyperparameters with '
-                         'assigend weights (for hyperparameter %s)' % param.name)
+                         'assigned weights (for hyperparameter %s)' % param.name)
     cat_template = "%s categorical {%s} [%s]"
     return cat_template % (param.name,
                            ", ".join([str(value) for value in param.choices]),
