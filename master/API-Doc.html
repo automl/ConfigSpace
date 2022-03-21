@@ -89,6 +89,7 @@
 <li class="toctree-l2"><a class="reference internal" href="User-Guide.html#nd-example-categorical-hyperparameters-and-conditions">2nd Example: Categorical hyperparameters and conditions</a></li>
 <li class="toctree-l2"><a class="reference internal" href="User-Guide.html#rd-example-forbidden-clauses">3rd Example: Forbidden clauses</a></li>
 <li class="toctree-l2"><a class="reference internal" href="User-Guide.html#th-example-serialization">4th Example Serialization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="User-Guide.html#th-example-placing-priors-on-the-hyperparameters">5th Example: Placing priors on the hyperparameters</a></li>
 </ul>
 </li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">API-Documentation</a><ul>
@@ -640,6 +641,22 @@ object</p>
 <dd></dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="ConfigSpace.configuration_space.ConfigurationSpace.remove_hyperparameter_priors">
+<span class="sig-name descname"><span class="pre">remove_hyperparameter_priors</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#ConfigSpace.configuration_space.ConfigurationSpace" title="ConfigSpace.configuration_space.ConfigurationSpace"><span class="pre">ConfigSpace.configuration_space.ConfigurationSpace</span></a></span></span><a class="headerlink" href="#ConfigSpace.configuration_space.ConfigurationSpace.remove_hyperparameter_priors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Produces a new ConfigurationSpace where all priors on parameters are removed.
+Non-uniform hyperpararmeters are replaced with uniform ones, and
+CategoricalHyperparameters with weights have their weights removed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>The resulting configuration space, without priors on the hyperparameters</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference internal" href="#ConfigSpace.configuration_space.ConfigurationSpace" title="ConfigSpace.configuration_space.ConfigurationSpace"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigurationSpace</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="ConfigSpace.configuration_space.ConfigurationSpace.sample_configuration">
 <span class="sig-name descname"><span class="pre">sample_configuration</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#ConfigSpace.configuration_space.Configuration" title="ConfigSpace.configuration_space.Configuration"><span class="pre">ConfigSpace.configuration_space.Configuration</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#ConfigSpace.configuration_space.Configuration" title="ConfigSpace.configuration_space.Configuration"><span class="pre">ConfigSpace.configuration_space.Configuration</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#ConfigSpace.configuration_space.ConfigurationSpace.sample_configuration" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sample <code class="docutils literal notranslate"><span class="pre">size</span></code> configurations from the configuration space object.</p>
@@ -664,6 +681,46 @@ A single configuration if <code class="docutils literal notranslate"><span class
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>seed</strong> (<em>int</em>) – The random seed</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ConfigSpace.configuration_space.ConfigurationSpace.substitute_hyperparameters_in_conditions">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">substitute_hyperparameters_in_conditions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">conditions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">new_configspace</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigSpace.conditions.ConditionComponent</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#ConfigSpace.configuration_space.ConfigurationSpace.substitute_hyperparameters_in_conditions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Takes a set of conditions and generates a new set of conditions with the same structure, where
+each hyperparameter is replaced with its namesake in new_configspace. As such, the set of conditions
+remain unchanged, but the included hyperparameters are changed to match those types that exist in
+new_configspace.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>new_configspace</strong> (<a class="reference internal" href="#ConfigSpace.configuration_space.ConfigurationSpace" title="ConfigSpace.configuration_space.ConfigurationSpace"><em>ConfigurationSpace</em></a>) – A ConfigurationSpace containing hyperparameters with the same names as those in the conditions.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The list of conditions, adjusted to fit the new ConfigurationSpace</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>List[ConditionComponent]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ConfigSpace.configuration_space.ConfigurationSpace.substitute_hyperparameters_in_forbiddens">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">substitute_hyperparameters_in_forbiddens</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">forbiddens</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">new_configspace</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigSpace.conditions.ConditionComponent</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#ConfigSpace.configuration_space.ConfigurationSpace.substitute_hyperparameters_in_forbiddens" title="Permalink to this definition">¶</a></dt>
+<dd><p>Takes a set of forbidden clauses and generates a new set of forbidden clauses with the same structure,
+where each hyperparameter is replaced with its namesake in new_configspace. As such, the set of forbidden
+clauses remain unchanged, but the included hyperparameters are changed to match those types that exist in
+new_configspace.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>new_configspace</strong> (<a class="reference internal" href="#ConfigSpace.configuration_space.ConfigurationSpace" title="ConfigSpace.configuration_space.ConfigurationSpace"><em>ConfigurationSpace</em></a>) – A ConfigurationSpace containing hyperparameters with the same names as those in the forbidden clauses.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The list of forbidden clauses, adjusted to fit the new ConfigurationSpace</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>List[AbstractForbiddenComponent]</p>
 </dd>
 </dl>
 </dd></dl>
