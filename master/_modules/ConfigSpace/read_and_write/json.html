@@ -50,7 +50,7 @@
         </button>
         <a class="navbar-brand" href="../../../index.html">
           ConfigSpace</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.4.21</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.5.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -423,20 +423,18 @@
 <span class="sd">    :class:`~ConfigSpace.configuration_space.ConfigurationSpace` in json format.</span>
 <span class="sd">    This string can be written to file.</span>
 
-<span class="sd">    Example</span>
-<span class="sd">    -------</span>
-<span class="sd">    .. doctest::</span>
+<span class="sd">    Example:</span>
 
-<span class="sd">        &gt;&gt;&gt; from ConfigSpace import ConfigurationSpace</span>
-<span class="sd">        &gt;&gt;&gt; import ConfigSpace.hyperparameters as CSH</span>
-<span class="sd">        &gt;&gt;&gt; from ConfigSpace.read_and_write import json</span>
-<span class="sd">        &gt;&gt;&gt; cs = ConfigurationSpace()</span>
-<span class="sd">        &gt;&gt;&gt; cs.add_hyperparameter(CSH.CategoricalHyperparameter(&#39;a&#39;, choices=[1, 2, 3]))</span>
-<span class="sd">        a, Type: Categorical, Choices: {1, 2, 3}, Default: 1</span>
+<span class="sd">    ..code:: python</span>
 
-<span class="sd">        &gt;&gt;&gt; with open(&#39;configspace.json&#39;, &#39;w&#39;) as f:</span>
-<span class="sd">        ...      f.write(json.write(cs))</span>
-<span class="sd">        299</span>
+<span class="sd">        from ConfigSpace import ConfigurationSpace</span>
+<span class="sd">        import ConfigSpace.hyperparameters as CSH</span>
+<span class="sd">        from ConfigSpace.read_and_write import json</span>
+<span class="sd">        cs = ConfigurationSpace()</span>
+<span class="sd">        cs.add_hyperparameter(CSH.CategoricalHyperparameter(&#39;a&#39;, choices=[1, 2, 3]))</span>
+
+<span class="sd">        with open(&#39;configspace.json&#39;, &#39;w&#39;) as f:</span>
+<span class="sd">            f.write(json.write(cs))</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
