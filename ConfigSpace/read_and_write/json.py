@@ -295,20 +295,18 @@ def write(configuration_space, indent=2):
     :class:`~ConfigSpace.configuration_space.ConfigurationSpace` in json format.
     This string can be written to file.
 
-    Example
-    -------
-    .. doctest::
+    Example:
 
-        >>> from ConfigSpace import ConfigurationSpace
-        >>> import ConfigSpace.hyperparameters as CSH
-        >>> from ConfigSpace.read_and_write import json
-        >>> cs = ConfigurationSpace()
-        >>> cs.add_hyperparameter(CSH.CategoricalHyperparameter('a', choices=[1, 2, 3]))
-        a, Type: Categorical, Choices: {1, 2, 3}, Default: 1
+    ..code:: python
 
-        >>> with open('configspace.json', 'w') as f:
-        ...      f.write(json.write(cs))
-        299
+        from ConfigSpace import ConfigurationSpace
+        import ConfigSpace.hyperparameters as CSH
+        from ConfigSpace.read_and_write import json
+        cs = ConfigurationSpace()
+        cs.add_hyperparameter(CSH.CategoricalHyperparameter('a', choices=[1, 2, 3]))
+
+        with open('configspace.json', 'w') as f:
+            f.write(json.write(cs))
 
     Parameters
     ----------
