@@ -246,9 +246,9 @@ To read it from file
 
 
 5th Example: Placing priors on the hyperparameters
--------------------------
+--------------------------------------------------
 
-If you want to conduct black-box optimization in SMAC (https://arxiv.org/abs/2109.09831), and you have prior knowledge about the which regions of the search space are more likely to contain the optimum, you may include this knowledge when designing the configuration space. More specifically, you place prior distributions over the optimum on the parameters, either by a (log)-normal or (log)-Beta distribution. SMAC then considers the given priors through the optimization by using PiBO (https://openreview.net/forum?id=MMAeCXIa89). 
+If you want to conduct black-box optimization in SMAC (https://arxiv.org/abs/2109.09831), and you have prior knowledge about the which regions of the search space are more likely to contain the optimum, you may include this knowledge when designing the configuration space. More specifically, you place prior distributions over the optimum on the parameters, either by a (log)-normal or (log)-Beta distribution. SMAC then considers the given priors through the optimization by using PiBO (https://openreview.net/forum?id=MMAeCXIa89).
 
 Consider the case of optimizing the accuracy of an MLP with three hyperparameters: learning rate [1e-5, 1e-1], dropout [0, 0.99] and activation {Tanh, ReLU}. From prior experience, you believe the optimal learning rate to be around 1e-3, a good dropout to be around 0.25, and the optimal activation function to be ReLU about 80% of the time. This can be represented accordingly:
 
@@ -258,7 +258,7 @@ Consider the case of optimizing the accuracy of an MLP with three hyperparameter
 >>> # convert 10 log to natural log for learning rate, mean 1e-3
 >>> logmean = np.log(1e-3)
 >>> # two standard deviations on either side of the mean to cover the search space
->>> logstd = np.log(10.0) 
+>>> logstd = np.log(10.0)
 >>> learning_rate = CSH.NormalFloatHyperparameter(name='learning_rate', lower=1e-5, upper=1e-1, default_value=1e-3, mu=logmean, sigma=logstd, log=True)
 >>> dropout = CSH.BetaFloatHyperparameter(name='dropout', lower=0, upper=0.99, default_value=0.25, alpha=2, beta=4, log=False)
 >>> activation = CSH.CategoricalHyperparameter(name='activation', choices=['tanh', 'relu'], weights=[0.2, 0.8])
@@ -269,11 +269,11 @@ Consider the case of optimizing the accuracy of an MLP with three hyperparameter
 
 To check that your prior makes sense for each hyperparameter, you can easily do so with the __pdf__ method. There, you will see that the probability of the optimal learning rate peaks at 10^-3, and decays as we go further away from it:
 
->>> test_points = np.logspace(-5, -1, 5) 
+>>> test_points = np.logspace(-5, -1, 5)
 >>> test_points
 array([1.e-05, 1.e-04, 1.e-03, 1.e-02, 1.e-01])
 
-# the pdf function accepts an (N, ) numpy array as input.                 
+# the pdf function accepts an (N, ) numpy array as input.
 >>> learning_rate.pdf(test_points)
 array([0.02456573, 0.11009594, 0.18151753, 0.11009594, 0.02456573])
 
