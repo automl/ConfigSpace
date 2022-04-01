@@ -34,10 +34,14 @@ from ConfigSpace.forbidden import (
     ForbiddenAndConjunction,
     ForbiddenInClause,
     AbstractForbiddenComponent,
+    ForbiddenRelation,
+    ForbiddenLessThan,
+    ForbiddenEquals,
+    ForbiddenGreaterThan,
 )
 
 
-JSON_FORMAT_VERSION = 0.3
+JSON_FORMAT_VERSION = 0.4
 
 
 ################################################################################
@@ -257,6 +261,8 @@ def _build_forbidden(clause) -> Dict:
         return _build_forbidden_in_clause(clause)
     elif isinstance(clause, ForbiddenAndConjunction):
         return _build_forbidden_and_conjunction(clause)
+    elif isinstance(clause, ForbiddenRelation):
+        return _build_forbidden_relation(clause)
     else:
         raise TypeError(clause)
 
@@ -285,6 +291,24 @@ def _build_forbidden_and_conjunction(clause: ForbiddenAndConjunction) -> Dict:
         'clauses': [
             _build_forbidden(component) for component in clause.components
         ],
+    }
+
+
+def _build_forbidden_relation(clause: ForbiddenRelation) -> Dict:
+    if isinstance(clause, ForbiddenLessThan):
+        lambda_ = 'LESS'
+    elif isinstance(clause, ForbiddenEquals):
+        lambda_ = 'EQUALS'
+    elif isinstance(clause, ForbiddenGreaterThan):
+        lambda_ = 'GREATER'
+    else:
+        raise ValueError("Unknown relation '%s'" % type(clause))
+
+    return {
+        'left': clause.left.name,
+        'right': clause.right.name,
+        'type': 'RELATION',
+        'lambda': lambda_
     }
 
 
@@ -607,6 +631,8 @@ def _construct_forbidden(
         return _construct_forbidden_in(clause, cs)
     elif forbidden_type == 'AND':
         return _construct_forbidden_and(clause, cs)
+    elif forbidden_type == 'RELATION':
+        return _construct_forbidden_equals(clause, cs)
     else:
         return ValueError(forbidden_type)
 
@@ -637,3 +663,21 @@ def _construct_forbidden_and(
 ) -> ForbiddenAndConjunction:
     clauses = [_construct_forbidden(cl, cs) for cl in clause['clauses']]
     return ForbiddenAndConjunction(*clauses)
+
+
+def _construct_forbidden_relation(
+        clause: Dict,
+        cs: ConfigurationSpace,
+) -> ForbiddenRelation:
+    left = cs.get_hyperparameter(clause['left'])
+    right = cs.get_hyperparameter(clause['right'])
+
+    if clause['lambda'] == "LESS":
+        return ForbiddenLessThan(left, right)
+    elif clause['lambda'] == "EQUALS":
+        return ForbiddenEquals(left, right)
+    elif clause['lambda'] == "GREATER":
+        return ForbiddenGreaterThan(left, right)
+    else:
+        raise ValueError("Unknown relation '%s'" % clause['lambda'])
+

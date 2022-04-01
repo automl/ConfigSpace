@@ -133,7 +133,7 @@ cdef class SingleValueForbiddenClause(AbstractForbiddenClause):
         if value is None:
             if strict:
                 raise ValueError("Is_forbidden must be called with the "
-                                 "instanstatiated hyperparameter in the "
+                                 "instantiated hyperparameter in the "
                                  "forbidden clause; you are missing "
                                  "'%s'" % self.hyperparameter.name)
             else:
@@ -146,7 +146,7 @@ cdef class SingleValueForbiddenClause(AbstractForbiddenClause):
         if value != value:
             if strict:
                 raise ValueError("Is_forbidden must be called with the "
-                                 "instanstatiated vector id in the "
+                                 "instantiated vector id in the "
                                  "forbidden clause; you are missing "
                                  "'%s'" % self.vector_id)
             else:
@@ -188,7 +188,7 @@ cdef class MultipleValueForbiddenClause(AbstractForbiddenClause):
         if value is None:
             if strict:
                 raise ValueError("Is_forbidden must be called with the "
-                                 "instanstatiated hyperparameter in the "
+                                 "instantiated hyperparameter in the "
                                  "forbidden clause; you are missing "
                                  "'%s'." % self.hyperparameter.name)
             else:
@@ -202,7 +202,7 @@ cdef class MultipleValueForbiddenClause(AbstractForbiddenClause):
         if value != value:
             if strict:
                 raise ValueError("Is_forbidden must be called with the "
-                                 "instanstatiated vector id in the "
+                                 "instantiated vector id in the "
                                  "forbidden clause; you are missing "
                                  "'%s'" % self.vector_id)
             else:
@@ -378,7 +378,7 @@ cdef class AbstractForbiddenConjunction(AbstractForbiddenComponent):
             if dlc.hyperparameter.name not in ihp_names:
                 if strict:
                     raise ValueError("Is_forbidden must be called with all "
-                                     "instanstatiated hyperparameters in the "
+                                     "instantiated hyperparameters in the "
                                      "and conjunction of forbidden clauses; "
                                      "you are (at least) missing "
                                      "'%s'" % dlc.hyperparameter.name)
@@ -493,3 +493,202 @@ cdef class ForbiddenAndConjunction(AbstractForbiddenConjunction):
                 return 0
 
         return 1
+
+
+cdef class ForbiddenRelation(AbstractForbiddenComponent):
+
+    cdef public left
+    cdef public right
+    cdef public int[2] vector_ids
+
+    def __init__(self, left: Hyperparameter, right : Hyperparameter):
+        if not isinstance(left, Hyperparameter):
+            raise TypeError("Argument 'left' is not of type %s." % Hyperparameter)
+        if not isinstance(right, Hyperparameter):
+            raise TypeError("Argument 'right' is not of type %s." % Hyperparameter)
+
+        self.left = left
+        self.right = right
+        self.vector_ids = (-1, -1)
+
+    def __eq__(self, other: Any) -> bool:
+        if not isinstance(other, self.__class__):
+            return False
+
+        return (self.left.name == other.left.name and
+                self.right.name == other.right.name)
+
+    def __copy__(self):
+        return self.__class__(
+            a=copy.copy(self.left),
+            b=copy.copy(self.right)
+        )
+
+    cpdef get_descendant_literal_clauses(self):
+        return (self,)
+
+    cpdef set_vector_idx(self, hyperparameter_to_idx):
+        self.vector_ids = (hyperparameter_to_idx[self.left.name], hyperparameter_to_idx[self.right.name])
+
+    cpdef is_forbidden(self, instantiated_hyperparameters, strict):
+        left = instantiated_hyperparameters.get(self.left.name)
+        right = instantiated_hyperparameters.get(self.right.name)
+        if left is None:
+            if strict:
+                raise ValueError("Is_forbidden must be called with the "
+                                 "instantiated hyperparameters in the "
+                                 "forbidden clause; you are missing "
+                                 "'%s'" % self.left.name)
+            else:
+                return False
+        if right is None:
+            if strict:
+                raise ValueError("Is_forbidden must be called with the "
+                                 "instantiated hyperparameters in the "
+                                 "forbidden clause; you are missing "
+                                 "'%s'" % self.right.name)
+            else:
+                return False
+
+        return self._is_forbidden(left, right)
+
+    cdef _is_forbidden(self, left, right):
+        pass
+
+    cdef int c_is_forbidden_vector(self, np.ndarray instantiated_vector, int strict):
+        cdef DTYPE_t left = instantiated_vector[self.vector_ids[0]]
+        cdef DTYPE_t right = instantiated_vector[self.vector_ids[1]]
+
+        if left != left:
+            if strict:
+                raise ValueError("Is_forbidden must be called with the "
+                                 "instantiated vector id in the "
+                                 "forbidden clause; you are missing "
+                                 "'%s'" % self.vector_ids[0])
+            else:
+                return False
+
+        if right != right:
+            if strict:
+                raise ValueError("Is_forbidden must be called with the "
+                                 "instantiated vector id in the "
+                                 "forbidden clause; you are missing "
+                                 "'%s'" % self.vector_ids[1])
+            else:
+                return False
+
+        return self._is_forbidden(self.left._transform(left), self.right._transform(right))
+
+    cdef int _is_forbidden_vector(self, DTYPE_t left, DTYPE_t right):
+        pass
+
+
+cdef class ForbiddenLessThan(ForbiddenRelation):
+    """
+    A ForbiddenLessThan relation between two hyperparameters.
+
+    The ForbiddenLessThan compares the values of two hyperparameters.
+
+    Example
+    -------
+
+    >>> cs = CS.ConfigurationSpace(seed=1)
+    >>> a = CSH.CategoricalHyperparameter('a', [1,2,3])
+    >>> b = CSH.CategoricalHyperparameter('b', [2,5,6])
+    >>> cs.add_hyperparameters([a, b])
+    [a, Type: Categorical, Choices: {1, 2, 3}, Default: 1, b, Type: ...]
+
+    >>> forbidden_clause = CS.ForbiddenLessThan(a, b)
+    >>> cs.add_forbidden_clause(forbidden_clause)
+    Forbidden: a < b
+
+    Parameters
+    ----------
+     left : :ref:`Hyperparameters`
+         left side of the comparison
+     right : :ref:`Hyperparameters`
+         right side of the comparison
+    """
+
+    def __repr__(self):
+        return "Forbidden: %s < %s" % (self.left.name, self.right.name)
+
+    cdef _is_forbidden(self, left, right):
+        return left < right
+
+    cdef int _is_forbidden_vector(self, DTYPE_t left, DTYPE_t right):
+        return left < right
+
+
+cdef class ForbiddenEquals(ForbiddenRelation):
+    """
+    A ForbiddenEquals relation between two hyperparameters.
+
+    The ForbiddenEquals compares the values of two hyperparameters.
+
+    Example
+    -------
+
+    >>> cs = CS.ConfigurationSpace(seed=1)
+    >>> a = CSH.CategoricalHyperparameter('a', [1,2,3])
+    >>> b = CSH.CategoricalHyperparameter('b', [2,5,6])
+    >>> cs.add_hyperparameters([a, b])
+    [a, Type: Categorical, Choices: {1, 2, 3}, Default: 1, b, Type: ...]
+
+    >>> forbidden_clause = CS.ForbiddenEquals(a, b)
+    >>> cs.add_forbidden_clause(forbidden_clause)
+    Forbidden: a == b
+
+    Parameters
+    ----------
+     left : :ref:`Hyperparameters`
+         left side of the comparison
+     right : :ref:`Hyperparameters`
+         right side of the comparison
+    """
+
+    def __repr__(self):
+        return "Forbidden: %s == %s" % (self.left.name, self.right.name)
+
+    cdef _is_forbidden(self, left, right):
+        return left == right
+
+    cdef int _is_forbidden_vector(self, DTYPE_t left, DTYPE_t right):
+        return left == right
+
+
+cdef class ForbiddenGreaterThan(ForbiddenRelation):
+    """
+    A ForbiddenGreaterThan relation between two hyperparameters.
+
+    The ForbiddenGreaterThan compares the values of two hyperparameters.
+
+    Example
+    -------
+
+    >>> cs = CS.ConfigurationSpace(seed=1)
+    >>> a = CSH.CategoricalHyperparameter('a', [1,2,3])
+    >>> b = CSH.CategoricalHyperparameter('b', [2,5,6])
+    >>> cs.add_hyperparameters([a, b])
+    [a, Type: Categorical, Choices: {1, 2, 3}, Default: 1, b, Type: ...]
+
+    >>> forbidden_clause = CS.ForbiddenGreaterThan(a, b)
+    >>> cs.add_forbidden_clause(forbidden_clause)
+    Forbidden: a > b
+
+    Parameters
+    ----------
+     left : :ref:`Hyperparameters`
+         left side of the comparison
+     right : :ref:`Hyperparameters`
+         right side of the comparison
+    """
+
+    def __repr__(self):
+        return "Forbidden: %s > %s" % (self.left.name, self.right.name)
+
+    cdef _is_forbidden(self, left, right):
+        return left > right
+
+    cdef int _is_forbidden_vector(self, DTYPE_t left, DTYPE_t right):
+        return left > right
