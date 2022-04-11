@@ -561,3 +561,29 @@ class TestPCSConverter(unittest.TestCase):
             pcs.write(cs)
         with self.assertRaisesRegex(ValueError, 'The pcs format does not support'):
             pcs.write(cs)
+
+    def test_write_numerical_cond(self):
+        cs = ConfigurationSpace(seed=12345)
+
+        hc1 = CategoricalHyperparameter(name="hc1", choices=[True, False], default_value=True)
+        hc2 = CategoricalHyperparameter(name="hc2", choices=[True, False], default_value=True)
+
+        hf1 = UniformFloatHyperparameter(name="hf1", lower=1.0, upper=10., default_value=5.0)
+        hi1 = UniformIntegerHyperparameter(name="hi1", lower=1, upper=10, default_value=5)
+        cs.add_hyperparameters([hc1, hc2, hf1, hi1])
+        c1 = InCondition(child=hc1, parent=hc2, values=[True])
+        c2 = GreaterThanCondition(hi1, hf1, 6.0)
+        c3 = EqualsCondition(hi1, hf1, 8.0)
+        c4 = AndConjunction(c2, c3)
+
+        cs.add_conditions([c1, c4])
+
+        f1 = ForbiddenEqualsClause(hc1, False)
+        f2 = ForbiddenEqualsClause(hf1, 2.0)
+        f3 = ForbiddenEqualsClause(hi1, 3)
+        cs.add_forbidden_clauses([ForbiddenAndConjunction(f2, f3), f1])
+        tf = tempfile.NamedTemporaryFile()
+        name = tf.name
+        tf.close()
+        with open(name, 'w') as fh:
+            fh.write(pcs_new.write(cs))
