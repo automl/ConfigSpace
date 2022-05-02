@@ -35,9 +35,9 @@ from ConfigSpace.forbidden import (
     ForbiddenInClause,
     AbstractForbiddenComponent,
     ForbiddenRelation,
-    ForbiddenLessThan,
-    ForbiddenEquals,
-    ForbiddenGreaterThan,
+    ForbiddenLessThanRelation,
+    ForbiddenEqualsRelation,
+    ForbiddenGreaterThanRelation,
 )
 
 
@@ -295,11 +295,11 @@ def _build_forbidden_and_conjunction(clause: ForbiddenAndConjunction) -> Dict:
 
 
 def _build_forbidden_relation(clause: ForbiddenRelation) -> Dict:
-    if isinstance(clause, ForbiddenLessThan):
+    if isinstance(clause, ForbiddenLessThanRelation):
         lambda_ = 'LESS'
-    elif isinstance(clause, ForbiddenEquals):
+    elif isinstance(clause, ForbiddenEqualsRelation):
         lambda_ = 'EQUALS'
-    elif isinstance(clause, ForbiddenGreaterThan):
+    elif isinstance(clause, ForbiddenGreaterThanRelation):
         lambda_ = 'GREATER'
     else:
         raise ValueError("Unknown relation '%s'" % type(clause))
@@ -673,11 +673,11 @@ def _construct_forbidden_relation(
     right = cs.get_hyperparameter(clause['right'])
 
     if clause['lambda'] == "LESS":
-        return ForbiddenLessThan(left, right)
+        return ForbiddenLessThanRelation(left, right)
     elif clause['lambda'] == "EQUALS":
-        return ForbiddenEquals(left, right)
+        return ForbiddenEqualsRelation(left, right)
     elif clause['lambda'] == "GREATER":
-        return ForbiddenGreaterThan(left, right)
+        return ForbiddenGreaterThanRelation(left, right)
     else:
         raise ValueError("Unknown relation '%s'" % clause['lambda'])
 

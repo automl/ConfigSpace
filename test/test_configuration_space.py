@@ -46,7 +46,7 @@ from ConfigSpace.hyperparameters import (UniformFloatHyperparameter,
                                          BetaIntegerHyperparameter,
                                          OrdinalHyperparameter)
 from ConfigSpace.exceptions import ForbiddenValueError
-from ConfigSpace.forbidden import ForbiddenEquals
+from ConfigSpace.forbidden import ForbiddenEqualsRelation
 
 
 def byteify(input):
@@ -224,7 +224,7 @@ class TestConfigurationSpace(unittest.TestCase):
         hp1 = CategoricalHyperparameter("input1", [0, 1])
         hp2 = CategoricalHyperparameter("input2", [1, 0])
         cs.add_hyperparameters([hp1, hp2])
-        forb = ForbiddenEquals(hp1, hp2)
+        forb = ForbiddenEqualsRelation(hp1, hp2)
         # TODO add checking whether a forbidden clause makes sense at all
         cs.add_forbidden_clause(forb)
         # TODO add something to properly retrieve the forbidden clauses

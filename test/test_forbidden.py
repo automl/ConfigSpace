@@ -37,7 +37,7 @@ from ConfigSpace.hyperparameters import \
 # from ConfigSpace.forbidden import ForbiddenEqualsClause, \
 #     ForbiddenInClause, ForbiddenAndConjunction
 from ConfigSpace.forbidden import ForbiddenEqualsClause, \
-    ForbiddenInClause, ForbiddenAndConjunction, ForbiddenEquals, ForbiddenLessThan, ForbiddenGreaterThan
+    ForbiddenInClause, ForbiddenAndConjunction, ForbiddenEqualsRelation, ForbiddenLessThanRelation, ForbiddenGreaterThanRelation
 
 
 class TestForbidden(unittest.TestCase):
@@ -233,28 +233,34 @@ class TestForbidden(unittest.TestCase):
         hp4 = UniformFloatHyperparameter("float", 0, 2)
         hp5 = CategoricalHyperparameter("str", ['foo', 'bar'])
 
-        forb = ForbiddenEquals(hp1, hp2)
+        forb = ForbiddenEqualsRelation(hp1, hp2)
         self.assertTrue(forb.is_forbidden({'cat_int': 1, 'int': 1}, True))
         self.assertFalse(forb.is_forbidden({'cat_int': 0, 'int': 1}, True))
 
-        forb = ForbiddenEquals(hp2, hp3)
+        forb = ForbiddenEqualsRelation(hp2, hp3)
         self.assertTrue(forb.is_forbidden({'int': 1, 'int2': 1}, True))
         self.assertFalse(forb.is_forbidden({'int': 1, 'int2': 0}, True))
 
-        forb = ForbiddenLessThan(hp2, hp3)
+        forb = ForbiddenLessThanRelation(hp2, hp3)
         self.assertTrue(forb.is_forbidden({'int': 0, 'int2': 1}, True))
         self.assertFalse(forb.is_forbidden({'int': 1, 'int2': 1}, True))
         self.assertFalse(forb.is_forbidden({'int': 1, 'int2': 0}, True))
 
-        forb = ForbiddenGreaterThan(hp2, hp3)
+        forb = ForbiddenGreaterThanRelation(hp2, hp3)
         self.assertTrue(forb.is_forbidden({'int': 1, 'int2': 0}, True))
         self.assertFalse(forb.is_forbidden({'int': 1, 'int2': 1}, True))
         self.assertFalse(forb.is_forbidden({'int': 0, 'int2': 1}, True))
 
-        forb = ForbiddenGreaterThan(hp3, hp4)
+        forb = ForbiddenGreaterThanRelation(hp3, hp4)
         self.assertTrue(forb.is_forbidden({'int2': 1, 'float': 0}, True))
         self.assertFalse(forb.is_forbidden({'int2': 1, 'float': 1}, True))
         self.assertFalse(forb.is_forbidden({'int2': 0, 'float': 1}, True))
 
-        forb = ForbiddenGreaterThan(hp4, hp5)
+        forb = ForbiddenGreaterThanRelation(hp4, hp5)
         self.assertRaises(TypeError, forb.is_forbidden, {'float': 1, 'str': 'foo'}, True)
+
+        forb1 = ForbiddenEqualsRelation(hp1, hp2)
+        forb2 = ForbiddenEqualsRelation(hp1, hp2)
+        forb3 = ForbiddenEqualsRelation(hp2, hp3)
+        self.assertTrue(forb1 == forb2)
+        self.assertFalse(forb2 == forb3)

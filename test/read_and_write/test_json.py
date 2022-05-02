@@ -1,7 +1,7 @@
 import os
 import unittest
 
-from ConfigSpace.forbidden import ForbiddenLessThan
+from ConfigSpace.forbidden import ForbiddenLessThanRelation
 from ConfigSpace.read_and_write.json import read, write
 from ConfigSpace.read_and_write.pcs import read as read_pcs
 from ConfigSpace.read_and_write.pcs_new import read as read_pcs_new
@@ -24,7 +24,7 @@ class TestJson(unittest.TestCase):
         cs = ConfigurationSpace()
         a = cs.add_hyperparameter(CategoricalHyperparameter('a', [0, 1, 2]))
         b = cs.add_hyperparameter(CategoricalHyperparameter('b', [0, 1, 2]))
-        cs.add_forbidden_clause(ForbiddenLessThan(a, b))
+        cs.add_forbidden_clause(ForbiddenLessThanRelation(a, b))
         write(cs)
 
     def test_configspace_with_probabilities(self):

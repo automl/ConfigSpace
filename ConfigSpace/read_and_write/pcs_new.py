@@ -58,6 +58,7 @@ from ConfigSpace.forbidden import (
     ForbiddenInClause,
     AbstractForbiddenComponent,
     MultipleValueForbiddenClause,
+    ForbiddenRelation,
 )
 
 # Build pyparsing expressions for params
@@ -216,6 +217,10 @@ def build_forbidden(clause):
         raise TypeError("build_forbidden must be called with an instance of "
                         "'%s', got '%s'" %
                         (AbstractForbiddenComponent, type(clause)))
+    if isinstance(clause, ForbiddenRelation):
+        raise TypeError("build_forbidden must not be called with an instance of "
+                        "'%s', got '%s'" %
+                        (ForbiddenRelation, type(clause)))
 
     retval = StringIO()
     retval.write("{")

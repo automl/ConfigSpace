@@ -42,8 +42,8 @@ from ConfigSpace.hyperparameters import CategoricalHyperparameter, \
 from ConfigSpace.conditions import AndConjunction, OrConjunction, \
     EqualsCondition, NotEqualsCondition, InCondition, GreaterThanCondition, LessThanCondition
 from ConfigSpace.forbidden import ForbiddenAndConjunction, \
-    ForbiddenEqualsClause, ForbiddenInClause, ForbiddenLessThan, ForbiddenEquals, \
-    ForbiddenGreaterThan
+    ForbiddenEqualsClause, ForbiddenInClause, ForbiddenLessThanRelation, ForbiddenEqualsRelation, \
+    ForbiddenGreaterThanRelation
 
 __all__ = ["__version__", "Configuration", "ConfigurationSpace",
            "CategoricalHyperparameter", "UniformFloatHyperparameter",
@@ -54,5 +54,5 @@ __all__ = ["__version__", "Configuration", "ConfigurationSpace",
            "InCondition", "GreaterThanCondition",
            "LessThanCondition", "ForbiddenAndConjunction",
            "ForbiddenEqualsClause", "ForbiddenInClause",
-           "ForbiddenLessThan", "ForbiddenEquals",
-           "ForbiddenGreaterThan"]
+           "ForbiddenLessThanRelation", "ForbiddenEqualsRelation",
+           "ForbiddenGreaterThanRelation"]

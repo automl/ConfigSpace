@@ -514,9 +514,7 @@ cdef class ForbiddenRelation(AbstractForbiddenComponent):
     def __eq__(self, other: Any) -> bool:
         if not isinstance(other, self.__class__):
             return False
-
-        return (self.left.name == other.left.name and
-                self.right.name == other.right.name)
+        return self.left == other.left and self.right == other.right
 
     def __copy__(self):
         return self.__class__(
@@ -552,7 +550,7 @@ cdef class ForbiddenRelation(AbstractForbiddenComponent):
 
         return self._is_forbidden(left, right)
 
-    cdef _is_forbidden(self, left, right):
+    cdef int _is_forbidden(self, left, right) except -1:
         pass
 
     cdef int c_is_forbidden_vector(self, np.ndarray instantiated_vector, int strict):
@@ -577,13 +575,13 @@ cdef class ForbiddenRelation(AbstractForbiddenComponent):
             else:
                 return False
 
-        return self._is_forbidden(self.left._transform(left), self.right._transform(right))
+        return self._is_forbidden_vector(self.left._transform(left), self.right._transform(right))
 
-    cdef int _is_forbidden_vector(self, DTYPE_t left, DTYPE_t right):
+    cdef int _is_forbidden_vector(self, DTYPE_t left, DTYPE_t right) except -1:
         pass
 
 
-cdef class ForbiddenLessThan(ForbiddenRelation):
+cdef class ForbiddenLessThanRelation(ForbiddenRelation):
     """
     A ForbiddenLessThan relation between two hyperparameters.
 
@@ -598,7 +596,7 @@ cdef class ForbiddenLessThan(ForbiddenRelation):
     >>> cs.add_hyperparameters([a, b])
     [a, Type: Categorical, Choices: {1, 2, 3}, Default: 1, b, Type: ...]
 
-    >>> forbidden_clause = CS.ForbiddenLessThan(a, b)
+    >>> forbidden_clause = CS.ForbiddenLessThanRelation(a, b)
     >>> cs.add_forbidden_clause(forbidden_clause)
     Forbidden: a < b
 
@@ -613,14 +611,14 @@ cdef class ForbiddenLessThan(ForbiddenRelation):
     def __repr__(self):
         return "Forbidden: %s < %s" % (self.left.name, self.right.name)
 
-    cdef _is_forbidden(self, left, right):
+    cdef int _is_forbidden(self, left, right) except -1:
         return left < right
 
-    cdef int _is_forbidden_vector(self, DTYPE_t left, DTYPE_t right):
+    cdef int _is_forbidden_vector(self, DTYPE_t left, DTYPE_t right) except -1:
         return left < right
 
 
-cdef class ForbiddenEquals(ForbiddenRelation):
+cdef class ForbiddenEqualsRelation(ForbiddenRelation):
     """
     A ForbiddenEquals relation between two hyperparameters.
 
@@ -635,7 +633,7 @@ cdef class ForbiddenEquals(ForbiddenRelation):
     >>> cs.add_hyperparameters([a, b])
     [a, Type: Categorical, Choices: {1, 2, 3}, Default: 1, b, Type: ...]
 
-    >>> forbidden_clause = CS.ForbiddenEquals(a, b)
+    >>> forbidden_clause = CS.ForbiddenEqualsRelation(a, b)
     >>> cs.add_forbidden_clause(forbidden_clause)
     Forbidden: a == b
 
@@ -650,14 +648,14 @@ cdef class ForbiddenEquals(ForbiddenRelation):
     def __repr__(self):
         return "Forbidden: %s == %s" % (self.left.name, self.right.name)
 
-    cdef _is_forbidden(self, left, right):
+    cdef int _is_forbidden(self, left, right) except -1:
         return left == right
 
-    cdef int _is_forbidden_vector(self, DTYPE_t left, DTYPE_t right):
+    cdef int _is_forbidden_vector(self, DTYPE_t left, DTYPE_t right) except -1:
         return left == right
 
 
-cdef class ForbiddenGreaterThan(ForbiddenRelation):
+cdef class ForbiddenGreaterThanRelation(ForbiddenRelation):
     """
     A ForbiddenGreaterThan relation between two hyperparameters.
 
@@ -672,7 +670,7 @@ cdef class ForbiddenGreaterThan(ForbiddenRelation):
     >>> cs.add_hyperparameters([a, b])
     [a, Type: Categorical, Choices: {1, 2, 3}, Default: 1, b, Type: ...]
 
-    >>> forbidden_clause = CS.ForbiddenGreaterThan(a, b)
+    >>> forbidden_clause = CS.ForbiddenGreaterThanRelation(a, b)
     >>> cs.add_forbidden_clause(forbidden_clause)
     Forbidden: a > b
 
@@ -687,8 +685,8 @@ cdef class ForbiddenGreaterThan(ForbiddenRelation):
     def __repr__(self):
         return "Forbidden: %s > %s" % (self.left.name, self.right.name)
 
-    cdef _is_forbidden(self, left, right):
+    cdef int _is_forbidden(self, left, right) except -1:
         return left > right
 
-    cdef int _is_forbidden_vector(self, DTYPE_t left, DTYPE_t right):
+    cdef int _is_forbidden_vector(self, DTYPE_t left, DTYPE_t right) except -1:
         return left > right
