@@ -575,7 +575,8 @@ cdef class ForbiddenRelation(AbstractForbiddenComponent):
             else:
                 return False
 
-        return self._is_forbidden_vector(self.left._transform(left), self.right._transform(right))
+        # Relation is always evaluated against actual value and not vector representation
+        return self._is_forbidden(self.left._transform(left), self.right._transform(right))
 
     cdef int _is_forbidden_vector(self, DTYPE_t left, DTYPE_t right) except -1:
         pass
@@ -599,6 +600,12 @@ cdef class ForbiddenLessThanRelation(ForbiddenRelation):
     >>> forbidden_clause = CS.ForbiddenLessThanRelation(a, b)
     >>> cs.add_forbidden_clause(forbidden_clause)
     Forbidden: a < b
+
+    Note
+    ____
+    If the values of the both hyperparameters are not comparible
+    (e.g. comapring int and str), a TypeError is raised. For OrdinalHyperparameters
+    the actual values are used for comparison *not* their oridnal value.
 
     Parameters
     ----------
@@ -637,6 +644,12 @@ cdef class ForbiddenEqualsRelation(ForbiddenRelation):
     >>> cs.add_forbidden_clause(forbidden_clause)
     Forbidden: a == b
 
+    Note
+    ____
+    If the values of the both hyperparameters are not comparible
+    (e.g. comapring int and str), a TypeError is raised. For OrdinalHyperparameters
+    the actual values are used for comparison *not* their oridnal value.
+
     Parameters
     ----------
      left : :ref:`Hyperparameters`
@@ -673,6 +686,12 @@ cdef class ForbiddenGreaterThanRelation(ForbiddenRelation):
     >>> forbidden_clause = CS.ForbiddenGreaterThanRelation(a, b)
     >>> cs.add_forbidden_clause(forbidden_clause)
     Forbidden: a > b
+
+    Note
+    ____
+    If the values of the both hyperparameters are not comparible
+    (e.g. comapring int and str), a TypeError is raised. For OrdinalHyperparameters
+    the actual values are used for comparison *not* their oridnal value.
 
     Parameters
     ----------

@@ -235,6 +235,14 @@ class TestConfigurationSpace(unittest.TestCase):
                                   "  Forbidden Clauses:\n"
                                   "    Forbidden: input1 == input2\n")
 
+    def test_add_forbidden_relation_categorical(self):
+        cs = ConfigurationSpace()
+        hp1 = CategoricalHyperparameter("input1", ['a', 'b'], default_value='b')
+        hp2 = CategoricalHyperparameter("input2", ['b', 'c'], default_value='b')
+        cs.add_hyperparameters([hp1, hp2])
+        forb = ForbiddenEqualsRelation(hp1, hp2)
+        self.assertRaises(ForbiddenValueError, cs.add_forbidden_clause, forb)
+
     def test_add_forbidden_illegal(self):
         cs = ConfigurationSpace()
         hp = CategoricalHyperparameter("input1", [0, 1])
