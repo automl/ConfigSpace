@@ -280,3 +280,9 @@ class TestForbidden(unittest.TestCase):
         forb3 = ForbiddenEqualsRelation(hp3, hp4)
         self.assertTrue(forb1 == forb2)
         self.assertFalse(forb2 == forb3)
+
+        hp1 = OrdinalHyperparameter("water_temperature", ["cold", "luke-warm", "hot", "boiling"])
+        hp2 = OrdinalHyperparameter("water_temperature2", ["cold", "luke-warm", "hot", "boiling"])
+        forb = ForbiddenGreaterThanRelation(hp1, hp2)
+        self.assertFalse(forb.is_forbidden({'water_temperature': 'boiling', 'water_temperature2': 'cold'}, True))
+        self.assertTrue(forb.is_forbidden({'water_temperature': 'hot', 'water_temperature2': 'cold'}, True))

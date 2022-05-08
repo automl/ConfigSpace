@@ -602,10 +602,10 @@ cdef class ForbiddenLessThanRelation(ForbiddenRelation):
     Forbidden: a < b
 
     Note
-    ____
+    ----
     If the values of the both hyperparameters are not comparible
-    (e.g. comapring int and str), a TypeError is raised. For OrdinalHyperparameters
-    the actual values are used for comparison *not* their oridnal value.
+    (e.g. comparing int and str), a TypeError is raised. For OrdinalHyperparameters
+    the actual values are used for comparison **not** their ordinal value.
 
     Parameters
     ----------
@@ -645,10 +645,10 @@ cdef class ForbiddenEqualsRelation(ForbiddenRelation):
     Forbidden: a == b
 
     Note
-    ____
+    ----
     If the values of the both hyperparameters are not comparible
-    (e.g. comapring int and str), a TypeError is raised. For OrdinalHyperparameters
-    the actual values are used for comparison *not* their oridnal value.
+    (e.g. comparing int and str), a TypeError is raised. For OrdinalHyperparameters
+    the actual values are used for comparison **not** their ordinal value.
 
     Parameters
     ----------
@@ -688,10 +688,10 @@ cdef class ForbiddenGreaterThanRelation(ForbiddenRelation):
     Forbidden: a > b
 
     Note
-    ____
+    ----
     If the values of the both hyperparameters are not comparible
-    (e.g. comapring int and str), a TypeError is raised. For OrdinalHyperparameters
-    the actual values are used for comparison *not* their oridnal value.
+    (e.g. comparing int and str), a TypeError is raised. For OrdinalHyperparameters
+    the actual values are used for comparison **not** their ordinal value.
 
     Parameters
     ----------
