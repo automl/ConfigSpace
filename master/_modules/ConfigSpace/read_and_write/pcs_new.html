@@ -186,6 +186,7 @@
     <span class="n">ForbiddenInClause</span><span class="p">,</span>
     <span class="n">AbstractForbiddenComponent</span><span class="p">,</span>
     <span class="n">MultipleValueForbiddenClause</span><span class="p">,</span>
+    <span class="n">ForbiddenRelation</span><span class="p">,</span>
 <span class="p">)</span>
 
 <span class="c1"># Build pyparsing expressions for params</span>
@@ -344,6 +345,10 @@
         <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;build_forbidden must be called with an instance of &quot;</span>
                         <span class="s2">&quot;&#39;</span><span class="si">%s</span><span class="s2">&#39;, got &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span>
                         <span class="p">(</span><span class="n">AbstractForbiddenComponent</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="n">clause</span><span class="p">)))</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">clause</span><span class="p">,</span> <span class="n">ForbiddenRelation</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;build_forbidden must not be called with an instance of &quot;</span>
+                        <span class="s2">&quot;&#39;</span><span class="si">%s</span><span class="s2">&#39;, got &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span>
+                        <span class="p">(</span><span class="n">ForbiddenRelation</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="n">clause</span><span class="p">)))</span>
 
     <span class="n">retval</span> <span class="o">=</span> <span class="n">StringIO</span><span class="p">()</span>
     <span class="n">retval</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;{&quot;</span><span class="p">)</span>
@@ -813,7 +818,7 @@
     </p>
     <p>
         &copy; Copyright 2014-2022, Matthias Feurer, Katharina Eggensperger, Syed Mohsin Ali, Christina Hernandez Wunsch, Julien-Charles Levesque, Jost Tobias Springenberg, Philipp Mueller, Marius Lindauer, Jorn Tuyls.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.4.0.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.5.0.<br/>
     </p>
   </div>
 </footer>

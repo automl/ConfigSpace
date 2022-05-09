@@ -162,10 +162,14 @@
     <span class="n">ForbiddenAndConjunction</span><span class="p">,</span>
     <span class="n">ForbiddenInClause</span><span class="p">,</span>
     <span class="n">AbstractForbiddenComponent</span><span class="p">,</span>
+    <span class="n">ForbiddenRelation</span><span class="p">,</span>
+    <span class="n">ForbiddenLessThanRelation</span><span class="p">,</span>
+    <span class="n">ForbiddenEqualsRelation</span><span class="p">,</span>
+    <span class="n">ForbiddenGreaterThanRelation</span><span class="p">,</span>
 <span class="p">)</span>
 
 
-<span class="n">JSON_FORMAT_VERSION</span> <span class="o">=</span> <span class="mf">0.3</span>
+<span class="n">JSON_FORMAT_VERSION</span> <span class="o">=</span> <span class="mf">0.4</span>
 
 
 <span class="c1">################################################################################</span>
@@ -385,6 +389,8 @@
         <span class="k">return</span> <span class="n">_build_forbidden_in_clause</span><span class="p">(</span><span class="n">clause</span><span class="p">)</span>
     <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">clause</span><span class="p">,</span> <span class="n">ForbiddenAndConjunction</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">_build_forbidden_and_conjunction</span><span class="p">(</span><span class="n">clause</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">clause</span><span class="p">,</span> <span class="n">ForbiddenRelation</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">_build_forbidden_relation</span><span class="p">(</span><span class="n">clause</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="n">clause</span><span class="p">)</span>
 
@@ -413,6 +419,24 @@
         <span class="s1">&#39;clauses&#39;</span><span class="p">:</span> <span class="p">[</span>
             <span class="n">_build_forbidden</span><span class="p">(</span><span class="n">component</span><span class="p">)</span> <span class="k">for</span> <span class="n">component</span> <span class="ow">in</span> <span class="n">clause</span><span class="o">.</span><span class="n">components</span>
         <span class="p">],</span>
+    <span class="p">}</span>
+
+
+<span class="k">def</span> <span class="nf">_build_forbidden_relation</span><span class="p">(</span><span class="n">clause</span><span class="p">:</span> <span class="n">ForbiddenRelation</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">clause</span><span class="p">,</span> <span class="n">ForbiddenLessThanRelation</span><span class="p">):</span>
+        <span class="n">lambda_</span> <span class="o">=</span> <span class="s1">&#39;LESS&#39;</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">clause</span><span class="p">,</span> <span class="n">ForbiddenEqualsRelation</span><span class="p">):</span>
+        <span class="n">lambda_</span> <span class="o">=</span> <span class="s1">&#39;EQUALS&#39;</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">clause</span><span class="p">,</span> <span class="n">ForbiddenGreaterThanRelation</span><span class="p">):</span>
+        <span class="n">lambda_</span> <span class="o">=</span> <span class="s1">&#39;GREATER&#39;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unknown relation &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span><span class="n">clause</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s1">&#39;left&#39;</span><span class="p">:</span> <span class="n">clause</span><span class="o">.</span><span class="n">left</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+        <span class="s1">&#39;right&#39;</span><span class="p">:</span> <span class="n">clause</span><span class="o">.</span><span class="n">right</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+        <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;RELATION&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;lambda&#39;</span><span class="p">:</span> <span class="n">lambda_</span>
     <span class="p">}</span>
 
 
@@ -735,6 +759,8 @@
         <span class="k">return</span> <span class="n">_construct_forbidden_in</span><span class="p">(</span><span class="n">clause</span><span class="p">,</span> <span class="n">cs</span><span class="p">)</span>
     <span class="k">elif</span> <span class="n">forbidden_type</span> <span class="o">==</span> <span class="s1">&#39;AND&#39;</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">_construct_forbidden_and</span><span class="p">(</span><span class="n">clause</span><span class="p">,</span> <span class="n">cs</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">forbidden_type</span> <span class="o">==</span> <span class="s1">&#39;RELATION&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_construct_forbidden_equals</span><span class="p">(</span><span class="n">clause</span><span class="p">,</span> <span class="n">cs</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">return</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">forbidden_type</span><span class="p">)</span>
 
@@ -765,6 +791,23 @@
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ForbiddenAndConjunction</span><span class="p">:</span>
     <span class="n">clauses</span> <span class="o">=</span> <span class="p">[</span><span class="n">_construct_forbidden</span><span class="p">(</span><span class="n">cl</span><span class="p">,</span> <span class="n">cs</span><span class="p">)</span> <span class="k">for</span> <span class="n">cl</span> <span class="ow">in</span> <span class="n">clause</span><span class="p">[</span><span class="s1">&#39;clauses&#39;</span><span class="p">]]</span>
     <span class="k">return</span> <span class="n">ForbiddenAndConjunction</span><span class="p">(</span><span class="o">*</span><span class="n">clauses</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_construct_forbidden_relation</span><span class="p">(</span>
+        <span class="n">clause</span><span class="p">:</span> <span class="n">Dict</span><span class="p">,</span>
+        <span class="n">cs</span><span class="p">:</span> <span class="n">ConfigurationSpace</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ForbiddenRelation</span><span class="p">:</span>
+    <span class="n">left</span> <span class="o">=</span> <span class="n">cs</span><span class="o">.</span><span class="n">get_hyperparameter</span><span class="p">(</span><span class="n">clause</span><span class="p">[</span><span class="s1">&#39;left&#39;</span><span class="p">])</span>
+    <span class="n">right</span> <span class="o">=</span> <span class="n">cs</span><span class="o">.</span><span class="n">get_hyperparameter</span><span class="p">(</span><span class="n">clause</span><span class="p">[</span><span class="s1">&#39;right&#39;</span><span class="p">])</span>
+
+    <span class="k">if</span> <span class="n">clause</span><span class="p">[</span><span class="s1">&#39;lambda&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;LESS&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">ForbiddenLessThanRelation</span><span class="p">(</span><span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">clause</span><span class="p">[</span><span class="s1">&#39;lambda&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;EQUALS&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">ForbiddenEqualsRelation</span><span class="p">(</span><span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">clause</span><span class="p">[</span><span class="s1">&#39;lambda&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;GREATER&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">ForbiddenGreaterThanRelation</span><span class="p">(</span><span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unknown relation &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="n">clause</span><span class="p">[</span><span class="s1">&#39;lambda&#39;</span><span class="p">])</span>
 </pre></div>
 
     </div>
@@ -782,7 +825,7 @@
     </p>
     <p>
         &copy; Copyright 2014-2022, Matthias Feurer, Katharina Eggensperger, Syed Mohsin Ali, Christina Hernandez Wunsch, Julien-Charles Levesque, Jost Tobias Springenberg, Philipp Mueller, Marius Lindauer, Jorn Tuyls.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.4.0.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.5.0.<br/>
     </p>
   </div>
 </footer>
