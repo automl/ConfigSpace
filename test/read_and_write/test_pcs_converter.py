@@ -39,7 +39,12 @@ from ConfigSpace.hyperparameters import CategoricalHyperparameter, \
 from ConfigSpace.conditions import EqualsCondition, InCondition, \
     AndConjunction, OrConjunction, NotEqualsCondition, \
     GreaterThanCondition
-from ConfigSpace.forbidden import ForbiddenInClause, ForbiddenAndConjunction, ForbiddenEqualsClause
+from ConfigSpace.forbidden import (
+    ForbiddenInClause,
+    ForbiddenAndConjunction,
+    ForbiddenEqualsClause,
+    ForbiddenGreaterThanRelation,
+)
 
 # More complex search space
 classifier = CategoricalHyperparameter("classifier", ["svm", "nn"])
@@ -431,6 +436,17 @@ class TestPCSConverter(unittest.TestCase):
         cs_new = pcs_new.read(complex_cs)
 
         self.assertEqual(cs_new, cs_with_forbidden)
+
+    def test_write_new_configuration_space_forbidden_relation(self):
+        cs_with_forbidden = ConfigurationSpace()
+        int_hp = UniformIntegerHyperparameter('int_hp', 0, 50, 30)
+        float_hp = UniformFloatHyperparameter('float_hp', 0., 50., 30.)
+
+        forbidden = ForbiddenGreaterThanRelation(int_hp, float_hp)
+        cs_with_forbidden.add_hyperparameters([int_hp, float_hp])
+        cs_with_forbidden.add_forbidden_clause(forbidden)
+
+        self.assertRaises(TypeError, pcs_new.write, {'configuration_space': cs_with_forbidden})
 
     def test_read_new_configuration_space_complex_conditionals(self):
         classi = OrdinalHyperparameter(

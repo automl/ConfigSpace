@@ -32,12 +32,20 @@ import unittest
 import numpy as np
 
 from ConfigSpace.hyperparameters import \
-    UniformIntegerHyperparameter, CategoricalHyperparameter
+    UniformIntegerHyperparameter, CategoricalHyperparameter, UniformFloatHyperparameter
 
 # from ConfigSpace.forbidden import ForbiddenEqualsClause, \
 #     ForbiddenInClause, ForbiddenAndConjunction
-from ConfigSpace.forbidden import ForbiddenEqualsClause, \
-    ForbiddenInClause, ForbiddenAndConjunction
+from ConfigSpace.forbidden import (
+    ForbiddenEqualsClause,
+    ForbiddenInClause,
+    ForbiddenAndConjunction,
+    ForbiddenEqualsRelation,
+    ForbiddenLessThanRelation,
+    ForbiddenGreaterThanRelation,
+)
+
+from ConfigSpace import OrdinalHyperparameter
 
 
 class TestForbidden(unittest.TestCase):
@@ -79,7 +87,7 @@ class TestForbidden(unittest.TestCase):
         # print("\nraisereg6:")
         self.assertRaisesRegex(ValueError,
                                "Is_forbidden must be called with the "
-                               "instanstatiated hyperparameter in the "
+                               "instantiated hyperparameter in the "
                                "forbidden clause; you are missing "
                                "'parent'", forb1.is_forbidden,
                                {1: hp2}, True)
@@ -144,7 +152,7 @@ class TestForbidden(unittest.TestCase):
         # print("\nTest5:")
         self.assertRaisesRegex(ValueError,
                                "Is_forbidden must be called with the "
-                               "instanstatiated hyperparameter in the "
+                               "instantiated hyperparameter in the "
                                "forbidden clause; you are missing "
                                "'child'", forb1.is_forbidden,
                                {'parent': 1}, True)
@@ -225,3 +233,67 @@ class TestForbidden(unittest.TestCase):
             self.assertEqual(results[i], is_forbidden)
 
             self.assertFalse(total_and.is_forbidden({}, strict=False))
+
+    def test_relation(self):
+        hp1 = CategoricalHyperparameter("cat_int", [0, 1])
+        hp2 = OrdinalHyperparameter("ord_int", [0, 1])
+        hp3 = UniformIntegerHyperparameter("int", 0, 2)
+        hp4 = UniformIntegerHyperparameter("int2", 0, 2)
+        hp5 = UniformFloatHyperparameter("float", 0, 2)
+        hp6 = CategoricalHyperparameter("str", ['a', 'b'])
+        hp7 = CategoricalHyperparameter("str2", ['b', 'c'])
+
+        forb = ForbiddenEqualsRelation(hp1, hp2)
+        self.assertTrue(forb.is_forbidden({'cat_int': 1, 'ord_int': 1}, True))
+        self.assertFalse(forb.is_forbidden({'cat_int': 0, 'ord_int': 1}, True))
+
+        forb = ForbiddenEqualsRelation(hp1, hp3)
+        self.assertTrue(forb.is_forbidden({'cat_int': 1, 'int': 1}, True))
+        self.assertFalse(forb.is_forbidden({'cat_int': 0, 'int': 1}, True))
+
+        forb = ForbiddenEqualsRelation(hp3, hp4)
+        self.assertTrue(forb.is_forbidden({'int': 1, 'int2': 1}, True))
+        self.assertFalse(forb.is_forbidden({'int': 1, 'int2': 0}, True))
+
+        forb = ForbiddenLessThanRelation(hp3, hp4)
+        self.assertTrue(forb.is_forbidden({'int': 0, 'int2': 1}, True))
+        self.assertFalse(forb.is_forbidden({'int': 1, 'int2': 1}, True))
+        self.assertFalse(forb.is_forbidden({'int': 1, 'int2': 0}, True))
+
+        forb = ForbiddenGreaterThanRelation(hp3, hp4)
+        self.assertTrue(forb.is_forbidden({'int': 1, 'int2': 0}, True))
+        self.assertFalse(forb.is_forbidden({'int': 1, 'int2': 1}, True))
+        self.assertFalse(forb.is_forbidden({'int': 0, 'int2': 1}, True))
+
+        forb = ForbiddenGreaterThanRelation(hp4, hp5)
+        self.assertTrue(forb.is_forbidden({'int2': 1, 'float': 0}, True))
+        self.assertFalse(forb.is_forbidden({'int2': 1, 'float': 1}, True))
+        self.assertFalse(forb.is_forbidden({'int2': 0, 'float': 1}, True))
+
+        forb = ForbiddenGreaterThanRelation(hp5, hp6)
+        self.assertRaises(TypeError, forb.is_forbidden, {'float': 1, 'str': 'b'}, True)
+
+        forb = ForbiddenGreaterThanRelation(hp5, hp7)
+        self.assertRaises(TypeError, forb.is_forbidden, {'float': 1, 'str2': 'b'}, True)
+
+        forb = ForbiddenGreaterThanRelation(hp6, hp7)
+        self.assertTrue(forb.is_forbidden({'str': 'b', 'str2': 'a'}, True))
+        self.assertTrue(forb.is_forbidden({'str': 'c', 'str2': 'a'}, True))
+
+        forb1 = ForbiddenEqualsRelation(hp2, hp3)
+        forb2 = ForbiddenEqualsRelation(hp2, hp3)
+        forb3 = ForbiddenEqualsRelation(hp3, hp4)
+        self.assertTrue(forb1 == forb2)
+        self.assertFalse(forb2 == forb3)
+
+        hp1 = OrdinalHyperparameter("water_temperature", ["cold", "luke-warm", "hot", "boiling"])
+        hp2 = OrdinalHyperparameter("water_temperature2", ["cold", "luke-warm", "hot", "boiling"])
+        forb = ForbiddenGreaterThanRelation(hp1, hp2)
+        self.assertFalse(forb.is_forbidden(
+            {'water_temperature': 'boiling', 'water_temperature2': 'cold'},
+            True)
+        )
+        self.assertTrue(forb.is_forbidden(
+            {'water_temperature': 'hot', 'water_temperature2': 'cold'},
+            True)
+        )

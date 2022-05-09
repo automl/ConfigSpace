@@ -46,6 +46,7 @@ from ConfigSpace.hyperparameters import (UniformFloatHyperparameter,
                                          BetaIntegerHyperparameter,
                                          OrdinalHyperparameter)
 from ConfigSpace.exceptions import ForbiddenValueError
+from ConfigSpace.forbidden import ForbiddenEqualsRelation
 
 
 def byteify(input):
@@ -217,6 +218,30 @@ class TestConfigurationSpace(unittest.TestCase):
                                   "Default: 0\n"
                                   "  Forbidden Clauses:\n"
                                   "    Forbidden: input1 == 1\n")
+
+    def test_add_forbidden_relation(self):
+        cs = ConfigurationSpace()
+        hp1 = CategoricalHyperparameter("input1", [0, 1])
+        hp2 = CategoricalHyperparameter("input2", [1, 0])
+        cs.add_hyperparameters([hp1, hp2])
+        forb = ForbiddenEqualsRelation(hp1, hp2)
+        # TODO add checking whether a forbidden clause makes sense at all
+        cs.add_forbidden_clause(forb)
+        # TODO add something to properly retrieve the forbidden clauses
+        self.assertEqual(str(cs), "Configuration space object:\n  "
+                                  "Hyperparameters:\n"
+                                  "    input1, Type: Categorical, Choices: {0, 1}, Default: 0\n"
+                                  "    input2, Type: Categorical, Choices: {1, 0}, Default: 1\n"
+                                  "  Forbidden Clauses:\n"
+                                  "    Forbidden: input1 == input2\n")
+
+    def test_add_forbidden_relation_categorical(self):
+        cs = ConfigurationSpace()
+        hp1 = CategoricalHyperparameter("input1", ['a', 'b'], default_value='b')
+        hp2 = CategoricalHyperparameter("input2", ['b', 'c'], default_value='b')
+        cs.add_hyperparameters([hp1, hp2])
+        forb = ForbiddenEqualsRelation(hp1, hp2)
+        self.assertRaises(ForbiddenValueError, cs.add_forbidden_clause, forb)
 
     def test_add_forbidden_illegal(self):
         cs = ConfigurationSpace()

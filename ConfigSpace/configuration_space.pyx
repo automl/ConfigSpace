@@ -55,6 +55,7 @@ from ConfigSpace.forbidden import (
     AbstractForbiddenComponent,
     AbstractForbiddenClause,
     AbstractForbiddenConjunction,
+    ForbiddenRelation,
 )
 from typing import (
     Union, List, Any, Dict, Iterable, Set, Tuple, Optional, KeysView
@@ -591,25 +592,35 @@ class ConfigurationSpace(collections.abc.Mapping):
                             "with an instance of "
                             "ConfigSpace.forbidden.AbstractForbiddenComponent.")
         to_check = list()
+        relation_to_check = list()
         if isinstance(clause, AbstractForbiddenClause):
             to_check.append(clause)
         elif isinstance(clause, AbstractForbiddenConjunction):
             to_check.extend(clause.get_descendant_literal_clauses())
+        elif isinstance(clause, ForbiddenRelation):
+            relation_to_check.extend(clause.get_descendant_literal_clauses())
         else:
             raise NotImplementedError(type(clause))
 
-        for tmp_clause in to_check:
-            if tmp_clause.hyperparameter.name not in self._hyperparameters:
+        def _check_hp(tmp_clause, hp):
+            if hp.name not in self._hyperparameters:
                 raise ValueError(
                     "Cannot add clause '%s' because it references hyperparameter"
                     " %s which is not in the configuration space (allowed "
                     "hyperparameters are: %s)"
                     % (
                         tmp_clause,
-                        tmp_clause.hyperparameter.name,
+                        hp.name,
                         list(self._hyperparameters),
                     )
                 )
+
+        for tmp_clause in to_check:
+            _check_hp(tmp_clause, tmp_clause.hyperparameter)
+
+        for tmp_clause in relation_to_check:
+            _check_hp(tmp_clause, tmp_clause.left)
+            _check_hp(tmp_clause, tmp_clause.right)
 
     def add_configuration_space(self,
                                 prefix: str,
@@ -678,20 +689,27 @@ class ConfigurationSpace(collections.abc.Mapping):
             conditions_to_add.append(new_condition)
         self.add_conditions(conditions_to_add)
 
+        def prefix_hp_name(hyperparameter: Hyperparameter):
+            if hyperparameter.name == prefix or \
+                    hyperparameter.name == '':
+                hyperparameter.name = prefix
+            elif not hyperparameter.name.startswith(
+                    "%s%s" % (prefix, delimiter)):
+                hyperparameter.name = "%s%s%s" % \
+                                          (prefix, delimiter,
+                                           hyperparameter.name)
+
         forbiddens_to_add = []
         for forbidden_clause in configuration_space.forbidden_clauses:
             # new_forbidden = copy.deepcopy(forbidden_clause)
             new_forbidden = forbidden_clause
             dlcs = new_forbidden.get_descendant_literal_clauses()
             for dlc in dlcs:
-                if dlc.hyperparameter.name == prefix or \
-                                dlc.hyperparameter.name == '':
-                    dlc.hyperparameter.name = prefix
-                elif not dlc.hyperparameter.name.startswith(
-                                "%s%s" % (prefix, delimiter)):
-                    dlc.hyperparameter.name = "%s%s%s" % \
-                                              (prefix, delimiter,
-                                               dlc.hyperparameter.name)
+                if isinstance(dlc, ForbiddenRelation):
+                    prefix_hp_name(dlc.left)
+                    prefix_hp_name(dlc.right)
+                else:
+                    prefix_hp_name(dlc.hyperparameter)
             forbiddens_to_add.append(new_forbidden)
         self.add_forbidden_clauses(forbiddens_to_add)
 
@@ -1278,7 +1296,12 @@ class ConfigurationSpace(collections.abc.Mapping):
         for clause in self.get_forbiddens():
             based_on_conditionals = False
             for subclause in clause.get_descendant_literal_clauses():
-                if subclause.hyperparameter.name not in unconditional_hyperparameters:
+                if isinstance(subclause, ForbiddenRelation):
+                    if subclause.left.name not in unconditional_hyperparameters or \
+                            subclause.right.name not in unconditional_hyperparameters:
+                        based_on_conditionals = True
+                        break
+                elif subclause.hyperparameter.name not in unconditional_hyperparameters:
                     based_on_conditionals = True
                     break
             if based_on_conditionals:
