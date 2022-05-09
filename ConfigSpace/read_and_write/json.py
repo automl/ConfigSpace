@@ -680,4 +680,3 @@ def _construct_forbidden_relation(
         return ForbiddenGreaterThanRelation(left, right)
     else:
         raise ValueError("Unknown relation '%s'" % clause['lambda'])
-

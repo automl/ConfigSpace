@@ -39,8 +39,12 @@ from ConfigSpace.hyperparameters import CategoricalHyperparameter, \
 from ConfigSpace.conditions import EqualsCondition, InCondition, \
     AndConjunction, OrConjunction, NotEqualsCondition, \
     GreaterThanCondition
-from ConfigSpace.forbidden import ForbiddenInClause, ForbiddenAndConjunction, ForbiddenEqualsClause, \
-    ForbiddenGreaterThanRelation
+from ConfigSpace.forbidden import (
+    ForbiddenInClause,
+    ForbiddenAndConjunction,
+    ForbiddenEqualsClause,
+    ForbiddenGreaterThanRelation,
+)
 
 # More complex search space
 classifier = CategoricalHyperparameter("classifier", ["svm", "nn"])

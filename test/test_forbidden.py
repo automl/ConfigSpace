@@ -36,9 +36,14 @@ from ConfigSpace.hyperparameters import \
 
 # from ConfigSpace.forbidden import ForbiddenEqualsClause, \
 #     ForbiddenInClause, ForbiddenAndConjunction
-from ConfigSpace.forbidden import ForbiddenEqualsClause, \
-    ForbiddenInClause, ForbiddenAndConjunction, ForbiddenEqualsRelation, ForbiddenLessThanRelation, \
-    ForbiddenGreaterThanRelation
+from ConfigSpace.forbidden import (
+    ForbiddenEqualsClause,
+    ForbiddenInClause,
+    ForbiddenAndConjunction,
+    ForbiddenEqualsRelation,
+    ForbiddenLessThanRelation,
+    ForbiddenGreaterThanRelation,
+)
 
 from ConfigSpace import OrdinalHyperparameter
 
@@ -284,5 +289,11 @@ class TestForbidden(unittest.TestCase):
         hp1 = OrdinalHyperparameter("water_temperature", ["cold", "luke-warm", "hot", "boiling"])
         hp2 = OrdinalHyperparameter("water_temperature2", ["cold", "luke-warm", "hot", "boiling"])
         forb = ForbiddenGreaterThanRelation(hp1, hp2)
-        self.assertFalse(forb.is_forbidden({'water_temperature': 'boiling', 'water_temperature2': 'cold'}, True))
-        self.assertTrue(forb.is_forbidden({'water_temperature': 'hot', 'water_temperature2': 'cold'}, True))
+        self.assertFalse(forb.is_forbidden(
+            {'water_temperature': 'boiling', 'water_temperature2': 'cold'},
+            True)
+        )
+        self.assertTrue(forb.is_forbidden(
+            {'water_temperature': 'hot', 'water_temperature2': 'cold'},
+            True)
+        )
