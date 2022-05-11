@@ -214,29 +214,34 @@ cpdef np.ndarray change_hp_value(
     cdef DTYPE_t NaN = np.NaN
     cdef dict children_of = configuration_space._children_of
 
-    # We maintain to_visit as a minimum heap of indices of hyperparameters that may need to be updated.
-    # We assume that the hyperparameters are sorted topologically by their index.
+    # We maintain `to_visit` as a minimum heap of indices of hyperparameters that may need to be updated.
+    # We assume that the hyperparameters are sorted topologically with respect to the conditions by the hyperparameter indices.
+    # Initially, we know that the hyperparameter with the index `index` may need to be updated (by changing its value to `hp_value`).
     to_visit = [index]
     
-    # Since one hyperparameter may be reachable in several ways, we need to make sure we don't process it twice.
+    # Since one hyperparameter may be reachable in more than one way, we need to make sure we don't schedule it for inspection more than once.
     scheduled = np.zeros(len(configuration_space), dtype=bool)
     scheduled[index] = True
 
-    # Activate hyperparameters if their parent node got activated
+    # Activate hyperparameters if their parent node got activated.
     while len(to_visit) > 0:
         assert np.all(scheduled[to_visit])
         current_idx = heapq.heappop(to_visit)
         current_name = configuration_space._idx_to_hyperparameter[current_idx]
         conditions = configuration_space._parent_conditions_of[current_name]
 
+        # Should the current hyperparameter be active?
         active = True
         for condition in conditions:
             if not condition._evaluate_vector(configuration_array):
+                # The current hyperparameter should be inactive because `condition` is not satisfied. 
                 active = False
                 break
 
+        # Should the value of the current hyperparameter be updated?
         update = False
         if current_idx == index:
+            # The current hyperparameter should be updated because the caller requested this update.
             if not active:
                 raise ValueError(
                     "Attempting to change the value of the inactive hyperparameter '%s' to '%s'." % (hp_name, hp_value))
@@ -245,10 +250,12 @@ cpdef np.ndarray change_hp_value(
         else:
             current_value = configuration_array[current_idx]
             if active and not current_value == current_value:
+                # The current hyperparameter should be active but is inactive.
                 current = configuration_space._hyperparameters[current_name]
                 target_value = current.normalized_default_value
                 update = True
             elif not active and current_value == current_value:
+                # The current hyperparameter should be inactive but is active.
                 # If the hyperparameter was made inactive,
                 # all its children need to be deactivated as well
                 target_value = NaN
@@ -258,6 +265,8 @@ cpdef np.ndarray change_hp_value(
             configuration_array[current_idx] = target_value
             for child in children_of[current_name]:
                 child_idx = configuration_space._hyperparameter_idx[child.name]
+                # We assume that the hyperparameters are ordered topologically by index.
+                # This means that every child must have an index greater than its parent.
                 assert child_idx > current_idx
                 if not scheduled[child_idx]:
                     heapq.heappush(to_visit, child_idx)
