@@ -224,6 +224,7 @@ cpdef np.ndarray change_hp_value(
 
     # Activate hyperparameters if their parent node got activated
     while len(to_visit) > 0:
+        assert np.all(scheduled[to_visit])
         current_idx = heapq.heappop(to_visit)
         current_name = configuration_space._idx_to_hyperparameter[current_idx]
         conditions = configuration_space._parent_conditions_of[current_name]
