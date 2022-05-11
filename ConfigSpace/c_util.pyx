@@ -242,7 +242,6 @@ cpdef np.ndarray change_hp_value(
             target_value = hp_value
             update = True
         else:
-            assert current_idx > index
             current_value = configuration_array[current_idx]
             if active and not current_value == current_value:
                 current = configuration_space._hyperparameters[current_name]
