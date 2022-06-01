@@ -169,11 +169,10 @@ def build_condition(condition):
     notequal_template = "%s | %s != %s"
     equal_template = "%s | %s == %s"
 
-    parent = condition.parent
-    if isinstance(parent, NumericalHyperparameter):
-        cond_values = str(condition.value)
-    else:
+    if isinstance(condition, InCondition):
         cond_values = [str(value) for value in condition.value]
+    else:
+        cond_values = str(condition.value)
 
     if isinstance(condition, NotEqualsCondition):
         return notequal_template % (condition.child.name,
