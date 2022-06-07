@@ -170,28 +170,33 @@ def build_condition(condition):
     notequal_template = "%s | %s != %s"
     equal_template = "%s | %s == %s"
 
+    if isinstance(condition, InCondition):
+        cond_values = [str(value) for value in condition.value]
+    else:
+        cond_values = str(condition.value)
+
     if isinstance(condition, NotEqualsCondition):
         return notequal_template % (condition.child.name,
                                     condition.parent.name,
-                                    condition.value)
+                                    cond_values)
 
     elif isinstance(condition, InCondition):
         return in_template % (condition.child.name,
                               condition.parent.name,
-                              ", ".join(condition.values))
+                              ", ".join(cond_values))
 
     elif isinstance(condition, EqualsCondition):
         return equal_template % (condition.child.name,
                                  condition.parent.name,
-                                 condition.value)
+                                 cond_values)
     elif isinstance(condition, LessThanCondition):
         return less_template % (condition.child.name,
                                 condition.parent.name,
-                                condition.value)
+                                cond_values)
     elif isinstance(condition, GreaterThanCondition):
         return greater_template % (condition.child.name,
                                    condition.parent.name,
-                                   condition.value)
+                                   cond_values)
 
 
 def build_conjunction(conjunction):

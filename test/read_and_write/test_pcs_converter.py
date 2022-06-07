@@ -577,3 +577,38 @@ class TestPCSConverter(unittest.TestCase):
             pcs.write(cs)
         with self.assertRaisesRegex(ValueError, 'The pcs format does not support'):
             pcs.write(cs)
+
+    def test_write_numerical_cond_and_forb(self):
+        cs = ConfigurationSpace(seed=12345)
+
+        hc1 = CategoricalHyperparameter(name="hc1", choices=[True, False], default_value=True)
+        hc2 = CategoricalHyperparameter(name="hc2", choices=[True, False], default_value=True)
+
+        hf1 = UniformFloatHyperparameter(name="hf1", lower=1.0, upper=10., default_value=5.0)
+        hi1 = UniformIntegerHyperparameter(name="hi1", lower=1, upper=10, default_value=5)
+        cs.add_hyperparameters([hc1, hc2, hf1, hi1])
+        c1 = InCondition(child=hc1, parent=hc2, values=[True])
+        c2 = InCondition(child=hc2, parent=hi1, values=[1, 2, 3, 4])
+        c3 = GreaterThanCondition(hi1, hf1, 6.0)
+        c4 = EqualsCondition(hi1, hf1, 8.0)
+        c5 = AndConjunction(c3, c4)
+
+        cs.add_conditions([c1, c2, c5])
+
+        f1 = ForbiddenEqualsClause(hc1, False)
+        f2 = ForbiddenEqualsClause(hf1, 2.0)
+        f3 = ForbiddenEqualsClause(hi1, 3)
+        cs.add_forbidden_clauses([ForbiddenAndConjunction(f2, f3), f1])
+        expected = "hf1 real [1.0, 10.0] [5.0]\n" + \
+                   "hi1 integer [1, 10] [5]\n" + \
+                   "hc2 categorical {True, False} [True]\n" + \
+                   "hc1 categorical {True, False} [True]\n" + \
+                   "\n" + \
+                   "hi1 | hf1 > 6.0 && hf1 == 8.0\n" + \
+                   "hc2 | hi1 in {1, 2, 3, 4}\n" + \
+                   "hc1 | hc2 in {True}\n" + \
+                   "\n" + \
+                   "{hc1=False}\n" + \
+                   "{hf1=2.0, hi1=3}\n"
+        out = pcs_new.write(cs)
+        self.assertEqual(out, expected)
