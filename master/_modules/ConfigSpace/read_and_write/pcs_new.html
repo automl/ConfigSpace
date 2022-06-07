@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -10,6 +10,7 @@
     <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
     <script src="../../../_static/jquery.js"></script>
     <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../../_static/doctools.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
@@ -298,28 +299,33 @@
     <span class="n">notequal_template</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> | </span><span class="si">%s</span><span class="s2"> != </span><span class="si">%s</span><span class="s2">&quot;</span>
     <span class="n">equal_template</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> | </span><span class="si">%s</span><span class="s2"> == </span><span class="si">%s</span><span class="s2">&quot;</span>
 
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">condition</span><span class="p">,</span> <span class="n">InCondition</span><span class="p">):</span>
+        <span class="n">cond_values</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">condition</span><span class="o">.</span><span class="n">value</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">cond_values</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">condition</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">condition</span><span class="p">,</span> <span class="n">NotEqualsCondition</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">notequal_template</span> <span class="o">%</span> <span class="p">(</span><span class="n">condition</span><span class="o">.</span><span class="n">child</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
                                     <span class="n">condition</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
-                                    <span class="n">condition</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+                                    <span class="n">cond_values</span><span class="p">)</span>
 
     <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">condition</span><span class="p">,</span> <span class="n">InCondition</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">in_template</span> <span class="o">%</span> <span class="p">(</span><span class="n">condition</span><span class="o">.</span><span class="n">child</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
                               <span class="n">condition</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
-                              <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">condition</span><span class="o">.</span><span class="n">values</span><span class="p">))</span>
+                              <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">cond_values</span><span class="p">))</span>
 
     <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">condition</span><span class="p">,</span> <span class="n">EqualsCondition</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">equal_template</span> <span class="o">%</span> <span class="p">(</span><span class="n">condition</span><span class="o">.</span><span class="n">child</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
                                  <span class="n">condition</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
-                                 <span class="n">condition</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+                                 <span class="n">cond_values</span><span class="p">)</span>
     <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">condition</span><span class="p">,</span> <span class="n">LessThanCondition</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">less_template</span> <span class="o">%</span> <span class="p">(</span><span class="n">condition</span><span class="o">.</span><span class="n">child</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
                                 <span class="n">condition</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
-                                <span class="n">condition</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+                                <span class="n">cond_values</span><span class="p">)</span>
     <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">condition</span><span class="p">,</span> <span class="n">GreaterThanCondition</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">greater_template</span> <span class="o">%</span> <span class="p">(</span><span class="n">condition</span><span class="o">.</span><span class="n">child</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
                                    <span class="n">condition</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
-                                   <span class="n">condition</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+                                   <span class="n">cond_values</span><span class="p">)</span>
 
 
 <span class="k">def</span> <span class="nf">build_conjunction</span><span class="p">(</span><span class="n">conjunction</span><span class="p">):</span>
@@ -818,7 +824,7 @@
     </p>
     <p>
         &copy; Copyright 2014-2022, Matthias Feurer, Katharina Eggensperger, Syed Mohsin Ali, Christina Hernandez Wunsch, Julien-Charles Levesque, Jost Tobias Springenberg, Philipp Mueller, Marius Lindauer, Jorn Tuyls.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.5.0.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 5.0.1.<br/>
     </p>
   </div>
 </footer>

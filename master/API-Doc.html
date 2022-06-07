@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
     <title>API-Documentation &#8212; ConfigSpace  documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
@@ -11,6 +11,7 @@
     <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="_static/doctools.js"></script>
     <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
@@ -167,9 +168,9 @@
     <div class="body col-md-9 content" role="main">
       
   <section id="api-documentation">
-<h1>API-Documentation<a class="headerlink" href="#api-documentation" title="Permalink to this headline">¶</a></h1>
+<h1>API-Documentation<a class="headerlink" href="#api-documentation" title="Permalink to this heading">¶</a></h1>
 <section id="configurationspace">
-<h2>ConfigurationSpace<a class="headerlink" href="#configurationspace" title="Permalink to this headline">¶</a></h2>
+<h2>ConfigurationSpace<a class="headerlink" href="#configurationspace" title="Permalink to this heading">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="ConfigSpace.configuration_space.ConfigurationSpace">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ConfigSpace.configuration_space.</span></span><span class="sig-name descname"><span class="pre">ConfigurationSpace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">meta</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.configuration_space.ConfigurationSpace" title="Permalink to this definition">¶</a></dt>
@@ -180,7 +181,7 @@ this configuration space. As underlying data structure, the
 configuration space uses a tree-based approach to represent the
 conditions and restrictions between hyperparameters.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>name</strong> (<em>str</em><em>, </em><em>optional</em>) – Name of the configuration space</p></li>
 <li><p><strong>seed</strong> (<em>int</em><em>, </em><em>optional</em>) – random seed</p></li>
@@ -191,7 +192,7 @@ Not used by the configuration space.</p></li>
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="ConfigSpace.configuration_space.ConfigurationSpace.add_condition">
-<span class="sig-name descname"><span class="pre">add_condition</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">condition</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ConfigSpace.conditions.ConditionComponent</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ConfigSpace.conditions.ConditionComponent</span></span></span><a class="headerlink" href="#ConfigSpace.configuration_space.ConfigurationSpace.add_condition" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">add_condition</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">condition</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ConditionComponent</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ConditionComponent</span></span></span><a class="headerlink" href="#ConfigSpace.configuration_space.ConfigurationSpace.add_condition" title="Permalink to this definition">¶</a></dt>
 <dd><p>Add a condition to the configuration space.
 Check if adding the condition is legal:</p>
 <ul class="simple">
@@ -202,13 +203,13 @@ Check if adding the condition is legal:</p>
 added to the DiGraph; if the checks don’t raise any Exception,
 these edges are finally added at the end of the function.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>condition</strong> (<a class="reference internal" href="#conditions"><span class="std std-ref">Conditions</span></a>) – Condition to add</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>Same condition as input</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><a class="reference internal" href="#conditions"><span class="std std-ref">Conditions</span></a></p>
 </dd>
 </dl>
@@ -216,18 +217,18 @@ these edges are finally added at the end of the function.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ConfigSpace.configuration_space.ConfigurationSpace.add_conditions">
-<span class="sig-name descname"><span class="pre">add_conditions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">conditions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigSpace.conditions.ConditionComponent</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigSpace.conditions.ConditionComponent</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#ConfigSpace.configuration_space.ConfigurationSpace.add_conditions" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">add_conditions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">conditions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">ConditionComponent</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">ConditionComponent</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#ConfigSpace.configuration_space.ConfigurationSpace.add_conditions" title="Permalink to this definition">¶</a></dt>
 <dd><p>Add a list of conditions to the configuration space.
 They must be legal. Take a look at
 <a class="reference internal" href="#ConfigSpace.configuration_space.ConfigurationSpace.add_condition" title="ConfigSpace.configuration_space.ConfigurationSpace.add_condition"><code class="xref py py-meth docutils literal notranslate"><span class="pre">add_condition()</span></code></a>.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>conditions</strong> (list(<a class="reference internal" href="#conditions"><span class="std std-ref">Conditions</span></a>)) – collection of conditions to add</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>Same as input conditions</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>list(<a class="reference internal" href="#conditions"><span class="std std-ref">Conditions</span></a>)</p>
 </dd>
 </dl>
@@ -235,12 +236,12 @@ They must be legal. Take a look at
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ConfigSpace.configuration_space.ConfigurationSpace.add_configuration_space">
-<span class="sig-name descname"><span class="pre">add_configuration_space</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prefix</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">unicode</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">configuration_space</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#ConfigSpace.configuration_space.ConfigurationSpace" title="ConfigSpace.configuration_space.ConfigurationSpace"><span class="pre">ConfigurationSpace</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">delimiter</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">unicode</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">':'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent_hyperparameter</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ConfigSpace.hyperparameters.Hyperparameter</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#ConfigSpace.configuration_space.ConfigurationSpace" title="ConfigSpace.configuration_space.ConfigurationSpace"><span class="pre">ConfigurationSpace</span></a></span></span><a class="headerlink" href="#ConfigSpace.configuration_space.ConfigurationSpace.add_configuration_space" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">add_configuration_space</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prefix</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">unicode</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">configuration_space</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#ConfigSpace.configuration_space.ConfigurationSpace" title="ConfigSpace.configuration_space.ConfigurationSpace"><span class="pre">ConfigurationSpace</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">delimiter</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">unicode</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">':'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent_hyperparameter</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Hyperparameter</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#ConfigSpace.configuration_space.ConfigurationSpace" title="ConfigSpace.configuration_space.ConfigurationSpace"><span class="pre">ConfigurationSpace</span></a></span></span><a class="headerlink" href="#ConfigSpace.configuration_space.ConfigurationSpace.add_configuration_space" title="Permalink to this definition">¶</a></dt>
 <dd><p>Combine two configuration space by adding one the other configuration
 space. The contents of the configuration space, which should be added,
 are renamed to <code class="docutils literal notranslate"><span class="pre">prefix</span></code> + <code class="docutils literal notranslate"><span class="pre">delimiter</span></code> + old_name.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>prefix</strong> (<em>str</em>) – The prefix for the renamed hyperparameter | conditions |
 forbidden clauses</p></li>
@@ -250,10 +251,10 @@ forbidden clauses</p></li>
 <code class="docutils literal notranslate"><span class="pre">parent_hyperparameter</span></code> is active</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>The configuration space, which was added</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><a class="reference internal" href="#ConfigSpace.configuration_space.ConfigurationSpace" title="ConfigSpace.configuration_space.ConfigurationSpace"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigurationSpace</span></code></a></p>
 </dd>
 </dl>
@@ -261,16 +262,16 @@ forbidden clauses</p></li>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ConfigSpace.configuration_space.ConfigurationSpace.add_forbidden_clause">
-<span class="sig-name descname"><span class="pre">add_forbidden_clause</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">clause</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ConfigSpace.forbidden.AbstractForbiddenComponent</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ConfigSpace.forbidden.AbstractForbiddenComponent</span></span></span><a class="headerlink" href="#ConfigSpace.configuration_space.ConfigurationSpace.add_forbidden_clause" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">add_forbidden_clause</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">clause</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">AbstractForbiddenComponent</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">AbstractForbiddenComponent</span></span></span><a class="headerlink" href="#ConfigSpace.configuration_space.ConfigurationSpace.add_forbidden_clause" title="Permalink to this definition">¶</a></dt>
 <dd><p>Add a forbidden clause to the configuration space.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>clause</strong> (<a class="reference internal" href="#forbidden-clauses"><span class="std std-ref">Forbidden Clauses</span></a>) – Forbidden clause to add</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>Same as input forbidden clause</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><a class="reference internal" href="#forbidden-clauses"><span class="std std-ref">Forbidden Clauses</span></a></p>
 </dd>
 </dl>
@@ -278,16 +279,16 @@ forbidden clauses</p></li>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ConfigSpace.configuration_space.ConfigurationSpace.add_forbidden_clauses">
-<span class="sig-name descname"><span class="pre">add_forbidden_clauses</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">clauses</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigSpace.forbidden.AbstractForbiddenComponent</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigSpace.forbidden.AbstractForbiddenComponent</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#ConfigSpace.configuration_space.ConfigurationSpace.add_forbidden_clauses" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">add_forbidden_clauses</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">clauses</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">AbstractForbiddenComponent</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">AbstractForbiddenComponent</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#ConfigSpace.configuration_space.ConfigurationSpace.add_forbidden_clauses" title="Permalink to this definition">¶</a></dt>
 <dd><p>Add a list of forbidden clauses to the configuration space.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>clauses</strong> (list(<a class="reference internal" href="#forbidden-clauses"><span class="std std-ref">Forbidden Clauses</span></a>)) – Collection of forbidden clauses to add</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>Same as input clauses</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>list(<a class="reference internal" href="#forbidden-clauses"><span class="std std-ref">Forbidden Clauses</span></a>)</p>
 </dd>
 </dl>
@@ -295,16 +296,16 @@ forbidden clauses</p></li>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ConfigSpace.configuration_space.ConfigurationSpace.add_hyperparameter">
-<span class="sig-name descname"><span class="pre">add_hyperparameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hyperparameter</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ConfigSpace.hyperparameters.Hyperparameter</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ConfigSpace.hyperparameters.Hyperparameter</span></span></span><a class="headerlink" href="#ConfigSpace.configuration_space.ConfigurationSpace.add_hyperparameter" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">add_hyperparameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hyperparameter</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Hyperparameter</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Hyperparameter</span></span></span><a class="headerlink" href="#ConfigSpace.configuration_space.ConfigurationSpace.add_hyperparameter" title="Permalink to this definition">¶</a></dt>
 <dd><p>Add a hyperparameter to the configuration space.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>hyperparameter</strong> (<a class="reference internal" href="#hyperparameters"><span class="std std-ref">Hyperparameters</span></a>) – The hyperparameter to add</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>The added hyperparameter</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><a class="reference internal" href="#hyperparameters"><span class="std std-ref">Hyperparameters</span></a></p>
 </dd>
 </dl>
@@ -312,16 +313,16 @@ forbidden clauses</p></li>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ConfigSpace.configuration_space.ConfigurationSpace.add_hyperparameters">
-<span class="sig-name descname"><span class="pre">add_hyperparameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hyperparameters</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigSpace.hyperparameters.Hyperparameter</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigSpace.hyperparameters.Hyperparameter</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#ConfigSpace.configuration_space.ConfigurationSpace.add_hyperparameters" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">add_hyperparameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hyperparameters</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Hyperparameter</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Hyperparameter</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#ConfigSpace.configuration_space.ConfigurationSpace.add_hyperparameters" title="Permalink to this definition">¶</a></dt>
 <dd><p>Add hyperparameters to the configuration space.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>hyperparameters</strong> (list(<a class="reference internal" href="#hyperparameters"><span class="std std-ref">Hyperparameters</span></a>)) – Collection of hyperparameters to add</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>List of added hyperparameters (same as input)</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>list(<a class="reference internal" href="#hyperparameters"><span class="std std-ref">Hyperparameters</span></a>)</p>
 </dd>
 </dl>
@@ -329,10 +330,10 @@ forbidden clauses</p></li>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ConfigSpace.configuration_space.ConfigurationSpace.check_configuration">
-<span class="sig-name descname"><span class="pre">check_configuration</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">configuration</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#ConfigSpace.configuration_space.Configuration" title="ConfigSpace.configuration_space.Configuration"><span class="pre">ConfigSpace.configuration_space.Configuration</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#ConfigSpace.configuration_space.ConfigurationSpace.check_configuration" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">check_configuration</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">configuration</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#ConfigSpace.configuration_space.Configuration" title="ConfigSpace.configuration_space.Configuration"><span class="pre">Configuration</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#ConfigSpace.configuration_space.ConfigurationSpace.check_configuration" title="Permalink to this definition">¶</a></dt>
 <dd><p>Check if a configuration is legal. Raises an error if not.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>configuration</strong> (<a class="reference internal" href="#ConfigSpace.configuration_space.Configuration" title="ConfigSpace.configuration_space.Configuration"><code class="xref py py-class docutils literal notranslate"><span class="pre">Configuration</span></code></a>) – Configuration to check</p>
 </dd>
 </dl>
@@ -340,10 +341,10 @@ forbidden clauses</p></li>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ConfigSpace.configuration_space.ConfigurationSpace.check_configuration_vector_representation">
-<span class="sig-name descname"><span class="pre">check_configuration_vector_representation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#ConfigSpace.configuration_space.ConfigurationSpace.check_configuration_vector_representation" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">check_configuration_vector_representation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#ConfigSpace.configuration_space.ConfigurationSpace.check_configuration_vector_representation" title="Permalink to this definition">¶</a></dt>
 <dd><p>Raise error if configuration in vector representation is not legal.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>vector</strong> (<em>np.ndarray</em>) – Configuration in vector representation</p>
 </dd>
 </dl>
@@ -360,7 +361,7 @@ number of unique configurations if there are no condition and forbidden statemen
 configuration spaces. Otherwise, this is an upper bound. Use
 <a class="reference internal" href="#ConfigSpace.util.generate_grid" title="ConfigSpace.util.generate_grid"><code class="xref py py-func docutils literal notranslate"><span class="pre">generate_grid()</span></code></a> to generate all valid configurations if required.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>Union[float, int]</p>
 </dd>
 </dl>
@@ -373,7 +374,7 @@ configuration spaces. Otherwise, this is an upper bound. Use
 from a list containing lists with lower and upper bounds. The generated
 hyperparameters are added to the configuration space.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>bounds</strong> (<em>list</em><em>[</em><em>tuple</em><em>(</em><em>[</em><em>Any</em><em>, </em><em>Any</em><em>]</em><em>)</em><em>]</em>) – List containing lists with two elements: lower and upper bound</p>
 </dd>
 </dl>
@@ -381,16 +382,16 @@ hyperparameters are added to the configuration space.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ConfigSpace.configuration_space.ConfigurationSpace.get_active_hyperparameters">
-<span class="sig-name descname"><span class="pre">get_active_hyperparameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">configuration</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#ConfigSpace.configuration_space.Configuration" title="ConfigSpace.configuration_space.Configuration"><span class="pre">ConfigSpace.configuration_space.Configuration</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Set</span></span></span><a class="headerlink" href="#ConfigSpace.configuration_space.ConfigurationSpace.get_active_hyperparameters" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">get_active_hyperparameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">configuration</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#ConfigSpace.configuration_space.Configuration" title="ConfigSpace.configuration_space.Configuration"><span class="pre">Configuration</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Set</span></span></span><a class="headerlink" href="#ConfigSpace.configuration_space.ConfigurationSpace.get_active_hyperparameters" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a set of active hyperparameter for a given configuration.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>configuration</strong> (<a class="reference internal" href="#ConfigSpace.configuration_space.Configuration" title="ConfigSpace.configuration_space.Configuration"><code class="xref py py-class docutils literal notranslate"><span class="pre">Configuration</span></code></a>) – Configuration for which the active hyperparameter are returned</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>The set of all active hyperparameter</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>set(<a class="reference internal" href="#ConfigSpace.configuration_space.Configuration" title="ConfigSpace.configuration_space.Configuration"><code class="xref py py-class docutils literal notranslate"><span class="pre">Configuration</span></code></a>)</p>
 </dd>
 </dl>
@@ -401,10 +402,10 @@ hyperparameters are added to the configuration space.</p>
 <span class="sig-name descname"><span class="pre">get_all_conditional_hyperparameters</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#ConfigSpace.configuration_space.ConfigurationSpace.get_all_conditional_hyperparameters" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a list with names of all conditional hyperparameters.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>List with all conditional hyperparameter</p>
 </dd>
-<dt class="field-even">Return type</dt>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>list[<a class="reference internal" href="#hyperparameters"><span class="std std-ref">Hyperparameters</span></a>]</p>
 </dd>
 </dl>
@@ -415,10 +416,10 @@ hyperparameters are added to the configuration space.</p>
 <span class="sig-name descname"><span class="pre">get_all_unconditional_hyperparameters</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#ConfigSpace.configuration_space.ConfigurationSpace.get_all_unconditional_hyperparameters" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a list with names of unconditional hyperparameters.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>List with all parent hyperparameters, which are not part of a condition</p>
 </dd>
-<dt class="field-even">Return type</dt>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>list[<a class="reference internal" href="#hyperparameters"><span class="std std-ref">Hyperparameters</span></a>]</p>
 </dd>
 </dl>
@@ -426,17 +427,17 @@ hyperparameters are added to the configuration space.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ConfigSpace.configuration_space.ConfigurationSpace.get_child_conditions_of">
-<span class="sig-name descname"><span class="pre">get_child_conditions_of</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ConfigSpace.hyperparameters.Hyperparameter</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigSpace.conditions.AbstractCondition</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#ConfigSpace.configuration_space.ConfigurationSpace.get_child_conditions_of" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">get_child_conditions_of</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Hyperparameter</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">AbstractCondition</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#ConfigSpace.configuration_space.ConfigurationSpace.get_child_conditions_of" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a list with conditions of all children of a given
 hyperparameter referenced by its <code class="docutils literal notranslate"><span class="pre">name</span></code>.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>name</strong> (str, <a class="reference internal" href="#hyperparameters"><span class="std std-ref">Hyperparameters</span></a>) – Hyperparameter or its name, for which conditions are requested</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>List with the conditions on the children of the given hyperparameter</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>list(<a class="reference internal" href="#conditions"><span class="std std-ref">Conditions</span></a>)</p>
 </dd>
 </dl>
@@ -444,16 +445,16 @@ hyperparameter referenced by its <code class="docutils literal notranslate"><spa
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ConfigSpace.configuration_space.ConfigurationSpace.get_children_of">
-<span class="sig-name descname"><span class="pre">get_children_of</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ConfigSpace.hyperparameters.Hyperparameter</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigSpace.hyperparameters.Hyperparameter</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#ConfigSpace.configuration_space.ConfigurationSpace.get_children_of" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">get_children_of</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Hyperparameter</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Hyperparameter</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#ConfigSpace.configuration_space.ConfigurationSpace.get_children_of" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a list with all children of a given hyperparameter.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>name</strong> (str, <a class="reference internal" href="#hyperparameters"><span class="std std-ref">Hyperparameters</span></a>) – Hyperparameter or its name, for which all children are requested</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>Children of the hyperparameter</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>list(<a class="reference internal" href="#hyperparameters"><span class="std std-ref">Hyperparameters</span></a>)</p>
 </dd>
 </dl>
@@ -461,13 +462,13 @@ hyperparameter referenced by its <code class="docutils literal notranslate"><spa
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ConfigSpace.configuration_space.ConfigurationSpace.get_conditions">
-<span class="sig-name descname"><span class="pre">get_conditions</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigSpace.conditions.AbstractCondition</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#ConfigSpace.configuration_space.ConfigurationSpace.get_conditions" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">get_conditions</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">AbstractCondition</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#ConfigSpace.configuration_space.ConfigurationSpace.get_conditions" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a list with all conditions from the configuration space.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>Conditions of the configuration space</p>
 </dd>
-<dt class="field-even">Return type</dt>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>list(<a class="reference internal" href="#conditions"><span class="std std-ref">Conditions</span></a>)</p>
 </dd>
 </dl>
@@ -475,13 +476,13 @@ hyperparameter referenced by its <code class="docutils literal notranslate"><spa
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ConfigSpace.configuration_space.ConfigurationSpace.get_default_configuration">
-<span class="sig-name descname"><span class="pre">get_default_configuration</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#ConfigSpace.configuration_space.Configuration" title="ConfigSpace.configuration_space.Configuration"><span class="pre">ConfigSpace.configuration_space.Configuration</span></a></span></span><a class="headerlink" href="#ConfigSpace.configuration_space.ConfigurationSpace.get_default_configuration" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">get_default_configuration</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#ConfigSpace.configuration_space.Configuration" title="ConfigSpace.configuration_space.Configuration"><span class="pre">Configuration</span></a></span></span><a class="headerlink" href="#ConfigSpace.configuration_space.ConfigurationSpace.get_default_configuration" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a configuration containing hyperparameters with default values.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>Configuration with the set default values</p>
 </dd>
-<dt class="field-even">Return type</dt>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p><a class="reference internal" href="#ConfigSpace.configuration_space.Configuration" title="ConfigSpace.configuration_space.Configuration"><code class="xref py py-class docutils literal notranslate"><span class="pre">Configuration</span></code></a></p>
 </dd>
 </dl>
@@ -489,13 +490,13 @@ hyperparameter referenced by its <code class="docutils literal notranslate"><spa
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ConfigSpace.configuration_space.ConfigurationSpace.get_forbiddens">
-<span class="sig-name descname"><span class="pre">get_forbiddens</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigSpace.forbidden.AbstractForbiddenComponent</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#ConfigSpace.configuration_space.ConfigurationSpace.get_forbiddens" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">get_forbiddens</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">AbstractForbiddenComponent</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#ConfigSpace.configuration_space.ConfigurationSpace.get_forbiddens" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a list with all forbidden clauses from the configuration space.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>List with the forbidden clauses</p>
 </dd>
-<dt class="field-even">Return type</dt>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>list(<a class="reference internal" href="#forbidden-clauses"><span class="std std-ref">Forbidden Clauses</span></a>)</p>
 </dd>
 </dl>
@@ -503,16 +504,16 @@ hyperparameter referenced by its <code class="docutils literal notranslate"><spa
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ConfigSpace.configuration_space.ConfigurationSpace.get_hyperparameter">
-<span class="sig-name descname"><span class="pre">get_hyperparameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">unicode</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ConfigSpace.hyperparameters.Hyperparameter</span></span></span><a class="headerlink" href="#ConfigSpace.configuration_space.ConfigurationSpace.get_hyperparameter" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">get_hyperparameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">unicode</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Hyperparameter</span></span></span><a class="headerlink" href="#ConfigSpace.configuration_space.ConfigurationSpace.get_hyperparameter" title="Permalink to this definition">¶</a></dt>
 <dd><p>Gives the hyperparameter from the configuration space given its name.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>name</strong> (<em>str</em>) – Name of the searched hyperparameter</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>Hyperparameter with the name <code class="docutils literal notranslate"><span class="pre">name</span></code></p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><a class="reference internal" href="#hyperparameters"><span class="std std-ref">Hyperparameters</span></a></p>
 </dd>
 </dl>
@@ -524,13 +525,13 @@ hyperparameter referenced by its <code class="docutils literal notranslate"><spa
 <dd><p>Return the name of a hyperparameter from the configuration space given
 its id.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>idx</strong> (<em>int</em>) – Id of a hyperparameter</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>Name of the hyperparameter</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>str</p>
 </dd>
 </dl>
@@ -542,10 +543,10 @@ its id.</p>
 <dd><p>Return a list with all names of hyperparameter, which are contained in
 the configuration space object.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>List of hyperparameter names</p>
 </dd>
-<dt class="field-even">Return type</dt>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>list(str)</p>
 </dd>
 </dl>
@@ -553,15 +554,15 @@ the configuration space object.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ConfigSpace.configuration_space.ConfigurationSpace.get_hyperparameters">
-<span class="sig-name descname"><span class="pre">get_hyperparameters</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigSpace.hyperparameters.Hyperparameter</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#ConfigSpace.configuration_space.ConfigurationSpace.get_hyperparameters" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">get_hyperparameters</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Hyperparameter</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#ConfigSpace.configuration_space.ConfigurationSpace.get_hyperparameters" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a list with all the hyperparameter, which are contained in the
 configuration space object.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>A list with all hyperparameters stored in the configuration
 space object</p>
 </dd>
-<dt class="field-even">Return type</dt>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>list(<a class="reference internal" href="#hyperparameters"><span class="std std-ref">Hyperparameters</span></a>)</p>
 </dd>
 </dl>
@@ -569,14 +570,14 @@ space object</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ConfigSpace.configuration_space.ConfigurationSpace.get_hyperparameters_dict">
-<span class="sig-name descname"><span class="pre">get_hyperparameters_dict</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ConfigSpace.hyperparameters.Hyperparameter</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#ConfigSpace.configuration_space.ConfigurationSpace.get_hyperparameters_dict" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">get_hyperparameters_dict</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Hyperparameter</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#ConfigSpace.configuration_space.ConfigurationSpace.get_hyperparameters_dict" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return an OrderedDict with all the <code class="docutils literal notranslate"><span class="pre">(name,</span> <span class="pre">Hyperparameter)</span></code> contained in
 the configuration space object.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>An OrderedDict of names and hyperparameters</p>
 </dd>
-<dt class="field-even">Return type</dt>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>OrderedDict(str, <a class="reference internal" href="#hyperparameters"><span class="std std-ref">Hyperparameters</span></a>)</p>
 </dd>
 </dl>
@@ -587,13 +588,13 @@ the configuration space object.</p>
 <span class="sig-name descname"><span class="pre">get_idx_by_hyperparameter_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">unicode</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="headerlink" href="#ConfigSpace.configuration_space.ConfigurationSpace.get_idx_by_hyperparameter_name" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the id of a hyperparameter by its <code class="docutils literal notranslate"><span class="pre">name</span></code>.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>name</strong> (<em>str</em>) – Name of a hyperparameter</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>Id of the hyperparameter with name <code class="docutils literal notranslate"><span class="pre">name</span></code></p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>int</p>
 </dd>
 </dl>
@@ -601,17 +602,17 @@ the configuration space object.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ConfigSpace.configuration_space.ConfigurationSpace.get_parent_conditions_of">
-<span class="sig-name descname"><span class="pre">get_parent_conditions_of</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ConfigSpace.hyperparameters.Hyperparameter</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigSpace.conditions.AbstractCondition</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#ConfigSpace.configuration_space.ConfigurationSpace.get_parent_conditions_of" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">get_parent_conditions_of</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Hyperparameter</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">AbstractCondition</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#ConfigSpace.configuration_space.ConfigurationSpace.get_parent_conditions_of" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a list with conditions of all parents of a given hyperparameter.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>name</strong> (str, <a class="reference internal" href="#hyperparameters"><span class="std std-ref">Hyperparameters</span></a>) – Can either be the name of a hyperparameter or the hyperparameter
 object</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>List with all conditions on parent hyperparameters</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>List[<a class="reference internal" href="#conditions"><span class="std std-ref">Conditions</span></a>]</p>
 </dd>
 </dl>
@@ -619,17 +620,17 @@ object</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ConfigSpace.configuration_space.ConfigurationSpace.get_parents_of">
-<span class="sig-name descname"><span class="pre">get_parents_of</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ConfigSpace.hyperparameters.Hyperparameter</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigSpace.hyperparameters.Hyperparameter</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#ConfigSpace.configuration_space.ConfigurationSpace.get_parents_of" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">get_parents_of</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Hyperparameter</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Hyperparameter</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#ConfigSpace.configuration_space.ConfigurationSpace.get_parents_of" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the parent hyperparameters of a given hyperparameter.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>name</strong> (str, <a class="reference internal" href="#hyperparameters"><span class="std std-ref">Hyperparameters</span></a>) – Can either be the name of a hyperparameter or the hyperparameter
 object</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>List with all parent hyperparameters</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>list[<a class="reference internal" href="#conditions"><span class="std std-ref">Conditions</span></a>]</p>
 </dd>
 </dl>
@@ -642,15 +643,15 @@ object</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ConfigSpace.configuration_space.ConfigurationSpace.remove_hyperparameter_priors">
-<span class="sig-name descname"><span class="pre">remove_hyperparameter_priors</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#ConfigSpace.configuration_space.ConfigurationSpace" title="ConfigSpace.configuration_space.ConfigurationSpace"><span class="pre">ConfigSpace.configuration_space.ConfigurationSpace</span></a></span></span><a class="headerlink" href="#ConfigSpace.configuration_space.ConfigurationSpace.remove_hyperparameter_priors" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">remove_hyperparameter_priors</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#ConfigSpace.configuration_space.ConfigurationSpace" title="ConfigSpace.configuration_space.ConfigurationSpace"><span class="pre">ConfigurationSpace</span></a></span></span><a class="headerlink" href="#ConfigSpace.configuration_space.ConfigurationSpace.remove_hyperparameter_priors" title="Permalink to this definition">¶</a></dt>
 <dd><p>Produces a new ConfigurationSpace where all priors on parameters are removed.
 Non-uniform hyperpararmeters are replaced with uniform ones, and
 CategoricalHyperparameters with weights have their weights removed.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>The resulting configuration space, without priors on the hyperparameters</p>
 </dd>
-<dt class="field-even">Return type</dt>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p><a class="reference internal" href="#ConfigSpace.configuration_space.ConfigurationSpace" title="ConfigSpace.configuration_space.ConfigurationSpace"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigurationSpace</span></code></a></p>
 </dd>
 </dl>
@@ -658,17 +659,17 @@ CategoricalHyperparameters with weights have their weights removed.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ConfigSpace.configuration_space.ConfigurationSpace.sample_configuration">
-<span class="sig-name descname"><span class="pre">sample_configuration</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#ConfigSpace.configuration_space.Configuration" title="ConfigSpace.configuration_space.Configuration"><span class="pre">ConfigSpace.configuration_space.Configuration</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#ConfigSpace.configuration_space.Configuration" title="ConfigSpace.configuration_space.Configuration"><span class="pre">ConfigSpace.configuration_space.Configuration</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#ConfigSpace.configuration_space.ConfigurationSpace.sample_configuration" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">sample_configuration</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#ConfigSpace.configuration_space.Configuration" title="ConfigSpace.configuration_space.Configuration"><span class="pre">Configuration</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#ConfigSpace.configuration_space.Configuration" title="ConfigSpace.configuration_space.Configuration"><span class="pre">Configuration</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#ConfigSpace.configuration_space.ConfigurationSpace.sample_configuration" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sample <code class="docutils literal notranslate"><span class="pre">size</span></code> configurations from the configuration space object.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>size</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of configurations to sample. Default to 1</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>List[<a class="reference internal" href="#ConfigSpace.configuration_space.Configuration" title="ConfigSpace.configuration_space.Configuration"><code class="xref py py-class docutils literal notranslate"><span class="pre">Configuration</span></code></a>]:
 A single configuration if <code class="docutils literal notranslate"><span class="pre">size</span></code> 1 else a list of Configurations</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><a class="reference internal" href="#ConfigSpace.configuration_space.Configuration" title="ConfigSpace.configuration_space.Configuration"><code class="xref py py-class docutils literal notranslate"><span class="pre">Configuration</span></code></a>,</p>
 </dd>
 </dl>
@@ -679,7 +680,7 @@ A single configuration if <code class="docutils literal notranslate"><span class
 <span class="sig-name descname"><span class="pre">seed</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#ConfigSpace.configuration_space.ConfigurationSpace.seed" title="Permalink to this definition">¶</a></dt>
 <dd><p>Set the random seed to a number.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>seed</strong> (<em>int</em>) – The random seed</p>
 </dd>
 </dl>
@@ -687,19 +688,19 @@ A single configuration if <code class="docutils literal notranslate"><span class
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ConfigSpace.configuration_space.ConfigurationSpace.substitute_hyperparameters_in_conditions">
-<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">substitute_hyperparameters_in_conditions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">conditions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">new_configspace</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigSpace.conditions.ConditionComponent</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#ConfigSpace.configuration_space.ConfigurationSpace.substitute_hyperparameters_in_conditions" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">substitute_hyperparameters_in_conditions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">conditions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">new_configspace</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">ConditionComponent</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#ConfigSpace.configuration_space.ConfigurationSpace.substitute_hyperparameters_in_conditions" title="Permalink to this definition">¶</a></dt>
 <dd><p>Takes a set of conditions and generates a new set of conditions with the same structure, where
 each hyperparameter is replaced with its namesake in new_configspace. As such, the set of conditions
 remain unchanged, but the included hyperparameters are changed to match those types that exist in
 new_configspace.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>new_configspace</strong> (<a class="reference internal" href="#ConfigSpace.configuration_space.ConfigurationSpace" title="ConfigSpace.configuration_space.ConfigurationSpace"><em>ConfigurationSpace</em></a>) – A ConfigurationSpace containing hyperparameters with the same names as those in the conditions.</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>The list of conditions, adjusted to fit the new ConfigurationSpace</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>List[ConditionComponent]</p>
 </dd>
 </dl>
@@ -707,19 +708,19 @@ new_configspace.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ConfigSpace.configuration_space.ConfigurationSpace.substitute_hyperparameters_in_forbiddens">
-<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">substitute_hyperparameters_in_forbiddens</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">forbiddens</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">new_configspace</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigSpace.conditions.ConditionComponent</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#ConfigSpace.configuration_space.ConfigurationSpace.substitute_hyperparameters_in_forbiddens" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">substitute_hyperparameters_in_forbiddens</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">forbiddens</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">new_configspace</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">ConditionComponent</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#ConfigSpace.configuration_space.ConfigurationSpace.substitute_hyperparameters_in_forbiddens" title="Permalink to this definition">¶</a></dt>
 <dd><p>Takes a set of forbidden clauses and generates a new set of forbidden clauses with the same structure,
 where each hyperparameter is replaced with its namesake in new_configspace. As such, the set of forbidden
 clauses remain unchanged, but the included hyperparameters are changed to match those types that exist in
 new_configspace.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>new_configspace</strong> (<a class="reference internal" href="#ConfigSpace.configuration_space.ConfigurationSpace" title="ConfigSpace.configuration_space.ConfigurationSpace"><em>ConfigurationSpace</em></a>) – A ConfigurationSpace containing hyperparameters with the same names as those in the forbidden clauses.</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>The list of forbidden clauses, adjusted to fit the new ConfigurationSpace</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>List[AbstractForbiddenComponent]</p>
 </dd>
 </dl>
@@ -729,10 +730,10 @@ new_configspace.</p>
 
 </section>
 <section id="configuration">
-<h2>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">¶</a></h2>
+<h2>Configuration<a class="headerlink" href="#configuration" title="Permalink to this heading">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="ConfigSpace.configuration_space.Configuration">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ConfigSpace.configuration_space.</span></span><span class="sig-name descname"><span class="pre">Configuration</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">configuration_space</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#ConfigSpace.configuration_space.ConfigurationSpace" title="ConfigSpace.configuration_space.ConfigurationSpace"><span class="pre">ConfigSpace.configuration_space.ConfigurationSpace</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">values</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">None</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">None</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">numpy.ndarray</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allow_inactive_with_values</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">origin</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.configuration_space.Configuration" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ConfigSpace.configuration_space.</span></span><span class="sig-name descname"><span class="pre">Configuration</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">configuration_space</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#ConfigSpace.configuration_space.ConfigurationSpace" title="ConfigSpace.configuration_space.ConfigurationSpace"><span class="pre">ConfigurationSpace</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">values</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">None</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">None</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allow_inactive_with_values</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">origin</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.configuration_space.Configuration" title="Permalink to this definition">¶</a></dt>
 <dd><p>Class for a single configuration.</p>
 <p>The <a class="reference internal" href="#ConfigSpace.configuration_space.Configuration" title="ConfigSpace.configuration_space.Configuration"><code class="xref py py-class docutils literal notranslate"><span class="pre">Configuration</span></code></a> object holds
 for all active hyperparameters a value. While the
@@ -744,7 +745,7 @@ more an instance of it. Parameters of a
 accessed and modified similar to python dictionaries
 (c.f. <a class="reference internal" href="User-Guide.html#st-example"><span class="std std-ref">Guide</span></a>).</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>configuration_space</strong> (<a class="reference internal" href="#ConfigSpace.configuration_space.ConfigurationSpace" title="ConfigSpace.configuration_space.ConfigurationSpace"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigurationSpace</span></code></a>) – </p></li>
 <li><p><strong>values</strong> (<em>dict</em><em>, </em><em>optional</em>) – A dictionary with pairs (hyperparameter_name, value), where value is
@@ -768,16 +769,16 @@ package.</p></li>
 <dd><p>Return for a given hyperparameter name <code class="docutils literal notranslate"><span class="pre">item</span></code> the value of this
 hyperparameter. <code class="docutils literal notranslate"><span class="pre">default</span></code> if the hyperparameter <code class="docutils literal notranslate"><span class="pre">name</span></code> doesn’t exist.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>item</strong> (<em>str</em>) – Name of the desired hyperparameter</p></li>
 <li><p><strong>default</strong> (<em>None</em><em>, </em><em>Any</em>) – </p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>Value of the hyperparameter</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>Any, None</p>
 </dd>
 </dl>
@@ -785,15 +786,15 @@ hyperparameter. <code class="docutils literal notranslate"><span class="pre">def
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ConfigSpace.configuration_space.Configuration.get_array">
-<span class="sig-name descname"><span class="pre">get_array</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.ndarray</span></span></span><a class="headerlink" href="#ConfigSpace.configuration_space.Configuration.get_array" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">get_array</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="headerlink" href="#ConfigSpace.configuration_space.Configuration.get_array" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the internal vector representation of the
 <a class="reference internal" href="#ConfigSpace.configuration_space.Configuration" title="ConfigSpace.configuration_space.Configuration"><code class="xref py py-class docutils literal notranslate"><span class="pre">Configuration</span></code></a>. All continuous
 values are scaled between zero and one.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>The vector representation of the configuration</p>
 </dd>
-<dt class="field-even">Return type</dt>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>numpy.ndarray</p>
 </dd>
 </dl>
@@ -806,10 +807,10 @@ values are scaled between zero and one.</p>
 <a class="reference internal" href="#ConfigSpace.configuration_space.Configuration" title="ConfigSpace.configuration_space.Configuration"><code class="xref py py-class docutils literal notranslate"><span class="pre">Configuration</span></code></a> in dictionary
 form.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>Configuration as dictionary</p>
 </dd>
-<dt class="field-even">Return type</dt>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>dict</p>
 </dd>
 </dl>
@@ -828,10 +829,10 @@ Raise an error if configuration is not valid.</p>
 <span class="sig-name descname"><span class="pre">keys</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#ConfigSpace.configuration_space.Configuration.keys" title="Permalink to this definition">¶</a></dt>
 <dd><p>Cache the keys to speed up the process of retrieving the keys.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>list of keys</p>
 </dd>
-<dt class="field-even">Return type</dt>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>list(str)</p>
 </dd>
 </dl>
@@ -841,13 +842,13 @@ Raise an error if configuration is not valid.</p>
 
 </section>
 <section id="hyperparameters">
-<span id="id1"></span><h2>Hyperparameters<a class="headerlink" href="#hyperparameters" title="Permalink to this headline">¶</a></h2>
+<span id="id1"></span><h2>Hyperparameters<a class="headerlink" href="#hyperparameters" title="Permalink to this heading">¶</a></h2>
 <p>ConfigSpace contains integer, float, categorical, as well as ordinal
 hyperparameters. Integer and float hyperparameter can be sampled from a uniform
 or normal distribution. Example usages are shown in the
 <a class="reference internal" href="quickstart.html"><span class="doc">quickstart</span></a>.</p>
 <section id="integer-hyperparameters">
-<h3>3.1 Integer hyperparameters<a class="headerlink" href="#integer-hyperparameters" title="Permalink to this headline">¶</a></h3>
+<h3>3.1 Integer hyperparameters<a class="headerlink" href="#integer-hyperparameters" title="Permalink to this heading">¶</a></h3>
 <dl class="py class">
 <dt class="sig sig-object py" id="ConfigSpace.hyperparameters.UniformIntegerHyperparameter">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ConfigSpace.hyperparameters.</span></span><span class="sig-name descname"><span class="pre">UniformIntegerHyperparameter</span></span><a class="headerlink" href="#ConfigSpace.hyperparameters.UniformIntegerHyperparameter" title="Permalink to this definition">¶</a></dt>
@@ -865,7 +866,7 @@ with bounds <code class="docutils literal notranslate"><span class="pre">lower</
 </pre></div>
 </div>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>name</strong> (<em>str</em>) – Name of the hyperparameter with which it can be accessed</p></li>
 <li><p><strong>lower</strong> (<em>int</em>) – Lower bound of a range of values from which the hyperparameter will be sampled</p></li>
@@ -898,7 +899,7 @@ Not used by the configuration space.</p></li>
 </pre></div>
 </div>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>name</strong> (<em>str</em>) – Name of the hyperparameter with which it can be accessed</p></li>
 <li><p><strong>mu</strong> (<em>int</em>) – Mean of the distribution, from which hyperparameter is sampled</p></li>
@@ -919,7 +920,7 @@ Not used by the configuration space.</p></li>
 
 </section>
 <section id="float-hyperparameters">
-<h3>3.2 Float hyperparameters<a class="headerlink" href="#float-hyperparameters" title="Permalink to this headline">¶</a></h3>
+<h3>3.2 Float hyperparameters<a class="headerlink" href="#float-hyperparameters" title="Permalink to this heading">¶</a></h3>
 <dl class="py class">
 <dt class="sig sig-object py" id="ConfigSpace.hyperparameters.UniformFloatHyperparameter">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ConfigSpace.hyperparameters.</span></span><span class="sig-name descname"><span class="pre">UniformFloatHyperparameter</span></span><a class="headerlink" href="#ConfigSpace.hyperparameters.UniformFloatHyperparameter" title="Permalink to this definition">¶</a></dt>
@@ -937,7 +938,7 @@ from <code class="docutils literal notranslate"><span class="pre">lower</span></
 </pre></div>
 </div>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>name</strong> (<em>str</em>) – Name of the hyperparameter, with which it can be accessed</p></li>
 <li><p><strong>lower</strong> (<em>int</em><em>, </em><em>float</em>) – Lower bound of a range of values from which the hyperparameter will be sampled</p></li>
@@ -970,7 +971,7 @@ Not used by the configuration space.</p></li>
 </pre></div>
 </div>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>name</strong> (<em>str</em>) – Name of the hyperparameter, with which it can be accessed</p></li>
 <li><p><strong>mu</strong> (<em>int</em><em>, </em><em>float</em>) – Mean of the distribution</p></li>
@@ -990,7 +991,7 @@ Not used by the configuration space.</p></li>
 
 </section>
 <section id="categorical-hyperparameters">
-<span id="id2"></span><h3>3.3 Categorical hyperparameters<a class="headerlink" href="#categorical-hyperparameters" title="Permalink to this headline">¶</a></h3>
+<span id="id2"></span><h3>3.3 Categorical hyperparameters<a class="headerlink" href="#categorical-hyperparameters" title="Permalink to this heading">¶</a></h3>
 <dl class="py class">
 <dt class="sig sig-object py" id="ConfigSpace.hyperparameters.CategoricalHyperparameter">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ConfigSpace.hyperparameters.</span></span><span class="sig-name descname"><span class="pre">CategoricalHyperparameter</span></span><a class="headerlink" href="#ConfigSpace.hyperparameters.CategoricalHyperparameter" title="Permalink to this definition">¶</a></dt>
@@ -1009,7 +1010,7 @@ for further details.</p>
 </pre></div>
 </div>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>name</strong> (<em>str</em>) – Name of the hyperparameter, with which it can be accessed</p></li>
 <li><p><strong>choices</strong> (<em>list</em><em> or </em><em>tuple with str</em><em>, </em><em>float</em><em>, </em><em>int</em>) – Collection of values to sample hyperparameter from</p></li>
@@ -1025,7 +1026,7 @@ probabilities during sampling, no negative values allowed</p></li>
 
 </section>
 <section id="ordinalhyperparameters">
-<h3>3.4 OrdinalHyperparameters<a class="headerlink" href="#ordinalhyperparameters" title="Permalink to this headline">¶</a></h3>
+<h3>3.4 OrdinalHyperparameters<a class="headerlink" href="#ordinalhyperparameters" title="Permalink to this heading">¶</a></h3>
 <dl class="py class">
 <dt class="sig sig-object py" id="ConfigSpace.hyperparameters.OrdinalHyperparameter">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ConfigSpace.hyperparameters.</span></span><span class="sig-name descname"><span class="pre">OrdinalHyperparameter</span></span><a class="headerlink" href="#ConfigSpace.hyperparameters.OrdinalHyperparameter" title="Permalink to this definition">¶</a></dt>
@@ -1045,7 +1046,7 @@ for further details.</p>
 </pre></div>
 </div>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>name</strong> (<em>str</em>) – Name of the hyperparameter, with which it can be accessed.</p></li>
 <li><p><strong>sequence</strong> (<em>list</em><em> or </em><em>tuple with</em><em> (</em><em>str</em><em>, </em><em>float</em><em>, </em><em>int</em><em>)</em>) – ordered collection of values to sample hyperparameter from.</p></li>
@@ -1059,7 +1060,7 @@ Not used by the configuration space.</p></li>
 
 </section>
 <section id="constant">
-<span id="other-hyperparameters"></span><h3>3.5 Constant<a class="headerlink" href="#constant" title="Permalink to this headline">¶</a></h3>
+<span id="other-hyperparameters"></span><h3>3.5 Constant<a class="headerlink" href="#constant" title="Permalink to this heading">¶</a></h3>
 <dl class="py class">
 <dt class="sig sig-object py" id="ConfigSpace.hyperparameters.Constant">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ConfigSpace.hyperparameters.</span></span><span class="sig-name descname"><span class="pre">Constant</span></span><a class="headerlink" href="#ConfigSpace.hyperparameters.Constant" title="Permalink to this definition">¶</a></dt>
@@ -1067,7 +1068,7 @@ Not used by the configuration space.</p></li>
 <p>By sampling from the configuration space each time only a single,
 constant <code class="docutils literal notranslate"><span class="pre">value</span></code> will be drawn from this hyperparameter.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>name</strong> (<em>str</em>) – Name of the hyperparameter, with which it can be accessed</p></li>
 <li><p><strong>value</strong> (<em>str</em><em>, </em><em>int</em><em>, </em><em>float</em>) – value to sample hyperparameter from</p></li>
@@ -1081,13 +1082,13 @@ Not used by the configuration space.</p></li>
 </section>
 </section>
 <section id="conditions">
-<span id="id3"></span><h2>Conditions<a class="headerlink" href="#conditions" title="Permalink to this headline">¶</a></h2>
+<span id="id3"></span><h2>Conditions<a class="headerlink" href="#conditions" title="Permalink to this heading">¶</a></h2>
 <p>ConfigSpace can realize <em>equal</em>, <em>not equal</em>, <em>less than</em>, <em>greater than</em> and
 <em>in conditions</em>. Conditions can be combined by using the conjunctions <em>and</em> and
 <em>or</em>. To see how to use conditions, please take a look at the
 <a class="reference internal" href="User-Guide.html"><span class="doc">user guide</span></a>.</p>
 <section id="equalscondition">
-<h3>4.1 EqualsCondition<a class="headerlink" href="#equalscondition" title="Permalink to this headline">¶</a></h3>
+<h3>4.1 EqualsCondition<a class="headerlink" href="#equalscondition" title="Permalink to this heading">¶</a></h3>
 <dl class="py class">
 <dt class="sig sig-object py" id="ConfigSpace.conditions.EqualsCondition">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ConfigSpace.conditions.</span></span><span class="sig-name descname"><span class="pre">EqualsCondition</span></span><a class="headerlink" href="#ConfigSpace.conditions.EqualsCondition" title="Permalink to this definition">¶</a></dt>
@@ -1110,7 +1111,7 @@ being <em>equal</em> to <code class="docutils literal notranslate"><span class="
 </pre></div>
 </div>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>child</strong> (<a class="reference internal" href="#hyperparameters"><span class="std std-ref">Hyperparameters</span></a>) – This hyperparameter will be sampled in the configspace
 if the <em>equal condition</em> is satisfied</p></li>
@@ -1123,7 +1124,7 @@ if the <em>equal condition</em> is satisfied</p></li>
 
 </section>
 <section id="notequalscondition">
-<span id="id4"></span><h3>4.2 NotEqualsCondition<a class="headerlink" href="#notequalscondition" title="Permalink to this headline">¶</a></h3>
+<span id="id4"></span><h3>4.2 NotEqualsCondition<a class="headerlink" href="#notequalscondition" title="Permalink to this heading">¶</a></h3>
 <dl class="py class">
 <dt class="sig sig-object py" id="ConfigSpace.conditions.NotEqualsCondition">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ConfigSpace.conditions.</span></span><span class="sig-name descname"><span class="pre">NotEqualsCondition</span></span><a class="headerlink" href="#ConfigSpace.conditions.NotEqualsCondition" title="Permalink to this definition">¶</a></dt>
@@ -1146,7 +1147,7 @@ being <em>not equal</em> to <code class="docutils literal notranslate"><span cla
 </pre></div>
 </div>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>child</strong> (<a class="reference internal" href="#hyperparameters"><span class="std std-ref">Hyperparameters</span></a>) – This hyperparameter will be sampled in the configspace
 if the not-equals condition is satisfied</p></li>
@@ -1160,7 +1161,7 @@ if the not-equals condition is satisfied</p></li>
 
 </section>
 <section id="lessthancondition">
-<span id="id5"></span><h3>4.3 LessThanCondition<a class="headerlink" href="#lessthancondition" title="Permalink to this headline">¶</a></h3>
+<span id="id5"></span><h3>4.3 LessThanCondition<a class="headerlink" href="#lessthancondition" title="Permalink to this heading">¶</a></h3>
 <dl class="py class">
 <dt class="sig sig-object py" id="ConfigSpace.conditions.LessThanCondition">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ConfigSpace.conditions.</span></span><span class="sig-name descname"><span class="pre">LessThanCondition</span></span><a class="headerlink" href="#ConfigSpace.conditions.LessThanCondition" title="Permalink to this definition">¶</a></dt>
@@ -1183,7 +1184,7 @@ being <em>less than</em> <code class="docutils literal notranslate"><span class=
 </pre></div>
 </div>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>child</strong> (<a class="reference internal" href="#hyperparameters"><span class="std std-ref">Hyperparameters</span></a>) – This hyperparameter will be sampled in the configspace,
 if the <em>LessThanCondition</em> is satisfied</p></li>
@@ -1196,7 +1197,7 @@ if the <em>LessThanCondition</em> is satisfied</p></li>
 
 </section>
 <section id="greaterthancondition">
-<h3>4.4 GreaterThanCondition<a class="headerlink" href="#greaterthancondition" title="Permalink to this headline">¶</a></h3>
+<h3>4.4 GreaterThanCondition<a class="headerlink" href="#greaterthancondition" title="Permalink to this heading">¶</a></h3>
 <dl class="py class">
 <dt class="sig sig-object py" id="ConfigSpace.conditions.GreaterThanCondition">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ConfigSpace.conditions.</span></span><span class="sig-name descname"><span class="pre">GreaterThanCondition</span></span><a class="headerlink" href="#ConfigSpace.conditions.GreaterThanCondition" title="Permalink to this definition">¶</a></dt>
@@ -1219,7 +1220,7 @@ being <em>greater than</em> <code class="docutils literal notranslate"><span cla
 </pre></div>
 </div>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>child</strong> (<a class="reference internal" href="#hyperparameters"><span class="std std-ref">Hyperparameters</span></a>) – This hyperparameter will be sampled in the configspace,
 if the <em>GreaterThanCondition</em> is satisfied</p></li>
@@ -1232,7 +1233,7 @@ if the <em>GreaterThanCondition</em> is satisfied</p></li>
 
 </section>
 <section id="incondition">
-<h3>4.5 InCondition<a class="headerlink" href="#incondition" title="Permalink to this headline">¶</a></h3>
+<h3>4.5 InCondition<a class="headerlink" href="#incondition" title="Permalink to this heading">¶</a></h3>
 <dl class="py class">
 <dt class="sig sig-object py" id="ConfigSpace.conditions.InCondition">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ConfigSpace.conditions.</span></span><span class="sig-name descname"><span class="pre">InCondition</span></span><a class="headerlink" href="#ConfigSpace.conditions.InCondition" title="Permalink to this definition">¶</a></dt>
@@ -1255,7 +1256,7 @@ being <em>in</em> a set of <code class="docutils literal notranslate"><span clas
 </pre></div>
 </div>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>child</strong> (<a class="reference internal" href="#hyperparameters"><span class="std std-ref">Hyperparameters</span></a>) – This hyperparameter will be sampled in the configspace,
 if the <em>InCondition</em> is satisfied</p></li>
@@ -1268,7 +1269,7 @@ if the <em>InCondition</em> is satisfied</p></li>
 
 </section>
 <section id="andconjunction">
-<h3>4.6 AndConjunction<a class="headerlink" href="#andconjunction" title="Permalink to this headline">¶</a></h3>
+<h3>4.6 AndConjunction<a class="headerlink" href="#andconjunction" title="Permalink to this heading">¶</a></h3>
 <dl class="py class">
 <dt class="sig sig-object py" id="ConfigSpace.conditions.AndConjunction">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ConfigSpace.conditions.</span></span><span class="sig-name descname"><span class="pre">AndConjunction</span></span><a class="headerlink" href="#ConfigSpace.conditions.AndConjunction" title="Permalink to this definition">¶</a></dt>
@@ -1293,7 +1294,7 @@ if the <em>InCondition</em> is satisfied</p></li>
 </pre></div>
 </div>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>*args</strong> (<a class="reference internal" href="#conditions"><span class="std std-ref">Conditions</span></a>) – conditions, which will be combined with an <em>AndConjunction</em></p>
 </dd>
 </dl>
@@ -1301,7 +1302,7 @@ if the <em>InCondition</em> is satisfied</p></li>
 
 </section>
 <section id="orconjunction">
-<h3>4.7 OrConjunction<a class="headerlink" href="#orconjunction" title="Permalink to this headline">¶</a></h3>
+<h3>4.7 OrConjunction<a class="headerlink" href="#orconjunction" title="Permalink to this heading">¶</a></h3>
 <dl class="py class">
 <dt class="sig sig-object py" id="ConfigSpace.conditions.OrConjunction">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ConfigSpace.conditions.</span></span><span class="sig-name descname"><span class="pre">OrConjunction</span></span><a class="headerlink" href="#ConfigSpace.conditions.OrConjunction" title="Permalink to this definition">¶</a></dt>
@@ -1325,7 +1326,7 @@ using the <em>OrConjunction</em>.</p>
 </pre></div>
 </div>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>*args</strong> (<a class="reference internal" href="#conditions"><span class="std std-ref">Conditions</span></a>) – conditions, which will be combined with an <em>OrConjunction</em></p>
 </dd>
 </dl>
@@ -1334,7 +1335,7 @@ using the <em>OrConjunction</em>.</p>
 </section>
 </section>
 <section id="forbidden-clauses">
-<span id="id6"></span><h2>Forbidden Clauses<a class="headerlink" href="#forbidden-clauses" title="Permalink to this headline">¶</a></h2>
+<span id="id6"></span><h2>Forbidden Clauses<a class="headerlink" href="#forbidden-clauses" title="Permalink to this heading">¶</a></h2>
 <p>ConfigSpace contains <em>forbidden equal</em> and <em>forbidden in clauses</em>.
 The <em>ForbiddenEqualsClause</em> and the <em>ForbiddenInClause</em> can forbid values to be
 sampled from a configuration space if a certain condition is met. The
@@ -1342,7 +1343,7 @@ sampled from a configuration space if a certain condition is met. The
 the <em>ForbiddenInClauses</em>.</p>
 <p>For a further example, please take a look in the <a class="reference internal" href="User-Guide.html"><span class="doc">user guide</span></a>.</p>
 <section id="forbiddenequalsclause">
-<h3>5.1 ForbiddenEqualsClause<a class="headerlink" href="#forbiddenequalsclause" title="Permalink to this headline">¶</a></h3>
+<h3>5.1 ForbiddenEqualsClause<a class="headerlink" href="#forbiddenequalsclause" title="Permalink to this heading">¶</a></h3>
 <dl class="py class">
 <dt class="sig sig-object py" id="ConfigSpace.ForbiddenEqualsClause">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ConfigSpace.</span></span><span class="sig-name descname"><span class="pre">ForbiddenEqualsClause</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hyperparameter</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.ForbiddenEqualsClause" title="Permalink to this definition">¶</a></dt>
@@ -1363,7 +1364,7 @@ the <em>ForbiddenInClauses</em>.</p>
 </pre></div>
 </div>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>hyperparameter</strong> (<a class="reference internal" href="#hyperparameters"><span class="std std-ref">Hyperparameters</span></a>) – Methods on which a restriction will be made</p></li>
 <li><p><strong>value</strong> (<em>Any</em>) – forbidden value</p></li>
@@ -1374,7 +1375,7 @@ the <em>ForbiddenInClauses</em>.</p>
 
 </section>
 <section id="forbiddeninclause">
-<h3>5.2 ForbiddenInClause<a class="headerlink" href="#forbiddeninclause" title="Permalink to this headline">¶</a></h3>
+<h3>5.2 ForbiddenInClause<a class="headerlink" href="#forbiddeninclause" title="Permalink to this heading">¶</a></h3>
 <dl class="py class">
 <dt class="sig sig-object py" id="ConfigSpace.ForbiddenInClause">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ConfigSpace.</span></span><span class="sig-name descname"><span class="pre">ForbiddenInClause</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hyperparameter</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">values</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.ForbiddenInClause" title="Permalink to this definition">¶</a></dt>
@@ -1399,7 +1400,7 @@ the <em>ForbiddenInClauses</em>.</p>
 </pre></div>
 </div>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>hyperparameter</strong> ((<a class="reference internal" href="#hyperparameters"><span class="std std-ref">Hyperparameters</span></a>, dict)) – Hyperparameter on which a restriction will be made</p></li>
 <li><p><strong>values</strong> (<em>Any</em>) – Collection of forbidden values</p></li>
@@ -1410,7 +1411,7 @@ the <em>ForbiddenInClauses</em>.</p>
 
 </section>
 <section id="forbiddenandconjunction">
-<h3>5.3 ForbiddenAndConjunction<a class="headerlink" href="#forbiddenandconjunction" title="Permalink to this headline">¶</a></h3>
+<h3>5.3 ForbiddenAndConjunction<a class="headerlink" href="#forbiddenandconjunction" title="Permalink to this heading">¶</a></h3>
 <dl class="py class">
 <dt class="sig sig-object py" id="ConfigSpace.ForbiddenAndConjunction">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ConfigSpace.</span></span><span class="sig-name descname"><span class="pre">ForbiddenAndConjunction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.ForbiddenAndConjunction" title="Permalink to this definition">¶</a></dt>
@@ -1433,7 +1434,7 @@ build powerful constraints.</p>
 </pre></div>
 </div>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>*args</strong> (list(<a class="reference internal" href="#forbidden-clauses"><span class="std std-ref">Forbidden Clauses</span></a>)) – forbidden clauses, which should be combined</p>
 </dd>
 </dl>
@@ -1442,14 +1443,14 @@ build powerful constraints.</p>
 </section>
 </section>
 <section id="serialization">
-<span id="id7"></span><h2>Serialization<a class="headerlink" href="#serialization" title="Permalink to this headline">¶</a></h2>
+<span id="id7"></span><h2>Serialization<a class="headerlink" href="#serialization" title="Permalink to this heading">¶</a></h2>
 <p>ConfigSpace offers <em>json</em>, <em>pcs</em> and <em>pcs_new</em> writers/readers.
 These classes can serialize and deserialize configuration spaces.
 Serializing configuration spaces is useful to share configuration spaces across
 experiments, or use them in other tools, for example, to analyze hyperparameter
 importance with <a class="reference external" href="https://github.com/automl/CAVE">CAVE</a>.</p>
 <section id="module-ConfigSpace.read_and_write.json">
-<span id="serialization-to-json"></span><span id="json"></span><h3>6.1 Serialization to JSON<a class="headerlink" href="#module-ConfigSpace.read_and_write.json" title="Permalink to this headline">¶</a></h3>
+<span id="serialization-to-json"></span><span id="json"></span><h3>6.1 Serialization to JSON<a class="headerlink" href="#module-ConfigSpace.read_and_write.json" title="Permalink to this heading">¶</a></h3>
 <dl class="py function">
 <dt class="sig sig-object py" id="ConfigSpace.read_and_write.json.read">
 <span class="sig-prename descclassname"><span class="pre">ConfigSpace.read_and_write.json.</span></span><span class="sig-name descname"><span class="pre">read</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">jason_string</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ConfigSpace/read_and_write/json.html#read"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ConfigSpace.read_and_write.json.read" title="Permalink to this definition">¶</a></dt>
@@ -1462,13 +1463,13 @@ importance with <a class="reference external" href="https://github.com/automl/CA
 </pre></div>
 </div>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>jason_string</strong> (<em>str</em>) – A json string representing a configuration space definition</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>The deserialized ConfigurationSpace object</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><a class="reference internal" href="#ConfigSpace.configuration_space.ConfigurationSpace" title="ConfigSpace.configuration_space.ConfigurationSpace"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigurationSpace</span></code></a></p>
 </dd>
 </dl>
@@ -1494,17 +1495,17 @@ cs.add_hyperparameter(CSH.CategoricalHyperparameter(‘a’, choices=[1, 2, 3]))
 </dl>
 </div></blockquote>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>configuration_space</strong> (<a class="reference internal" href="#ConfigSpace.configuration_space.ConfigurationSpace" title="ConfigSpace.configuration_space.ConfigurationSpace"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigurationSpace</span></code></a>) – a configuration space, which should be written to file.</p></li>
 <li><p><strong>indent</strong> (<em>int</em>) – number of whitespaces to use as indent</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>String representation of the configuration space,
 which will be written to file</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>str</p>
 </dd>
 </dl>
@@ -1512,7 +1513,7 @@ which will be written to file</p>
 
 </section>
 <section id="module-ConfigSpace.read_and_write.pcs_new">
-<span id="serialization-with-pcs-new-new-format"></span><span id="pcs-new"></span><h3>6.2 Serialization with pcs-new (new format)<a class="headerlink" href="#module-ConfigSpace.read_and_write.pcs_new" title="Permalink to this headline">¶</a></h3>
+<span id="serialization-with-pcs-new-new-format"></span><span id="pcs-new"></span><h3>6.2 Serialization with pcs-new (new format)<a class="headerlink" href="#module-ConfigSpace.read_and_write.pcs_new" title="Permalink to this heading">¶</a></h3>
 <p>PCS (parameter configuration space) is a simple, human-readable file format for the
 description of an algorithm’s configurable parameters, their possible values, as well
 as any parameter dependencies. There exist an old and a new version.</p>
@@ -1541,16 +1542,16 @@ definition from a pcs file.</p>
 </pre></div>
 </div>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>pcs_string</strong> (<em>str</em>) – ConfigSpace definition in pcs format</p></li>
 <li><p><strong>debug</strong> (<em>bool</em>) – Provides debug information. Defaults to False.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>The deserialized ConfigurationSpace object</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><a class="reference internal" href="#ConfigSpace.configuration_space.ConfigurationSpace" title="ConfigSpace.configuration_space.ConfigurationSpace"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigurationSpace</span></code></a></p>
 </dd>
 </dl>
@@ -1576,13 +1577,13 @@ in pcs_new format. This string can be written to file.</p>
 </pre></div>
 </div>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>configuration_space</strong> (<a class="reference internal" href="#ConfigSpace.configuration_space.ConfigurationSpace" title="ConfigSpace.configuration_space.ConfigurationSpace"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigurationSpace</span></code></a>) – a configuration space</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>The string representation of the configuration space</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>str</p>
 </dd>
 </dl>
@@ -1590,7 +1591,7 @@ in pcs_new format. This string can be written to file.</p>
 
 </section>
 <section id="module-ConfigSpace.read_and_write.pcs">
-<span id="serialization-with-pcs-old-format"></span><h3>6.3 Serialization with pcs (old format)<a class="headerlink" href="#module-ConfigSpace.read_and_write.pcs" title="Permalink to this headline">¶</a></h3>
+<span id="serialization-with-pcs-old-format"></span><h3>6.3 Serialization with pcs (old format)<a class="headerlink" href="#module-ConfigSpace.read_and_write.pcs" title="Permalink to this heading">¶</a></h3>
 <p>The old PCS format is part of the <a class="reference external" href="http://aclib.net/#">Algorithm Configuration Library</a>.</p>
 <p>A detailed explanation of the <strong>old</strong> PCS format can be found
 <a class="reference external" href="http://aclib.net/cssc2014/pcs-format.pdf">here.</a></p>
@@ -1606,16 +1607,16 @@ definition from a pcs file.</p>
 </pre></div>
 </div>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>pcs_string</strong> (<em>str</em>) – ConfigSpace definition in pcs format</p></li>
 <li><p><strong>debug</strong> (<em>bool</em>) – Provides debug information. Defaults to False.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>The deserialized ConfigurationSpace object</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><a class="reference internal" href="#ConfigSpace.configuration_space.ConfigurationSpace" title="ConfigSpace.configuration_space.ConfigurationSpace"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigurationSpace</span></code></a></p>
 </dd>
 </dl>
@@ -1641,13 +1642,13 @@ This string can be written to file.</p>
 </pre></div>
 </div>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>configuration_space</strong> (<a class="reference internal" href="#ConfigSpace.configuration_space.ConfigurationSpace" title="ConfigSpace.configuration_space.ConfigurationSpace"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigurationSpace</span></code></a>) – a configuration space</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>The string representation of the configuration space</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>str</p>
 </dd>
 </dl>
@@ -1656,7 +1657,7 @@ This string can be written to file.</p>
 </section>
 </section>
 <section id="utils">
-<h2>Utils<a class="headerlink" href="#utils" title="Permalink to this headline">¶</a></h2>
+<h2>Utils<a class="headerlink" href="#utils" title="Permalink to this heading">¶</a></h2>
 <p>Functions defined in the utils module can be helpful to
 develop custom tools that create configurations from a given configuration
 space or modify a given configuration space.</p>
@@ -1665,7 +1666,7 @@ space or modify a given configuration space.</p>
 <span class="sig-prename descclassname"><span class="pre">ConfigSpace.util.</span></span><span class="sig-name descname"><span class="pre">deactivate_inactive_hyperparameters</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.util.deactivate_inactive_hyperparameters" title="Permalink to this definition">¶</a></dt>
 <dd><p>Remove inactive hyperparameters from a given configuration</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>configuration</strong> (<em>dict</em>) – a configuration as a dictionary. Key: name of the hyperparameter.
 Value: value of this hyperparamter
@@ -1678,11 +1679,11 @@ configuration space.</p></li>
 <code class="docutils literal notranslate"><span class="pre">configuration</span></code> will be used.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>A configuration that is equivalent to the given configuration, except
 that inactivate hyperparameters have been removed.</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><a class="reference internal" href="#ConfigSpace.configuration_space.Configuration" title="ConfigSpace.configuration_space.Configuration"><code class="xref py py-class docutils literal notranslate"><span class="pre">Configuration</span></code></a></p>
 </dd>
 </dl>
@@ -1694,17 +1695,17 @@ that inactivate hyperparameters have been removed.</p>
 <dd><p>Iterate over all hyperparameters in the ConfigSpace
 and fix the types of the parameter values in configuration.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>configuration</strong> (<em>dict</em>) – a configuration as a dictionary. Key: name of the hyperparameter.
 Value: value of this hyperparamter</p></li>
 <li><p><strong>configuration_space</strong> (<a class="reference internal" href="#ConfigSpace.configuration_space.ConfigurationSpace" title="ConfigSpace.configuration_space.ConfigurationSpace"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigurationSpace</span></code></a>) – Configuration space which knows the types for all parameter values</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>configuration with fixed types of parameter values</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>dict</p>
 </dd>
 </dl>
@@ -1716,7 +1717,7 @@ Value: value of this hyperparamter</p></li>
 <dd><p>Generates a grid of Configurations for a given ConfigurationSpace.
 Can be used, for example, for grid search.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>configuration_space</strong> (<a class="reference internal" href="#ConfigSpace.configuration_space.ConfigurationSpace" title="ConfigSpace.configuration_space.ConfigurationSpace"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigurationSpace</span></code></a>) – The Configuration space over which to create a grid of HyperParameter Configuration values.
 It knows the types for all parameter values.</p></li>
@@ -1727,14 +1728,14 @@ should be the number of points to divide the grid side formed by the correspondi
 Hyperparameter in to.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>List containing Configurations. It is a cartesian product of tuples of
 HyperParameter values.
 Each tuple lists the possible values taken by the corresponding HyperParameter.
 Within the cartesian product, in each element, the ordering of HyperParameters is the same
 for the OrderedDict within the ConfigurationSpace.</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>list</p>
 </dd>
 </dl>
@@ -1750,7 +1751,7 @@ Sequential Model-Based Optimization for General Algorithm Configuration
 In Proceedings of the conference on Learning and Intelligent
 Optimization(LION 5)</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>configuration</strong> (<a class="reference internal" href="#ConfigSpace.configuration_space.Configuration" title="ConfigSpace.configuration_space.Configuration"><code class="xref py py-class docutils literal notranslate"><span class="pre">Configuration</span></code></a>) – for this Configuration object <code class="docutils literal notranslate"><span class="pre">num_neighbors</span></code> neighbors are computed</p></li>
 <li><p><strong>seed</strong> (<em>int</em>) – Sets the random seed to a fixed value</p></li>
@@ -1761,11 +1762,11 @@ of the input configuration</p></li>
 <a class="reference internal" href="#ConfigSpace.hyperparameters.UniformIntegerHyperparameter" title="ConfigSpace.hyperparameters.UniformIntegerHyperparameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">UniformIntegerHyperparameter</span></code></a>.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>It contains configurations, with values being situated around
 the given configuration.</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>Generator</p>
 </dd>
 </dl>
@@ -1786,16 +1787,16 @@ previously active parameters, the configuration will be rejected. If more
 than 10000 configurations were rejected, this function raises a
 ValueError.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>configuration</strong> (<a class="reference internal" href="#ConfigSpace.configuration_space.Configuration" title="ConfigSpace.configuration_space.Configuration"><code class="xref py py-class docutils literal notranslate"><span class="pre">Configuration</span></code></a>) – a configuration for which a random neigbour is calculated</p></li>
 <li><p><strong>seed</strong> (<em>int</em>) – Used to generate a random state.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>The new neighbor</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><a class="reference internal" href="#ConfigSpace.configuration_space.Configuration" title="ConfigSpace.configuration_space.Configuration"><code class="xref py py-class docutils literal notranslate"><span class="pre">Configuration</span></code></a></p>
 </dd>
 </dl>
@@ -1810,7 +1811,7 @@ values of the inactive hyperparamters to their default values if the choosen
 <code class="docutils literal notranslate"><span class="pre">strategy</span></code> is ‘default’. Otherwise <code class="docutils literal notranslate"><span class="pre">strategy</span></code> contains a float number.
 Set the hyperparameters’ value to this number.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>configuration</strong> (<a class="reference internal" href="#ConfigSpace.configuration_space.Configuration" title="ConfigSpace.configuration_space.Configuration"><code class="xref py py-class docutils literal notranslate"><span class="pre">Configuration</span></code></a>) – For this configuration inactive values will be imputed.</p></li>
 <li><p><strong>strategy</strong> (<em>(</em><em>str</em><em>, </em><em>float</em><em>, </em><em>optional</em><em>)</em>) – The imputation strategy. Defaults to ‘default’
@@ -1819,11 +1820,11 @@ If float, replace inactive parameters by the given float value,
 which should be able to be splitted apart by a tree-based model.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>A new configuration with the imputed values.
 In this new configuration inactive values are included.</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><a class="reference internal" href="#ConfigSpace.configuration_space.Configuration" title="ConfigSpace.configuration_space.Configuration"><code class="xref py py-class docutils literal notranslate"><span class="pre">Configuration</span></code></a></p>
 </dd>
 </dl>
@@ -1852,7 +1853,7 @@ In this new configuration inactive values are included.</p>
     </p>
     <p>
         &copy; Copyright 2014-2022, Matthias Feurer, Katharina Eggensperger, Syed Mohsin Ali, Christina Hernandez Wunsch, Julien-Charles Levesque, Jost Tobias Springenberg, Philipp Mueller, Marius Lindauer, Jorn Tuyls.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.5.0.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 5.0.1.<br/>
     </p>
   </div>
 </footer>

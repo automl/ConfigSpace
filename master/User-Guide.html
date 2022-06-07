@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
     <title>User Guide &#8212; ConfigSpace  documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
@@ -11,6 +11,7 @@
     <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="_static/doctools.js"></script>
     <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
@@ -140,14 +141,14 @@
     <div class="body col-md-9 content" role="main">
       
   <section id="user-guide">
-<h1>User Guide<a class="headerlink" href="#user-guide" title="Permalink to this headline">¶</a></h1>
+<h1>User Guide<a class="headerlink" href="#user-guide" title="Permalink to this heading">¶</a></h1>
 <p>In this user guide, the concepts of using different hyperparameters, applying
 conditions and forbidden clauses to
 a configuration space are explained.</p>
 <p>These concepts will be introduced by defining a more complex configuration space
 for a support vector machine.</p>
 <section id="st-example-integer-hyperparameters-and-float-hyperparameters">
-<h2>1st Example: Integer hyperparameters and float hyperparameters<a class="headerlink" href="#st-example-integer-hyperparameters-and-float-hyperparameters" title="Permalink to this headline">¶</a></h2>
+<h2>1st Example: Integer hyperparameters and float hyperparameters<a class="headerlink" href="#st-example-integer-hyperparameters-and-float-hyperparameters" title="Permalink to this heading">¶</a></h2>
 <p>Assume that we want to use a support vector machine (=SVM) for classification
 tasks and therefore, we want to optimize its hyperparameters:</p>
 <ul class="simple">
@@ -203,7 +204,7 @@ of a parameter can be accessed or modified similar to a python dictionary.</p>
 </div>
 </section>
 <section id="nd-example-categorical-hyperparameters-and-conditions">
-<h2>2nd Example: Categorical hyperparameters and conditions<a class="headerlink" href="#nd-example-categorical-hyperparameters-and-conditions" title="Permalink to this headline">¶</a></h2>
+<h2>2nd Example: Categorical hyperparameters and conditions<a class="headerlink" href="#nd-example-categorical-hyperparameters-and-conditions" title="Permalink to this heading">¶</a></h2>
 <p>The scikit-learn SVM supports different kernels, such as an RBF, a sigmoid,
 a linear or a polynomial kernel. We want to include them in the configuration space.
 Since this new hyperparameter has a finite number of values, we use a
@@ -288,7 +289,7 @@ Due to floating-point inaccuracy, it is very unlikely that the
 </div>
 </section>
 <section id="rd-example-forbidden-clauses">
-<h2>3rd Example: Forbidden clauses<a class="headerlink" href="#rd-example-forbidden-clauses" title="Permalink to this headline">¶</a></h2>
+<h2>3rd Example: Forbidden clauses<a class="headerlink" href="#rd-example-forbidden-clauses" title="Permalink to this heading">¶</a></h2>
 <p>It may occur that some states in the configuration space are not allowed.
 ConfigSpace supports this functionality by offering <a class="reference internal" href="API-Doc.html#forbidden-clauses"><span class="std std-ref">Forbidden Clauses</span></a>.</p>
 <p>We demonstrate the usage of <a class="reference internal" href="API-Doc.html#forbidden-clauses"><span class="std std-ref">Forbidden Clauses</span></a> by defining the
@@ -344,7 +345,7 @@ configuration space.</p>
 </div>
 </section>
 <section id="th-example-serialization">
-<h2>4th Example Serialization<a class="headerlink" href="#th-example-serialization" title="Permalink to this headline">¶</a></h2>
+<h2>4th Example Serialization<a class="headerlink" href="#th-example-serialization" title="Permalink to this heading">¶</a></h2>
 <p>If you want to use the configuration space in another tool, such as
 <a class="reference external" href="https://github.com/automl/CAVE">CAVE</a>, it is useful to store it to file.
 To serialize the <a class="reference internal" href="API-Doc.html#ConfigSpace.configuration_space.ConfigurationSpace" title="ConfigSpace.configuration_space.ConfigurationSpace"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigurationSpace</span></code></a>,
@@ -365,7 +366,7 @@ object as json file</p>
 </div>
 </section>
 <section id="th-example-placing-priors-on-the-hyperparameters">
-<h2>5th Example: Placing priors on the hyperparameters<a class="headerlink" href="#th-example-placing-priors-on-the-hyperparameters" title="Permalink to this headline">¶</a></h2>
+<h2>5th Example: Placing priors on the hyperparameters<a class="headerlink" href="#th-example-placing-priors-on-the-hyperparameters" title="Permalink to this heading">¶</a></h2>
 <p>If you want to conduct black-box optimization in SMAC (<a class="reference external" href="https://arxiv.org/abs/2109.09831">https://arxiv.org/abs/2109.09831</a>), and you have prior knowledge about the which regions of the search space are more likely to contain the optimum, you may include this knowledge when designing the configuration space. More specifically, you place prior distributions over the optimum on the parameters, either by a (log)-normal or (log)-Beta distribution. SMAC then considers the given priors through the optimization by using PiBO (<a class="reference external" href="https://openreview.net/forum?id=MMAeCXIa89">https://openreview.net/forum?id=MMAeCXIa89</a>).</p>
 <p>Consider the case of optimizing the accuracy of an MLP with three hyperparameters: learning rate [1e-5, 1e-1], dropout [0, 0.99] and activation {Tanh, ReLU}. From prior experience, you believe the optimal learning rate to be around 1e-3, a good dropout to be around 0.25, and the optimal activation function to be ReLU about 80% of the time. This can be represented accordingly:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
@@ -423,7 +424,7 @@ object as json file</p>
     </p>
     <p>
         &copy; Copyright 2014-2022, Matthias Feurer, Katharina Eggensperger, Syed Mohsin Ali, Christina Hernandez Wunsch, Julien-Charles Levesque, Jost Tobias Springenberg, Philipp Mueller, Marius Lindauer, Jorn Tuyls.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.5.0.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 5.0.1.<br/>
     </p>
   </div>
 </footer>
