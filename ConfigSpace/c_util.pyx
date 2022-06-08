@@ -1,5 +1,6 @@
 # cython: language_level=3
 
+import heapq
 from collections import deque
 
 import numpy as np
@@ -9,7 +10,6 @@ from ConfigSpace.hyperparameters import Hyperparameter
 from ConfigSpace.hyperparameters cimport Hyperparameter
 from ConfigSpace.conditions import ConditionComponent
 from ConfigSpace.conditions cimport ConditionComponent
-from ConfigSpace.conditions import OrConjunction
 from ConfigSpace.exceptions import ForbiddenValueError
 
 from libc.stdlib cimport malloc, free
@@ -121,110 +121,48 @@ cpdef np.ndarray correct_sampled_array(
     np.ndarray[DTYPE_t, ndim=1] vector,
     list forbidden_clauses_unconditionals,
     list forbidden_clauses_conditionals,
-    list hyperparameters_with_children,
-    int num_hyperparameters,
-    list unconditional_hyperparameters,
+    list conditional_hyperparameters,
     dict hyperparameter_to_idx,
     dict parent_conditions_of,
-    dict parents_of,
-    dict children_of,
 ):
+    """Ensure that the array values of inactive hyperparameters are NaN.
+    
+    The output array does not violate any condition or forbidden clause.
+
+    Parameters
+    ----------
+    vector : np.ndarray
+        Vector of hyperparameter values. It is assumed that none of the active hyperparameters has a NaN value assigned.
+    
+    conditional_hyperparameters : list[str]
+        Names of conditional hyperparameters ordered topologically
+
+    Returns
+    -------
+    np.ndarray
+        Updated vector
+    """
     cdef AbstractForbiddenComponent clause
     cdef ConditionComponent condition
-    cdef int hyperparameter_idx
     cdef DTYPE_t NaN = np.NaN
-    cdef set visited
-    cdef set inactive
-    cdef Hyperparameter child
-    cdef list children
-    cdef str child_name
-    cdef list parents
-    cdef Hyperparameter parent
-    cdef int parents_visited
-    cdef list conditions
-    cdef int add
-
-    cdef int* active
-    active = <int*> malloc(sizeof(int) * num_hyperparameters)
-    for j in range(num_hyperparameters):
-        active[j] = 0
+    cdef str current_name
 
     for j in range(len(forbidden_clauses_unconditionals)):
         clause = forbidden_clauses_unconditionals[j]
         if clause.c_is_forbidden_vector(vector, strict=False):
-            free(active)
             raise ForbiddenValueError(
                 "Given vector violates forbidden clause %s" % (
                     str(clause)
                 )
             )
+    
+    # We assume that the conditional hyperparameters are ordered in topological order.
+    for current_name in conditional_hyperparameters:
+        for condition in parent_conditions_of[current_name]:
+            if not condition._evaluate_vector(vector):
+                vector[hyperparameter_to_idx[current_name]] = NaN
+                break            
 
-    hps = deque()
-    visited = set()
-    hps.extendleft(hyperparameters_with_children)
-
-    for ch in unconditional_hyperparameters:
-        active[hyperparameter_to_idx[ch]] = 1
-
-    inactive = set()
-
-    while len(hps) > 0:
-        hp = hps.pop()
-        visited.add(hp)
-        children = children_of[hp]
-        for child in children:
-            child_name = child.name
-            if child_name not in inactive:
-                parents = parents_of[child_name]
-                hyperparameter_idx = hyperparameter_to_idx[child_name]
-                if len(parents) == 1:
-                    conditions = parent_conditions_of[child_name]
-                    add = True
-                    for j in range(len(conditions)):
-                        condition = conditions[j]
-                        if not condition._evaluate_vector(vector):
-                            add = False
-                            vector[hyperparameter_idx] = NaN
-                            inactive.add(child_name)
-                            break
-                    if add is True:
-                        active[hyperparameter_idx] = 1
-                        hps.appendleft(child_name)
-
-                else:
-                    parents_visited = 0
-                    for parent in parents:
-                        if parent.name in visited:
-                            parents_visited += 1
-                    if parents_visited > 0:  # make sure at least one parent was visited
-                        conditions = parent_conditions_of[child_name]
-                        if isinstance(conditions[0], OrConjunction):
-                            pass
-                        else:  # AndCondition
-                            if parents_visited != len(parents):
-                                continue
-
-                        add = True
-                        for j in range(len(conditions)):
-                            condition = conditions[j]
-                            if not condition._evaluate_vector(vector):
-                                add = False
-                                vector[hyperparameter_idx] = NaN
-                                inactive.add(child_name)
-                                break
-
-                        if add is True:
-                            active[hyperparameter_idx] = 1
-                            hps.appendleft(child_name)
-
-                    else:
-                        continue
-
-    for j in range(len(vector)):
-        if not active[j]:
-            vector[j] = NaN
-
-    free(active)
     for j in range(len(forbidden_clauses_conditionals)):
         clause = forbidden_clauses_conditionals[j]
         if clause.c_is_forbidden_vector(vector, strict=False):
@@ -266,83 +204,73 @@ cpdef np.ndarray change_hp_value(
     """
     cdef Hyperparameter current
     cdef str current_name
-    cdef list disabled
-    cdef set visited
-    cdef dict activated_values
     cdef int active
+    cdef int update
     cdef ConditionComponent condition
     cdef int current_idx
     cdef DTYPE_t current_value
+    cdef DTYPE_t target_value
     cdef DTYPE_t default_value
-    cdef list children
-    cdef list children_
-    cdef Hyperparameter ch
-    cdef str child
-    cdef set to_disable
     cdef DTYPE_t NaN = np.NaN
     cdef dict children_of = configuration_space._children_of
 
-    configuration_array[index] = hp_value
+    # We maintain `to_visit` as a minimum heap of indices of hyperparameters that may need to be updated.
+    # We assume that the hyperparameters are sorted topologically with respect to the conditions by the hyperparameter indices.
+    # Initially, we know that the hyperparameter with the index `index` may need to be updated (by changing its value to `hp_value`).
+    to_visit = [index]
+    
+    # Since one hyperparameter may be reachable in more than one way, we need to make sure we don't schedule it for inspection more than once.
+    scheduled = np.zeros(len(configuration_space), dtype=bool)
+    scheduled[index] = True
 
-    # Hyperparameters which are going to be set to inactive
-    disabled = []
+    # Activate hyperparameters if their parent node got activated.
+    while len(to_visit) > 0:
+        assert np.all(scheduled[to_visit])
+        current_idx = heapq.heappop(to_visit)
+        current_name = configuration_space._idx_to_hyperparameter[current_idx]
+        conditions = configuration_space._parent_conditions_of[current_name]
 
-    # Activate hyperparameters if their parent node got activated
-    children = children_of[hp_name]
-    if len(children) > 0:
-        to_visit = deque()  # type: deque
-        to_visit.extendleft(children)
-        visited = set()  # type: Set[str]
-        activated_values = dict()  # type: Dict[str, Union[int, float, str]]
+        # Should the current hyperparameter be active?
+        active = True
+        for condition in conditions:
+            if not condition._evaluate_vector(configuration_array):
+                # The current hyperparameter should be inactive because `condition` is not satisfied. 
+                active = False
+                break
 
-        while len(to_visit) > 0:
-            current = to_visit.pop()
-            current_name = current.name
-            if current_name in visited:
-                continue
-            visited.add(current_name)
-            if current_name in disabled:
-                continue
-
-            current_idx = configuration_space._hyperparameter_idx[current_name]
+        # Should the value of the current hyperparameter be updated?
+        update = False
+        if current_idx == index:
+            # The current hyperparameter should be updated because the caller requested this update.
+            if not active:
+                raise ValueError(
+                    "Attempting to change the value of the inactive hyperparameter '%s' to '%s'." % (hp_name, hp_value))
+            target_value = hp_value
+            update = True
+        else:
             current_value = configuration_array[current_idx]
-
-            conditions = configuration_space._parent_conditions_of[current_name]
-
-            active = True
-            for condition in conditions:
-                if not condition._evaluate_vector(configuration_array):
-                    active = False
-                    break
-
             if active and not current_value == current_value:
-                default_value = current.normalized_default_value
-                configuration_array[current_idx] = default_value
-                children_ = children_of[current_name]
-                if len(children_) > 0:
-                    to_visit.extendleft(children_)
-
-            # If the hyperparameter was made inactive,
-            # all its children need to be deactivade as well
-            if not active and current_value == current_value:
-                configuration_array[current_idx] = NaN
-
-                children = children_of[current_name]
-
-                if len(children) > 0:
-                    to_disable = set()
-                    for ch in children:
-                        to_disable.add(ch.name)
-                    while len(to_disable) > 0:
-                        child = to_disable.pop()
-                        child_idx = configuration_space._hyperparameter_idx[child]
-                        disabled.append(child_idx)
-                        children = children_of[child]
-
-                        for ch in children:
-                            to_disable.add(ch.name)
-
-    for idx in disabled:
-        configuration_array[idx] = NaN
+                # The current hyperparameter should be active but is inactive.
+                current = configuration_space._hyperparameters[current_name]
+                target_value = current.normalized_default_value
+                update = True
+            elif not active and current_value == current_value:
+                # The current hyperparameter should be inactive but is active.
+                # If the hyperparameter was made inactive,
+                # all its children need to be deactivated as well
+                target_value = NaN
+                update = True
+        
+        if update:
+            configuration_array[current_idx] = target_value
+            for child in children_of[current_name]:
+                child_idx = configuration_space._hyperparameter_idx[child.name]
+                # We assume that the hyperparameters are ordered topologically by index.
+                # This means that every child must have an index greater than its parent.
+                assert child_idx > current_idx
+                if not scheduled[child_idx]:
+                    heapq.heappush(to_visit, child_idx)
+                    scheduled[child_idx] = True
+        assert len(to_visit) == 0 or to_visit[0] > current_idx
 
     return configuration_array
