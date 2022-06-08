@@ -277,6 +277,35 @@ class UtilTest(unittest.TestCase):
 
         np.testing.assert_almost_equal(new_array, expected_array)
 
+    def test_check_neighbouring_config_diamond_or_conjunction(self):
+        diamond = ConfigurationSpace()
+        top = CategoricalHyperparameter('top', [0, 1], 0)
+        middle = CategoricalHyperparameter('middle', [0, 1], 1)
+        bottom_left = CategoricalHyperparameter('bottom_left', [0, 1], 1)
+        bottom_right = CategoricalHyperparameter('bottom_right', [0, 1, 2, 3], 1)
+
+        diamond.add_hyperparameters([top, bottom_left, bottom_right, middle])
+        diamond.add_condition(EqualsCondition(middle, top, 0))
+        diamond.add_condition(EqualsCondition(bottom_left, middle, 0))
+        diamond.add_condition(OrConjunction(EqualsCondition(bottom_right, middle, 1),
+                                            EqualsCondition(bottom_right, top, 1)))
+
+        config = Configuration(diamond, {'top': 0, 'middle': 1, 'bottom_right': 1})
+        hp_name = "top"
+        index = diamond.get_idx_by_hyperparameter_name(hp_name)
+        neighbor_value = 1
+
+        new_array = ConfigSpace.c_util.change_hp_value(
+            diamond,
+            config.get_array(),
+            hp_name,
+            neighbor_value,
+            index
+        )
+        expected_array = np.array([1, np.nan, np.nan, 1])
+
+        np.testing.assert_almost_equal(new_array, expected_array)
+
     def test_check_neighbouring_config_diamond_str(self):
         diamond = ConfigurationSpace()
         head = CategoricalHyperparameter('head', ['red', 'green'])
