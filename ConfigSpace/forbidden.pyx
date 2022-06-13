@@ -56,9 +56,9 @@ cdef class AbstractForbiddenComponent(object):
 
         Additionally, it defines the __ne__() as stated in the
         documentation from python:
-            By default, object implements __eq__() by using is, returning NotImplemented 
-            in the case of a false comparison: True if x is y else NotImplemented. 
-            For __ne__(), by default it delegates to __eq__() and inverts the result 
+            By default, object implements __eq__() by using is, returning NotImplemented
+            in the case of a false comparison: True if x is y else NotImplemented.
+            For __ne__(), by default it delegates to __eq__() and inverts the result
             unless it is NotImplemented.
 
         """
@@ -342,9 +342,9 @@ cdef class AbstractForbiddenConjunction(AbstractForbiddenComponent):
 
         Additionally, it defines the __ne__() as stated in the
         documentation from python:
-            By default, object implements __eq__() by using is, returning NotImplemented 
-            in the case of a false comparison: True if x is y else NotImplemented. 
-            For __ne__(), by default it delegates to __eq__() and inverts the result 
+            By default, object implements __eq__() by using is, returning NotImplemented
+            in the case of a false comparison: True if x is y else NotImplemented.
+            For __ne__(), by default it delegates to __eq__() and inverts the result
             unless it is NotImplemented.
         """
 

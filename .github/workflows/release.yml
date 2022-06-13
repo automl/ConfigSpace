@@ -74,10 +74,9 @@ jobs:
           # Not supported by numpy
           - system: "musllinux"
 
-        # Scipy doesn't have a wheel for cp310 i686
+          # Scipy doesn't have a wheel for cp310 i686
           - py: cp310
             arch: "i686"
-
 
     steps:
       - name: Checkout ${{ env.package-name }}
