@@ -43,7 +43,8 @@ from ConfigSpace.hyperparameters import (
     FloatHyperparameter,
     UniformFloatHyperparameter,
     UniformIntegerHyperparameter,
-    OrdinalHyperparameter
+    CategoricalHyperparameter,
+    OrdinalHyperparameter,
 )
 from ConfigSpace.conditions import (
     ConditionComponent,
@@ -69,10 +70,12 @@ class ConfigurationSpace(collections.abc.Mapping):
     # TODO add a method to add whole configuration spaces as a child "tree"
 
     def __init__(
-            self,
-            name: Union[str, None] = None,
-            seed: Union[int, None] = None,
-            meta: Optional[Dict] = None,
+        self,
+        name: Union[str, Dict, None] = None,
+        seed: Union[int, None] = None,
+        meta: Optional[Dict] = None,
+        *,
+        space: Optional[Dict[str, Union[str, int, float]]] = None
     ) -> None:
         """
         A collection-like object containing a set of hyperparameter definitions and conditions.
@@ -85,14 +88,36 @@ class ConfigurationSpace(collections.abc.Mapping):
 
         Parameters
         ----------
-        name : str, optional
-            Name of the configuration space
+        name : str | Dict, optional
+            Name of the configuration space. If a dict is passed, this is considered the same
+            as the `space` arg.
+
         seed : int, optional
             random seed
         meta : dict, optional
             Field for holding meta data provided by the user.
             Not used by the configuration space.
+
+        space: Dict[str, str | int | float] | None = None
+            A simple configuration space to use:
+
+            .. code:: python
+
+                ConfigurationSpace(
+                    name="myspace",
+                    space={
+                        "uniform_integer": (1, 10),
+                        "uniform_float": (1.0, 10.0),
+                        "categorical": ["a", "b", "c"],
+                        "constant": 1337,
+                    }
+
         """
+        # If first arg is a dict, we assume this to be `space`
+        if isinstance(name, Dict):
+            space = name
+            name = None
+
         self.name = name
         self.meta = meta
 
@@ -124,6 +149,56 @@ class ConfigurationSpace(collections.abc.Mapping):
         self._child_conditions_of = dict()
         self._parents_of = dict()
         self._children_of = dict()
+
+        # User provided a basic configspace
+        if space is not None:
+
+            # We store and do in one go due to caching mechanisms
+            hps = []
+            for name, hp in space.items():
+
+                # Anything that is a Hyperparameter already is good
+                # Note that we discard the key name in this case in favour
+                # of the name given in the dictionary
+                if isinstance(hp, Hyperparameter):
+                    hps.append(hp)
+
+                # Tuples are bounds, check if float or int
+                elif isinstance(hp, Tuple):
+                    if len(hp) != 2:
+                        raise ValueError(
+                            "'%s' must be (lower, upper) bound, got %s"
+                            % (name, hp)
+                        )
+                    lower, upper = hp
+                    if isinstance(lower, float):
+                        real_hp = UniformFloatHyperparameter(name, lower, upper)
+                    else:
+                        real_hp = UniformIntegerHyperparameter(name, lower, upper)
+
+                    hps.append(real_hp)
+
+                # Lists are categoricals
+                elif isinstance(hp, List):
+                    if len(hp) == 0:
+                        raise ValueError(
+                            "Can't have empty list for categorical '%s'" % name
+                        )
+
+                    real_hp = CategoricalHyperparameter(name, hp)
+                    hps.append(real_hp)
+
+                # If it's an allowed type, it's a constant
+                elif isinstance(hp, (int, str, float)):
+                    real_hp = Constant(name, hp)
+                    hps.append(real_hp)
+
+                else:
+                    raise ValueError("Unknown value '%s' for '%s'" % (hp, name))
+
+            # Finally, add them in
+            self.add_hyperparameters(hps)
+
 
     def generate_all_continuous_from_bounds(self, bounds: List[List[Any]]) -> None:
         """
