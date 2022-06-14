@@ -25,14 +25,13 @@
 # ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
 import copy
 import io
 # cython: language_level=3
 import math
 import warnings
 from collections import OrderedDict, Counter
-from typing import List, Any, Dict, Union, Set, Tuple, Optional
+from typing import List, Any, Dict, Union, Set, Tuple, Optional, Sequence
 
 import numpy as np
 from scipy.stats import truncnorm, beta as spbeta, norm
@@ -2206,7 +2205,7 @@ cdef class CategoricalHyperparameter(Hyperparameter):
         choices: Union[List[Union[str, float, int]], Tuple[Union[float, int, str]]],
         default_value: Union[int, float, str, None] = None,
         meta: Optional[Dict] = None,
-        weights: Union[List[float], Tuple[float]] = None
+        weights: Optional[Sequence[Union[int, float]]] = None
     ) -> None:
         """
         A categorical hyperparameter.
@@ -2238,7 +2237,7 @@ cdef class CategoricalHyperparameter(Hyperparameter):
         meta : Dict, optional
             Field for holding meta data provided by the user.
             Not used by the configuration space.
-        weights: (list[float], optional)
+        weights: Sequence[int | float] | None = None
             List of weights for the choices to be used (after normalization) as
             probabilities during sampling, no negative values allowed
         """

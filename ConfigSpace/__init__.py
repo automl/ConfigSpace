@@ -27,32 +27,69 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from ConfigSpace.__version__ import __version__
+
 __authors__ = [
-    "Matthias Feurer", "Katharina Eggensperger", "Syed Mohsin Ali",
-    "Christina Hernandez Wunsch", "Julien-Charles Levesque",
-    "Jost Tobias Springenberg", "Philipp Mueller", "Marius Lindauer",
-    "Jorn Tuyls"
+    "Matthias Feurer",
+    "Katharina Eggensperger",
+    "Syed Mohsin Ali",
+    "Christina Hernandez Wunsch",
+    "Julien-Charles Levesque",
+    "Jost Tobias Springenberg",
+    "Philipp Mueller",
+    "Marius Lindauer",
+    "Jorn Tuyls",
+    "Eddie Bergman"
 ]
 
-from ConfigSpace.configuration_space import Configuration, \
-    ConfigurationSpace
-from ConfigSpace.hyperparameters import CategoricalHyperparameter, \
-    UniformFloatHyperparameter, UniformIntegerHyperparameter, Constant, \
-    UnParametrizedHyperparameter, OrdinalHyperparameter
-from ConfigSpace.conditions import AndConjunction, OrConjunction, \
-    EqualsCondition, NotEqualsCondition, InCondition, GreaterThanCondition, LessThanCondition
-from ConfigSpace.forbidden import ForbiddenAndConjunction, \
-    ForbiddenEqualsClause, ForbiddenInClause, ForbiddenLessThanRelation, ForbiddenEqualsRelation, \
-    ForbiddenGreaterThanRelation
+import ConfigSpace.distributions as distributions
+from ConfigSpace.api import (Beta, Categorical, Distribution, Float, Int,
+                             Normal, Uniform)
+from ConfigSpace.conditions import (AndConjunction, EqualsCondition,
+                                    GreaterThanCondition, InCondition,
+                                    LessThanCondition, NotEqualsCondition,
+                                    OrConjunction)
+from ConfigSpace.configuration_space import Configuration, ConfigurationSpace
+from ConfigSpace.forbidden import (ForbiddenAndConjunction,
+                                   ForbiddenEqualsClause,
+                                   ForbiddenEqualsRelation,
+                                   ForbiddenGreaterThanRelation,
+                                   ForbiddenInClause,
+                                   ForbiddenLessThanRelation)
+from ConfigSpace.hyperparameters import (CategoricalHyperparameter, Constant,
+                                         OrdinalHyperparameter,
+                                         UniformFloatHyperparameter,
+                                         UniformIntegerHyperparameter,
+                                         UnParametrizedHyperparameter)
 
-__all__ = ["__version__", "Configuration", "ConfigurationSpace",
-           "CategoricalHyperparameter", "UniformFloatHyperparameter",
-           "UniformIntegerHyperparameter", "Constant",
-           "UnParametrizedHyperparameter", "OrdinalHyperparameter",
-           "AndConjunction", "OrConjunction",
-           "EqualsCondition", "NotEqualsCondition",
-           "InCondition", "GreaterThanCondition",
-           "LessThanCondition", "ForbiddenAndConjunction",
-           "ForbiddenEqualsClause", "ForbiddenInClause",
-           "ForbiddenLessThanRelation", "ForbiddenEqualsRelation",
-           "ForbiddenGreaterThanRelation"]
+__all__ = [
+    "__version__",
+    "Configuration",
+    "ConfigurationSpace",
+    "CategoricalHyperparameter",
+    "UniformFloatHyperparameter",
+    "UniformIntegerHyperparameter",
+    "Constant",
+    "UnParametrizedHyperparameter",
+    "OrdinalHyperparameter",
+    "AndConjunction",
+    "OrConjunction",
+    "EqualsCondition",
+    "NotEqualsCondition",
+    "InCondition",
+    "GreaterThanCondition",
+    "LessThanCondition",
+    "ForbiddenAndConjunction",
+    "ForbiddenEqualsClause",
+    "ForbiddenInClause",
+    "ForbiddenLessThanRelation",
+    "ForbiddenEqualsRelation",
+    "ForbiddenGreaterThanRelation",
+    "Beta",
+    "Categorical",
+    "Distribution",
+    "Float",
+    "Int",
+    "Normal",
+    "Uniform",
+    "distributions"
+]
