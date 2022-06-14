@@ -61,8 +61,8 @@ Installation
 
     pip install ConfigSpace
 
-The *ConfigSpace* package requires *numpy*, *cython* and *pyparsing*.
-Additionally, a functioning C compiler is required.
+If installing from source, the *ConfigSpace* package requires *numpy*, *cython*
+and *pyparsing*. Additionally, a functioning C compiler is required.
 
 On Ubuntu, the required compiler tools and Python headers can be installed with:
 
