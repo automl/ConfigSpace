@@ -13,13 +13,9 @@ from typing import Any
 import pytest
 
 from ConfigSpace import ConfigurationSpace
-from ConfigSpace.hyperparameters import (BetaFloatHyperparameter,
-                                         BetaIntegerHyperparameter,
-                                         CategoricalHyperparameter, Constant,
+from ConfigSpace.hyperparameters import (CategoricalHyperparameter, Constant,
                                          Hyperparameter,
                                          NormalFloatHyperparameter,
-                                         NormalIntegerHyperparameter,
-                                         OrdinalHyperparameter,
                                          UniformFloatHyperparameter,
                                          UniformIntegerHyperparameter)
 
