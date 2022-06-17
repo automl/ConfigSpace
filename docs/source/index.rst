@@ -32,7 +32,65 @@ explained how to serialize a
 .. _BOHB: https://github.com/automl/HpBandSter
 .. _auto-sklearn: https://github.com/automl/auto-sklearn
 
-Basic usage
+
+Easy usage
+
+.. doctest::
+
+    >>> from ConfigSpace import ConfigurationSpace
+    >>> cs = ConfigurationSpace(
+    >>>     name="myspace",
+    >>>     space={
+    >>>         "a": (0.1, 1.5),  # UniformFloat
+    >>>         "b": (2, 10),  # UniformInt
+    >>>         "c": ["mouse", "cat", "dog"],  # Categorical
+    >>>     },
+    >>> )
+    >>> cs.sample_configuration(2)
+    [Configuration(values={
+        'a': 1.1352397950032926,
+        'b': 6,
+        'c': 'dog',
+    })
+    , Configuration(values={
+        'a': 1.4623477411953076,
+        'b': 8,
+        'c': 'cat',
+    })]
+    <BLANKLINE>
+
+
+More flexibility
+
+.. doctest::
+
+    >>> from ConfigSpace import ConfigurationSpace, Int, Float, Categorical, Normal
+    >>> cs = ConfigurationSpace(
+    >>>     name="myspace",
+    >>>     space={
+    >>>         # UniformFloat
+    >>>         "a": Float("a", bounds=(0.1, 1.5), distribution=Normal(1, 10), log=True),
+    >>>         # UniformInt: You can still use the simple form here
+    >>>         "b": (2, 10),
+    >>>         # Categorical
+    >>>         "c": Categorical("c", ["mouse", "cat", "dog"], weights=[0.8, 0.1, 0.1]),
+    >>>     },
+    >>> )
+    >>> configs = cs.sample_configuration(2)
+    [Configuration(values={
+        'a': 0.13613799281779645,
+        'b': 6,
+        'c': 'mouse',
+    })
+    , Configuration(values={
+        'a': 0.11621314136407442,
+        'b': 6,
+        'c': 'mouse',
+    })]
+    <BLANKLINE>
+
+
+Maximum flexibility
 
 .. doctest::
 
