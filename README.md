@@ -9,6 +9,25 @@ under a BSD license.
 The documentation can be found at [https://automl.github.io/ConfigSpace/master/](https://automl.github.io/ConfigSpace/master/).
 Further examples can be found in the [SMAC documentation](https://automl.github.io/SMAC3/master/pages/examples/index.html).
 
+
+## Minimum Example
+
+```python
+from ConfigSpace import ConfigurationSpace
+
+cs = ConfigurationSpace(
+    name="myspace",
+    space={
+        "a": (0.1, 1.5),  # UniformFloat
+        "b": (2, 10),  # UniformInt
+        "c": ["mouse", "cat", "dog"],  # Categorical
+    },
+)
+
+configs = cs.sample_configuration(2)
+```
+
+
 ## Citing the ConfigSpace
 
 ```bibtex
