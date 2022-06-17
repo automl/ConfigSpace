@@ -75,7 +75,7 @@ class ConfigurationSpace(collections.abc.Mapping):
         seed: Union[int, None] = None,
         meta: Optional[Dict] = None,
         *,
-        space: Optional[Dict[str, Union[str, int, float]]] = None
+        space: Optional[Dict[str, Union[Tuple[int, int], Tuple[float, float], List[Union[int, float, str]], int, float, str]]] = None
     ) -> None:
         """
         A collection-like object containing a set of hyperparameter definitions and conditions.
@@ -98,7 +98,7 @@ class ConfigurationSpace(collections.abc.Mapping):
             Field for holding meta data provided by the user.
             Not used by the configuration space.
 
-        space: Dict[str, str | int | float] | None = None
+        space: Dict[str, Tuple[int, int] | Tuple[float, float] | List[str] | int | float | str] | None = None
             A simple configuration space to use:
 
             .. code:: python
