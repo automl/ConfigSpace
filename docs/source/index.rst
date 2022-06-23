@@ -138,7 +138,7 @@ When using Anaconda/Miniconda, the compiler has to be installed with:
 Citing the ConfigSpace
 ======================
 
-.. code:: bibtex
+.. code::
 
    @article{
        title   = {BOAH: A Tool Suite for Multi-Fidelity Bayesian Optimization & Analysis of Hyperparameters},
