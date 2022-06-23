@@ -1484,7 +1484,7 @@ class TestHyperparameters(unittest.TestCase):
 
         # This should yield a value that's approximately halfway towards the max in logspace
         f_symm_log = BetaIntegerHyperparameter(
-            "param", lower=1, upper=round(np.exp(10)), alpha=4.6, beta=4.6, log=True)
+            "param", lower=1, upper=np.round(np.exp(10)), alpha=4.6, beta=4.6, log=True)
         self.assertAlmostEqual(f_symm_log.default_value, 148)
         self.assertAlmostEqual(f_symm_log.normalized_default_value, 0.5321491582577761)
 
@@ -1495,7 +1495,7 @@ class TestHyperparameters(unittest.TestCase):
 
         # This should yield a value that's halfway towards the max in logspace
         f_unif_log = BetaIntegerHyperparameter(
-            "param", lower=1, upper=round(np.exp(10)), alpha=1, beta=1, log=True)
+            "param", lower=1, upper=np.round(np.exp(10)), alpha=1, beta=1, log=True)
         self.assertAlmostEqual(f_unif_log.default_value, 148)
         self.assertAlmostEqual(f_unif_log.normalized_default_value, 0.5321491582577761)
 
@@ -1506,7 +1506,7 @@ class TestHyperparameters(unittest.TestCase):
         self.assertAlmostEqual(f_max.normalized_default_value, 0.7, places=4)
 
         f_max_log = BetaIntegerHyperparameter(
-            "param", lower=1, upper=round(np.exp(10)), alpha=4.7, beta=2.12, log=True)
+            "param", lower=1, upper=np.round(np.exp(10)), alpha=4.7, beta=2.12, log=True)
         self.assertAlmostEqual(f_max_log.default_value, 2157)
         self.assertAlmostEqual(f_max_log.normalized_default_value, 0.7827083200774537)
 
@@ -1646,7 +1646,7 @@ class TestHyperparameters(unittest.TestCase):
     def test_betaint__pdf(self):
         c1 = BetaIntegerHyperparameter("param", alpha=3, beta=2, lower=0, upper=10)
         c2 = BetaIntegerHyperparameter("logparam", alpha=3, beta=2,
-                                       lower=1, upper=round(np.exp(10)), log=True)
+                                       lower=1, upper=np.round(np.exp(10)), log=True)
 
         # since the logged and unlogged parameters will have different active domains
         # in the unit range, they will not evaluate identically under _pdf
