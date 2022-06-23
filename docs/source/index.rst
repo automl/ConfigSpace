@@ -39,25 +39,26 @@ Easy usage
 
     >>> from ConfigSpace import ConfigurationSpace
     >>> cs = ConfigurationSpace(
-    >>>     name="myspace",
-    >>>     space={
-    >>>         "a": (0.1, 1.5),  # UniformFloat
-    >>>         "b": (2, 10),  # UniformInt
-    >>>         "c": ["mouse", "cat", "dog"],  # Categorical
-    >>>     },
-    >>> )
+    ...     name="myspace",
+    ...     seed=1234,
+    ...     space={
+    ...         "a": (0.1, 1.5),  # UniformFloat
+    ...         "b": (2, 10),  # UniformInt
+    ...         "c": ["mouse", "cat", "dog"],  # Categorical
+    ...     },
+    ... )
     >>> cs.sample_configuration(2)
     [Configuration(values={
-        'a': 1.1352397950032926,
-        'b': 6,
-        'c': 'dog',
+      'a': 0.36812723053044916,
+      'b': 5,
+      'c': 'dog',
     })
     , Configuration(values={
-        'a': 1.4623477411953076,
-        'b': 8,
-        'c': 'cat',
-    })]
-    <BLANKLINE>
+      'a': 0.9709522794557646,
+      'b': 9,
+      'c': 'mouse',
+    })
+    ]
 
 
 More flexibility
@@ -66,28 +67,31 @@ More flexibility
 
     >>> from ConfigSpace import ConfigurationSpace, Int, Float, Categorical, Normal
     >>> cs = ConfigurationSpace(
-    >>>     name="myspace",
-    >>>     space={
-    >>>         # UniformFloat
-    >>>         "a": Float("a", bounds=(0.1, 1.5), distribution=Normal(1, 10), log=True),
-    >>>         # UniformInt: You can still use the simple form here
-    >>>         "b": (2, 10),
-    >>>         # Categorical
-    >>>         "c": Categorical("c", ["mouse", "cat", "dog"], weights=[0.8, 0.1, 0.1]),
-    >>>     },
-    >>> )
-    >>> configs = cs.sample_configuration(2)
+    ...     name="myspace",
+    ...     seed=1234,
+    ...     space={
+    ...         # UniformFloat
+    ...         "a": Float("a", bounds=(0.1, 1.5), distribution=Normal(1, 10), log=True),
+    ...
+    ...         # UniformInt: You can still use the simple form here
+    ...         "b": (2, 10),
+    ...
+    ...         # Categorical
+    ...         "c": Categorical("c", ["mouse", "cat", "dog"], weights=[0.8, 0.1, 0.1]),
+    ...     },
+    ... )
+    >>> cs.sample_configuration(2)
     [Configuration(values={
-        'a': 0.13613799281779645,
-        'b': 6,
-        'c': 'mouse',
+      'a': 0.17013149799713567,
+      'b': 5,
+      'c': 'mouse',
     })
     , Configuration(values={
-        'a': 0.11621314136407442,
-        'b': 6,
-        'c': 'mouse',
-    })]
-    <BLANKLINE>
+      'a': 0.5476203000512744,
+      'b': 9,
+      'c': 'mouse',
+    })
+    ]
 
 
 Maximum flexibility
