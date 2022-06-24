@@ -599,7 +599,7 @@ class TestHyperparameters(unittest.TestCase):
             c1.pdf('pdf')
 
         c_nobounds = NormalFloatHyperparameter("param", mu=3, sigma=2)
-        self.assertAlmostEqual(c_nobounds.pdf(np.array([2])), 0.17603266338214976)
+        self.assertAlmostEqual(c_nobounds.pdf(np.array([[2]])), 0.17603266338214976)
 
         with self.assertRaisesRegex(ValueError, "Method pdf expects a one-dimensional numpy array"):
             c1.pdf(wrong_shape_1)
@@ -655,7 +655,7 @@ class TestHyperparameters(unittest.TestCase):
             c1.pdf('pdf')
 
         c_nobounds = NormalFloatHyperparameter("param", mu=3, sigma=2)
-        self.assertAlmostEqual(c_nobounds.pdf(np.array([2])), 0.17603266338214976)
+        self.assertAlmostEqual(c_nobounds.pdf(np.array([[2]])), 0.17603266338214976)
 
         # Simply check that it runs, since _pdf does not restrict shape (only public method does)
         c1._pdf(accepted_shape_1)
@@ -1352,7 +1352,7 @@ class TestHyperparameters(unittest.TestCase):
             c1.pdf('pdf')
 
         c_nobounds = NormalFloatHyperparameter("param", mu=3, sigma=2)
-        self.assertAlmostEqual(c_nobounds.pdf(np.array([2])), 0.17603266338214976)
+        self.assertAlmostEqual(c_nobounds.pdf(np.array([[2]])), 0.17603266338214976)
 
         with self.assertRaisesRegex(ValueError, "Method pdf expects a one-dimensional numpy array"):
             c1.pdf(wrong_shape_1)
@@ -1400,7 +1400,7 @@ class TestHyperparameters(unittest.TestCase):
             c1.pdf('pdf')
 
         c_nobounds = NormalFloatHyperparameter("param", mu=3, sigma=2)
-        self.assertAlmostEqual(c_nobounds.pdf(np.array([2])), 0.17603266338214976)
+        self.assertAlmostEqual(c_nobounds.pdf(np.array([[2]])), 0.17603266338214976)
 
     def test_normalint_get_max_density(self):
         c1 = NormalIntegerHyperparameter("param", lower=0, upper=10, mu=3, sigma=2)
