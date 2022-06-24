@@ -563,7 +563,7 @@ def generate_grid(configuration_space: ConfigurationSpace,
 
             if param.log:
                 grid_points = np.exp(grid_points)
-            grid_points = grid_points.astype(int)
+            grid_points = np.round(grid_points)
 
             # Avoiding rounding off issues
             if grid_points[0] < param.lower:
