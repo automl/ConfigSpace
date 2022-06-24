@@ -1143,7 +1143,7 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
         mu = self.mu
         sigma = self.sigma
         if self.lower == None:
-            return norm(loc=mu, scale=sigma).pdf(vector)
+            return norm(loc=mu, scale=sigma).pdf(vector.astype(float))
         else:
             mu = self.mu
             sigma = self.sigma
@@ -1152,7 +1152,7 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
             a = (lower - mu) / sigma
             b = (upper - mu) / sigma
             
-            return truncnorm(a, b, loc=mu, scale=sigma).pdf(vector)
+            return truncnorm(a, b, loc=mu, scale=sigma).pdf(vector.astype(float))
 
     def get_max_density(self) -> float:
         if self.lower is None:
