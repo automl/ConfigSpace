@@ -193,9 +193,7 @@ jobs:
         run: |
           python -m pip install twine
           twine_output=`twine check ${{ env.sdist_name }}`
-          if [[ "$twine_output" != "Checking ${{ env.sdist_name }}: PASSED" ]]; then
-            echo $twine_output && exit 1;
-          fi
+          twine check ${{env.sdist_name}} --strict
 
       - name: Install dist
         run: |
