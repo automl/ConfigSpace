@@ -28,6 +28,7 @@
 
 import os
 import unittest
+from pytest import approx
 
 import numpy as np
 
@@ -491,8 +492,18 @@ class UtilTest(unittest.TestCase):
         # Check 1st and last generated configurations completely:
         first_expected_dict = {'float1': -1.0, 'int1': 0}
         last_expected_dict = {'float1': -1.0, 'int1': 1000, 'int2_cond': 100, 'float2_cond': 100.0}
+
         self.assertEqual(generated_grid[0].get_dictionary(), first_expected_dict)
-        self.assertEqual(generated_grid[-1].get_dictionary(), last_expected_dict)
+
+        # This was having slight numerical instability (99.99999999999994 vs 100.0) and so
+        # we manually do a pass over each value
+        last_generated_dict = generated_grid[-1].get_dictionary()
+        for k, expected_value in last_expected_dict.items():
+            generated_value = last_generated_dict[k]
+            if isinstance(generated_value, float):
+                assert generated_value == approx(expected_value)
+            else:
+                assert generated_value == expected_value
         # Here, we test that a few randomly chosen values in the generated grid
         # correspond to the ones I checked.
         self.assertEqual(generated_grid[3].get_dictionary()['int1'], 1000)
