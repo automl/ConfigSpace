@@ -41,7 +41,7 @@ __authors__ = [
     "Eddie Bergman"
 ]
 
-import ConfigSpace.distributions as distributions
+import ConfigSpace.api.distributions as distributions
 from ConfigSpace.api import (Beta, Categorical, Distribution, Float, Int,
                              Normal, Uniform)
 from ConfigSpace.conditions import (AndConjunction, EqualsCondition,
