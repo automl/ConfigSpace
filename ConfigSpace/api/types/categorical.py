@@ -68,7 +68,62 @@ def Categorical(
     meta: dict | None = None,
     **kwargs: Any,
 ) -> CategoricalHyperparameter | OrdinalHyperparameter:
-    """TODO"""
+    """Creates a Categorical Hyperparameter.
+
+    ``CategoricalHyperparameter``s can be used to represent a discrete
+    choice. Optionally, you can specify that these values are also ordered in
+    some manner, e.g. ``["small", "medium", "large"].
+
+    .. code:: python
+
+        # A simple categorical hyperparameter
+        c = Categorical("animals", ["cat", "dog", "mouse"])
+
+        # With a default
+        c = Categorical("animals", ["cat", "dog", "mouse"], default="mouse")
+
+        # Make them weighted
+        c = Categorical("animals", ["cat", "dog", "mouse"], weights=[0.1, 0.8, 3.14])
+
+        # Specify it's an OrdinalHyperparameter (ordered categories)
+        # ... note that you can't apply weights to an Ordinal
+        o = Categorical("size", ["small", "medium", "large"], ordered=True)
+
+        # Add some meta information for your own tracking
+        c = Categorical("animals", ["cat", "dog", "mouse"], meta={"use": "Favourite Animal"})
+
+    Note
+    ----
+    `Categorical` is actually a function, please use the corresponding return types if
+    doing an `isinstance(param, type)` check with either :py:class:`CategoricalHyperparameter`
+    and/or :py:class:`OrdinalHyperparameter`.
+
+    Parameters
+    ----------
+    name: str
+        The name of the hyperparameter
+
+    items: Sequence[T],
+        A list of items to put in the category. Note that there are limitations:
+
+        * Can't use `None`, use a string "None" instead and convert as required.
+        * Can't have duplicate categories, use weights if required.
+
+    default: T | None = None
+        The default value of the categorical hyperparameter
+
+    weights: Sequence[float] | None = None
+        The weights to apply to each categorical. Each item will be sampled according
+        to these weights.
+
+    ordered: bool = False
+        Whether the categorical is ordered or not. If True, this will return an
+        :py:class:`OrdinalHyperparameter`, otherwise it remain a
+        :py:class:`CategoricalHyperparameter`.
+
+    meta: dict | None = None
+        Any additional meta information you would like to store along with the hyperparamter.
+    """
     if ordered and weights is not None:
         raise ValueError("Can't apply `weights` to `ordered` Categorical")
 
