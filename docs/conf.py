@@ -1,10 +1,7 @@
-import os, sys
 import datetime
 
-sys.path.insert(0, os.path.abspath(".."))
-
-import automl_sphinx_theme  # Must come after the path injection above
-from ConfigSpace import __version__, __authors__
+import automl_sphinx_theme
+from ConfigSpace import __authors__, __version__
 
 authors = ", ".join(__authors__)
 
@@ -19,6 +16,18 @@ options = {
         "twitter_url": "https://twitter.com/automl_org?lang=de",
     },
 }
+
+extensions = [
+    'sphinx.ext.autodoc',
+    'sphinx.ext.doctest',
+    'sphinx.ext.coverage',
+    'sphinx.ext.mathjax',
+    'sphinx.ext.viewcode',
+    'sphinx.ext.autosummary',
+    'sphinx.ext.napoleon',
+    'sphinx.ext.githubpages',
+    'sphinx.ext.doctest',
+]
 
 # Import conf.py from the automl theme
 automl_sphinx_theme.set_options(globals(), options)
