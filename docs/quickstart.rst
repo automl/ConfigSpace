@@ -25,7 +25,7 @@ what you can realize with it. This tutorial will include the following steps:
 We will show those steps in an exemplary way by creating a
 :class:`~ConfigSpace.configuration_space.ConfigurationSpace` for ridge regression.
 Note that the topics adding constraints, adding forbidden clauses and
-serialization are explained in the :doc:`user guide <User-Guide>`.
+serialization are explained in the :doc:`user guide <guide>`.
 
 
 Basic Usage
@@ -64,7 +64,7 @@ For demonstration purpose, we sample a configuration from the :class:`~ConfigSpa
 
 And that's it.
 
-To continue reading, visit the :doc:`user guide <User-Guide>` section. There are
+To continue reading, visit the :doc:`user guide <guide>` section. There are
 more information about hyperparameters, as well as an introduction to the
 powerful concepts of :ref:`Conditions` and :ref:`Forbidden clauses`.
 

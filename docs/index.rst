@@ -1,10 +1,14 @@
-.. ConfigSpace documentation master file, created by
-   sphinx-quickstart on Mon Jul 23 18:06:55 2018.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
 Welcome to ConfigSpace's documentation!
 =======================================
+
+.. toctree::
+  :hidden:
+  :maxdepth: 2
+
+  quickstart
+  guide
+  examples
+  api
 
 ConfigSpace is a simple python package to manage configuration spaces for
 `algorithm configuration <https://ml.informatik.uni-freiburg.de/papers/09-JAIR-ParamILS.pdf>`_ and
@@ -22,7 +26,7 @@ In the :doc:`quickstart`, you will see how to set up a
 and add hyperparameters of different types to it.
 Besides containing hyperparameters, a :class:`~ConfigSpace.configuration_space.ConfigurationSpace`
 can contain constraints such as conditions and forbidden clauses.
-Those are introduced in the :doc:`user guide <User-Guide>`.
+Those are introduced in the :doc:`user guide <guide>`.
 
 Furthermore, in the :ref:`serialization section <Serialization>`, it will be
 explained how to serialize a
@@ -151,13 +155,3 @@ Citing the ConfigSpace
        date    = {2019},
    }
 
-
-Contents
-========
-
-.. toctree::
-   :maxdepth: 2
-
-   quickstart.rst
-   User-Guide.rst
-   API-Doc.rst

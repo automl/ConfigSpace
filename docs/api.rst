@@ -1,5 +1,5 @@
-API-Documentation
-+++++++++++++++++
+API
++++
 
 ConfigurationSpace
 ==================
@@ -70,7 +70,7 @@ Conditions
 ConfigSpace can realize *equal*, *not equal*, *less than*, *greater than* and
 *in conditions*. Conditions can be combined by using the conjunctions *and* and
 *or*. To see how to use conditions, please take a look at the
-:doc:`user guide <User-Guide>`.
+:doc:`user guide <guide>`.
 
 4.1 EqualsCondition
 -------------------
@@ -128,7 +128,7 @@ sampled from a configuration space if a certain condition is met. The
 *ForbiddenAndConjunction* can be used to combine *ForbiddenEqualsClauses* and
 the *ForbiddenInClauses*.
 
-For a further example, please take a look in the :doc:`user guide <User-Guide>`.
+For a further example, please take a look in the :doc:`user guide <guide>`.
 
 5.1 ForbiddenEqualsClause
 -------------------------
