@@ -7,9 +7,11 @@ from __future__ import annotations
 from typing import Any, overload
 
 from ConfigSpace.api.distributions import Beta, Distribution, Normal, Uniform
-from ConfigSpace.hyperparameters import (BetaIntegerHyperparameter,
-                                         NormalIntegerHyperparameter,
-                                         UniformIntegerHyperparameter)
+from ConfigSpace.hyperparameters import (
+    BetaIntegerHyperparameter,
+    NormalIntegerHyperparameter,
+    UniformIntegerHyperparameter,
+)
 
 
 # Uniform | None -> UniformIntegerHyperparameter

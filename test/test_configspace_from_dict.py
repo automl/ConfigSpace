@@ -13,11 +13,14 @@ from typing import Any
 import pytest
 
 from ConfigSpace import ConfigurationSpace
-from ConfigSpace.hyperparameters import (CategoricalHyperparameter, Constant,
-                                         Hyperparameter,
-                                         NormalFloatHyperparameter,
-                                         UniformFloatHyperparameter,
-                                         UniformIntegerHyperparameter)
+from ConfigSpace.hyperparameters import (
+    CategoricalHyperparameter,
+    Constant,
+    Hyperparameter,
+    NormalFloatHyperparameter,
+    UniformFloatHyperparameter,
+    UniformIntegerHyperparameter,
+)
 
 
 @pytest.mark.parametrize(
