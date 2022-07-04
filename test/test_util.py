@@ -28,6 +28,7 @@
 
 import os
 import unittest
+from pytest import approx
 
 import numpy as np
 
@@ -277,6 +278,35 @@ class UtilTest(unittest.TestCase):
 
         np.testing.assert_almost_equal(new_array, expected_array)
 
+    def test_check_neighbouring_config_diamond_or_conjunction(self):
+        diamond = ConfigurationSpace()
+        top = CategoricalHyperparameter('top', [0, 1], 0)
+        middle = CategoricalHyperparameter('middle', [0, 1], 1)
+        bottom_left = CategoricalHyperparameter('bottom_left', [0, 1], 1)
+        bottom_right = CategoricalHyperparameter('bottom_right', [0, 1, 2, 3], 1)
+
+        diamond.add_hyperparameters([top, bottom_left, bottom_right, middle])
+        diamond.add_condition(EqualsCondition(middle, top, 0))
+        diamond.add_condition(EqualsCondition(bottom_left, middle, 0))
+        diamond.add_condition(OrConjunction(EqualsCondition(bottom_right, middle, 1),
+                                            EqualsCondition(bottom_right, top, 1)))
+
+        config = Configuration(diamond, {'top': 0, 'middle': 1, 'bottom_right': 1})
+        hp_name = "top"
+        index = diamond.get_idx_by_hyperparameter_name(hp_name)
+        neighbor_value = 1
+
+        new_array = ConfigSpace.c_util.change_hp_value(
+            diamond,
+            config.get_array(),
+            hp_name,
+            neighbor_value,
+            index
+        )
+        expected_array = np.array([1, np.nan, np.nan, 1])
+
+        np.testing.assert_almost_equal(new_array, expected_array)
+
     def test_check_neighbouring_config_diamond_str(self):
         diamond = ConfigurationSpace()
         head = CategoricalHyperparameter('head', ['red', 'green'])
@@ -462,8 +492,18 @@ class UtilTest(unittest.TestCase):
         # Check 1st and last generated configurations completely:
         first_expected_dict = {'float1': -1.0, 'int1': 0}
         last_expected_dict = {'float1': -1.0, 'int1': 1000, 'int2_cond': 100, 'float2_cond': 100.0}
+
         self.assertEqual(generated_grid[0].get_dictionary(), first_expected_dict)
-        self.assertEqual(generated_grid[-1].get_dictionary(), last_expected_dict)
+
+        # This was having slight numerical instability (99.99999999999994 vs 100.0) and so
+        # we manually do a pass over each value
+        last_generated_dict = generated_grid[-1].get_dictionary()
+        for k, expected_value in last_expected_dict.items():
+            generated_value = last_generated_dict[k]
+            if isinstance(generated_value, float):
+                assert generated_value == approx(expected_value)
+            else:
+                assert generated_value == expected_value
         # Here, we test that a few randomly chosen values in the generated grid
         # correspond to the ones I checked.
         self.assertEqual(generated_grid[3].get_dictionary()['int1'], 1000)

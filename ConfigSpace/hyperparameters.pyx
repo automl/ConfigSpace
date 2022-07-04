@@ -776,7 +776,7 @@ cdef class UniformFloatHyperparameter(FloatHyperparameter):
         if self.log:
             scalar = math.exp(scalar)
         if self.q is not None:
-            scalar = round((scalar - self.lower) / self.q) * self.q + self.lower
+            scalar = np.round((scalar - self.lower) / self.q) * self.q + self.lower
             scalar = min(scalar, self.upper)
             scalar = max(scalar, self.lower)
         scalar = min(self.upper, max(self.lower, scalar))
@@ -1089,7 +1089,7 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
         if self.log:
             scalar = math.exp(scalar)
         if self.q is not None:
-            scalar = round(scalar / self.q) * self.q
+            scalar = np.round(scalar / self.q) * self.q
         return scalar
 
     def _inverse_transform(self, vector: Optional[np.ndarray]) -> Union[float, np.ndarray]:
@@ -1511,10 +1511,10 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
     cpdef long long _transform_scalar(self, double scalar):
         scalar = self.ufhp._transform_scalar(scalar)
         if self.q is not None:
-            scalar = round((scalar - self.lower) / self.q) * self.q + self.lower
+            scalar = np.round((scalar - self.lower) / self.q) * self.q + self.lower
             scalar = min(scalar, self.upper)
             scalar = max(scalar, self.lower)
-        return int(round(scalar))
+        return int(np.round(scalar))
 
     def _inverse_transform(self, vector: Union[np.ndarray, float, int]
                            ) -> Union[np.ndarray, float, int]:
@@ -1897,7 +1897,7 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
 
     cpdef long long _transform_scalar(self, double scalar):
         scalar = self.nfhp._transform_scalar(scalar)
-        return int(round(scalar))
+        return int(np.round(scalar))
 
     def _inverse_transform(self, vector: Union[np.ndarray, float, int]
                            ) -> Union[np.ndarray, float]:
@@ -2047,7 +2047,7 @@ cdef class BetaIntegerHyperparameter(UniformIntegerHyperparameter):
 
         """
         super(BetaIntegerHyperparameter, self).__init__(
-            name, lower, upper, round((upper + lower) / 2), q, log, meta)
+            name, lower, upper, np.round((upper + lower) / 2), q, log, meta)
         self.alpha = float(alpha)
         self.beta = float(beta)
         if (alpha < 1) or (beta < 1):
