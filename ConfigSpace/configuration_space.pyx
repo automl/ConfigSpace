@@ -77,8 +77,7 @@ class ConfigurationSpace(collections.abc.Mapping):
         *,
         space: Optional[Dict[str, Union[Tuple[int, int], Tuple[float, float], List[Union[int, float, str]], int, float, str]]] = None
     ) -> None:
-        """
-        A collection-like object containing a set of hyperparameter definitions and conditions.
+        """A collection-like object containing a set of hyperparameter definitions and conditions.
 
         A configuration space organizes all hyperparameters and its conditions
         as well as its forbidden clauses. Configurations can be sampled from
@@ -701,7 +700,7 @@ class ConfigurationSpace(collections.abc.Mapping):
                                 prefix: str,
                                 configuration_space: 'ConfigurationSpace',
                                 delimiter: str = ":",
-                                parent_hyperparameter: Hyperparameter = None
+                                parent_hyperparameter: dict = None
                                 ) -> 'ConfigurationSpace':
         """
         Combine two configuration space by adding one the other configuration
@@ -717,9 +716,11 @@ class ConfigurationSpace(collections.abc.Mapping):
             The configuration space which should be added
         delimiter : str, optional
             Defaults to ':'
-        parent_hyperparameter : :ref:`Hyperparameters`, optional
+        parent_hyperparameter : dict | None = None
             Adds for each new hyperparameter the condition, that
-            ``parent_hyperparameter`` is active
+            ``parent_hyperparameter`` is active. Must be a dictionary with two keys
+            "parent" and "value", meaning that the added configuration space is active
+            when `parent` is equal to `value`
 
         Returns
         -------

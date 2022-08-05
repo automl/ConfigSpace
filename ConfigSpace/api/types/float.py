@@ -1,7 +1,3 @@
-"""Interface to Float based hyperparameters
-
-Most interactions occur through the Float function and constructs the Cpython types under the hood
-"""
 from __future__ import annotations
 
 from typing import Any, overload
@@ -90,6 +86,9 @@ def Float(
         # Give it a default value
         Float("a", (1, 10), default=4.3)
 
+        # Sample on a log scale
+        Float("a", (1, 100), log=True)
+
         # Quantized into three brackets
         Float("a", (1, 10), q=3)
 
@@ -110,7 +109,7 @@ def Float(
         The bounds to give to the float. Note that by default, this is required
         for Uniform distribution, which is the default distribution
 
-    distribution : Uniform | Normal | Beta = Uniform
+    distribution : Uniform | Normal | Beta, = Uniform
         The distribution to use for the hyperparameter. See above
 
     default : float | None = None
@@ -118,12 +117,12 @@ def Float(
 
     q : float | None = None
         The quantization factor, must evenly divide the boundaries.
-        Sampled values will be
 
         Note
         ----
         Quantization points act are not equal and require experimentation
         to be certain about
+
         * https://github.com/automl/ConfigSpace/issues/264
 
     log : bool = False

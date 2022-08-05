@@ -17,6 +17,9 @@ options = {
     },
 }
 
+# Import conf.py from the automl theme
+automl_sphinx_theme.set_options(globals(), options)
+
 extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.doctest',
@@ -29,5 +32,8 @@ extensions = [
     'sphinx.ext.doctest',
 ]
 
-# Import conf.py from the automl theme
-automl_sphinx_theme.set_options(globals(), options)
+autodoc_typehints = "description"
+autoclass_content = "both"
+autodoc_default_options = {
+    "inherited-members": True,
+}

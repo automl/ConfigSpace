@@ -38,7 +38,7 @@ __authors__ = [
     "Philipp Mueller",
     "Marius Lindauer",
     "Jorn Tuyls",
-    "Eddie Bergman"
+    "Eddie Bergman",
 ]
 
 import ConfigSpace.api.distributions as distributions
@@ -59,7 +59,9 @@ from ConfigSpace.hyperparameters import (CategoricalHyperparameter, Constant,
                                          OrdinalHyperparameter,
                                          UniformFloatHyperparameter,
                                          UniformIntegerHyperparameter,
-                                         UnParametrizedHyperparameter)
+                                         UnParametrizedHyperparameter,
+                                         BetaFloatHyperparameter,
+                                         BetaIntegerHyperparameter)
 
 __all__ = [
     "__version__",
@@ -68,6 +70,8 @@ __all__ = [
     "CategoricalHyperparameter",
     "UniformFloatHyperparameter",
     "UniformIntegerHyperparameter",
+    "BetaFloatHyperparameter",
+    "BetaIntegerHyperparameter",
     "Constant",
     "UnParametrizedHyperparameter",
     "OrdinalHyperparameter",
@@ -91,5 +95,5 @@ __all__ = [
     "Int",
     "Normal",
     "Uniform",
-    "distributions"
+    "distributions",
 ]

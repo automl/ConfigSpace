@@ -1,7 +1,3 @@
-"""Interface to Int based hyperparameters.
-
-Most interactions occur through the Int function and constructs the Cpython types under the hood
-"""
 from __future__ import annotations
 
 from typing import Any, overload
@@ -30,7 +26,7 @@ def Int(
     ...
 
 
-# Normal
+# Normal -> NormalIntegerHyperparameter
 @overload
 def Int(
     name: str,
@@ -46,6 +42,7 @@ def Int(
     ...
 
 
+# Beta -> BetaIntegerHyperparameter
 @overload
 def Int(
     name: str,
@@ -91,6 +88,9 @@ def Int(
         # Give it a default value
         Int("a", (1, 10), default=4)
 
+        # Sample on a log scale
+        Int("a", (1, 100), log=True)
+
         # Quantized into three brackets
         Int("a", (1, 10), q=3)
 
@@ -111,7 +111,7 @@ def Int(
         The bounds to give to the integer. Note that by default, this is required
         for Uniform distribution, which is the default distribution
 
-    distribution : Uniform | Normal | Beta = Uniform
+    distribution : Uniform | Normal | Beta, = Uniform
         The distribution to use for the hyperparameter. See above
 
     default : int | None = None
@@ -121,10 +121,12 @@ def Int(
         The quantization factor, must evenly divide the boundaries.
         Sampled values will be
 
-            full range
-        1    4    7    10
-        |--------------|
-        |    |    |    |  q = 3
+        .. code::
+
+                full range
+            1    4    7    10
+            |--------------|
+            |    |    |    |  q = 3
 
         All samples here will then be in {1, 4, 7, 10}
 
@@ -132,6 +134,7 @@ def Int(
         ----
         Quantization points act are not equal and require experimentation
         to be certain about
+
         * https://github.com/automl/ConfigSpace/issues/264
 
     log : bool = False

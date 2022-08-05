@@ -17,47 +17,100 @@ Configuration
 
 Hyperparameters
 ===============
+ConfigSpace contains
+:func:`~ConfigSpace.api.types.float.Float`,
+:func:`~ConfigSpace.api.types.int.Int`
+and :func:`~ConfigSpace.api.types.categorical.Categorical` hyperparamters, each with their own customizability.
 
-ConfigSpace contains integer, float, categorical, as well as ordinal
-hyperparameters. Integer and float hyperparameter can be sampled from a uniform
-or normal distribution. Example usages are shown in the
-:doc:`quickstart <quickstart>`.
+For :func:`~ConfigSpace.api.types.float.Float` and :func:`~ConfigSpace.api.types.int.Int`, you will find their
+interface much the same, being able to take the same :ref:`distributions <Distributions>` while :func:`~ConfigSpace.api.types.categorical.Categorical` can take weights or be ordered.
 
-3.1 Integer hyperparameters
----------------------------
+These are all convenience functions that construct the more complex :ref:`hyperparameter classes <Advanced_Hyperparameters>` which make up the backbone of what's possible.
+
+Example usages are shown below each.
+
+Simple Types
+------------
+
+Float
+^^^^^
+
+.. automodule:: ConfigSpace.api.types.float
+
+Int
+^^^
+
+.. automodule:: ConfigSpace.api.types.int
+
+Categorical
+^^^^^^^^^^^
+
+.. automodule:: ConfigSpace.api.types.categorical
+
+
+.. _Distributions:
+
+Distributions
+-------------
+These can be used as part of the ``distribution`` parameter for the basic
+:func:`~ConfigSpace.api.types.int.Int` and :func:`~ConfigSpace.api.types.float.Float` functions.
+
+.. automodule:: ConfigSpace.api.distributions
+    :exclude-members: Distribution
+
+.. _Advanced_Hyperparameters:
+
+Advanced Types
+--------------
+The full hyperparameters are exposed through the following API points.
+
+Integer hyperparameters
+^^^^^^^^^^^^^^^^^^^^^^^
+These can all be constructed with the simple :func:`~ConfigSpace.api.types.int` function and
+passing the corresponding :ref:`distribution <Distributions>`.
 
 .. autoclass:: ConfigSpace.hyperparameters.UniformIntegerHyperparameter
 
 .. autoclass:: ConfigSpace.hyperparameters.NormalIntegerHyperparameter
 
+.. autoclass:: ConfigSpace.hyperparameters.BetaIntegerHyperparameter
 
 
-3.2 Float hyperparameters
--------------------------
+
+.. _advanced_float:
+Float hyperparameters
+^^^^^^^^^^^^^^^^^^^^^
+These can all be constructed with the simple :func:`~ConfigSpace.api.types.float` function and
+passing the corresponding :ref:`distribution <Distributions>`.
 
 .. autoclass:: ConfigSpace.hyperparameters.UniformFloatHyperparameter
 
 .. autoclass:: ConfigSpace.hyperparameters.NormalFloatHyperparameter
 
+.. autoclass:: ConfigSpace.hyperparameters.BetaFloatHyperparameter
 
 
-.. _Categorical hyperparameters:
 
-3.3 Categorical hyperparameters
--------------------------------
+.. _advanced_categorical:
+Categorical Hyperparameter
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+This can be constructed with the simple form :func:`~ConfigSpace.api.types.categorical` and setting
+``ordered=False`` which is the default.
 
 .. autoclass:: ConfigSpace.hyperparameters.CategoricalHyperparameter
 
 
-3.4 OrdinalHyperparameters
---------------------------
+Ordinal Hyperparameter
+^^^^^^^^^^^^^^^^^^^^^^
+This can be constructed with the simple form :func:`~ConfigSpace.api.types.categorical` and setting
+``ordered=True``.
 
 .. autoclass:: ConfigSpace.hyperparameters.OrdinalHyperparameter
 
 .. _Other hyperparameters:
 
-3.5 Constant
-------------
+Constant
+^^^^^^^^
 
 .. autoclass:: ConfigSpace.hyperparameters.Constant
 
@@ -72,47 +125,47 @@ ConfigSpace can realize *equal*, *not equal*, *less than*, *greater than* and
 *or*. To see how to use conditions, please take a look at the
 :doc:`user guide <guide>`.
 
-4.1 EqualsCondition
+EqualsCondition
 -------------------
 
 .. autoclass:: ConfigSpace.conditions.EqualsCondition
 
 .. _NotEqualsCondition:
 
-4.2 NotEqualsCondition
-----------------------
+NotEqualsCondition
+------------------
 
 .. autoclass:: ConfigSpace.conditions.NotEqualsCondition
 
 .. _LessThanCondition:
 
-4.3 LessThanCondition
----------------------
+LessThanCondition
+-----------------
 
 .. autoclass:: ConfigSpace.conditions.LessThanCondition
 
 
 
-4.4 GreaterThanCondition
-------------------------
+GreaterThanCondition
+--------------------
 
 .. autoclass:: ConfigSpace.conditions.GreaterThanCondition
 
 
-4.5 InCondition
----------------
+InCondition
+-----------
 
 .. autoclass:: ConfigSpace.conditions.InCondition
 
 
-4.6 AndConjunction
-------------------
+AndConjunction
+--------------
 
 .. autoclass:: ConfigSpace.conditions.AndConjunction
 
 
-4.7 OrConjunction
------------------
+OrConjunction
+-------------
 
 .. autoclass:: ConfigSpace.conditions.OrConjunction
 
@@ -130,18 +183,18 @@ the *ForbiddenInClauses*.
 
 For a further example, please take a look in the :doc:`user guide <guide>`.
 
-5.1 ForbiddenEqualsClause
--------------------------
+ForbiddenEqualsClause
+---------------------
 .. autoclass:: ConfigSpace.ForbiddenEqualsClause(hyperparameter, value)
 
 
-5.2 ForbiddenInClause
----------------------
+ForbiddenInClause
+-----------------
 .. autoclass:: ConfigSpace.ForbiddenInClause(hyperparameter, values)
 
 
-5.3 ForbiddenAndConjunction
----------------------------
+ForbiddenAndConjunction
+-----------------------
 .. autoclass:: ConfigSpace.ForbiddenAndConjunction(*args)
 
 
@@ -158,12 +211,11 @@ importance with `CAVE <https://github.com/automl/CAVE>`_.
 
 .. _json:
 
-6.1 Serialization to JSON
--------------------------
+Serialization to JSON
+---------------------
 
 .. automodule:: ConfigSpace.read_and_write.json
    :members: read, write
-   :undoc-members:
 
 .. _pcs_new:
 
@@ -172,14 +224,12 @@ importance with `CAVE <https://github.com/automl/CAVE>`_.
 
 .. automodule:: ConfigSpace.read_and_write.pcs_new
    :members: read, write
-   :undoc-members:
 
-6.3 Serialization with pcs (old format)
----------------------------------------
+Serialization with pcs (old format)
+-----------------------------------
 
 .. automodule:: ConfigSpace.read_and_write.pcs
    :members: read, write
-   :undoc-members:
 
 Utils
 =====

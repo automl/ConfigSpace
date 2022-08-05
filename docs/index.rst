@@ -7,7 +7,6 @@ Welcome to ConfigSpace's documentation!
 
   quickstart
   guide
-  examples
   api
 
 ConfigSpace is a simple python package to manage configuration spaces for
@@ -21,51 +20,47 @@ ConfigSpace is often used in AutoML tools such as `SMAC3`_, `BOHB`_ or
 `AutoML.org <https://www.automl.org>`_.
 
 This documentation explains how to use ConfigSpace and demonstrates its features.
-In the :doc:`quickstart`, you will see how to set up a
-:class:`~ConfigSpace.configuration_space.ConfigurationSpace`
+In the :doc:`quickstart`, you will see how to set up a :class:`~ConfigSpace.configuration_space.ConfigurationSpace`
 and add hyperparameters of different types to it.
-Besides containing hyperparameters, a :class:`~ConfigSpace.configuration_space.ConfigurationSpace`
-can contain constraints such as conditions and forbidden clauses.
+Besides containing hyperparameters, a :class:`~ConfigSpace.configuration_space.ConfigurationSpace` can contain constraints such as conditions and forbidden clauses.
 Those are introduced in the :doc:`user guide <guide>`.
 
 Furthermore, in the :ref:`serialization section <Serialization>`, it will be
-explained how to serialize a
-:class:`~ConfigSpace.configuration_space.ConfigurationSpace` for later usage.
+explained how to serialize a :class:`~ConfigSpace.configuration_space.ConfigurationSpace` for later usage.
 
 .. _SMAC3: https://github.com/automl/SMAC3
 .. _BOHB: https://github.com/automl/HpBandSter
 .. _auto-sklearn: https://github.com/automl/auto-sklearn
 
 
-Easy usage
 
-.. doctest::
+Get Started
+-----------
 
-    >>> from ConfigSpace import ConfigurationSpace
-    >>> cs = ConfigurationSpace(
-    ...     name="myspace",
-    ...     seed=1234,
-    ...     space={
-    ...         "a": (0.1, 1.5),  # UniformFloat
-    ...         "b": (2, 10),  # UniformInt
-    ...         "c": ["mouse", "cat", "dog"],  # Categorical
-    ...     },
-    ... )
-    >>> cs.sample_configuration(2)
-    [Configuration(values={
-      'a': 0.36812723053044916,
-      'b': 5,
-      'c': 'dog',
-    })
-    , Configuration(values={
-      'a': 0.9709522794557646,
-      'b': 9,
-      'c': 'mouse',
-    })
-    ]
+Create a simple :class:`~ConfigSpace.configuration_space.ConfigurationSpace` and then sample a :class:`~ConfigSpace.configuration_space.Configuration` from it!
+
+.. code:: python
+
+    from ConfigSpace import ConfigurationSpace
+
+    cs = ConfigurationSpace(
+        {
+            "myfloat": (0.1, 1.5),                # UniformFloat
+            "myint": (2, 10),                     # UniformInt
+            "species": ["mouse", "cat", "dog"],   # Categorical
+        },
+    )
+
+    cs.sample_configuration(2)
+
+    # [
+    #   Configuration(values={'a': 0.36812723053044916, 'b': 5, 'c': 'dog', }),
+    #   Configuration(values={'a': })
+    # ]
 
 
-More flexibility
+Use :mod:`~ConfigSpace.api.types.float`, :mod:`~ConfigSpace.api.types.int`
+or :mod:`~ConfigSpace.api.types.categorical` to customize how sampling is done!
 
 .. doctest::
 
@@ -74,14 +69,9 @@ More flexibility
     ...     name="myspace",
     ...     seed=1234,
     ...     space={
-    ...         # UniformFloat
     ...         "a": Float("a", bounds=(0.1, 1.5), distribution=Normal(1, 10), log=True),
-    ...
-    ...         # UniformInt: You can still use the simple form here
-    ...         "b": (2, 10),
-    ...
-    ...         # Categorical
-    ...         "c": Categorical("c", ["mouse", "cat", "dog"], weights=[0.8, 0.1, 0.1]),
+    ...         "b": Int("b", bounds=(2, 10)),
+    ...         "c": Categorical("c", ["mouse", "cat", "dog"], weights=[2, 1, 1]),
     ...     },
     ... )
     >>> cs.sample_configuration(2)
@@ -98,23 +88,24 @@ More flexibility
     ]
 
 
-Maximum flexibility
+Maximum flexibility with conditionals, see :ref:`forbidden clauses <Forbidden clauses>` and :ref:`conditionals <conditions>` for more info.
 
-.. doctest::
+.. code:: python
 
-    >>> import ConfigSpace as CS
-    >>> import ConfigSpace.hyperparameters as CSH
-    >>> cs = CS.ConfigurationSpace(seed=1234)
-    >>> a = CSH.UniformIntegerHyperparameter('a', lower=10, upper=100, log=False)
-    >>> b = CSH.CategoricalHyperparameter('b', choices=['red', 'green', 'blue'])
-    >>> cs.add_hyperparameters([a, b])
-    [a, Type: UniformInteger, Range: [10, 100], Default: 55,...]
-    >>> cs.sample_configuration()
-    Configuration(values={
-      'a': 27,
-      'b': 'green',
-    })
-    <BLANKLINE>
+    from ConfigSpace import Categorical, ConfigurationSpace, EqualsCondition, Float
+
+    cs = ConfigurationSpace(seed=1234)
+
+    c = Categorical("c1", items=["a", "b"])
+    f = Float("f1", bounds=(1.0, 10.0))
+
+    # A condition where `f` is only active if `c` is equal to `a` when sampled
+    cond = EqualsCondition(f1, c1, "a")
+
+    # Add them explicitly to the configuration space
+    cs.add_hyperparameters([c1, f1])
+    cs.add_condition(cond)
+
 
 Installation
 ============

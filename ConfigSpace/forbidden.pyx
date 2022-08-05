@@ -218,25 +218,19 @@ cdef class MultipleValueForbiddenClause(AbstractForbiddenClause):
 
 
 cdef class ForbiddenEqualsClause(SingleValueForbiddenClause):
-    """
-    A ForbiddenEqualsClause
+    """A ForbiddenEqualsClause
 
     It forbids a value from the value range of a hyperparameter to be
     *equal to* ``value``.
 
-    Example
-    -------
+    .. code:: python
 
-    >>> cs = CS.ConfigurationSpace()
-    >>> a = CSH.CategoricalHyperparameter('a', [1,2,3])
-    >>> cs.add_hyperparameters([a])
-    [a, Type: Categorical, Choices: {1, 2, 3}, Default: 1]
+        cs = ConfigurationSpace({"a": [1, 2, 3]})
 
-    It forbids the value 2 for the hyperparameter *a*
+        # forbids the value 2 for the hyperparameter *a*
+        forbidden_clause_a = ForbiddenEqualsClause(cs["a"], 2)
 
-    >>> forbidden_clause_a = CS.ForbiddenEqualsClause(a, 2)
-    >>> cs.add_forbidden_clause(forbidden_clause_a)
-    Forbidden: a == 2
+        cs.add_forbidden_clause(forbidden_clause_a)
 
     Parameters
     ----------
@@ -260,35 +254,31 @@ cdef class ForbiddenEqualsClause(SingleValueForbiddenClause):
 cdef class ForbiddenInClause(MultipleValueForbiddenClause):
     def __init__(self, hyperparameter: Dict[str, Union[None, str, float, int]],
                  values: Any) -> None:
-        """
-        A ForbiddenInClause.
+        """A ForbiddenInClause.
 
         It forbids a value from the value range of a hyperparameter to be
         *in* a collection of ``values``.
 
+        .. code:: python
+
+            cs = ConfigurationSpace({"a": [1, 2, 3]})
+
+            # forbids the values 2, 3 for the hyperparameter *a*
+            forbidden_clause_a = CS.ForbiddenInClause(a, [2, 3])
+
+            cs.add_forbidden_clause(forbidden_clause_a)
+
+            # Forbidden: a in {2, 3}
+
         Note
         ----
-
         The forbidden values have to be a subset of the hyperparameter's values.
-
-        Example
-        -------
-
-        >>> cs = CS.ConfigurationSpace(seed=1)
-        >>> a = CSH.CategoricalHyperparameter('a', [1,2,3])
-        >>> cs.add_hyperparameters([a])
-        [a, Type: Categorical, Choices: {1, 2, 3}, Default: 1]
-
-        It forbids the values 2, 3, 4 for the hyperparameter *a*
-
-        >>> forbidden_clause_a = CS.ForbiddenInClause(a, [2, 3])
-        >>> cs.add_forbidden_clause(forbidden_clause_a)
-        Forbidden: a in {2, 3}
 
         Parameters
         ----------
         hyperparameter : (:ref:`Hyperparameters`, dict)
             Hyperparameter on which a restriction will be made
+
         values : Any
             Collection of forbidden values
         """
@@ -428,26 +418,23 @@ cdef class AbstractForbiddenConjunction(AbstractForbiddenComponent):
 
 
 cdef class ForbiddenAndConjunction(AbstractForbiddenConjunction):
-    """
-    A ForbiddenAndConjunction.
+    """A ForbiddenAndConjunction.
 
     The ForbiddenAndConjunction combines forbidden-clauses, which allows to
     build powerful constraints.
 
-    Example
-    -------
+    .. code:: python
 
-    >>> cs = CS.ConfigurationSpace(seed=1)
-    >>> a = CSH.CategoricalHyperparameter('a', [1,2,3])
-    >>> b = CSH.CategoricalHyperparameter('b', [2,5,6])
-    >>> cs.add_hyperparameters([a, b])
-    [a, Type: Categorical, Choices: {1, 2, 3}, Default: 1, b, Type: ...]
+        cs = ConfigurationSpace({"a": [1, 2, 3], "b": [2, 5, 6]})
 
-    >>> forbidden_clause_a = CS.ForbiddenEqualsClause(a, 2)
-    >>> forbidden_clause_b = CS.ForbiddenInClause(b, [2])
-    >>> forbidden_clause = CS.ForbiddenAndConjunction(forbidden_clause_a, forbidden_clause_b)
-    >>> cs.add_forbidden_clause(forbidden_clause)
-    (Forbidden: a == 2 && Forbidden: b in {2})
+        forbidden_clause_a = ForbiddenEqualsClause(cs["a"], 2)
+        forbidden_clause_b = ForbiddenInClause(cs["b"], [2])
+
+        forbidden_clause = ForbiddenAndConjunction(forbidden_clause_a, forbidden_clause_b)
+
+        cs.add_forbidden_clause(forbidden_clause)
+
+        # (Forbidden: a == 2 && Forbidden: b in {2})
 
     Parameters
     ----------
@@ -583,23 +570,18 @@ cdef class ForbiddenRelation(AbstractForbiddenComponent):
 
 
 cdef class ForbiddenLessThanRelation(ForbiddenRelation):
-    """
-    A ForbiddenLessThan relation between two hyperparameters.
+    """A ForbiddenLessThan relation between two hyperparameters.
 
     The ForbiddenLessThan compares the values of two hyperparameters.
 
-    Example
-    -------
+    .. code:: python
 
-    >>> cs = CS.ConfigurationSpace(seed=1)
-    >>> a = CSH.CategoricalHyperparameter('a', [1,2,3])
-    >>> b = CSH.CategoricalHyperparameter('b', [2,5,6])
-    >>> cs.add_hyperparameters([a, b])
-    [a, Type: Categorical, Choices: {1, 2, 3}, Default: 1, b, Type: ...]
+        cs = CS.ConfigurationSpace({"a": [1, 2, 3], "b": [2, 5, 6]})
 
-    >>> forbidden_clause = CS.ForbiddenLessThanRelation(a, b)
-    >>> cs.add_forbidden_clause(forbidden_clause)
-    Forbidden: a < b
+        forbidden_clause = CS.ForbiddenLessThanRelation(a, b)
+        cs.add_forbidden_clause(forbidden_clause)
+
+        # Forbidden: a < b
 
     Note
     ----
@@ -611,6 +593,7 @@ cdef class ForbiddenLessThanRelation(ForbiddenRelation):
     ----------
      left : :ref:`Hyperparameters`
          left side of the comparison
+
      right : :ref:`Hyperparameters`
          right side of the comparison
     """
@@ -626,23 +609,18 @@ cdef class ForbiddenLessThanRelation(ForbiddenRelation):
 
 
 cdef class ForbiddenEqualsRelation(ForbiddenRelation):
-    """
-    A ForbiddenEquals relation between two hyperparameters.
+    """A ForbiddenEquals relation between two hyperparameters.
 
     The ForbiddenEquals compares the values of two hyperparameters.
 
-    Example
-    -------
+    .. code:: python
 
-    >>> cs = CS.ConfigurationSpace(seed=1)
-    >>> a = CSH.CategoricalHyperparameter('a', [1,2,3])
-    >>> b = CSH.CategoricalHyperparameter('b', [2,5,6])
-    >>> cs.add_hyperparameters([a, b])
-    [a, Type: Categorical, Choices: {1, 2, 3}, Default: 1, b, Type: ...]
+        cs = CS.ConfigurationSpace({"a": [1, 2, 3], "b": [2, 5, 6]})
 
-    >>> forbidden_clause = CS.ForbiddenEqualsRelation(a, b)
-    >>> cs.add_forbidden_clause(forbidden_clause)
-    Forbidden: a == b
+        forbidden_clause = CS.ForbiddenEqualsRelation(a, b)
+        cs.add_forbidden_clause(forbidden_clause)
+
+        # Forbidden: a == b
 
     Note
     ----
@@ -669,23 +647,18 @@ cdef class ForbiddenEqualsRelation(ForbiddenRelation):
 
 
 cdef class ForbiddenGreaterThanRelation(ForbiddenRelation):
-    """
-    A ForbiddenGreaterThan relation between two hyperparameters.
+    """A ForbiddenGreaterThan relation between two hyperparameters.
 
     The ForbiddenGreaterThan compares the values of two hyperparameters.
 
-    Example
-    -------
+    .. code:: python
 
-    >>> cs = CS.ConfigurationSpace(seed=1)
-    >>> a = CSH.CategoricalHyperparameter('a', [1,2,3])
-    >>> b = CSH.CategoricalHyperparameter('b', [2,5,6])
-    >>> cs.add_hyperparameters([a, b])
-    [a, Type: Categorical, Choices: {1, 2, 3}, Default: 1, b, Type: ...]
+        cs = CS.ConfigurationSpace({"a": [1, 2, 3], "b": [2, 5, 6]})
 
-    >>> forbidden_clause = CS.ForbiddenGreaterThanRelation(a, b)
-    >>> cs.add_forbidden_clause(forbidden_clause)
-    Forbidden: a > b
+        forbidden_clause = CS.ForbiddenGreaterThanRelation(a, b)
+        cs.add_forbidden_clause(forbidden_clause)
+
+        # Forbidden: a > b
 
     Note
     ----

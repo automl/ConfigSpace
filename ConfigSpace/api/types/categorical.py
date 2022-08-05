@@ -1,4 +1,3 @@
-"""Api wrapper around Categorical type hyperparameters."""
 from __future__ import annotations
 
 from typing import Any, Sequence, Union, overload
@@ -70,9 +69,9 @@ def Categorical(
 ) -> CategoricalHyperparameter | OrdinalHyperparameter:
     """Creates a Categorical Hyperparameter.
 
-    ``CategoricalHyperparameter``s can be used to represent a discrete
+    CategoricalHyperparameter's can be used to represent a discrete
     choice. Optionally, you can specify that these values are also ordered in
-    some manner, e.g. ``["small", "medium", "large"].
+    some manner, e.g. ``["small", "medium", "large"]``.
 
     .. code:: python
 
@@ -94,9 +93,10 @@ def Categorical(
 
     Note
     ----
-    `Categorical` is actually a function, please use the corresponding return types if
-    doing an `isinstance(param, type)` check with either :py:class:`CategoricalHyperparameter`
-    and/or :py:class:`OrdinalHyperparameter`.
+    ``Categorical`` is actually a function, please use the corresponding return types if
+    doing an `isinstance(param, type)` check with either
+    :py:class:`~ConfigSpace.hyperparameters.CategoricalHyperparameter`
+    and/or :py:class:`~ConfigSpace.hyperparameters.OrdinalHyperparameter`.
 
     Parameters
     ----------
