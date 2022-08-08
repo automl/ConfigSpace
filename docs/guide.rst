@@ -159,11 +159,13 @@ that ``gamma`` is valid if ``kernel_type in ["rbf", "poly", "sigmoid"]`` which w
 Finally, we add the conditions to the configuration space
 
 .. code:: python
+
     cs.add_conditions([cond_1, cond_2, cond_3])
 
     # [degree | kernel_type == 'poly', (coef0 | kernel_type == 'poly' || coef0 | ...), ...]
 
 .. note::
+    
     ConfigSpace offers a lot of different condition types. For example the
     :class:`~ConfigSpace.conditions.NotEqualsCondition`,
     :class:`~ConfigSpace.conditions.LessThanCondition`,

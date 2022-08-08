@@ -1,0 +1,106 @@
+.. _Hyperparameters:
+
+Hyperparameters
+===============
+ConfigSpace contains
+:func:`~ConfigSpace.api.types.float.Float`,
+:func:`~ConfigSpace.api.types.int.Int`
+and :func:`~ConfigSpace.api.types.categorical.Categorical` hyperparamters, each with their own customizability.
+
+For :func:`~ConfigSpace.api.types.float.Float` and :func:`~ConfigSpace.api.types.int.Int`, you will find their
+interface much the same, being able to take the same :ref:`distributions <Distributions>` while :func:`~ConfigSpace.api.types.categorical.Categorical` can take weights or be ordered.
+
+These are all convenience functions that construct the more complex :ref:`hyperparameter classes <Advanced_Hyperparameters>` which make up the backbone of what's possible.
+
+Example usages are shown below each.
+
+Simple Types
+------------
+
+Float
+^^^^^
+
+.. automodule:: ConfigSpace.api.types.float
+
+Int
+^^^
+
+.. automodule:: ConfigSpace.api.types.int
+
+Categorical
+^^^^^^^^^^^
+
+.. automodule:: ConfigSpace.api.types.categorical
+
+
+.. _Distributions:
+
+Distributions
+-------------
+These can be used as part of the ``distribution`` parameter for the basic
+:func:`~ConfigSpace.api.types.int.Int` and :func:`~ConfigSpace.api.types.float.Float` functions.
+
+.. automodule:: ConfigSpace.api.distributions
+    :exclude-members: Distribution
+
+.. _Advanced_Hyperparameters:
+
+Advanced Types
+--------------
+The full hyperparameters are exposed through the following API points.
+
+
+Integer hyperparameters
+^^^^^^^^^^^^^^^^^^^^^^^
+
+These can all be constructed with the simple :func:`~ConfigSpace.api.types.int` function and
+passing the corresponding :ref:`distribution <Distributions>`.
+
+.. autoclass:: ConfigSpace.hyperparameters.UniformIntegerHyperparameter
+
+.. autoclass:: ConfigSpace.hyperparameters.NormalIntegerHyperparameter
+
+.. autoclass:: ConfigSpace.hyperparameters.BetaIntegerHyperparameter
+
+
+
+.. _advanced_float:
+
+Float hyperparameters
+^^^^^^^^^^^^^^^^^^^^^
+
+These can all be constructed with the simple :func:`~ConfigSpace.api.types.float` function and
+passing the corresponding :ref:`distribution <Distributions>`.
+
+.. autoclass:: ConfigSpace.hyperparameters.UniformFloatHyperparameter
+
+.. autoclass:: ConfigSpace.hyperparameters.NormalFloatHyperparameter
+
+.. autoclass:: ConfigSpace.hyperparameters.BetaFloatHyperparameter
+
+
+
+.. _advanced_categorical:
+
+Categorical Hyperparameter
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+This can be constructed with the simple form :func:`~ConfigSpace.api.types.categorical` and setting
+``ordered=False`` which is the default.
+
+.. autoclass:: ConfigSpace.hyperparameters.CategoricalHyperparameter
+
+
+Ordinal Hyperparameter
+^^^^^^^^^^^^^^^^^^^^^^
+This can be constructed with the simple form :func:`~ConfigSpace.api.types.categorical` and setting
+``ordered=True``.
+
+.. autoclass:: ConfigSpace.hyperparameters.OrdinalHyperparameter
+
+.. _Other hyperparameters:
+
+Constant
+^^^^^^^^
+
+.. autoclass:: ConfigSpace.hyperparameters.Constant

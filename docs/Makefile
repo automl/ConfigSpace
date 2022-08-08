@@ -7,7 +7,6 @@ ALLSPHINXOPTS = $(SPHINXOPTS) .
 
 clean:
 	rm -rf $(BUILDDIR)/*
-	rm -rf api
 	rm -rf examples
 
 linkcheck:

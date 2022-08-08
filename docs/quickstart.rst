@@ -32,6 +32,8 @@ These will not show the following and you should refer to the :doc:`user guide <
 - :ref:`Serialize <Serialization>` the :class:`~ConfigSpace.configuration_space.ConfigurationSpace`
 
 
+.. _Basic Usage:
+
 Basic Usage
 -----------
 We take a look at a simple
@@ -74,6 +76,9 @@ You can use this configuration just like you would a regular old python dictiona
    >>>     print(key, value)
 
 And that's it!
+
+
+.. _Advanced Usage:
 
 Advanced Usage
 --------------

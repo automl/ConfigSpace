@@ -7,7 +7,7 @@ Welcome to ConfigSpace's documentation!
 
   quickstart
   guide
-  api
+  api/index
 
 ConfigSpace is a simple python package to manage configuration spaces for
 `algorithm configuration <https://ml.informatik.uni-freiburg.de/papers/09-JAIR-ParamILS.pdf>`_ and
