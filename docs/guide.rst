@@ -15,7 +15,7 @@ Assume that we want to use a support vector machine (=SVM) for classification
 tasks and therefore, we want to optimize its hyperparameters:
 
 - :math:`\mathcal{C}`: regularization constant  with :math:`\mathcal{C} \in \mathbb{R}`
-- ``max_iter``: the maximum number of iterations within the solver with :math:`max_iter \in \mathbb{N}`
+- ``max_iter``: the maximum number of iterations within the solver with :math:`max\_iter \in \mathbb{N}`
 
 The implementation of the classifier is out of scope and thus not shown.
 But for further reading about
@@ -48,6 +48,7 @@ For demonstration  purpose, we sample a configuration from it.
 .. code:: python
 
     cs.sample_configuration()
+
     # Configuration(values={
     #   'C': -0.6169610992422154,
     #   'max_iter': 66,
@@ -69,8 +70,10 @@ of a parameter can be accessed or modified similar to a python dictionary.
 
     conf = cs.sample_configuration()
     conf['max_iter'] = 42
-    conf['max_iter']
+    print(conf['max_iter'])
+
     # 42
+
 
 2nd Example: Categorical hyperparameters and conditions
 -------------------------------------------------------
@@ -165,7 +168,7 @@ Finally, we add the conditions to the configuration space
     # [degree | kernel_type == 'poly', (coef0 | kernel_type == 'poly' || coef0 | ...), ...]
 
 .. note::
-    
+
     ConfigSpace offers a lot of different condition types. For example the
     :class:`~ConfigSpace.conditions.NotEqualsCondition`,
     :class:`~ConfigSpace.conditions.LessThanCondition`,
@@ -244,6 +247,7 @@ In the last step, we add them to the configuration space object:
 
     # [(Forbidden: penalty == 'l1' && Forbidden: loss == 'hinge'), ...]
 
+
 4th Example Serialization
 -------------------------
 
@@ -301,8 +305,8 @@ To check that your prior makes sense for each hyperparameter, you can easily do 
 .. code-block:: python
 
     test_points = np.logspace(-5, -1, 5)
-
     print(test_points)
+
     # array([1.e-05, 1.e-04, 1.e-03, 1.e-02, 1.e-01])
 
 The pdf function accepts an (N, ) numpy array as input.
@@ -311,6 +315,7 @@ The pdf function accepts an (N, ) numpy array as input.
 
     test_points_pdf = lr.pdf(test_points)
     print(test_points_pdf)
+
     # array([0.02456573, 0.11009594, 0.18151753, 0.11009594, 0.02456573])
 
 
