@@ -36,6 +36,7 @@ These will not show the following and you should refer to the :doc:`user guide <
 
 Basic Usage
 -----------
+
 We take a look at a simple
 `ridge regression <http://scikit-learn.org/stable/modules/generated/sklearn.linear_model.Ridge.html>`_,
 which has only one floating hyperparameter :math:`\alpha`.
@@ -71,8 +72,7 @@ You can use this configuration just like you would a regular old python dictiona
 
 .. doctest::
 
-   >>> alpha = config["alpha"]
-   >>> for key, value in alpha.items():
+   >>> for key, value in config.items():
    >>>     print(key, value)
 
 And that's it!
