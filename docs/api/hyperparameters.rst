@@ -8,9 +8,18 @@ ConfigSpace contains
 and :func:`~ConfigSpace.api.types.categorical.Categorical` hyperparamters, each with their own customizability.
 
 For :func:`~ConfigSpace.api.types.float.Float` and :func:`~ConfigSpace.api.types.int.Int`, you will find their
-interface much the same, being able to take the same :ref:`distributions <Distributions>` while :func:`~ConfigSpace.api.types.categorical.Categorical` can take weights or be ordered.
+interface much the same, being able to take the same :ref:`distributions <Distributions>` and parameters.
 
-These are all convenience functions that construct the more complex :ref:`hyperparameter classes <Advanced_Hyperparameters>` which make up the backbone of what's possible.
+A :func:`~ConfigSpace.api.types.categorical.Categorical` can optionally take weights to define your own custom distribution over the discrete **un-ordered** choices
+or you can pass ``ordered=True`` to make it an :class:`~ConfigSpace.hyperparameters.OrdinalHyperparameter`.
+
+These are all **convenience** functions that construct the more complex :ref:`hyperparameter classes <Advanced_Hyperparameters>`, *e.g.* :class:`~ConfigSpace.hyperparameters.UniformIntegerHyperparameter`,
+which are the underlying complex types which make up the backbone of what's possible.
+You may still use these complex classes without any functional difference.
+
+.. note::
+
+   The Simple types, `Int`, `Float` and `Categorical` are just simple functions that construct the more complex underlying types.
 
 Example usages are shown below each.
 
