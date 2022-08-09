@@ -29,7 +29,7 @@ hyperparameters :math:`\mathcal{C}` and ``max_iter``.
 
 To restrict the search space, we choose :math:`\mathcal{C}` to be a
 :class:`~ConfigSpace.api.types.float` between -1 and 1.
-Furthermore, we choose ``max_iter`` to be an :class:`~ConfigSpace.api.types.int` .
+Furthermore, we choose ``max_iter`` to be an :class:`~ConfigSpace.api.types.integer.Integer` .
 
 .. code:: python
 
@@ -111,10 +111,10 @@ conditions on them.
 
 .. code:: python
 
-    from ConfigSpace import ConfigurationSpace, Categorical, Float, Int
+    from ConfigSpace import ConfigurationSpace, Categorical, Float, Integer
 
     kernel_type = Categorical('kernel_type', ['linear', 'poly', 'rbf', 'sigmoid'])
-    degree = Int('degree', bounds=(2, 4), default=2)
+    degree = Integer('degree', bounds=(2, 4), default=2)
     coef0 = Float('coef0', bounds=(0, 1), default=0.0)
     gamma = Float('gamma', bounds=(1e-5, 1e2), default_value=1, log=True)
 

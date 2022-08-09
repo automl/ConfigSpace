@@ -12,7 +12,7 @@ from ConfigSpace.hyperparameters import (
 
 # Uniform | None -> UniformIntegerHyperparameter
 @overload
-def Int(
+def Integer(
     name: str,
     bounds: tuple[int, int] | None = ...,
     *,
@@ -21,14 +21,13 @@ def Int(
     q: int | None = ...,
     log: bool = ...,
     meta: dict | None = ...,
-    **kwargs: Any,
 ) -> UniformIntegerHyperparameter:
     ...
 
 
 # Normal -> NormalIntegerHyperparameter
 @overload
-def Int(
+def Integer(
     name: str,
     bounds: tuple[int, int] | None = ...,
     *,
@@ -37,14 +36,13 @@ def Int(
     q: int | None = ...,
     log: bool = ...,
     meta: dict | None = ...,
-    **kwargs: Any,
 ) -> NormalIntegerHyperparameter:
     ...
 
 
 # Beta -> BetaIntegerHyperparameter
 @overload
-def Int(
+def Integer(
     name: str,
     bounds: tuple[int, int] | None = ...,
     *,
@@ -53,12 +51,11 @@ def Int(
     q: int | None = ...,
     log: bool = ...,
     meta: dict | None = ...,
-    **kwargs: Any,
 ) -> BetaIntegerHyperparameter:
     ...
 
 
-def Int(
+def Integer(
     name: str,
     bounds: tuple[int, int] | None = None,
     *,
@@ -67,40 +64,39 @@ def Int(
     q: int | None = None,
     log: bool = False,
     meta: dict | None = None,
-    **kwargs: Any,
 ) -> UniformIntegerHyperparameter | NormalIntegerHyperparameter | BetaIntegerHyperparameter:
     """Create an IntegerHyperparameter.
 
     .. code:: python
 
         # Uniformly distributed
-        Int("a", (1, 10))
-        Int("a", (1, 10), distribution=Uniform())
+        Integer("a", (1, 10))
+        Integer("a", (1, 10), distribution=Uniform())
 
         # Normally distributed at 2 with std 3
-        Int("b", distribution=Normal(2, 3))
-        Int("b", (0, 5), distribution=Normal(2, 3))  # ... bounded
+        Integer("b", distribution=Normal(2, 3))
+        Integer("b", (0, 5), distribution=Normal(2, 3))  # ... bounded
 
         # Beta distributed with alpha 1 and beta 2
-        Int("c", distribution=Beta(1, 2))
-        Int("c", (0, 3), distribution=Beta(1, 2))  # ... bounded
+        Integer("c", distribution=Beta(1, 2))
+        Integer("c", (0, 3), distribution=Beta(1, 2))  # ... bounded
 
         # Give it a default value
-        Int("a", (1, 10), default=4)
+        Integer("a", (1, 10), default=4)
 
         # Sample on a log scale
-        Int("a", (1, 100), log=True)
+        Integer("a", (1, 100), log=True)
 
         # Quantized into three brackets
-        Int("a", (1, 10), q=3)
+        Integer("a", (1, 10), q=3)
 
         # Add meta info to the param
-        Int("a", (1, 10), meta={"use": "For counting chickens"})
+        Integer("a", (1, 10), meta={"use": "For counting chickens"})
 
     Note
     ----
-    `Int` is actually a function, please use the corresponding return types if
-    doing an `isinstance(param, type)` check and not `Int`.
+    `Integer` is actually a function, please use the corresponding return types if
+    doing an `isinstance(param, type)` check and not `Integer`.
 
     Parameters
     ----------
@@ -159,8 +155,6 @@ def Int(
     else:
         lower, upper = bounds
 
-    # NOTE: not very pretty to repeat args but ensures we don't accidentally
-    # merge parameter arguments and the **kwargs
     if isinstance(distribution, Uniform):
         return UniformIntegerHyperparameter(
             name=name,
@@ -170,7 +164,6 @@ def Int(
             log=log,
             default_value=default,
             meta=meta,
-            **kwargs,
         )
     elif isinstance(distribution, Normal):
         return NormalIntegerHyperparameter(
@@ -183,7 +176,6 @@ def Int(
             meta=meta,
             mu=distribution.mu,
             sigma=distribution.sigma,
-            **kwargs,
         )
     elif isinstance(distribution, Beta):
         return BetaIntegerHyperparameter(
@@ -196,7 +188,6 @@ def Int(
             meta=meta,
             alpha=distribution.alpha,
             beta=distribution.beta,
-            **kwargs,
         )
     else:
         raise ValueError(f"Unknown distribution type {type(distribution)}")

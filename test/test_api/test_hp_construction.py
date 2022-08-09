@@ -4,7 +4,7 @@ These are intentionally verbose and using all parameters to ensure they maintain
 """
 from __future__ import annotations
 
-from ConfigSpace import Beta, Categorical, Float, Int, Normal, Uniform
+from ConfigSpace import Beta, Categorical, Float, Integer, Normal, Uniform
 from ConfigSpace.hyperparameters import (BetaFloatHyperparameter,
                                          BetaIntegerHyperparameter,
                                          CategoricalHyperparameter,
@@ -31,7 +31,7 @@ def test_uniform_int() -> None:
         meta={"a": "b"},
     )
 
-    a = Int(
+    a = Integer(
         "hp",
         bounds=(2, 10),
         default=5,
@@ -62,7 +62,7 @@ def test_normal_int() -> None:
         meta={"a": "b"},
     )
 
-    a = Int(
+    a = Integer(
         "hp",
         bounds=(2, 10),
         distribution=Normal(mu=5, sigma=1),
@@ -94,7 +94,7 @@ def test_beta_int() -> None:
         meta={"a": "b"},
     )
 
-    a = Int(
+    a = Integer(
         "hp",
         bounds=(2, 10),
         distribution=Beta(alpha=1, beta=2),

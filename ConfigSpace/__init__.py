@@ -42,7 +42,7 @@ __authors__ = [
 ]
 
 import ConfigSpace.api.distributions as distributions
-from ConfigSpace.api import (Beta, Categorical, Distribution, Float, Int,
+from ConfigSpace.api import (Beta, Categorical, Distribution, Float, Integer,
                              Normal, Uniform)
 from ConfigSpace.conditions import (AndConjunction, EqualsCondition,
                                     GreaterThanCondition, InCondition,
@@ -92,7 +92,7 @@ __all__ = [
     "Categorical",
     "Distribution",
     "Float",
-    "Int",
+    "Integer",
     "Normal",
     "Uniform",
     "distributions",

@@ -4,10 +4,10 @@ Hyperparameters
 ===============
 ConfigSpace contains
 :func:`~ConfigSpace.api.types.float.Float`,
-:func:`~ConfigSpace.api.types.int.Int`
+:func:`~ConfigSpace.api.types.integer.Integer`
 and :func:`~ConfigSpace.api.types.categorical.Categorical` hyperparamters, each with their own customizability.
 
-For :func:`~ConfigSpace.api.types.float.Float` and :func:`~ConfigSpace.api.types.int.Int`, you will find their
+For :func:`~ConfigSpace.api.types.float.Float` and :func:`~ConfigSpace.api.types.integer.Integer`, you will find their
 interface much the same, being able to take the same :ref:`distributions <Distributions>` and parameters.
 
 A :func:`~ConfigSpace.api.types.categorical.Categorical` can optionally take weights to define your own custom distribution over the discrete **un-ordered** choices
@@ -19,7 +19,7 @@ You may still use these complex classes without any functional difference.
 
 .. note::
 
-   The Simple types, `Int`, `Float` and `Categorical` are just simple functions that construct the more complex underlying types.
+   The Simple types, `Integer`, `Float` and `Categorical` are just simple functions that construct the more complex underlying types.
 
 Example usages are shown below each.
 
@@ -31,10 +31,10 @@ Float
 
 .. automodule:: ConfigSpace.api.types.float
 
-Int
-^^^
+Integer
+^^^^^^^
 
-.. automodule:: ConfigSpace.api.types.int
+.. automodule:: ConfigSpace.api.types.integer
 
 Categorical
 ^^^^^^^^^^^
@@ -47,7 +47,7 @@ Categorical
 Distributions
 -------------
 These can be used as part of the ``distribution`` parameter for the basic
-:func:`~ConfigSpace.api.types.int.Int` and :func:`~ConfigSpace.api.types.float.Float` functions.
+:func:`~ConfigSpace.api.types.integer.Integer` and :func:`~ConfigSpace.api.types.float.Float` functions.
 
 .. automodule:: ConfigSpace.api.distributions
     :exclude-members: Distribution
@@ -62,7 +62,7 @@ The full hyperparameters are exposed through the following API points.
 Integer hyperparameters
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-These can all be constructed with the simple :func:`~ConfigSpace.api.types.int` function and
+These can all be constructed with the simple :func:`~ConfigSpace.api.types.integer.Integer` function and
 passing the corresponding :ref:`distribution <Distributions>`.
 
 .. autoclass:: ConfigSpace.hyperparameters.UniformIntegerHyperparameter

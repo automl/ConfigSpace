@@ -1,6 +1,6 @@
 import ConfigSpace.api.distributions as distributions
 from ConfigSpace.api.distributions import Beta, Distribution, Normal, Uniform
-from ConfigSpace.api.types import Categorical, Float, Int
+from ConfigSpace.api.types import Categorical, Float, Integer
 
 __all__ = [
     "distributions",
@@ -10,5 +10,5 @@ __all__ = [
     "Uniform",
     "Categorical",
     "Float",
-    "Int",
+    "Integer",
 ]

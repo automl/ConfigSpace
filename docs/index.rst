@@ -45,8 +45,8 @@ Create a simple :class:`~ConfigSpace.configuration_space.ConfigurationSpace` and
 
     cs = ConfigurationSpace(
         {
-            "myfloat": (0.1, 1.5),                # UniformFloat
-            "myint": (2, 10),                     # UniformInt
+            "myfloat": (0.1, 1.5),                # Uniform Float
+            "myint": (2, 10),                     # Uniform Integer
             "species": ["mouse", "cat", "dog"],   # Categorical
         },
     )
@@ -59,18 +59,18 @@ Create a simple :class:`~ConfigSpace.configuration_space.ConfigurationSpace` and
     # ]
 
 
-Use :mod:`~ConfigSpace.api.types.float`, :mod:`~ConfigSpace.api.types.int`
+Use :mod:`~ConfigSpace.api.types.float`, :mod:`~ConfigSpace.api.types.integer`
 or :mod:`~ConfigSpace.api.types.categorical` to customize how sampling is done!
 
 .. doctest::
 
-    >>> from ConfigSpace import ConfigurationSpace, Int, Float, Categorical, Normal
+    >>> from ConfigSpace import ConfigurationSpace, Integer, Float, Categorical, Normal
     >>> cs = ConfigurationSpace(
     ...     name="myspace",
     ...     seed=1234,
     ...     space={
     ...         "a": Float("a", bounds=(0.1, 1.5), distribution=Normal(1, 10), log=True),
-    ...         "b": Int("b", bounds=(2, 10)),
+    ...         "b": Integer("b", bounds=(2, 10)),
     ...         "c": Categorical("c", ["mouse", "cat", "dog"], weights=[2, 1, 1]),
     ...     },
     ... )

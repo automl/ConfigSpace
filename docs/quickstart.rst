@@ -120,7 +120,7 @@ First, lets start with building the two individual subspaces where for ``A``, we
 
 .. code:: python
 
-    from ConfigSpace import ConfigSpace, Categorical, Int, Float, Normal
+    from ConfigSpace import ConfigSpace, Categorical, Integer, Float, Normal
 
     class ModelA:
 
@@ -143,7 +143,7 @@ First, lets start with building the two individual subspaces where for ``A``, we
             cs = ConfigurationSpace(
                 {
                     "kernel": Categorical("kernel", ["rbf", "flooper"], default="rbf", weights=[.75, .25]),
-                    "kernel_floops": Int("kernel_floops", bounds=(1, 10)),
+                    "kernel_floops": Integer("kernel_floops", bounds=(1, 10)),
                 }
             )
 
