@@ -7,7 +7,6 @@ ALLSPHINXOPTS = $(SPHINXOPTS) .
 
 clean:
 	rm -rf $(BUILDDIR)/*
-	rm -rf examples
 
 linkcheck:
 	SPHINX_GALLERY_PLOT=False $(SPHINXBUILD) -b linkcheck $(ALLSPHINXOPTS) $(BUILDDIR)/linkcheck

@@ -4,7 +4,7 @@
 # These have been configured to only really run short tasks. Longer form tasks
 # are usually completed in github actions.
 
-.PHONY: help install-dev pre-commit clean clean-doc clean-build build doc links examples publish test
+.PHONY: help install-dev pre-commit clean clean-doc clean-build build doc links publish test
 
 help:
 	@echo "Makefile autosklearn"
@@ -12,7 +12,6 @@ help:
 	@echo "* pre-commit       to run the pre-commit check"
 	@echo "* doc              to generate and view the html files"
 	@echo "* linkcheck        to check the documentation links"
-	@echo "* examples         to run and generate the examples"
 	@echo "* publish          to help publish the current branch to pypi"
 	@echo "* test             to run the tests"
 
@@ -47,12 +46,6 @@ doc:
 
 links:
 	$(MAKE) -C ${DOCDIR} linkcheck
-
-examples:
-	$(MAKE) -C ${DOCDIR} html
-	@echo
-	@echo "View docs at:"
-	@echo ${INDEX_HTML}
 
 # Publish to testpypi
 # Will echo the commands to actually publish to be run to publish to actual PyPi

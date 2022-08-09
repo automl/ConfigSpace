@@ -1,8 +1,0 @@
-"""
-Test
-----
-
-Hallo
-"""
-
-print("yes!")
