@@ -20,32 +20,35 @@ permissions:
   contents: write
 
 env:
-  name: "automl_sphinx_theme"
+  name: "ConfigSpace"
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
 
     - name: Setup Python
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v3
       with:
-        python-version: "3.9"
+        python-version: "3.8"
 
     - name: Install dependencies
       run: |
         pip install ".[dev]"
+
     - name: Make docs
       run: |
         make clean
         make docs
+
     - name: Pull latest gh-pages
       if: (contains(github.ref, 'develop') || contains(github.ref, 'main')) && github.event_name == 'push'
       run: |
         cd ..
         git clone https://github.com/${{ github.repository }}.git --branch gh-pages --single-branch gh-pages
+
     - name: Copy new docs into gh-pages
       if: (contains(github.ref, 'develop') || contains(github.ref, 'main')) && github.event_name == 'push'
       run: |
@@ -53,7 +56,7 @@ jobs:
         cd ../gh-pages
         rm -rf $branch_name
         cp -r ../${{ env.name }}/docs/build/html $branch_name
-        
+
     - name: Push to gh-pages
       if: (contains(github.ref, 'develop') || contains(github.ref, 'main')) && github.event_name == 'push'
       run: |
