@@ -667,9 +667,9 @@ class TestHyperparameters(unittest.TestCase):
         c2 = NormalFloatHyperparameter("logparam", lower=np.exp(
             0), upper=np.exp(10), mu=3, sigma=2, log=True)
         c3 = NormalFloatHyperparameter("param", lower=0, upper=0.5, mu=-1, sigma=0.2)
-        self.assertEqual(c1.get_max_density(), 0.2138045617479014)
-        self.assertAlmostEqual(c2.get_max_density(), 0.2138045617479014)
-        self.assertAlmostEqual(c3.get_max_density(), 25.932522722334905)
+        self.assertAlmostEqual(c1.get_max_density(), 0.2138045617479014, places=9)
+        self.assertAlmostEqual(c2.get_max_density(), 0.2138045617479014, places=9)
+        self.assertAlmostEqual(c3.get_max_density(), 25.932522722334905, places=9)
 
     def test_betafloat(self):
         # TODO test non-equality
