@@ -67,6 +67,7 @@ CLASSIFIERS = [
     "Programming Language :: Python :: 3.7",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
     "Development Status :: 4 - Beta",
     "Natural Language :: English",
     "Intended Audience :: Developers",
@@ -103,13 +104,13 @@ for e in EXTENSIONS:
     e.cython_directives = COMPILER_DIRECTIVES
 
 extras_reqs = {
-    "test": [
+    "dev": [
         "pytest>=4.6",
         "mypy",
         "pre-commit",
         "pytest-cov",
+        "automl_sphinx_theme>=0.1.11"
     ],
-    "docs": ["automl_sphinx_theme>=0.1.11"],
 }
 
 

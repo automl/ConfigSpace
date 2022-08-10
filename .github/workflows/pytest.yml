@@ -24,7 +24,7 @@ env:
 
   package-name: ConfigSpace
   test-dir: test
-  extra-requires: "[test]"  # "" for no extra_requires
+  extra-requires: ".[dev]"  # "" for no extra_requires
 
   # Arguments used for pytest
   pytest-args: >-

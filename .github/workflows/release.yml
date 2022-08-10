@@ -54,7 +54,7 @@ env:
   test-dir: test
   test-reqs: "pytest"
   test-cmd: "pytest -v"
-  extra-requires: "[test]"
+  extra-requires: "[dev]"
 
 jobs:
 
