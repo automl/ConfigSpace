@@ -24,8 +24,9 @@ PIP ?= python -m pip
 MAKE ?= make
 
 DIR := "${CURDIR}"
-DIST := "${CURDIR}/dist""
+DIST := "${DIR}/dist""
 DOCDIR := "${DIR}/docs"
+BUILD := "${DIR}/build"
 INDEX_HTML := "file://${DOCDIR}/build/html/index.html"
 
 install-dev:
@@ -35,11 +36,21 @@ install-dev:
 pre-commit:
 	$(PRECOMMIT) run --all-files
 
+clean-build:
+	rm -rf ${BUILD}
+
 clean-doc:
 	$(MAKE) -C ${DOCDIR} clean
 
-doc:
-	$(MAKE) -C ${DOCDIR} html-noexamples
+clean: clean-build clean-doc
+
+build:
+	python setup.py develop
+
+# Running build before making docs is needed all be it very slow.
+# Without doing a full build, the doctests seem to use docstrings from the last compiled build
+doc: clean build
+	$(MAKE) -C ${DOCDIR} html
 	@echo
 	@echo "View docs at:"
 	@echo ${INDEX_HTML}

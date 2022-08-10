@@ -627,16 +627,10 @@ cdef class UniformFloatHyperparameter(FloatHyperparameter):
         Its values are sampled from a uniform distribution with values
         from ``lower`` to ``upper``.
 
-        Example
-        -------
-
-        >>> import ConfigSpace as CS
-        >>> import ConfigSpace.hyperparameters as CSH
-        >>> cs = CS.ConfigurationSpace(seed=1)
-        >>> uniform_float_hp = CSH.UniformFloatHyperparameter('uni_float', lower=10,
-        ...                                                   upper=100, log = False)
-        >>> cs.add_hyperparameter(uniform_float_hp)
-        uni_float, Type: UniformFloat, Range: [10.0, 100.0], Default: 55.0
+        >>> from ConfigSpace import UniformFloatHyperparameter
+        >>>
+        >>> UniformFloatHyperparameter('u', lower=10, upper=100, log = False)
+        u, Type: UniformFloat, Range: [10.0, 100.0], Default: 55.0
 
         Parameters
         ----------
@@ -864,16 +858,10 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
         Its values are sampled from a normal distribution
         :math:`\mathcal{N}(\mu, \sigma^2)`.
 
-        Example
-        -------
-
-        >>> import ConfigSpace as CS
-        >>> import ConfigSpace.hyperparameters as CSH
-        >>> cs = CS.ConfigurationSpace(seed=1)
-        >>> normal_float_hp = CSH.NormalFloatHyperparameter('normal_float', mu=0,
-        ...                                                 sigma=1, log=False)
-        >>> cs.add_hyperparameter(normal_float_hp)
-        normal_float, Type: NormalFloat, Mu: 0.0 Sigma: 1.0, Default: 0.0
+        >>> from ConfigSpace import NormalFloatHyperparameter
+        >>>
+        >>> NormalFloatHyperparameter('n', mu=0, sigma=1, log=False)
+        n, Type: NormalFloat, Mu: 0.0 Sigma: 1.0, Default: 0.0
 
         Parameters
         ----------
@@ -1183,16 +1171,10 @@ cdef class BetaFloatHyperparameter(UniformFloatHyperparameter):
         Its values are sampled from a beta distribution
         :math:`Beta(\alpha, \beta)`.
 
-        Example
-        -------
-
-        >>> import ConfigSpace as CS
-        >>> import ConfigSpace.hyperparameters as CSH
-        >>> cs = CS.ConfigurationSpace(seed=1)
-        >>> beta_float_hp = CSH.BetaFloatHyperparameter('beta_float', alpha=3,
-        ...                                             beta=2, lower=1, upper=4, log=False)
-        >>> cs.add_hyperparameter(beta_float_hp)
-        beta_float, Type: BetaFloat, Alpha: 3.0 Beta: 2.0, Range: [1.0, 4.0], Default: 3.0
+        >>> from ConfigSpace import BetaFloatHyperparameter
+        >>>
+        >>> BetaFloatHyperparameter('b', alpha=3, beta=2, lower=1, upper=4, log=False)
+        b, Type: BetaFloat, Alpha: 3.0 Beta: 2.0, Range: [1.0, 4.0], Default: 3.0
 
         Parameters
         ----------
@@ -1404,16 +1386,10 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
         Its values are sampled from a uniform distribution
         with bounds ``lower`` and ``upper``.
 
-        Example
-        -------
-
-        >>> import ConfigSpace as CS
-        >>> import ConfigSpace.hyperparameters as CSH
-        >>> cs = CS.ConfigurationSpace(seed=1)
-        >>> uniform_integer_hp = CSH.UniformIntegerHyperparameter(name='uni_int', lower=10,
-        ...                                                       upper=100, log=False)
-        >>> cs.add_hyperparameter(uniform_integer_hp)
-        uni_int, Type: UniformInteger, Range: [10, 100], Default: 55
+        >>> from ConfigSpace import UniformIntegerHyperparameter
+        >>>
+        >>> UniformIntegerHyperparameter(name='u', lower=10, upper=100, log=False)
+        u, Type: UniformInteger, Range: [10, 100], Default: 55
 
         Parameters
         ----------
@@ -1700,16 +1676,10 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
         Its values are sampled from a normal distribution
         :math:`\mathcal{N}(\mu, \sigma^2)`.
 
-        Example
-        -------
-
-        >>> import ConfigSpace as CS
-        >>> import ConfigSpace.hyperparameters as CSH
-        >>> cs = CS.ConfigurationSpace(seed=1)
-        >>> normal_int_hp = CSH.NormalIntegerHyperparameter(name='normal_int', mu=0,
-        ...                                                 sigma=1, log=False)
-        >>> cs.add_hyperparameter(normal_int_hp)
-        normal_int, Type: NormalInteger, Mu: 0 Sigma: 1, Default: 0
+        >>> from ConfigSpace import NormalIntegerHyperparameter
+        >>>
+        >>> NormalIntegerHyperparameter(name='n', mu=0, sigma=1, log=False)
+        n, Type: NormalInteger, Mu: 0 Sigma: 1, Default: 0
 
         Parameters
         ----------
@@ -2009,16 +1979,10 @@ cdef class BetaIntegerHyperparameter(UniformIntegerHyperparameter):
         Its values are sampled from a beta distribution
         :math:`Beta(\alpha, \beta)`.
 
-        Example
-        -------
-
-        >>> import ConfigSpace as CS
-        >>> import ConfigSpace.hyperparameters as CSH
-        >>> cs = CS.ConfigurationSpace(seed=1)
-        >>> beta_int_hp = CSH.BetaIntegerHyperparameter('beta_int', alpha=3,
-        ...                                             beta=2, lower=1, upper=4, log=False)
-        >>> cs.add_hyperparameter(beta_int_hp)
-        beta_int, Type: BetaInteger, Alpha: 3.0 Beta: 2.0, Range: [1, 4], Default: 3
+        >>> from ConfigSpace import BetaIntegerHyperparameter
+        >>>
+        >>> BetaIntegerHyperparameter('b', alpha=3, beta=2, lower=1, upper=4, log=False)
+        b, Type: BetaInteger, Alpha: 3.0 Beta: 2.0, Range: [1, 4], Default: 3
 
 
         Parameters
@@ -2216,15 +2180,10 @@ cdef class CategoricalHyperparameter(Hyperparameter):
         it in your own code, see `here <https://github.com/automl/ConfigSpace/issues/159>_`
         for further details.
 
-        Example
-        -------
-
-        >>> import ConfigSpace as CS
-        >>> import ConfigSpace.hyperparameters as CSH
-        >>> cs = CS.ConfigurationSpace(seed=1)
-        >>> cat_hp = CSH.CategoricalHyperparameter('cat_hp', choices=['red', 'green', 'blue'])
-        >>> cs.add_hyperparameter(cat_hp)
-        cat_hp, Type: Categorical, Choices: {red, green, blue}, Default: red
+        >>> from ConfigSpace import CategoricalHyperparameter
+        >>>
+        >>> CategoricalHyperparameter('c', choices=['red', 'green', 'blue'])
+        c, Type: Categorical, Choices: {red, green, blue}, Default: red
 
         Parameters
         ----------
@@ -2590,15 +2549,10 @@ cdef class OrdinalHyperparameter(Hyperparameter):
         it in your own code, see `here <https://github.com/automl/ConfigSpace/issues/159>_`
         for further details.
 
-        Example
-        -------
-
-        >>> import ConfigSpace as CS
-        >>> import ConfigSpace.hyperparameters as CSH
-        >>> cs = CS.ConfigurationSpace(seed=1)
-        >>> ord_hp = CSH.OrdinalHyperparameter('ordinal_hp', sequence=['10', '20', '30'])
-        >>> cs.add_hyperparameter(ord_hp)
-        ordinal_hp, Type: Ordinal, Sequence: {10, 20, 30}, Default: 10
+        >>> from ConfigSpace import OrdinalHyperparameter
+        >>>
+        >>> OrdinalHyperparameter('o', sequence=['10', '20', '30'])
+        o, Type: Ordinal, Sequence: {10, 20, 30}, Default: 10
 
         Parameters
         ----------

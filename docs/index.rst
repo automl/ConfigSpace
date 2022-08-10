@@ -39,72 +39,61 @@ Get Started
 
 Create a simple :class:`~ConfigSpace.configuration_space.ConfigurationSpace` and then sample a :class:`~ConfigSpace.configuration_space.Configuration` from it!
 
-.. code:: python
-
-    from ConfigSpace import ConfigurationSpace
-
-    cs = ConfigurationSpace(
-        {
-            "myfloat": (0.1, 1.5),                # Uniform Float
-            "myint": (2, 10),                     # Uniform Integer
-            "species": ["mouse", "cat", "dog"],   # Categorical
-        },
-    )
-
-    cs.sample_configuration(2)
-
-    # [
-    #   Configuration(values={'a': 0.36812723053044916, 'b': 5, 'c': 'dog', }),
-    #   Configuration(values={'a': })
-    # ]
+>>> from ConfigSpace import ConfigurationSpace
+>>>
+>>> cs = ConfigurationSpace({
+...     "myfloat": (0.1, 1.5),                # Uniform Float
+...     "myint": (2, 10),                     # Uniform Integer
+...     "species": ["mouse", "cat", "dog"],   # Categorical
+... })
+>>> configs = cs.sample_configuration(2)
 
 
 Use :mod:`~ConfigSpace.api.types.float`, :mod:`~ConfigSpace.api.types.integer`
 or :mod:`~ConfigSpace.api.types.categorical` to customize how sampling is done!
 
-.. doctest::
-
-    >>> from ConfigSpace import ConfigurationSpace, Integer, Float, Categorical, Normal
-    >>> cs = ConfigurationSpace(
-    ...     name="myspace",
-    ...     seed=1234,
-    ...     space={
-    ...         "a": Float("a", bounds=(0.1, 1.5), distribution=Normal(1, 10), log=True),
-    ...         "b": Integer("b", bounds=(2, 10)),
-    ...         "c": Categorical("c", ["mouse", "cat", "dog"], weights=[2, 1, 1]),
-    ...     },
-    ... )
-    >>> cs.sample_configuration(2)
-    [Configuration(values={
-      'a': 0.17013149799713567,
-      'b': 5,
-      'c': 'mouse',
-    })
-    , Configuration(values={
-      'a': 0.5476203000512744,
-      'b': 9,
-      'c': 'mouse',
-    })
-    ]
-
+>>> from ConfigSpace import ConfigurationSpace, Integer, Float, Categorical, Normal
+>>> cs = ConfigurationSpace(
+...     name="myspace",
+...     seed=1234,
+...     space={
+...         "a": Float("a", bounds=(0.1, 1.5), distribution=Normal(1, 10), log=True),
+...         "b": Integer("b", bounds=(2, 10)),
+...         "c": Categorical("c", ["mouse", "cat", "dog"], weights=[2, 1, 1]),
+...     },
+... )
+>>> cs.sample_configuration(2)
+[Configuration(values={
+  'a': 0.17013149799713567,
+  'b': 5,
+  'c': 'dog',
+})
+, Configuration(values={
+  'a': 0.5476203000512744,
+  'b': 9,
+  'c': 'mouse',
+})
+]
 
 Maximum flexibility with conditionals, see :ref:`forbidden clauses <Forbidden clauses>` and :ref:`conditionals <conditions>` for more info.
 
-.. code:: python
+>>> from ConfigSpace import Categorical, ConfigurationSpace, EqualsCondition, Float
+...
+>>> cs = ConfigurationSpace(seed=1234)
+...
+>>> c = Categorical("c1", items=["a", "b"])
+>>> f = Float("f1", bounds=(1.0, 10.0))
+...
+>>> # A condition where `f` is only active if `c` is equal to `a` when sampled
+>>> cond = EqualsCondition(f, c, "a")
+...
+>>> # Add them explicitly to the configuration space
+>>> cs.add_hyperparameters([c, f])
+[c1, Type: Categorical, Choices: {a, b}, Default: a, f1, Type: UniformFloat, Range: [1.0, 10.0], Default: 5.5]
 
-    from ConfigSpace import Categorical, ConfigurationSpace, EqualsCondition, Float
+>>> cs.add_condition(cond)
+f1 | c1 == 'a'
 
-    cs = ConfigurationSpace(seed=1234)
-
-    c = Categorical("c1", items=["a", "b"])
-    f = Float("f1", bounds=(1.0, 10.0))
-
-    # A condition where `f` is only active if `c` is equal to `a` when sampled
-    cond = EqualsCondition(f1, c1, "a")
-
-    # Add them explicitly to the configuration space
-    cs.add_hyperparameters([c1, f1])
-    cs.add_condition(cond)
 
 
 Installation

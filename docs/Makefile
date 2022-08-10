@@ -7,6 +7,7 @@ ALLSPHINXOPTS = $(SPHINXOPTS) .
 
 clean:
 	rm -rf $(BUILDDIR)/*
+	rm -rf ../build/
 
 linkcheck:
 	SPHINX_GALLERY_PLOT=False $(SPHINXBUILD) -b linkcheck $(ALLSPHINXOPTS) $(BUILDDIR)/linkcheck
@@ -14,13 +15,9 @@ linkcheck:
 	@echo "Link check complete; look for any errors in the above output " \
 	      "or in $(BUILDDIR)/linkcheck/output.txt."
 
-html:
+html: clean linkcheck
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
-	@echo
-	@echo "Build finished. The HTML pages are in $(BUILDDIR)/html."
-
-html-noexamples:
-	SPHINX_GALLERY_PLOT=False $(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(SOURCEDIR) $(BUILDDIR)/html
+	$(SPHINXBUILD) -M doctest $(ALLSPHINXOPTS) $(BUILDDIR)/html || true
 	@echo
 	@echo "Build finished. The HTML pages are in $(BUILDDIR)/html."
 

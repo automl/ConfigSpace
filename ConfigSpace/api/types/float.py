@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, overload
+from typing import overload
 
 from ConfigSpace.api.distributions import Beta, Distribution, Normal, Uniform
 from ConfigSpace.hyperparameters import (BetaFloatHyperparameter,
@@ -19,7 +19,6 @@ def Float(
     q: int | None = ...,
     log: bool = ...,
     meta: dict | None = ...,
-    **kwargs: Any,
 ) -> UniformFloatHyperparameter:
     ...
 
@@ -35,7 +34,6 @@ def Float(
     q: int | None = ...,
     log: bool = ...,
     meta: dict | None = ...,
-    **kwargs: Any,
 ) -> NormalFloatHyperparameter:
     ...
 
@@ -51,7 +49,6 @@ def Float(
     q: int | None = ...,
     log: bool = ...,
     meta: dict | None = ...,
-    **kwargs: Any,
 ) -> BetaFloatHyperparameter:
     ...
 
@@ -65,7 +62,6 @@ def Float(
     q: int | None = None,
     log: bool = False,
     meta: dict | None = None,
-    **kwargs: Any,
 ) -> UniformFloatHyperparameter | NormalFloatHyperparameter | BetaFloatHyperparameter:
     """Create a FloatHyperparameter.
 
@@ -147,8 +143,6 @@ def Float(
     else:
         lower, upper = bounds
 
-    # NOTE: not very pretty but ensures we don't accidentally merge arguments in definition
-    # and the **kwargs
     if isinstance(distribution, Uniform):
         return UniformFloatHyperparameter(
             name=name,
@@ -158,7 +152,6 @@ def Float(
             q=q,
             log=log,
             meta=meta,
-            **kwargs,
         )
     elif isinstance(distribution, Normal):
         return NormalFloatHyperparameter(
@@ -171,7 +164,6 @@ def Float(
             q=q,
             log=log,
             meta=meta,
-            **kwargs,
         )
     elif isinstance(distribution, Beta):
         return BetaFloatHyperparameter(
@@ -184,7 +176,6 @@ def Float(
             q=q,
             log=log,
             meta=meta,
-            **kwargs,
         )
     else:
         raise ValueError(f"Unknown distribution type {type(distribution)}")

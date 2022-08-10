@@ -19,8 +19,8 @@ Serialization to JSON
 
 .. _pcs_new:
 
-6.2 Serialization with pcs-new (new format)
--------------------------------------------
+Serialization with pcs-new (new format)
+---------------------------------------
 
 .. automodule:: ConfigSpace.read_and_write.pcs_new
    :members: read, write

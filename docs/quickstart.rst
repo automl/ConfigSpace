@@ -45,35 +45,28 @@ The first step is always to create a
 :class:`~ConfigSpace.configuration_space.ConfigurationSpace` object. All the
 hyperparameters and constraints will be added to this object.
 
-.. doctest::
-
-    >>> from ConfigSpace import ConfigurationSpace, Float
-    >>>
-    >>> cs = ConfigurationSpace(
-    ...     seed=1234,
-    ...     space={
-    ...         "alpha": (0, 1)
-    ...     }
-    ... )
+>>> from ConfigSpace import ConfigurationSpace, Float
+>>>
+>>> cs = ConfigurationSpace(
+...     seed=1234,
+...     space={ "alpha": (0.0, 1.0) }
+... )
 
 The hyperparameter :math:`\alpha` is chosen to have floating point values from 0 to 1.
 For demonstration purpose, we sample a configuration from the :class:`~ConfigSpace.configuration_space.ConfigurationSpace` object.
 
-.. doctest::
-
-    >>> config = cs.sample_configuration()
-    >>> print(config)
-    Configuration(values={
-      'alpha': 0.1915194503788923,
-    })
-
+>>> config = cs.sample_configuration()
+>>> print(config)
+Configuration(values={
+  'alpha': 0.1915194503788923,
+})
+<BLANKLINE>
 
 You can use this configuration just like you would a regular old python dictionary!
 
-.. doctest::
-
-   >>> for key, value in config.items():
-   >>>     print(key, value)
+>>> for key, value in config.items():
+...     print(key, value)
+alpha 0.1915194503788923
 
 And that's it!
 

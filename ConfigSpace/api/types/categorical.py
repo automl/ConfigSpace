@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Sequence, Union, overload
+from typing import Sequence, Union, overload
 
 from typing_extensions import (Literal,  # Move to `typing` when 3.8 minimum
                                TypeAlias)
@@ -22,7 +22,6 @@ def Categorical(
     weights: Sequence[float] | None = None,
     ordered: Literal[False],
     meta: dict | None = None,
-    **kwargs: Any,
 ) -> CategoricalHyperparameter:
     ...
 
@@ -37,7 +36,6 @@ def Categorical(
     weights: Sequence[float] | None = None,
     ordered: Literal[True],
     meta: dict | None = None,
-    **kwargs: Any,
 ) -> OrdinalHyperparameter:
     ...
 
@@ -52,7 +50,6 @@ def Categorical(
     weights: Sequence[float] | None = None,
     ordered: bool = ...,
     meta: dict | None = None,
-    **kwargs: Any,
 ) -> CategoricalHyperparameter | OrdinalHyperparameter:
     ...
 
@@ -65,7 +62,6 @@ def Categorical(
     weights: Sequence[float] | None = None,
     ordered: bool = False,
     meta: dict | None = None,
-    **kwargs: Any,
 ) -> CategoricalHyperparameter | OrdinalHyperparameter:
     """Creates a Categorical Hyperparameter.
 
@@ -133,7 +129,6 @@ def Categorical(
             sequence=items,
             default_value=default,
             meta=meta,
-            **kwargs,
         )
     else:
         return CategoricalHyperparameter(
@@ -142,5 +137,4 @@ def Categorical(
             default_value=default,
             weights=weights,
             meta=meta,
-            **kwargs,
         )

@@ -55,13 +55,15 @@ from ConfigSpace.forbidden import (ForbiddenAndConjunction,
                                    ForbiddenGreaterThanRelation,
                                    ForbiddenInClause,
                                    ForbiddenLessThanRelation)
-from ConfigSpace.hyperparameters import (CategoricalHyperparameter, Constant,
+from ConfigSpace.hyperparameters import (BetaFloatHyperparameter,
+                                         BetaIntegerHyperparameter,
+                                         CategoricalHyperparameter, Constant,
+                                         NormalFloatHyperparameter,
+                                         NormalIntegerHyperparameter,
                                          OrdinalHyperparameter,
                                          UniformFloatHyperparameter,
                                          UniformIntegerHyperparameter,
-                                         UnParametrizedHyperparameter,
-                                         BetaFloatHyperparameter,
-                                         BetaIntegerHyperparameter)
+                                         UnParametrizedHyperparameter)
 
 __all__ = [
     "__version__",
@@ -72,6 +74,8 @@ __all__ = [
     "UniformIntegerHyperparameter",
     "BetaFloatHyperparameter",
     "BetaIntegerHyperparameter",
+    "NormalFloatHyperparameter",
+    "NormalIntegerHyperparameter",
     "Constant",
     "UnParametrizedHyperparameter",
     "OrdinalHyperparameter",

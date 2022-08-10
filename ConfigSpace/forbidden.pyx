@@ -223,14 +223,14 @@ cdef class ForbiddenEqualsClause(SingleValueForbiddenClause):
     It forbids a value from the value range of a hyperparameter to be
     *equal to* ``value``.
 
-    .. code:: python
+    Forbids the value 2 for the hyperparameter *a*
 
-        cs = ConfigurationSpace({"a": [1, 2, 3]})
-
-        # forbids the value 2 for the hyperparameter *a*
-        forbidden_clause_a = ForbiddenEqualsClause(cs["a"], 2)
-
-        cs.add_forbidden_clause(forbidden_clause_a)
+    >>> from ConfigSpace import ConfigurationSpace, ForbiddenEqualsClause
+    >>>
+    >>> cs = ConfigurationSpace({"a": [1, 2, 3]})
+    >>> forbidden_clause_a = ForbiddenEqualsClause(cs["a"], 2)
+    >>> cs.add_forbidden_clause(forbidden_clause_a)
+    Forbidden: a == 2
 
     Parameters
     ----------
@@ -259,16 +259,14 @@ cdef class ForbiddenInClause(MultipleValueForbiddenClause):
         It forbids a value from the value range of a hyperparameter to be
         *in* a collection of ``values``.
 
-        .. code:: python
+        Forbids the values 2, 3 for the hyperparameter *a*
 
-            cs = ConfigurationSpace({"a": [1, 2, 3]})
-
-            # forbids the values 2, 3 for the hyperparameter *a*
-            forbidden_clause_a = CS.ForbiddenInClause(a, [2, 3])
-
-            cs.add_forbidden_clause(forbidden_clause_a)
-
-            # Forbidden: a in {2, 3}
+        >>> from ConfigSpace import ConfigurationSpace, ForbiddenInClause
+        >>>
+        >>> cs = ConfigurationSpace({"a": [1, 2, 3]})
+        >>> forbidden_clause_a = ForbiddenInClause(cs['a'], [2, 3])
+        >>> cs.add_forbidden_clause(forbidden_clause_a)
+        Forbidden: a in {2, 3}
 
         Note
         ----
@@ -423,18 +421,22 @@ cdef class ForbiddenAndConjunction(AbstractForbiddenConjunction):
     The ForbiddenAndConjunction combines forbidden-clauses, which allows to
     build powerful constraints.
 
-    .. code:: python
-
-        cs = ConfigurationSpace({"a": [1, 2, 3], "b": [2, 5, 6]})
-
-        forbidden_clause_a = ForbiddenEqualsClause(cs["a"], 2)
-        forbidden_clause_b = ForbiddenInClause(cs["b"], [2])
-
-        forbidden_clause = ForbiddenAndConjunction(forbidden_clause_a, forbidden_clause_b)
-
-        cs.add_forbidden_clause(forbidden_clause)
-
-        # (Forbidden: a == 2 && Forbidden: b in {2})
+    >>> from ConfigSpace import (
+    ...     ConfigurationSpace,
+    ...     ForbiddenEqualsClause,
+    ...     ForbiddenInClause,
+    ...     ForbiddenAndConjunction
+    ... )
+    >>>
+    >>> cs = ConfigurationSpace({"a": [1, 2, 3], "b": [2, 5, 6]})
+    >>>
+    >>> forbidden_clause_a = ForbiddenEqualsClause(cs["a"], 2)
+    >>> forbidden_clause_b = ForbiddenInClause(cs["b"], [2])
+    >>>
+    >>> forbidden_clause = ForbiddenAndConjunction(forbidden_clause_a, forbidden_clause_b)
+    >>>
+    >>> cs.add_forbidden_clause(forbidden_clause)
+    (Forbidden: a == 2 && Forbidden: b in {2})
 
     Parameters
     ----------
@@ -574,14 +576,13 @@ cdef class ForbiddenLessThanRelation(ForbiddenRelation):
 
     The ForbiddenLessThan compares the values of two hyperparameters.
 
-    .. code:: python
-
-        cs = CS.ConfigurationSpace({"a": [1, 2, 3], "b": [2, 5, 6]})
-
-        forbidden_clause = CS.ForbiddenLessThanRelation(a, b)
-        cs.add_forbidden_clause(forbidden_clause)
-
-        # Forbidden: a < b
+    >>> from ConfigSpace import ConfigurationSpace, ForbiddenLessThanRelation
+    >>>
+    >>> cs = ConfigurationSpace({"a": [1, 2, 3], "b": [2, 5, 6]})
+    >>>
+    >>> forbidden_clause = ForbiddenLessThanRelation(cs['a'], cs['b'])
+    >>> cs.add_forbidden_clause(forbidden_clause)
+    Forbidden: a < b
 
     Note
     ----
@@ -613,14 +614,13 @@ cdef class ForbiddenEqualsRelation(ForbiddenRelation):
 
     The ForbiddenEquals compares the values of two hyperparameters.
 
-    .. code:: python
-
-        cs = CS.ConfigurationSpace({"a": [1, 2, 3], "b": [2, 5, 6]})
-
-        forbidden_clause = CS.ForbiddenEqualsRelation(a, b)
-        cs.add_forbidden_clause(forbidden_clause)
-
-        # Forbidden: a == b
+    >>> from ConfigSpace import ConfigurationSpace, ForbiddenEqualsRelation
+    >>>
+    >>> cs = ConfigurationSpace({"a": [1, 2, 3], "b": [2, 5, 6]})
+    >>>
+    >>> forbidden_clause = ForbiddenEqualsRelation(cs['a'], cs['b'])
+    >>> cs.add_forbidden_clause(forbidden_clause)
+    Forbidden: a == b
 
     Note
     ----
@@ -651,14 +651,13 @@ cdef class ForbiddenGreaterThanRelation(ForbiddenRelation):
 
     The ForbiddenGreaterThan compares the values of two hyperparameters.
 
-    .. code:: python
-
-        cs = CS.ConfigurationSpace({"a": [1, 2, 3], "b": [2, 5, 6]})
-
-        forbidden_clause = CS.ForbiddenGreaterThanRelation(a, b)
-        cs.add_forbidden_clause(forbidden_clause)
-
-        # Forbidden: a > b
+    >>> from ConfigSpace import ConfigurationSpace, ForbiddenGreaterThanRelation
+    >>>
+    >>> cs = ConfigurationSpace({"a": [1, 2, 3], "b": [2, 5, 6]})
+    >>> forbidden_clause = ForbiddenGreaterThanRelation(cs['a'], cs['b'])
+    >>>
+    >>> cs.add_forbidden_clause(forbidden_clause)
+    Forbidden: a > b
 
     Note
     ----
