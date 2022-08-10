@@ -8,12 +8,14 @@ on:
   # Trigger on any push to the master
   push:
     branches:
-      - master
+      - main
+      - development
 
   # Trigger on any push to a PR that targets master
   pull_request:
     branches:
-      - master
+      - main
+      - development
 
 jobs:
 

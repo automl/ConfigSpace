@@ -8,7 +8,7 @@
 * Maint #221: Categorical Hyperparameters now always have associated probabilities, remaining uniform if non are provided. (Same behaviour)
 * Add #222: BetaFloat and BetaInteger hyperparamters, hyperparameters distributed according to a beta distribution.
 * Add #241: Implements support for [PiBo](https://openreview.net/forum?id=MMAeCXIa89), you can now embed some prior distribution knowledge into ConfigSpace hyperparameters.
-    * See the example [here](https://automl.github.io/ConfigSpace/master/User-Guide.html#th-example-placing-priors-on-the-hyperparameters).
+    * See the example [here](https://automl.github.io/ConfigSpace/main/User-Guide.html#th-example-placing-priors-on-the-hyperparameters).
     * Hyperparameters now have a `pdf(vector: np.ndarray) -> np.ndarray` to get the probability density values for the input
     * Hyperparameters now have a `get_max_density() -> float` to get the greatest value in it's probability distribution function, the probability of the mode of the distriubtion.
     * `ConfigurationSpace` objects now have a `remove_parameter_priors() -> ConfigurationSpace` to remove any priors
