@@ -42,6 +42,7 @@ __authors__ = [
 ]
 
 import ConfigSpace.api.distributions as distributions
+import ConfigSpace.api.types as types
 from ConfigSpace.api import (Beta, Categorical, Distribution, Float, Integer,
                              Normal, Uniform)
 from ConfigSpace.conditions import (AndConjunction, EqualsCondition,
@@ -100,4 +101,5 @@ __all__ = [
     "Normal",
     "Uniform",
     "distributions",
+    "types",
 ]
