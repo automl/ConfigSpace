@@ -18,6 +18,18 @@ def get_version(fname):
         return file_handle.readlines()[-1].split()[-1].strip("\"'")
 
 
+def get_authors(fname):
+    """Get the authors"""
+    with open(fname, "r") as f:
+        content = f.read()
+
+    return [
+        line.replace(",", "").replace('"', "").replace("    ", "")  # Remove noise
+        for line in content.split("\n")
+        if line.startswith(" ")  # Lines with space
+    ]
+
+
 class BuildExt(build_ext):
     """build_ext command for use when numpy headers are needed.
     SEE tutorial: https://stackoverflow.com/questions/2379898
@@ -43,21 +55,8 @@ KEYWORDS = (
     "evaluation black box"
 )
 LICENSE = "BSD 3-clause"
-PLATS = ["Linux"]
-AUTHORS = (
-    ", ".join(
-        [
-            "Matthias Feurer",
-            "Katharina Eggensperger",
-            "Syed Mohsin Ali",
-            "Christina Hernandez Wunsch",
-            "Julien-Charles Levesque",
-            "Jost Tobias Springenberg",
-            "Philipp Mueller" "Marius Lindauer",
-            "Jorn Tuyls",
-        ]
-    ),
-)
+PLATS = ["Linux", "Windows", "Mac"]
+
 AUTHOR_EMAIL = "feurerm@informatik.uni-freiburg.de"
 TEST_SUITE = "pytest"
 SETUP_REQS = ["numpy", "cython"]
@@ -109,7 +108,7 @@ extras_reqs = {
         "mypy",
         "pre-commit",
         "pytest-cov",
-        "automl_sphinx_theme>=0.1.11"
+        "automl_sphinx_theme>=0.1.11",
     ],
 }
 
@@ -125,7 +124,7 @@ setup(
     long_description=read_file("README.md"),
     license=LICENSE,
     platforms=PLATS,
-    author=AUTHORS,
+    author=get_authors("ConfigSpace/__authors__.py"),
     author_email=AUTHOR_EMAIL,
     test_suite=TEST_SUITE,
     setup_requires=SETUP_REQS,

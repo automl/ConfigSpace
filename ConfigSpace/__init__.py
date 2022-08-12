@@ -27,19 +27,7 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from ConfigSpace.__version__ import __version__
-
-__authors__ = [
-    "Matthias Feurer",
-    "Katharina Eggensperger",
-    "Syed Mohsin Ali",
-    "Christina Hernandez Wunsch",
-    "Julien-Charles Levesque",
-    "Jost Tobias Springenberg",
-    "Philipp Mueller",
-    "Marius Lindauer",
-    "Jorn Tuyls",
-    "Eddie Bergman",
-]
+from ConfigSpace.__authors__ import __authors__
 
 import ConfigSpace.api.distributions as distributions
 import ConfigSpace.api.types as types
@@ -67,6 +55,7 @@ from ConfigSpace.hyperparameters import (BetaFloatHyperparameter,
                                          UnParametrizedHyperparameter)
 
 __all__ = [
+    "__authors__",
     "__version__",
     "Configuration",
     "ConfigurationSpace",
