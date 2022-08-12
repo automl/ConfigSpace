@@ -69,7 +69,7 @@ or :mod:`~ConfigSpace.api.types.categorical` to customize how sampling is done!
   'c': 'dog',
 })
 , Configuration(values={
-  'a': 0.5476203000512744,
+  'a': 0.5476203000512754,
   'b': 9,
   'c': 'mouse',
 })
