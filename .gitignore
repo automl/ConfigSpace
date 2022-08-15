@@ -1,5 +1,8 @@
+.DS_Store
+
 # Documentation
 docs/build/*
+docs/examples/*
 
 *.py[cod]
 

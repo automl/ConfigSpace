@@ -1,32 +1,24 @@
-# Minimal makefile for Sphinx documentation
-#
+SPHINXBUILD = sphinx-build
+BUILDDIR = build
+SPHINXOPTS =
+ALLSPHINXOPTS = $(SPHINXOPTS) .
 
-# You can set these variables from the command line.
-SPHINXOPTS    =
-SPHINXBUILD   = sphinx-build
-SPHINXPROJ    = ConfigSpace
-SOURCEDIR     = source
-BUILDDIR      = build
+.PHONY: clean buildapi linkcheck html docs html-noexamples
 
-# Put it first so that "make" without argument is like "make help".
-help:
-	@$(SPHINXBUILD) -M help "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
+clean:
+	rm -rf $(BUILDDIR)/*
+	rm -rf ../build/
 
-.PHONY: help Makefile
-
-buildapi:
-	sphinx-apidoc -fePTMo apidoc ../ConfigSpace/
-	for f in apidoc/*;   \
-	do                   \
-	  sed -i '/Submodules/d' $$f; \
-	  sed -i '/----------/d' $$f; \
-	  sed -i 's/    :show-inheritance:/    :show-inheritance:\n    :inherited-members:/g' $$f; \
-	done;
+linkcheck:
+	SPHINX_GALLERY_PLOT=False $(SPHINXBUILD) -b linkcheck $(ALLSPHINXOPTS) $(BUILDDIR)/linkcheck
 	@echo
-	@echo "Auto-generation of API documentation finished. " \
-	      "The generated files are in 'apidoc/'"
+	@echo "Link check complete; look for any errors in the above output " \
+	      "or in $(BUILDDIR)/linkcheck/output.txt."
 
-# Catch-all target: route all unknown targets to Sphinx using the new
-# "make mode" option.  $(O) is meant as a shortcut for $(SPHINXOPTS).
-%: Makefile
-	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
+html: clean linkcheck
+	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
+	$(SPHINXBUILD) -M doctest $(ALLSPHINXOPTS) $(BUILDDIR)/html || true
+	@echo
+	@echo "Build finished. The HTML pages are in $(BUILDDIR)/html."
+
+docs: html linkcheck

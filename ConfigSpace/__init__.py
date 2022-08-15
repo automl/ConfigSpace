@@ -27,32 +27,68 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from ConfigSpace.__version__ import __version__
-__authors__ = [
-    "Matthias Feurer", "Katharina Eggensperger", "Syed Mohsin Ali",
-    "Christina Hernandez Wunsch", "Julien-Charles Levesque",
-    "Jost Tobias Springenberg", "Philipp Mueller", "Marius Lindauer",
-    "Jorn Tuyls"
+from ConfigSpace.__authors__ import __authors__
+
+import ConfigSpace.api.distributions as distributions
+import ConfigSpace.api.types as types
+from ConfigSpace.api import (Beta, Categorical, Distribution, Float, Integer,
+                             Normal, Uniform)
+from ConfigSpace.conditions import (AndConjunction, EqualsCondition,
+                                    GreaterThanCondition, InCondition,
+                                    LessThanCondition, NotEqualsCondition,
+                                    OrConjunction)
+from ConfigSpace.configuration_space import Configuration, ConfigurationSpace
+from ConfigSpace.forbidden import (ForbiddenAndConjunction,
+                                   ForbiddenEqualsClause,
+                                   ForbiddenEqualsRelation,
+                                   ForbiddenGreaterThanRelation,
+                                   ForbiddenInClause,
+                                   ForbiddenLessThanRelation)
+from ConfigSpace.hyperparameters import (BetaFloatHyperparameter,
+                                         BetaIntegerHyperparameter,
+                                         CategoricalHyperparameter, Constant,
+                                         NormalFloatHyperparameter,
+                                         NormalIntegerHyperparameter,
+                                         OrdinalHyperparameter,
+                                         UniformFloatHyperparameter,
+                                         UniformIntegerHyperparameter,
+                                         UnParametrizedHyperparameter)
+
+__all__ = [
+    "__authors__",
+    "__version__",
+    "Configuration",
+    "ConfigurationSpace",
+    "CategoricalHyperparameter",
+    "UniformFloatHyperparameter",
+    "UniformIntegerHyperparameter",
+    "BetaFloatHyperparameter",
+    "BetaIntegerHyperparameter",
+    "NormalFloatHyperparameter",
+    "NormalIntegerHyperparameter",
+    "Constant",
+    "UnParametrizedHyperparameter",
+    "OrdinalHyperparameter",
+    "AndConjunction",
+    "OrConjunction",
+    "EqualsCondition",
+    "NotEqualsCondition",
+    "InCondition",
+    "GreaterThanCondition",
+    "LessThanCondition",
+    "ForbiddenAndConjunction",
+    "ForbiddenEqualsClause",
+    "ForbiddenInClause",
+    "ForbiddenLessThanRelation",
+    "ForbiddenEqualsRelation",
+    "ForbiddenGreaterThanRelation",
+    "Beta",
+    "Categorical",
+    "Distribution",
+    "Float",
+    "Integer",
+    "Normal",
+    "Uniform",
+    "distributions",
+    "types",
 ]
-
-from ConfigSpace.configuration_space import Configuration, \
-    ConfigurationSpace
-from ConfigSpace.hyperparameters import CategoricalHyperparameter, \
-    UniformFloatHyperparameter, UniformIntegerHyperparameter, Constant, \
-    UnParametrizedHyperparameter, OrdinalHyperparameter
-from ConfigSpace.conditions import AndConjunction, OrConjunction, \
-    EqualsCondition, NotEqualsCondition, InCondition, GreaterThanCondition, LessThanCondition
-from ConfigSpace.forbidden import ForbiddenAndConjunction, \
-    ForbiddenEqualsClause, ForbiddenInClause, ForbiddenLessThanRelation, ForbiddenEqualsRelation, \
-    ForbiddenGreaterThanRelation
-
-__all__ = ["__version__", "Configuration", "ConfigurationSpace",
-           "CategoricalHyperparameter", "UniformFloatHyperparameter",
-           "UniformIntegerHyperparameter", "Constant",
-           "UnParametrizedHyperparameter", "OrdinalHyperparameter",
-           "AndConjunction", "OrConjunction",
-           "EqualsCondition", "NotEqualsCondition",
-           "InCondition", "GreaterThanCondition",
-           "LessThanCondition", "ForbiddenAndConjunction",
-           "ForbiddenEqualsClause", "ForbiddenInClause",
-           "ForbiddenLessThanRelation", "ForbiddenEqualsRelation",
-           "ForbiddenGreaterThanRelation"]

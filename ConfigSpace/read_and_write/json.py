@@ -319,18 +319,15 @@ def write(configuration_space, indent=2):
     :class:`~ConfigSpace.configuration_space.ConfigurationSpace` in json format.
     This string can be written to file.
 
-    Example:
-
-    ..code:: python
+    .. code:: python
 
         from ConfigSpace import ConfigurationSpace
-        import ConfigSpace.hyperparameters as CSH
-        from ConfigSpace.read_and_write import json
-        cs = ConfigurationSpace()
-        cs.add_hyperparameter(CSH.CategoricalHyperparameter('a', choices=[1, 2, 3]))
+        from ConfigSpace.read_and_write import json as cs_json
+
+        cs = ConfigurationSpace({"a": [1, 2, 3]})
 
         with open('configspace.json', 'w') as f:
-            f.write(json.write(cs))
+            f.write(cs_json.write(cs))
 
     Parameters
     ----------
@@ -408,25 +405,21 @@ def read(jason_string):
     """
     Create a configuration space definition from a json string.
 
-    Example
-    -------
-
-    .. testsetup:: json_test
+    .. code:: python
 
         from ConfigSpace import ConfigurationSpace
-        import ConfigSpace.hyperparameters as CSH
-        from ConfigSpace.read_and_write import json
-        cs = ConfigurationSpace()
-        cs.add_hyperparameter(CSH.CategoricalHyperparameter('a', choices=[1, 2, 3]))
+        from ConfigSpace.read_and_write import json as cs_json
+
+        cs = ConfigurationSpace({"a": [1, 2, 3]})
+
+        cs_string = cs_json.write(cs)
         with open('configspace.json', 'w') as f:
-             f.write(json.write(cs))
+             f.write(cs_string)
 
-    .. doctest:: json_test
+        with open('configspace.json', 'r') as f:
+            json_string = f.read()
+            config = cs_json.read(json_string)
 
-        >>> from ConfigSpace.read_and_write import json
-        >>> with open('configspace.json', 'r') as f:
-        ...     jason_string = f.read()
-        ...     config = json.read(jason_string)
 
     Parameters
     ----------

@@ -173,37 +173,31 @@ def read(pcs_string, debug=False):
     Read in a :py:class:`~ConfigSpace.configuration_space.ConfigurationSpace`
     definition from a pcs file.
 
-    Example
-    -------
 
-    .. testsetup:: pcs_test
+    .. code:: python
 
         from ConfigSpace import ConfigurationSpace
-        import ConfigSpace.hyperparameters as CSH
         from ConfigSpace.read_and_write import pcs
-        cs = ConfigurationSpace()
-        cs.add_hyperparameter(CSH.CategoricalHyperparameter('a', choices=[1, 2, 3]))
+
+        cs = ConfigurationSpace({"a": [1, 2, 3]})
         with open('configspace.pcs', 'w') as f:
              f.write(pcs.write(cs))
 
-    .. doctest:: pcs_test
-
-        >>> from ConfigSpace.read_and_write import pcs
-        >>> with open('configspace.pcs', 'r') as fh:
-        ...     deserialized_conf = pcs.read(fh)
+        with open('configspace.pcs', 'r') as f:
+            deserialized_conf = pcs.read(f)
 
     Parameters
     ----------
     pcs_string : str
         ConfigSpace definition in pcs format
-    debug : bool
+
+    debug : bool = False
         Provides debug information. Defaults to False.
 
     Returns
     -------
     :py:class:`~ConfigSpace.configuration_space.ConfigurationSpace`
         The deserialized ConfigurationSpace object
-
     """
     configuration_space = ConfigurationSpace()
     conditions = []
@@ -351,22 +345,15 @@ def write(configuration_space):
     :class:`~ConfigSpace.configuration_space.ConfigurationSpace` in pcs format.
     This string can be written to file.
 
-    Example
-    -------
+    .. code:: python
 
-    .. doctest::
+        from ConfigSpace import ConfigurationSpace
+        from ConfigSpace.read_and_write import pcs
 
-        >>> import ConfigSpace as CS
-        >>> import ConfigSpace.hyperparameters as CSH
-        >>> from ConfigSpace.read_and_write import pcs
-        >>> cs = CS.ConfigurationSpace()
-        >>> cs.add_hyperparameter(CSH.CategoricalHyperparameter('a', choices=[1, 2, 3]))
-        a, Type: Categorical, Choices: {1, 2, 3}, Default: 1
+        cs = ConfigurationSpace({"a": [1, 2, 3]})
 
-        <BLANKLINE>
-        >>> with open('configspace.pcs', 'w') as fh:
-        ...     fh.write(pcs.write(cs))
-        15
+        with open('configspace.pcs', 'w') as fh:
+            fh.write(pcs.write(cs))
 
     Parameters
     ----------

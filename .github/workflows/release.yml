@@ -40,7 +40,7 @@ on:
 
   push:
     branches:
-      - master
+      - main
       # Release branches
       - "[0-9]+.[0-9]+.X"
 
@@ -54,7 +54,7 @@ env:
   test-dir: test
   test-reqs: "pytest"
   test-cmd: "pytest -v"
-  extra-requires: "[test]"
+  extra-requires: "[dev]"
 
 jobs:
 
@@ -74,10 +74,9 @@ jobs:
           # Not supported by numpy
           - system: "musllinux"
 
-        # Scipy doesn't have a wheel for cp310 i686
+          # Scipy doesn't have a wheel for cp310 i686
           - py: cp310
             arch: "i686"
-
 
     steps:
       - name: Checkout ${{ env.package-name }}

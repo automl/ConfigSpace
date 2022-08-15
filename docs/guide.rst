@@ -15,7 +15,7 @@ Assume that we want to use a support vector machine (=SVM) for classification
 tasks and therefore, we want to optimize its hyperparameters:
 
 - :math:`\mathcal{C}`: regularization constant  with :math:`\mathcal{C} \in \mathbb{R}`
-- ``max_iter``: the maximum number of iterations within the solver with :math:`max_iter \in \mathbb{N}`
+- ``max_iter``: the maximum number of iterations within the solver with :math:`max\_iter \in \mathbb{N}`
 
 The implementation of the classifier is out of scope and thus not shown.
 But for further reading about
@@ -24,37 +24,31 @@ reading `here <https://en.wikipedia.org/wiki/Support_vector_machine>`_ or
 in the `scikit-learn documentation <http://scikit-learn.org/stable/modules/generated/sklearn.svm.SVC.html#sklearn.svm.SVC>`_.
 
 The first step is always to create a
-:class:`~ConfigSpace.configuration_space.ConfigurationSpace` object. All the
-hyperparameters and constraints will be added to this object.
+:class:`~ConfigSpace.configuration_space.ConfigurationSpace` with the
+hyperparameters :math:`\mathcal{C}` and ``max_iter``.
 
->>> import ConfigSpace as CS
->>> cs = CS.ConfigurationSpace(seed=1234)
-
-Now, we have to define the hyperparameters :math:`\mathcal{C}` and ``max_iter``.
 To restrict the search space, we choose :math:`\mathcal{C}` to be a
-:class:`~ConfigSpace.hyperparameters.UniformFloatHyperparameter` between -1 and 1.
-Furthermore, we choose ``max_iter`` to be an
-:class:`~ConfigSpace.hyperparameters.UniformIntegerHyperparameter` .
+:class:`~ConfigSpace.api.types.float` between -1 and 1.
+Furthermore, we choose ``max_iter`` to be an :class:`~ConfigSpace.api.types.integer.Integer` .
 
->>> import ConfigSpace.hyperparameters as CSH
->>> c = CSH.UniformFloatHyperparameter(name='C', lower=-1, upper=1)
->>> max_iter = CSH.UniformIntegerHyperparameter(name='max_iter', lower=10, upper=100)
+>>> from ConfigSpace import ConfigurationSpace
+>>>
+>>> cs = ConfigurationSpace(
+...     seed=1234,
+...     space={
+...         "C": (-1.0, 1.0),  # Note the decimal to make it a float
+...         "max_iter": (10, 100),
+...     }
+... )
 
-As last step, we need to add them to the
-:class:`~ConfigSpace.configuration_space.ConfigurationSpace`.
 For demonstration  purpose, we sample a configuration from it.
 
-.. doctest::
-
-    >>> cs.add_hyperparameters([c, max_iter])
-    [C, Type: UniformFloat, Range: [-1.0, 1.0], Default: 0.0, max_iter, Type: ...]
-    >>> cs.sample_configuration()
-    Configuration(values={
-      'C': -0.6169610992422154,
-      'max_iter': 66,
-    })
-    <BLANKLINE>
-
+>>> cs.sample_configuration()
+Configuration(values={
+  'C': -0.6169610992422154,
+  'max_iter': 66,
+})
+<BLANKLINE>
 
 Now, the :class:`~ConfigSpace.configuration_space.ConfigurationSpace` object *cs*
 contains definitions of the hyperparameters :math:`\mathcal{C}` and ``max_iter`` with their
@@ -69,8 +63,9 @@ of a parameter can be accessed or modified similar to a python dictionary.
 
 >>> conf = cs.sample_configuration()
 >>> conf['max_iter'] = 42
->>> conf['max_iter']
+>>> print(conf['max_iter'])
 42
+
 
 2nd Example: Categorical hyperparameters and conditions
 -------------------------------------------------------
@@ -78,7 +73,7 @@ of a parameter can be accessed or modified similar to a python dictionary.
 The scikit-learn SVM supports different kernels, such as an RBF, a sigmoid,
 a linear or a polynomial kernel. We want to include them in the configuration space.
 Since this new hyperparameter has a finite number of values, we use a
-:class:`~ConfigSpace.hyperparameters.CategoricalHyperparameter`.
+:class:`~ConfigSpace.api.types.categorical`.
 
 
 - ``kernel_type``: with values 'linear', 'poly', 'rbf', 'sigmoid'.
@@ -106,43 +101,56 @@ To add conditions on hyperparameters to the configuration space, we first have
 to insert the new hyperparameters in the ``ConfigSpace`` and in a second step, the
 conditions on them.
 
->>> kernel_type = CSH.CategoricalHyperparameter(
-...         name='kernel_type', choices=['linear', 'poly', 'rbf', 'sigmoid'])
->>> degree = CSH.UniformIntegerHyperparameter(
-...         'degree', lower=2, upper=4, default_value=2)
->>> coef0 = CSH.UniformFloatHyperparameter(
-...         name='coef0', lower=0, upper=1, default_value=0.0)
->>> gamma = CSH.UniformFloatHyperparameter(
-...         name='gamma', lower=1e-5, upper=1e2, default_value=1, log=True)
-
+>>> from ConfigSpace import ConfigurationSpace, Categorical, Float, Integer
+>>>
+>>> kernel_type = Categorical('kernel_type', ['linear', 'poly', 'rbf', 'sigmoid'])
+>>> degree = Integer('degree', bounds=(2, 4), default=2)
+>>> coef0 = Float('coef0', bounds=(0, 1), default=0.0)
+>>> gamma = Float('gamma', bounds=(1e-5, 1e2), default=1, log=True)
+>>>
+>>> cs = ConfigurationSpace()
 >>> cs.add_hyperparameters([kernel_type, degree, coef0, gamma])
 [kernel_type, Type: Categorical, Choices: {linear, poly, rbf, sigmoid}, ...]
 
 First, we define the conditions. Conditions work by constraining a child
 hyperparameter (the first argument) on its parent hyperparameter (the second argument)
 being in a certain relation to a value (the third argument).
-``CS.EqualsCondition(degree, kernel_type, 'poly')`` expresses that ``degree`` is
+``EqualsCondition(degree, kernel_type, 'poly')`` expresses that ``degree`` is
 constrained on ``kernel_type`` being equal to the value 'poly'.  To express
 constraints involving multiple parameters or values, we can use conjunctions.
 In the following example, ``cond_2`` describes that ``coef0``
 is a valid hyperparameter, if the ``kernel_type`` has either the value
 'poly' or 'sigmoid'.
 
->>> cond_1 = CS.EqualsCondition(degree, kernel_type, 'poly')
+>>> from ConfigSpace import EqualsCondition, OrConjunction
+>>>
+>>> cond_1 = EqualsCondition(degree, kernel_type, 'poly')
+>>>
+>>> cond_2 = OrConjunction(
+...     EqualsCondition(coef0, kernel_type, 'poly'),
+...     EqualsCondition(coef0, kernel_type, 'sigmoid')
+... )
+>>>
+>>> cond_3 = OrConjunction(
+...     EqualsCondition(gamma, kernel_type, 'rbf'),
+...     EqualsCondition(gamma, kernel_type, 'poly'),
+...     EqualsCondition(gamma, kernel_type, 'sigmoid')
+... )
 
->>> cond_2 = CS.OrConjunction(CS.EqualsCondition(coef0, kernel_type, 'poly'),
-...                           CS.EqualsCondition(coef0, kernel_type, 'sigmoid'))
+In this specific example, you may wish to use the :class:`~ConfigSpace.conditions.InCondition` to express
+that ``gamma`` is valid if ``kernel_type in ["rbf", "poly", "sigmoid"]`` which we show for completness
 
->>> cond_3 = CS.OrConjunction(CS.EqualsCondition(gamma, kernel_type, 'rbf'),
-...                           CS.EqualsCondition(gamma, kernel_type, 'poly'),
-...                           CS.EqualsCondition(gamma, kernel_type, 'sigmoid'))
+>>> from ConfigSpace import InCondition
+>>>
+>>> cond_3 = InCondition(gamma, kernel_type, ["rbf", "poly", "sigmoid"])
 
-Again, we add the conditions to the configuration space
+Finally, we add the conditions to the configuration space
 
 >>> cs.add_conditions([cond_1, cond_2, cond_3])
 [degree | kernel_type == 'poly', (coef0 | kernel_type == 'poly' || coef0 | ...), ...]
 
 .. note::
+
     ConfigSpace offers a lot of different condition types. For example the
     :class:`~ConfigSpace.conditions.NotEqualsCondition`,
     :class:`~ConfigSpace.conditions.LessThanCondition`,
@@ -178,11 +186,11 @@ configuration space.
 
 First, we add these three new hyperparameters to the configuration space.
 
->>> penalty = CSH.CategoricalHyperparameter(
-...         name="penalty", choices=["l1", "l2"], default_value="l2")
->>> loss = CSH.CategoricalHyperparameter(
-...         name="loss", choices=["hinge", "squared_hinge"], default_value="squared_hinge")
->>> dual = CSH.Constant("dual", "False")
+>>> from ConfigSpace import ConfigurationSpace, Categorical, Constant
+>>>
+>>> penalty = Categorical("penalty", ["l1", "l2"], default="l2")
+>>> loss = Categorical("loss", ["hinge", "squared_hinge"], default="squared_hinge")
+>>> dual = Constant("dual", "False")
 >>> cs.add_hyperparameters([penalty, loss, dual])
 [penalty, Type: Categorical, Choices: {l1, l2}, Default: l2, ...]
 
@@ -192,26 +200,27 @@ Now, we want to forbid the following hyperparameter combinations:
 - ``dual`` is False and ``penalty`` is 'l2' and ``loss`` is 'hinge'
 - ``dual`` is False and ``penalty`` is 'l1'
 
->>> penalty_and_loss = CS.ForbiddenAndConjunction(
-...         CS.ForbiddenEqualsClause(penalty, "l1"),
-...         CS.ForbiddenEqualsClause(loss, "hinge")
-...     )
->>> constant_penalty_and_loss = CS.ForbiddenAndConjunction(
-...         CS.ForbiddenEqualsClause(dual, "False"),
-...         CS.ForbiddenEqualsClause(penalty, "l2"),
-...         CS.ForbiddenEqualsClause(loss, "hinge")
-...     )
->>> penalty_and_dual = CS.ForbiddenAndConjunction(
-...         CS.ForbiddenEqualsClause(dual, "False"),
-...         CS.ForbiddenEqualsClause(penalty, "l1")
-...     )
+>>> from ConfigSpace import ForbiddenEqualsClause, ForbiddenAndConjunction
+>>>
+>>> penalty_and_loss = ForbiddenAndConjunction(
+...     ForbiddenEqualsClause(penalty, "l1"),
+...     ForbiddenEqualsClause(loss, "hinge")
+... )
+>>> constant_penalty_and_loss = ForbiddenAndConjunction(
+...     ForbiddenEqualsClause(dual, "False"),
+...     ForbiddenEqualsClause(penalty, "l2"),
+...     ForbiddenEqualsClause(loss, "hinge")
+... )
+>>> penalty_and_dual = ForbiddenAndConjunction(
+...     ForbiddenEqualsClause(dual, "False"),
+...     ForbiddenEqualsClause(penalty, "l1")
+... )
 
 In the last step, we add them to the configuration space object:
 
->>> cs.add_forbidden_clauses([penalty_and_loss,
-...                           constant_penalty_and_loss,
-...                           penalty_and_dual])
+>>> cs.add_forbidden_clauses([penalty_and_loss, constant_penalty_and_loss, penalty_and_dual])
 [(Forbidden: penalty == 'l1' && Forbidden: loss == 'hinge'), ...]
+
 
 4th Example Serialization
 -------------------------
@@ -225,24 +234,16 @@ we can choose between different output formats, such as
 In this example, we want to store the :class:`~ConfigSpace.configuration_space.ConfigurationSpace`
 object as json file
 
-.. testcode::
-
-    from ConfigSpace.read_and_write import json
-    with open('configspace.json', 'w') as fh:
-        fh.write(json.write(cs))
+>>> from ConfigSpace.read_and_write import json
+>>> with open('configspace.json', 'w') as fh:
+...     fh.write(json.write(cs))
+2828
 
 To read it from file
 
-.. testsetup:: json_block
-
-    from ConfigSpace.read_and_write import json
-
-.. doctest:: json_block
-
-    >>> with open('configspace.json', 'r') as fh:
-    ...     json_string = fh.read()
-    ...     restored_conf = json.read(json_string)
-
+>>> with open('configspace.json', 'r') as fh:
+...   json_string = fh.read()
+>>> restored_conf = json.read(json_string)
 
 
 5th Example: Placing priors on the hyperparameters
@@ -252,43 +253,37 @@ If you want to conduct black-box optimization in SMAC (https://arxiv.org/abs/210
 
 Consider the case of optimizing the accuracy of an MLP with three hyperparameters: learning rate [1e-5, 1e-1], dropout [0, 0.99] and activation {Tanh, ReLU}. From prior experience, you believe the optimal learning rate to be around 1e-3, a good dropout to be around 0.25, and the optimal activation function to be ReLU about 80% of the time. This can be represented accordingly:
 
-.. code-block:: python
+>>> import numpy as np
+>>> from ConfigSpace import ConfigurationSpace, Float, Categorical, Beta, Normal
+>>>
+>>> # convert 10 log to natural log for learning rate, mean 1e-3
+>>> # with two standard deviations on either side of the mean to cover the search space
+>>> logmean = np.log(1e-3)
+>>> logstd = np.log(10.0)
+>>>
+>>> cs = ConfigurationSpace(
+...     seed=1234,
+...     space={
+...       "lr": Float('lr', bounds=(1e-5, 1e-1), default=1e-3, log=True, distribution=Normal(logmean, logstd)),
+...       "dropout": Float('dropout', bounds=(0, 0.99), default=0.25, distribution=Beta(alpha=2, beta=4)),
+...       "activation": Categorical('activation', ['tanh', 'relu'], weights=[0.2, 0.8]),
+...     }
+... )
+>>> print(cs)
+Configuration space object:
+  Hyperparameters:
+    activation, Type: Categorical, Choices: {tanh, relu}, Default: tanh, Probabilities: (0.2, 0.8)
+    dropout, Type: BetaFloat, Alpha: 2.0 Beta: 4.0, Range: [0.0, 0.99], Default: 0.25
+    lr, Type: NormalFloat, Mu: -6.907755278982137 Sigma: 2.302585092994046, Range: [1e-05, 0.1], Default: 0.001, on log-scale
+<BLANKLINE>
 
-    import numpy as np
-    import ConfigSpace.hyperparameters as CSH
-    from ConfigSpace.configuration_space import ConfigurationSpace
+To check that your prior makes sense for each hyperparameter, you can easily do so with the ``__pdf__`` method. There, you will see that the probability of the optimal learning rate peaks at 10^-3, and decays as we go further away from it:
 
-    # convert 10 log to natural log for learning rate, mean 1e-3
-    logmean = np.log(1e-3)
-    # two standard deviations on either side of the mean to cover the search space
-    logstd = np.log(10.0)
-
-    learning_rate = CSH.NormalFloatHyperparameter(name='learning_rate', lower=1e-5, upper=1e-1, default_value=1e-3, mu=logmean, sigma=logstd, log=True)
-    dropout = CSH.BetaFloatHyperparameter(name='dropout', lower=0, upper=0.99, default_value=0.25, alpha=2, beta=4, log=False)
-    activation = CSH.CategoricalHyperparameter(name='activation', choices=['tanh', 'relu'], weights=[0.2, 0.8])
-
-    cs = ConfigurationSpace()
-
-    cs.add_hyperparameters([learning_rate, dropout, activation])
-    # [learning_rate, Type: NormalFloat, Mu: -6.907755278982137 Sigma: 2.302585092994046, Range: [1e-05, 0.1], Default: 0.001, on log-scale, dropout, Type: BetaFloat, Alpha: 2.0 Beta: 4.0, Range: [0.0, 0.99], Default: 0.25, activation, Type: Categorical, Choices: {tanh, relu}, Default: tanh, Probabilities: (0.2, 0.8)]
-
-To check that your prior makes sense for each hyperparameter, you can easily do so with the __pdf__ method. There, you will see that the probability of the optimal learning rate peaks at 10^-3, and decays as we go further away from it:
-
-.. code-block:: python
-
-    test_points = np.logspace(-5, -1, 5)
-
-    print(test_points)
-    # array([1.e-05, 1.e-04, 1.e-03, 1.e-02, 1.e-01])
+>>> test_points = np.logspace(-5, -1, 5)
+>>> print(test_points)
+[1.e-05 1.e-04 1.e-03 1.e-02 1.e-01]
 
 The pdf function accepts an (N, ) numpy array as input.
 
-.. code-block:: python
-
-    test_points_pdf = learning_rate.pdf(test_points)
-    print(test_points_pdf)
-    # array([0.02456573, 0.11009594, 0.18151753, 0.11009594, 0.02456573])
-
-
-
-
+>>> cs['lr'].pdf(test_points)
+array([0.02456573, 0.11009594, 0.18151753, 0.11009594, 0.02456573])
