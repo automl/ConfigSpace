@@ -4,7 +4,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
     <title>Hyperparameters &#8212; ConfigSpace Documentation 0.6.0 documentation</title>
     
@@ -280,8 +280,9 @@ style="width: 100%;">
 and <a class="reference internal" href="#ConfigSpace.api.types.categorical.Categorical" title="ConfigSpace.api.types.categorical.Categorical"><code class="xref py py-func docutils literal notranslate"><span class="pre">Categorical()</span></code></a> hyperparamters, each with their own customizability.</p>
 <p>For <a class="reference internal" href="#ConfigSpace.api.types.float.Float" title="ConfigSpace.api.types.float.Float"><code class="xref py py-func docutils literal notranslate"><span class="pre">Float()</span></code></a> and <a class="reference internal" href="#ConfigSpace.api.types.integer.Integer" title="ConfigSpace.api.types.integer.Integer"><code class="xref py py-func docutils literal notranslate"><span class="pre">Integer()</span></code></a>, you will find their
 interface much the same, being able to take the same <a class="reference internal" href="#distributions"><span class="std std-ref">distributions</span></a> and parameters.</p>
-<p>A <a class="reference internal" href="#ConfigSpace.api.types.categorical.Categorical" title="ConfigSpace.api.types.categorical.Categorical"><code class="xref py py-func docutils literal notranslate"><span class="pre">Categorical()</span></code></a> can optionally take weights to define your own custom distribution over the discrete <strong>un-ordered</strong> choices
-or you can pass <code class="docutils literal notranslate"><span class="pre">ordered=True</span></code> to make it an <a class="reference internal" href="#ConfigSpace.hyperparameters.OrdinalHyperparameter" title="ConfigSpace.hyperparameters.OrdinalHyperparameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">OrdinalHyperparameter</span></code></a>.</p>
+<p>A <a class="reference internal" href="#ConfigSpace.api.types.categorical.Categorical" title="ConfigSpace.api.types.categorical.Categorical"><code class="xref py py-func docutils literal notranslate"><span class="pre">Categorical()</span></code></a> can optionally take weights to define
+your own custom distribution over the discrete <strong>un-ordered</strong> choices.
+One can also pass <code class="docutils literal notranslate"><span class="pre">ordered=True</span></code> to make it an <a class="reference internal" href="#ConfigSpace.hyperparameters.OrdinalHyperparameter" title="ConfigSpace.hyperparameters.OrdinalHyperparameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">OrdinalHyperparameter</span></code></a>.</p>
 <p>These are all <strong>convenience</strong> functions that construct the more complex <a class="reference internal" href="#advanced-hyperparameters"><span class="std std-ref">hyperparameter classes</span></a>, <em>e.g.</em> <a class="reference internal" href="#ConfigSpace.hyperparameters.UniformIntegerHyperparameter" title="ConfigSpace.hyperparameters.UniformIntegerHyperparameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">UniformIntegerHyperparameter</span></code></a>,
 which are the underlying complex types which make up the backbone of what’s possible.
 You may still use these complex classes without any functional difference.</p>
@@ -333,7 +334,7 @@ You may still use these complex classes without any functional difference.</p>
 doing an <cite>isinstance(param, type)</cite> check and not <cite>Float</cite>.</p>
 </div>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>name</strong> (<em>str</em>) – The name to give to this hyperparameter</p></li>
 <li><p><strong>bounds</strong> (<em>tuple</em><em>[</em><em>float</em><em>, </em><em>float</em><em>] </em><em>| </em><em>None = None</em>) – The bounds to give to the float. Note that by default, this is required
@@ -354,10 +355,10 @@ to be certain about</p>
 <li><p><strong>meta</strong> (<em>dict</em><em> | </em><em>None = None</em>) – Any meta information you want to associate with this parameter</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>Returns the corresponding hyperparameter type</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><a class="reference internal" href="#ConfigSpace.hyperparameters.UniformFloatHyperparameter" title="ConfigSpace.hyperparameters.UniformFloatHyperparameter">UniformFloatHyperparameter</a> | <a class="reference internal" href="#ConfigSpace.hyperparameters.NormalFloatHyperparameter" title="ConfigSpace.hyperparameters.NormalFloatHyperparameter">NormalFloatHyperparameter</a> | <a class="reference internal" href="#ConfigSpace.hyperparameters.BetaFloatHyperparameter" title="ConfigSpace.hyperparameters.BetaFloatHyperparameter">BetaFloatHyperparameter</a></p>
 </dd>
 </dl>
@@ -405,7 +406,7 @@ to be certain about</p>
 doing an <cite>isinstance(param, type)</cite> check and not <cite>Integer</cite>.</p>
 </div>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>name</strong> (<em>str</em>) – The name to give to this hyperparameter</p></li>
 <li><p><strong>bounds</strong> (<em>tuple</em><em>[</em><em>int</em><em>, </em><em>int</em><em>] </em><em>| </em><em>None = None</em>) – The bounds to give to the integer. Note that by default, this is required
@@ -434,10 +435,10 @@ to be certain about</p>
 <li><p><strong>meta</strong> (<em>dict</em><em> | </em><em>None = None</em>) – Any meta information you want to associate with this parameter</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>Returns the corresponding hyperparameter type</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><a class="reference internal" href="#ConfigSpace.hyperparameters.UniformIntegerHyperparameter" title="ConfigSpace.hyperparameters.UniformIntegerHyperparameter">UniformIntegerHyperparameter</a> | <a class="reference internal" href="#ConfigSpace.hyperparameters.NormalIntegerHyperparameter" title="ConfigSpace.hyperparameters.NormalIntegerHyperparameter">NormalIntegerHyperparameter</a> | <a class="reference internal" href="#ConfigSpace.hyperparameters.BetaIntegerHyperparameter" title="ConfigSpace.hyperparameters.BetaIntegerHyperparameter">BetaIntegerHyperparameter</a></p>
 </dd>
 </dl>
@@ -482,7 +483,7 @@ doing an <cite>isinstance(param, type)</cite> check with either
 and/or <a class="reference internal" href="#ConfigSpace.hyperparameters.OrdinalHyperparameter" title="ConfigSpace.hyperparameters.OrdinalHyperparameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">OrdinalHyperparameter</span></code></a>.</p>
 </div>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>name</strong> (<em>str</em>) – The name of the hyperparameter</p></li>
 <li><p><strong>items</strong> (<em>Sequence</em><em>[</em><em>T</em><em>]</em><em>,</em>) – <p>A list of items to put in the category. Note that there are limitations:</p>
@@ -514,7 +515,7 @@ to these weights.</p></li>
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ConfigSpace.api.distributions.</span></span><span class="sig-name descname"><span class="pre">Beta</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">alpha</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beta</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ConfigSpace/api/distributions.html#Beta"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ConfigSpace.api.distributions.Beta" title="Permalink to this definition">¶</a></dt>
 <dd><p>Represents a beta distribution.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>alpha</strong> (<em>float</em>) – The alpha parameter of a beta distribution</p></li>
 <li><p><strong>beta</strong> (<em>float</em>) – The beta parameter of a beta distribution</p></li>
@@ -528,7 +529,7 @@ to these weights.</p></li>
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ConfigSpace.api.distributions.</span></span><span class="sig-name descname"><span class="pre">Normal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ConfigSpace/api/distributions.html#Normal"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ConfigSpace.api.distributions.Normal" title="Permalink to this definition">¶</a></dt>
 <dd><p>Represents a normal distribution.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>mu</strong> (<em>float</em>) – The mean of the distribution</p></li>
 <li><p><strong>sigma</strong> (<em>float</em>) – The standard deviation of the float</p></li>
@@ -566,7 +567,7 @@ with bounds <code class="docutils literal notranslate"><span class="pre">lower</
 </pre></div>
 </div>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>name</strong> (<em>str</em>) – Name of the hyperparameter with which it can be accessed</p></li>
 <li><p><strong>lower</strong> (<em>int</em>) – Lower bound of a range of values from which the hyperparameter will be sampled</p></li>
@@ -593,13 +594,13 @@ the mode, but the value of the pdf on the mode).</p>
 <dd><p>Check whether the given value is a legal value for the vector
 representation of this hyperparameter.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>value</strong> – the vector value to check</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>True if the given value is a legal vector value, otherwise False</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>bool</p>
 </dd>
 </dl>
@@ -615,14 +616,14 @@ operates on the transformed (and possibly normalized) hyperparameter
 space. Only legal values return a positive probability density,
 otherwise zero.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>vector</strong> (<em>np.ndarray</em>) – the (N, ) vector of inputs for which the probability density
 function is to be computed.</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>Probability density values of the input vector</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>np.ndarray(N, )</p>
 </dd>
 </dl>
@@ -651,7 +652,7 @@ hyperparameter searchers, eg. GridSearchCV.</p>
 </pre></div>
 </div>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>name</strong> (<em>str</em>) – Name of the hyperparameter with which it can be accessed</p></li>
 <li><p><strong>mu</strong> (<em>int</em>) – Mean of the distribution, from which hyperparameter is sampled</p></li>
@@ -681,13 +682,13 @@ the mode, but the value of the pdf on the mode).</p>
 <dd><p>Check whether the given value is a legal value for the vector
 representation of this hyperparameter.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>value</strong> – the vector value to check</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>True if the given value is a legal vector value, otherwise False</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>bool</p>
 </dd>
 </dl>
@@ -703,14 +704,14 @@ operates on the transformed (and possibly normalized) hyperparameter
 space. Only legal values return a positive probability density,
 otherwise zero.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>vector</strong> (<em>np.ndarray</em>) – the (N, ) vector of inputs for which the probability density
 function is to be computed.</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>Probability density values of the input vector</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>np.ndarray(N, )</p>
 </dd>
 </dl>
@@ -741,7 +742,7 @@ distribution is preserved as if it were in [0, 1]-range.</p>
 </pre></div>
 </div>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>name</strong> (<em>str</em>) – Name of the hyperparameter with which it can be accessed</p></li>
 <li><p><strong>alpha</strong> (<em>int</em><em>, </em><em>float</em>) – Alpha parameter of the distribution, from which hyperparameter is sampled</p></li>
@@ -771,13 +772,13 @@ the mode, but the value of the pdf on the mode).</p>
 <dd><p>Check whether the given value is a legal value for the vector
 representation of this hyperparameter.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>value</strong> – the vector value to check</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>True if the given value is a legal vector value, otherwise False</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>bool</p>
 </dd>
 </dl>
@@ -793,14 +794,14 @@ operates on the transformed (and possibly normalized) hyperparameter
 space. Only legal values return a positive probability density,
 otherwise zero.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>vector</strong> (<em>np.ndarray</em>) – the (N, ) vector of inputs for which the probability density
 function is to be computed.</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>Probability density values of the input vector</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>np.ndarray(N, )</p>
 </dd>
 </dl>
@@ -834,7 +835,7 @@ from <code class="docutils literal notranslate"><span class="pre">lower</span></
 </pre></div>
 </div>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>name</strong> (<em>str</em>) – Name of the hyperparameter, with which it can be accessed</p></li>
 <li><p><strong>lower</strong> (<em>int</em><em>, </em><em>float</em>) – Lower bound of a range of values from which the hyperparameter will be sampled</p></li>
@@ -861,13 +862,13 @@ the mode, but the value of the pdf on the mode).</p>
 <dd><p>Check whether the given value is a legal value for the vector
 representation of this hyperparameter.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>value</strong> – the vector value to check</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>True if the given value is a legal vector value, otherwise False</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>bool</p>
 </dd>
 </dl>
@@ -883,14 +884,14 @@ operates on the transformed (and possibly normalized) parameter
 space. Only legal values return a positive probability density,
 otherwise zero.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>vector</strong> (<em>np.ndarray</em>) – the (N, ) vector of inputs for which the probability density
 function is to be computed.</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>Probability density values of the input vector</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>np.ndarray(N, )</p>
 </dd>
 </dl>
@@ -919,7 +920,7 @@ hyperparameter searchers, eg. GridSearchCV.</p>
 </pre></div>
 </div>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>name</strong> (<em>str</em>) – Name of the hyperparameter, with which it can be accessed</p></li>
 <li><p><strong>mu</strong> (<em>int</em><em>, </em><em>float</em>) – Mean of the distribution</p></li>
@@ -948,13 +949,13 @@ the mode, but the value of the pdf on the mode).</p>
 <dd><p>Check whether the given value is a legal value for the vector
 representation of this hyperparameter.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>value</strong> – the vector value to check</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>True if the given value is a legal vector value, otherwise False</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>bool</p>
 </dd>
 </dl>
@@ -970,14 +971,14 @@ operates on the transformed (and possibly normalized) parameter
 space. Only legal values return a positive probability density,
 otherwise zero.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>vector</strong> (<em>np.ndarray</em>) – the (N, ) vector of inputs for which the probability density
 function is to be computed.</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>Probability density values of the input vector</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>np.ndarray(N, )</p>
 </dd>
 </dl>
@@ -1008,7 +1009,7 @@ distribution is preserved as if it were in [0, 1]-range.</p>
 </pre></div>
 </div>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>name</strong> (<em>str</em>) – Name of the hyperparameter, with which it can be accessed</p></li>
 <li><p><strong>alpha</strong> (<em>int</em><em>, </em><em>float</em>) – Alpha parameter of the normalized beta distribution</p></li>
@@ -1039,13 +1040,13 @@ the mode, but the value of the pdf on the mode).</p>
 <dd><p>Check whether the given value is a legal value for the vector
 representation of this hyperparameter.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>value</strong> – the vector value to check</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>True if the given value is a legal vector value, otherwise False</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>bool</p>
 </dd>
 </dl>
@@ -1061,14 +1062,14 @@ operates on the transformed (and possibly normalized) parameter
 space. Only legal values return a positive probability density,
 otherwise zero.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>vector</strong> (<em>np.ndarray</em>) – the (N, ) vector of inputs for which the probability density
 function is to be computed.</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>Probability density values of the input vector</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>np.ndarray(N, )</p>
 </dd>
 </dl>
@@ -1104,7 +1105,7 @@ for further details.</p>
 </pre></div>
 </div>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>name</strong> (<em>str</em>) – Name of the hyperparameter, with which it can be accessed</p></li>
 <li><p><strong>choices</strong> (<em>list</em><em> or </em><em>tuple with str</em><em>, </em><em>float</em><em>, </em><em>int</em>) – Collection of values to sample hyperparameter from</p></li>
@@ -1122,13 +1123,13 @@ probabilities during sampling, no negative values allowed</p></li>
 <dd><p>Check whether the given value is a legal value for the vector
 representation of this hyperparameter.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>value</strong> – the vector value to check</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>True if the given value is a legal vector value, otherwise False</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>bool</p>
 </dd>
 </dl>
@@ -1144,14 +1145,14 @@ operates on the transformed (and possibly normalized) parameter
 space. Only legal values return a positive probability density,
 otherwise zero.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>vector</strong> (<em>np.ndarray</em>) – the (N, ) vector of inputs for which the probability density
 function is to be computed.</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>Probability density values of the input vector</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>np.ndarray(N, )</p>
 </dd>
 </dl>
@@ -1172,10 +1173,10 @@ hyperparameter searchers, eg. GridSearchCV.</p>
 This is used for the uniform configspace when sampling configurations in the local search
 in PiBO: <a class="reference external" href="https://openreview.net/forum?id=MMAeCXIa89">https://openreview.net/forum?id=MMAeCXIa89</a></p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>An identical parameter as the original, except that all weights are uniform.</p>
 </dd>
-<dt class="field-even">Return type</dt>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p><a class="reference internal" href="#ConfigSpace.hyperparameters.CategoricalHyperparameter" title="ConfigSpace.hyperparameters.CategoricalHyperparameter">CategoricalHyperparameter</a></p>
 </dd>
 </dl>
@@ -1195,7 +1196,7 @@ in PiBO: <a class="reference external" href="https://openreview.net/forum?id=MMA
 <p>Its values are sampled form a <code class="docutils literal notranslate"><span class="pre">sequence</span></code> of values.
 The sequence of values from a ordinal hyperparameter is ordered.</p>
 <p><code class="docutils literal notranslate"><span class="pre">None</span></code> is a forbidden value, please use a string constant instead and parse
-it in your own code, see <cite>here &lt;https://github.com/automl/ConfigSpace/issues/159&gt;_</cite>
+it in your own code, see <a class="reference external" href="https://github.com/automl/ConfigSpace/issues/159">here</a>
 for further details.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ConfigSpace</span> <span class="kn">import</span> <span class="n">OrdinalHyperparameter</span>
 <span class="go">&gt;&gt;&gt;</span>
@@ -1204,7 +1205,7 @@ for further details.</p>
 </pre></div>
 </div>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>name</strong> (<em>str</em>) – Name of the hyperparameter, with which it can be accessed.</p></li>
 <li><p><strong>sequence</strong> (<em>list</em><em> or </em><em>tuple with</em><em> (</em><em>str</em><em>, </em><em>float</em><em>, </em><em>int</em><em>)</em>) – ordered collection of values to sample hyperparameter from.</p></li>
@@ -1279,13 +1280,13 @@ one-element sequence</p>
 <dd><p>Check whether the given value is a legal value for the vector
 representation of this hyperparameter.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>value</strong> – the vector value to check</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>True if the given value is a legal vector value, otherwise False</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>bool</p>
 </dd>
 </dl>
@@ -1302,14 +1303,14 @@ space. Only legal values return a positive probability density,
 otherwise zero. The OrdinalHyperparameter is treated
 as a UniformHyperparameter with regard to its probability density.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>vector</strong> (<em>np.ndarray</em>) – the (N, ) vector of inputs for which the probability density
 function is to be computed.</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>Probability density values of the input vector</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>np.ndarray(N, )</p>
 </dd>
 </dl>
@@ -1335,7 +1336,7 @@ hyperparameter searchers, eg. GridSearchCV.</p>
 <p>By sampling from the configuration space each time only a single,
 constant <code class="docutils literal notranslate"><span class="pre">value</span></code> will be drawn from this hyperparameter.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>name</strong> (<em>str</em>) – Name of the hyperparameter, with which it can be accessed</p></li>
 <li><p><strong>value</strong> (<em>str</em><em>, </em><em>int</em><em>, </em><em>float</em>) – value to sample hyperparameter from</p></li>
@@ -1350,13 +1351,13 @@ Not used by the configuration space.</p></li>
 <dd><p>Check whether the given value is a legal value for the vector
 representation of this hyperparameter.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>value</strong> – the vector value to check</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>True if the given value is a legal vector value, otherwise False</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>bool</p>
 </dd>
 </dl>
@@ -1372,14 +1373,14 @@ operates on the transformed (and possibly normalized) parameter
 space. Only legal values return a positive probability density,
 otherwise zero.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>vector</strong> (<em>np.ndarray</em>) – the (N, ) vector of inputs for which the probability density
 function is to be computed.</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>Probability density values of the input vector</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>np.ndarray(N, )</p>
 </dd>
 </dl>

@@ -4,7 +4,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
     <title>Utils &#8212; ConfigSpace Documentation 0.6.0 documentation</title>
     
@@ -216,7 +216,7 @@ space or modify a given configuration space.</p>
 <span class="sig-prename descclassname"><span class="pre">ConfigSpace.util.</span></span><span class="sig-name descname"><span class="pre">deactivate_inactive_hyperparameters</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.util.deactivate_inactive_hyperparameters" title="Permalink to this definition">¶</a></dt>
 <dd><p>Remove inactive hyperparameters from a given configuration</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>configuration</strong> (<em>dict</em>) – a configuration as a dictionary. Key: name of the hyperparameter.
 Value: value of this hyperparamter
@@ -229,11 +229,11 @@ configuration space.</p></li>
 <code class="docutils literal notranslate"><span class="pre">configuration</span></code> will be used.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>A configuration that is equivalent to the given configuration, except
 that inactivate hyperparameters have been removed.</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><a class="reference internal" href="configuration.html#ConfigSpace.configuration_space.Configuration" title="ConfigSpace.configuration_space.Configuration"><code class="xref py py-class docutils literal notranslate"><span class="pre">Configuration</span></code></a></p>
 </dd>
 </dl>
@@ -245,17 +245,17 @@ that inactivate hyperparameters have been removed.</p>
 <dd><p>Iterate over all hyperparameters in the ConfigSpace
 and fix the types of the parameter values in configuration.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>configuration</strong> (<em>dict</em>) – a configuration as a dictionary. Key: name of the hyperparameter.
 Value: value of this hyperparamter</p></li>
 <li><p><strong>configuration_space</strong> (<a class="reference internal" href="configurationspace.html#ConfigSpace.configuration_space.ConfigurationSpace" title="ConfigSpace.configuration_space.ConfigurationSpace"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigurationSpace</span></code></a>) – Configuration space which knows the types for all parameter values</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>configuration with fixed types of parameter values</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>dict</p>
 </dd>
 </dl>
@@ -267,7 +267,7 @@ Value: value of this hyperparamter</p></li>
 <dd><p>Generates a grid of Configurations for a given ConfigurationSpace.
 Can be used, for example, for grid search.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>configuration_space</strong> (<a class="reference internal" href="configurationspace.html#ConfigSpace.configuration_space.ConfigurationSpace" title="ConfigSpace.configuration_space.ConfigurationSpace"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigurationSpace</span></code></a>) – The Configuration space over which to create a grid of HyperParameter Configuration values.
 It knows the types for all parameter values.</p></li>
@@ -278,14 +278,14 @@ should be the number of points to divide the grid side formed by the correspondi
 Hyperparameter in to.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>List containing Configurations. It is a cartesian product of tuples of
 HyperParameter values.
 Each tuple lists the possible values taken by the corresponding HyperParameter.
 Within the cartesian product, in each element, the ordering of HyperParameters is the same
 for the OrderedDict within the ConfigurationSpace.</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>list</p>
 </dd>
 </dl>
@@ -301,7 +301,7 @@ Sequential Model-Based Optimization for General Algorithm Configuration
 In Proceedings of the conference on Learning and Intelligent
 Optimization(LION 5)</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>configuration</strong> (<a class="reference internal" href="configuration.html#ConfigSpace.configuration_space.Configuration" title="ConfigSpace.configuration_space.Configuration"><code class="xref py py-class docutils literal notranslate"><span class="pre">Configuration</span></code></a>) – for this Configuration object <code class="docutils literal notranslate"><span class="pre">num_neighbors</span></code> neighbors are computed</p></li>
 <li><p><strong>seed</strong> (<em>int</em>) – Sets the random seed to a fixed value</p></li>
@@ -312,11 +312,11 @@ of the input configuration</p></li>
 <a class="reference internal" href="hyperparameters.html#ConfigSpace.hyperparameters.UniformIntegerHyperparameter" title="ConfigSpace.hyperparameters.UniformIntegerHyperparameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">UniformIntegerHyperparameter</span></code></a>.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>It contains configurations, with values being situated around
 the given configuration.</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>Generator</p>
 </dd>
 </dl>
@@ -337,16 +337,16 @@ previously active parameters, the configuration will be rejected. If more
 than 10000 configurations were rejected, this function raises a
 ValueError.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>configuration</strong> (<a class="reference internal" href="configuration.html#ConfigSpace.configuration_space.Configuration" title="ConfigSpace.configuration_space.Configuration"><code class="xref py py-class docutils literal notranslate"><span class="pre">Configuration</span></code></a>) – a configuration for which a random neigbour is calculated</p></li>
 <li><p><strong>seed</strong> (<em>int</em>) – Used to generate a random state.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>The new neighbor</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><a class="reference internal" href="configuration.html#ConfigSpace.configuration_space.Configuration" title="ConfigSpace.configuration_space.Configuration"><code class="xref py py-class docutils literal notranslate"><span class="pre">Configuration</span></code></a></p>
 </dd>
 </dl>
@@ -361,7 +361,7 @@ values of the inactive hyperparamters to their default values if the choosen
 <code class="docutils literal notranslate"><span class="pre">strategy</span></code> is ‘default’. Otherwise <code class="docutils literal notranslate"><span class="pre">strategy</span></code> contains a float number.
 Set the hyperparameters’ value to this number.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>configuration</strong> (<a class="reference internal" href="configuration.html#ConfigSpace.configuration_space.Configuration" title="ConfigSpace.configuration_space.Configuration"><code class="xref py py-class docutils literal notranslate"><span class="pre">Configuration</span></code></a>) – For this configuration inactive values will be imputed.</p></li>
 <li><p><strong>strategy</strong> (<em>(</em><em>str</em><em>, </em><em>float</em><em>, </em><em>optional</em><em>)</em>) – The imputation strategy. Defaults to ‘default’
@@ -370,11 +370,11 @@ If float, replace inactive parameters by the given float value,
 which should be able to be splitted apart by a tree-based model.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>A new configuration with the imputed values.
 In this new configuration inactive values are included.</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><a class="reference internal" href="configuration.html#ConfigSpace.configuration_space.Configuration" title="ConfigSpace.configuration_space.Configuration"><code class="xref py py-class docutils literal notranslate"><span class="pre">Configuration</span></code></a></p>
 </dd>
 </dl>

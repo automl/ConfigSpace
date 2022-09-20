@@ -10,8 +10,9 @@ and :func:`~ConfigSpace.api.types.categorical.Categorical` hyperparamters, each 
 For :func:`~ConfigSpace.api.types.float.Float` and :func:`~ConfigSpace.api.types.integer.Integer`, you will find their
 interface much the same, being able to take the same :ref:`distributions <Distributions>` and parameters.
 
-A :func:`~ConfigSpace.api.types.categorical.Categorical` can optionally take weights to define your own custom distribution over the discrete **un-ordered** choices
-or you can pass ``ordered=True`` to make it an :class:`~ConfigSpace.hyperparameters.OrdinalHyperparameter`.
+A :func:`~ConfigSpace.api.types.categorical.Categorical` can optionally take weights to define
+your own custom distribution over the discrete **un-ordered** choices.
+One can also pass ``ordered=True`` to make it an :class:`~ConfigSpace.hyperparameters.OrdinalHyperparameter`.
 
 These are all **convenience** functions that construct the more complex :ref:`hyperparameter classes <Advanced_Hyperparameters>`, *e.g.* :class:`~ConfigSpace.hyperparameters.UniformIntegerHyperparameter`,
 which are the underlying complex types which make up the backbone of what's possible.
