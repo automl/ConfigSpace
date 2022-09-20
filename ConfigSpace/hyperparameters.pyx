@@ -2546,7 +2546,7 @@ cdef class OrdinalHyperparameter(Hyperparameter):
         The sequence of values from a ordinal hyperparameter is ordered.
 
         ``None`` is a forbidden value, please use a string constant instead and parse
-        it in your own code, see `here <https://github.com/automl/ConfigSpace/issues/159>_`
+        it in your own code, see `here <https://github.com/automl/ConfigSpace/issues/159>`_
         for further details.
 
         >>> from ConfigSpace import OrdinalHyperparameter
