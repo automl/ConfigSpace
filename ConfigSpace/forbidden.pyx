@@ -375,8 +375,8 @@ cdef class AbstractForbiddenConjunction(AbstractForbiddenComponent):
                 else:
                     return False
 
-        cdef int * arrptr
-        arrptr = <int * > malloc(sizeof(int) * self.n_components)
+        cdef int* arrptr
+        arrptr = <int* > malloc(sizeof(int)* self.n_components)
 
         # Finally, call is_forbidden for all direct descendents and combine the
         # outcomes
@@ -396,8 +396,8 @@ cdef class AbstractForbiddenConjunction(AbstractForbiddenComponent):
         cdef int rval
         cdef AbstractForbiddenComponent component
 
-        cdef int * arrptr
-        arrptr = <int * > malloc(sizeof(int) * self.n_components)
+        cdef int* arrptr
+        arrptr = <int* > malloc(sizeof(int)* self.n_components)
 
         # Finally, call is_forbidden for all direct descendents and combine the
         # outcomes. Check only as many forbidden clauses as the actual
@@ -413,7 +413,7 @@ cdef class AbstractForbiddenConjunction(AbstractForbiddenComponent):
         free(arrptr)
         return rval
 
-    cdef int _is_forbidden(self, int I, int * evaluations):
+    cdef int _is_forbidden(self, int I, int* evaluations):
         pass
 
 
@@ -457,7 +457,7 @@ cdef class ForbiddenAndConjunction(AbstractForbiddenConjunction):
         retval.write(")")
         return retval.getvalue()
 
-    cdef int _is_forbidden(self, int I, int * evaluations):
+    cdef int _is_forbidden(self, int I, int* evaluations):
         # Return False if one of the components evaluates to False
 
         for i in range(I):
