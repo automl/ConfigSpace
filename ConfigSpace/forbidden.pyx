@@ -33,13 +33,14 @@ import numpy as np
 import io
 from ConfigSpace.hyperparameters import Hyperparameter
 from ConfigSpace.hyperparameters cimport Hyperparameter
-from typing import List, Dict, Any, Union
+from typing import List, Dict, Any, Union, Callable
 
 from ConfigSpace.forbidden cimport AbstractForbiddenComponent
 
 from libc.stdlib cimport malloc, free
 cimport numpy as np
 
+ForbiddenCallable = Callable[[Hyperparameter, Hyperparameter], bool]
 
 cdef class AbstractForbiddenComponent(object):
 
@@ -569,6 +570,65 @@ cdef class ForbiddenRelation(AbstractForbiddenComponent):
 
     cdef int _is_forbidden_vector(self, DTYPE_t left, DTYPE_t right) except -1:
         pass
+
+
+cdef class ForbiddenCallableRelation(ForbiddenRelation):
+    """A ForbiddenCallable relation between two hyperparameters.
+
+    The ForbiddenCallable uses two hyperparameters as input to a
+    specified callable, which returns True if the relationship
+    between the two hyperparameters is forbidden.
+
+    >>> from ConfigSpace import ConfigurationSpace, ForbiddenLessThanRelation
+    >>>
+    >>> cs = ConfigurationSpace({"a": [1, 2, 3], "b": [2, 5, 6]})
+    >>>
+    >>> forbidden_clause = ForbiddenFunctionRelation(cs['a'], cs['b'])
+    >>> cs.add_forbidden_clause(forbidden_clause)
+    Forbidden: f(a,b) == True
+
+    Parameters
+    ----------
+     left : :ref:`Hyperparameters`
+         first argument of lambda expression
+
+     right : :ref:`Hyperparameters`
+         second argument of lambda expression
+
+     f : A callable that relates the two hyperparameters
+    """
+    cdef public f
+
+    def __init__(self, left: Hyperparameter, right : Hyperparameter,
+                    f: ForbiddenCallable):
+        if not isinstance(f, Callable): # Can't use ForbiddenCallable here apparently
+            raise TypeError("Argument 'f' is not of type %s." % Callable)
+
+        super().__init__(left, right)
+        self.f = f
+
+    def __eq__(self, other: Any) -> bool:
+        if not isinstance(other, self.__class__):
+            return False
+        return super().__eq__(other) and self.f == other.f
+
+    def __copy__(self):
+        return self.__class__(
+            a=copy.copy(self.left),
+            b=copy.copy(self.right),
+            f=copy.copy(self.f)
+        )
+
+    def __repr__(self):
+        from dill.source import getsource
+        f_source = getsource(self.f)
+        return f"Forbidden:\n{f_source}\nArguments: {self.left.name}, {self.right.name}"
+
+    cdef int _is_forbidden(self, left, right) except -1:
+        return self.f(left, right)
+
+    cdef int _is_forbidden_vector(self, DTYPE_t left, DTYPE_t right) except -1:
+        return self.f(left, right)
 
 
 cdef class ForbiddenLessThanRelation(ForbiddenRelation):
