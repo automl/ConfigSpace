@@ -12,8 +12,9 @@
 #       notice, this list of conditions and the following disclaimer in the
 #       documentation and/or other materials provided with the distribution.
 #     * Neither the name of the <organization> nor the
-#       names of itConfigurationSpaces contributors may be used to endorse or promote products
-#       derived from this software without specific prior written permission.
+#       names of itConfigurationSpaces contributors may be used to endorse or
+#       promote products derived from this software without specific prior
+#       written permission.
 #
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 # ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -33,7 +34,7 @@ import numpy as np
 import io
 from ConfigSpace.hyperparameters import Hyperparameter
 from ConfigSpace.hyperparameters cimport Hyperparameter
-from typing import List, Dict, Any, Union, Callable
+from typing import Dict, Any, Union, Callable
 
 from ConfigSpace.forbidden cimport AbstractForbiddenComponent
 
@@ -93,7 +94,8 @@ cdef class AbstractForbiddenComponent(object):
     def is_forbidden_vector(self, instantiated_hyperparameters, strict):
         return bool(self.c_is_forbidden_vector(instantiated_hyperparameters, strict))
 
-    cdef int c_is_forbidden_vector(self, np.ndarray instantiated_hyperparameters, int strict):
+    cdef int c_is_forbidden_vector(self, np.ndarray instantiated_hyperparameters,
+                                   int strict):
         pass
 
 
@@ -346,7 +348,6 @@ cdef class AbstractForbiddenConjunction(AbstractForbiddenComponent):
         return all([self.components[i] == other.components[i]
                     for i in range(self.n_components)])
 
-
     cpdef set_vector_idx(self, hyperparameter_to_idx):
         for component in self.components:
             component.set_vector_idx(hyperparameter_to_idx)
@@ -374,8 +375,8 @@ cdef class AbstractForbiddenConjunction(AbstractForbiddenComponent):
                 else:
                     return False
 
-        cdef int* arrptr
-        arrptr = <int*> malloc(sizeof(int) * self.n_components)
+        cdef int * arrptr
+        arrptr = <int * > malloc(sizeof(int) * self.n_components)
 
         # Finally, call is_forbidden for all direct descendents and combine the
         # outcomes
@@ -395,8 +396,8 @@ cdef class AbstractForbiddenConjunction(AbstractForbiddenComponent):
         cdef int rval
         cdef AbstractForbiddenComponent component
 
-        cdef int* arrptr
-        arrptr = <int*> malloc(sizeof(int) * self.n_components)
+        cdef int * arrptr
+        arrptr = <int * > malloc(sizeof(int) * self.n_components)
 
         # Finally, call is_forbidden for all direct descendents and combine the
         # outcomes. Check only as many forbidden clauses as the actual
@@ -412,7 +413,7 @@ cdef class AbstractForbiddenConjunction(AbstractForbiddenComponent):
         free(arrptr)
         return rval
 
-    cdef int _is_forbidden(self, int I, int* evaluations):
+    cdef int _is_forbidden(self, int I, int * evaluations):
         pass
 
 
@@ -434,7 +435,8 @@ cdef class ForbiddenAndConjunction(AbstractForbiddenConjunction):
     >>> forbidden_clause_a = ForbiddenEqualsClause(cs["a"], 2)
     >>> forbidden_clause_b = ForbiddenInClause(cs["b"], [2])
     >>>
-    >>> forbidden_clause = ForbiddenAndConjunction(forbidden_clause_a, forbidden_clause_b)
+    >>> forbidden_clause = ForbiddenAndConjunction(
+    ...                   forbidden_clause_a, forbidden_clause_b)
     >>>
     >>> cs.add_forbidden_clause(forbidden_clause)
     (Forbidden: a == 2 && Forbidden: b in {2})
@@ -455,7 +457,7 @@ cdef class ForbiddenAndConjunction(AbstractForbiddenConjunction):
         retval.write(")")
         return retval.getvalue()
 
-    cdef int _is_forbidden(self, int I, int* evaluations):
+    cdef int _is_forbidden(self, int I, int * evaluations):
         # Return False if one of the components evaluates to False
 
         for i in range(I):
@@ -491,7 +493,7 @@ cdef class ForbiddenRelation(AbstractForbiddenComponent):
     cdef public right
     cdef public int[2] vector_ids
 
-    def __init__(self, left: Hyperparameter, right : Hyperparameter):
+    def __init__(self, left: Hyperparameter, right: Hyperparameter):
         if not isinstance(left, Hyperparameter):
             raise TypeError("Argument 'left' is not of type %s." % Hyperparameter)
         if not isinstance(right, Hyperparameter):
@@ -516,7 +518,8 @@ cdef class ForbiddenRelation(AbstractForbiddenComponent):
         return (self,)
 
     cpdef set_vector_idx(self, hyperparameter_to_idx):
-        self.vector_ids = (hyperparameter_to_idx[self.left.name], hyperparameter_to_idx[self.right.name])
+        self.vector_ids = (hyperparameter_to_idx[self.left.name],
+                           hyperparameter_to_idx[self.right.name])
 
     cpdef is_forbidden(self, instantiated_hyperparameters, strict):
         left = instantiated_hyperparameters.get(self.left.name)
@@ -565,8 +568,10 @@ cdef class ForbiddenRelation(AbstractForbiddenComponent):
             else:
                 return False
 
-        # Relation is always evaluated against actual value and not vector representation
-        return self._is_forbidden(self.left._transform(left), self.right._transform(right))
+        # Relation is always evaluated against actual value and
+        # not vector representation
+        return self._is_forbidden(self.left._transform(left),
+                                  self.right._transform(right))
 
     cdef int _is_forbidden_vector(self, DTYPE_t left, DTYPE_t right) except -1:
         pass
@@ -599,9 +604,9 @@ cdef class ForbiddenCallableRelation(ForbiddenRelation):
     """
     cdef public f
 
-    def __init__(self, left: Hyperparameter, right : Hyperparameter,
-                    f: ForbiddenCallable):
-        if not isinstance(f, Callable): # Can't use ForbiddenCallable here apparently
+    def __init__(self, left: Hyperparameter, right: Hyperparameter,
+                 f: ForbiddenCallable):
+        if not isinstance(f, Callable):  # Can't use ForbiddenCallable here apparently
             raise TypeError("Argument 'f' is not of type %s." % Callable)
 
         super().__init__(left, right)
