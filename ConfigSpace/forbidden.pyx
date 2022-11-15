@@ -625,7 +625,7 @@ cdef class ForbiddenCallableRelation(ForbiddenRelation):
         )
 
     def __repr__(self):
-        from dill.source import getsource
+        from inspect import getsource
         f_source = getsource(self.f)
         return f"Forbidden: {f_source} | Arguments: {self.left.name}, {self.right.name}"
 
