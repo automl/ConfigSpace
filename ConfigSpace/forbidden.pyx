@@ -376,7 +376,7 @@ cdef class AbstractForbiddenConjunction(AbstractForbiddenComponent):
                     return False
 
         cdef int* arrptr
-        arrptr = <int*> malloc(sizeof(int)* self.n_components)
+        arrptr = <int*> malloc(sizeof(int) * self.n_components)
 
         # Finally, call is_forbidden for all direct descendents and combine the
         # outcomes
@@ -397,7 +397,7 @@ cdef class AbstractForbiddenConjunction(AbstractForbiddenComponent):
         cdef AbstractForbiddenComponent component
 
         cdef int* arrptr
-        arrptr = <int*> malloc(sizeof(int)* self.n_components)
+        arrptr = <int*> malloc(sizeof(int) * self.n_components)
 
         # Finally, call is_forbidden for all direct descendents and combine the
         # outcomes. Check only as many forbidden clauses as the actual
