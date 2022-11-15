@@ -627,7 +627,7 @@ cdef class ForbiddenCallableRelation(ForbiddenRelation):
     def __repr__(self):
         from dill.source import getsource
         f_source = getsource(self.f)
-        return f"Forbidden:\n{f_source}\nArguments: {self.left.name}, {self.right.name}"
+        return f"Forbidden: {f_source} | Arguments: {self.left.name}, {self.right.name}"
 
     cdef int _is_forbidden(self, left, right) except -1:
         return self.f(left, right)
