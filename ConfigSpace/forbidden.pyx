@@ -595,10 +595,10 @@ cdef class ForbiddenCallableRelation(ForbiddenRelation):
     Parameters
     ----------
      left : :ref:`Hyperparameters`
-         first argument of lambda expression
+         first argument of callable
 
      right : :ref:`Hyperparameters`
-         second argument of lambda expression
+         second argument of callable
 
      f : A callable that relates the two hyperparameters
     """
