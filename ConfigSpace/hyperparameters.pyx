@@ -33,7 +33,6 @@ import warnings
 from collections import OrderedDict, Counter
 from typing import List, Any, Dict, Union, Set, Tuple, Optional, Sequence
 
-import numpy as np
 from scipy.stats import truncnorm, beta as spbeta, norm
 cimport numpy as np
 
@@ -1542,84 +1541,76 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
 
     def get_neighbors(
         self,
-        value: Union[int, float],
+        value: float,
         rs: np.random.RandomState,
         number: int = 4,
         transform: bool = False,
         std: float = 0.2,
     ) -> List[int]:
-        cdef int n_requested = number
-        cdef int idx = 0
-        cdef int i = 0
-        neighbors = []  # type: List[int]
-        cdef int sampled_neighbors = 0
-        _neighbors_as_int = set()  # type: Set[int]
-        cdef long long int_value = self._transform(value)
-        cdef long long new_int_value = 0
-        cdef float new_value = 0.0
-        cdef np.ndarray samples
-        cdef double[:] samples_view
+        """Get the neighbors of a value
 
-        if self.upper - self.lower <= n_requested:
-            transformed_value = self._transform(value)
-            for n in range(self.lower, self.upper + 1):
-                if n != int_value:
-                    if transform:
-                        neighbors.append(n)
-                    else:
-                        n = self._inverse_transform(n)
-                        neighbors.append(n)
+        NOTE
+        ----
+        **This assumes the value is in the unit-hypercube [0, 1]**
 
+        Parameters
+        ----------
+        value: float
+            The value to get neighbours around. This assume the ``value`` has been
+            converted to the [0, 1] range which can be done with ``_inverse_transform``.
+
+        rs: RandomState
+            The random state to use
+
+        number: int = 4
+            How many neighbours to get
+
+        transform: bool = False
+            Whether to transform this value from the unit cube, back to the
+            hyperparameter's specified range of values.
+
+        std: float = 0.2
+            The std. dev. to use in the [0, 1] hypercube space while sampling
+            for neighbours.
+
+        Returns
+        -------
+        List[int]
+            Some ``number`` of neighbours centered around ``value``.
+        """
+        assert 0 <= value <= 1, "Value should be in hypercube [0, 1]"
+
+        # The `value` should be in 0-1, may be worth making an assertion if things
+        # are still fast enough
+        int_center = self._transform(value)
+        if not (self.lower <= center <= self.upper):
+            raise ValueError(
+                f"Value {center} must be in bounds ({self.lower}, {self.upper})"
+            )
+
+        step = 1 if not self.q else self.q
+        choices = np.concatenate(
+            np.arange(self.lower, int_center, step),  # Up to but excluding center
+            np.arange(int_center + 1, self.upper + 1, step),  # past int center up to end
+        )
+        if number >= len(choices):
+            return choices
+
+        # Get the probabilities for all of the choices
+        x = np.linspace(0, 1, len(choices))
+        if self.log:
+            # From scipy: ...Then Y = exp(X) is lognormally distributed
+            # with s = sigma and scale = exp(mu).
+            probabilities = lognorm.pdf(x=x, s=std, loc=value, scale=np.exp(value))
         else:
-            samples = rs.normal(loc=value, scale=std, size=250)
-            samples_view = samples
+            probabilities = norm.pdf(x=x, loc=value, scale=scale)
 
-            while sampled_neighbors < n_requested:
+        neighbors = rs.choice(choices, replace=False, p=probabilities)
 
-                while True:
-                    new_value = samples_view[idx]
-                    idx += 1
-                    i += 1
-                    if idx >= 250:
-                        samples = rs.normal(loc=value, scale=std, size=250)
-                        samples_view = samples
-                        idx = 0
-                    if new_value < 0 or new_value > 1:
-                        continue
-                    new_int_value = self._transform(new_value)
-                    if int_value == new_int_value:
-                        continue
-                    elif i >= 200:
-                        # Fallback to uniform sampling if generating samples correctly
-                        # takes too long
-                        values_to_sample = [j for j in range(self.lower, self.upper + 1)
-                                            if j != int_value]
-                        samples = rs.choice(
-                            values_to_sample,
-                            size=n_requested,
-                            replace=False,
-                        )
-                        for sample in samples:
-                            if transform:
-                                neighbors.append(sample)
-                            else:
-                                sample = self._inverse_transform(sample)
-                                neighbors.append(sample)
-                        break
-                    elif new_int_value in _neighbors_as_int:
-                        continue
-                    elif int_value != new_int_value:
-                        break
+        # We've already transformed thme in the selection process, we convert
+        # the chosen ints back to 0,1 scale if we need to
+        return neighbors if transform else self._inverse_transform(neighbors)
 
-                _neighbors_as_int.add(new_int_value)
-                sampled_neighbors += 1
-                if transform:
-                    neighbors.append(new_int_value)
-                else:
-                    new_value = self._inverse_transform(new_int_value)
-                    neighbors.append(new_value)
-
-        return neighbors
 
     def _pdf(self, vector: np.ndarray) -> np.ndarray:
         """
