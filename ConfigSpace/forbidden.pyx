@@ -588,7 +588,7 @@ cdef class ForbiddenCallableRelation(ForbiddenRelation):
     >>>
     >>> cs = ConfigurationSpace({"a": [1, 2, 3], "b": [2, 5, 6]})
     >>>
-    >>> forbidden_clause = ForbiddenCallableRelation(lambda a, b: a + b > 10, cs['a'], cs['b'])
+    >>> forbidden_clause = ForbiddenCallableRelation(cs['a'], cs['b'], lambda a, b: a + b > 10)
     >>> cs.add_forbidden_clause(forbidden_clause)
     Forbidden: f(a,b) == True
 
