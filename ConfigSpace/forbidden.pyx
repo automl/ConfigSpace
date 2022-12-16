@@ -583,6 +583,11 @@ cdef class ForbiddenCallableRelation(ForbiddenRelation):
     The ForbiddenCallable uses two hyperparameters as input to a
     specified callable, which returns True if the relationship
     between the two hyperparameters is forbidden.
+    
+    A ForbiddenCallableRelation may not be serializable.
+    :func:`ConfigSpace.read_and_write.write` will attempt to pickle and base64 encode
+    the callable with pickle_callables=True. However, the unpicklability
+    of the callable cannot be assured.
 
     >>> from ConfigSpace import ConfigurationSpace, ForbiddenCallableRelation
     >>>
