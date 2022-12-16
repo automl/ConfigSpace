@@ -584,11 +584,11 @@ cdef class ForbiddenCallableRelation(ForbiddenRelation):
     specified callable, which returns True if the relationship
     between the two hyperparameters is forbidden.
 
-    >>> from ConfigSpace import ConfigurationSpace, ForbiddenLessThanRelation
+    >>> from ConfigSpace import ConfigurationSpace, ForbiddenCallableRelation
     >>>
     >>> cs = ConfigurationSpace({"a": [1, 2, 3], "b": [2, 5, 6]})
     >>>
-    >>> forbidden_clause = ForbiddenCallableRelation(cs['a'], cs['b'])
+    >>> forbidden_clause = ForbiddenCallableRelation(lambda a, b: a + b > 10, cs['a'], cs['b'])
     >>> cs.add_forbidden_clause(forbidden_clause)
     Forbidden: f(a,b) == True
 
@@ -600,7 +600,8 @@ cdef class ForbiddenCallableRelation(ForbiddenRelation):
      right : :ref:`Hyperparameters`
          second argument of callable
 
-     f : A callable that relates the two hyperparameters
+     f : Callable
+         callable that relates the two hyperparameters
     """
     cdef public f
 
@@ -625,9 +626,8 @@ cdef class ForbiddenCallableRelation(ForbiddenRelation):
         )
 
     def __repr__(self):
-        from inspect import getsource
-        f_source = getsource(self.f)
-        return f"Forbidden: {f_source} | Arguments: {self.left.name}, {self.right.name}"
+        f_repr = self.f.__qualname__
+        return f"Forbidden: {f_repr} | Arguments: {self.left.name}, {self.right.name}"
 
     cdef int _is_forbidden(self, left, right) except -1:
         return self.f(left, right)
