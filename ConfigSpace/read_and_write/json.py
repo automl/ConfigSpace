@@ -348,6 +348,12 @@ def write(configuration_space, indent=2, pickle_callables=False):
         a configuration space, which should be written to file.
     indent : int
         number of whitespaces to use as indent
+    pickle_callables : bool
+        whether the writer should attempt to pickle and encode ForbiddenCallableRelations
+        and similar objects in the configuration space. Defaults to False.
+        If False, the writer will raise an exception if it encounters a callable
+        based configuration space object. Unpicklability cannot be assured. Setting
+        this to True may compromise portability.
 
     Returns
     -------
