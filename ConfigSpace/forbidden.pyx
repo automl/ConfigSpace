@@ -12,7 +12,7 @@
 #       notice, this list of conditions and the following disclaimer in the
 #       documentation and/or other materials provided with the distribution.
 #     * Neither the name of the <organization> nor the
-#       names of itConfigurationSpaces contributors may be used to endorse or
+#       names of ConfigurationSpace contributors may be used to endorse or
 #       promote products derived from this software without specific prior
 #       written permission.
 #
@@ -626,7 +626,12 @@ cdef class ForbiddenCallableRelation(ForbiddenRelation):
         )
 
     def __repr__(self):
-        f_repr = self.f.__qualname__
+        if hasattr(self.f, "__qualname__"):
+            f_repr = self.f.__qualname__
+        elif hasattr(self.f, "__class__"):
+            f_repr = self.__class__.__qualname__
+        else:
+            raise ValueError("Could not find a qualname for the callable") 
         return f"Forbidden: {f_repr} | Arguments: {self.left.name}, {self.right.name}"
 
     cdef int _is_forbidden(self, left, right) except -1:

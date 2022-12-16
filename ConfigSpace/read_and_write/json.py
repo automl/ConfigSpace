@@ -38,6 +38,7 @@ from ConfigSpace.forbidden import (
     ForbiddenLessThanRelation,
     ForbiddenEqualsRelation,
     ForbiddenGreaterThanRelation,
+    ForbiddenCallableRelation,
 )
 
 
@@ -254,7 +255,7 @@ def _build_less_than_condition(condition: LessThanCondition) -> Dict:
 
 ################################################################################
 # Builder for forbidden
-def _build_forbidden(clause) -> Dict:
+def _build_forbidden(clause, pickle_callables=False) -> Dict:
     if isinstance(clause, ForbiddenEqualsClause):
         return _build_forbidden_equals_clause(clause)
     elif isinstance(clause, ForbiddenInClause):
@@ -262,7 +263,7 @@ def _build_forbidden(clause) -> Dict:
     elif isinstance(clause, ForbiddenAndConjunction):
         return _build_forbidden_and_conjunction(clause)
     elif isinstance(clause, ForbiddenRelation):
-        return _build_forbidden_relation(clause)
+        return _build_forbidden_relation(clause, pickle_callables=pickle_callables)
     else:
         raise TypeError(clause)
 
@@ -294,26 +295,38 @@ def _build_forbidden_and_conjunction(clause: ForbiddenAndConjunction) -> Dict:
     }
 
 
-def _build_forbidden_relation(clause: ForbiddenRelation) -> Dict:
+def _build_forbidden_relation(clause: ForbiddenRelation, pickle_callables=False) -> Dict:
+    d = {
+        'left': clause.left.name,
+        'right': clause.right.name,
+        'type': 'RELATION'
+    }
+
     if isinstance(clause, ForbiddenLessThanRelation):
         lambda_ = 'LESS'
     elif isinstance(clause, ForbiddenEqualsRelation):
         lambda_ = 'EQUALS'
     elif isinstance(clause, ForbiddenGreaterThanRelation):
         lambda_ = 'GREATER'
+    elif isinstance(clause, ForbiddenCallableRelation):
+        if pickle_callables:
+            lambda_ = 'CALLABLE'
+            from pickle import dumps
+            from base64 import b64encode
+            # pickle the callable, encode the bytes in b64, and convert it to an ASCII string
+            d['callable'] = b64encode(dumps(clause.f)).decode('ASCII')
+        else:
+            raise ValueError(
+                "Cannot serialize a ForbiddenCallableRelation if pickle_callables is False")
     else:
         raise ValueError("Unknown relation '%s'" % type(clause))
 
-    return {
-        'left': clause.left.name,
-        'right': clause.right.name,
-        'type': 'RELATION',
-        'lambda': lambda_
-    }
+    d['lambda'] = lambda_
+    return d
 
 
 ################################################################################
-def write(configuration_space, indent=2):
+def write(configuration_space, indent=2, pickle_callables=False):
     """
     Create a string representation of a
     :class:`~ConfigSpace.configuration_space.ConfigurationSpace` in json format.
@@ -386,7 +399,7 @@ def write(configuration_space, indent=2):
         conditions.append(_build_condition(condition))
 
     for forbidden_clause in configuration_space.get_forbiddens():
-        forbiddens.append(_build_forbidden(forbidden_clause))
+        forbiddens.append(_build_forbidden(forbidden_clause, pickle_callables=pickle_callables))
 
     rval = {}
     if configuration_space.name is not None:
@@ -496,8 +509,8 @@ def _construct_hyperparameter(hyperparameter: Dict) -> Hyperparameter:
         return NormalIntegerHyperparameter(
             name=name,
             log=hyperparameter['log'],
-            lower=hyperparameter['lower'],
-            upper=hyperparameter['upper'],
+            mu=hyperparameter['mu'],
+            sigma=hyperparameter['sigma'],
             default_value=hyperparameter['default'],
         )
     elif hp_type == 'categorical':
@@ -625,7 +638,7 @@ def _construct_forbidden(
     elif forbidden_type == 'AND':
         return _construct_forbidden_and(clause, cs)
     elif forbidden_type == 'RELATION':
-        return _construct_forbidden_equals(clause, cs)
+        return _construct_forbidden_relation(clause, cs)
     else:
         return ValueError(forbidden_type)
 
@@ -671,5 +684,10 @@ def _construct_forbidden_relation(
         return ForbiddenEqualsRelation(left, right)
     elif clause['lambda'] == "GREATER":
         return ForbiddenGreaterThanRelation(left, right)
+    elif clause['lambda'] == "CALLABLE":
+        from pickle import loads
+        from base64 import b64decode
+        f = loads(b64decode(clause["callable"].encode('ASCII')))
+        return ForbiddenCallableRelation(left, right, f)
     else:
         raise ValueError("Unknown relation '%s'" % clause['lambda'])
