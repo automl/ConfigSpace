@@ -34,8 +34,10 @@ from collections import OrderedDict, Counter
 from typing import List, Any, Dict, Union, Set, Tuple, Optional, Sequence
 
 from scipy.stats import truncnorm, beta as spbeta, norm
+import numpy as np
 cimport numpy as np
 
+from ConfigSpace.functional import center_range
 
 cdef class Hyperparameter(object):
 
@@ -1578,38 +1580,62 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
         List[int]
             Some ``number`` of neighbours centered around ``value``.
         """
-        assert 0 <= value <= 1, "Value should be in hypercube [0, 1]"
-
-        # The `value` should be in 0-1, may be worth making an assertion if things
-        # are still fast enough
-        int_center = self._transform(value)
-        if not (self.lower <= center <= self.upper):
-            raise ValueError(
-                f"Value {center} must be in bounds ({self.lower}, {self.upper})"
-            )
-
-        step = 1 if not self.q else self.q
-        choices = np.concatenate(
-            np.arange(self.lower, int_center, step),  # Up to but excluding center
-            np.arange(int_center + 1, self.upper + 1, step),  # past int center up to end
+        assert 0 <= value <= 1, (
+            "For get neghibours of UniformIntegerHyperparameter, the value"
+            " if assumed to be in the unit-hypercube [0, 1]. If this was not"
+            " the behaviour assumed, please raise a ticket on github."
         )
-        if number >= len(choices):
-            return choices
+        # A truncated normal between 0 and 1, centered on the value
+        # with a scale of std. This will be sampled from and converted
+        # to the corresponding int value
+        hypercube_dist = truncnorm(
+            a=(0 - value) / std,
+            b=(1 - value) / std,
+            loc=value,
+            scale=std,
+        )
 
-        # Get the probabilities for all of the choices
-        x = np.linspace(0, 1, len(choices))
-        if self.log:
-            # From scipy: ...Then Y = exp(X) is lognormally distributed
-            # with s = sigma and scale = exp(mu).
-            probabilities = lognorm.pdf(x=x, s=std, loc=value, scale=np.exp(value))
+        center = self._transform(value)
+
+        neighbors: set[int] = set()
+        while len(neighbors) < number:
+            # Get random values from the truncated normal distribution
+            # and places them into neighbors
+            float_index = hypercube_dist.rvs(random_state=rs)
+
+            num = self._transform(float_index)
+
+            # If we already happen to have this neighbor, pick the closest
+            # number around it that is not arelady included
+            if num in neighbors or num == center:
+                stepsize = self.q if self.q is not None else 1
+                numbers_around = center_range(num, self.lower, self.upper, stepsize)
+
+                valid_numbers_around = (
+                    n for n in numbers_around
+                    if (n not in neighbors and n != center)
+                )
+                num = next(valid_numbers_around, None)
+
+                if num is None:
+                    raise ValueError(
+                        f"Found no more neighbors for value {center} (hypercube: {value})"
+                        f" in the range [{self.lower}, {self.higher}] with neighbours already"
+                        f" found {neighbors}"
+                    )
+
+            # We now have a valid sample, add it to the list of neighbors
+            neighbors.add(num)
+
+        if transform:
+            return list(neighbors)
         else:
-            probabilities = norm.pdf(x=x, loc=value, scale=scale)
-
-        neighbors = rs.choice(choices, replace=False, p=probabilities)
-
-        # We've already transformed thme in the selection process, we convert
-        # the chosen ints back to 0,1 scale if we need to
-        return neighbors if transform else self._inverse_transform(neighbors)
+            # OPTIM: Could convert the neighbors to a numpy array,
+            # instead of operating on each element individually.
+            # This would use the `vectorized` version but neighbors is
+            # unlikely to be a very long list so the overhead of converting to
+            # numpy and back is unlikely to be of much benefit
+            return [self._inverse_transform(neighbor) for neighbor in neighbors]
 
 
     def _pdf(self, vector: np.ndarray) -> np.ndarray:

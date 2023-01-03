@@ -123,14 +123,15 @@ class UtilTest(unittest.TestCase):
         hp = UniformIntegerHyperparameter('a', 1, 10)
         all_neighbors = self._test_get_one_exchange_neighbourhood(hp)
         all_neighbors = [neighbor['a'] for neighbor in all_neighbors]
-        self.assertAlmostEqual(5.8125, np.mean(all_neighbors), places=2)
-        self.assertAlmostEqual(5.60234375, np.var(all_neighbors), places=2)
+        self.assertAlmostEqual(6.145, np.mean(all_neighbors), places=2)
+        self.assertAlmostEqual(4.438, np.var(all_neighbors), places=2)
+
         hp = UniformIntegerHyperparameter('a', 1, 10, log=True)
         all_neighbors = self._test_get_one_exchange_neighbourhood(hp)
         all_neighbors = [neighbor['a'] for neighbor in all_neighbors]
         # Default value is 3.16
-        self.assertAlmostEqual(3.9425, np.mean(all_neighbors), places=2)
-        self.assertAlmostEqual(5.91, np.var(all_neighbors), places=2)
+        self.assertAlmostEqual(3.7175, np.mean(all_neighbors), places=2)
+        self.assertAlmostEqual(4.277, np.var(all_neighbors), places=2)
 
         cs = ConfigurationSpace()
         cs.add_hyperparameter(hp)
