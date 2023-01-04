@@ -34,8 +34,8 @@ def center_range(
     Iterator[int]
     """
     assert low <= center <= high
-    below_center = range(center + step, high + 1, step)
-    above_center = range(center - step, low - 1, -step)
+    above_center = range(center + step, high + 1, step)
+    below_center = range(center - step, low - 1, -step)
     yield from roundrobin(below_center, above_center)
 
 

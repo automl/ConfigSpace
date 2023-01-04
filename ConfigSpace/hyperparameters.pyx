@@ -1610,10 +1610,10 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
 
         center = self._transform(value)
 
+        # Get random values from the truncated normal distribution and places
+        # them into neighbors
         neighbors: set[int] = set()
         while len(neighbors) < number:
-            # Get random values from the truncated normal distribution and places
-            # them into neighbors
             float_index = hypercube_dist.rvs(random_state=rs)
             possible_neighbor = self._transform(float_index)
 
@@ -1922,9 +1922,9 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
                 if bounded:
                     numbers_around = center_range(possible_neighbor, self.lower, self.upper, stepsize)
                 else:
-                    increment_count = count(center - stepsize, step=-stepsize)
-                    decrement_count = count(center + stepsize, step=stepsize)
-                    numbers_around = roundrobin(increment_count, decrement_count)
+                    decrement_count = count(center - stepsize, step=-stepsize)
+                    increment_count = count(center + stepsize, step=stepsize)
+                    numbers_around = roundrobin(decrement_count, increment_count)
 
                 valid_numbers_around = (
                     n for n in numbers_around
