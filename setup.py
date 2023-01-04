@@ -4,6 +4,7 @@ import os
 
 from setuptools import Extension, find_packages, setup
 from setuptools.command.build_ext import build_ext
+from Cython.Build import cythonize  # must go after setuptools
 
 
 # Helper functions
@@ -59,8 +60,7 @@ PLATS = ["Linux", "Windows", "Mac"]
 
 AUTHOR_EMAIL = "feurerm@informatik.uni-freiburg.de"
 TEST_SUITE = "pytest"
-SETUP_REQS = ["numpy", "cython"]
-INSTALL_REQS = ["numpy", "cython", "pyparsing", "scipy", "typing_extensions", "more_itertools"]
+INSTALL_REQS = ["numpy", "pyparsing", "scipy", "typing_extensions", "more_itertools"]
 MIN_PYTHON_VERSION = ">=3.7"
 CLASSIFIERS = [
     "Programming Language :: Python :: 3.7",
@@ -129,10 +129,6 @@ EXTENSIONS = [
     ),
 ]
 
-for e in EXTENSIONS:
-    e.compiler_directives = COMPILER_DIRECTIVES  # type: ignore
-
-
 extras_reqs = {
     "dev": [
         "pytest>=4.6",
@@ -151,14 +147,13 @@ setup(
     url=MODULE_URL,
     description=SHORT_DESCRIPTION,
     long_description_content_type="text/markdown",
-    ext_modules=EXTENSIONS,
+    ext_modules=cythonize(EXTENSIONS, compiler_directives=COMPILER_DIRECTIVES),
     long_description=read_file("README.md"),
     license=LICENSE,
     platforms=PLATS,
     author=get_authors("ConfigSpace/__authors__.py"),
     author_email=AUTHOR_EMAIL,
     test_suite=TEST_SUITE,
-    setup_requires=SETUP_REQS,
     install_requires=INSTALL_REQS,
     extras_require=extras_reqs,
     keywords=KEYWORDS,
