@@ -1597,24 +1597,21 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
         )
         stepsize = self.q if self.q is not None else 1
 
+        neighbors: set[int] = set()
+        center = self._transform(value)
+
         # A truncated normal between 0 and 1, centered on the value
         # with a scale of std. This will be sampled from and converted
         # to the corresponding int value
-        hypercube_dist = truncnorm(
+        float_indices = truncnorm.rvs(
             a=(0 - value) / std,
             b=(1 - value) / std,
             loc=value,
             scale=std,
+            size=number,
+            random_state=rs
         )
-
-        center = self._transform(value)
-
-        # Get random values from the truncated normal distribution and places them into neighbors
-        neighbors: set[int] = set()
-        possible_neighbors = [
-            self._transform(float_index)
-            for float_index in hypercube_dist.rvs(size=number, random_state=rs)
-        ]
+        possible_neighbors = [int(n) for n in self._transform_vector(float_indices)]
 
         for possible_neighbor in possible_neighbors:
             # If we already happen to have this neighbor, pick the closest number around
@@ -1911,19 +1908,27 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
         mu = self.mu
         sigma = self.sigma
 
+        neighbors: set[int] = set()
         center = self._transform(value)
+
         if bounded:
-            distribution = norm(loc=mu, scale=sigma)
+            float_indices = norm.rvs(
+                loc=mu,
+                scale=sigma,
+                size=number,
+                random_state=rs,
+            )
         else:
-            distribution = truncnorm(
+            float_indices = truncnorm(
                 a = (self.lower - mu) / sigma,
                 b = (self.upper - mu) / sigma,
                 loc=center,
                 scale=sigma,
+                size=number,
+                random_state=rs,
             )
 
-        neighbors: set[int] = set()
-        possible_neighbors = distribution.rvs(size=number, random_state=rs)
+        possible_neighbors = [int(n) for n in self._transform_vector(float_indices)]
 
         for possible_neighbor in possible_neighbors:
             # If we already happen to have this neighbor, pick the closest
