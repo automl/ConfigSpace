@@ -1569,14 +1569,14 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
         Parameters
         ----------
         value: float
-            The value to get neighbours around. This assume the ``value`` has been
+            The value to get neighbors around. This assume the ``value`` has been
             converted to the [0, 1] range which can be done with ``_inverse_transform``.
 
         rs: RandomState
             The random state to use
 
         number: int = 4
-            How many neighbours to get
+            How many neighbors to get
 
         transform: bool = False
             Whether to transform this value from the unit cube, back to the
@@ -1584,15 +1584,15 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
 
         std: float = 0.2
             The std. dev. to use in the [0, 1] hypercube space while sampling
-            for neighbours.
+            for neighbors.
 
         Returns
         -------
         List[int]
-            Some ``number`` of neighbours centered around ``value``.
+            Some ``number`` of neighbors centered around ``value``.
         """
         assert 0 <= value <= 1, (
-            "For get neghibours of UniformIntegerHyperparameter, the value"
+            "For get neighbors of UniformIntegerHyperparameter, the value"
             " if assumed to be in the unit-hypercube [0, 1]. If this was not"
             " the behaviour assumed, please raise a ticket on github."
         )
@@ -1631,7 +1631,7 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
                 if possible_neighbor is None:
                     raise ValueError(
                         f"Found no more neighbors for value {center} (hypercube: {value})"
-                        f" in the range [{self.lower}, {self.higher}] with neighbours already"
+                        f" in the range [{self.lower}, {self.higher}] with neighbors already"
                         f" found {neighbors}"
                     )
 

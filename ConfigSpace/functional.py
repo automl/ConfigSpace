@@ -48,7 +48,7 @@ def arange_chunked(
 ) -> Iterator[np.ndarray]:
     """Get np.arange in a chunked fashion.
 
-    >>> list(sequential_chunks(0, 10, 3))
+    >>> list(arange_chunked(0, 10, 3))
     [array([0, 1, 2]), array([3, 4, 5]), array([6, 7, 8]), array([9])]
 
     Parameters
