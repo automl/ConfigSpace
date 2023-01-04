@@ -1611,7 +1611,7 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
             size=number,
             random_state=rs
         )
-        possible_neighbors = [int(n) for n in self._transform_vector(float_indices)]
+        possible_neighbors = self._transform_vector(float_indices).astype(int)
 
         for possible_neighbor in possible_neighbors:
             # If we already happen to have this neighbor, pick the closest number around
@@ -1928,7 +1928,7 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
                 random_state=rs,
             )
 
-        possible_neighbors = [int(n) for n in self._transform_vector(float_indices)]
+        possible_neighbors = self._transform_vector(float_indices).astype(int)
 
         for possible_neighbor in possible_neighbors:
             # If we already happen to have this neighbor, pick the closest
