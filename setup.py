@@ -60,7 +60,7 @@ PLATS = ["Linux", "Windows", "Mac"]
 AUTHOR_EMAIL = "feurerm@informatik.uni-freiburg.de"
 TEST_SUITE = "pytest"
 SETUP_REQS = ["numpy", "cython"]
-INSTALL_REQS = ["numpy", "cython", "pyparsing", "scipy", "typing_extensions"]
+INSTALL_REQS = ["numpy", "cython", "pyparsing", "scipy", "typing_extensions", "more_itertools"]
 MIN_PYTHON_VERSION = ">=3.7"
 CLASSIFIERS = [
     "Programming Language :: Python :: 3.7",

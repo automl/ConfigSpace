@@ -1,37 +1,7 @@
-from itertools import cycle, islice
-from typing import Iterator, Iterable, TypeVar
+from typing import Iterator
 
-T = TypeVar("T")
-
-
-def roundrobin(*iterables: Iterable[T]) -> Iterator[T]:
-    """Iterate over several iterables in a roundrobin fashion.
-
-    https://docs.python.org/2/library/itertools.html#recipes
-
-    >>> list(roundrobin('ABC', 'D', 'EF'))
-    ['A', 'D', 'E', 'B', 'F', 'C']
-
-    Parameters
-    ----------
-    *iterables: Iterable[T]
-        The iterables to use
-
-    Returns
-    -------
-    Iterator[T]
-    """
-    # Recipe credited to George Sakkis
-    num_active = len(iterables)
-    nexts = cycle(iter(it).__next__ for it in iterables)
-    while num_active:
-        try:
-            for next in nexts:
-                yield next()
-        except StopIteration:
-            # Remove the iterator we just exhausted from the cycle.
-            num_active -= 1
-            nexts = cycle(islice(nexts, num_active))
+from more_itertools import roundrobin
+import numpy as np
 
 
 def center_range(
@@ -41,6 +11,9 @@ def center_range(
     step: int = 1,
 ) -> Iterator[int]:
     """Get a range centered around a value.
+
+    >>> list(center_range(5, 0, 10))
+    [4, 6, 3, 7, 2, 8, 1, 9, 0, 10]
 
     Parameters
     ----------
@@ -64,3 +37,45 @@ def center_range(
     below_center = range(center + step, high + 1, step)
     above_center = range(center - step, low - 1, -step)
     yield from roundrobin(below_center, above_center)
+
+
+def arange_chunked(
+    start: int,
+    stop: int,
+    step: int = 1,
+    *,
+    chunk_size: int,
+) -> Iterator[np.ndarray]:
+    """Get np.arange in a chunked fashion.
+
+    >>> list(sequential_chunks(0, 10, 3))
+    [array([0, 1, 2]), array([3, 4, 5]), array([6, 7, 8]), array([9])]
+
+    Parameters
+    ----------
+    start: int
+        The start of the range
+
+    stop: int
+        The stop of the range
+
+    chunk_size: int
+        The size of the chunks
+
+    step: int = 1
+        The step size
+
+    Returns
+    -------
+    Iterator[np.ndarray]
+    """
+    assert step > 0
+    assert chunk_size > 0
+    assert start < stop
+    n_items = int(np.ceil((stop - start) / step))
+    n_chunks = int(np.ceil(n_items / chunk_size))
+
+    for chunk in range(0, n_chunks):
+        chunk_start = start + (chunk * chunk_size)
+        chunk_stop = min(chunk_start + chunk_size, stop)
+        yield np.arange(chunk_start, chunk_stop, step)

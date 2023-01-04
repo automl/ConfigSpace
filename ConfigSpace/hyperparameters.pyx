@@ -31,13 +31,24 @@ import io
 import math
 import warnings
 from collections import OrderedDict, Counter
+from itertools import count
+from more_itertools import roundrobin
 from typing import List, Any, Dict, Union, Set, Tuple, Optional, Sequence
 
 from scipy.stats import truncnorm, beta as spbeta, norm
 import numpy as np
 cimport numpy as np
 
-from ConfigSpace.functional import center_range
+from ConfigSpace.functional import center_range, arange_chunked
+
+# OPTIM: Some operations generate an arange which could blowup memory if
+# done over the entire space of integers (int32/64).
+# To combat this, `arange_chunked` is used in scenarios where reducion
+# operations over all the elments could be done in partial steps independantly.
+# For example, a sum over the pdf values could be done in chunks.
+# This may add some small overhead for smaller ranges but is unlikely to
+# be noticable.
+ARANGE_CHUNKSIZE = 10_000_000
 
 cdef class Hyperparameter(object):
 
@@ -1585,6 +1596,8 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
             " if assumed to be in the unit-hypercube [0, 1]. If this was not"
             " the behaviour assumed, please raise a ticket on github."
         )
+        stepsize = self.q if self.q is not None else 1
+
         # A truncated normal between 0 and 1, centered on the value
         # with a scale of std. This will be sampled from and converted
         # to the corresponding int value
@@ -1599,25 +1612,23 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
 
         neighbors: set[int] = set()
         while len(neighbors) < number:
-            # Get random values from the truncated normal distribution
-            # and places them into neighbors
+            # Get random values from the truncated normal distribution and places
+            # them into neighbors
             float_index = hypercube_dist.rvs(random_state=rs)
+            possible_neighbor = self._transform(float_index)
 
-            num = self._transform(float_index)
-
-            # If we already happen to have this neighbor, pick the closest
-            # number around it that is not arelady included
-            if num in neighbors or num == center:
-                stepsize = self.q if self.q is not None else 1
-                numbers_around = center_range(num, self.lower, self.upper, stepsize)
+            # If we already happen to have this neighbor, pick the closest number around
+            # it that is not arelady included
+            if possible_neighbor in neighbors or possible_neighbor == center:
+                numbers_around = center_range(possible_neighbor, self.lower, self.upper, stepsize)
 
                 valid_numbers_around = (
                     n for n in numbers_around
                     if (n not in neighbors and n != center)
                 )
-                num = next(valid_numbers_around, None)
+                possible_neighbor = next(valid_numbers_around, None)
 
-                if num is None:
+                if possible_neighbor is None:
                     raise ValueError(
                         f"Found no more neighbors for value {center} (hypercube: {value})"
                         f" in the range [{self.lower}, {self.higher}] with neighbours already"
@@ -1625,16 +1636,11 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
                     )
 
             # We now have a valid sample, add it to the list of neighbors
-            neighbors.add(num)
+            neighbors.add(possible_neighbor)
 
         if transform:
             return list(neighbors)
         else:
-            # OPTIM: Could convert the neighbors to a numpy array,
-            # instead of operating on each element individually.
-            # This would use the `vectorized` version but neighbors is
-            # unlikely to be a very long list so the overhead of converting to
-            # numpy and back is unlikely to be of much benefit
             return [self._inverse_transform(neighbor) for neighbor in neighbors]
 
 
@@ -1899,31 +1905,46 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
         rs: np.random.RandomState,
         number: int = 4,
         transform: bool = False,
-    ) -> List[Union[np.ndarray, float, int]]:
-        neighbors = []  # type: List[Union[np.ndarray, float, int]]
+    ) -> List[int]:
+        neighbors: set[int] = set()
+        stepsize = self.q if self.q is not None else 1
+        bounded = self.lower is not None
+
+        center = self._transform(value)
+
         while len(neighbors) < number:
-            rejected = True
-            iteration = 0
-            while rejected:
-                iteration += 1
-                new_value = rs.normal(value, self.sigma)
-                int_value = self._transform(value)
-                new_int_value = self._transform(new_value)
+            possible_neighbor = self._sample(rs)
 
-                if self.lower is not None and self.upper is not None:
-                    int_value = min(max(int_value, self.lower), self.upper)
-                    new_int_value = min(max(new_int_value, self.lower), self.upper)
+            # If we already happen to have this neighbor, pick the closest
+            # number around it that is not arelady included
+            if possible_neighbor in neighbors or possible_neighbor == center:
 
-                if int_value != new_int_value:
-                    rejected = False
-                elif iteration > 100000:
-                    raise ValueError('Probably caught in an infinite loop.')
+                if bounded:
+                    numbers_around = center_range(possible_neighbor, self.lower, self.upper, stepsize)
+                else:
+                    increment_count = count(center - stepsize, step=-stepsize)
+                    decrement_count = count(center + stepsize, step=stepsize)
+                    numbers_around = roundrobin(increment_count, decrement_count)
+
+                valid_numbers_around = (
+                    n for n in numbers_around
+                    if (n not in neighbors and n != center)
+                )
+                possible_neighbor = next(valid_numbers_around, None)
+
+                if possible_neighbor is None:
+                    raise ValueError(
+                        f"Found no more eligble neighbors for value {center}"
+                        f"\nfound {neighbors}"
+                    )
+
+            # We now have a valid sample, add it to the list of neighbors
+            neighbors.add(possible_neighbor)
 
             if transform:
-                neighbors.append(self._transform(new_value))
+                return [self._transform(neighbor) for neighbor in neighbors]
             else:
-                neighbors.append(new_value)
-        return neighbors
+                return list(neighbors)
 
     def _compute_normalization(self):
         if self.lower is None:
@@ -1932,9 +1953,8 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
             return 1
 
         else:
-            all_integer_values = np.arange(self.lower, self.upper + 1)
-            all_probabilities = self.nfhp.pdf(all_integer_values)
-            return np.sum(all_probabilities)
+            chunks = arange_chunked(self.lower, self.upper + 1, chunk_size=ARANGE_CHUNKSIZE)
+            return sum(self.nfhp.pdf(chunk).sum() for chunk in chunks)
 
     def _pdf(self, vector: np.ndarray) -> np.ndarray:
         """
@@ -1960,9 +1980,9 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
         return self.nfhp._pdf(vector) / self.normalization_constant
 
     def get_max_density(self):
-        all_integer_values = np.arange(self.lower, self.upper + 1)
-        all_probabilities = self.nfhp.pdf(all_integer_values)
-        return np.max(all_probabilities) / self.normalization_constant
+        chunks = arange_chunked(self.lower, self.upper + 1, chunk_size=ARANGE_CHUNKSIZE)
+        maximum = max(self.nfhp.pdf(chunk).max() for chunk in chunks)
+        return maximum / self.normalization_constant
 
     def get_size(self) -> float:
         if self.lower is None:
@@ -2137,9 +2157,8 @@ cdef class BetaIntegerHyperparameter(UniformIntegerHyperparameter):
         return value
 
     def _compute_normalization(self):
-        all_integer_values = np.arange(self.lower, self.upper + 1)
-        all_probabilities = self.bfhp.pdf(all_integer_values)
-        return np.sum(all_probabilities)
+        chunks = arange_chunked(self.lower, self.upper + 1, chunk_size=ARANGE_CHUNKSIZE)
+        return sum(self.bfhp.pdf(chunk).sum() for chunk in chunks)
 
     def _pdf(self, vector: np.ndarray) -> np.ndarray:
         """
@@ -2165,9 +2184,9 @@ cdef class BetaIntegerHyperparameter(UniformIntegerHyperparameter):
         return self.bfhp._pdf(vector) / self.normalization_constant
 
     def get_max_density(self):
-        all_integer_values = np.arange(self.lower, self.upper + 1)
-        all_probabilities = self.bfhp.pdf(all_integer_values)
-        return np.max(all_probabilities) / self.normalization_constant
+        chunks = arange_chunked(self.lower, self.upper + 1, chunk_size=ARANGE_CHUNKSIZE)
+        maximum = max(self.bfhp.pdf(chunk).max() for chunk in chunks)
+        return maximum / self.normalization_constant
 
 
 cdef class CategoricalHyperparameter(Hyperparameter):
