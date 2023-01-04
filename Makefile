@@ -28,6 +28,19 @@ DIST := "${DIR}/dist""
 DOCDIR := "${DIR}/docs"
 BUILD := "${DIR}/build"
 INDEX_HTML := "file://${DOCDIR}/build/html/index.html"
+NUMPY_INCLUDE := $(shell python -c 'import numpy; print(numpy.get_include())')
+
+# https://stackoverflow.com/questions/40750596/how-do-i-escape-bracket-in-makefile
+CP := )
+
+benchmark:
+	python scripts/benchmark_sampling.py
+
+cython-annotate:
+	C_INCLUDE_PATH=$(NUMPY_INCLUDE) cython -3 --annotate ConfigSpace/*.pyx
+
+cython-html: cython-annotate
+	python -c "import webbrowser; from pathlib import Path; [webbrowser.open(f'file://{path}') for path in Path('ConfigSpace').absolute().glob('*.html')]"
 
 install-dev:
 	$(PIP) install -e ".[dev]"
@@ -45,7 +58,7 @@ clean-docs:
 clean: clean-build clean-docs
 
 build:
-	python setup.py develop
+	python -m build
 
 # Running build before making docs is needed all be it very slow.
 # Without doing a full build, the doctests seem to use docstrings from the last compiled build
