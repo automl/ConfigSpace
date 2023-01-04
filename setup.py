@@ -4,7 +4,6 @@ import os
 
 from setuptools import Extension, find_packages, setup
 from setuptools.command.build_ext import build_ext
-from Cython.Build import cythonize  # must go after setuptools
 
 
 # Helper functions
@@ -130,6 +129,10 @@ EXTENSIONS = [
     ),
 ]
 
+for e in EXTENSIONS:
+    e.compiler_directives = COMPILER_DIRECTIVES  # type: ignore
+
+
 extras_reqs = {
     "dev": [
         "pytest>=4.6",
@@ -148,7 +151,7 @@ setup(
     url=MODULE_URL,
     description=SHORT_DESCRIPTION,
     long_description_content_type="text/markdown",
-    ext_modules=cythonize(EXTENSIONS, compiler_directives=COMPILER_DIRECTIVES),
+    ext_modules=EXTENSIONS,
     long_description=read_file("README.md"),
     license=LICENSE,
     platforms=PLATS,
