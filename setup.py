@@ -85,6 +85,7 @@ CLASSIFIERS = [
 COMPILER_DIRECTIVES = {
     "boundscheck": False,
     "wraparound": False,
+    "language_level": "3",
 }
 
 EXTENSIONS = [

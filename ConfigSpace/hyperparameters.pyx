@@ -27,7 +27,6 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 import copy
 import io
-# cython: language_level=3
 import math
 import warnings
 from collections import OrderedDict, Counter
@@ -1610,13 +1609,14 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
 
         center = self._transform(value)
 
-        # Get random values from the truncated normal distribution and places
-        # them into neighbors
+        # Get random values from the truncated normal distribution and places them into neighbors
         neighbors: set[int] = set()
-        while len(neighbors) < number:
-            float_index = hypercube_dist.rvs(random_state=rs)
-            possible_neighbor = self._transform(float_index)
+        possible_neighbors = [
+            self._transform(float_index)
+            for float_index in hypercube_dist.rvs(size=number, random_state=rs)
+        ]
 
+        for possible_neighbor in possible_neighbors:
             # If we already happen to have this neighbor, pick the closest number around
             # it that is not arelady included
             if possible_neighbor in neighbors or possible_neighbor == center:
@@ -1631,7 +1631,7 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
                 if possible_neighbor is None:
                     raise ValueError(
                         f"Found no more neighbors for value {center} (hypercube: {value})"
-                        f" in the range [{self.lower}, {self.higher}] with neighbors already"
+                        f" in the range [{self.lower}, {self.upper}] with neighbors already"
                         f" found {neighbors}"
                     )
 
@@ -1906,15 +1906,26 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
         number: int = 4,
         transform: bool = False,
     ) -> List[int]:
-        neighbors: set[int] = set()
         stepsize = self.q if self.q is not None else 1
         bounded = self.lower is not None
+        mu = self.mu
+        sigma = self.sigma
 
         center = self._transform(value)
+        if bounded:
+            distribution = norm(loc=mu, scale=sigma)
+        else:
+            distribution = truncnorm(
+                a = (self.lower - mu) / sigma,
+                b = (self.upper - mu) / sigma,
+                loc=center,
+                scale=sigma,
+            )
 
-        while len(neighbors) < number:
-            possible_neighbor = self._sample(rs)
+        neighbors: set[int] = set()
+        possible_neighbors = distribution.rvs(size=number, random_state=rs)
 
+        for possible_neighbor in possible_neighbors:
             # If we already happen to have this neighbor, pick the closest
             # number around it that is not arelady included
             if possible_neighbor in neighbors or possible_neighbor == center:
@@ -1922,8 +1933,8 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
                 if bounded:
                     numbers_around = center_range(possible_neighbor, self.lower, self.upper, stepsize)
                 else:
-                    decrement_count = count(center - stepsize, step=-stepsize)
-                    increment_count = count(center + stepsize, step=stepsize)
+                    decrement_count = count(possible_neighbor - stepsize, step=-stepsize)
+                    increment_count = count(possible_neighbor + stepsize, step=stepsize)
                     numbers_around = roundrobin(decrement_count, increment_count)
 
                 valid_numbers_around = (
