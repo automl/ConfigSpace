@@ -71,7 +71,7 @@ def arange_chunked(
     """
     assert step > 0
     assert chunk_size > 0
-    assert 0 <= start < stop
+    assert start < stop
     n_items = int(np.ceil((stop - start) / step))
     n_chunks = int(np.ceil(n_items / chunk_size))
 
