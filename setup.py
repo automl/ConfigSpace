@@ -4,6 +4,7 @@ import os
 
 from setuptools import Extension, find_packages, setup
 from setuptools.command.build_ext import build_ext
+from Cython.Build import cythonize  # must go after setuptools
 
 
 # Helper functions
@@ -88,6 +89,33 @@ COMPILER_DIRECTIVES = {
     "language_level": "3",
 }
 
+
+"""
+# Profiling
+Set the below flag to True to enable profiling of the code. This will cause some minor performance
+overhead so it should only be used for debugging purposes.
+
+Use [`py-spy`](https://github.com/benfred/py-spy) with [speedscope.app](https://www.speedscope.app/)
+```bash
+pip install py-spy
+py-spy record --rate 800 --format speedscope --subprocesses --native -o profile.svg -- python <script>
+# Open in speedscope.app
+```
+
+If timing something really really low in time, use a higher `--rate`
+You'll want to create a basic script that does the bar minimum as this allows you to bump up
+the --rate option and get much higher fidelity information.
+
+# Refs
+* https://mclare.blog/posts/further-adventures-in-cython-profiling
+* https://cython.readthedocs.io/en/latest/src/tutorial/profiling_tutorial.html#enabling-profiling-for-a-complete-source-file  # noqa: E501
+* py-spy
+"""
+PROFILING = False
+if PROFILING:
+    COMPILER_DIRECTIVES["profile"] = True
+    COMPILER_DIRECTIVES["linetrace"] = True
+
 EXTENSIONS = [
     Extension(
         "ConfigSpace.hyperparameters", sources=["ConfigSpace/hyperparameters.pyx"]
@@ -101,9 +129,6 @@ EXTENSIONS = [
         sources=["ConfigSpace/configuration_space.pyx"],
     ),
 ]
-
-for e in EXTENSIONS:
-    e.cython_directives = COMPILER_DIRECTIVES
 
 extras_reqs = {
     "dev": [
@@ -123,7 +148,7 @@ setup(
     url=MODULE_URL,
     description=SHORT_DESCRIPTION,
     long_description_content_type="text/markdown",
-    ext_modules=EXTENSIONS,
+    ext_modules=cythonize(EXTENSIONS, compiler_directives=COMPILER_DIRECTIVES),
     long_description=read_file("README.md"),
     license=LICENSE,
     platforms=PLATS,
