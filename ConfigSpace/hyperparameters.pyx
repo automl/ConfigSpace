@@ -141,7 +141,7 @@ cdef class Hyperparameter(object):
     def has_neighbors(self):
         raise NotImplementedError()
 
-    def get_neighbors(self, value, rs, number, transform = False):
+    def get_neighbors(self, value, rs, number, transform=False):
         raise NotImplementedError()
 
     def get_num_neighbors(self, value):
@@ -297,7 +297,7 @@ cdef class Constant(Hyperparameter):
     def has_neighbors(self) -> bool:
         return False
 
-    def get_num_neighbors(self, value = None) -> int:
+    def get_num_neighbors(self, value=None) -> int:
         return 0
 
     def get_neighbors(self, value: Any, rs: np.random.RandomState, number: int,
@@ -368,7 +368,7 @@ cdef class NumericalHyperparameter(Hyperparameter):
     def has_neighbors(self) -> bool:
         return True
 
-    def get_num_neighbors(self, value = None) -> float:
+    def get_num_neighbors(self, value=None) -> float:
 
         return np.inf
 
@@ -522,7 +522,6 @@ cdef class FloatHyperparameter(NumericalHyperparameter):
         raise NotImplementedError()
 
 
-
 cdef class IntegerHyperparameter(NumericalHyperparameter):
     def __init__(self, name: str, default_value: int, meta: Optional[Dict] = None) -> None:
         super(IntegerHyperparameter, self).__init__(name, default_value, meta)
@@ -538,7 +537,7 @@ cdef class IntegerHyperparameter(NumericalHyperparameter):
 
     def check_int(self, parameter: int, name: str) -> int:
         if abs(int(parameter) - parameter) > 0.00000001 and \
-                        type(parameter) is not int:
+                type(parameter) is not int:
             raise ValueError("For the Integer parameter %s, the value must be "
                              "an Integer, too. Right now it is a %s with value"
                              " %s." % (name, type(parameter), str(parameter)))
@@ -895,7 +894,8 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
         self.normalized_default_value = self._inverse_transform(self.default_value)
 
         if (lower is not None) ^ (upper is not None):
-            raise ValueError("Only one bound was provided when both lower and upper bounds must be provided.")
+            raise ValueError(
+                "Only one bound was provided when both lower and upper bounds must be provided.")
 
         if lower is not None and upper is not None:
             self.lower = float(lower)
@@ -903,12 +903,12 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
 
             if self.lower >= self.upper:
                 raise ValueError("Upper bound %f must be larger than lower bound "
-                                "%f for hyperparameter %s" %
-                                (self.upper, self.lower, name))
+                                 "%f for hyperparameter %s" %
+                                 (self.upper, self.lower, name))
             elif log and self.lower <= 0:
                 raise ValueError("Negative lower bound (%f) for log-scale "
-                                "hyperparameter %s is forbidden." %
-                                (self.lower, name))
+                                 "hyperparameter %s is forbidden." %
+                                 (self.lower, name))
 
             self.default_value = self.check_default(default_value)
 
@@ -942,9 +942,11 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
         repr_str = io.StringIO()
 
         if self.lower is None or self.upper is None:
-            repr_str.write("%s, Type: NormalFloat, Mu: %s Sigma: %s, Default: %s" % (self.name, repr(self.mu), repr(self.sigma), repr(self.default_value)))
+            repr_str.write("%s, Type: NormalFloat, Mu: %s Sigma: %s, Default: %s" %
+                           (self.name, repr(self.mu), repr(self.sigma), repr(self.default_value)))
         else:
-            repr_str.write("%s, Type: NormalFloat, Mu: %s Sigma: %s, Range: [%s, %s], Default: %s" % (self.name, repr(self.mu), repr(self.sigma), repr(self.lower), repr(self.upper), repr(self.default_value)))
+            repr_str.write("%s, Type: NormalFloat, Mu: %s Sigma: %s, Range: [%s, %s], Default: %s" % (
+                self.name, repr(self.mu), repr(self.sigma), repr(self.lower), repr(self.upper), repr(self.default_value)))
 
         if self.log:
             repr_str.write(", on log-scale")
@@ -1031,8 +1033,8 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
             lower = None
             upper = None
         else:
-            lower=np.ceil(self.lower)
-            upper=np.floor(self.upper)
+            lower = np.ceil(self.lower)
+            upper = np.floor(self.upper)
 
         return NormalIntegerHyperparameter(self.name, int(np.rint(self.mu)), self.sigma,
                                            lower=lower, upper=upper,
@@ -1048,13 +1050,14 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
     def _sample(self, rs: np.random.RandomState, size: Optional[int] = None
                 ) -> Union[np.ndarray, float]:
 
-        if self.lower == None:
+        sigma = self.sigma
+        if sigma == 0:
+            return self.mu
+        elif self.lower == None:
             mu = self.mu
-            sigma = self.sigma
             return rs.normal(mu, sigma, size=size)
         else:
             mu = self.mu
-            sigma = self.sigma
             lower = self._lower
             upper = self._upper
             a = (lower - mu) / sigma
@@ -1095,7 +1098,7 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
             new_value = rs.normal(value, self.sigma)
 
             if self.lower is not None and self.upper is not None:
-                    new_value = min(max(new_value, self.lower), self.upper)
+                new_value = min(max(new_value, self.lower), self.upper)
 
             neighbors.append(new_value)
         return neighbors
@@ -1129,7 +1132,9 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
         """
         mu = self.mu
         sigma = self.sigma
-        if self.lower == None:
+        if sigma == 0:
+            return np.float64(vector == mu)
+        elif self.lower == None:
             return norm(loc=mu, scale=sigma).pdf(vector)
         else:
             mu = self.mu
@@ -1223,7 +1228,8 @@ cdef class BetaFloatHyperparameter(UniformFloatHyperparameter):
 
     def __repr__(self) -> str:
         repr_str = io.StringIO()
-        repr_str.write("%s, Type: BetaFloat, Alpha: %s Beta: %s, Range: [%s, %s], Default: %s" % (self.name, repr(self.alpha), repr(self.beta), repr(self.lower), repr(self.upper), repr(self.default_value)))
+        repr_str.write("%s, Type: BetaFloat, Alpha: %s Beta: %s, Range: [%s, %s], Default: %s" % (
+            self.name, repr(self.alpha), repr(self.beta), repr(self.lower), repr(self.upper), repr(self.default_value)))
 
         if self.log:
             repr_str.write(", on log-scale")
@@ -1314,14 +1320,13 @@ cdef class BetaFloatHyperparameter(UniformFloatHyperparameter):
         upper = int(np.floor(self.upper))
         default_value = int(np.rint(self.default_value))
         return BetaIntegerHyperparameter(self.name, lower=lower, upper=upper, alpha=self.alpha, beta=self.beta,
-                                           default_value=int(np.rint(self.default_value)),
-                                           q=q_int, log=self.log)
+                                         default_value=int(np.rint(self.default_value)),
+                                         q=q_int, log=self.log)
 
     def is_legal(self, value: Union[float]) -> bool:
         if isinstance(value, (float, int)):
             return self.upper >= value >= self.lower
         return False
-
 
     cpdef bint is_legal_vector(self, DTYPE_t value):
         return self._upper >= value >= self._lower
@@ -1356,7 +1361,7 @@ cdef class BetaFloatHyperparameter(UniformFloatHyperparameter):
         alpha = self.alpha
         beta = self.beta
         return spbeta(alpha, beta, loc=lb, scale=ub-lb).pdf(vector) \
-        * (ub-lb) / (self._upper - self._lower)
+            * (ub-lb) / (self._upper - self._lower)
 
     def get_max_density(self) -> float:
         if (self.alpha > 1) or (self.beta > 1):
@@ -1537,7 +1542,7 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
         else:
             return False
 
-    def get_num_neighbors(self, value = None) -> int:
+    def get_num_neighbors(self, value=None) -> int:
         return self.upper - self.lower
 
     def get_neighbors(
@@ -1663,8 +1668,7 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
     cdef public nfhp
     cdef normalization_constant
 
-
-    def __init__(self, name: str, mu: int, sigma: Union[int, float],
+    def __init__(self, name: str, mu: Union[int, float], sigma: Union[int, float],
                  default_value: Union[int, None] = None, q: Union[None, int] = None,
                  log: bool = False,
                  lower: Optional[int] = None,
@@ -1710,6 +1714,8 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
 
         self.mu = mu
         self.sigma = sigma
+        if self.sigma == 0:
+            assert int(self.mu) == self.mu
 
         if default_value is not None:
             default_value = self.check_int(default_value, self.name)
@@ -1727,19 +1733,20 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
         self.log = bool(log)
 
         if (lower is not None) ^ (upper is not None):
-            raise ValueError("Only one bound was provided when both lower and upper bounds must be provided.")
+            raise ValueError(
+                "Only one bound was provided when both lower and upper bounds must be provided.")
 
         if lower is not None and upper is not None:
             self.upper = self.check_int(upper, "upper")
             self.lower = self.check_int(lower, "lower")
             if self.lower >= self.upper:
                 raise ValueError("Upper bound %d must be larger than lower bound "
-                                "%d for hyperparameter %s" %
-                                (self.lower, self.upper, name))
+                                 "%d for hyperparameter %s" %
+                                 (self.lower, self.upper, name))
             elif log and self.lower <= 0:
                 raise ValueError("Negative lower bound (%d) for log-scale "
-                                "hyperparameter %s is forbidden." %
-                                (self.lower, name))
+                                 "hyperparameter %s is forbidden." %
+                                 (self.lower, name))
             self.lower = lower
             self.upper = upper
 
@@ -1765,9 +1772,11 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
         repr_str = io.StringIO()
 
         if self.lower is None or self.upper is None:
-            repr_str.write("%s, Type: NormalInteger, Mu: %s Sigma: %s, Default: %s" % (self.name, repr(self.mu), repr(self.sigma), repr(self.default_value)))
+            repr_str.write("%s, Type: NormalInteger, Mu: %s Sigma: %s, Default: %s" %
+                           (self.name, repr(self.mu), repr(self.sigma), repr(self.default_value)))
         else:
-            repr_str.write("%s, Type: NormalInteger, Mu: %s Sigma: %s, Range: [%s, %s], Default: %s" % (self.name, repr(self.mu), repr(self.sigma), repr(self.lower), repr(self.upper), repr(self.default_value)))
+            repr_str.write("%s, Type: NormalInteger, Mu: %s Sigma: %s, Range: [%s, %s], Default: %s" % (
+                self.name, repr(self.mu), repr(self.sigma), repr(self.lower), repr(self.upper), repr(self.default_value)))
 
         if self.log:
             repr_str.write(", on log-scale")
@@ -1844,7 +1853,7 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
             if self.log:
                 return self._transform_scalar(self.mu)
             else:
-                return self.mu
+                return int(np.round(self.mu))
 
         elif self.is_legal(default_value):
             return default_value
@@ -1911,7 +1920,7 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
     def _compute_normalization(self):
         if self.lower is None:
             warnings.warn('Cannot normalize the pdf exactly for a NormalIntegerHyperparameter'
-            f' {self.name} without bounds. Skipping normalization for that hyperparameter.')
+                          f' {self.name} without bounds. Skipping normalization for that hyperparameter.')
             return 1
 
         else:
@@ -1963,7 +1972,6 @@ cdef class BetaIntegerHyperparameter(UniformIntegerHyperparameter):
     cdef public beta
     cdef public bfhp
     cdef normalization_constant
-
 
     def __init__(self, name: str, alpha: Union[int, float], beta: Union[int, float],
                  lower: Union[int, float],
@@ -2022,13 +2030,13 @@ cdef class BetaIntegerHyperparameter(UniformIntegerHyperparameter):
         else:
             q = self.q
         self.bfhp = BetaFloatHyperparameter(self.name,
-                                              self.alpha,
-                                              self.beta,
-                                              log=self.log,
-                                              q=q,
-                                              lower=self.lower,
-                                              upper=self.upper,
-                                              default_value=self.default_value)
+                                            self.alpha,
+                                            self.beta,
+                                            log=self.log,
+                                            q=q,
+                                            lower=self.lower,
+                                            upper=self.upper,
+                                            default_value=self.default_value)
 
         self.default_value = self.check_default(default_value)
         self.normalized_default_value = self._inverse_transform(self.default_value)
@@ -2036,7 +2044,8 @@ cdef class BetaIntegerHyperparameter(UniformIntegerHyperparameter):
 
     def __repr__(self) -> str:
         repr_str = io.StringIO()
-        repr_str.write("%s, Type: BetaInteger, Alpha: %s Beta: %s, Range: [%s, %s], Default: %s" % (self.name, repr(self.alpha), repr(self.beta), repr(self.lower), repr(self.upper), repr(self.default_value)))
+        repr_str.write("%s, Type: BetaInteger, Alpha: %s Beta: %s, Range: [%s, %s], Default: %s" % (
+            self.name, repr(self.alpha), repr(self.beta), repr(self.lower), repr(self.upper), repr(self.default_value)))
 
         if self.log:
             repr_str.write(", on log-scale")
@@ -2093,7 +2102,6 @@ cdef class BetaIntegerHyperparameter(UniformIntegerHyperparameter):
                                             self.upper,
                                             default_value=self.default_value,
                                             q=self.q, log=self.log, meta=self.meta)
-
 
     def check_default(self, default_value: Union[int, float, None]) -> int:
         if default_value is None:
@@ -2294,7 +2302,7 @@ cdef class CategoricalHyperparameter(Hyperparameter):
                     ordered_probabilities_other is None
                     and len(np.unique(list(ordered_probabilities_self.values()))) == 1
                 )
-             )
+            )
         )
 
     def __hash__(self):
@@ -2419,7 +2427,7 @@ cdef class CategoricalHyperparameter(Hyperparameter):
     def has_neighbors(self) -> bool:
         return len(self.choices) > 1
 
-    def get_num_neighbors(self, value = None) -> int:
+    def get_num_neighbors(self, value=None) -> int:
         return len(self.choices) - 1
 
     def get_neighbors(self, value: int, rs: np.random.RandomState,
@@ -2629,11 +2637,11 @@ cdef class OrdinalHyperparameter(Hyperparameter):
 
     def __copy__(self):
         return OrdinalHyperparameter(
-                name=self.name,
-                sequence=copy.deepcopy(self.sequence),
-                default_value=self.default_value,
-                meta=self.meta
-            )
+            name=self.name,
+            sequence=copy.deepcopy(self.sequence),
+            default_value=self.default_value,
+            meta=self.meta
+        )
 
     cpdef int compare(self, value: Union[int, float, str], value2: Union[int, float, str]):
         if self.value_dict[value] < self.value_dict[value2]:
@@ -2853,7 +2861,8 @@ cdef class OrdinalHyperparameter(Hyperparameter):
             Probability density values of the input vector
         """
         if not np.all(np.isin(vector, self.sequence)):
-            raise ValueError(f'Some element in the vector {vector} is not in the sequence {self.sequence}.')
+            raise ValueError(
+                f'Some element in the vector {vector} is not in the sequence {self.sequence}.')
         return np.ones_like(vector, dtype=np.float64) / self.num_elements
 
     def get_max_density(self) -> float:
