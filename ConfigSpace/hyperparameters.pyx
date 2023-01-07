@@ -1640,7 +1640,8 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
         # procedure in our used benchmark.
         float_indices = np.clip(rs.normal(value, std, n_requested), 0, 1)
 
-        cdef long long [:] possible_neighbors = self._transform_vector(float_indices).astype(int)
+        cdef long long [:] possible_neighbors
+        possible_neighbors = self._transform_vector(float_indices).astype(np.longlong)
 
         # We make sure to find duplicates, and only try to find new neighbors for those
         # that are not duplicates
@@ -1966,7 +1967,7 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
                 random_state=rs,
             )
 
-        possible_neighbors = self._transform_vector(float_indices).astype(int)
+        possible_neighbors = self._transform_vector(float_indices).astype(np.longlong)
 
         for possible_neighbor in possible_neighbors:
             # If we already happen to have this neighbor, pick the closest
