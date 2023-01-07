@@ -1645,11 +1645,11 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
         # We make sure to find duplicates, and only try to find new neighbors for those
         # that are not duplicates
         cdef set seen = {center}
-        cdef set duplicates = set()
+        duplicates: list = list()
         for i in range(n_requested):
             v = possible_neighbors[i]
-            if v in neighbors or v == center:
-                duplicates.add(v)
+            if v in seen:
+                duplicates.append(v)
             else:
                 seen.add(v)
                 neighbors.append(v)
