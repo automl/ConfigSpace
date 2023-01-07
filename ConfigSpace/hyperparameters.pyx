@@ -31,12 +31,18 @@ import math
 import warnings
 from collections import OrderedDict, Counter
 from itertools import count
-from more_itertools import roundrobin
+from more_itertools import roundrobin, duplicates_everseen
 from typing import List, Any, Dict, Union, Set, Tuple, Optional, Sequence
 
 from scipy.stats import truncnorm, beta as spbeta, norm
 import numpy as np
+
+# It's necessary to call "import_array" if you use any part of the
+# numpy PyArray_* API. From Cython 3, accessing attributes like
+# ".shape" on a typed Numpy array use this API. Therefore we recommend
+# always calling "import_array" whenever you "cimport numpy"
 cimport numpy as np
+np.import_array()
 
 from ConfigSpace.functional import center_range, arange_chunked
 
@@ -1549,7 +1555,12 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
             return False
 
     def get_num_neighbors(self, value = None) -> int:
-        return self.upper - self.lower
+        # If there is a value in the range, then that value is not a neighbor of itself
+        # so we need to remove one
+        if value is not None and self.lower <= value <= self.upper:
+            return self.upper - self.lower - 1
+        else:
+            return self.upper - self.lower
 
     def get_neighbors(
         self,
@@ -1595,37 +1606,63 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
             " if assumed to be in the unit-hypercube [0, 1]. If this was not"
             " the behaviour assumed, please raise a ticket on github."
         )
-        stepsize = self.q if self.q is not None else 1
+        # Convert python values to cython ones
+        cdef long long center = self._transform(value)
+        cdef long long lower = self.lower
+        cdef long long upper = self.upper
+        cdef unsigned int n_requested = number
+        cdef unsigned long long n_neighbors = upper - lower - 1
+        cdef long long stepsize = self.q if self.q is not None else 1
 
-        neighbors: set[int] = set()
-        center = self._transform(value)
+        neighbors = []
 
-        # A truncated normal between 0 and 1, centered on the value
-        # with a scale of std. This will be sampled from and converted
-        # to the corresponding int value
-        float_indices = truncnorm.rvs(
-            a=(0 - value) / std,
-            b=(1 - value) / std,
-            loc=value,
-            scale=std,
-            size=number,
-            random_state=rs
-        )
-        possible_neighbors = self._transform_vector(float_indices).astype(int)
+        cdef long long v  # A value that's possible to return
+        if n_neighbors < n_requested:
 
-        for possible_neighbor in possible_neighbors:
+            for v in range(lower, center):
+                neighbors.append(v)
+
+            for v in range(center + 1, upper):
+                neighbors.append(v)
+
+            if transform:
+                return neighbors
+            else:
+                return self._inverse_transform(np.asarray(neighbors)).tolist()
+
+
+        # A truncated normal between 0 and 1, centered on the value with a scale of std.
+        # This will be sampled from and converted to the corresponding int value
+        # OPTIM: Use of clipping insead of scipy.truncnorm
+        # Clipping is faster for generation but more likely to generate clumped values of 0/1
+        # at the boundaries, given a wide enough std and a value close to 0 or 1.
+        # However the overhead of the scipy call seems to outweight this clumping + deduping
+        # procedure in our used benchmark.
+        float_indices = np.clip(rs.normal(value, std, n_requested), 0, 1)
+
+        cdef long long [:] possible_neighbors = self._transform_vector(float_indices).astype(int)
+
+        # We make sure to find duplicates, and only try to find new neighbors for those
+        # that are not duplicates
+        cdef set seen = {center}
+        cdef set duplicates = set()
+        for i in range(n_requested):
+            v = possible_neighbors[i]
+            if v in neighbors or v == center:
+                duplicates.add(v)
+            else:
+                seen.add(v)
+                neighbors.append(v)
+
+        for dupe in duplicates:
             # If we already happen to have this neighbor, pick the closest number around
             # it that is not arelady included
-            if possible_neighbor in neighbors or possible_neighbor == center:
-                numbers_around = center_range(possible_neighbor, self.lower, self.upper, stepsize)
+            if dupe in seen:
+                numbers_around = center_range(dupe, lower, upper, stepsize)
+                valid_numbers_around = (n for n in numbers_around if n not in seen)
 
-                valid_numbers_around = (
-                    n for n in numbers_around
-                    if (n not in neighbors and n != center)
-                )
-                possible_neighbor = next(valid_numbers_around, None)
-
-                if possible_neighbor is None:
+                dupe = next(valid_numbers_around, None)
+                if dupe is None:
                     raise ValueError(
                         f"Found no more neighbors for value {center} (hypercube: {value})"
                         f" in the range [{self.lower}, {self.upper}] with neighbors already"
@@ -1633,12 +1670,13 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
                     )
 
             # We now have a valid sample, add it to the list of neighbors
-            neighbors.add(possible_neighbor)
+            seen.add(dupe)
+            neighbors.append(dupe)
 
         if transform:
-            return list(neighbors)
+            return neighbors
         else:
-            return [self._inverse_transform(neighbor) for neighbor in neighbors]
+            return self._inverse_transform(np.asarray(neighbors)).tolist()
 
 
     def _pdf(self, vector: np.ndarray) -> np.ndarray:

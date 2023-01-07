@@ -37,7 +37,7 @@ benchmark:
 	python scripts/benchmark_sampling.py
 
 cython-annotate:
-	C_INCLUDE_PATH=$(NUMPY_INCLUDE) cython -3 --annotate ConfigSpace/*.pyx
+	C_INCLUDE_PATH=$(NUMPY_INCLUDE) cython -3 --directive boundscheck=False,wraparound=False --annotate ConfigSpace/*.pyx
 
 cython-html: cython-annotate
 	python -c "import webbrowser; from pathlib import Path; [webbrowser.open(f'file://{path}') for path in Path('ConfigSpace').absolute().glob('*.html')]"
