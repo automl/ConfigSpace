@@ -1193,8 +1193,9 @@ class TestHyperparameters(unittest.TestCase):
         f1 = NormalIntegerHyperparameter("param", 0.5, 5.5)
         f1_ = NormalIntegerHyperparameter("param", 0.5, 5.5)
         self.assertEqual(f1, f1_)
+        default = np.int32(np.round(0.5))
         self.assertEqual(
-            "param, Type: NormalInteger, Mu: 0.5 Sigma: 5.5, Default: 0.5",
+            f"param, Type: NormalInteger, Mu: 0.5 Sigma: 5.5, Default: {default}",
             str(f1))
 
         # Test attributes are accessible
@@ -1203,8 +1204,8 @@ class TestHyperparameters(unittest.TestCase):
         self.assertEqual(f1.sigma, 5.5)
         self.assertEqual(f1.q, None)
         self.assertEqual(f1.log, False)
-        self.assertAlmostEqual(f1.default_value, 0.5)
-        self.assertAlmostEqual(f1.normalized_default_value, 0.5)
+        self.assertAlmostEqual(f1.default_value, default)
+        self.assertAlmostEqual(f1.normalized_default_value, 0.0)
 
         with pytest.warns(UserWarning, match="Setting quantization < 1 for Integer "
                                              "Hyperparameter 'param' has no effect"):
