@@ -1760,7 +1760,7 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
                                               default_value=default_value)
 
         self.default_value = self.check_default(default_value)
-        self.normalized_default_value = self._inverse_transform(self.default_value)
+        self.normalized_default_value = int(np.round(self._inverse_transform(default_value)))
 
         if (self.lower is None) or (self.upper is None):
             # Since a bound is missing, the pdf cannot be normalized. Working with the unnormalized variant)
