@@ -1689,7 +1689,7 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
         ----------
         name : str
             Name of the hyperparameter with which it can be accessed
-        mu : int
+        mu : int, float
             Mean of the distribution, from which hyperparameter is sampled
         sigma : int, float
             Standard deviation of the distribution, from which
