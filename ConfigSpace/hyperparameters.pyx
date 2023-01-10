@@ -1641,47 +1641,37 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
         #     size=number,
         #     random_state=rs
         # )
-        cdef np.ndarray float_indices = rs.normal(value, std, size=number * 10)
+        cdef np.ndarray float_indices = rs.normal(value, std, size=number * 5)
         cdef np.ndarray mask = (float_indices >= 0) & (float_indices <= 1)
-        float_indices = float_indices[mask][:number]
-        if len(float_indices) < number:
-            float_indices = np.concat((float_indices), [value] * (number - len(float_indices)))
+        float_indices = float_indices[mask]
 
         cdef np.ndarray possible_neighbors_as_array = self._transform_vector(float_indices).astype(np.longlong)
         cdef long long [:] possible_neighbors = possible_neighbors_as_array
 
-        # We make sure to find duplicates, and only try to find new neighbors for those
-        # that are not duplicates
+        cdef unsigned int n_neighbors_generated = 0
+        cdef unsigned int n_candidates = len(float_indices)
+        cdef unsigned int candidate_index = 0
         cdef set seen = {center}
-        cdef list duplicates = []
-        for i in range(n_requested):
-            v = possible_neighbors[i]
-            if v in seen:
-                duplicates.append(v)
-            else:
+        while n_neighbors_generated < n_requested and candidate_index < n_candidates:
+            v = possible_neighbors[candidate_index]
+            if v not in seen:
                 seen.add(v)
-                neighbors.append(v)
+                #neighbors.append(v)
+                n_neighbors_generated += 1
+            candidate_index += 1
 
-        cdef long long dupe
-        for dupe in duplicates:
-            # If we already happen to have this neighbor, pick the closest number around
-            # it that is not already included
-            if dupe in seen:
-                numbers_around = center_range(dupe, lower, upper, stepsize)
-                valid_numbers_around = (n for n in numbers_around if n not in seen)
+        if n_neighbors_generated < n_requested:
+            numbers_around = center_range(center, lower, upper, stepsize)
 
-                dupe = next(valid_numbers_around, None)
-                if dupe is None:
-                    raise ValueError(
-                        f"Found no more neighbors for value {center} (hypercube: {value})"
-                        f" in the range [{self.lower}, {self.upper}] with neighbors already"
-                        f" found {neighbors}"
-                    )
+            while n_neighbors_generated < n_requested:
+                v = next(numbers_around)
+                if v not in seen:
+                    #neighbors.append(v)
+                    # No need to add v to seen any more
+                    seen.add(v)
+                    n_neighbors_generated += 1
 
-            # We now have a valid sample, add it to the list of neighbors
-            seen.add(dupe)
-            neighbors.append(dupe)
-
+        neighbors = list(seen)
         if transform:
             return neighbors
         else:
