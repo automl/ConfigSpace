@@ -86,7 +86,7 @@ jobs:
         uses: docker/setup-qemu-action@v1
 
       - name: Build wheels with cibuildwheel to wheelhouse/*.whl
-        uses: pypa/cibuildwheel@v2.3.1
+        uses: pypa/cibuildwheel@v2.11.4
         env:
           CIBW_BUILD: ${{ matrix.py }}-${{ matrix.system }}_*
           CIBW_ARCHS: ${{ matrix.arch }}
