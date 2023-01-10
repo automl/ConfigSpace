@@ -1633,12 +1633,15 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
 
         # A truncated normal between 0 and 1, centered on the value with a scale of std.
         # This will be sampled from and converted to the corresponding int value
-        # OPTIM: Use of clipping insead of scipy.truncnorm
-        # Clipping is faster for generation but more likely to generate clumped values of 0/1
-        # at the boundaries, given a wide enough std and a value close to 0 or 1.
-        # However the overhead of the scipy call seems to outweight this clumping + deduping
-        # procedure in our used benchmark.
-        float_indices = np.clip(rs.normal(value, std, n_requested), 0, 1)
+        float_indices = truncnorm.rvs(
+            a=(0 - value) / std,
+            b=(1 - value) / std,
+            loc=value,
+            scale=std,
+            size=number,
+            random_state=rs
+        )
+
 
         cdef long long [:] possible_neighbors
         possible_neighbors = self._transform_vector(float_indices).astype(np.longlong)
@@ -1646,7 +1649,7 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
         # We make sure to find duplicates, and only try to find new neighbors for those
         # that are not duplicates
         cdef set seen = {center}
-        duplicates: list = list()
+        cdef list duplicates = []
         for i in range(n_requested):
             v = possible_neighbors[i]
             if v in seen:
