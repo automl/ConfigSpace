@@ -1630,21 +1630,25 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
             else:
                 return self._inverse_transform(np.asarray(neighbors)).tolist()
 
-
         # A truncated normal between 0 and 1, centered on the value with a scale of std.
         # This will be sampled from and converted to the corresponding int value
-        float_indices = truncnorm.rvs(
-            a=(0 - value) / std,
-            b=(1 - value) / std,
-            loc=value,
-            scale=std,
-            size=number,
-            random_state=rs
-        )
+        # However, this is too slow - we use the "poor man's truncnorm below"
+        # cdef np.ndarray float_indices = truncnorm.rvs(
+        #     a=(0 - value) / std,
+        #     b=(1 - value) / std,
+        #     loc=value,
+        #     scale=std,
+        #     size=number,
+        #     random_state=rs
+        # )
+        cdef np.ndarray float_indices = rs.normal(value, std, size=number * 10)
+        cdef np.ndarray mask = (float_indices >= 0) & (float_indices <= 1)
+        float_indices = float_indices[mask][:number]
+        if len(float_indices) < number:
+            float_indices = np.concat((float_indices), [value] * (number - len(float_indices)))
 
-
-        cdef long long [:] possible_neighbors
-        possible_neighbors = self._transform_vector(float_indices).astype(np.longlong)
+        cdef np.ndarray possible_neighbors_as_array = self._transform_vector(float_indices).astype(np.longlong)
+        cdef long long [:] possible_neighbors = possible_neighbors_as_array
 
         # We make sure to find duplicates, and only try to find new neighbors for those
         # that are not duplicates
@@ -1658,9 +1662,10 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
                 seen.add(v)
                 neighbors.append(v)
 
+        cdef long long dupe
         for dupe in duplicates:
             # If we already happen to have this neighbor, pick the closest number around
-            # it that is not arelady included
+            # it that is not already included
             if dupe in seen:
                 numbers_around = center_range(dupe, lower, upper, stepsize)
                 valid_numbers_around = (n for n in numbers_around if n not in seen)
