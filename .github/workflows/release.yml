@@ -43,10 +43,11 @@ on:
       - main
       # Release branches
       - "[0-9]+.[0-9]+.X"
-
-  create:
     tags:
       - v*
+
+  release:
+    types: [created]
 
 env:
   package-name: ConfigSpace
@@ -65,7 +66,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        py: [cp37, cp38, cp39, cp310]
+        py: [cp37, cp38, cp39, cp310, cp311]
         arch: ["x86_64", "i686", "aarch64"]
         system: ["manylinux", "musllinux"]
 
@@ -73,10 +74,6 @@ jobs:
 
           # Not supported by numpy
           - system: "musllinux"
-
-          # Scipy doesn't have a wheel for cp310 i686
-          - py: cp310
-            arch: "i686"
 
     steps:
       - name: Checkout ${{ env.package-name }}
@@ -105,7 +102,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        py: [cp37, cp38, cp39, cp310]
+        py: [cp37, cp38, cp39, cp310, cp311]
         arch: ["x86_64", "universal2", "arm64"]
         exclude:
 
@@ -139,14 +136,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        py: [cp37, cp38, cp39, cp310]
+        py: [cp37, cp38, cp39, cp310, cp311]
         arch: ["AMD64", "x86"]
-        exclude:
-
-          # We can't build win32 (x86) with cp310 because numpy doesn't have a win32 wheel
-          - py: cp310
-            arch: "x86"
-
 
     steps:
       - name: Checkout ${{ env.package-name }}
@@ -171,7 +162,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        py: ["3.7", "3.8", "3.9", "3.10"]
+        py: ["3.7", "3.8", "3.9", "3.10", "3.11"]
 
     steps:
       - name: Checkout ${{ env.package-name }}
@@ -223,7 +214,7 @@ jobs:
     needs: [build_linux_wheels, build_macos_wheels, build_windows_wheels, build_sdist]
 
     # Only on a tagged release, push
-    if: startsWith(github.ref, 'refs/tags/v')  && github.event_name != 'pull_request'
+    if: startsWith(github.ref, 'refs/tags/v') && github.event_name != 'pull_request'
 
     steps:
       - name: Checkout ${{ env.package-name }}
