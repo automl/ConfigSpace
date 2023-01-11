@@ -31,7 +31,7 @@ def run_test(configuration_space_path):
     validation_times = []
 
     # Sample a little bit
-    for i in range(10):
+    for i in range(20):
         cs.seed(i)
         start_time = time.time()
         configurations = cs.sample_configuration(size=n_configs)
@@ -40,7 +40,7 @@ def run_test(configuration_space_path):
 
         for j, c in enumerate(configurations):
 
-            if i == 0:
+            if i > 10:
                 neighborhood = ConfigSpace.util.get_one_exchange_neighbourhood(
                     c, seed=i * j, num_neighbors=4)
 
