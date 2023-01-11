@@ -25,6 +25,9 @@
 # ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+# cython: language_level=3
+
 from collections import deque
 import copy
 from typing import Union, Dict, Generator, List, Tuple, Optional
@@ -38,9 +41,6 @@ from ConfigSpace.hyperparameters import CategoricalHyperparameter, \
 import ConfigSpace.c_util
 cimport cython
 
-# OPTIM: To prevent large memory allocations, we place an upperbound on the maximum
-# amount of neighbors to be sampled
-MAX_NEIGHBORHOOD = 10_000
 
 def impute_inactive_values(configuration: Configuration,
                            strategy: Union[str, float] = 'default') -> Configuration:
@@ -185,15 +185,11 @@ def get_one_exchange_neighbourhood(
                 else:
                     if iteration > 0:
                         break
-                    neighbors = finite_neighbors_stack.get(hp_name, [])
-                    if len(neighbors) == 0:
+                    if hp_name not in finite_neighbors_stack:
                         if isinstance(hp, UniformIntegerHyperparameter):
-                            _n_neighbors = min(n_neighbors_per_hp[hp_name], MAX_NEIGHBORHOOD)
                             neighbors = hp.get_neighbors(
-                                value,
-                                random,
-                                number=_n_neighbors,
-                                std=stdev
+                                value, random,
+                                number=n_neighbors_per_hp[hp_name], std=stdev,
                             )
                         else:
                             neighbors = hp.get_neighbors(value, random)
