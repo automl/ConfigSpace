@@ -1,3 +1,8 @@
+# Version 0.6.1
+
+# MAINT #286: Add support for Python 3.11.
+# FIX #282: Fixes a memory leak in the neighborhood generation of integer hyperparameters.
+
 # Version 0.6.0
 
 * ADD #255: An easy interface of `Float`, `Integer`, `Categorical` for creating search spaces.
