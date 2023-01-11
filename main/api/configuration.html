@@ -33,6 +33,7 @@
     <script src="../_static/underscore.js"></script>
     <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Hyperparameters" href="hyperparameters.html" />
@@ -91,12 +92,24 @@
       </div>
       
       <div class="navbar-end-item">
-        <form class="bd-search align-items-center" action="../search.html" method="get"
-style="width: 100%;">
+        <div class="dropdown mt-1">
+    <button type="button" class="btn btn-secondary btn-md navbar-btn dropdown-toggle" id="dLabelMore"
+        data-toggle="dropdown">
+        v0.6.0
+        <span class="caret"></span>
+    </button>
+    <div class="dropdown-menu list-group-flush py-0" aria-labelledby="dLabelMore">
+        <a class="list-group-item list-group-item-action" href="#">v0.6.0</a>
+    </div>
+</div>
+      </div>
+      
+      <div class="navbar-end-item">
+        <form class="bd-search align-items-center" action="../search.html" method="get" style="width: 100%;">
   <i class="icon fas fa-search"></i>
-  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+  <input type="search" class="form-control btn btn-md" name="q" id="search-input"
+    placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off">
 </form>
-
       </div>
       
     </div>
@@ -185,9 +198,115 @@ style="width: 100%;">
               
               <div class="toc-item">
                 
+<div class="tocsection onthispage pt-5 pb-3">
+    <i class="fas fa-list"></i> On this page
+</div>
 
 <nav id="bd-toc-nav">
-    
+    <ul class="visible nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#ConfigSpace.configuration_space.Configuration">
+   <code class="docutils literal notranslate">
+    <span class="pre">
+     Configuration
+    </span>
+   </code>
+  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#ConfigSpace.configuration_space.Configuration.__eq__">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       Configuration.__eq__()
+      </span>
+     </code>
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#ConfigSpace.configuration_space.Configuration.__hash__">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       Configuration.__hash__()
+      </span>
+     </code>
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#ConfigSpace.configuration_space.Configuration.__ne__">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       Configuration.__ne__()
+      </span>
+     </code>
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#ConfigSpace.configuration_space.Configuration.get">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       Configuration.get()
+      </span>
+     </code>
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#ConfigSpace.configuration_space.Configuration.get_array">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       Configuration.get_array()
+      </span>
+     </code>
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#ConfigSpace.configuration_space.Configuration.get_dictionary">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       Configuration.get_dictionary()
+      </span>
+     </code>
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#ConfigSpace.configuration_space.Configuration.is_valid_configuration">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       Configuration.is_valid_configuration()
+      </span>
+     </code>
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#ConfigSpace.configuration_space.Configuration.items">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       Configuration.items()
+      </span>
+     </code>
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#ConfigSpace.configuration_space.Configuration.keys">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       Configuration.keys()
+      </span>
+     </code>
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#ConfigSpace.configuration_space.Configuration.values">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       Configuration.values()
+      </span>
+     </code>
+    </a>
+   </li>
+  </ul>
+ </li>
+</ul>
+
 </nav>
               </div>
               
@@ -408,14 +527,14 @@ Raise an error if configuration is not valid.</p>
     
     <div class="footer-item">
       <p class="copyright">
-    &copy; Copyright Copyright 2022, Matthias Feurer, Katharina Eggensperger, Syed Mohsin Ali, Christina Hernandez Wunsch, Julien-Charles Levesque, Jost Tobias Springenberg, Philipp Mueller, Marius Lindauer, Jorn Tuyls, Eddie Bergman.<br>
+    &copy; Copyright Copyright 2023, Matthias Feurer, Katharina Eggensperger, Syed Mohsin Ali, Christina Hernandez Wunsch, Julien-Charles Levesque, Jost Tobias Springenberg, Philipp Mueller, Marius Lindauer, Jorn Tuyls, Eddie Bergman.<br>
 </p>
     </div>
     
     <div class="footer-item">
       <p class="sphinx-version">
 Created using <a href="http://sphinx-doc.org/">Sphinx</a>
-5.1.1. Template is modified version of <a
+5.3.0. Template is modified version of <a
 href="https://pydata-sphinx-theme.readthedocs.io">PyData Sphinx Theme</a>. <br>
 </p>
     </div>

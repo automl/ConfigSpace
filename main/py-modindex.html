@@ -32,6 +32,7 @@
     <script src="_static/underscore.js"></script>
     <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="_static/doctools.js"></script>
+    <script src="_static/sphinx_highlight.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
 
@@ -91,12 +92,24 @@
       </div>
       
       <div class="navbar-end-item">
-        <form class="bd-search align-items-center" action="search.html" method="get"
-style="width: 100%;">
+        <div class="dropdown mt-1">
+    <button type="button" class="btn btn-secondary btn-md navbar-btn dropdown-toggle" id="dLabelMore"
+        data-toggle="dropdown">
+        v0.6.0
+        <span class="caret"></span>
+    </button>
+    <div class="dropdown-menu list-group-flush py-0" aria-labelledby="dLabelMore">
+        <a class="list-group-item list-group-item-action" href="#">v0.6.0</a>
+    </div>
+</div>
+      </div>
+      
+      <div class="navbar-end-item">
+        <form class="bd-search align-items-center" action="search.html" method="get" style="width: 100%;">
   <i class="icon fas fa-search"></i>
-  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+  <input type="search" class="form-control btn btn-md" name="q" id="search-input"
+    placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off">
 </form>
-
       </div>
       
     </div>
@@ -272,14 +285,14 @@ style="width: 100%;">
     
     <div class="footer-item">
       <p class="copyright">
-    &copy; Copyright Copyright 2022, Matthias Feurer, Katharina Eggensperger, Syed Mohsin Ali, Christina Hernandez Wunsch, Julien-Charles Levesque, Jost Tobias Springenberg, Philipp Mueller, Marius Lindauer, Jorn Tuyls, Eddie Bergman.<br>
+    &copy; Copyright Copyright 2023, Matthias Feurer, Katharina Eggensperger, Syed Mohsin Ali, Christina Hernandez Wunsch, Julien-Charles Levesque, Jost Tobias Springenberg, Philipp Mueller, Marius Lindauer, Jorn Tuyls, Eddie Bergman.<br>
 </p>
     </div>
     
     <div class="footer-item">
       <p class="sphinx-version">
 Created using <a href="http://sphinx-doc.org/">Sphinx</a>
-5.1.1. Template is modified version of <a
+5.3.0. Template is modified version of <a
 href="https://pydata-sphinx-theme.readthedocs.io">PyData Sphinx Theme</a>. <br>
 </p>
     </div>

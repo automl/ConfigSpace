@@ -33,6 +33,7 @@
     <script src="../_static/underscore.js"></script>
     <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
     <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -92,12 +93,24 @@
       </div>
       
       <div class="navbar-end-item">
-        <form class="bd-search align-items-center" action="../search.html" method="get"
-style="width: 100%;">
+        <div class="dropdown mt-1">
+    <button type="button" class="btn btn-secondary btn-md navbar-btn dropdown-toggle" id="dLabelMore"
+        data-toggle="dropdown">
+        v0.6.0
+        <span class="caret"></span>
+    </button>
+    <div class="dropdown-menu list-group-flush py-0" aria-labelledby="dLabelMore">
+        <a class="list-group-item list-group-item-action" href="#">v0.6.0</a>
+    </div>
+</div>
+      </div>
+      
+      <div class="navbar-end-item">
+        <form class="bd-search align-items-center" action="../search.html" method="get" style="width: 100%;">
   <i class="icon fas fa-search"></i>
-  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+  <input type="search" class="form-control btn btn-md" name="q" id="search-input"
+    placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off">
 </form>
-
       </div>
       
     </div>
@@ -201,16 +214,49 @@ style="width: 100%;">
     <a class="reference internal nav-link" href="#module-ConfigSpace.api.types.float">
      Float
     </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#ConfigSpace.api.types.float.Float">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         Float()
+        </span>
+       </code>
+      </a>
+     </li>
+    </ul>
    </li>
    <li class="toc-h3 nav-item toc-entry">
     <a class="reference internal nav-link" href="#module-ConfigSpace.api.types.integer">
      Integer
     </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#ConfigSpace.api.types.integer.Integer">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         Integer()
+        </span>
+       </code>
+      </a>
+     </li>
+    </ul>
    </li>
    <li class="toc-h3 nav-item toc-entry">
     <a class="reference internal nav-link" href="#module-ConfigSpace.api.types.categorical">
      Categorical
     </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#ConfigSpace.api.types.categorical.Categorical">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         Categorical()
+        </span>
+       </code>
+      </a>
+     </li>
+    </ul>
    </li>
   </ul>
  </li>
@@ -218,6 +264,35 @@ style="width: 100%;">
   <a class="reference internal nav-link" href="#distributions">
    Distributions
   </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#ConfigSpace.api.distributions.Beta">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       Beta
+      </span>
+     </code>
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#ConfigSpace.api.distributions.Normal">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       Normal
+      </span>
+     </code>
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#ConfigSpace.api.distributions.Uniform">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       Uniform
+      </span>
+     </code>
+    </a>
+   </li>
+  </ul>
  </li>
  <li class="toc-h2 nav-item toc-entry">
   <a class="reference internal nav-link" href="#advanced-types">
@@ -228,26 +303,540 @@ style="width: 100%;">
     <a class="reference internal nav-link" href="#integer-hyperparameters">
      Integer hyperparameters
     </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#ConfigSpace.hyperparameters.UniformIntegerHyperparameter">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         UniformIntegerHyperparameter
+        </span>
+       </code>
+      </a>
+      <ul class="nav section-nav flex-column">
+       <li class="toc-h5 nav-item toc-entry">
+        <a class="reference internal nav-link" href="#ConfigSpace.hyperparameters.UniformIntegerHyperparameter.get_max_density">
+         <code class="docutils literal notranslate">
+          <span class="pre">
+           UniformIntegerHyperparameter.get_max_density()
+          </span>
+         </code>
+        </a>
+       </li>
+       <li class="toc-h5 nav-item toc-entry">
+        <a class="reference internal nav-link" href="#ConfigSpace.hyperparameters.UniformIntegerHyperparameter.get_neighbors">
+         <code class="docutils literal notranslate">
+          <span class="pre">
+           UniformIntegerHyperparameter.get_neighbors()
+          </span>
+         </code>
+        </a>
+       </li>
+       <li class="toc-h5 nav-item toc-entry">
+        <a class="reference internal nav-link" href="#ConfigSpace.hyperparameters.UniformIntegerHyperparameter.is_legal_vector">
+         <code class="docutils literal notranslate">
+          <span class="pre">
+           UniformIntegerHyperparameter.is_legal_vector()
+          </span>
+         </code>
+        </a>
+       </li>
+       <li class="toc-h5 nav-item toc-entry">
+        <a class="reference internal nav-link" href="#ConfigSpace.hyperparameters.UniformIntegerHyperparameter.pdf">
+         <code class="docutils literal notranslate">
+          <span class="pre">
+           UniformIntegerHyperparameter.pdf()
+          </span>
+         </code>
+        </a>
+       </li>
+       <li class="toc-h5 nav-item toc-entry">
+        <a class="reference internal nav-link" href="#ConfigSpace.hyperparameters.UniformIntegerHyperparameter.rvs">
+         <code class="docutils literal notranslate">
+          <span class="pre">
+           UniformIntegerHyperparameter.rvs()
+          </span>
+         </code>
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#ConfigSpace.hyperparameters.NormalIntegerHyperparameter">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         NormalIntegerHyperparameter
+        </span>
+       </code>
+      </a>
+      <ul class="nav section-nav flex-column">
+       <li class="toc-h5 nav-item toc-entry">
+        <a class="reference internal nav-link" href="#ConfigSpace.hyperparameters.NormalIntegerHyperparameter.get_max_density">
+         <code class="docutils literal notranslate">
+          <span class="pre">
+           NormalIntegerHyperparameter.get_max_density()
+          </span>
+         </code>
+        </a>
+       </li>
+       <li class="toc-h5 nav-item toc-entry">
+        <a class="reference internal nav-link" href="#ConfigSpace.hyperparameters.NormalIntegerHyperparameter.is_legal_vector">
+         <code class="docutils literal notranslate">
+          <span class="pre">
+           NormalIntegerHyperparameter.is_legal_vector()
+          </span>
+         </code>
+        </a>
+       </li>
+       <li class="toc-h5 nav-item toc-entry">
+        <a class="reference internal nav-link" href="#ConfigSpace.hyperparameters.NormalIntegerHyperparameter.pdf">
+         <code class="docutils literal notranslate">
+          <span class="pre">
+           NormalIntegerHyperparameter.pdf()
+          </span>
+         </code>
+        </a>
+       </li>
+       <li class="toc-h5 nav-item toc-entry">
+        <a class="reference internal nav-link" href="#ConfigSpace.hyperparameters.NormalIntegerHyperparameter.rvs">
+         <code class="docutils literal notranslate">
+          <span class="pre">
+           NormalIntegerHyperparameter.rvs()
+          </span>
+         </code>
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#ConfigSpace.hyperparameters.BetaIntegerHyperparameter">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         BetaIntegerHyperparameter
+        </span>
+       </code>
+      </a>
+      <ul class="nav section-nav flex-column">
+       <li class="toc-h5 nav-item toc-entry">
+        <a class="reference internal nav-link" href="#ConfigSpace.hyperparameters.BetaIntegerHyperparameter.get_max_density">
+         <code class="docutils literal notranslate">
+          <span class="pre">
+           BetaIntegerHyperparameter.get_max_density()
+          </span>
+         </code>
+        </a>
+       </li>
+       <li class="toc-h5 nav-item toc-entry">
+        <a class="reference internal nav-link" href="#ConfigSpace.hyperparameters.BetaIntegerHyperparameter.get_neighbors">
+         <code class="docutils literal notranslate">
+          <span class="pre">
+           BetaIntegerHyperparameter.get_neighbors()
+          </span>
+         </code>
+        </a>
+       </li>
+       <li class="toc-h5 nav-item toc-entry">
+        <a class="reference internal nav-link" href="#ConfigSpace.hyperparameters.BetaIntegerHyperparameter.is_legal_vector">
+         <code class="docutils literal notranslate">
+          <span class="pre">
+           BetaIntegerHyperparameter.is_legal_vector()
+          </span>
+         </code>
+        </a>
+       </li>
+       <li class="toc-h5 nav-item toc-entry">
+        <a class="reference internal nav-link" href="#ConfigSpace.hyperparameters.BetaIntegerHyperparameter.pdf">
+         <code class="docutils literal notranslate">
+          <span class="pre">
+           BetaIntegerHyperparameter.pdf()
+          </span>
+         </code>
+        </a>
+       </li>
+       <li class="toc-h5 nav-item toc-entry">
+        <a class="reference internal nav-link" href="#ConfigSpace.hyperparameters.BetaIntegerHyperparameter.rvs">
+         <code class="docutils literal notranslate">
+          <span class="pre">
+           BetaIntegerHyperparameter.rvs()
+          </span>
+         </code>
+        </a>
+       </li>
+      </ul>
+     </li>
+    </ul>
    </li>
    <li class="toc-h3 nav-item toc-entry">
     <a class="reference internal nav-link" href="#float-hyperparameters">
      Float hyperparameters
     </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#ConfigSpace.hyperparameters.UniformFloatHyperparameter">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         UniformFloatHyperparameter
+        </span>
+       </code>
+      </a>
+      <ul class="nav section-nav flex-column">
+       <li class="toc-h5 nav-item toc-entry">
+        <a class="reference internal nav-link" href="#ConfigSpace.hyperparameters.UniformFloatHyperparameter.get_max_density">
+         <code class="docutils literal notranslate">
+          <span class="pre">
+           UniformFloatHyperparameter.get_max_density()
+          </span>
+         </code>
+        </a>
+       </li>
+       <li class="toc-h5 nav-item toc-entry">
+        <a class="reference internal nav-link" href="#ConfigSpace.hyperparameters.UniformFloatHyperparameter.is_legal_vector">
+         <code class="docutils literal notranslate">
+          <span class="pre">
+           UniformFloatHyperparameter.is_legal_vector()
+          </span>
+         </code>
+        </a>
+       </li>
+       <li class="toc-h5 nav-item toc-entry">
+        <a class="reference internal nav-link" href="#ConfigSpace.hyperparameters.UniformFloatHyperparameter.pdf">
+         <code class="docutils literal notranslate">
+          <span class="pre">
+           UniformFloatHyperparameter.pdf()
+          </span>
+         </code>
+        </a>
+       </li>
+       <li class="toc-h5 nav-item toc-entry">
+        <a class="reference internal nav-link" href="#ConfigSpace.hyperparameters.UniformFloatHyperparameter.rvs">
+         <code class="docutils literal notranslate">
+          <span class="pre">
+           UniformFloatHyperparameter.rvs()
+          </span>
+         </code>
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#ConfigSpace.hyperparameters.NormalFloatHyperparameter">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         NormalFloatHyperparameter
+        </span>
+       </code>
+      </a>
+      <ul class="nav section-nav flex-column">
+       <li class="toc-h5 nav-item toc-entry">
+        <a class="reference internal nav-link" href="#ConfigSpace.hyperparameters.NormalFloatHyperparameter.get_max_density">
+         <code class="docutils literal notranslate">
+          <span class="pre">
+           NormalFloatHyperparameter.get_max_density()
+          </span>
+         </code>
+        </a>
+       </li>
+       <li class="toc-h5 nav-item toc-entry">
+        <a class="reference internal nav-link" href="#ConfigSpace.hyperparameters.NormalFloatHyperparameter.is_legal_vector">
+         <code class="docutils literal notranslate">
+          <span class="pre">
+           NormalFloatHyperparameter.is_legal_vector()
+          </span>
+         </code>
+        </a>
+       </li>
+       <li class="toc-h5 nav-item toc-entry">
+        <a class="reference internal nav-link" href="#ConfigSpace.hyperparameters.NormalFloatHyperparameter.pdf">
+         <code class="docutils literal notranslate">
+          <span class="pre">
+           NormalFloatHyperparameter.pdf()
+          </span>
+         </code>
+        </a>
+       </li>
+       <li class="toc-h5 nav-item toc-entry">
+        <a class="reference internal nav-link" href="#ConfigSpace.hyperparameters.NormalFloatHyperparameter.rvs">
+         <code class="docutils literal notranslate">
+          <span class="pre">
+           NormalFloatHyperparameter.rvs()
+          </span>
+         </code>
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#ConfigSpace.hyperparameters.BetaFloatHyperparameter">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         BetaFloatHyperparameter
+        </span>
+       </code>
+      </a>
+      <ul class="nav section-nav flex-column">
+       <li class="toc-h5 nav-item toc-entry">
+        <a class="reference internal nav-link" href="#ConfigSpace.hyperparameters.BetaFloatHyperparameter.get_max_density">
+         <code class="docutils literal notranslate">
+          <span class="pre">
+           BetaFloatHyperparameter.get_max_density()
+          </span>
+         </code>
+        </a>
+       </li>
+       <li class="toc-h5 nav-item toc-entry">
+        <a class="reference internal nav-link" href="#ConfigSpace.hyperparameters.BetaFloatHyperparameter.is_legal_vector">
+         <code class="docutils literal notranslate">
+          <span class="pre">
+           BetaFloatHyperparameter.is_legal_vector()
+          </span>
+         </code>
+        </a>
+       </li>
+       <li class="toc-h5 nav-item toc-entry">
+        <a class="reference internal nav-link" href="#ConfigSpace.hyperparameters.BetaFloatHyperparameter.pdf">
+         <code class="docutils literal notranslate">
+          <span class="pre">
+           BetaFloatHyperparameter.pdf()
+          </span>
+         </code>
+        </a>
+       </li>
+       <li class="toc-h5 nav-item toc-entry">
+        <a class="reference internal nav-link" href="#ConfigSpace.hyperparameters.BetaFloatHyperparameter.rvs">
+         <code class="docutils literal notranslate">
+          <span class="pre">
+           BetaFloatHyperparameter.rvs()
+          </span>
+         </code>
+        </a>
+       </li>
+      </ul>
+     </li>
+    </ul>
    </li>
    <li class="toc-h3 nav-item toc-entry">
     <a class="reference internal nav-link" href="#categorical-hyperparameter">
      Categorical Hyperparameter
     </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#ConfigSpace.hyperparameters.CategoricalHyperparameter">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         CategoricalHyperparameter
+        </span>
+       </code>
+      </a>
+      <ul class="nav section-nav flex-column">
+       <li class="toc-h5 nav-item toc-entry">
+        <a class="reference internal nav-link" href="#ConfigSpace.hyperparameters.CategoricalHyperparameter.is_legal_vector">
+         <code class="docutils literal notranslate">
+          <span class="pre">
+           CategoricalHyperparameter.is_legal_vector()
+          </span>
+         </code>
+        </a>
+       </li>
+       <li class="toc-h5 nav-item toc-entry">
+        <a class="reference internal nav-link" href="#ConfigSpace.hyperparameters.CategoricalHyperparameter.pdf">
+         <code class="docutils literal notranslate">
+          <span class="pre">
+           CategoricalHyperparameter.pdf()
+          </span>
+         </code>
+        </a>
+       </li>
+       <li class="toc-h5 nav-item toc-entry">
+        <a class="reference internal nav-link" href="#ConfigSpace.hyperparameters.CategoricalHyperparameter.rvs">
+         <code class="docutils literal notranslate">
+          <span class="pre">
+           CategoricalHyperparameter.rvs()
+          </span>
+         </code>
+        </a>
+       </li>
+       <li class="toc-h5 nav-item toc-entry">
+        <a class="reference internal nav-link" href="#ConfigSpace.hyperparameters.CategoricalHyperparameter.to_uniform">
+         <code class="docutils literal notranslate">
+          <span class="pre">
+           CategoricalHyperparameter.to_uniform()
+          </span>
+         </code>
+        </a>
+       </li>
+      </ul>
+     </li>
+    </ul>
    </li>
    <li class="toc-h3 nav-item toc-entry">
     <a class="reference internal nav-link" href="#ordinal-hyperparameter">
      Ordinal Hyperparameter
     </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#ConfigSpace.hyperparameters.OrdinalHyperparameter">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         OrdinalHyperparameter
+        </span>
+       </code>
+      </a>
+      <ul class="nav section-nav flex-column">
+       <li class="toc-h5 nav-item toc-entry">
+        <a class="reference internal nav-link" href="#ConfigSpace.hyperparameters.OrdinalHyperparameter.check_default">
+         <code class="docutils literal notranslate">
+          <span class="pre">
+           OrdinalHyperparameter.check_default()
+          </span>
+         </code>
+        </a>
+       </li>
+       <li class="toc-h5 nav-item toc-entry">
+        <a class="reference internal nav-link" href="#ConfigSpace.hyperparameters.OrdinalHyperparameter.check_order">
+         <code class="docutils literal notranslate">
+          <span class="pre">
+           OrdinalHyperparameter.check_order()
+          </span>
+         </code>
+        </a>
+       </li>
+       <li class="toc-h5 nav-item toc-entry">
+        <a class="reference internal nav-link" href="#ConfigSpace.hyperparameters.OrdinalHyperparameter.get_neighbors">
+         <code class="docutils literal notranslate">
+          <span class="pre">
+           OrdinalHyperparameter.get_neighbors()
+          </span>
+         </code>
+        </a>
+       </li>
+       <li class="toc-h5 nav-item toc-entry">
+        <a class="reference internal nav-link" href="#ConfigSpace.hyperparameters.OrdinalHyperparameter.get_num_neighbors">
+         <code class="docutils literal notranslate">
+          <span class="pre">
+           OrdinalHyperparameter.get_num_neighbors()
+          </span>
+         </code>
+        </a>
+       </li>
+       <li class="toc-h5 nav-item toc-entry">
+        <a class="reference internal nav-link" href="#ConfigSpace.hyperparameters.OrdinalHyperparameter.get_order">
+         <code class="docutils literal notranslate">
+          <span class="pre">
+           OrdinalHyperparameter.get_order()
+          </span>
+         </code>
+        </a>
+       </li>
+       <li class="toc-h5 nav-item toc-entry">
+        <a class="reference internal nav-link" href="#ConfigSpace.hyperparameters.OrdinalHyperparameter.get_seq_order">
+         <code class="docutils literal notranslate">
+          <span class="pre">
+           OrdinalHyperparameter.get_seq_order()
+          </span>
+         </code>
+        </a>
+       </li>
+       <li class="toc-h5 nav-item toc-entry">
+        <a class="reference internal nav-link" href="#ConfigSpace.hyperparameters.OrdinalHyperparameter.get_value">
+         <code class="docutils literal notranslate">
+          <span class="pre">
+           OrdinalHyperparameter.get_value()
+          </span>
+         </code>
+        </a>
+       </li>
+       <li class="toc-h5 nav-item toc-entry">
+        <a class="reference internal nav-link" href="#ConfigSpace.hyperparameters.OrdinalHyperparameter.has_neighbors">
+         <code class="docutils literal notranslate">
+          <span class="pre">
+           OrdinalHyperparameter.has_neighbors()
+          </span>
+         </code>
+        </a>
+       </li>
+       <li class="toc-h5 nav-item toc-entry">
+        <a class="reference internal nav-link" href="#ConfigSpace.hyperparameters.OrdinalHyperparameter.is_legal">
+         <code class="docutils literal notranslate">
+          <span class="pre">
+           OrdinalHyperparameter.is_legal()
+          </span>
+         </code>
+        </a>
+       </li>
+       <li class="toc-h5 nav-item toc-entry">
+        <a class="reference internal nav-link" href="#ConfigSpace.hyperparameters.OrdinalHyperparameter.is_legal_vector">
+         <code class="docutils literal notranslate">
+          <span class="pre">
+           OrdinalHyperparameter.is_legal_vector()
+          </span>
+         </code>
+        </a>
+       </li>
+       <li class="toc-h5 nav-item toc-entry">
+        <a class="reference internal nav-link" href="#ConfigSpace.hyperparameters.OrdinalHyperparameter.pdf">
+         <code class="docutils literal notranslate">
+          <span class="pre">
+           OrdinalHyperparameter.pdf()
+          </span>
+         </code>
+        </a>
+       </li>
+       <li class="toc-h5 nav-item toc-entry">
+        <a class="reference internal nav-link" href="#ConfigSpace.hyperparameters.OrdinalHyperparameter.rvs">
+         <code class="docutils literal notranslate">
+          <span class="pre">
+           OrdinalHyperparameter.rvs()
+          </span>
+         </code>
+        </a>
+       </li>
+      </ul>
+     </li>
+    </ul>
    </li>
    <li class="toc-h3 nav-item toc-entry">
     <a class="reference internal nav-link" href="#constant">
      Constant
     </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#ConfigSpace.hyperparameters.Constant">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         Constant
+        </span>
+       </code>
+      </a>
+      <ul class="nav section-nav flex-column">
+       <li class="toc-h5 nav-item toc-entry">
+        <a class="reference internal nav-link" href="#ConfigSpace.hyperparameters.Constant.is_legal_vector">
+         <code class="docutils literal notranslate">
+          <span class="pre">
+           Constant.is_legal_vector()
+          </span>
+         </code>
+        </a>
+       </li>
+       <li class="toc-h5 nav-item toc-entry">
+        <a class="reference internal nav-link" href="#ConfigSpace.hyperparameters.Constant.pdf">
+         <code class="docutils literal notranslate">
+          <span class="pre">
+           Constant.pdf()
+          </span>
+         </code>
+        </a>
+       </li>
+       <li class="toc-h5 nav-item toc-entry">
+        <a class="reference internal nav-link" href="#ConfigSpace.hyperparameters.Constant.rvs">
+         <code class="docutils literal notranslate">
+          <span class="pre">
+           Constant.rvs()
+          </span>
+         </code>
+        </a>
+       </li>
+      </ul>
+     </li>
+    </ul>
    </li>
   </ul>
  </li>
@@ -589,6 +1178,36 @@ the mode, but the value of the pdf on the mode).</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="ConfigSpace.hyperparameters.UniformIntegerHyperparameter.get_neighbors">
+<span class="sig-name descname"><span class="pre">get_neighbors</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.hyperparameters.UniformIntegerHyperparameter.get_neighbors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the neighbors of a value</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><strong>This assumes the value is in the unit-hypercube [0, 1]</strong></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>value</strong> (<em>float</em>) – The value to get neighbors around. This assume the <code class="docutils literal notranslate"><span class="pre">value</span></code> has been
+converted to the [0, 1] range which can be done with <code class="docutils literal notranslate"><span class="pre">_inverse_transform</span></code>.</p></li>
+<li><p><strong>rs</strong> (<em>RandomState</em>) – The random state to use</p></li>
+<li><p><strong>number</strong> (<em>int = 4</em>) – How many neighbors to get</p></li>
+<li><p><strong>transform</strong> (<em>bool = False</em>) – Whether to transform this value from the unit cube, back to the
+hyperparameter’s specified range of values.</p></li>
+<li><p><strong>std</strong> (<em>float = 0.2</em>) – The std. dev. to use in the [0, 1] hypercube space while sampling
+for neighbors.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Some <code class="docutils literal notranslate"><span class="pre">number</span></code> of neighbors centered around <code class="docutils literal notranslate"><span class="pre">value</span></code>.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List[int]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="ConfigSpace.hyperparameters.UniformIntegerHyperparameter.is_legal_vector">
 <span class="sig-name descname"><span class="pre">is_legal_vector</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.hyperparameters.UniformIntegerHyperparameter.is_legal_vector" title="Permalink to this definition">¶</a></dt>
 <dd><p>Check whether the given value is a legal value for the vector
@@ -764,6 +1383,36 @@ Not used by the configuration space.</p></li>
 <span class="sig-name descname"><span class="pre">get_max_density</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.hyperparameters.BetaIntegerHyperparameter.get_max_density" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the maximal density on the pdf for the parameter (so not
 the mode, but the value of the pdf on the mode).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ConfigSpace.hyperparameters.BetaIntegerHyperparameter.get_neighbors">
+<span class="sig-name descname"><span class="pre">get_neighbors</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.hyperparameters.BetaIntegerHyperparameter.get_neighbors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the neighbors of a value</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><strong>This assumes the value is in the unit-hypercube [0, 1]</strong></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>value</strong> (<em>float</em>) – The value to get neighbors around. This assume the <code class="docutils literal notranslate"><span class="pre">value</span></code> has been
+converted to the [0, 1] range which can be done with <code class="docutils literal notranslate"><span class="pre">_inverse_transform</span></code>.</p></li>
+<li><p><strong>rs</strong> (<em>RandomState</em>) – The random state to use</p></li>
+<li><p><strong>number</strong> (<em>int = 4</em>) – How many neighbors to get</p></li>
+<li><p><strong>transform</strong> (<em>bool = False</em>) – Whether to transform this value from the unit cube, back to the
+hyperparameter’s specified range of values.</p></li>
+<li><p><strong>std</strong> (<em>float = 0.2</em>) – The std. dev. to use in the [0, 1] hypercube space while sampling
+for neighbors.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Some <code class="docutils literal notranslate"><span class="pre">number</span></code> of neighbors centered around <code class="docutils literal notranslate"><span class="pre">value</span></code>.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List[int]</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -1434,14 +2083,14 @@ hyperparameter searchers, eg. GridSearchCV.</p>
     
     <div class="footer-item">
       <p class="copyright">
-    &copy; Copyright Copyright 2022, Matthias Feurer, Katharina Eggensperger, Syed Mohsin Ali, Christina Hernandez Wunsch, Julien-Charles Levesque, Jost Tobias Springenberg, Philipp Mueller, Marius Lindauer, Jorn Tuyls, Eddie Bergman.<br>
+    &copy; Copyright Copyright 2023, Matthias Feurer, Katharina Eggensperger, Syed Mohsin Ali, Christina Hernandez Wunsch, Julien-Charles Levesque, Jost Tobias Springenberg, Philipp Mueller, Marius Lindauer, Jorn Tuyls, Eddie Bergman.<br>
 </p>
     </div>
     
     <div class="footer-item">
       <p class="sphinx-version">
 Created using <a href="http://sphinx-doc.org/">Sphinx</a>
-5.1.1. Template is modified version of <a
+5.3.0. Template is modified version of <a
 href="https://pydata-sphinx-theme.readthedocs.io">PyData Sphinx Theme</a>. <br>
 </p>
     </div>

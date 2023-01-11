@@ -33,6 +33,7 @@
     <script src="../_static/underscore.js"></script>
     <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Configuration" href="configuration.html" />
@@ -91,12 +92,24 @@
       </div>
       
       <div class="navbar-end-item">
-        <form class="bd-search align-items-center" action="../search.html" method="get"
-style="width: 100%;">
+        <div class="dropdown mt-1">
+    <button type="button" class="btn btn-secondary btn-md navbar-btn dropdown-toggle" id="dLabelMore"
+        data-toggle="dropdown">
+        v0.6.0
+        <span class="caret"></span>
+    </button>
+    <div class="dropdown-menu list-group-flush py-0" aria-labelledby="dLabelMore">
+        <a class="list-group-item list-group-item-action" href="#">v0.6.0</a>
+    </div>
+</div>
+      </div>
+      
+      <div class="navbar-end-item">
+        <form class="bd-search align-items-center" action="../search.html" method="get" style="width: 100%;">
   <i class="icon fas fa-search"></i>
-  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+  <input type="search" class="form-control btn btn-md" name="q" id="search-input"
+    placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off">
 </form>
-
       </div>
       
     </div>
@@ -185,9 +198,385 @@ style="width: 100%;">
               
               <div class="toc-item">
                 
+<div class="tocsection onthispage pt-5 pb-3">
+    <i class="fas fa-list"></i> On this page
+</div>
 
 <nav id="bd-toc-nav">
-    
+    <ul class="visible nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#ConfigSpace.configuration_space.ConfigurationSpace">
+   <code class="docutils literal notranslate">
+    <span class="pre">
+     ConfigurationSpace
+    </span>
+   </code>
+  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#ConfigSpace.configuration_space.ConfigurationSpace.__eq__">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       ConfigurationSpace.__eq__()
+      </span>
+     </code>
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#ConfigSpace.configuration_space.ConfigurationSpace.__hash__">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       ConfigurationSpace.__hash__()
+      </span>
+     </code>
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#ConfigSpace.configuration_space.ConfigurationSpace.__iter__">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       ConfigurationSpace.__iter__()
+      </span>
+     </code>
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#ConfigSpace.configuration_space.ConfigurationSpace.__ne__">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       ConfigurationSpace.__ne__()
+      </span>
+     </code>
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#ConfigSpace.configuration_space.ConfigurationSpace.add_condition">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       ConfigurationSpace.add_condition()
+      </span>
+     </code>
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#ConfigSpace.configuration_space.ConfigurationSpace.add_conditions">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       ConfigurationSpace.add_conditions()
+      </span>
+     </code>
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#ConfigSpace.configuration_space.ConfigurationSpace.add_configuration_space">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       ConfigurationSpace.add_configuration_space()
+      </span>
+     </code>
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#ConfigSpace.configuration_space.ConfigurationSpace.add_forbidden_clause">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       ConfigurationSpace.add_forbidden_clause()
+      </span>
+     </code>
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#ConfigSpace.configuration_space.ConfigurationSpace.add_forbidden_clauses">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       ConfigurationSpace.add_forbidden_clauses()
+      </span>
+     </code>
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#ConfigSpace.configuration_space.ConfigurationSpace.add_hyperparameter">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       ConfigurationSpace.add_hyperparameter()
+      </span>
+     </code>
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#ConfigSpace.configuration_space.ConfigurationSpace.add_hyperparameters">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       ConfigurationSpace.add_hyperparameters()
+      </span>
+     </code>
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#ConfigSpace.configuration_space.ConfigurationSpace.check_configuration">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       ConfigurationSpace.check_configuration()
+      </span>
+     </code>
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#ConfigSpace.configuration_space.ConfigurationSpace.check_configuration_vector_representation">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       ConfigurationSpace.check_configuration_vector_representation()
+      </span>
+     </code>
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#ConfigSpace.configuration_space.ConfigurationSpace.estimate_size">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       ConfigurationSpace.estimate_size()
+      </span>
+     </code>
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#ConfigSpace.configuration_space.ConfigurationSpace.generate_all_continuous_from_bounds">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       ConfigurationSpace.generate_all_continuous_from_bounds()
+      </span>
+     </code>
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#ConfigSpace.configuration_space.ConfigurationSpace.get">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       ConfigurationSpace.get()
+      </span>
+     </code>
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#ConfigSpace.configuration_space.ConfigurationSpace.get_active_hyperparameters">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       ConfigurationSpace.get_active_hyperparameters()
+      </span>
+     </code>
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#ConfigSpace.configuration_space.ConfigurationSpace.get_all_conditional_hyperparameters">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       ConfigurationSpace.get_all_conditional_hyperparameters()
+      </span>
+     </code>
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#ConfigSpace.configuration_space.ConfigurationSpace.get_all_unconditional_hyperparameters">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       ConfigurationSpace.get_all_unconditional_hyperparameters()
+      </span>
+     </code>
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#ConfigSpace.configuration_space.ConfigurationSpace.get_child_conditions_of">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       ConfigurationSpace.get_child_conditions_of()
+      </span>
+     </code>
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#ConfigSpace.configuration_space.ConfigurationSpace.get_children_of">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       ConfigurationSpace.get_children_of()
+      </span>
+     </code>
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#ConfigSpace.configuration_space.ConfigurationSpace.get_conditions">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       ConfigurationSpace.get_conditions()
+      </span>
+     </code>
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#ConfigSpace.configuration_space.ConfigurationSpace.get_default_configuration">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       ConfigurationSpace.get_default_configuration()
+      </span>
+     </code>
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#ConfigSpace.configuration_space.ConfigurationSpace.get_forbiddens">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       ConfigurationSpace.get_forbiddens()
+      </span>
+     </code>
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#ConfigSpace.configuration_space.ConfigurationSpace.get_hyperparameter">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       ConfigurationSpace.get_hyperparameter()
+      </span>
+     </code>
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#ConfigSpace.configuration_space.ConfigurationSpace.get_hyperparameter_by_idx">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       ConfigurationSpace.get_hyperparameter_by_idx()
+      </span>
+     </code>
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#ConfigSpace.configuration_space.ConfigurationSpace.get_hyperparameter_names">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       ConfigurationSpace.get_hyperparameter_names()
+      </span>
+     </code>
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#ConfigSpace.configuration_space.ConfigurationSpace.get_hyperparameters">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       ConfigurationSpace.get_hyperparameters()
+      </span>
+     </code>
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#ConfigSpace.configuration_space.ConfigurationSpace.get_hyperparameters_dict">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       ConfigurationSpace.get_hyperparameters_dict()
+      </span>
+     </code>
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#ConfigSpace.configuration_space.ConfigurationSpace.get_idx_by_hyperparameter_name">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       ConfigurationSpace.get_idx_by_hyperparameter_name()
+      </span>
+     </code>
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#ConfigSpace.configuration_space.ConfigurationSpace.get_parent_conditions_of">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       ConfigurationSpace.get_parent_conditions_of()
+      </span>
+     </code>
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#ConfigSpace.configuration_space.ConfigurationSpace.get_parents_of">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       ConfigurationSpace.get_parents_of()
+      </span>
+     </code>
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#ConfigSpace.configuration_space.ConfigurationSpace.items">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       ConfigurationSpace.items()
+      </span>
+     </code>
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#ConfigSpace.configuration_space.ConfigurationSpace.keys">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       ConfigurationSpace.keys()
+      </span>
+     </code>
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#ConfigSpace.configuration_space.ConfigurationSpace.remove_hyperparameter_priors">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       ConfigurationSpace.remove_hyperparameter_priors()
+      </span>
+     </code>
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#ConfigSpace.configuration_space.ConfigurationSpace.sample_configuration">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       ConfigurationSpace.sample_configuration()
+      </span>
+     </code>
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#ConfigSpace.configuration_space.ConfigurationSpace.seed">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       ConfigurationSpace.seed()
+      </span>
+     </code>
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#ConfigSpace.configuration_space.ConfigurationSpace.substitute_hyperparameters_in_conditions">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       ConfigurationSpace.substitute_hyperparameters_in_conditions()
+      </span>
+     </code>
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#ConfigSpace.configuration_space.ConfigurationSpace.substitute_hyperparameters_in_forbiddens">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       ConfigurationSpace.substitute_hyperparameters_in_forbiddens()
+      </span>
+     </code>
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#ConfigSpace.configuration_space.ConfigurationSpace.values">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       ConfigurationSpace.values()
+      </span>
+     </code>
+    </a>
+   </li>
+  </ul>
+ </li>
+</ul>
+
 </nav>
               </div>
               
@@ -899,14 +1288,14 @@ new_configspace.</p>
     
     <div class="footer-item">
       <p class="copyright">
-    &copy; Copyright Copyright 2022, Matthias Feurer, Katharina Eggensperger, Syed Mohsin Ali, Christina Hernandez Wunsch, Julien-Charles Levesque, Jost Tobias Springenberg, Philipp Mueller, Marius Lindauer, Jorn Tuyls, Eddie Bergman.<br>
+    &copy; Copyright Copyright 2023, Matthias Feurer, Katharina Eggensperger, Syed Mohsin Ali, Christina Hernandez Wunsch, Julien-Charles Levesque, Jost Tobias Springenberg, Philipp Mueller, Marius Lindauer, Jorn Tuyls, Eddie Bergman.<br>
 </p>
     </div>
     
     <div class="footer-item">
       <p class="sphinx-version">
 Created using <a href="http://sphinx-doc.org/">Sphinx</a>
-5.1.1. Template is modified version of <a
+5.3.0. Template is modified version of <a
 href="https://pydata-sphinx-theme.readthedocs.io">PyData Sphinx Theme</a>. <br>
 </p>
     </div>
