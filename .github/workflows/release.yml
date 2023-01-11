@@ -79,16 +79,16 @@ jobs:
           # Scipy lacks some i686 support, which cause the testing of the wheels
           # to fail, as scipy is attempted to be built form scratch
           - py: cp38
-          - arch: i686
+            arch: i686
 
           - py: cp39
-          - arch: i686
+            arch: i686
 
           - py: cp310
-          - arch: i686
+            arch: i686
 
           - py: cp311
-          - arch: i686
+            arch: i686
 
     steps:
       - name: Checkout ${{ env.package-name }}
@@ -158,16 +158,16 @@ jobs:
           # Scipy lacks win32 support, which cause the testing of the wheels
           # to fail, as scipy is attempted to be built form scratch
           - py: cp38
-          - arch: x86
+            arch: x86
 
           - py: cp39
-          - arch: x86
+            arch: x86
 
           - py: cp310
-          - arch: x86
+            arch: x86
 
           - py: cp311
-          - arch: x86
+            arch: x86
 
     steps:
       - name: Checkout ${{ env.package-name }}
