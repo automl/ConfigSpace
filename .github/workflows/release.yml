@@ -43,10 +43,11 @@ on:
       - main
       # Release branches
       - "[0-9]+.[0-9]+.X"
-
-  create:
     tags:
       - v*
+
+  release:
+    types: [created]
 
 env:
   package-name: ConfigSpace
@@ -65,7 +66,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        py: [cp37, cp38, cp39, cp310]
+        # We can drop "i686" once "cp37" is dropped
+        py: [cp37, cp38, cp39, cp310, cp311]
         arch: ["x86_64", "i686", "aarch64"]
         system: ["manylinux", "musllinux"]
 
@@ -74,9 +76,19 @@ jobs:
           # Not supported by numpy
           - system: "musllinux"
 
-          # Scipy doesn't have a wheel for cp310 i686
+          # Scipy lacks some i686 support, which cause the testing of the wheels
+          # to fail, as scipy is attempted to be built form scratch
+          - py: cp38
+          - arch: i686
+
+          - py: cp39
+          - arch: i686
+
           - py: cp310
-            arch: "i686"
+          - arch: i686
+
+          - py: cp311
+          - arch: i686
 
     steps:
       - name: Checkout ${{ env.package-name }}
@@ -87,7 +99,7 @@ jobs:
         uses: docker/setup-qemu-action@v1
 
       - name: Build wheels with cibuildwheel to wheelhouse/*.whl
-        uses: pypa/cibuildwheel@v2.3.1
+        uses: pypa/cibuildwheel@v2.11.4
         env:
           CIBW_BUILD: ${{ matrix.py }}-${{ matrix.system }}_*
           CIBW_ARCHS: ${{ matrix.arch }}
@@ -105,7 +117,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        py: [cp37, cp38, cp39, cp310]
+        py: [cp37, cp38, cp39, cp310, cp311]
         arch: ["x86_64", "universal2", "arm64"]
         exclude:
 
@@ -121,7 +133,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Build wheels with cibuildwheel to wheelhouse/*.whl
-        uses: pypa/cibuildwheel@v2.3.1
+        uses: pypa/cibuildwheel@v2.11.4
         env:
           CIBW_BUILD: ${{ matrix.py }}-*
           CIBW_ARCHS: ${{ matrix.arch }}
@@ -139,21 +151,30 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        py: [cp37, cp38, cp39, cp310]
+        py: [cp37, cp38, cp39, cp310, cp311]
         arch: ["AMD64", "x86"]
+
         exclude:
+          # Scipy lacks win32 support, which cause the testing of the wheels
+          # to fail, as scipy is attempted to be built form scratch
+          - py: cp38
+          - arch: x86
 
-          # We can't build win32 (x86) with cp310 because numpy doesn't have a win32 wheel
+          - py: cp39
+          - arch: x86
+
           - py: cp310
-            arch: "x86"
+          - arch: x86
 
+          - py: cp311
+          - arch: x86
 
     steps:
       - name: Checkout ${{ env.package-name }}
         uses: actions/checkout@v2
 
       - name: Build wheels with cibuildwheel to wheelhouse/*.whl
-        uses: pypa/cibuildwheel@v2.3.1
+        uses: pypa/cibuildwheel@v2.11.4
         env:
           CIBW_BUILD: ${{ matrix.py }}-*
           CIBW_ARCHS: ${{ matrix.arch }}
@@ -171,7 +192,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        py: ["3.7", "3.8", "3.9", "3.10"]
+        py: ["3.7", "3.8", "3.9", "3.10", "3.11"]
 
     steps:
       - name: Checkout ${{ env.package-name }}
@@ -223,7 +244,7 @@ jobs:
     needs: [build_linux_wheels, build_macos_wheels, build_windows_wheels, build_sdist]
 
     # Only on a tagged release, push
-    if: startsWith(github.ref, 'refs/tags/v')  && github.event_name != 'pull_request'
+    if: startsWith(github.ref, 'refs/tags/v') && github.event_name != 'pull_request'
 
     steps:
       - name: Checkout ${{ env.package-name }}
