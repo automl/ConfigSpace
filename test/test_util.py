@@ -124,13 +124,14 @@ class UtilTest(unittest.TestCase):
         all_neighbors = self._test_get_one_exchange_neighbourhood(hp)
         all_neighbors = [neighbor['a'] for neighbor in all_neighbors]
         self.assertAlmostEqual(5.8125, np.mean(all_neighbors), places=2)
-        self.assertAlmostEqual(5.60234375, np.var(all_neighbors), places=2)
+        self.assertAlmostEqual(5.6023, np.var(all_neighbors), places=2)
+
         hp = UniformIntegerHyperparameter('a', 1, 10, log=True)
         all_neighbors = self._test_get_one_exchange_neighbourhood(hp)
         all_neighbors = [neighbor['a'] for neighbor in all_neighbors]
         # Default value is 3.16
-        self.assertAlmostEqual(3.9425, np.mean(all_neighbors), places=2)
-        self.assertAlmostEqual(5.91, np.var(all_neighbors), places=2)
+        self.assertAlmostEqual(3.9375, np.mean(all_neighbors), places=2)
+        self.assertAlmostEqual(5.8886, np.var(all_neighbors), places=2)
 
         cs = ConfigurationSpace()
         cs.add_hyperparameter(hp)
@@ -139,8 +140,8 @@ class UtilTest(unittest.TestCase):
             for i in range(100):
                 neighborhood = get_one_exchange_neighbourhood(config, 1)
                 neighbors = [neighbor['a'] for neighbor in neighborhood]
-                self.assertEqual(len(neighbors), len(np.unique(neighbors)))
-                self.assertNotIn(val, neighbors)
+                self.assertEqual(len(neighbors), len(np.unique(neighbors)), msg=neighbors)
+                self.assertNotIn(val, neighbors, msg=neighbors)
 
     def test_random_neighbor_cat(self):
         hp = CategoricalHyperparameter('a', [5, 6, 7, 8])

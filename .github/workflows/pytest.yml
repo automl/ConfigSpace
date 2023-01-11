@@ -159,9 +159,9 @@ jobs:
     - name: Create sdist
       id: sdist
       run: |
-        python -m pip install --upgrade pip
-        python setup.py sdist
-        echo "sdist_name=$(ls -t dist/${{ env.package-name }}-*.tar.gz | head -n 1)" >> $GITHUB_ENV
+        python -m pip install --upgrade pip build
+        python -m build --sdist
+        echo "sdist_name=$(ls -t dist/${{ env.package-name }}-*.tar.gz | head -n 1)" >> "$GITHUB_ENV"
 
     - name: Install ${{ env.package-name }}
       run: |
