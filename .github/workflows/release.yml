@@ -156,6 +156,21 @@ jobs:
         py: [cp37, cp38, cp39, cp310, cp311]
         arch: ["AMD64", "x86"]
 
+        exclude:
+          # Scipy lacks win32 support, which cause the testing of the wheels
+          # to fail, as scipy is attempted to be built form scratch
+          - py: cp38
+          - arch: x86
+
+          - py: cp39
+          - arch: x86
+
+          - py: cp310
+          - arch: x86
+
+          - py: cp311
+          - arch: x86
+
     steps:
       - name: Checkout ${{ env.package-name }}
         uses: actions/checkout@v2
