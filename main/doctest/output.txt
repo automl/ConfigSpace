@@ -1,5 +1,40 @@
-Results of doctest builder run on 2023-01-11 14:02:58
+Results of doctest builder run on 2023-01-11 14:28:39
 =====================================================
+
+Document: guide
+---------------
+**********************************************************************
+File "guide.rst", line 294, in default
+Failed example:
+    print(cs)
+Expected:
+    Configuration space object:
+      Hyperparameters:
+        activation, Type: Categorical, Choices: {tanh, relu}, Default: tanh, Probabilities: (0.2, 0.8)
+        dropout, Type: BetaFloat, Alpha: 2.0 Beta: 4.0, Range: [0.0, 0.99], Default: 0.25
+        lr, Type: NormalFloat, Mu: -6.907755278982137 Sigma: 2.302585092994046, Range: [1e-05, 0.1], Default: 0.001, on log-scale
+    <BLANKLINE>
+Got:
+    Configuration space object:
+      Hyperparameters:
+        activation, Type: Categorical, Choices: {tanh, relu}, Default: tanh, Probabilities: (0.2, 0.8)
+        dropout, Type: BetaFloat, Alpha: 2.0 Beta: 4.0, Range: [0.0, 0.99], Default: 0.25
+        lr, Type: NormalFloat, Mu: -6.907755278982137 Sigma: 2.3025850929940455, Range: [1e-05, 0.1], Default: 0.001, on log-scale
+    <BLANKLINE>
+**********************************************************************
+1 items had failures:
+   1 of  43 in default
+43 tests in 1 items.
+42 passed and 1 failed.
+***Test Failed*** 1 failures.
+
+Document: api/conditions
+------------------------
+1 items passed all tests:
+  30 tests in default
+30 tests in 1 items.
+30 passed and 0 failed.
+Test passed.
 
 Document: api/hyperparameters
 -----------------------------
@@ -7,30 +42,6 @@ Document: api/hyperparameters
   16 tests in default
 16 tests in 1 items.
 16 passed and 0 failed.
-Test passed.
-
-Document: api/forbidden_clauses
--------------------------------
-1 items passed all tests:
-  14 tests in default
-14 tests in 1 items.
-14 passed and 0 failed.
-Test passed.
-
-Document: guide
----------------
-1 items passed all tests:
-  43 tests in default
-43 tests in 1 items.
-43 passed and 0 failed.
-Test passed.
-
-Document: index
----------------
-1 items passed all tests:
-  13 tests in default
-13 tests in 1 items.
-13 passed and 0 failed.
 Test passed.
 
 Document: api/serialization
@@ -42,12 +53,20 @@ Document: api/serialization
 8 passed and 0 failed.
 Test passed.
 
-Document: api/conditions
-------------------------
+Document: index
+---------------
 1 items passed all tests:
-  30 tests in default
-30 tests in 1 items.
-30 passed and 0 failed.
+  13 tests in default
+13 tests in 1 items.
+13 passed and 0 failed.
+Test passed.
+
+Document: api/forbidden_clauses
+-------------------------------
+1 items passed all tests:
+  14 tests in default
+14 tests in 1 items.
+14 passed and 0 failed.
 Test passed.
 
 Document: quickstart
@@ -61,6 +80,6 @@ Test passed.
 Doctest summary
 ===============
   129 tests
-    0 failures in tests
+    1 failure in tests
     0 failures in setup code
     0 failures in cleanup code
