@@ -1606,6 +1606,9 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
             " if assumed to be in the unit-hypercube [0, 1]. If this was not"
             " the behaviour assumed, please raise a ticket on github."
         )
+        assert number < 1000000, (
+            "Can only generate less than 1 million neighbors."
+        )
         # Convert python values to cython ones
         cdef long long center = self._transform(value)
         cdef long long lower = self.lower
@@ -1641,6 +1644,11 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
         #     size=number,
         #     random_state=rs
         # )
+        # We sample five times as many values as needed and weed them out below
+        # (perform rejection sampling and make sure we don't sample any neighbor twice)
+        # This increases our chances of not having to fill the neighbors list by calling
+        # `center_range`
+        # Five is an arbitrary number and can probably be tuned to reduce overhead
         cdef np.ndarray float_indices = rs.normal(value, std, size=number * 5)
         cdef np.ndarray mask = (float_indices >= 0) & (float_indices <= 1)
         float_indices = float_indices[mask]
@@ -1656,7 +1664,6 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
             v = possible_neighbors[candidate_index]
             if v not in seen:
                 seen.add(v)
-                #neighbors.append(v)
                 n_neighbors_generated += 1
             candidate_index += 1
 
@@ -1666,16 +1673,15 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
             while n_neighbors_generated < n_requested:
                 v = next(numbers_around)
                 if v not in seen:
-                    #neighbors.append(v)
-                    # No need to add v to seen any more
                     seen.add(v)
                     n_neighbors_generated += 1
 
+        seen.remove(center)
         neighbors = list(seen)
         if transform:
             return neighbors
         else:
-            return self._inverse_transform(np.asarray(neighbors)).tolist()
+            return self._inverse_transform(np.array(neighbors)).tolist()
 
 
     def _pdf(self, vector: np.ndarray) -> np.ndarray:
