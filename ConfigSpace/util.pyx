@@ -132,16 +132,22 @@ def get_one_exchange_neighbourhood(
         list(configuration.configuration_space._hyperparameters.keys())
     )
     hyperparameters_list_length = len(hyperparameters_list)
-    hyperparameters_used = [hp.name
-                            for hp in configuration.configuration_space.get_hyperparameters()
-                            if hp.get_num_neighbors(configuration.get(hp.name)) == 0 and
-                            configuration.get(hp.name)is not None]
+    hyperparameters_used = [
+        hp.name
+        for hp in configuration.configuration_space.get_hyperparameters()
+        if (
+            hp.get_num_neighbors(configuration.get(hp.name)) == 0
+            and configuration.get(hp.name)is not None
+        )
+    ]
     number_of_usable_hyperparameters = sum(np.isfinite(configuration.get_array()))
     n_neighbors_per_hp = {
-        hp.name: num_neighbors if
-        isinstance(hp, NumericalHyperparameter) and hp.get_num_neighbors(
-            configuration.get(hp.name))> num_neighbors
-        else hp.get_num_neighbors(configuration.get(hp.name))
+        hp.name: num_neighbors
+        if (
+            isinstance(hp, NumericalHyperparameter)
+            and hp.get_num_neighbors(configuration.get(hp.name))> num_neighbors
+        ) else
+        hp.get_num_neighbors(configuration.get(hp.name))
         for hp in configuration.configuration_space.get_hyperparameters()
     }
 

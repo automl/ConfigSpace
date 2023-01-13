@@ -29,8 +29,6 @@
 from ConfigSpace.__version__ import __version__
 from ConfigSpace.__authors__ import __authors__
 
-import ConfigSpace.api.distributions as distributions
-import ConfigSpace.api.types as types
 from ConfigSpace.api import (Beta, Categorical, Distribution, Float, Integer,
                              Normal, Uniform)
 from ConfigSpace.conditions import (AndConjunction, EqualsCondition,
@@ -53,6 +51,8 @@ from ConfigSpace.hyperparameters import (BetaFloatHyperparameter,
                                          UniformFloatHyperparameter,
                                          UniformIntegerHyperparameter,
                                          UnParametrizedHyperparameter)
+import ConfigSpace.api.distributions as distributions
+import ConfigSpace.api.types as types
 
 __all__ = [
     "__authors__",
