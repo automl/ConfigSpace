@@ -6,8 +6,8 @@ from typing import Dict
 
 from ConfigSpace import __version__
 from ConfigSpace.configuration_space import ConfigurationSpace
+from ConfigSpace.hyperparameters_ import Hyperparameter
 from ConfigSpace.hyperparameters import (
-    Hyperparameter,
     CategoricalHyperparameter,
     UniformIntegerHyperparameter,
     UniformFloatHyperparameter,

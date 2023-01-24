@@ -118,6 +118,10 @@ if PROFILING:
 
 EXTENSIONS = [
     Extension(
+        "ConfigSpace.hyperparameters_.hyperparameter",
+        sources=["ConfigSpace/hyperparameters_/hyperparameter.pyx"]
+    ),
+    Extension(
         "ConfigSpace.hyperparameters", sources=["ConfigSpace/hyperparameters.pyx"]
     ),
     Extension("ConfigSpace.forbidden", sources=["ConfigSpace/forbidden.pyx"]),
