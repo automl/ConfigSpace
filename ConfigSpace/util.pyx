@@ -37,7 +37,8 @@ from ConfigSpace import Configuration, ConfigurationSpace
 from ConfigSpace.exceptions import ForbiddenValueError
 from ConfigSpace.hyperparameters import CategoricalHyperparameter, \
     UniformFloatHyperparameter, UniformIntegerHyperparameter, Constant, \
-    OrdinalHyperparameter, NumericalHyperparameter
+    OrdinalHyperparameter
+from ConfigSpace.hyperparameters_ import NumericalHyperparameter
 import ConfigSpace.c_util
 cimport cython
 

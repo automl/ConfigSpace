@@ -18,11 +18,11 @@ import sys
 import pyparsing
 
 from ConfigSpace.configuration_space import ConfigurationSpace
+from ConfigSpace.hyperparameters_ import NumericalHyperparameter
 from ConfigSpace.hyperparameters import (
     CategoricalHyperparameter,
     UniformIntegerHyperparameter,
     UniformFloatHyperparameter,
-    NumericalHyperparameter,
     Constant,
     IntegerHyperparameter,
     NormalIntegerHyperparameter,

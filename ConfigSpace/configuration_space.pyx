@@ -35,10 +35,9 @@ import numpy as np
 import io
 
 import ConfigSpace.nx
-from ConfigSpace.hyperparameters_ import Hyperparameter
+from ConfigSpace.hyperparameters_ import Hyperparameter, FloatHyperparameter
 from ConfigSpace.hyperparameters import (
     Constant,
-    FloatHyperparameter,
     UniformFloatHyperparameter,
     UniformIntegerHyperparameter,
     CategoricalHyperparameter,

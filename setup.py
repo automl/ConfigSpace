@@ -122,6 +122,26 @@ EXTENSIONS = [
         sources=["ConfigSpace/hyperparameters_/hyperparameter.pyx"]
     ),
     Extension(
+       "ConfigSpace.hyperparameters_.constant",
+        sources=["ConfigSpace/hyperparameters_/constant.pyx"]
+    ),
+    Extension(
+        "ConfigSpace.hyperparameters_.numerical",
+        sources=["ConfigSpace/hyperparameters_/numerical.pyx"]
+    ),
+    Extension(
+        "ConfigSpace.hyperparameters_.float_hyperparameter",
+        sources=["ConfigSpace/hyperparameters_/float_hyperparameter.pyx"]
+    ),
+    Extension(
+        "ConfigSpace.hyperparameters_.ordinal",
+        sources=["ConfigSpace/hyperparameters_/ordinal.pyx"]
+    ),
+    Extension(
+        "ConfigSpace.hyperparameters_.categorical",
+        sources=["ConfigSpace/hyperparameters_/categorical.pyx"]
+    ),
+    Extension(
         "ConfigSpace.hyperparameters", sources=["ConfigSpace/hyperparameters.pyx"]
     ),
     Extension("ConfigSpace.forbidden", sources=["ConfigSpace/forbidden.pyx"]),
