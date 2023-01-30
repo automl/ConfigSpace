@@ -11,7 +11,13 @@ DTYPE = float
 # type with a _t-suffix.
 ctypedef np.float_t DTYPE_t
 
-from .hyperparameters_.hyperparameter import Hyperparameter
-from .hyperparameters_.hyperparameter cimport Hyperparameter
-from .hyperparameters_.numerical import NumericalHyperparameter
-from .hyperparameters_.numerical cimport NumericalHyperparameter
+from .hyperparameter import Hyperparameter
+from .hyperparameter cimport Hyperparameter
+from .numerical import NumericalHyperparameter
+from .numerical cimport NumericalHyperparameter
+
+
+cdef class IntegerHyperparameter(NumericalHyperparameter):
+    cdef ufhp
+    cpdef long long _transform_scalar(self, double scalar)
+    cpdef np.ndarray _transform_vector(self, np.ndarray vector)
