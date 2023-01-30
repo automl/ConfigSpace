@@ -46,7 +46,7 @@ from ConfigSpace.hyperparameters import (UniformFloatHyperparameter,
                                          BetaIntegerHyperparameter,
                                          OrdinalHyperparameter)
 from ConfigSpace.exceptions import ForbiddenValueError
-from ConfigSpace.forbidden import ForbiddenEqualsRelation
+from ConfigSpace.forbidden import ForbiddenEqualsRelation, ForbiddenLessThanRelation
 
 
 def byteify(input):
@@ -919,6 +919,34 @@ class TestConfigurationSpace(unittest.TestCase):
         self.assertEqual(new_conditions[0], test_conditions[0])
         self.assertEqual(new_conditions[1], test_conditions[1])
 
+    def test_substitute_hyperparameters_in_inconditions(self):
+        cs1 = ConfigurationSpace()
+        a = UniformIntegerHyperparameter('a', lower=0, upper=10)
+        b = UniformFloatHyperparameter('b', lower=1., upper=8., log=False)
+        cs1.add_hyperparameters([a, b])
+
+        cond = InCondition(b, a, [1, 2, 3, 4])
+        cs1.add_conditions([cond])
+
+        cs2 = ConfigurationSpace()
+        sub_a = UniformIntegerHyperparameter('a', lower=0, upper=10)
+        sub_b = UniformFloatHyperparameter('b', lower=1., upper=8., log=False)
+        cs2.add_hyperparameters([sub_a, sub_b])
+        new_conditions = cs1.substitute_hyperparameters_in_conditions(cs1.get_conditions(), cs2)
+
+        test_cond = InCondition(b, a, [1, 2, 3, 4])
+        cs2.add_conditions([test_cond])
+        test_conditions = cs2.get_conditions()
+
+        self.assertEqual(new_conditions[0], test_conditions[0])
+        self.assertIsNot(new_conditions[0], test_conditions[0])
+
+        self.assertEqual(new_conditions[0].get_parents(), test_conditions[0].get_parents())
+        self.assertIsNot(new_conditions[0].get_parents(), test_conditions[0].get_parents())
+
+        self.assertEqual(new_conditions[0].get_children(), test_conditions[0].get_children())
+        self.assertIsNot(new_conditions[0].get_children(), test_conditions[0].get_children())
+
     def test_substitute_hyperparameters_in_forbiddens(self):
         cs1 = ConfigurationSpace()
         orig_hp1 = CategoricalHyperparameter("input1", [0, 1])
@@ -930,7 +958,8 @@ class TestConfigurationSpace(unittest.TestCase):
         forb_2 = ForbiddenEqualsClause(orig_hp2, 1)
         forb_3 = ForbiddenEqualsClause(orig_hp3, 10)
         forb_4 = ForbiddenAndConjunction(forb_1, forb_2)
-        cs1.add_forbidden_clauses([forb_3, forb_4])
+        forb_5 = ForbiddenLessThanRelation(orig_hp1, orig_hp2)
+        cs1.add_forbidden_clauses([forb_3, forb_4, forb_5])
 
         cs2 = ConfigurationSpace()
         sub_hp1 = CategoricalHyperparameter("input1", [0, 1, 2])
@@ -944,9 +973,11 @@ class TestConfigurationSpace(unittest.TestCase):
         test_forb_2 = ForbiddenEqualsClause(sub_hp2, 1)
         test_forb_3 = ForbiddenEqualsClause(sub_hp3, 10)
         test_forb_4 = ForbiddenAndConjunction(test_forb_1, test_forb_2)
-        cs2.add_forbidden_clauses([test_forb_3, test_forb_4])
+        test_forb_5 = ForbiddenLessThanRelation(sub_hp1, sub_hp2)
+        cs2.add_forbidden_clauses([test_forb_3, test_forb_4, test_forb_5])
         test_forbiddens = cs2.get_forbiddens()
 
+        self.assertEqual(new_forbiddens[2], test_forbiddens[2])
         self.assertEqual(new_forbiddens[1], test_forbiddens[1])
         self.assertEqual(new_forbiddens[0], test_forbiddens[0])
 
