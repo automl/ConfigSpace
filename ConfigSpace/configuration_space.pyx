@@ -1526,12 +1526,12 @@ class ConfigurationSpace(collections.abc.Mapping):
                 new_child = new_configspace[child_name]
                 new_parent = new_configspace[parent_name]
 
-                if hasattr(condition, 'value'):
-                    condition_arg = getattr(condition, 'value')
-                    substituted_condition = condition_type(child=new_child, parent=new_parent, value=condition_arg)
-                elif hasattr(condition, 'values'):
+                if hasattr(condition, 'values'):
                     condition_arg = getattr(condition, 'values')
                     substituted_condition = condition_type(child=new_child, parent=new_parent, values=condition_arg)
+                elif hasattr(condition, 'value'):
+                    condition_arg = getattr(condition, 'value')
+                    substituted_condition = condition_type(child=new_child, parent=new_parent, value=condition_arg)
                 else:
                     raise AttributeError(f'Did not find the expected attribute in condition {type(condition)}.')
 
@@ -1573,15 +1573,24 @@ class ConfigurationSpace(collections.abc.Mapping):
                 hyperparameter_name = getattr(forbidden.hyperparameter, 'name')
                 new_hyperparameter = new_configspace[hyperparameter_name]
 
-                if hasattr(forbidden, 'value'):
-                    forbidden_arg = getattr(forbidden, 'value')
-                    substituted_forbidden = forbidden_type(hyperparameter=new_hyperparameter, value=forbidden_arg)
-                elif hasattr(forbidden, 'values'):
+                if hasattr(forbidden, 'values'):
                     forbidden_arg = getattr(forbidden, 'values')
                     substituted_forbidden = forbidden_type(hyperparameter=new_hyperparameter, values=forbidden_arg)
+                elif hasattr(forbidden, 'value'):
+                    forbidden_arg = getattr(forbidden, 'value')
+                    substituted_forbidden = forbidden_type(hyperparameter=new_hyperparameter, value=forbidden_arg)
                 else:
                     raise AttributeError(f'Did not find the expected attribute in forbidden {type(forbidden)}.')
 
+                new_forbiddens.append(substituted_forbidden)
+            elif isinstance(forbidden, ForbiddenRelation):
+                forbidden_type = type(forbidden)
+                left_name = getattr(forbidden.left, 'name')
+                left_hyperparameter = new_configspace[left_name]
+                right_name = getattr(forbidden.right, 'name')
+                right_hyperparameter = new_configspace[right_name]
+
+                substituted_forbidden = forbidden_type(left=left_hyperparameter, right=right_hyperparameter)
                 new_forbiddens.append(substituted_forbidden)
             else:
                 raise TypeError(f'Did not expect the supplied forbidden type {type(forbidden)}.')

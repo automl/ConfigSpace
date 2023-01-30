@@ -1946,6 +1946,7 @@ class TestHyperparameters(unittest.TestCase):
         point_1 = np.array([0])
         point_2 = np.array([1])
         array_1 = np.array([1, 0, 2])
+        nan = np.array([0, np.nan])
         self.assertEqual(c1._pdf(point_1)[0], 0.4)
         self.assertEqual(c1._pdf(point_2)[0], 0.2)
         self.assertAlmostEqual(c2._pdf(point_1)[0], 0.7142857142857143)
@@ -1957,6 +1958,12 @@ class TestHyperparameters(unittest.TestCase):
         for res, exp_res in zip(array_results, expected_results):
             self.assertEqual(res, exp_res)
 
+        nan_results = c1._pdf(nan)
+        expected_results = np.array([0.4, 0])
+        self.assertEqual(nan_results.shape, expected_results.shape)
+        for res, exp_res in zip(nan_results, expected_results):
+            self.assertEqual(res, exp_res)
+
         # pdf must take a numpy array
         with self.assertRaises(TypeError):
             c1._pdf(0.2)
@@ -1964,7 +1971,7 @@ class TestHyperparameters(unittest.TestCase):
             c1._pdf('pdf')
         with self.assertRaises(TypeError):
             c1._pdf('one')
-        with self.assertRaises(ValueError):
+        with self.assertRaises(TypeError):
             c1._pdf(np.array(['zero']))
 
     def test_categorical_get_max_density(self):

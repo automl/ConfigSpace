@@ -2617,7 +2617,13 @@ cdef class CategoricalHyperparameter(Hyperparameter):
             Probability density values of the input vector
         """
         probs = np.array(self.probabilities)
+        nan = np.isnan(vector)
+        if np.any(nan):
+            # Temporarily pick any valid index to use `vector` as an index for `probs`
+            vector[nan] = 0
         res = np.array(probs[vector.astype(int)])
+        if np.any(nan):
+            res[nan] = 0
         if res.ndim == 0:
             return res.reshape(-1)
         return res
