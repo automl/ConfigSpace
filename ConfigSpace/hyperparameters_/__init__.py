@@ -5,7 +5,9 @@ from .float_hyperparameter import FloatHyperparameter
 from .integer_hyperparameter import IntegerHyperparameter
 from .ordinal import OrdinalHyperparameter
 from .categorical import CategoricalHyperparameter
+from .uniform_float import UniformFloatHyperparameter
+from .uniform_integer import UniformIntegerHyperparameter
 
 __all__ = ["Hyperparameter", "Constant", "UnParametrizedHyperparameter", "OrdinalHyperparameter",
            "CategoricalHyperparameter", "NumericalHyperparameter", "FloatHyperparameter",
-           "IntegerHyperparameter"]
+           "IntegerHyperparameter", "UniformFloatHyperparameter", "UniformIntegerHyperparameter"]

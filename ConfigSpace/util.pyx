@@ -35,10 +35,16 @@ from typing import Union, Dict, Generator, List, Tuple, Optional
 import numpy as np  # type: ignore
 from ConfigSpace import Configuration, ConfigurationSpace
 from ConfigSpace.exceptions import ForbiddenValueError
-from ConfigSpace.hyperparameters import CategoricalHyperparameter, \
-    UniformFloatHyperparameter, UniformIntegerHyperparameter, Constant, \
-    OrdinalHyperparameter
-from ConfigSpace.hyperparameters_ import NumericalHyperparameter
+from ConfigSpace.hyperparameters import (
+    CategoricalHyperparameter,
+    Constant,
+    OrdinalHyperparameter,
+)
+from ConfigSpace.hyperparameters_ import (
+    NumericalHyperparameter,
+    UniformFloatHyperparameter,
+    UniformIntegerHyperparameter,
+)
 import ConfigSpace.c_util
 cimport cython
 

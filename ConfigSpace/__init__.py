@@ -48,9 +48,11 @@ from ConfigSpace.hyperparameters import (BetaFloatHyperparameter,
                                          NormalFloatHyperparameter,
                                          NormalIntegerHyperparameter,
                                          OrdinalHyperparameter,
-                                         UniformFloatHyperparameter,
-                                         UniformIntegerHyperparameter,
                                          UnParametrizedHyperparameter)
+from ConfigSpace.hyperparameters_ import (
+    UniformFloatHyperparameter,
+    UniformIntegerHyperparameter,
+)
 import ConfigSpace.api.distributions as distributions
 import ConfigSpace.api.types as types
 

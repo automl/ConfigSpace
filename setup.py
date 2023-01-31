@@ -138,6 +138,14 @@ EXTENSIONS = [
         sources=["ConfigSpace/hyperparameters_/integer_hyperparameter.pyx"]
     ),
     Extension(
+        "ConfigSpace.hyperparameters_.uniform_integer",
+        sources=["ConfigSpace/hyperparameters_/uniform_integer.pyx"]
+    ),
+    Extension(
+        "ConfigSpace.hyperparameters_.uniform_float",
+        sources=["ConfigSpace/hyperparameters_/uniform_float.pyx"]
+    ),
+    Extension(
         "ConfigSpace.hyperparameters_.ordinal",
         sources=["ConfigSpace/hyperparameters_/ordinal.pyx"]
     ),
