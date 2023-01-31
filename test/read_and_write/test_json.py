@@ -1,7 +1,8 @@
 import os
 import unittest
+from dataclasses import dataclass
 
-from ConfigSpace.forbidden import ForbiddenLessThanRelation
+from ConfigSpace.forbidden import ForbiddenLessThanRelation, ForbiddenCallableRelation
 from ConfigSpace.read_and_write.json import read, write
 from ConfigSpace.read_and_write.pcs import read as read_pcs
 from ConfigSpace.read_and_write.pcs_new import read as read_pcs_new
@@ -10,6 +11,14 @@ from ConfigSpace import (
     CategoricalHyperparameter,
     ConfigurationSpace,
 )
+
+
+@dataclass
+class ProductGreaterThan:
+    limit: int
+
+    def __call__(self, a, b):
+        return a*b > self.limit
 
 
 class TestJson(unittest.TestCase):
@@ -26,6 +35,10 @@ class TestJson(unittest.TestCase):
         b = cs.add_hyperparameter(CategoricalHyperparameter('b', [0, 1, 2]))
         cs.add_forbidden_clause(ForbiddenLessThanRelation(a, b))
         write(cs)
+
+        cs.add_forbidden_clause(ForbiddenCallableRelation(a, b, ProductGreaterThan(3)))
+        self.assertRaises(ValueError, write, cs)
+        write(cs, pickle_callables=True)
 
     def test_configspace_with_probabilities(self):
         cs = ConfigurationSpace()

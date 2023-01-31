@@ -41,7 +41,8 @@ from ConfigSpace.forbidden import (ForbiddenAndConjunction,
                                    ForbiddenEqualsRelation,
                                    ForbiddenGreaterThanRelation,
                                    ForbiddenInClause,
-                                   ForbiddenLessThanRelation)
+                                   ForbiddenLessThanRelation,
+                                   ForbiddenCallableRelation)
 from ConfigSpace.hyperparameters import (BetaFloatHyperparameter,
                                          BetaIntegerHyperparameter,
                                          CategoricalHyperparameter, Constant,

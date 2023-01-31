@@ -43,6 +43,7 @@ from ConfigSpace.forbidden import (
     ForbiddenEqualsRelation,
     ForbiddenLessThanRelation,
     ForbiddenGreaterThanRelation,
+    ForbiddenCallableRelation,
 )
 
 from ConfigSpace import OrdinalHyperparameter
@@ -295,5 +296,11 @@ class TestForbidden(unittest.TestCase):
         )
         self.assertTrue(forb.is_forbidden(
             {'water_temperature': 'hot', 'water_temperature2': 'cold'},
+            True)
+        )
+
+        forb = ForbiddenCallableRelation(hp1, hp2, lambda x, y: len(x) <= len(y))
+        self.assertFalse(forb.is_forbidden(
+            {'water_temperature': 'boiling', 'water_temperature2': 'cold'},
             True)
         )

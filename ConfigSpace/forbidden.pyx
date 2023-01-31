@@ -12,8 +12,9 @@
 #       notice, this list of conditions and the following disclaimer in the
 #       documentation and/or other materials provided with the distribution.
 #     * Neither the name of the <organization> nor the
-#       names of itConfigurationSpaces contributors may be used to endorse or promote products
-#       derived from this software without specific prior written permission.
+#       names of ConfigurationSpace contributors may be used to endorse or
+#       promote products derived from this software without specific prior
+#       written permission.
 #
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 # ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -31,13 +32,14 @@ import numpy as np
 import io
 from ConfigSpace.hyperparameters import Hyperparameter
 from ConfigSpace.hyperparameters cimport Hyperparameter
-from typing import List, Dict, Any, Union
+from typing import Dict, Any, Union, Callable
 
 from ConfigSpace.forbidden cimport AbstractForbiddenComponent
 
 from libc.stdlib cimport malloc, free
 cimport numpy as np
 
+ForbiddenCallable = Callable[[Hyperparameter, Hyperparameter], bool]
 
 cdef class AbstractForbiddenComponent(object):
 
@@ -90,7 +92,8 @@ cdef class AbstractForbiddenComponent(object):
     def is_forbidden_vector(self, instantiated_hyperparameters, strict):
         return bool(self.c_is_forbidden_vector(instantiated_hyperparameters, strict))
 
-    cdef int c_is_forbidden_vector(self, np.ndarray instantiated_hyperparameters, int strict):
+    cdef int c_is_forbidden_vector(self, np.ndarray instantiated_hyperparameters,
+                                   int strict):
         pass
 
 
@@ -343,7 +346,6 @@ cdef class AbstractForbiddenConjunction(AbstractForbiddenComponent):
         return all([self.components[i] == other.components[i]
                     for i in range(self.n_components)])
 
-
     cpdef set_vector_idx(self, hyperparameter_to_idx):
         for component in self.components:
             component.set_vector_idx(hyperparameter_to_idx)
@@ -431,7 +433,8 @@ cdef class ForbiddenAndConjunction(AbstractForbiddenConjunction):
     >>> forbidden_clause_a = ForbiddenEqualsClause(cs["a"], 2)
     >>> forbidden_clause_b = ForbiddenInClause(cs["b"], [2])
     >>>
-    >>> forbidden_clause = ForbiddenAndConjunction(forbidden_clause_a, forbidden_clause_b)
+    >>> forbidden_clause = ForbiddenAndConjunction(
+    ...                   forbidden_clause_a, forbidden_clause_b)
     >>>
     >>> cs.add_forbidden_clause(forbidden_clause)
     (Forbidden: a == 2 && Forbidden: b in {2})
@@ -488,7 +491,7 @@ cdef class ForbiddenRelation(AbstractForbiddenComponent):
     cdef public right
     cdef public int[2] vector_ids
 
-    def __init__(self, left: Hyperparameter, right : Hyperparameter):
+    def __init__(self, left: Hyperparameter, right: Hyperparameter):
         if not isinstance(left, Hyperparameter):
             raise TypeError("Argument 'left' is not of type %s." % Hyperparameter)
         if not isinstance(right, Hyperparameter):
@@ -513,7 +516,8 @@ cdef class ForbiddenRelation(AbstractForbiddenComponent):
         return (self,)
 
     cpdef set_vector_idx(self, hyperparameter_to_idx):
-        self.vector_ids = (hyperparameter_to_idx[self.left.name], hyperparameter_to_idx[self.right.name])
+        self.vector_ids = (hyperparameter_to_idx[self.left.name],
+                           hyperparameter_to_idx[self.right.name])
 
     cpdef is_forbidden(self, instantiated_hyperparameters, strict):
         left = instantiated_hyperparameters.get(self.left.name)
@@ -562,11 +566,82 @@ cdef class ForbiddenRelation(AbstractForbiddenComponent):
             else:
                 return False
 
-        # Relation is always evaluated against actual value and not vector representation
-        return self._is_forbidden(self.left._transform(left), self.right._transform(right))
+        # Relation is always evaluated against actual value and
+        # not vector representation
+        return self._is_forbidden(self.left._transform(left),
+                                  self.right._transform(right))
 
     cdef int _is_forbidden_vector(self, DTYPE_t left, DTYPE_t right) except -1:
         pass
+
+
+cdef class ForbiddenCallableRelation(ForbiddenRelation):
+    """A ForbiddenCallable relation between two hyperparameters.
+
+    The ForbiddenCallable uses two hyperparameters as input to a
+    specified callable, which returns True if the relationship
+    between the two hyperparameters is forbidden.
+    
+    A ForbiddenCallableRelation may not be serializable.
+    :func:`ConfigSpace.read_and_write.write` will attempt to pickle and base64 encode
+    the callable with pickle_callables=True. However, the unpicklability
+    of the callable cannot be assured.
+
+    >>> from ConfigSpace import ConfigurationSpace, ForbiddenCallableRelation
+    >>>
+    >>> cs = ConfigurationSpace({"a": [1, 2, 3], "b": [2, 5, 6]})
+    >>>
+    >>> forbidden_clause = ForbiddenCallableRelation(cs['a'], cs['b'], lambda a, b: a + b > 10)
+    >>> cs.add_forbidden_clause(forbidden_clause)
+    Forbidden: f(a,b) == True
+
+    Parameters
+    ----------
+     left : :ref:`Hyperparameters`
+         first argument of callable
+
+     right : :ref:`Hyperparameters`
+         second argument of callable
+
+     f : Callable
+         callable that relates the two hyperparameters
+    """
+    cdef public f
+
+    def __init__(self, left: Hyperparameter, right: Hyperparameter,
+                 f: ForbiddenCallable):
+        if not isinstance(f, Callable):  # Can't use ForbiddenCallable here apparently
+            raise TypeError("Argument 'f' is not of type %s." % Callable)
+
+        super().__init__(left, right)
+        self.f = f
+
+    def __eq__(self, other: Any) -> bool:
+        if not isinstance(other, self.__class__):
+            return False
+        return super().__eq__(other) and self.f == other.f
+
+    def __copy__(self):
+        return self.__class__(
+            a=copy.copy(self.left),
+            b=copy.copy(self.right),
+            f=copy.copy(self.f)
+        )
+
+    def __repr__(self):
+        if hasattr(self.f, "__qualname__"):
+            f_repr = self.f.__qualname__
+        elif hasattr(self.f, "__class__"):
+            f_repr = self.__class__.__qualname__
+        else:
+            raise ValueError("Could not find a qualname for the callable") 
+        return f"Forbidden: {f_repr} | Arguments: {self.left.name}, {self.right.name}"
+
+    cdef int _is_forbidden(self, left, right) except -1:
+        return self.f(left, right)
+
+    cdef int _is_forbidden_vector(self, DTYPE_t left, DTYPE_t right) except -1:
+        return self.f(left, right)
 
 
 cdef class ForbiddenLessThanRelation(ForbiddenRelation):
