@@ -36,11 +36,11 @@ from ConfigSpace.hyperparameters_ import (
     IntegerHyperparameter,
     UniformIntegerHyperparameter,
     UniformFloatHyperparameter,
+    NormalIntegerHyperparameter,
+    NormalFloatHyperparameter,
 )
 from ConfigSpace.hyperparameters import (
     CategoricalHyperparameter,
-    NormalIntegerHyperparameter,
-    NormalFloatHyperparameter,
     OrdinalHyperparameter,
     Constant,
 )

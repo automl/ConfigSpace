@@ -3,11 +3,11 @@ from __future__ import annotations
 from typing import overload
 
 from ConfigSpace.api.distributions import Beta, Distribution, Normal, Uniform
-from ConfigSpace.hyperparameters_ import UniformIntegerHyperparameter
-from ConfigSpace.hyperparameters import (
-    BetaIntegerHyperparameter,
+from ConfigSpace.hyperparameters_ import (
+    UniformIntegerHyperparameter,
     NormalIntegerHyperparameter,
 )
+from ConfigSpace.hyperparameters import BetaIntegerHyperparameter
 
 
 # Uniform | None -> UniformIntegerHyperparameter

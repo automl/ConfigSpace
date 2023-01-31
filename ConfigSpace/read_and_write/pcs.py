@@ -23,12 +23,12 @@ from ConfigSpace.hyperparameters_ import (
     IntegerHyperparameter,
     UniformIntegerHyperparameter,
     UniformFloatHyperparameter,
+    NormalIntegerHyperparameter,
+    NormalFloatHyperparameter,
 )
 from ConfigSpace.hyperparameters import (
     CategoricalHyperparameter,
     Constant,
-    NormalIntegerHyperparameter,
-    NormalFloatHyperparameter,
 )
 from ConfigSpace.conditions import (
     EqualsCondition,

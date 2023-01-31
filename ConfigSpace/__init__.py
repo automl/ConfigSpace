@@ -44,14 +44,15 @@ from ConfigSpace.forbidden import (ForbiddenAndConjunction,
                                    ForbiddenLessThanRelation)
 from ConfigSpace.hyperparameters import (BetaFloatHyperparameter,
                                          BetaIntegerHyperparameter,
-                                         CategoricalHyperparameter, Constant,
-                                         NormalFloatHyperparameter,
-                                         NormalIntegerHyperparameter,
+                                         CategoricalHyperparameter,
+                                         Constant,
                                          OrdinalHyperparameter,
                                          UnParametrizedHyperparameter)
 from ConfigSpace.hyperparameters_ import (
     UniformFloatHyperparameter,
     UniformIntegerHyperparameter,
+    NormalIntegerHyperparameter,
+    NormalFloatHyperparameter,
 )
 import ConfigSpace.api.distributions as distributions
 import ConfigSpace.api.types as types
