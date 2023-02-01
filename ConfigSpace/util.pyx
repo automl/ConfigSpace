@@ -38,12 +38,10 @@ from ConfigSpace.exceptions import ForbiddenValueError
 from ConfigSpace.hyperparameters import (
     CategoricalHyperparameter,
     Constant,
-    OrdinalHyperparameter,
-)
-from ConfigSpace.hyperparameters_ import (
     NumericalHyperparameter,
-    UniformFloatHyperparameter,
+    OrdinalHyperparameter,
     UniformIntegerHyperparameter,
+    UniformFloatHyperparameter,
 )
 import ConfigSpace.c_util
 cimport cython

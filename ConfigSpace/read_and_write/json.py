@@ -6,18 +6,18 @@ from typing import Dict
 
 from ConfigSpace import __version__
 from ConfigSpace.configuration_space import ConfigurationSpace
-from ConfigSpace.hyperparameters_ import Hyperparameter
 from ConfigSpace.hyperparameters import (
+    BetaFloatHyperparameter,
+    BetaIntegerHyperparameter,
     CategoricalHyperparameter,
-    UniformIntegerHyperparameter,
-    UniformFloatHyperparameter,
+    Hyperparameter,
     NormalIntegerHyperparameter,
     NormalFloatHyperparameter,
     OrdinalHyperparameter,
     Constant,
+    UniformIntegerHyperparameter,
+    UniformFloatHyperparameter,
     UnParametrizedHyperparameter,
-    BetaFloatHyperparameter,
-    BetaIntegerHyperparameter
 )
 from ConfigSpace.conditions import (
     AbstractCondition,

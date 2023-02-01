@@ -35,16 +35,14 @@ import numpy as np
 import io
 
 import ConfigSpace.nx
-from ConfigSpace.hyperparameters_ import (
-    Hyperparameter,
-    FloatHyperparameter,
-    UniformIntegerHyperparameter,
-    UniformFloatHyperparameter,
-)
 from ConfigSpace.hyperparameters import (
     Constant,
     CategoricalHyperparameter,
+    Hyperparameter,
+    FloatHyperparameter,
     OrdinalHyperparameter,
+    UniformIntegerHyperparameter,
+    UniformFloatHyperparameter,
 )
 from ConfigSpace.conditions import (
     ConditionComponent,

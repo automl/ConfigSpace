@@ -13,10 +13,10 @@ from typing import Any
 import pytest
 
 from ConfigSpace import ConfigurationSpace
-from ConfigSpace.hyperparameters_ import Hyperparameter
 from ConfigSpace.hyperparameters import (
     CategoricalHyperparameter,
     Constant,
+    Hyperparameter,
     NormalFloatHyperparameter,
     UniformFloatHyperparameter,
     UniformIntegerHyperparameter,

@@ -45,10 +45,10 @@ cimport numpy as np
 np.import_array()
 
 from ConfigSpace.functional import center_range, arange_chunked
-from ConfigSpace.hyperparameters_.hyperparameter cimport Hyperparameter
-from ConfigSpace.hyperparameters_.uniform_float cimport UniformFloatHyperparameter
-from ConfigSpace.hyperparameters_.uniform_integer cimport UniformIntegerHyperparameter
-from ConfigSpace.hyperparameters_.normal_float cimport NormalFloatHyperparameter
+from ConfigSpace.hyperparameters.hyperparameter cimport Hyperparameter
+from ConfigSpace.hyperparameters.uniform_float cimport UniformFloatHyperparameter
+from ConfigSpace.hyperparameters.uniform_integer cimport UniformIntegerHyperparameter
+from ConfigSpace.hyperparameters.normal_float cimport NormalFloatHyperparameter
 
 # OPTIM: Some operations generate an arange which could blowup memory if
 # done over the entire space of integers (int32/64).

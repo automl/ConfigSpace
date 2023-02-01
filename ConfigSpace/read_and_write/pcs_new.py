@@ -30,19 +30,17 @@ from io import StringIO
 import pyparsing
 
 from ConfigSpace.configuration_space import ConfigurationSpace
-from ConfigSpace.hyperparameters_ import (
+from ConfigSpace.hyperparameters import (
+    CategoricalHyperparameter,
+    Constant,
     NumericalHyperparameter,
     FloatHyperparameter,
     IntegerHyperparameter,
-    UniformIntegerHyperparameter,
-    UniformFloatHyperparameter,
     NormalIntegerHyperparameter,
     NormalFloatHyperparameter,
-)
-from ConfigSpace.hyperparameters import (
-    CategoricalHyperparameter,
     OrdinalHyperparameter,
-    Constant,
+    UniformIntegerHyperparameter,
+    UniformFloatHyperparameter,
 )
 from ConfigSpace.conditions import (
     EqualsCondition,
