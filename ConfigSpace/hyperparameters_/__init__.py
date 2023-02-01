@@ -9,8 +9,11 @@ from .uniform_float import UniformFloatHyperparameter
 from .uniform_integer import UniformIntegerHyperparameter
 from .normal_float import NormalFloatHyperparameter
 from .normal_integer import NormalIntegerHyperparameter
+from .beta_float import BetaFloatHyperparameter
+from .beta_integer import BetaIntegerHyperparameter
 
 __all__ = ["Hyperparameter", "Constant", "UnParametrizedHyperparameter", "OrdinalHyperparameter",
            "CategoricalHyperparameter", "NumericalHyperparameter", "FloatHyperparameter",
            "IntegerHyperparameter", "UniformFloatHyperparameter", "UniformIntegerHyperparameter",
-           "NormalFloatHyperparameter", "NormalIntegerHyperparameter"]
+           "NormalFloatHyperparameter", "NormalIntegerHyperparameter", "BetaFloatHyperparameter",
+           "BetaIntegerHyperparameter"]

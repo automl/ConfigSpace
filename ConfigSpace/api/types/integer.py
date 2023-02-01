@@ -6,8 +6,8 @@ from ConfigSpace.api.distributions import Beta, Distribution, Normal, Uniform
 from ConfigSpace.hyperparameters_ import (
     UniformIntegerHyperparameter,
     NormalIntegerHyperparameter,
+    BetaIntegerHyperparameter,
 )
-from ConfigSpace.hyperparameters import BetaIntegerHyperparameter
 
 
 # Uniform | None -> UniformIntegerHyperparameter
