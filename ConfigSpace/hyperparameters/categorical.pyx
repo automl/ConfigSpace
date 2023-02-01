@@ -54,7 +54,8 @@ DTYPE = float
 ctypedef np.float_t DTYPE_t
 
 from ConfigSpace.functional import center_range, arange_chunked
-from ConfigSpace.hyperparameters_.hyperparameter cimport Hyperparameter
+from ConfigSpace.hyperparameters.hyperparameter cimport Hyperparameter
+from ConfigSpace.hyperparameters.hyperparameter import Hyperparameter
 
 # OPTIM: Some operations generate an arange which could blowup memory if
 # done over the entire space of integers (int32/64).
