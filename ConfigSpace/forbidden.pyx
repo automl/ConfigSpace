@@ -30,7 +30,7 @@ import copy
 import numpy as np
 import io
 from ConfigSpace.hyperparameters import Hyperparameter
-from ConfigSpace.hyperparameters cimport Hyperparameter
+from ConfigSpace.hyperparameters.hyperparameter cimport Hyperparameter
 from typing import List, Dict, Any, Union
 
 from ConfigSpace.forbidden cimport AbstractForbiddenComponent

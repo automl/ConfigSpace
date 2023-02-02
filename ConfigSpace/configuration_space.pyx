@@ -39,8 +39,8 @@ from ConfigSpace.hyperparameters import (
     Hyperparameter,
     Constant,
     FloatHyperparameter,
-    UniformFloatHyperparameter,
     UniformIntegerHyperparameter,
+    UniformFloatHyperparameter,
     CategoricalHyperparameter,
     OrdinalHyperparameter,
 )

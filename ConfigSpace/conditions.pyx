@@ -38,7 +38,7 @@ from libc.stdlib cimport malloc, free
 
 import numpy as np
 
-from ConfigSpace.hyperparameters cimport Hyperparameter
+from ConfigSpace.hyperparameters.hyperparameter cimport Hyperparameter
 
 cimport numpy as np
 

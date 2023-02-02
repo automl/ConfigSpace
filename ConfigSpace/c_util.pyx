@@ -4,7 +4,7 @@ import numpy as np
 from ConfigSpace.forbidden import AbstractForbiddenComponent
 from ConfigSpace.forbidden cimport AbstractForbiddenComponent
 from ConfigSpace.hyperparameters import Hyperparameter
-from ConfigSpace.hyperparameters cimport Hyperparameter
+from ConfigSpace.hyperparameters.hyperparameter cimport Hyperparameter
 from ConfigSpace.conditions import ConditionComponent
 from ConfigSpace.conditions cimport ConditionComponent
 from ConfigSpace.conditions import OrConjunction

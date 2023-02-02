@@ -118,7 +118,56 @@ if PROFILING:
 
 EXTENSIONS = [
     Extension(
-        "ConfigSpace.hyperparameters", sources=["ConfigSpace/hyperparameters.pyx"]
+        "ConfigSpace.hyperparameters.beta_float",
+        sources=["ConfigSpace/hyperparameters/beta_float.pyx"]
+    ),
+    Extension(
+        "ConfigSpace.hyperparameters.beta_integer",
+        sources=["ConfigSpace/hyperparameters/beta_integer.pyx"]
+    ),
+    Extension(
+        "ConfigSpace.hyperparameters.categorical",
+        sources=["ConfigSpace/hyperparameters/categorical.pyx"]
+    ),
+    Extension(
+        "ConfigSpace.hyperparameters.constant",
+        sources=["ConfigSpace/hyperparameters/constant.pyx"]
+    ),
+    Extension(
+        "ConfigSpace.hyperparameters.float_hyperparameter",
+        sources=["ConfigSpace/hyperparameters/float_hyperparameter.pyx"]
+    ),
+    Extension(
+        "ConfigSpace.hyperparameters.hyperparameter",
+        sources=["ConfigSpace/hyperparameters/hyperparameter.pyx"]
+    ),
+    Extension(
+        "ConfigSpace.hyperparameters.integer_hyperparameter",
+        sources=["ConfigSpace/hyperparameters/integer_hyperparameter.pyx"]
+    ),
+    Extension(
+        "ConfigSpace.hyperparameters.normal_float",
+        sources=["ConfigSpace/hyperparameters/normal_float.pyx"]
+    ),
+    Extension(
+        "ConfigSpace.hyperparameters.normal_integer",
+        sources=["ConfigSpace/hyperparameters/normal_integer.pyx"]
+    ),
+    Extension(
+        "ConfigSpace.hyperparameters.numerical",
+        sources=["ConfigSpace/hyperparameters/numerical.pyx"]
+    ),
+    Extension(
+        "ConfigSpace.hyperparameters.ordinal",
+        sources=["ConfigSpace/hyperparameters/ordinal.pyx"]
+    ),
+    Extension(
+        "ConfigSpace.hyperparameters.uniform_float",
+        sources=["ConfigSpace/hyperparameters/uniform_float.pyx"]
+    ),
+    Extension(
+        "ConfigSpace.hyperparameters.uniform_integer",
+        sources=["ConfigSpace/hyperparameters/uniform_integer.pyx"]
     ),
     Extension("ConfigSpace.forbidden", sources=["ConfigSpace/forbidden.pyx"]),
     Extension("ConfigSpace.conditions", sources=["ConfigSpace/conditions.pyx"]),
