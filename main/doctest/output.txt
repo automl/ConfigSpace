@@ -1,5 +1,21 @@
-Results of doctest builder run on 2023-01-30 15:40:58
+Results of doctest builder run on 2023-02-02 19:02:38
 =====================================================
+
+Document: api/hyperparameters
+-----------------------------
+1 items passed all tests:
+  16 tests in default
+16 tests in 1 items.
+16 passed and 0 failed.
+Test passed.
+
+Document: quickstart
+--------------------
+1 items passed all tests:
+   5 tests in default
+5 tests in 1 items.
+5 passed and 0 failed.
+Test passed.
 
 Document: guide
 ---------------
@@ -28,22 +44,6 @@ Got:
 42 passed and 1 failed.
 ***Test Failed*** 1 failures.
 
-Document: api/conditions
-------------------------
-1 items passed all tests:
-  30 tests in default
-30 tests in 1 items.
-30 passed and 0 failed.
-Test passed.
-
-Document: api/hyperparameters
------------------------------
-1 items passed all tests:
-  16 tests in default
-16 tests in 1 items.
-16 passed and 0 failed.
-Test passed.
-
 Document: api/forbidden_clauses
 -------------------------------
 1 items passed all tests:
@@ -52,12 +52,12 @@ Document: api/forbidden_clauses
 14 passed and 0 failed.
 Test passed.
 
-Document: index
----------------
+Document: api/conditions
+------------------------
 1 items passed all tests:
-  13 tests in default
-13 tests in 1 items.
-13 passed and 0 failed.
+  30 tests in default
+30 tests in 1 items.
+30 passed and 0 failed.
 Test passed.
 
 Document: api/serialization
@@ -69,12 +69,12 @@ Document: api/serialization
 8 passed and 0 failed.
 Test passed.
 
-Document: quickstart
---------------------
+Document: index
+---------------
 1 items passed all tests:
-   5 tests in default
-5 tests in 1 items.
-5 passed and 0 failed.
+  13 tests in default
+13 tests in 1 items.
+13 passed and 0 failed.
 Test passed.
 
 Doctest summary
