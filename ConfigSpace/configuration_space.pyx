@@ -36,13 +36,13 @@ import io
 
 import ConfigSpace.nx
 from ConfigSpace.hyperparameters import (
-    Constant,
-    CategoricalHyperparameter,
     Hyperparameter,
+    Constant,
     FloatHyperparameter,
-    OrdinalHyperparameter,
     UniformIntegerHyperparameter,
     UniformFloatHyperparameter,
+    CategoricalHyperparameter,
+    OrdinalHyperparameter,
 )
 from ConfigSpace.conditions import (
     ConditionComponent,

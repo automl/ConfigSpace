@@ -4,9 +4,9 @@ from typing import overload
 
 from ConfigSpace.api.distributions import Beta, Distribution, Normal, Uniform
 from ConfigSpace.hyperparameters import (
-    UniformIntegerHyperparameter,
-    NormalIntegerHyperparameter,
     BetaIntegerHyperparameter,
+    NormalIntegerHyperparameter,
+    UniformIntegerHyperparameter,
 )
 
 

@@ -7,17 +7,17 @@ from typing import Dict
 from ConfigSpace import __version__
 from ConfigSpace.configuration_space import ConfigurationSpace
 from ConfigSpace.hyperparameters import (
-    BetaFloatHyperparameter,
-    BetaIntegerHyperparameter,
-    CategoricalHyperparameter,
     Hyperparameter,
+    CategoricalHyperparameter,
+    UniformIntegerHyperparameter,
+    UniformFloatHyperparameter,
     NormalIntegerHyperparameter,
     NormalFloatHyperparameter,
     OrdinalHyperparameter,
     Constant,
-    UniformIntegerHyperparameter,
-    UniformFloatHyperparameter,
     UnParametrizedHyperparameter,
+    BetaFloatHyperparameter,
+    BetaIntegerHyperparameter
 )
 from ConfigSpace.conditions import (
     AbstractCondition,

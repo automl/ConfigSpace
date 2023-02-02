@@ -42,18 +42,15 @@ from ConfigSpace.forbidden import (ForbiddenAndConjunction,
                                    ForbiddenGreaterThanRelation,
                                    ForbiddenInClause,
                                    ForbiddenLessThanRelation)
-from ConfigSpace.hyperparameters import (
-    BetaFloatHyperparameter,
-    BetaIntegerHyperparameter,
-    CategoricalHyperparameter,
-    Constant,
-    UniformFloatHyperparameter,
-    UniformIntegerHyperparameter,
-    NormalIntegerHyperparameter,
-    NormalFloatHyperparameter,
-    OrdinalHyperparameter,
-    UnParametrizedHyperparameter
-)
+from ConfigSpace.hyperparameters import (BetaFloatHyperparameter,
+                                         BetaIntegerHyperparameter,
+                                         CategoricalHyperparameter, Constant,
+                                         NormalFloatHyperparameter,
+                                         NormalIntegerHyperparameter,
+                                         OrdinalHyperparameter,
+                                         UniformFloatHyperparameter,
+                                         UniformIntegerHyperparameter,
+                                         UnParametrizedHyperparameter)
 import ConfigSpace.api.distributions as distributions
 import ConfigSpace.api.types as types
 

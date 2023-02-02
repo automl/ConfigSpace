@@ -3,11 +3,9 @@ from __future__ import annotations
 from typing import overload
 
 from ConfigSpace.api.distributions import Beta, Distribution, Normal, Uniform
-from ConfigSpace.hyperparameters import (
-    UniformFloatHyperparameter,
-    NormalFloatHyperparameter,
-    BetaFloatHyperparameter
-)
+from ConfigSpace.hyperparameters import (BetaFloatHyperparameter,
+                                         NormalFloatHyperparameter,
+                                         UniformFloatHyperparameter)
 
 
 # Uniform | None -> UniformFloatHyperparameter
