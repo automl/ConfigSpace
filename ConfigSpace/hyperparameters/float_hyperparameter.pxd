@@ -1,6 +1,6 @@
-from typing import Union
 import numpy as np
 cimport numpy as np
+np.import_array()
 
 # We now need to fix a datatype for our arrays. I've used the variable
 # DTYPE for this, which is assigned to the usual NumPy runtime
@@ -11,7 +11,6 @@ DTYPE = float
 # type with a _t-suffix.
 ctypedef np.float_t DTYPE_t
 
-from .numerical import NumericalHyperparameter
 from .numerical cimport NumericalHyperparameter
 
 
