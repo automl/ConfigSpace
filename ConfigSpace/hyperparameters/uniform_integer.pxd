@@ -11,7 +11,7 @@ DTYPE = float
 # type with a _t-suffix.
 ctypedef np.float_t DTYPE_t
 
-from .integer_hyperparameter cimport IntegerHyperparameter
+from ConfigSpace.hyperparameters.integer_hyperparameter cimport IntegerHyperparameter
 
 
 cdef class UniformIntegerHyperparameter(IntegerHyperparameter):

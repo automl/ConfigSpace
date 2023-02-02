@@ -14,7 +14,6 @@ DTYPE = float
 ctypedef np.float_t DTYPE_t
 
 from ConfigSpace.hyperparameters.hyperparameter cimport Hyperparameter
-from ConfigSpace.hyperparameters.hyperparameter import Hyperparameter
 
 
 cdef class Constant(Hyperparameter):
