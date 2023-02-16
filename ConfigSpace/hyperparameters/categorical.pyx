@@ -236,7 +236,7 @@ cdef class CategoricalHyperparameter(Hyperparameter):
     def check_default(self, default_value: Union[None, str, float, int]
                       ) -> Union[str, float, int]:
         if default_value is None:
-            return self.choices[0]
+            return self.choices[np.argmax(self.weights) if hasattr(self, "weights") else 0]
         elif self.is_legal(default_value):
             return default_value
         else:
