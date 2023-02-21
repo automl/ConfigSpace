@@ -1838,6 +1838,14 @@ class TestHyperparameters(unittest.TestCase):
         ):
             CategoricalHyperparameter('param', ['a', None])
 
+    def test_categorical_default(self):
+        # Test that the default value is the most probable choice when weights are given
+        f1 = CategoricalHyperparameter("param", ["a", "b"])
+        f2 = CategoricalHyperparameter("param", ["a", "b"], weights=[0.3, 0.6])
+        f3 = CategoricalHyperparameter("param", ["a", "b"], weights=[0.6, 0.3])
+        self.assertNotEqual(f1.default_value, f2.default_value)
+        self.assertEqual(f1.default_value, f3.default_value)
+
     def test_sample_UniformFloatHyperparameter(self):
         # This can sample four distributions
         def sample(hp):
