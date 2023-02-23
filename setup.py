@@ -186,6 +186,7 @@ extras_reqs = {
         "pre-commit",
         "pytest-cov",
         "automl_sphinx_theme>=0.1.11",
+        "build",
     ],
 }
 
