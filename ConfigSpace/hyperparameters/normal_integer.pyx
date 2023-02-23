@@ -252,7 +252,7 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
         neighbors: set[int] = set()
         center = self._transform(value)
 
-        if bounded:
+        if not bounded:
             float_indices = norm.rvs(
                 loc=mu,
                 scale=sigma,
@@ -260,11 +260,14 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
                 random_state=rs,
             )
         else:
-            float_indices = truncnorm(
+            dist = truncnorm(
                 a = (self.lower - mu) / sigma,
                 b = (self.upper - mu) / sigma,
                 loc=center,
                 scale=sigma,
+            )
+
+            float_indices = dist.rvs(
                 size=number,
                 random_state=rs,
             )
@@ -298,10 +301,10 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
             # We now have a valid sample, add it to the list of neighbors
             neighbors.add(possible_neighbor)
 
-            if transform:
-                return [self._transform(neighbor) for neighbor in neighbors]
-            else:
-                return list(neighbors)
+        if transform:
+            return [self._transform(neighbor) for neighbor in neighbors]
+        else:
+            return list(neighbors)
 
     def _compute_normalization(self):
         if self.lower is None:
