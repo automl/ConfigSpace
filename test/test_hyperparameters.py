@@ -1259,6 +1259,16 @@ class TestHyperparameters(unittest.TestCase):
         for int_hp in (f1, f2, f3, f4, f5):
             self.assertTrue(np.isinf(int_hp.get_size()))
 
+        # Unbounded case
+        f1 = NormalIntegerHyperparameter("param", 0, 10, q=1)
+        self.assertEqual(f1.get_neighbors(2, np.random.RandomState(9001), number=1), [1])
+        self.assertEqual(f1.get_neighbors(2, np.random.RandomState(9001), number=5), [0, 1, 9, 16, -1])
+
+        # Bounded case
+        f1 = NormalIntegerHyperparameter("param", 0, 10, q=1, lower=-100, upper=100)
+        self.assertEqual(f1.get_neighbors(2, np.random.RandomState(9001), number=1), [-11])
+        self.assertEqual(f1.get_neighbors(2, np.random.RandomState(9001), number=5), [4, 11, 12, 15, -11])
+
     def test_normalint_legal_float_values(self):
         n_iter = NormalIntegerHyperparameter("n_iter", 0, 1., default_value=2.0)
         self.assertIsInstance(n_iter.default_value, int)
