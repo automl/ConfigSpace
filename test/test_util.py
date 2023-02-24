@@ -34,8 +34,10 @@ import numpy as np
 
 from ConfigSpace import Configuration, ConfigurationSpace, UniformIntegerHyperparameter, \
     UniformFloatHyperparameter, CategoricalHyperparameter, Constant, OrdinalHyperparameter, \
-    EqualsCondition, AndConjunction, OrConjunction, LessThanCondition, GreaterThanCondition
+    EqualsCondition, AndConjunction, OrConjunction, LessThanCondition, GreaterThanCondition, \
+    Float, Normal
 from ConfigSpace.read_and_write.pcs import read
+from ConfigSpace.read_and_write import json
 from ConfigSpace.util import impute_inactive_values, get_random_neighbor, \
     get_one_exchange_neighbourhood, deactivate_inactive_hyperparameters, fix_types, generate_grid
 import ConfigSpace.c_util
@@ -531,3 +533,10 @@ class UtilTest(unittest.TestCase):
         # Check 1st and last generated configurations completely:
         self.assertEqual(generated_grid[0].get_dictionary()['float1'], -1.0)
         self.assertEqual(generated_grid[-1].get_dictionary()['float1'], 1.0)
+
+    def test_hyperparameter_json_serialization(self):
+
+        p = Float("p", bounds=(1e-5, 1e-1), default=0.01, log=True, distribution=Normal(1.0, 0.6))
+        cs1 = ConfigurationSpace(space={"p": p})
+        cs2 = json.read(json.write(cs1))
+        self.assertEqual(cs1, cs2)
