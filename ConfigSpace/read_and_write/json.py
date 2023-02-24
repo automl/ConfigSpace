@@ -80,7 +80,9 @@ def _build_normal_float(param: NormalFloatHyperparameter) -> Dict:
         'log': param.log,
         'mu': param.mu,
         'sigma': param.sigma,
-        'default': param.default_value
+        'default': param.default_value,
+        'lower': param.lower,
+        'upper': param.upper
     }
 
 
@@ -482,6 +484,8 @@ def _construct_hyperparameter(hyperparameter: Dict) -> Hyperparameter:
             log=hyperparameter['log'],
             mu=hyperparameter['mu'],
             sigma=hyperparameter['sigma'],
+            lower=hyperparameter['lower'],
+            upper=hyperparameter['upper'],
             default_value=hyperparameter['default'],
         )
     elif hp_type == 'uniform_int':
