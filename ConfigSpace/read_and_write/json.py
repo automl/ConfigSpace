@@ -69,7 +69,8 @@ def _build_uniform_float(param: UniformFloatHyperparameter) -> Dict:
         'log': param.log,
         'lower': param.lower,
         'upper': param.upper,
-        'default': param.default_value
+        'default': param.default_value,
+        'q': param.q,
     }
 
 
@@ -82,7 +83,8 @@ def _build_normal_float(param: NormalFloatHyperparameter) -> Dict:
         'sigma': param.sigma,
         'default': param.default_value,
         'lower': param.lower,
-        'upper': param.upper
+        'upper': param.upper,
+        'q': param.q,
     }
 
 
@@ -104,7 +106,8 @@ def _build_uniform_int(param: UniformIntegerHyperparameter) -> Dict:
         'log': param.log,
         'lower': param.lower,
         'upper': param.upper,
-        'default': param.default_value
+        'default': param.default_value,
+        'q': param.q,
     }
 
 
@@ -115,7 +118,10 @@ def _build_normal_int(param: NormalIntegerHyperparameter) -> Dict:
         'log': param.log,
         'mu': param.mu,
         'sigma': param.sigma,
-        'default': param.default_value
+        'lower': param.lower,
+        'upper': param.upper,
+        'default': param.default_value,
+        'q': param.q,
     }
 
 
@@ -477,6 +483,7 @@ def _construct_hyperparameter(hyperparameter: Dict) -> Hyperparameter:
             lower=hyperparameter['lower'],
             upper=hyperparameter['upper'],
             default_value=hyperparameter['default'],
+            q=hyperparameter['q'],
         )
     elif hp_type == 'normal_float':
         return NormalFloatHyperparameter(
@@ -487,6 +494,7 @@ def _construct_hyperparameter(hyperparameter: Dict) -> Hyperparameter:
             lower=hyperparameter['lower'],
             upper=hyperparameter['upper'],
             default_value=hyperparameter['default'],
+            q=hyperparameter['q'],
         )
     elif hp_type == 'uniform_int':
         return UniformIntegerHyperparameter(
@@ -495,14 +503,18 @@ def _construct_hyperparameter(hyperparameter: Dict) -> Hyperparameter:
             lower=hyperparameter['lower'],
             upper=hyperparameter['upper'],
             default_value=hyperparameter['default'],
+            q=hyperparameter['q'],
         )
     elif hp_type == 'normal_int':
         return NormalIntegerHyperparameter(
             name=name,
+            mu=hyperparameter['mu'],
+            sigma=hyperparameter['sigma'],
             log=hyperparameter['log'],
             lower=hyperparameter['lower'],
             upper=hyperparameter['upper'],
             default_value=hyperparameter['default'],
+            q=hyperparameter['q'],
         )
     elif hp_type == 'categorical':
         return CategoricalHyperparameter(
