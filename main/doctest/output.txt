@@ -1,4 +1,4 @@
-Results of doctest builder run on 2023-03-30 12:02:29
+Results of doctest builder run on 2023-03-30 13:09:00
 =====================================================
 
 Document: quickstart
@@ -60,6 +60,14 @@ Got:
 42 passed and 1 failed.
 ***Test Failed*** 1 failures.
 
+Document: index
+---------------
+1 items passed all tests:
+  13 tests in default
+13 tests in 1 items.
+13 passed and 0 failed.
+Test passed.
+
 Document: api/serialization
 ---------------------------
 2 items passed all tests:
@@ -67,14 +75,6 @@ Document: api/serialization
    2 tests in pcs_new_test
 8 tests in 2 items.
 8 passed and 0 failed.
-Test passed.
-
-Document: index
----------------
-1 items passed all tests:
-  13 tests in default
-13 tests in 1 items.
-13 passed and 0 failed.
 Test passed.
 
 Doctest summary
