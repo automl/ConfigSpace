@@ -22,5 +22,5 @@ repos:
     rev: v0.14.0
     hooks:
     -   id: cython-lint
-        args: [--no-pycodestyle]
+        args: [--ignore=E501]
     -   id: double-quote-cython-strings
