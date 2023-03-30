@@ -174,20 +174,20 @@ cdef class OrdinalHyperparameter(Hyperparameter):
         if np.equal(np.mod(vector, 1), 0):
             return self.sequence[vector.astype(int)]
 
-        raise ValueError('Can only index the choices of the ordinal '
-                         'hyperparameter %s with an integer, but provided '
-                         'the following float: %f' % (self, vector))
+        raise ValueError("Can only index the choices of the ordinal "
+                         "hyperparameter %s with an integer, but provided "
+                         "the following float: %f" % (self, vector))
 
     def _transform_scalar(self, scalar: Union[float, int]) -> Union[float, int, str]:
         if scalar != scalar:
-            raise ValueError('Number %s is NaN' % scalar)
+            raise ValueError("Number %s is NaN" % scalar)
 
         if scalar % 1 == 0:
             return self.sequence[int(scalar)]
 
-        raise ValueError('Can only index the choices of the ordinal '
-                         'hyperparameter %s with an integer, but provided '
-                         'the following float: %f' % (self, scalar))
+        raise ValueError("Can only index the choices of the ordinal "
+                         "hyperparameter %s with an integer, but provided "
+                         "the following float: %f" % (self, scalar))
 
     def _transform(self, vector: Union[np.ndarray, float, int]
                    ) -> Optional[Union[np.ndarray, float, int]]:
@@ -346,7 +346,7 @@ cdef class OrdinalHyperparameter(Hyperparameter):
             Probability density values of the input vector
         """
         if not np.all(np.isin(vector, self.sequence)):
-            raise ValueError(f'Some element in the vector {vector} is not in the sequence {self.sequence}.')
+            raise ValueError(f"Some element in the vector {vector} is not in the sequence {self.sequence}.")
         return np.ones_like(vector, dtype=np.float64) / self.num_elements
 
     def get_max_density(self) -> float:

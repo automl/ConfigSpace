@@ -83,7 +83,7 @@ cdef class UniformFloatHyperparameter(FloatHyperparameter):
             # Out[13]: 0.1999999999999998
             if np.round((self.upper - self.lower) % self.q, 10) not in (0, self.q):
                 raise ValueError(
-                    'Upper bound (%f) - lower bound (%f) must be a multiple of q (%f)'
+                    "Upper bound (%f) - lower bound (%f) must be a multiple of q (%f)"
                     % (self.upper, self.lower, self.q)
                 )
 
@@ -128,7 +128,7 @@ cdef class UniformFloatHyperparameter(FloatHyperparameter):
         else:
             raise ValueError("Illegal default value %s" % str(default_value))
 
-    def to_integer(self) -> 'UniformIntegerHyperparameter':
+    def to_integer(self) -> "UniformIntegerHyperparameter":
         # TODO check if conversion makes sense at all (at least two integer values possible!)
         # todo check if params should be converted to int while class initialization
         # or inside class itself
@@ -158,7 +158,7 @@ cdef class UniformFloatHyperparameter(FloatHyperparameter):
 
     cpdef double _transform_scalar(self, double scalar):
         if scalar != scalar:
-            raise ValueError('Number %s is NaN' % scalar)
+            raise ValueError("Number %s is NaN" % scalar)
         scalar = scalar * (self._upper - self._lower) + self._lower
         if self.log:
             scalar = math.exp(scalar)
