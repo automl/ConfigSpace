@@ -4,7 +4,7 @@
 # These have been configured to only really run short tasks. Longer form tasks
 # are usually completed in github actions.
 
-.PHONY: help install-dev install-test install-docs pre-commit clean clean-doc clean-build build docs links publish test
+.PHONY: help install-dev install-test install-docs pre-commit clean clean-doc clean-build build docs links publish test clean-test
 
 help:
 	@echo "Makefile ConfigSpace"
@@ -100,3 +100,5 @@ publish:
 
 test:
 	$(PYTEST) test
+
+clean-test: clean-build build test
