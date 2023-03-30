@@ -9,6 +9,8 @@ from ConfigSpace import (
     ForbiddenInClause,
     CategoricalHyperparameter,
     ConfigurationSpace,
+    Float,
+    Normal,
 )
 
 
@@ -62,3 +64,10 @@ class TestJson(unittest.TestCase):
                 new_cs = read(json_string)
 
                 self.assertEqual(new_cs, cs)
+
+    def test_hyperparameter_json_serialization(self):
+
+        p = Float("p", bounds=(1e-5, 1e-1), default=0.01, log=True, distribution=Normal(1.0, 0.6))
+        cs1 = ConfigurationSpace(space={"p": p})
+        cs2 = read(write(cs1))
+        self.assertEqual(cs1, cs2)
