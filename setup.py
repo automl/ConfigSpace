@@ -181,13 +181,17 @@ EXTENSIONS = [
 
 extras_reqs = {
     "dev": [
-        "pytest>=4.6",
         "mypy",
         "pre-commit",
-        "pytest-cov",
-        "automl_sphinx_theme>=0.1.11",
         "build",
     ],
+    "test": [
+        "pytest>=4.6",
+        "pytest-cov",
+    ],
+    "docs": [
+        "automl_sphinx_theme>=0.1.11",
+    ]
 }
 
 
