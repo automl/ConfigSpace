@@ -10,7 +10,9 @@ from ConfigSpace import (
     CategoricalHyperparameter,
     ConfigurationSpace,
     Float,
+    Integer,
     Normal,
+    Uniform,
 )
 
 
@@ -65,9 +67,28 @@ class TestJson(unittest.TestCase):
 
                 self.assertEqual(new_cs, cs)
 
-    def test_hyperparameter_json_serialization(self):
+    def test_float_hyperparameter_json_serialization(self):
+        # Test for NormalFloatHyperparameter
+        p = Float("p", bounds=(1., 9.), default=05.0, q=2, log=True, distribution=Normal(1.0, 0.6))
+        cs1 = ConfigurationSpace(space={"p": p})
+        cs2 = read(write(cs1))
+        self.assertEqual(cs1, cs2)
 
-        p = Float("p", bounds=(1e-5, 1e-1), default=0.01, log=True, distribution=Normal(1.0, 0.6))
+        # Test for UniformFloatHyperparameter
+        p = Float("p", bounds=(1., 9.), default=2., q=2, log=True, distribution=Uniform())
+        cs1 = ConfigurationSpace(space={"p": p})
+        cs2 = read(write(cs1))
+        self.assertEqual(cs1, cs2)
+
+    def test_integer_hyperparameter_json_serialization(self):
+        # Test for NormalIntegerHyperparameter
+        p = Integer("p", bounds=(1, 17), default=2, q=2, log=True, distribution=Normal(1.0, 0.6))
+        cs1 = ConfigurationSpace(space={"p": p})
+        cs2 = read(write(cs1))
+        self.assertEqual(cs1, cs2)
+
+        # Test for UniformIntegerHyperparameter
+        p = Integer("p", bounds=(1, 17), default=2, q=2, log=True, distribution=Uniform())
         cs1 = ConfigurationSpace(space={"p": p})
         cs2 = read(write(cs1))
         self.assertEqual(cs1, cs2)
