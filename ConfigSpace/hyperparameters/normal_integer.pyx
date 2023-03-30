@@ -1,7 +1,7 @@
 from itertools import count
 import io
 from more_itertools import roundrobin
-from typing import List, Any, Dict, Union, Set, Tuple, Optional, Sequence
+from typing import List, Any, Dict, Union, Optional
 import warnings
 
 from scipy.stats import truncnorm, norm
@@ -95,12 +95,12 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
             self.lower = self.check_int(lower, "lower")
             if self.lower >= self.upper:
                 raise ValueError("Upper bound %d must be larger than lower bound "
-                                "%d for hyperparameter %s" %
-                                (self.lower, self.upper, name))
+                                 "%d for hyperparameter %s" %
+                                 (self.lower, self.upper, name))
             elif log and self.lower <= 0:
                 raise ValueError("Negative lower bound (%d) for log-scale "
-                                "hyperparameter %s is forbidden." %
-                                (self.lower, name))
+                                 "hyperparameter %s is forbidden." %
+                                 (self.lower, name))
             self.lower = lower
             self.upper = upper
 
@@ -180,7 +180,7 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
             meta=self.meta
         )
 
-    def to_uniform(self, z: int = 3) -> 'UniformIntegerHyperparameter':
+    def to_uniform(self, z: int = 3) -> "UniformIntegerHyperparameter":
         if self.lower is None or self.upper is None:
             lb = np.round(int(self.mu - (z * self.sigma)))
             ub = np.round(int(self.mu + (z * self.sigma)))
@@ -308,8 +308,8 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
 
     def _compute_normalization(self):
         if self.lower is None:
-            warnings.warn('Cannot normalize the pdf exactly for a NormalIntegerHyperparameter'
-            f' {self.name} without bounds. Skipping normalization for that hyperparameter.')
+            warnings.warn("Cannot normalize the pdf exactly for a NormalIntegerHyperparameter"
+                          f" {self.name} without bounds. Skipping normalization for that hyperparameter.")
             return 1
 
         else:

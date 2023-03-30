@@ -39,7 +39,6 @@ cpdef int check_configuration(
     bint allow_inactive_with_values
 ) except 1:
     cdef str hp_name
-    cdef int hp_index
     cdef Hyperparameter hyperparameter
     cdef int hyperparameter_idx
     cdef DTYPE_t hp_value
@@ -47,7 +46,6 @@ cpdef int check_configuration(
     cdef ConditionComponent condition
     cdef Hyperparameter child
     cdef list conditions
-    cdef list parents
     cdef list children
     cdef set inactive
     cdef set visited
@@ -83,7 +81,6 @@ cpdef int check_configuration(
         children = self._children_of[hp_name]
         for child in children:
             if child.name not in inactive:
-                parents = self._parents_of[child.name]
                 conditions = self._parent_conditions_of[child.name]
                 add = True
                 for condition in conditions:
@@ -267,7 +264,6 @@ cpdef np.ndarray change_hp_value(
     cdef list disabled
     cdef set hps_to_be_activate
     cdef set visited
-    cdef dict activated_values
     cdef int active
     cdef ConditionComponent condition
     cdef int current_idx
@@ -298,7 +294,6 @@ cpdef np.ndarray change_hp_value(
         to_visit = deque()  # type: deque
         to_visit.extendleft(children)
         visited = set()  # type: Set[str]
-        activated_values = dict()  # type: Dict[str, Union[int, float, str]]
 
         while len(to_visit) > 0:
             current = to_visit.pop()

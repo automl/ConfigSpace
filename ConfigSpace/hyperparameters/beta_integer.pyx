@@ -1,7 +1,6 @@
 import io
 from typing import Any, Dict, Optional, Union
 
-from scipy.stats import beta as spbeta
 
 import numpy as np
 cimport numpy as np
@@ -21,7 +20,6 @@ ARANGE_CHUNKSIZE = 10_000_000
 
 
 cdef class BetaIntegerHyperparameter(UniformIntegerHyperparameter):
-
 
     def __init__(self, name: str, alpha: Union[int, float], beta: Union[int, float],
                  lower: Union[int, float],
@@ -80,13 +78,13 @@ cdef class BetaIntegerHyperparameter(UniformIntegerHyperparameter):
         else:
             q = self.q
         self.bfhp = BetaFloatHyperparameter(self.name,
-                                              self.alpha,
-                                              self.beta,
-                                              log=self.log,
-                                              q=q,
-                                              lower=self.lower,
-                                              upper=self.upper,
-                                              default_value=self.default_value)
+                                            self.alpha,
+                                            self.beta,
+                                            log=self.log,
+                                            q=q,
+                                            lower=self.lower,
+                                            upper=self.upper,
+                                            default_value=self.default_value)
 
         self.default_value = self.check_default(default_value)
         self.normalized_default_value = self._inverse_transform(self.default_value)
@@ -145,13 +143,12 @@ cdef class BetaIntegerHyperparameter(UniformIntegerHyperparameter):
             meta=self.meta
         )
 
-    def to_uniform(self) -> 'UniformIntegerHyperparameter':
+    def to_uniform(self) -> "UniformIntegerHyperparameter":
         return UniformIntegerHyperparameter(self.name,
                                             self.lower,
                                             self.upper,
                                             default_value=self.default_value,
                                             q=self.q, log=self.log, meta=self.meta)
-
 
     def check_default(self, default_value: Union[int, float, None]) -> int:
         if default_value is None:
@@ -165,7 +162,7 @@ cdef class BetaIntegerHyperparameter(UniformIntegerHyperparameter):
         if self.is_legal(default_value):
             return default_value
         else:
-            raise ValueError('Illegal default value {}'.format(default_value))
+            raise ValueError("Illegal default value {}".format(default_value))
 
     def _sample(self, rs: np.random.RandomState, size: Optional[int] = None
                 ) -> Union[np.ndarray, float]:
