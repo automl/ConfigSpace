@@ -4,7 +4,7 @@
 # These have been configured to only really run short tasks. Longer form tasks
 # are usually completed in github actions.
 
-.PHONY: help install-dev pre-commit clean clean-doc clean-build build docs links publish test
+.PHONY: help install-dev install-test install-docs pre-commit clean clean-doc clean-build build docs links publish test
 
 help:
 	@echo "Makefile ConfigSpace"
@@ -45,6 +45,12 @@ cython-html: cython-annotate
 install-dev:
 	$(PIP) install -e ".[dev]"
 	pre-commit install
+
+install-test:
+	$(PIP) install -e ".[test]"
+
+install-docs:
+	$(PIP) install -e ".[docs]"
 
 pre-commit:
 	$(PRECOMMIT) run --all-files
