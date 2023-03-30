@@ -9,6 +9,9 @@ from ConfigSpace import (
     ForbiddenInClause,
     CategoricalHyperparameter,
     ConfigurationSpace,
+    Float,
+    Integer,
+    Beta,
 )
 
 
@@ -62,3 +65,24 @@ class TestJson(unittest.TestCase):
                 new_cs = read(json_string)
 
                 self.assertEqual(new_cs, cs)
+
+    def test_beta_hyperparameter_serialization(self):
+        # Test for BetaFloatHyperparameter
+        cs = ConfigurationSpace(
+            space={
+                "p": Float("p", bounds=(0.0, 2.0), q=2, distribution=Beta(1.0, 2.0)),
+            },
+        )
+        json_string = write(cs)
+        new_cs = read(json_string)
+        self.assertEqual(new_cs, cs)
+
+        # Test for BetaIntegerHyperparameter
+        cs = ConfigurationSpace(
+            space={
+                "p": Integer("p", bounds=(0.0, 2.0), q=2, distribution=Beta(1.0, 2.0)),
+            },
+        )
+        json_string = write(cs)
+        new_cs = read(json_string)
+        self.assertEqual(new_cs, cs)
