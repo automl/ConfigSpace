@@ -272,7 +272,8 @@
         <span class="s1">&#39;log&#39;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">log</span><span class="p">,</span>
         <span class="s1">&#39;lower&#39;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">lower</span><span class="p">,</span>
         <span class="s1">&#39;upper&#39;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">upper</span><span class="p">,</span>
-        <span class="s1">&#39;default&#39;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">default_value</span>
+        <span class="s1">&#39;default&#39;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">default_value</span><span class="p">,</span>
+        <span class="s1">&#39;q&#39;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">q</span><span class="p">,</span>
     <span class="p">}</span>
 
 
@@ -283,7 +284,10 @@
         <span class="s1">&#39;log&#39;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">log</span><span class="p">,</span>
         <span class="s1">&#39;mu&#39;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">mu</span><span class="p">,</span>
         <span class="s1">&#39;sigma&#39;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">sigma</span><span class="p">,</span>
-        <span class="s1">&#39;default&#39;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">default_value</span>
+        <span class="s1">&#39;default&#39;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">default_value</span><span class="p">,</span>
+        <span class="s1">&#39;lower&#39;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">lower</span><span class="p">,</span>
+        <span class="s1">&#39;upper&#39;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">upper</span><span class="p">,</span>
+        <span class="s1">&#39;q&#39;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">q</span><span class="p">,</span>
     <span class="p">}</span>
 
 
@@ -305,7 +309,8 @@
         <span class="s1">&#39;log&#39;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">log</span><span class="p">,</span>
         <span class="s1">&#39;lower&#39;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">lower</span><span class="p">,</span>
         <span class="s1">&#39;upper&#39;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">upper</span><span class="p">,</span>
-        <span class="s1">&#39;default&#39;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">default_value</span>
+        <span class="s1">&#39;default&#39;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">default_value</span><span class="p">,</span>
+        <span class="s1">&#39;q&#39;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">q</span><span class="p">,</span>
     <span class="p">}</span>
 
 
@@ -316,7 +321,10 @@
         <span class="s1">&#39;log&#39;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">log</span><span class="p">,</span>
         <span class="s1">&#39;mu&#39;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">mu</span><span class="p">,</span>
         <span class="s1">&#39;sigma&#39;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">sigma</span><span class="p">,</span>
-        <span class="s1">&#39;default&#39;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">default_value</span>
+        <span class="s1">&#39;lower&#39;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">lower</span><span class="p">,</span>
+        <span class="s1">&#39;upper&#39;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">upper</span><span class="p">,</span>
+        <span class="s1">&#39;default&#39;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">default_value</span><span class="p">,</span>
+        <span class="s1">&#39;q&#39;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">q</span><span class="p">,</span>
     <span class="p">}</span>
 
 
@@ -678,6 +686,7 @@
             <span class="n">lower</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s1">&#39;lower&#39;</span><span class="p">],</span>
             <span class="n">upper</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s1">&#39;upper&#39;</span><span class="p">],</span>
             <span class="n">default_value</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s1">&#39;default&#39;</span><span class="p">],</span>
+            <span class="n">q</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s1">&#39;q&#39;</span><span class="p">],</span>
         <span class="p">)</span>
     <span class="k">elif</span> <span class="n">hp_type</span> <span class="o">==</span> <span class="s1">&#39;normal_float&#39;</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">NormalFloatHyperparameter</span><span class="p">(</span>
@@ -685,7 +694,10 @@
             <span class="n">log</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s1">&#39;log&#39;</span><span class="p">],</span>
             <span class="n">mu</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s1">&#39;mu&#39;</span><span class="p">],</span>
             <span class="n">sigma</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s1">&#39;sigma&#39;</span><span class="p">],</span>
+            <span class="n">lower</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s1">&#39;lower&#39;</span><span class="p">],</span>
+            <span class="n">upper</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s1">&#39;upper&#39;</span><span class="p">],</span>
             <span class="n">default_value</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s1">&#39;default&#39;</span><span class="p">],</span>
+            <span class="n">q</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s1">&#39;q&#39;</span><span class="p">],</span>
         <span class="p">)</span>
     <span class="k">elif</span> <span class="n">hp_type</span> <span class="o">==</span> <span class="s1">&#39;uniform_int&#39;</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">UniformIntegerHyperparameter</span><span class="p">(</span>
@@ -694,14 +706,18 @@
             <span class="n">lower</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s1">&#39;lower&#39;</span><span class="p">],</span>
             <span class="n">upper</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s1">&#39;upper&#39;</span><span class="p">],</span>
             <span class="n">default_value</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s1">&#39;default&#39;</span><span class="p">],</span>
+            <span class="n">q</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s1">&#39;q&#39;</span><span class="p">],</span>
         <span class="p">)</span>
     <span class="k">elif</span> <span class="n">hp_type</span> <span class="o">==</span> <span class="s1">&#39;normal_int&#39;</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">NormalIntegerHyperparameter</span><span class="p">(</span>
             <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
+            <span class="n">mu</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s1">&#39;mu&#39;</span><span class="p">],</span>
+            <span class="n">sigma</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s1">&#39;sigma&#39;</span><span class="p">],</span>
             <span class="n">log</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s1">&#39;log&#39;</span><span class="p">],</span>
             <span class="n">lower</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s1">&#39;lower&#39;</span><span class="p">],</span>
             <span class="n">upper</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s1">&#39;upper&#39;</span><span class="p">],</span>
             <span class="n">default_value</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s1">&#39;default&#39;</span><span class="p">],</span>
+            <span class="n">q</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s1">&#39;q&#39;</span><span class="p">],</span>
         <span class="p">)</span>
     <span class="k">elif</span> <span class="n">hp_type</span> <span class="o">==</span> <span class="s1">&#39;categorical&#39;</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">CategoricalHyperparameter</span><span class="p">(</span>

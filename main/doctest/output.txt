@@ -1,5 +1,13 @@
-Results of doctest builder run on 2023-03-30 13:09:00
+Results of doctest builder run on 2023-03-31 12:16:49
 =====================================================
+
+Document: api/hyperparameters
+-----------------------------
+1 items passed all tests:
+  16 tests in default
+16 tests in 1 items.
+16 passed and 0 failed.
+Test passed.
 
 Document: quickstart
 --------------------
@@ -7,14 +15,6 @@ Document: quickstart
    5 tests in default
 5 tests in 1 items.
 5 passed and 0 failed.
-Test passed.
-
-Document: api/conditions
-------------------------
-1 items passed all tests:
-  30 tests in default
-30 tests in 1 items.
-30 passed and 0 failed.
 Test passed.
 
 Document: api/forbidden_clauses
@@ -25,16 +25,34 @@ Document: api/forbidden_clauses
 14 passed and 0 failed.
 Test passed.
 
-Document: api/hyperparameters
------------------------------
+Document: api/serialization
+---------------------------
+2 items passed all tests:
+   6 tests in default
+   2 tests in pcs_new_test
+8 tests in 2 items.
+8 passed and 0 failed.
+Test passed.
+
+Document: index
+---------------
 1 items passed all tests:
-  16 tests in default
-16 tests in 1 items.
-16 passed and 0 failed.
+  13 tests in default
+13 tests in 1 items.
+13 passed and 0 failed.
 Test passed.
 
 Document: guide
 ---------------
+**********************************************************************
+File "guide.rst", line 241, in default
+Failed example:
+    with open('configspace.json', 'w') as fh:
+        fh.write(json.write(cs))
+Expected:
+    2828
+Got:
+    2879
 **********************************************************************
 File "guide.rst", line 294, in default
 Failed example:
@@ -55,31 +73,22 @@ Got:
     <BLANKLINE>
 **********************************************************************
 1 items had failures:
-   1 of  43 in default
+   2 of  43 in default
 43 tests in 1 items.
-42 passed and 1 failed.
-***Test Failed*** 1 failures.
+41 passed and 2 failed.
+***Test Failed*** 2 failures.
 
-Document: index
----------------
+Document: api/conditions
+------------------------
 1 items passed all tests:
-  13 tests in default
-13 tests in 1 items.
-13 passed and 0 failed.
-Test passed.
-
-Document: api/serialization
----------------------------
-2 items passed all tests:
-   6 tests in default
-   2 tests in pcs_new_test
-8 tests in 2 items.
-8 passed and 0 failed.
+  30 tests in default
+30 tests in 1 items.
+30 passed and 0 failed.
 Test passed.
 
 Doctest summary
 ===============
   129 tests
-    1 failure in tests
+    2 failures in tests
     0 failures in setup code
     0 failures in cleanup code
