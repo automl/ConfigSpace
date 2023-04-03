@@ -95,7 +95,10 @@ def _build_beta_float(param: BetaFloatHyperparameter) -> Dict:
         'log': param.log,
         'alpha': param.alpha,
         'beta': param.beta,
-        'default': param.default_value
+        'lower': param.lower,
+        'upper': param.upper,
+        'default': param.default_value,
+        'q': param.q,
     }
 
 
@@ -132,7 +135,10 @@ def _build_beta_int(param: BetaIntegerHyperparameter) -> Dict:
         'log': param.log,
         'alpha': param.alpha,
         'beta': param.beta,
-        'default': param.default_value
+        'lower': param.lower,
+        'upper': param.upper,
+        'default': param.default_value,
+        'q': param.q,
     }
 
 
@@ -367,18 +373,18 @@ def write(configuration_space, indent=2):
             hyperparameters.append(
                 _build_unparametrized_hyperparameter(hyperparameter)
             )
+        elif isinstance(hyperparameter, BetaFloatHyperparameter):
+            hyperparameters.append(_build_beta_float(hyperparameter))
         elif isinstance(hyperparameter, UniformFloatHyperparameter):
             hyperparameters.append(_build_uniform_float(hyperparameter))
         elif isinstance(hyperparameter, NormalFloatHyperparameter):
             hyperparameters.append(_build_normal_float(hyperparameter))
-        elif isinstance(hyperparameter, BetaFloatHyperparameter):
-            hyperparameters.append(_build_beta_float(hyperparameter))
+        elif isinstance(hyperparameter, BetaIntegerHyperparameter):
+            hyperparameters.append(_build_beta_int(hyperparameter))
         elif isinstance(hyperparameter, UniformIntegerHyperparameter):
             hyperparameters.append(_build_uniform_int(hyperparameter))
         elif isinstance(hyperparameter, NormalIntegerHyperparameter):
             hyperparameters.append(_build_normal_int(hyperparameter))
-        elif isinstance(hyperparameter, BetaIntegerHyperparameter):
-            hyperparameters.append(_build_beta_int(hyperparameter))
         elif isinstance(hyperparameter, CategoricalHyperparameter):
             hyperparameters.append(_build_categorical(hyperparameter))
         elif isinstance(hyperparameter, OrdinalHyperparameter):
@@ -496,6 +502,17 @@ def _construct_hyperparameter(hyperparameter: Dict) -> Hyperparameter:
             default_value=hyperparameter['default'],
             q=hyperparameter['q'],
         )
+    elif hp_type == 'beta_float':
+        return BetaFloatHyperparameter(
+            name=name,
+            alpha=hyperparameter['alpha'],
+            beta=hyperparameter['beta'],
+            lower=hyperparameter['lower'],
+            upper=hyperparameter['upper'],
+            log=hyperparameter['log'],
+            q=hyperparameter['q'],
+            default_value=hyperparameter['default'],
+        )
     elif hp_type == 'uniform_int':
         return UniformIntegerHyperparameter(
             name=name,
@@ -515,6 +532,17 @@ def _construct_hyperparameter(hyperparameter: Dict) -> Hyperparameter:
             upper=hyperparameter['upper'],
             default_value=hyperparameter['default'],
             q=hyperparameter['q'],
+        )
+    elif hp_type == 'beta_int':
+        return BetaIntegerHyperparameter(
+            name=name,
+            alpha=hyperparameter['alpha'],
+            beta=hyperparameter['beta'],
+            lower=hyperparameter['lower'],
+            upper=hyperparameter['upper'],
+            log=hyperparameter['log'],
+            q=hyperparameter['q'],
+            default_value=hyperparameter['default'],
         )
     elif hp_type == 'categorical':
         return CategoricalHyperparameter(
