@@ -27,12 +27,9 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import io
-from functools import reduce
-from abc import ABCMeta, abstractmethod
 import copy
 from itertools import combinations
-from typing import Any, List, Union, Tuple, Dict, Optional
-import operator
+from typing import Any, List, Union, Tuple, Dict
 
 from libc.stdlib cimport malloc, free
 
@@ -60,13 +57,13 @@ cdef class ConditionComponent(object):
     def get_parents_vector(self) -> List[int]:
         pass
 
-    def get_children(self) -> List['ConditionComponent']:
+    def get_children(self) -> List["ConditionComponent"]:
         pass
 
-    def get_parents(self) -> List['ConditionComponent']:
+    def get_parents(self) -> List["ConditionComponent"]:
         pass
 
-    def get_descendant_literal_conditions(self) ->List['AbstractCondition']:
+    def get_descendant_literal_conditions(self) ->List["AbstractCondition"]:
         pass
 
     def evaluate(self,
@@ -142,7 +139,7 @@ cdef class AbstractCondition(ConditionComponent):
     def get_parents(self) -> List[Hyperparameter]:
         return [self.parent]
 
-    def get_descendant_literal_conditions(self) -> List['AbstractCondition']:
+    def get_descendant_literal_conditions(self) -> List["AbstractCondition"]:
         return [self]
 
     def evaluate(self, instantiated_parent_hyperparameter: Dict[str, Union[int, float, str]]
@@ -550,7 +547,6 @@ cdef class AbstractConjunction(ConditionComponent):
                 return False
 
         return True
-
 
     def __copy__(self):
         return self.__class__(*[copy.copy(comp) for comp in self.components])

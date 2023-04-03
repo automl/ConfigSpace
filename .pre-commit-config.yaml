@@ -17,3 +17,10 @@ repos:
       - id: flake8
         name: flake8 test
         files: test
+
+  - repo: https://github.com/MarcoGorelli/cython-lint
+    rev: v0.14.0
+    hooks:
+    -   id: cython-lint
+        args: [--ignore=E501]
+    -   id: double-quote-cython-strings

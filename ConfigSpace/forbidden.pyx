@@ -31,7 +31,7 @@ import numpy as np
 import io
 from ConfigSpace.hyperparameters import Hyperparameter
 from ConfigSpace.hyperparameters.hyperparameter cimport Hyperparameter
-from typing import List, Dict, Any, Union
+from typing import Dict, Any, Union
 
 from ConfigSpace.forbidden cimport AbstractForbiddenComponent
 
@@ -342,7 +342,6 @@ cdef class AbstractForbiddenConjunction(AbstractForbiddenComponent):
 
         return all([self.components[i] == other.components[i]
                     for i in range(self.n_components)])
-
 
     cpdef set_vector_idx(self, hyperparameter_to_idx):
         for component in self.components:

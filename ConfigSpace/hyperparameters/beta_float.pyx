@@ -1,6 +1,6 @@
 import io
 import warnings
-from typing import Any, Dict, Union, Set, Optional
+from typing import Any, Dict, Union, Optional
 
 from scipy.stats import beta as spbeta
 
@@ -71,8 +71,8 @@ cdef class BetaFloatHyperparameter(UniformFloatHyperparameter):
              1 so that the probability density is finite.")
 
         if (self.q is not None) and (self.log is not None) and (default_value is None):
-            warnings.warn('Logscale and quantization together results in incorrect default values. '
-                          'We recommend specifying a default value manually for this specific case.')
+            warnings.warn("Logscale and quantization together results in incorrect default values. "
+                          "We recommend specifying a default value manually for this specific case.")
 
         self.default_value = self.check_default(default_value)
         self.normalized_default_value = self._inverse_transform(self.default_value)
@@ -131,7 +131,7 @@ cdef class BetaFloatHyperparameter(UniformFloatHyperparameter):
     def __hash__(self):
         return hash((self.name, self.alpha, self.beta, self.lower, self.upper, self.log, self.q))
 
-    def to_uniform(self) -> 'UniformFloatHyperparameter':
+    def to_uniform(self) -> "UniformFloatHyperparameter":
         return UniformFloatHyperparameter(self.name,
                                           self.lower,
                                           self.upper,
@@ -160,7 +160,7 @@ cdef class BetaFloatHyperparameter(UniformFloatHyperparameter):
         else:
             raise ValueError("Illegal default value %s" % str(default_value))
 
-    def to_integer(self) -> 'BetaIntegerHyperparameter':
+    def to_integer(self) -> "BetaIntegerHyperparameter":
         if self.q is None:
             q_int = None
         else:
@@ -170,14 +170,12 @@ cdef class BetaFloatHyperparameter(UniformFloatHyperparameter):
         upper = int(np.floor(self.upper))
         default_value = int(np.rint(self.default_value))
         return BetaIntegerHyperparameter(self.name, lower=lower, upper=upper, alpha=self.alpha, beta=self.beta,
-                                           default_value=int(np.rint(self.default_value)),
-                                           q=q_int, log=self.log)
+                                         default_value=default_value, q=q_int, log=self.log)
 
     def is_legal(self, value: Union[float]) -> bool:
         if isinstance(value, (float, int)):
             return self.upper >= value >= self.lower
         return False
-
 
     cpdef bint is_legal_vector(self, DTYPE_t value):
         return self._upper >= value >= self._lower
@@ -212,7 +210,7 @@ cdef class BetaFloatHyperparameter(UniformFloatHyperparameter):
         alpha = self.alpha
         beta = self.beta
         return spbeta(alpha, beta, loc=lb, scale=ub-lb).pdf(vector) \
-        * (ub-lb) / (self._upper - self._lower)
+            * (ub-lb) / (self._upper - self._lower)
 
     def get_max_density(self) -> float:
         if (self.alpha > 1) or (self.beta > 1):

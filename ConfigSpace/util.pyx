@@ -43,7 +43,7 @@ cimport cython
 
 
 def impute_inactive_values(configuration: Configuration,
-                           strategy: Union[str, float] = 'default') -> Configuration:
+                           strategy: Union[str, float] = "default") -> Configuration:
     """Impute inactive parameters.
 
     Iterate through the hyperparameters of a ``Configuration`` and set the
@@ -73,14 +73,14 @@ def impute_inactive_values(configuration: Configuration,
         value = configuration.get(hp.name)
         if value is None:
 
-            if strategy == 'default':
+            if strategy == "default":
                 new_value = hp.default_value
 
             elif isinstance(strategy, float):
                 new_value = strategy
 
             else:
-                raise ValueError('Unknown imputation strategy %s' % str(strategy))
+                raise ValueError("Unknown imputation strategy %s" % str(strategy))
 
             value = new_value
 
@@ -303,7 +303,7 @@ def get_random_neighbor(configuration: Configuration, seed: int) -> Configuratio
                     active = False
 
             if iteration > 10000:
-                raise ValueError('Probably caught in an infinite loop.')
+                raise ValueError("Probably caught in an infinite loop.")
         # Get a neighboor and adapt the rest of the configuration if necessary
         neighbor = hp.get_neighbors(value, random, number=1, transform=True)[0]
         previous_value = values[hp.name]
@@ -626,7 +626,7 @@ def generate_grid(configuration_space: ConfigurationSpace,
 
     # Get HP names and allowed grid values they can take for the HPs at the top
     # level of ConfigSpace tree
-    for hp_name in configuration_space._children['__HPOlib_configuration_space_root__']:
+    for hp_name in configuration_space._children["__HPOlib_configuration_space_root__"]:
         value_sets.append(get_value_set(num_steps_dict, hp_name))
         hp_names.append(hp_name)
 
