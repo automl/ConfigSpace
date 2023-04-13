@@ -107,6 +107,7 @@ class ConfigurationSpace(collections.abc.Mapping):
                         "categorical": ["a", "b", "c"],
                         "constant": 1337,
                     }
+                )
 
         """
         # If first arg is a dict, we assume this to be `space`
@@ -1085,8 +1086,7 @@ class ConfigurationSpace(collections.abc.Mapping):
 
     def _get_parent_conditions_of(self, name: str) -> List[AbstractCondition]:
         parents = self._parents[name]
-        conditions = [parents[parent_name] for parent_name in parents
-                      if parent_name != "__HPOlib_configuration_space_root__"]
+        conditions = [parents[parent_name] for parent_name in parents if parent_name != "__HPOlib_configuration_space_root__"]
         return conditions
 
     def get_all_unconditional_hyperparameters(self) -> List[str]:
