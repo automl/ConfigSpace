@@ -34,7 +34,8 @@ import numpy as np
 
 from ConfigSpace import Configuration, ConfigurationSpace, UniformIntegerHyperparameter, \
     UniformFloatHyperparameter, CategoricalHyperparameter, Constant, OrdinalHyperparameter, \
-    EqualsCondition, AndConjunction, OrConjunction, LessThanCondition, GreaterThanCondition
+    EqualsCondition, AndConjunction, OrConjunction, LessThanCondition, GreaterThanCondition, \
+    ForbiddenAndConjunction, ForbiddenEqualsClause
 from ConfigSpace.read_and_write.pcs import read
 from ConfigSpace.util import impute_inactive_values, get_random_neighbor, \
     get_one_exchange_neighbourhood, deactivate_inactive_hyperparameters, fix_types, generate_grid
@@ -531,3 +532,20 @@ class UtilTest(unittest.TestCase):
         # Check 1st and last generated configurations completely:
         self.assertEqual(generated_grid[0].get_dictionary()['float1'], -1.0)
         self.assertEqual(generated_grid[-1].get_dictionary()['float1'], 1.0)
+
+        # Test forbidden clause
+        cs = ConfigurationSpace(seed=1234)
+        cs.add_hyperparameters([cat1, ord1, int1])
+        cs.add_condition(EqualsCondition(int1, cat1, 'T'))  # int1 only active if cat1 == T
+        cs.add_forbidden_clause(ForbiddenAndConjunction(  # Forbid ord1 == 3 if cat1 == F
+            ForbiddenEqualsClause(cat1, 'F'),
+            ForbiddenEqualsClause(ord1, '3'),
+        ))
+
+        generated_grid = generate_grid(cs, {'int1': 2})
+
+        self.assertEqual(len(generated_grid), 8)
+        self.assertEqual(generated_grid[0].get_dictionary(), {'cat1': 'F', 'ord1': '1'})
+        self.assertEqual(generated_grid[1].get_dictionary(), {'cat1': 'F', 'ord1': '2'})
+        self.assertEqual(generated_grid[2].get_dictionary(), {'cat1': 'T', 'ord1': '1', 'int1': 10})
+        self.assertEqual(generated_grid[-1].get_dictionary(), {'cat1': 'T', 'ord1': '3', 'int1': 100})
