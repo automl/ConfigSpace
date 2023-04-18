@@ -242,7 +242,7 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
             for v in range(lower, center):
                 neighbors.append(v)
 
-            for v in range(center + 1, upper):
+            for v in range(center + 1, upper + 1):
                 neighbors.append(v)
 
             if transform:

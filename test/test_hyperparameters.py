@@ -1188,6 +1188,15 @@ class TestHyperparameters(unittest.TestCase):
         self.assertAlmostEqual(c2.get_max_density(), 0.0001)
         self.assertAlmostEqual(c3.get_max_density(), 0.07142857142857142)
 
+    def test_uniformint_get_neighbors(self):
+        rs = np.random.RandomState(seed=1)
+        for i_upper in range(1, 10):
+            c1 = UniformIntegerHyperparameter('param', lower=0, upper=i_upper)
+            for i_value in range(0, i_upper+1):
+                float_value = c1._inverse_transform(np.array([i_value]))[0]
+                neighbors = c1.get_neighbors(float_value, rs, number=i_upper, transform=True)
+                assert set(neighbors) == set(range(i_upper+1))-{i_value}
+
     def test_normalint(self):
         # TODO test for unequal!
         f1 = NormalIntegerHyperparameter("param", 0.5, 5.5)
