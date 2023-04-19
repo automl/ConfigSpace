@@ -642,6 +642,12 @@ def generate_grid(configuration_space: ConfigurationSpace,
         try:
             grid_point = Configuration(configuration_space, unchecked_grid_pts[0])
             checked_grid_pts.append(grid_point)
+
+        # When creating a configuration that violates a forbidden clause, simply skip it
+        except ForbiddenValueError:
+            unchecked_grid_pts.popleft()
+            continue
+
         except ValueError as e:
             assert (str(e)[:23] == "Active hyperparameter '" and
                     str(e)[-16:] == "' not specified!"), \
