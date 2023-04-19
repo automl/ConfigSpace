@@ -288,7 +288,7 @@ the <em>ForbiddenInClauses</em>.</p>
 <em>equal to</em> <code class="docutils literal notranslate"><span class="pre">value</span></code>.</p>
 <p>Forbids the value 2 for the hyperparameter <em>a</em></p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ConfigSpace</span> <span class="kn">import</span> <span class="n">ConfigurationSpace</span><span class="p">,</span> <span class="n">ForbiddenEqualsClause</span>
-<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cs</span> <span class="o">=</span> <span class="n">ConfigurationSpace</span><span class="p">({</span><span class="s2">&quot;a&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]})</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">forbidden_clause_a</span> <span class="o">=</span> <span class="n">ForbiddenEqualsClause</span><span class="p">(</span><span class="n">cs</span><span class="p">[</span><span class="s2">&quot;a&quot;</span><span class="p">],</span> <span class="mi">2</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cs</span><span class="o">.</span><span class="n">add_forbidden_clause</span><span class="p">(</span><span class="n">forbidden_clause_a</span><span class="p">)</span>
@@ -316,7 +316,7 @@ the <em>ForbiddenInClauses</em>.</p>
 <em>in</em> a collection of <code class="docutils literal notranslate"><span class="pre">values</span></code>.</p>
 <p>Forbids the values 2, 3 for the hyperparameter <em>a</em></p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ConfigSpace</span> <span class="kn">import</span> <span class="n">ConfigurationSpace</span><span class="p">,</span> <span class="n">ForbiddenInClause</span>
-<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cs</span> <span class="o">=</span> <span class="n">ConfigurationSpace</span><span class="p">({</span><span class="s2">&quot;a&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]})</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">forbidden_clause_a</span> <span class="o">=</span> <span class="n">ForbiddenInClause</span><span class="p">(</span><span class="n">cs</span><span class="p">[</span><span class="s1">&#39;a&#39;</span><span class="p">],</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cs</span><span class="o">.</span><span class="n">add_forbidden_clause</span><span class="p">(</span><span class="n">forbidden_clause_a</span><span class="p">)</span>
@@ -352,14 +352,14 @@ build powerful constraints.</p>
 <span class="gp">... </span>    <span class="n">ForbiddenInClause</span><span class="p">,</span>
 <span class="gp">... </span>    <span class="n">ForbiddenAndConjunction</span>
 <span class="gp">... </span><span class="p">)</span>
-<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cs</span> <span class="o">=</span> <span class="n">ConfigurationSpace</span><span class="p">({</span><span class="s2">&quot;a&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="s2">&quot;b&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">]})</span>
-<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">forbidden_clause_a</span> <span class="o">=</span> <span class="n">ForbiddenEqualsClause</span><span class="p">(</span><span class="n">cs</span><span class="p">[</span><span class="s2">&quot;a&quot;</span><span class="p">],</span> <span class="mi">2</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">forbidden_clause_b</span> <span class="o">=</span> <span class="n">ForbiddenInClause</span><span class="p">(</span><span class="n">cs</span><span class="p">[</span><span class="s2">&quot;b&quot;</span><span class="p">],</span> <span class="p">[</span><span class="mi">2</span><span class="p">])</span>
-<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">forbidden_clause</span> <span class="o">=</span> <span class="n">ForbiddenAndConjunction</span><span class="p">(</span><span class="n">forbidden_clause_a</span><span class="p">,</span> <span class="n">forbidden_clause_b</span><span class="p">)</span>
-<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cs</span><span class="o">.</span><span class="n">add_forbidden_clause</span><span class="p">(</span><span class="n">forbidden_clause</span><span class="p">)</span>
 <span class="go">(Forbidden: a == 2 &amp;&amp; Forbidden: b in {2})</span>
 </pre></div>

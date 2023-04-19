@@ -349,7 +349,7 @@
 being <em>equal</em> to <code class="docutils literal notranslate"><span class="pre">value</span></code>.</p>
 <p>Make <em>b</em> an active hyperparameter if <em>a</em> has the value 1</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ConfigSpace</span> <span class="kn">import</span> <span class="n">ConfigurationSpace</span><span class="p">,</span> <span class="n">EqualsCondition</span>
-<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cs</span> <span class="o">=</span> <span class="n">ConfigurationSpace</span><span class="p">({</span>
 <span class="gp">... </span>    <span class="s2">&quot;a&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span>
 <span class="gp">... </span>    <span class="s2">&quot;b&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">8.0</span><span class="p">)</span>
@@ -381,7 +381,7 @@ if the <em>equal condition</em> is satisfied</p></li>
 being <em>not equal</em> to <code class="docutils literal notranslate"><span class="pre">value</span></code>.</p>
 <p>Make <em>b</em> an active hyperparameter if <em>a</em> has <strong>not</strong> the value 1</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ConfigSpace</span> <span class="kn">import</span> <span class="n">ConfigurationSpace</span><span class="p">,</span> <span class="n">NotEqualsCondition</span>
-<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cs</span> <span class="o">=</span> <span class="n">ConfigurationSpace</span><span class="p">({</span>
 <span class="gp">... </span>    <span class="s2">&quot;a&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span>
 <span class="gp">... </span>    <span class="s2">&quot;b&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">8.0</span><span class="p">)</span>
@@ -414,7 +414,7 @@ if the not-equals condition is satisfied</p></li>
 being <em>less than</em> <code class="docutils literal notranslate"><span class="pre">value</span></code>.</p>
 <p>Make <em>b</em> an active hyperparameter if <em>a</em> is less than 5</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ConfigSpace</span> <span class="kn">import</span> <span class="n">ConfigurationSpace</span><span class="p">,</span> <span class="n">LessThanCondition</span>
-<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cs</span> <span class="o">=</span> <span class="n">ConfigurationSpace</span><span class="p">({</span>
 <span class="gp">... </span>   <span class="s2">&quot;a&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span>
 <span class="gp">... </span>   <span class="s2">&quot;b&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">8.0</span><span class="p">)</span>
@@ -446,7 +446,7 @@ if the <em>LessThanCondition</em> is satisfied</p></li>
 being <em>greater than</em> <code class="docutils literal notranslate"><span class="pre">value</span></code>.</p>
 <p>Make <em>b</em> an active hyperparameter if <em>a</em> is greater than 5</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ConfigSpace</span> <span class="kn">import</span> <span class="n">ConfigurationSpace</span><span class="p">,</span> <span class="n">GreaterThanCondition</span>
-<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cs</span> <span class="o">=</span> <span class="n">ConfigurationSpace</span><span class="p">({</span>
 <span class="gp">... </span>    <span class="s2">&quot;a&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span>
 <span class="gp">... </span>    <span class="s2">&quot;b&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">8.0</span><span class="p">)</span>
@@ -478,7 +478,7 @@ if the <em>GreaterThanCondition</em> is satisfied</p></li>
 being <em>in</em> a set of <code class="docutils literal notranslate"><span class="pre">values</span></code>.</p>
 <p>make <em>b</em> an active hyperparameter if <em>a</em> is in the set [1, 2, 3, 4]</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ConfigSpace</span> <span class="kn">import</span> <span class="n">ConfigurationSpace</span><span class="p">,</span> <span class="n">InCondition</span>
-<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cs</span> <span class="o">=</span> <span class="n">ConfigurationSpace</span><span class="p">({</span>
 <span class="gp">... </span>    <span class="s2">&quot;a&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span>
 <span class="gp">... </span>    <span class="s2">&quot;b&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">8.0</span><span class="p">)</span>
@@ -515,7 +515,7 @@ can be combined.</p>
 <span class="gp">... </span>    <span class="n">GreaterThanCondition</span><span class="p">,</span>
 <span class="gp">... </span>    <span class="n">AndConjunction</span>
 <span class="gp">... </span><span class="p">)</span>
-<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cs</span> <span class="o">=</span> <span class="n">ConfigurationSpace</span><span class="p">({</span>
 <span class="gp">... </span>    <span class="s2">&quot;a&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">15</span><span class="p">),</span>
 <span class="gp">... </span>    <span class="s2">&quot;b&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span>
@@ -548,7 +548,7 @@ using the <em>OrConjunction</em>.</p>
 <span class="gp">... </span>    <span class="n">GreaterThanCondition</span><span class="p">,</span>
 <span class="gp">... </span>    <span class="n">OrConjunction</span>
 <span class="gp">... </span><span class="p">)</span>
-<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cs</span> <span class="o">=</span> <span class="n">ConfigurationSpace</span><span class="p">({</span>
 <span class="gp">... </span>    <span class="s2">&quot;a&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">15</span><span class="p">),</span>
 <span class="gp">... </span>    <span class="s2">&quot;b&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span>
