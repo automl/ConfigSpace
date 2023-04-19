@@ -547,5 +547,5 @@ class UtilTest(unittest.TestCase):
         self.assertEqual(len(generated_grid), 8)
         self.assertEqual(generated_grid[0].get_dictionary(), {'cat1': 'F', 'ord1': '1'})
         self.assertEqual(generated_grid[1].get_dictionary(), {'cat1': 'F', 'ord1': '2'})
-        self.assertEqual(generated_grid[2].get_dictionary(), {'cat1': 'T', 'ord1': '1', 'int1': 10})
-        self.assertEqual(generated_grid[-1].get_dictionary(), {'cat1': 'T', 'ord1': '3', 'int1': 100})
+        self.assertEqual(generated_grid[2].get_dictionary(), {'cat1': 'T', 'ord1': '1', 'int1': 0})
+        self.assertEqual(generated_grid[-1].get_dictionary(), {'cat1': 'T', 'ord1': '3', 'int1': 1000})
