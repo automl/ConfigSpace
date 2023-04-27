@@ -173,10 +173,6 @@ EXTENSIONS = [
     Extension("ConfigSpace.conditions", sources=["ConfigSpace/conditions.pyx"]),
     Extension("ConfigSpace.c_util", sources=["ConfigSpace/c_util.pyx"]),
     Extension("ConfigSpace.util", sources=["ConfigSpace/util.pyx"]),
-    Extension(
-        "ConfigSpace.configuration_space",
-        sources=["ConfigSpace/configuration_space.pyx"],
-    ),
 ]
 
 extras_reqs = {
