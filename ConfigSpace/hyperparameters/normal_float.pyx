@@ -161,7 +161,7 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
         )
 
     def __hash__(self):
-        return hash((self.name, self.mu, self.sigma, self.log, self.q))
+        return hash((self.name, self.mu, self.sigma, self.log, self.q, self.lower, self.upper))
 
     def to_uniform(self, z: int = 3) -> "UniformFloatHyperparameter":
         if self.lower is None or self.upper is None:
