@@ -12,7 +12,7 @@ options = {
     "version": __version__,
     "name": "ConfigSpace",
     "html_theme_options": {
-        "github_url": "https://github.com/automl/automl_sphinx_theme",
+        "github_url": "https://github.com/automl/ConfigSpace",
         "twitter_url": "https://twitter.com/automl_org?lang=de",
     },
 }
