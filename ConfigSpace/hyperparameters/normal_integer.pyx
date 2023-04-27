@@ -165,7 +165,7 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
         )
 
     def __hash__(self):
-        return hash((self.name, self.mu, self.sigma, self.log, self.q))
+        return hash((self.name, self.mu, self.sigma, self.log, self.q, self.lower, self.upper))
 
     def __copy__(self):
         return NormalIntegerHyperparameter(
