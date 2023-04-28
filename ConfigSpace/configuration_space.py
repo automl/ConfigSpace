@@ -32,9 +32,9 @@ import copy
 import io
 import warnings
 from collections import OrderedDict, defaultdict, deque
-from collections.abc import KeysView, Mapping
 from itertools import chain
-from typing import Any, Final, Iterable, Iterator, cast, overload
+from typing import Any, Iterable, Iterator, KeysView, Mapping, cast, overload
+from typing_extensions import Final
 
 import numpy as np
 

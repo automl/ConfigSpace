@@ -1,8 +1,7 @@
 from __future__ import annotations
 
 import warnings
-from collections.abc import KeysView, Mapping
-from typing import TYPE_CHECKING, Any, Iterator, Sequence
+from typing import TYPE_CHECKING, Any, Iterator, KeysView, Mapping, Sequence
 
 import numpy as np
 

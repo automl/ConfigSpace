@@ -107,12 +107,12 @@ exclude_lines = [
 ]
 
 [tool.black]
-target-version = ['py38']
+target-version = ['py37']
 line-length = 100
 
 # https://github.com/charliermarsh/ruff
 [tool.ruff]
-target-version = "py38"
+target-version = "py37"
 line-length = 100
 show-source = true
 src = ["ConfigSpace", "test"]
@@ -268,7 +268,7 @@ convention = "numpy"
 
 
 [tool.mypy]
-python_version = "3.8"
+python_version = "3.7"
 packages = ["ConfigSpace", "test"]
 
 show_error_codes = true

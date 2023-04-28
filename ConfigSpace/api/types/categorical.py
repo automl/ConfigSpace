@@ -1,12 +1,11 @@
 from __future__ import annotations
 
 from typing import (
-    Literal,  # Move to `typing` when 3.8 minimum
     Sequence,
     Union,
     overload,
 )
-from typing_extensions import TypeAlias
+from typing_extensions import Literal, TypeAlias
 
 from ConfigSpace.hyperparameters import CategoricalHyperparameter, OrdinalHyperparameter
 
