@@ -1,8 +1,10 @@
+from __future__ import annotations
 from typing import Any, TYPE_CHECKING, Iterator
 from collections.abc import KeysView, Mapping
 
 import numpy as np
 import warnings
+from ConfigSpace.exceptions import HyperparameterNotFoundError, IllegalValueError
 
 from ConfigSpace.hyperparameters import FloatHyperparameter
 import ConfigSpace.c_util as c_util
@@ -15,7 +17,7 @@ class Configuration(Mapping[str, Any]):
     def __init__(
         self,
         configuration_space: ConfigurationSpace,
-        values: dict[str, str | float | int | None] | None = None,
+        values: Mapping[str, str | float | int | None] | None = None,
         vector: np.ndarray | None = None,
         allow_inactive_with_values: bool = False,
         origin: Any | None = None,
@@ -71,30 +73,28 @@ class Configuration(Mapping[str, Any]):
         # which is primarly handled in __getitem__.
         self._values: dict[str, Any] | None = None
 
+        # Will be set below
+        self._vector: np.ndarray
+
         if values is not None:
             unknown_keys = values.keys() - self.config_space._hyperparameters.keys()
             if any(unknown_keys):
-                raise ValueError(
-                    f"Tried to specify unknown hyperparameter(s) {unknown_keys}"
-                )
+                raise ValueError(f"Unknown hyperparameter(s) {unknown_keys}")
 
             # Using cs._hyperparameters to iterate makes sure that the hyperparameters in
             # the configuration are sorted in the same way as they are sorted in
             # the configuration space
             self._values = {}
-            self._vector = np.ndarray(shape=len(configuration_space,), dtype=float)
+            self._vector = np.ndarray(shape=len(configuration_space), dtype=float)
 
             for i, (key, hp) in enumerate(configuration_space.items()):
                 value = values.get(key)
                 if value is None:
+                    self._vector[i] = np.nan  # By default, represent None values as NaN
                     continue
 
                 if not hp.is_legal(value):
-                    raise ValueError(
-                        f"Trying to set illegal value '{value}' (type '{type(value)}') for "
-                        f"hyperparameter '{hp}'"
-                        f"(default-value has type '{type(hp.default_value)}')."
-                    )
+                    raise IllegalValueError(hp, value)
 
                 # Truncate the float to be of constant length for a python version
                 if isinstance(hp, FloatHyperparameter):
@@ -139,17 +139,6 @@ class Configuration(Mapping[str, Any]):
             allow_inactive_with_values=self.allow_inactive_with_values,
         )
 
-    def get_dictionary(self) -> dict[str, Any]:
-        """A representation of the :class:`~ConfigSpace.configuration_space.Configuration` in dictionary form.
-
-        Returns
-        -------
-        dict
-            Configuration as dictionary
-        """
-        warnings.warn("Deprecated, please just use `dict(config)`", DeprecationWarning)
-        return dict(self)
-
     def get_array(self) -> np.ndarray:
         """The internal vector representation of this config.
 
@@ -169,9 +158,9 @@ class Configuration(Mapping[str, Any]):
         return item in self.keys()
 
     def __setitem__(self, key: str, value: Any) -> None:
-        param = self.config_space.get_hyperparameter(key)
+        param = self.config_space[key]
         if not param.is_legal(value):
-            raise ValueError(f"Illegal value '{value}' for hyperparameter {key}")
+            raise IllegalValueError(param, value)
 
         idx = self.config_space._hyperparameter_idx[key]
 
@@ -194,11 +183,19 @@ class Configuration(Mapping[str, Any]):
         if self._values is not None and key in self._values:
             return self._values[key]
 
+        if key not in self.config_space:
+            raise HyperparameterNotFoundError(key, space=self.config_space)
+
         item_idx = self.config_space._hyperparameter_idx[key]
 
         raw_value = self._vector[item_idx]
         if not np.isfinite(raw_value):
-            raise KeyError()
+            # NOTE: Techinically we could raise an `InactiveHyperparameterError` here
+            # but that causes the `.get()` method from being a mapping to fail.
+            # Normally `config.get(key)`, if it fails, will return None. Apparently,
+            # this only works if `__getitem__[]` raises a KeyError or something derived
+            # from it.
+            raise KeyError(key)
 
         hyperparameter = self.config_space._hyperparameters[key]
         value = hyperparameter._transform(raw_value)
@@ -232,7 +229,7 @@ class Configuration(Mapping[str, Any]):
     def __repr__(self) -> str:
         values = dict(self)
         header = "Configuration(values={"
-        lines = [f"  '{key}': {values[key]}," for key in sorted(values.keys())]
+        lines = [f"  '{key}': {repr(values[key])}," for key in sorted(values.keys())]
         end = "})"
         return "\n".join([header, *lines, end])
 
@@ -241,3 +238,25 @@ class Configuration(Mapping[str, Any]):
 
     def __len__(self) -> int:
         return len(self.config_space)
+
+    # ------------ Marked Deprecated --------------------
+    # Probably best to only remove these once we actually
+    # make some other breaking changes
+    # * Search `Marked Deprecated` to find others
+    def get_dictionary(self) -> dict[str, Any]:
+        """A representation of the :class:`~ConfigSpace.configuration_space.Configuration` in dictionary form.
+
+        Returns
+        -------
+        dict
+            Configuration as dictionary
+        """
+        warnings.warn(
+            "`Configuration` act's like a dictionary."
+            " Please use `dict(config)` instead of `get_dictionary`"
+            " if you explicitly need a `dict`",
+            DeprecationWarning,
+        )
+        return dict(self)
+
+    # ---------------------------------------------------

@@ -70,19 +70,19 @@ class TestHyperparameters(unittest.TestCase):
         self.assertTrue(c1 != c5)
 
         # Test that only string, integers and floats are allowed
-        self.assertRaises(TypeError, Constant, "value", dict())
-        self.assertRaises(TypeError, Constant, "value", None)
-        self.assertRaises(TypeError, Constant, "value", True)
+        for v in [dict(), None, True]:
+            with self.assertRaises(TypeError):
+                Constant("value", v)
 
         # Test that only string names are allowed
-        self.assertRaises(TypeError, Constant, 1, "value")
-        self.assertRaises(TypeError, Constant, dict(), "value")
-        self.assertRaises(TypeError, Constant, None, "value")
-        self.assertRaises(TypeError, Constant, True, "value")
+        for name in [1, dict(), None, True]:
+            with self.assertRaises(TypeError):
+                Constant(name, "value")
 
         # test that meta-data is stored correctly
         c1_meta = Constant("value", 1, dict(self.meta_data))
         self.assertEqual(c1_meta.meta, self.meta_data)
+
         # Test getting the size
         for constant in (c1, c2, c3, c4, c5, c1_meta):
             self.assertEqual(constant.get_size(), 1)

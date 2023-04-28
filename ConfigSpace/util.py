@@ -25,25 +25,33 @@
 # ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-# cython: language_level=3
+from __future__ import annotations
 
 from collections import deque
 import copy
-from typing import Union, Dict, Generator, List, Tuple, Optional
+from typing import Union, Dict, List, Tuple, Optional, Iterator
 
 import numpy as np  # type: ignore
 from ConfigSpace import Configuration, ConfigurationSpace
-from ConfigSpace.exceptions import ForbiddenValueError
-from ConfigSpace.hyperparameters import CategoricalHyperparameter, \
-    UniformFloatHyperparameter, UniformIntegerHyperparameter, Constant, \
-    OrdinalHyperparameter, NumericalHyperparameter
+from ConfigSpace.exceptions import ActiveHyperparameterNotSetError, ForbiddenValueError
+from ConfigSpace.hyperparameters import (
+    Hyperparameter,
+    CategoricalHyperparameter,
+    UniformFloatHyperparameter,
+    UniformIntegerHyperparameter,
+    Constant,
+    OrdinalHyperparameter,
+    NumericalHyperparameter,
+)
 import ConfigSpace.c_util
-cimport cython
+
+# cimport cython
 
 
-def impute_inactive_values(configuration: Configuration,
-                           strategy: Union[str, float] = "default") -> Configuration:
+def impute_inactive_values(
+    configuration: Configuration,
+    strategy: Union[str, float] = "default",
+) -> Configuration:
     """Impute inactive parameters.
 
     Iterate through the hyperparameters of a ``Configuration`` and set the
@@ -69,10 +77,9 @@ def impute_inactive_values(configuration: Configuration,
         In this new configuration inactive values are included.
     """
     values = dict()
-    for hp in configuration.configuration_space.get_hyperparameters():
+    for hp in configuration.config_space.values():
         value = configuration.get(hp.name)
         if value is None:
-
             if strategy == "default":
                 new_value = hp.default_value
 
@@ -86,17 +93,15 @@ def impute_inactive_values(configuration: Configuration,
 
         values[hp.name] = value
 
-    new_configuration = Configuration(configuration.configuration_space,
-                                      values=values,
-                                      allow_inactive_with_values=True)
+    new_configuration = Configuration(
+        configuration.config_space, values=values, allow_inactive_with_values=True
+    )
     return new_configuration
 
 
 def get_one_exchange_neighbourhood(
-        configuration: Configuration,
-        seed: int,
-        num_neighbors: int = 4,
-        stdev: float = 0.2) -> Generator[Configuration]:
+    configuration: Configuration, seed: int, num_neighbors: int = 4, stdev: float = 0.2
+) -> Iterator[Configuration]:
     """
     Return all configurations in a one-exchange neighborhood.
 
@@ -122,22 +127,22 @@ def get_one_exchange_neighbourhood(
 
     Returns
     -------
-    Generator
+    Iterator
          It contains configurations, with values being situated around
          the given configuration.
 
     """
     random = np.random.RandomState(seed)
     hyperparameters_list = list(
-        list(configuration.configuration_space._hyperparameters.keys())
+        list(configuration.config_space._hyperparameters.keys())
     )
     hyperparameters_list_length = len(hyperparameters_list)
     hyperparameters_used = [
         hp.name
-        for hp in configuration.configuration_space.get_hyperparameters()
+        for hp in configuration.config_space.values()
         if (
             hp.get_num_neighbors(configuration.get(hp.name)) == 0
-            and configuration.get(hp.name)is not None
+            and configuration.get(hp.name) is not None
         )
     ]
     number_of_usable_hyperparameters = sum(np.isfinite(configuration.get_array()))
@@ -145,14 +150,14 @@ def get_one_exchange_neighbourhood(
         hp.name: num_neighbors
         if (
             isinstance(hp, NumericalHyperparameter)
-            and hp.get_num_neighbors(configuration.get(hp.name))> num_neighbors
-        ) else
-        hp.get_num_neighbors(configuration.get(hp.name))
-        for hp in configuration.configuration_space.get_hyperparameters()
+            and hp.get_num_neighbors(configuration.get(hp.name)) > num_neighbors
+        )
+        else hp.get_num_neighbors(configuration.get(hp.name))
+        for hp in configuration.config_space.values()
     }
 
     finite_neighbors_stack = {}  # type: Dict
-    configuration_space = configuration.configuration_space  # type: ConfigSpace
+    configuration_space = configuration.config_space
 
     while len(hyperparameters_used) < number_of_usable_hyperparameters:
         index = int(random.randint(hyperparameters_list_length))
@@ -171,7 +176,7 @@ def get_one_exchange_neighbourhood(
                 continue
 
             iteration = 0
-            hp = configuration_space.get_hyperparameter(hp_name)  # type: Hyperparameter
+            hp = configuration_space[hp_name]
             num_neighbors_for_hp = hp.get_num_neighbors(configuration.get(hp_name))
             while True:
                 # Obtain neigbors differently for different possible numbers of
@@ -185,7 +190,9 @@ def get_one_exchange_neighbourhood(
                     if number_of_sampled_neighbors >= 1:
                         break
                     if isinstance(hp, UniformFloatHyperparameter):
-                        neighbor = hp.get_neighbors(value, random, number=1, std=stdev)[0]
+                        neighbor = hp.get_neighbors(value, random, number=1, std=stdev)[
+                            0
+                        ]
                     else:
                         neighbor = hp.get_neighbors(value, random, number=1)[0]
                 else:
@@ -194,8 +201,10 @@ def get_one_exchange_neighbourhood(
                     if hp_name not in finite_neighbors_stack:
                         if isinstance(hp, UniformIntegerHyperparameter):
                             neighbors = hp.get_neighbors(
-                                value, random,
-                                number=n_neighbors_per_hp[hp_name], std=stdev,
+                                value,
+                                random,
+                                number=n_neighbors_per_hp[hp_name],
+                                std=stdev,
                             )
                         else:
                             neighbors = hp.get_neighbors(value, random)
@@ -212,12 +221,14 @@ def get_one_exchange_neighbourhood(
                     configuration_array=new_array,
                     hp_name=hp_name,
                     hp_value=neighbor,
-                    index=index)
+                    index=index,
+                )
                 try:
                     # Populating a configuration from an array does not check
                     #  if it is a legal configuration - check this (slow)
-                    new_configuration = Configuration(configuration_space,
-                                                      vector=new_array)  # type: Configuration
+                    new_configuration = Configuration(
+                        configuration_space, vector=new_array
+                    )  # type: Configuration
                     # Only rigorously check every tenth configuration (
                     # because moving around in the neighborhood should
                     # just work!)
@@ -277,16 +288,19 @@ def get_random_neighbor(configuration: Configuration, seed: int) -> Configuratio
     """
     random = np.random.RandomState(seed)
     rejected = True
-    values = copy.deepcopy(configuration.get_dictionary())
+    values = copy.deepcopy(dict(configuration))
+    new_configuration = None
 
     while rejected:
         # First, choose an active hyperparameter
         active = False
         iteration = 0
+        hp = None
+        value = None
         while not active:
             iteration += 1
-            if configuration._num_hyperparameters > 1:
-                rand_idx = random.randint(0, configuration._num_hyperparameters)
+            if len(configuration) > 1:
+                rand_idx = random.randint(0, len(configuration))
             else:
                 rand_idx = 0
 
@@ -294,9 +308,8 @@ def get_random_neighbor(configuration: Configuration, seed: int) -> Configuratio
             if np.isfinite(value):
                 active = True
 
-                hp_name = configuration.configuration_space \
-                    .get_hyperparameter_by_idx(rand_idx)
-                hp = configuration.configuration_space.get_hyperparameter(hp_name)
+                hp_name = configuration.config_space.get_hyperparameter_by_idx(rand_idx)
+                hp = configuration.config_space[hp_name]
 
                 # Only choose if there is a possibility of finding a neigboor
                 if not hp.has_neighbors():
@@ -304,25 +317,29 @@ def get_random_neighbor(configuration: Configuration, seed: int) -> Configuratio
 
             if iteration > 10000:
                 raise ValueError("Probably caught in an infinite loop.")
+
+        assert hp is not None
+        assert value is not None
+
         # Get a neighboor and adapt the rest of the configuration if necessary
         neighbor = hp.get_neighbors(value, random, number=1, transform=True)[0]
         previous_value = values[hp.name]
         values[hp.name] = neighbor
 
         try:
-            new_configuration = Configuration(
-                configuration.configuration_space, values=values)
+            new_configuration = Configuration(configuration.config_space, values=values)
             rejected = False
         except ValueError:
             values[hp.name] = previous_value
 
+    assert new_configuration is not None
     return new_configuration
 
 
 def deactivate_inactive_hyperparameters(
-        configuration: Dict,
-        configuration_space: ConfigurationSpace,
-        vector: Union[None, np.ndarray] = None,
+    configuration: Dict,
+    configuration_space: ConfigurationSpace,
+    vector: Union[None, np.ndarray] = None,
 ):
     """
     Remove inactive hyperparameters from a given configuration
@@ -349,15 +366,19 @@ def deactivate_inactive_hyperparameters(
         that inactivate hyperparameters have been removed.
 
     """
-    hyperparameters = configuration_space.get_hyperparameters()
-    configuration = Configuration(configuration_space=configuration_space,
-                                  values=configuration,
-                                  vector=vector,
-                                  allow_inactive_with_values=True)
+    hyperparameters = configuration_space.values()
+    config = Configuration(
+        configuration_space=configuration_space,
+        values=configuration,
+        vector=vector,
+        allow_inactive_with_values=True,
+    )
 
-    hps = deque()
+    hps: deque[Hyperparameter] = deque()
 
-    unconditional_hyperparameters = configuration_space.get_all_unconditional_hyperparameters()
+    unconditional_hyperparameters = (
+        configuration_space.get_all_unconditional_hyperparameters()
+    )
     hyperparameters_with_children = list()
     for uhp in unconditional_hyperparameters:
         children = configuration_space._children_of[uhp]
@@ -373,36 +394,37 @@ def deactivate_inactive_hyperparameters(
         for child in children:
             conditions = configuration_space._parent_conditions_of[child.name]
             for condition in conditions:
-                if not condition.evaluate_vector(configuration.get_array()):
-                    dic = configuration.get_dictionary()
+                if not condition.evaluate_vector(config.get_array()):
+                    dic = dict(config)
                     try:
                         del dic[child.name]
                     except KeyError:
                         continue
-                    configuration = Configuration(
+                    config = Configuration(
                         configuration_space=configuration_space,
                         values=dic,
-                        allow_inactive_with_values=True)
+                        allow_inactive_with_values=True,
+                    )
                     inactive.add(child.name)
                 hps.appendleft(child.name)
 
     for hp in hyperparameters:
         if hp.name in inactive:
-            dic = configuration.get_dictionary()
+            dic = dict(config)
             try:
                 del dic[hp.name]
             except KeyError:
                 continue
-            configuration = Configuration(
+            config = Configuration(
                 configuration_space=configuration_space,
                 values=dic,
-                allow_inactive_with_values=True)
+                allow_inactive_with_values=True,
+            )
 
-    return Configuration(configuration_space, values=configuration.get_dictionary())
+    return Configuration(configuration_space, values=dict(config))
 
 
-def fix_types(configuration: dict,
-              configuration_space: ConfigurationSpace):
+def fix_types(configuration: dict, configuration_space: ConfigurationSpace):
     """
     Iterate over all hyperparameters in the ConfigSpace
     and fix the types of the parameter values in configuration.
@@ -420,28 +442,32 @@ def fix_types(configuration: dict,
     dict
         configuration with fixed types of parameter values
     """
+
     def fix_type_from_candidates(value, candidates):
         result = [c for c in candidates if str(value) == str(c)]
         if len(result) != 1:
-            raise ValueError("Parameter value %s cannot be matched to candidates %s. "
-                             "Either none or too many matching candidates." % (
-                                 str(value), candidates
-                             )
-                             )
+            raise ValueError(
+                "Parameter value %s cannot be matched to candidates %s. "
+                "Either none or too many matching candidates."
+                % (str(value), candidates)
+            )
         return result[0]
 
-    for param in configuration_space.get_hyperparameters():
+    for param in configuration_space.values():
         param_name = param.name
         if configuration.get(param_name) is not None:
             if isinstance(param, (CategoricalHyperparameter)):
-                configuration[param_name] = fix_type_from_candidates(configuration[param_name],
-                                                                     param.choices)
+                configuration[param_name] = fix_type_from_candidates(
+                    configuration[param_name], param.choices
+                )
             elif isinstance(param, (OrdinalHyperparameter)):
-                configuration[param_name] = fix_type_from_candidates(configuration[param_name],
-                                                                     param.sequence)
+                configuration[param_name] = fix_type_from_candidates(
+                    configuration[param_name], param.sequence
+                )
             elif isinstance(param, Constant):
-                configuration[param_name] = fix_type_from_candidates(configuration[param_name],
-                                                                     [param.value])
+                configuration[param_name] = fix_type_from_candidates(
+                    configuration[param_name], [param.value]
+                )
             elif isinstance(param, UniformFloatHyperparameter):
                 configuration[param_name] = float(configuration[param_name])
             elif isinstance(param, UniformIntegerHyperparameter):
@@ -451,11 +477,12 @@ def fix_types(configuration: dict,
     return configuration
 
 
-@cython.boundscheck(True)  # Activate bounds checking
-@cython.wraparound(True)  # Activate negative indexing
-def generate_grid(configuration_space: ConfigurationSpace,
-                  num_steps_dict: Optional[Dict[str, int]] = None,
-                  ) -> List[Configuration]:
+# @cython.boundscheck(True)  # Activate bounds checking
+# @cython.wraparound(True)  # Activate negative indexing
+def generate_grid(
+    configuration_space: ConfigurationSpace,
+    num_steps_dict: Optional[Dict[str, int]] = None,
+) -> List[Configuration]:
     """
     Generates a grid of Configurations for a given ConfigurationSpace.
     Can be used, for example, for grid search.
@@ -484,7 +511,7 @@ def generate_grid(configuration_space: ConfigurationSpace,
     """
 
     def get_value_set(num_steps_dict: Optional[Dict[str, int]], hp_name: str):
-        '''
+        """
         Gets values along the grid for a particular hyperparameter.
 
         Uses the num_steps_dict to determine number of grid values for UniformFloatHyperparameter
@@ -505,8 +532,8 @@ def generate_grid(configuration_space: ConfigurationSpace,
         tuple
             Holds grid values for the given hyperparameter
 
-        '''
-        param = configuration_space.get_hyperparameter(hp_name)
+        """
+        param = configuration_space[hp_name]
         if isinstance(param, (CategoricalHyperparameter)):
             return param.choices
 
@@ -514,7 +541,11 @@ def generate_grid(configuration_space: ConfigurationSpace,
             return param.sequence
 
         elif isinstance(param, Constant):
-            return tuple([param.value, ])
+            return tuple(
+                [
+                    param.value,
+                ]
+            )
 
         elif isinstance(param, UniformFloatHyperparameter):
             if param.log:
@@ -583,7 +614,7 @@ def generate_grid(configuration_space: ConfigurationSpace,
             raise TypeError("Unknown hyperparameter type %s" % type(param))
 
     def get_cartesian_product(value_sets: List[Tuple], hp_names: List[str]):
-        '''
+        """
         Returns a grid for a subspace of the configuration with given hyperparameters
         and their grid values.
 
@@ -605,9 +636,10 @@ def generate_grid(configuration_space: ConfigurationSpace,
         list of dicts
             List of configuration dicts
 
-        '''
+        """
         grid = []
         import itertools
+
         if len(value_sets) == 0:
             # Edge case
             pass
@@ -648,27 +680,32 @@ def generate_grid(configuration_space: ConfigurationSpace,
             unchecked_grid_pts.popleft()
             continue
 
-        except ValueError as e:
-            assert (str(e)[:23] == "Active hyperparameter '" and
-                    str(e)[-16:] == "' not specified!"), \
-                "Caught exception contains unexpected message."
+        except ActiveHyperparameterNotSetError:
             value_sets = []
             hp_names = []
             new_active_hp_names = []
 
             # "for" loop over currently active HP names
             for hp_name in unchecked_grid_pts[0]:
-                value_sets.append(tuple([unchecked_grid_pts[0][hp_name], ]))
+                value_sets.append(
+                    tuple(
+                        [
+                            unchecked_grid_pts[0][hp_name],
+                        ]
+                    )
+                )
                 hp_names.append(hp_name)
                 # Checks if the conditionally dependent children of already active
                 # HPs are now active
                 for new_hp_name in configuration_space._children[hp_name]:
                     if (
-                        new_hp_name not in new_active_hp_names and
-                        new_hp_name not in unchecked_grid_pts[0]
+                        new_hp_name not in new_active_hp_names
+                        and new_hp_name not in unchecked_grid_pts[0]
                     ):
                         all_cond_ = True
-                        for cond in configuration_space._parent_conditions_of[new_hp_name]:
+                        for cond in configuration_space._parent_conditions_of[
+                            new_hp_name
+                        ]:
                             if not cond.evaluate(unchecked_grid_pts[0]):
                                 all_cond_ = False
                         if all_cond_:

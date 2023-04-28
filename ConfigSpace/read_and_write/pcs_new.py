@@ -20,7 +20,11 @@ and further examples are provided in the
     please use the :class:`~ConfigSpace.read_and_write.pcs` module.
 """
 
-__authors__ = ["Katharina Eggensperger", "Matthias Feurer", "Christina Hernández Wunsch"]
+__authors__ = [
+    "Katharina Eggensperger",
+    "Matthias Feurer",
+    "Christina Hernández Wunsch",
+]
 __contact__ = "automl.org"
 
 from collections import OrderedDict
@@ -63,21 +67,43 @@ from ConfigSpace.forbidden import (
 
 # Build pyparsing expressions for params
 pp_param_name = pyparsing.Word(
-    pyparsing.alphanums + "_" + "-" + "@" + "." + ":" + ";" + "\\" + "/" + "?" + "!"
-    + "$" + "%" + "&" + "*" + "+" + "<" + ">"
+    pyparsing.alphanums
+    + "_"
+    + "-"
+    + "@"
+    + "."
+    + ":"
+    + ";"
+    + "\\"
+    + "/"
+    + "?"
+    + "!"
+    + "$"
+    + "%"
+    + "&"
+    + "*"
+    + "+"
+    + "<"
+    + ">"
 )
 pp_param_operation = pyparsing.Word("in" + "!=" + "==" + ">" + "<")
 pp_digits = "0123456789"
-pp_param_val = pp_param_name + pyparsing.Optional(pyparsing.OneOrMore("," + pp_param_name))
-pp_plusorminus = pyparsing.Literal('+') | pyparsing.Literal('-')
-pp_int = pyparsing.Combine(pyparsing.Optional(pp_plusorminus) + pyparsing.Word(pp_digits))
+pp_param_val = pp_param_name + pyparsing.Optional(
+    pyparsing.OneOrMore("," + pp_param_name)
+)
+pp_plusorminus = pyparsing.Literal("+") | pyparsing.Literal("-")
+pp_int = pyparsing.Combine(
+    pyparsing.Optional(pp_plusorminus) + pyparsing.Word(pp_digits)
+)
 pp_float = pyparsing.Combine(
     pyparsing.Optional(pp_plusorminus) + pyparsing.Optional(pp_int) + "." + pp_int
 )
-pp_eorE = pyparsing.Literal('e') | pyparsing.Literal('E')
+pp_eorE = pyparsing.Literal("e") | pyparsing.Literal("E")
 pp_param_type = (
-    pyparsing.Literal("integer") | pyparsing.Literal("real")
-    | pyparsing.Literal("categorical") | pyparsing.Literal("ordinal")
+    pyparsing.Literal("integer")
+    | pyparsing.Literal("real")
+    | pyparsing.Literal("categorical")
+    | pyparsing.Literal("ordinal")
 )
 pp_floatorint = pp_float | pp_int
 pp_e_notation = pyparsing.Combine(pp_floatorint + pp_eorE + pp_int)
@@ -88,52 +114,92 @@ pp_log = pyparsing.Literal("log")
 # https://pythonhosted.org/pyparsing/pyparsing.Word-class.html
 pp_connectiveOR = pyparsing.Literal("||")
 pp_connectiveAND = pyparsing.Literal("&&")
-pp_choices = pp_param_name + pyparsing.Optional(pyparsing.OneOrMore("," + pp_param_name))
-pp_sequence = pp_param_name + pyparsing.Optional(pyparsing.OneOrMore("," + pp_param_name))
-pp_ord_param = pp_param_name + pp_param_type + "{" + pp_sequence + "}" + "[" + pp_param_name + "]"
-pp_cont_param = (
-    pp_param_name + pp_param_type + "[" + pp_number + ","
-    + pp_number + "]" + "[" + pp_number + "]" + pyparsing.Optional(pp_log)
+pp_choices = pp_param_name + pyparsing.Optional(
+    pyparsing.OneOrMore("," + pp_param_name)
 )
-pp_cat_param = pp_param_name + pp_param_type + "{" + pp_choices + "}" + "[" + pp_param_name + "]"
-pp_condition = pp_param_name + "|" + pp_param_name + pp_param_operation + \
-    pyparsing.Optional('{') + pp_param_val + pyparsing.Optional('}') + \
-    pyparsing.Optional(
+pp_sequence = pp_param_name + pyparsing.Optional(
+    pyparsing.OneOrMore("," + pp_param_name)
+)
+pp_ord_param = (
+    pp_param_name + pp_param_type + "{" + pp_sequence + "}" + "[" + pp_param_name + "]"
+)
+pp_cont_param = (
+    pp_param_name
+    + pp_param_type
+    + "["
+    + pp_number
+    + ","
+    + pp_number
+    + "]"
+    + "["
+    + pp_number
+    + "]"
+    + pyparsing.Optional(pp_log)
+)
+pp_cat_param = (
+    pp_param_name + pp_param_type + "{" + pp_choices + "}" + "[" + pp_param_name + "]"
+)
+pp_condition = (
+    pp_param_name
+    + "|"
+    + pp_param_name
+    + pp_param_operation
+    + pyparsing.Optional("{")
+    + pp_param_val
+    + pyparsing.Optional("}")
+    + pyparsing.Optional(
         pyparsing.OneOrMore(
-            (pp_connectiveAND | pp_connectiveOR) + pp_param_name + pp_param_operation
-            + pyparsing.Optional('{') + pp_param_val + pyparsing.Optional('}')
+            (pp_connectiveAND | pp_connectiveOR)
+            + pp_param_name
+            + pp_param_operation
+            + pyparsing.Optional("{")
+            + pp_param_val
+            + pyparsing.Optional("}")
         )
     )
-pp_forbidden_clause = "{" + pp_param_name + "=" + pp_numberorname + \
-    pyparsing.Optional(pyparsing.OneOrMore("," + pp_param_name + "=" + pp_numberorname)) + "}"
+)
+pp_forbidden_clause = (
+    "{"
+    + pp_param_name
+    + "="
+    + pp_numberorname
+    + pyparsing.Optional(
+        pyparsing.OneOrMore("," + pp_param_name + "=" + pp_numberorname)
+    )
+    + "}"
+)
 
 
 def build_categorical(param):
     if param.weights is not None:
-        raise ValueError('The pcs format does not support categorical hyperparameters with '
-                         'assigned weights (for hyperparameter %s)' % param.name)
+        raise ValueError(
+            "The pcs format does not support categorical hyperparameters with "
+            "assigned weights (for hyperparameter %s)" % param.name
+        )
     cat_template = "%s categorical {%s} [%s]"
-    return cat_template % (param.name,
-                           ", ".join([str(value) for value in param.choices]),
-                           str(param.default_value))
+    return cat_template % (
+        param.name,
+        ", ".join([str(value) for value in param.choices]),
+        str(param.default_value),
+    )
 
 
 def build_ordinal(param):
-    ordinal_template = '%s ordinal {%s} [%s]'
-    return ordinal_template % (param.name,
-                               ", ".join([str(value) for value in param.sequence]),
-                               str(param.default_value))
+    ordinal_template = "%s ordinal {%s} [%s]"
+    return ordinal_template % (
+        param.name,
+        ", ".join([str(value) for value in param.sequence]),
+        str(param.default_value),
+    )
 
 
 def build_constant(param):
-    const_template = '%s categorical {%s} [%s]'
-    return const_template % (param.name,
-                             param.value, param.value)
+    const_template = "%s categorical {%s} [%s]"
+    return const_template % (param.name, param.value, param.value)
 
 
 def build_continuous(param):
-    if type(param) in (NormalIntegerHyperparameter,
-                       NormalFloatHyperparameter):
+    if type(param) in (NormalIntegerHyperparameter, NormalFloatHyperparameter):
         param = param.to_uniform()
 
     float_template = "%s%s real [%s, %s] [%s]"
@@ -150,18 +216,28 @@ def build_continuous(param):
 
     if isinstance(param, IntegerHyperparameter):
         default_value = int(default_value)
-        return int_template % (q_prefix, param.name, param.lower,
-                               param.upper, default_value)
+        return int_template % (
+            q_prefix,
+            param.name,
+            param.lower,
+            param.upper,
+            default_value,
+        )
     else:
-        return float_template % (q_prefix, param.name, str(param.lower),
-                                 str(param.upper), str(default_value))
+        return float_template % (
+            q_prefix,
+            param.name,
+            str(param.lower),
+            str(param.upper),
+            str(default_value),
+        )
 
 
 def build_condition(condition):
     if not isinstance(condition, ConditionComponent):
         raise TypeError(
-            "build_condition must be called with an instance of '%s', got '%s'" %
-            (ConditionComponent, type(condition))
+            "build_condition must be called with an instance of '%s', got '%s'"
+            % (ConditionComponent, type(condition))
         )
     # Now handle the conditions SMAC can handle
     in_template = "%s | %s in {%s}"
@@ -176,27 +252,37 @@ def build_condition(condition):
         cond_values = str(condition.value)
 
     if isinstance(condition, NotEqualsCondition):
-        return notequal_template % (condition.child.name,
-                                    condition.parent.name,
-                                    cond_values)
+        return notequal_template % (
+            condition.child.name,
+            condition.parent.name,
+            cond_values,
+        )
 
     elif isinstance(condition, InCondition):
-        return in_template % (condition.child.name,
-                              condition.parent.name,
-                              ", ".join(cond_values))
+        return in_template % (
+            condition.child.name,
+            condition.parent.name,
+            ", ".join(cond_values),
+        )
 
     elif isinstance(condition, EqualsCondition):
-        return equal_template % (condition.child.name,
-                                 condition.parent.name,
-                                 cond_values)
+        return equal_template % (
+            condition.child.name,
+            condition.parent.name,
+            cond_values,
+        )
     elif isinstance(condition, LessThanCondition):
-        return less_template % (condition.child.name,
-                                condition.parent.name,
-                                cond_values)
+        return less_template % (
+            condition.child.name,
+            condition.parent.name,
+            cond_values,
+        )
     elif isinstance(condition, GreaterThanCondition):
-        return greater_template % (condition.child.name,
-                                   condition.parent.name,
-                                   cond_values)
+        return greater_template % (
+            condition.child.name,
+            condition.parent.name,
+            cond_values,
+        )
 
 
 def build_conjunction(conjunction):
@@ -219,13 +305,15 @@ def build_conjunction(conjunction):
 
 def build_forbidden(clause):
     if not isinstance(clause, AbstractForbiddenComponent):
-        raise TypeError("build_forbidden must be called with an instance of "
-                        "'%s', got '%s'" %
-                        (AbstractForbiddenComponent, type(clause)))
+        raise TypeError(
+            "build_forbidden must be called with an instance of "
+            "'%s', got '%s'" % (AbstractForbiddenComponent, type(clause))
+        )
     if isinstance(clause, ForbiddenRelation):
-        raise TypeError("build_forbidden must not be called with an instance of "
-                        "'%s', got '%s'" %
-                        (ForbiddenRelation, type(clause)))
+        raise TypeError(
+            "build_forbidden must not be called with an instance of "
+            "'%s', got '%s'" % (ForbiddenRelation, type(clause))
+        )
 
     retval = StringIO()
     retval.write("{")
@@ -243,11 +331,11 @@ def build_forbidden(clause):
 
 def condition_specification(child_name, condition, configuration_space):
     # specifies the condition type
-    child = configuration_space.get_hyperparameter(child_name)
+    child = configuration_space[child_name]
     parent_name = condition[0]
-    parent = configuration_space.get_hyperparameter(parent_name)
+    parent = configuration_space[parent_name]
     operation = condition[1]
-    if operation == 'in':
+    if operation == "in":
         restrictions = condition[3:-1:2]
         for i in range(len(restrictions)):
             if isinstance(parent, FloatHyperparameter):
@@ -267,9 +355,9 @@ def condition_specification(child_name, condition, configuration_space):
         elif isinstance(parent, IntegerHyperparameter):
             restrictions = int(restrictions)
 
-        if operation == '==':
+        if operation == "==":
             condition = EqualsCondition(child, parent, restrictions)
-        elif operation == '!=':
+        elif operation == "!=":
             condition = NotEqualsCondition(child, parent, restrictions)
         else:
             if isinstance(parent, FloatHyperparameter):
@@ -279,13 +367,15 @@ def condition_specification(child_name, condition, configuration_space):
             elif isinstance(parent, OrdinalHyperparameter):
                 pass
             else:
-                raise ValueError('The parent of a conditional hyperparameter '
-                                 'must be either a float, int or ordinal '
-                                 'hyperparameter, but is %s.' % type(parent))
+                raise ValueError(
+                    "The parent of a conditional hyperparameter "
+                    "must be either a float, int or ordinal "
+                    "hyperparameter, but is %s." % type(parent)
+                )
 
-            if operation == '<':
+            if operation == "<":
                 condition = LessThanCondition(child, parent, restrictions)
-            elif operation == '>':
+            elif operation == ">":
                 condition = GreaterThanCondition(child, parent, restrictions)
         return condition
 
@@ -368,23 +458,24 @@ def read(pcs_string, debug=False):
         ct += 1
         param = None
 
-        create = {"int": UniformIntegerHyperparameter,
-                  "float": UniformFloatHyperparameter,
-                  "categorical": CategoricalHyperparameter,
-                  "ordinal": OrdinalHyperparameter
-                  }
+        create = {
+            "int": UniformIntegerHyperparameter,
+            "float": UniformFloatHyperparameter,
+            "categorical": CategoricalHyperparameter,
+            "ordinal": OrdinalHyperparameter,
+        }
 
         try:
             param_list = pp_cont_param.parseString(line)
             name = param_list[0]
-            if param_list[1] == 'integer':
-                paramtype = 'int'
-            elif param_list[1] == 'real':
-                paramtype = 'float'
+            if param_list[1] == "integer":
+                paramtype = "int"
+            elif param_list[1] == "real":
+                paramtype = "float"
             else:
                 paramtype = None
 
-            if paramtype in ['int', 'float']:
+            if paramtype in ["int", "float"]:
                 log = param_list[10:]
                 param_list = param_list[:10]
                 if len(log) > 0:
@@ -393,8 +484,14 @@ def read(pcs_string, debug=False):
                 upper = float(param_list[5])
                 log_on = True if "log" in log else False
                 default_value = float(param_list[8])
-                param = create[paramtype](name=name, lower=lower, upper=upper,
-                                          q=None, log=log_on, default_value=default_value)
+                param = create[paramtype](
+                    name=name,
+                    lower=lower,
+                    upper=upper,
+                    q=None,
+                    log=log_on,
+                    default_value=default_value,
+                )
                 cont_ct += 1
 
         except pyparsing.ParseException:
@@ -442,8 +539,8 @@ def read(pcs_string, debug=False):
                 tmp_list.append(value)
             else:
                 # So far, only equals is supported by SMAC
-                if tmp_list[1] == '=':
-                    hp = configuration_space.get_hyperparameter(tmp_list[0])
+                if tmp_list[1] == "=":
+                    hp = configuration_space[tmp_list[0]]
                     if isinstance(hp, NumericalHyperparameter):
                         if isinstance(hp, IntegerHyperparameter):
                             forbidden_value = int(tmp_list[2])
@@ -452,30 +549,40 @@ def read(pcs_string, debug=False):
                         else:
                             raise NotImplementedError
                         if forbidden_value < hp.lower or forbidden_value > hp.upper:
-                            raise ValueError(f'forbidden_value is set out of the bound, it needs to'
-                                             f' be set between [{hp.lower}, {hp.upper}]'
-                                             f' but its value is {forbidden_value}')
-                    elif isinstance(hp, (CategoricalHyperparameter, OrdinalHyperparameter)):
-                        hp_values = hp.choices if isinstance(hp, CategoricalHyperparameter)\
+                            raise ValueError(
+                                f"forbidden_value is set out of the bound, it needs to"
+                                f" be set between [{hp.lower}, {hp.upper}]"
+                                f" but its value is {forbidden_value}"
+                            )
+                    elif isinstance(
+                        hp, (CategoricalHyperparameter, OrdinalHyperparameter)
+                    ):
+                        hp_values = (
+                            hp.choices
+                            if isinstance(hp, CategoricalHyperparameter)
                             else hp.sequence
+                        )
                         forbidden_value_in_hp_values = tmp_list[2] in hp_values
                         if forbidden_value_in_hp_values:
                             forbidden_value = tmp_list[2]
                         else:
-                            raise ValueError(f'forbidden_value is set out of the allowed value '
-                                             f'sets, it needs to be one member from {hp_values} '
-                                             f'but its value is {forbidden_value}')
+                            raise ValueError(
+                                f"forbidden_value is set out of the allowed value "
+                                f"sets, it needs to be one member from {hp_values} "
+                                f"but its value is {forbidden_value}"
+                            )
                     else:
-                        raise ValueError('Unsupported Hyperparamter sorts')
+                        raise ValueError("Unsupported Hyperparamter sorts")
 
-                    clause_list.append(ForbiddenEqualsClause(
-                        configuration_space.get_hyperparameter(tmp_list[0]),
-                        forbidden_value))
+                    clause_list.append(
+                        ForbiddenEqualsClause(
+                            configuration_space[tmp_list[0]], forbidden_value
+                        )
+                    )
                 else:
                     raise NotImplementedError()
                 tmp_list = []
-        configuration_space.add_forbidden_clause(ForbiddenAndConjunction(
-            *clause_list))
+        configuration_space.add_forbidden_clause(ForbiddenAndConjunction(*clause_list))
 
     conditions_per_child = OrderedDict()
     for condition in conditions:
@@ -487,14 +594,14 @@ def read(pcs_string, debug=False):
     for child_name in conditions_per_child:
         for condition in conditions_per_child[child_name]:
             condition = condition[2:]
-            condition = ' '.join(condition)
-            if '||' in str(condition):
+            condition = " ".join(condition)
+            if "||" in str(condition):
                 ors = []
                 # 1st case we have a mixture of || and &&
-                if '&&' in str(condition):
+                if "&&" in str(condition):
                     ors_combis = []
-                    for cond_parts in str(condition).split('||'):
-                        condition = str(cond_parts).split('&&')
+                    for cond_parts in str(condition).split("||"):
+                        condition = str(cond_parts).split("&&")
                         # if length is 1 it must be or
                         if len(condition) == 1:
                             element_list = condition[0].split()
@@ -510,7 +617,9 @@ def read(pcs_string, debug=False):
                             ands = []
                             for and_part in condition:
                                 element_list = [
-                                    element for part in condition for element in and_part.split()
+                                    element
+                                    for part in condition
+                                    for element in and_part.split()
                                 ]
                                 ands.append(
                                     condition_specification(
@@ -524,7 +633,7 @@ def read(pcs_string, debug=False):
                     configuration_space.add_condition(mixed_conjunction)
                 else:
                     # 2nd case: we only have ors
-                    for cond_parts in str(condition).split('||'):
+                    for cond_parts in str(condition).split("||"):
                         element_list = [element for element in cond_parts.split()]
                         ors.append(
                             condition_specification(
@@ -537,9 +646,9 @@ def read(pcs_string, debug=False):
                     configuration_space.add_condition(or_conjunction)
             else:
                 # 3rd case: we only have ands
-                if '&&' in str(condition):
+                if "&&" in str(condition):
                     ands = []
-                    for cond_parts in str(condition).split('&&'):
+                    for cond_parts in str(condition).split("&&"):
                         element_list = [element for element in cond_parts.split()]
                         ands.append(
                             condition_specification(
@@ -597,19 +706,22 @@ def write(configuration_space):
 
     """
     if not isinstance(configuration_space, ConfigurationSpace):
-        raise TypeError("pcs_parser.write expects an instance of %s, "
-                        "you provided '%s'" % (ConfigurationSpace, type(configuration_space)))
+        raise TypeError(
+            "pcs_parser.write expects an instance of %s, "
+            "you provided '%s'" % (ConfigurationSpace, type(configuration_space))
+        )
 
     param_lines = StringIO()
     condition_lines = StringIO()
     forbidden_lines = []
-    for hyperparameter in configuration_space.get_hyperparameters():
+    for hyperparameter in configuration_space.values():
         # Check if the hyperparameter names are valid SMAC names!
         try:
             pp_param_name.parseString(hyperparameter.name)
         except pyparsing.ParseException:
             raise ValueError(
-                "Illegal hyperparameter name for SMAC: %s" % hyperparameter.name)
+                "Illegal hyperparameter name for SMAC: %s" % hyperparameter.name
+            )
 
         # First build params
         if param_lines.tell() > 0:
@@ -623,13 +735,16 @@ def write(configuration_space):
         elif isinstance(hyperparameter, Constant):
             param_lines.write(build_constant(hyperparameter))
         else:
-            raise TypeError("Unknown type: %s (%s)" % (
-                type(hyperparameter), hyperparameter))
+            raise TypeError(
+                "Unknown type: %s (%s)" % (type(hyperparameter), hyperparameter)
+            )
 
     for condition in configuration_space.get_conditions():
         if condition_lines.tell() > 0:
             condition_lines.write("\n")
-        if isinstance(condition, AndConjunction) or isinstance(condition, OrConjunction):
+        if isinstance(condition, AndConjunction) or isinstance(
+            condition, OrConjunction
+        ):
             condition_lines.write(build_conjunction(condition))
         else:
             condition_lines.write(build_condition(condition))
@@ -643,11 +758,15 @@ def write(configuration_space):
         for dlc in dlcs:
             if isinstance(dlc, MultipleValueForbiddenClause):
                 if not isinstance(dlc, ForbiddenInClause):
-                    raise ValueError("SMAC cannot handle this forbidden "
-                                     "clause: %s" % dlc)
+                    raise ValueError(
+                        "SMAC cannot handle this forbidden " "clause: %s" % dlc
+                    )
                 in_statements.append(
-                    [ForbiddenEqualsClause(dlc.hyperparameter, value)
-                     for value in dlc.values])
+                    [
+                        ForbiddenEqualsClause(dlc.hyperparameter, value)
+                        for value in dlc.values
+                    ]
+                )
             else:
                 other_statements.append(dlc)
 

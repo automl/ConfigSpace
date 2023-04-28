@@ -36,7 +36,19 @@ import warnings
 import numpy as np
 import io
 
-import ConfigSpace.nx
+import ConfigSpace.nx as nx
+from ConfigSpace.exceptions import (
+    CyclicDependancyError,
+    HyperparameterNotFoundError,
+    HyperparameterIndexError,
+    HyperparameterAlreadyExistsError,
+    ChildNotFoundError,
+    IllegalValueError,
+    ParentNotFoundError,
+    AmbiguousConditionError,
+    InactiveHyperparameterSetError,
+    ActiveHyperparameterNotSetError,
+)
 from ConfigSpace.hyperparameters import (
     Hyperparameter,
     Constant,
@@ -57,7 +69,7 @@ from ConfigSpace.forbidden import (
     ForbiddenRelation,
 )
 from ConfigSpace.configuration import Configuration
-from typing import Any, Iterator, Iterable, Sequence
+from typing import Any, Iterator, Iterable, overload
 from typing_extensions import Final
 from ConfigSpace.exceptions import ForbiddenValueError
 import ConfigSpace.c_util
@@ -105,6 +117,16 @@ def _assert_type(item: Any, expected: type, method: str | None = None) -> None:
         if method:
             msg += " in method " + method
         raise TypeError(msg)
+
+
+def _assert_legal(hyperparameter: Hyperparameter, value: tuple | list | Any):
+    if isinstance(value, (tuple, list)):
+        for v in value:
+            if not hyperparameter.is_legal(v):
+                raise IllegalValueError(hyperparameter, v)
+    else:
+        if not hyperparameter.is_legal(value):
+            raise IllegalValueError(hyperparameter, value)
 
 
 class ConfigurationSpace(Mapping[str, Hyperparameter]):
@@ -222,7 +244,8 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         return hyperparameter
 
     def add_hyperparameters(
-        self, hyperparameters: Iterable[Hyperparameter]
+        self,
+        hyperparameters: Iterable[Hyperparameter],
     ) -> list[Hyperparameter]:
         """Add hyperparameters to the configuration space.
 
@@ -296,7 +319,8 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         return condition
 
     def add_conditions(
-        self, conditions: list[ConditionComponent]
+        self,
+        conditions: list[ConditionComponent],
     ) -> list[ConditionComponent]:
         """Add a list of conditions to the configuration space.
 
@@ -341,82 +365,842 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         self._update_cache()
         return conditions
 
-    def _add_edge(
+    def add_forbidden_clause(
         self,
-        parent_node: Hyperparameter,
-        child_node: Hyperparameter,
-        condition: ConditionComponent,
-    ) -> None:
-        try:
-            # TODO maybe this has to be done more carefully
-            del self._children[_ROOT][child_node.name]
-        except Exception:
-            pass
+        clause: AbstractForbiddenComponent,
+    ) -> AbstractForbiddenComponent:
+        """
+        Add a forbidden clause to the configuration space.
 
-        try:
-            del self._parents[child_node.name][_ROOT]
-        except Exception:
-            pass
+        Parameters
+        ----------
+        clause : :ref:`Forbidden clauses`
+            Forbidden clause to add
 
-        self._children[parent_node.name][child_node.name] = condition
-        self._parents[child_node.name][parent_node.name] = condition
+        Returns
+        -------
+        :ref:`Forbidden clauses`
+            Same as input forbidden clause
+        """
+        self._check_forbidden_component(clause=clause)
+        clause.set_vector_idx(self._hyperparameter_idx)
+        self.forbidden_clauses.append(clause)
+        self._check_default_configuration()
+        return clause
 
-        self._conditionals.add(child_node.name)
-
-    def _check_edges(
+    def add_forbidden_clauses(
         self,
-        edges: list[tuple[Hyperparameter, Hyperparameter]],
-        values: list[Any],
-    ) -> None:
-        for (parent, child), value in zip(edges, values):
-            # check if both nodes are already inserted into the graph
-            if child.name not in self._hyperparameters:
-                raise ValueError(f"Child hyperparameter '{child.name}' not in space.")
+        clauses: list[AbstractForbiddenComponent],
+    ) -> list[AbstractForbiddenComponent]:
+        """
+        Add a list of forbidden clauses to the configuration space.
 
-            if parent.name not in self._hyperparameters:
-                raise ValueError(f"Parent hyperparameter '{parent.name}' not in space.")
+        Parameters
+        ----------
+        clauses : list(:ref:`Forbidden clauses`)
+            Collection of forbidden clauses to add
 
-            if child != self._hyperparameters[child.name]:
-                # TODO test this
-                raise ValueError(
-                    f"Child hyperparameter '{child}' different to hyperparameter "
-                    f"with the same name in configuration space: {self._hyperparameters[child.name]}"
-                )
+        Returns
+        -------
+        list(:ref:`Forbidden clauses`)
+            Same as input clauses
+        """
+        for clause in clauses:
+            self._check_forbidden_component(clause=clause)
+            clause.set_vector_idx(self._hyperparameter_idx)
+            self.forbidden_clauses.append(clause)
 
-            if parent != self._hyperparameters[parent.name]:
-                # TODO test this
-                raise ValueError(
-                    f"Parent hyperparameter '{parent}' different to hyperparameter "
-                    f"with the same name in configuration space: '{self._hyperparameters[parent.name]}'."
-                )
+        self._check_default_configuration()
+        return clauses
 
-            if isinstance(value, Sequence):
-                # TODO test this
-                for v in value:
-                    if not self._hyperparameters[parent.name].is_legal(v):
-                        raise ValueError(
-                            f"Value '{v}' is not legal for hyperparameter"
-                            f" {self._hyperparameters[parent.name]}"
-                        )
+    def add_configuration_space(
+        self,
+        prefix: str,
+        configuration_space: ConfigurationSpace,
+        delimiter: str = ":",
+        parent_hyperparameter: dict | None = None,
+    ) -> ConfigurationSpace:
+        """
+        Combine two configuration space by adding one the other configuration
+        space. The contents of the configuration space, which should be added,
+        are renamed to ``prefix`` + ``delimiter`` + old_name.
+
+        Parameters
+        ----------
+        prefix : str
+            The prefix for the renamed hyperparameter | conditions |
+            forbidden clauses
+        configuration_space : :class:`~ConfigSpace.configuration_space.ConfigurationSpace`
+            The configuration space which should be added
+        delimiter : str, optional
+            Defaults to ':'
+        parent_hyperparameter : dict | None = None
+            Adds for each new hyperparameter the condition, that
+            ``parent_hyperparameter`` is active. Must be a dictionary with two keys
+            "parent" and "value", meaning that the added configuration space is active
+            when `parent` is equal to `value`
+
+        Returns
+        -------
+        :class:`~ConfigSpace.configuration_space.ConfigurationSpace`
+            The configuration space, which was added
+        """
+        _assert_type(
+            configuration_space, ConfigurationSpace, method="add_configuration_space"
+        )
+
+        prefix_delim = f"{prefix}{delimiter}"
+
+        def _new_name(_item: Hyperparameter) -> str:
+            if _item.name in ("", prefix):
+                return prefix
+            elif not _item.name.startswith(prefix_delim):
+                return f"{prefix_delim}{_item.name}"
             else:
-                if not self._hyperparameters[parent.name].is_legal(value):
-                    raise ValueError(
-                        f"Value '{value}' is not legal for hyperparameter"
-                        f" {self._hyperparameters[parent.name]}"
+                return _item.name
+
+        new_parameters = []
+        for hp in configuration_space.values():
+            new_hp = copy.copy(hp)
+            new_hp.name = _new_name(hp)
+            new_parameters.append(new_hp)
+
+        self.add_hyperparameters(new_parameters)
+
+        conditions_to_add = []
+        for condition in configuration_space.get_conditions():
+            new_condition = copy.copy(condition)
+            for dlc in new_condition.get_descendant_literal_conditions():
+                # Rename children
+                dlc.child.name = _new_name(dlc.child)
+                dlc.parent.name = _new_name(dlc.parent)
+
+            conditions_to_add.append(new_condition)
+
+        self.add_conditions(conditions_to_add)
+
+        forbiddens_to_add = []
+        for forbidden_clause in configuration_space.forbidden_clauses:
+            new_forbidden = forbidden_clause
+            for dlc in new_forbidden.get_descendant_literal_clauses():
+                if isinstance(dlc, ForbiddenRelation):
+                    dlc.left.name = _new_name(dlc.left)
+                    dlc.right.name = _new_name(dlc.right)
+                else:
+                    dlc.hyperparameter.name = _new_name(dlc.hyperparameter)
+            forbiddens_to_add.append(new_forbidden)
+
+        self.add_forbidden_clauses(forbiddens_to_add)
+
+        conditions_to_add = []
+        if parent_hyperparameter is not None:
+            parent = parent_hyperparameter["parent"]
+            value = parent_hyperparameter["value"]
+
+            # Only add a condition if the parameter is a top-level parameter of the new configuration
+            # space (this will be some kind of tree structure).
+            for new_hp in new_parameters:
+                parents = self.get_parents_of(new_hp)
+                if not any(parents):
+                    condition = EqualsCondition(new_hp, parent, value)
+                    conditions_to_add.append(condition)
+
+        self.add_conditions(conditions_to_add)
+
+        return configuration_space
+
+    def get_hyperparameter_by_idx(self, idx: int) -> str:
+        """Name of a hyperparameter from the space given its id.
+
+        Parameters
+        ----------
+        idx : int
+            Id of a hyperparameter
+
+        Returns
+        -------
+        str
+            Name of the hyperparameter
+        """
+        hp = self._idx_to_hyperparameter.get(idx)
+        if hp is None:
+            raise HyperparameterIndexError(idx, self)
+
+        return hp
+
+    def get_idx_by_hyperparameter_name(self, name: str) -> int:
+        """The id of a hyperparameter by its ``name``.
+
+        Parameters
+        ----------
+        name : str
+            Name of a hyperparameter
+
+        Returns
+        -------
+        int
+            Id of the hyperparameter with name ``name``
+        """
+        idx = self._hyperparameter_idx.get(name)
+
+        if idx is None:
+            raise HyperparameterNotFoundError(name, space=self)
+
+        return idx
+
+    def get_conditions(self) -> list[AbstractCondition]:
+        """All conditions from the configuration space.
+
+        Returns
+        -------
+        list(:ref:`Conditions`)
+            Conditions of the configuration space
+        """
+        conditions = []
+        added_conditions: set[str] = set()
+
+        # Nodes is a list of nodes
+        for source_node in self._hyperparameters.values():
+            # This is a list of keys in a dictionary
+            # TODO sort the edges by the order of their source_node in the
+            # hyperparameter list!
+            for target_node in self._children[source_node.name]:
+                if target_node not in added_conditions:
+                    condition = self._children[source_node.name][target_node]
+                    conditions.append(condition)
+                    added_conditions.add(target_node)
+
+        return conditions
+
+    def get_forbiddens(self) -> list[AbstractForbiddenComponent]:
+        """All forbidden clauses from the configuration space.
+
+        Returns
+        -------
+        list(:ref:`Forbidden clauses`)
+            List with the forbidden clauses
+        """
+        return self.forbidden_clauses
+
+    def get_children_of(self, name: str | Hyperparameter) -> list[Hyperparameter]:
+        """
+        Return a list with all children of a given hyperparameter.
+
+        Parameters
+        ----------
+        name : str, :ref:`Hyperparameters`
+            Hyperparameter or its name, for which all children are requested
+
+        Returns
+        -------
+        list(:ref:`Hyperparameters`)
+            Children of the hyperparameter
+        """
+        conditions = self.get_child_conditions_of(name)
+        parents: list[Hyperparameter] = []
+        for condition in conditions:
+            parents.extend(condition.get_children())
+        return parents
+
+    def generate_all_continuous_from_bounds(
+        self,
+        bounds: list[tuple[float, float]],
+    ) -> None:
+        """Generate :class:`~ConfigSpace.hyperparameters.UniformFloatHyperparameter`
+        from a list containing lists with lower and upper bounds.
+
+        The generated hyperparameters are added to the configuration space.
+
+        Parameters
+        ----------
+        bounds : list[tuple([float, float])]
+            List containing lists with two elements: lower and upper bound
+        """
+        self.add_hyperparameters(
+            [
+                UniformFloatHyperparameter(name=f"x{i}", lower=lower, upper=upper)
+                for i, (lower, upper) in enumerate(bounds)
+            ]
+        )
+
+    def get_child_conditions_of(
+        self,
+        name: str | Hyperparameter,
+    ) -> list[AbstractCondition]:
+        """
+        Return a list with conditions of all children of a given
+        hyperparameter referenced by its ``name``.
+
+        Parameters
+        ----------
+        name : str, :ref:`Hyperparameters`
+            Hyperparameter or its name, for which conditions are requested
+
+        Returns
+        -------
+        list(:ref:`Conditions`)
+            List with the conditions on the children of the given hyperparameter
+        """
+        name = name if isinstance(name, str) else name.name
+
+        # This raises an exception if the hyperparameter does not exist
+        self[name]
+        return self._get_child_conditions_of(name)
+
+    def get_parents_of(self, name: str | Hyperparameter) -> list[Hyperparameter]:
+        """The parents hyperparameters of a given hyperparameter.
+
+        Parameters
+        ----------
+        name : str, :ref:`Hyperparameters`
+            Can either be the name of a hyperparameter or the hyperparameter
+            object.
+
+        Returns
+        -------
+        list[:ref:`Conditions`]
+            List with all parent hyperparameters
+        """
+        conditions = self.get_parent_conditions_of(name)
+        parents: list[Hyperparameter] = []
+        for condition in conditions:
+            parents.extend(condition.get_parents())
+        return parents
+
+    def get_parent_conditions_of(
+        self,
+        name: str | Hyperparameter,
+    ) -> list[AbstractCondition]:
+        """The conditions of all parents of a given hyperparameter.
+
+        Parameters
+        ----------
+        name : str, :ref:`Hyperparameters`
+            Can either be the name of a hyperparameter or the hyperparameter
+            object
+
+        Returns
+        -------
+        list[:ref:`Conditions`]
+            List with all conditions on parent hyperparameters
+        """
+        if isinstance(name, Hyperparameter):
+            name = name.name  # type: ignore
+
+        # This raises an exception if the hyperparameter does not exist
+        self[name]
+        return self._get_parent_conditions_of(name)
+
+    def get_all_unconditional_hyperparameters(self) -> list[str]:
+        """Names of unconditional hyperparameters.
+
+        Returns
+        -------
+        list[:ref:`Hyperparameters`]
+            List with all parent hyperparameters, which are not part of a condition
+        """
+        hyperparameters = [hp_name for hp_name in self._children[_ROOT]]
+        return hyperparameters
+
+    def get_all_conditional_hyperparameters(self) -> set[str]:
+        """Names of all conditional hyperparameters.
+
+        Returns
+        -------
+        set[:ref:`Hyperparameters`]
+            Set with all conditional hyperparameter
+        """
+        return self._conditionals
+
+    def get_default_configuration(self) -> Configuration:
+        """Configuration containing hyperparameters with default values.
+
+        Returns
+        -------
+        :class:`~ConfigSpace.configuration_space.Configuration`
+            Configuration with the set default values
+
+        """
+        return self._check_default_configuration()
+
+    # For backward compatibility
+    def check_configuration(self, configuration: Configuration) -> None:
+        """
+        Check if a configuration is legal. Raises an error if not.
+
+        Parameters
+        ----------
+        configuration : :class:`~ConfigSpace.configuration_space.Configuration`
+            Configuration to check
+        """
+        _assert_type(configuration, Configuration, method="check_configuration")
+        ConfigSpace.c_util.check_configuration(self, configuration.get_array(), False)
+
+    def check_configuration_vector_representation(self, vector: np.ndarray) -> None:
+        """
+        Raise error if configuration in vector representation is not legal.
+
+        Parameters
+        ----------
+        vector : np.ndarray
+            Configuration in vector representation
+        """
+        _assert_type(
+            vector, np.ndarray, method="check_configuration_vector_representation"
+        )
+        ConfigSpace.c_util.check_configuration(self, vector, False)
+
+    def get_active_hyperparameters(
+        self,
+        configuration: Configuration,
+    ) -> set[Hyperparameter]:
+        """Set of active hyperparameter for a given configuration.
+
+        Parameters
+        ----------
+        configuration : :class:`~ConfigSpace.configuration_space.Configuration`
+            Configuration for which the active hyperparameter are returned
+
+        Returns
+        -------
+        set(:class:`~ConfigSpace.configuration_space.Configuration`)
+            The set of all active hyperparameter
+
+        """
+        vector = configuration.get_array()
+        active_hyperparameters = set()
+        for hp_name, hyperparameter in self._hyperparameters.items():
+            conditions = self._parent_conditions_of[hyperparameter.name]
+
+            active = True
+            for condition in conditions:
+                parent_vector_idx = condition.get_parents_vector()
+
+                # if one of the parents is None, the hyperparameter cannot be
+                # active! Else we have to check this
+                # Note from trying to optimize this - this is faster than using
+                # dedicated numpy functions and indexing
+                if any([vector[i] != vector[i] for i in parent_vector_idx]):
+                    active = False
+                    break
+
+                else:
+                    if not condition.evaluate_vector(vector):
+                        active = False
+                        break
+
+            if active:
+                active_hyperparameters.add(hp_name)
+
+        return active_hyperparameters
+
+    @overload
+    def sample_configuration(self, size: None = None) -> Configuration:
+        ...
+
+    # Technically this is wrong given the current behaviour but it's
+    # sufficient for most cases. Once deprecation warning is up,
+    # we can just have `1` always return a list of configurations
+    # because an `int` was specified, `None` for single config.
+    @overload
+    def sample_configuration(self, size: int) -> list[Configuration]:
+        ...
+
+    def sample_configuration(
+        self,
+        size: int | None = None,
+    ) -> Configuration | list[Configuration]:
+        """
+        Sample ``size`` configurations from the configuration space object.
+
+        Parameters
+        ----------
+        size : int, optional
+            Number of configurations to sample. Default to 1
+
+        Returns
+        -------
+        :class:`~ConfigSpace.configuration_space.Configuration`,
+            list[:class:`~ConfigSpace.configuration_space.Configuration`]:
+            A single configuration if ``size`` 1 else a list of Configurations
+        """
+        if size == 1:
+            warnings.warn(
+                "Please leave at default or explicitly set `size=None`."
+                " In the future, specifying a size will always retunr a list, even if 1",
+                DeprecationWarning,
+            )
+
+        # Maintain old behaviour by setting this
+        if size is None:
+            size = 1
+
+        _assert_type(size, int, method="sample_configuration")
+        if size < 1:
+            return []
+
+        iteration = 0
+        missing = size
+        accepted_configurations: list[Configuration] = []
+        num_hyperparameters = len(self._hyperparameters)
+
+        unconditional_hyperparameters = self.get_all_unconditional_hyperparameters()
+        hyperparameters_with_children = list()
+
+        _forbidden_clauses_unconditionals = []
+        _forbidden_clauses_conditionals = []
+        for clause in self.get_forbiddens():
+            based_on_conditionals = False
+            for subclause in clause.get_descendant_literal_clauses():
+                if isinstance(subclause, ForbiddenRelation):
+                    if (
+                        subclause.left.name not in unconditional_hyperparameters
+                        or subclause.right.name not in unconditional_hyperparameters
+                    ):
+                        based_on_conditionals = True
+                        break
+                elif subclause.hyperparameter.name not in unconditional_hyperparameters:
+                    based_on_conditionals = True
+                    break
+            if based_on_conditionals:
+                _forbidden_clauses_conditionals.append(clause)
+            else:
+                _forbidden_clauses_unconditionals.append(clause)
+
+        for uhp in unconditional_hyperparameters:
+            children = self._children_of[uhp]
+            if len(children) > 0:
+                hyperparameters_with_children.append(uhp)
+
+        while len(accepted_configurations) < size:
+            if missing != size:
+                missing = int(1.1 * missing)
+            vector = np.ndarray((missing, num_hyperparameters), dtype=float)
+
+            for i, hp_name in enumerate(self._hyperparameters):
+                hyperparameter = self._hyperparameters[hp_name]
+                vector[:, i] = hyperparameter._sample(self.random, missing)
+
+            for i in range(missing):
+                try:
+                    configuration = Configuration(
+                        self,
+                        vector=ConfigSpace.c_util.correct_sampled_array(
+                            vector[i].copy(),
+                            _forbidden_clauses_unconditionals,
+                            _forbidden_clauses_conditionals,
+                            hyperparameters_with_children,
+                            num_hyperparameters,
+                            unconditional_hyperparameters,
+                            self._hyperparameter_idx,
+                            self._parent_conditions_of,
+                            self._parents_of,
+                            self._children_of,
+                        ),
+                    )
+                    accepted_configurations.append(configuration)
+                except ForbiddenValueError:
+                    iteration += 1
+
+                    if iteration == size * 100:
+                        raise ForbiddenValueError(
+                            f"Cannot sample valid configuration for {self}"
+                        )
+
+            missing = size - len(accepted_configurations)
+
+        if size <= 1:
+            return accepted_configurations[0]
+        else:
+            return accepted_configurations
+
+    def seed(self, seed: int) -> None:
+        """Set the random seed to a number.
+
+        Parameters
+        ----------
+        seed : int
+            The random seed
+        """
+        self.random = np.random.RandomState(seed)
+
+    def remove_hyperparameter_priors(self) -> ConfigurationSpace:
+        """Produces a new ConfigurationSpace where all priors on parameters are removed.
+
+        Non-uniform hyperpararmeters are replaced with uniform ones, and
+        CategoricalHyperparameters with weights have their weights removed.
+
+        Returns
+        -------
+        :class:`~ConfigSpace.configuration_space.ConfigurationSpace`
+            The resulting configuration space, without priors on the hyperparameters
+        """
+        uniform_config_space = ConfigurationSpace()
+        for parameter in self.values():
+            if hasattr(parameter, "to_uniform"):
+                uniform_config_space.add_hyperparameter(parameter.to_uniform())
+            else:
+                uniform_config_space.add_hyperparameter(copy.copy(parameter))
+
+        new_conditions = self.substitute_hyperparameters_in_conditions(
+            self.get_conditions(), uniform_config_space
+        )
+        new_forbiddens = self.substitute_hyperparameters_in_forbiddens(
+            self.get_forbiddens(), uniform_config_space
+        )
+        uniform_config_space.add_conditions(new_conditions)
+        uniform_config_space.add_forbidden_clauses(new_forbiddens)
+
+        return uniform_config_space
+
+    def estimate_size(self) -> float | int:
+        """Estimate the size of the current configuration space (i.e. unique configurations).
+
+        This is ``np.inf`` in case if there is a single hyperparameter of size ``np.inf`` (i.e. a
+        :class:`~ConfigSpace.hyperparameters.UniformFloatHyperparameter`), otherwise
+        it is the product of the size of all hyperparameters. The function correctly guesses the
+        number of unique configurations if there are no condition and forbidden statements in the
+        configuration spaces. Otherwise, this is an upper bound. Use
+        :func:`~ConfigSpace.util.generate_grid` to generate all valid configurations if required.
+
+        Returns
+        -------
+        Union[float, int]
+        """
+        sizes = [hp.get_size() for hp in self._hyperparameters.values()]
+
+        if len(sizes) == 0:
+            return 0.0
+
+        return np.prod(sizes, dtype=float)
+
+    @staticmethod
+    def substitute_hyperparameters_in_conditions(
+        conditions, new_configspace
+    ) -> list[ConditionComponent]:
+        """
+        Takes a set of conditions and generates a new set of conditions with the same structure, where
+        each hyperparameter is replaced with its namesake in new_configspace. As such, the set of conditions
+        remain unchanged, but the included hyperparameters are changed to match those types that exist in
+        new_configspace.
+
+        Parameters
+        ----------
+        new_configspace: ConfigurationSpace
+            A ConfigurationSpace containing hyperparameters with the same names as those in the conditions.
+
+        Returns
+        -------
+        list[ConditionComponent]:
+            The list of conditions, adjusted to fit the new ConfigurationSpace
+        """
+        new_conditions = []
+        for condition in conditions:
+            if isinstance(condition, AbstractConjunction):
+                conjunction_type = type(condition)
+                children = condition.get_descendant_literal_conditions()
+                substituted_children = (
+                    ConfigurationSpace.substitute_hyperparameters_in_conditions(
+                        children, new_configspace
+                    )
+                )
+                substituted_conjunction = conjunction_type(*substituted_children)
+                new_conditions.append(substituted_conjunction)
+
+            elif isinstance(condition, AbstractCondition):
+                condition_type = type(condition)
+                child_name = getattr(condition.get_children()[0], "name")
+                parent_name = getattr(condition.get_parents()[0], "name")
+                new_child = new_configspace[child_name]
+                new_parent = new_configspace[parent_name]
+
+                if hasattr(condition, "values"):
+                    condition_arg = getattr(condition, "values")
+                    substituted_condition = condition_type(
+                        child=new_child, parent=new_parent, values=condition_arg
+                    )
+                elif hasattr(condition, "value"):
+                    condition_arg = getattr(condition, "value")
+                    substituted_condition = condition_type(
+                        child=new_child, parent=new_parent, value=condition_arg
+                    )
+                else:
+                    raise AttributeError(
+                        f"Did not find the expected attribute in condition {type(condition)}."
                     )
 
-        # TODO: recursively check everything which is inside the conditions,
-        # this means we have to recursively traverse the condition
-        tmp_dag = self._create_tmp_dag()
-        for parent, child in edges:
-            tmp_dag.add_edge(parent.name, child.name)
+                new_conditions.append(substituted_condition)
+            else:
+                raise TypeError(
+                    f"Did not expect the supplied condition type {type(condition)}."
+                )
 
-        if not ConfigSpace.nx.is_directed_acyclic_graph(tmp_dag):
-            cycles: list[list[str]] = list(ConfigSpace.nx.simple_cycles(tmp_dag))
-            for cycle in cycles:
-                cycle.sort()
-            cycles.sort()
-            raise ValueError(f"Hyperparameter configuration contains a cycle {cycles}")
+        return new_conditions
+
+    @staticmethod
+    def substitute_hyperparameters_in_forbiddens(
+        forbiddens: Iterable[AbstractForbiddenComponent],
+        new_configspace: ConfigurationSpace,
+    ) -> list[AbstractForbiddenComponent]:
+        """
+        Takes a set of forbidden clauses and generates a new set of forbidden clauses with the same structure,
+        where each hyperparameter is replaced with its namesake in new_configspace. As such, the set of forbidden
+        clauses remain unchanged, but the included hyperparameters are changed to match those types that exist in
+        new_configspace.
+
+        Parameters
+        ----------
+        forbiddens:
+            An iterable of forbiddens
+        new_configspace: ConfigurationSpace
+            A ConfigurationSpace containing hyperparameters with the same names as those in the forbidden clauses.
+
+        Returns
+        -------
+        list[AbstractForbiddenComponent]:
+            The list of forbidden clauses, adjusted to fit the new ConfigurationSpace
+        """
+        new_forbiddens = []
+        for forbidden in forbiddens:
+            if isinstance(forbidden, AbstractForbiddenConjunction):
+                conjunction_type = type(forbidden)
+                children = forbidden.get_descendant_literal_clauses()
+                substituted_children = (
+                    ConfigurationSpace.substitute_hyperparameters_in_forbiddens(
+                        children, new_configspace
+                    )
+                )
+                substituted_conjunction = conjunction_type(*substituted_children)
+                new_forbiddens.append(substituted_conjunction)
+
+            elif isinstance(forbidden, AbstractForbiddenClause):
+                forbidden_type = type(forbidden)
+                hyperparameter_name = getattr(forbidden.hyperparameter, "name")
+                new_hyperparameter = new_configspace[hyperparameter_name]
+
+                if hasattr(forbidden, "values"):
+                    forbidden_arg = getattr(forbidden, "values")
+                    substituted_forbidden = forbidden_type(
+                        hyperparameter=new_hyperparameter, values=forbidden_arg
+                    )
+                elif hasattr(forbidden, "value"):
+                    forbidden_arg = getattr(forbidden, "value")
+                    substituted_forbidden = forbidden_type(
+                        hyperparameter=new_hyperparameter, value=forbidden_arg
+                    )
+                else:
+                    raise AttributeError(
+                        f"Did not find the expected attribute in forbidden {type(forbidden)}."
+                    )
+
+                new_forbiddens.append(substituted_forbidden)
+            elif isinstance(forbidden, ForbiddenRelation):
+                forbidden_type = type(forbidden)
+                left_name = getattr(forbidden.left, "name")
+                left_hyperparameter = new_configspace[left_name]
+                right_name = getattr(forbidden.right, "name")
+                right_hyperparameter = new_configspace[right_name]
+
+                substituted_forbidden = forbidden_type(
+                    left=left_hyperparameter, right=right_hyperparameter
+                )
+                new_forbiddens.append(substituted_forbidden)
+            else:
+                raise TypeError(f"Did not expect type {type(forbidden)}.")
+
+        return new_forbiddens
+
+    def __eq__(self, other: Any) -> bool:
+        """Override the default Equals behavior"""
+        if isinstance(other, self.__class__):
+            this_dict = self.__dict__.copy()
+            del this_dict["random"]
+            other_dict = other.__dict__.copy()
+            del other_dict["random"]
+            return this_dict == other_dict
+        return NotImplemented
+
+    def __hash__(self) -> int:
+        """Override the default hash behavior (that returns the id or the object)"""
+        return hash(self.__repr__())
+
+    def __getitem__(self, key: str) -> Hyperparameter:
+        hp = self._hyperparameters.get(key)
+        if hp is None:
+            raise HyperparameterNotFoundError(key, space=self)
+
+        return hp
+
+    def __repr__(self) -> str:
+        retval = io.StringIO()
+        retval.write("Configuration space object:\n  Hyperparameters:\n")
+
+        if self.name is not None:
+            retval.write(self.name)
+            retval.write("\n")
+
+        hyperparameters = sorted(self.values(), key=lambda t: t.name)
+        if hyperparameters:
+            retval.write("    ")
+            retval.write(
+                "\n    ".join(
+                    [str(hyperparameter) for hyperparameter in hyperparameters]
+                )
+            )
+            retval.write("\n")
+
+        conditions = sorted(self.get_conditions(), key=lambda t: str(t))
+        if conditions:
+            retval.write("  Conditions:\n")
+            retval.write("    ")
+            retval.write("\n    ".join([str(condition) for condition in conditions]))
+            retval.write("\n")
+
+        if self.get_forbiddens():
+            retval.write("  Forbidden Clauses:\n")
+            retval.write("    ")
+            retval.write(
+                "\n    ".join([str(clause) for clause in self.get_forbiddens()])
+            )
+            retval.write("\n")
+
+        retval.seek(0)
+        return retval.getvalue()
+
+    def __iter__(self) -> Iterator[str]:
+        """Iterate over the hyperparameter names in the right order."""
+        return iter(self._hyperparameters.keys())
+
+    def keys(self) -> KeysView[str]:
+        return self._hyperparameters.keys()
+
+    def __len__(self) -> int:
+        return len(self._hyperparameters)
+
+    def _add_hyperparameter(self, hyperparameter: Hyperparameter) -> None:
+        hp_name = hyperparameter.name
+
+        existing = self._hyperparameters.get(hp_name)
+        if existing is not None:
+            raise HyperparameterAlreadyExistsError(existing, hyperparameter, space=self)
+
+        self._hyperparameters[hp_name] = hyperparameter
+        self._children[hp_name] = OrderedDict()
+
+        # TODO remove (_ROOT) __HPOlib_configuration_space_root__, it is only used in
+        # to check for cyclic configuration spaces. If it is only added when
+        # cycles are checked, the code can become much easier (e.g. the parent
+        # caching can be more or less removed).
+        self._children[_ROOT][hp_name] = None
+        self._parents[hp_name] = OrderedDict()
+        self._parents[hp_name][_ROOT] = None
+
+        # Save the index of each hyperparameter name to later on access a
+        # vector of hyperparameter values by indices, must be done twice
+        # because check_default_configuration depends on it
+        self._hyperparameter_idx.update(
+            {hp: i for i, hp in enumerate(self._hyperparameters)}
+        )
 
     def _sort_hyperparameters(self) -> None:
         levels: OrderedDict[str, int] = OrderedDict()
@@ -510,7 +1294,93 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         for clause in self.get_forbiddens():
             clause.set_vector_idx(self._hyperparameter_idx)
 
-    def _update_cache(self):
+    def _check_condition(
+        self,
+        child_node: Hyperparameter,
+        condition: ConditionComponent,
+    ) -> None:
+        for present_condition in self._get_parent_conditions_of(child_node.name):
+            if present_condition != condition:
+                raise AmbiguousConditionError(present_condition, condition)
+
+    def _add_edge(
+        self,
+        parent_node: Hyperparameter,
+        child_node: Hyperparameter,
+        condition: ConditionComponent,
+    ) -> None:
+        try:
+            # TODO maybe this has to be done more carefully
+            del self._children[_ROOT][child_node.name]
+        except Exception:
+            pass
+
+        try:
+            del self._parents[child_node.name][_ROOT]
+        except Exception:
+            pass
+
+        self._children[parent_node.name][child_node.name] = condition
+        self._parents[child_node.name][parent_node.name] = condition
+
+        self._conditionals.add(child_node.name)
+
+    def _create_tmp_dag(self) -> nx.DiGraph:
+        tmp_dag = nx.DiGraph()
+        for hp_name in self._hyperparameters:
+            tmp_dag.add_node(hp_name)
+            tmp_dag.add_edge(_ROOT, hp_name)
+
+        for parent_node_ in self._children:
+            if parent_node_ == _ROOT:
+                continue
+            for child_node_ in self._children[parent_node_]:
+                try:
+                    tmp_dag.remove_edge(_ROOT, child_node_)
+                except Exception:
+                    pass
+                condition = self._children[parent_node_][child_node_]
+                tmp_dag.add_edge(parent_node_, child_node_, condition=condition)
+
+        return tmp_dag
+
+    def _check_edges(
+        self,
+        edges: list[tuple[Hyperparameter, Hyperparameter]],
+        values: list[Any],
+    ) -> None:
+        for (parent, child), value in zip(edges, values):
+            # check if both nodes are already inserted into the graph
+            if child.name not in self._hyperparameters:
+                raise ChildNotFoundError(child, space=self)
+
+            if parent.name not in self._hyperparameters:
+                raise ParentNotFoundError(parent, space=self)
+
+            if child != self._hyperparameters[child.name]:
+                existing = self._hyperparameters[child.name]
+                raise HyperparameterAlreadyExistsError(existing, child, space=self)
+
+            if parent != self._hyperparameters[parent.name]:
+                existing = self._hyperparameters[child.name]
+                raise HyperparameterAlreadyExistsError(existing, child, space=self)
+
+            _assert_legal(parent, value)
+
+        # TODO: recursively check everything which is inside the conditions,
+        # this means we have to recursively traverse the condition
+        tmp_dag = self._create_tmp_dag()
+        for parent, child in edges:
+            tmp_dag.add_edge(parent.name, child.name)
+
+        if not nx.is_directed_acyclic_graph(tmp_dag):
+            cycles: list[list[str]] = list(nx.simple_cycles(tmp_dag))
+            for cycle in cycles:
+                cycle.sort()
+            cycles.sort()
+            raise CyclicDependancyError(cycles)
+
+    def _update_cache(self) -> None:
         self._parent_conditions_of = {
             name: self._get_parent_conditions_of(name) for name in self._hyperparameters
         }
@@ -524,52 +1394,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
             name: self.get_children_of(name) for name in self._hyperparameters
         }
 
-    def add_forbidden_clause(
-        self, clause: AbstractForbiddenComponent
-    ) -> AbstractForbiddenComponent:
-        """
-        Add a forbidden clause to the configuration space.
-
-        Parameters
-        ----------
-        clause : :ref:`Forbidden clauses`
-            Forbidden clause to add
-
-        Returns
-        -------
-        :ref:`Forbidden clauses`
-            Same as input forbidden clause
-        """
-        self._check_forbidden_component(clause=clause)
-        clause.set_vector_idx(self._hyperparameter_idx)
-        self.forbidden_clauses.append(clause)
-        self._check_default_configuration()
-        return clause
-
-    def add_forbidden_clauses(
-        self, clauses: list[AbstractForbiddenComponent]
-    ) -> list[AbstractForbiddenComponent]:
-        """
-        Add a list of forbidden clauses to the configuration space.
-
-        Parameters
-        ----------
-        clauses : list(:ref:`Forbidden clauses`)
-            Collection of forbidden clauses to add
-
-        Returns
-        -------
-        list(:ref:`Forbidden clauses`)
-            Same as input clauses
-        """
-        for clause in clauses:
-            self._check_forbidden_component(clause=clause)
-            clause.set_vector_idx(self._hyperparameter_idx)
-            self.forbidden_clauses.append(clause)
-        self._check_default_configuration()
-        return clauses
-
-    def _check_forbidden_component(self, clause: AbstractForbiddenComponent):
+    def _check_forbidden_component(self, clause: AbstractForbiddenComponent) -> None:
         _assert_type(clause, AbstractForbiddenComponent, "_check_forbidden_component")
 
         to_check = []
@@ -585,10 +1410,10 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
 
         def _check_hp(tmp_clause, hp):
             if hp.name not in self._hyperparameters:
-                raise ValueError(
-                    f"Cannot add clause '{tmp_clause}' because it references hyperparameter"
-                    f" {hp.name} which is not in the configuration space (allowed"
-                    f" hyperparameters are: {list(self._hyperparameters)})"
+                raise HyperparameterNotFoundError(
+                    hp,
+                    space=self,
+                    preamble=f"Cannot add '{tmp_clause}' because it references '{hp.name}'",
                 )
 
         for tmp_clause in to_check:
@@ -598,308 +1423,12 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
             _check_hp(tmp_clause, tmp_clause.left)
             _check_hp(tmp_clause, tmp_clause.right)
 
-    def add_configuration_space(
-        self,
-        prefix: str,
-        configuration_space: ConfigurationSpace,
-        delimiter: str = ":",
-        parent_hyperparameter: dict | None = None,
-    ) -> ConfigurationSpace:
-        """
-        Combine two configuration space by adding one the other configuration
-        space. The contents of the configuration space, which should be added,
-        are renamed to ``prefix`` + ``delimiter`` + old_name.
-
-        Parameters
-        ----------
-        prefix : str
-            The prefix for the renamed hyperparameter | conditions |
-            forbidden clauses
-        configuration_space : :class:`~ConfigSpace.configuration_space.ConfigurationSpace`
-            The configuration space which should be added
-        delimiter : str, optional
-            Defaults to ':'
-        parent_hyperparameter : dict | None = None
-            Adds for each new hyperparameter the condition, that
-            ``parent_hyperparameter`` is active. Must be a dictionary with two keys
-            "parent" and "value", meaning that the added configuration space is active
-            when `parent` is equal to `value`
-
-        Returns
-        -------
-        :class:`~ConfigSpace.configuration_space.ConfigurationSpace`
-            The configuration space, which was added
-        """
-        if not isinstance(configuration_space, ConfigurationSpace):
-            raise TypeError(
-                "The method add_configuration_space must be "
-                "called with an instance of ConfigSpace.configuration_space."
-                "ConfigurationSpace."
-            )
-
-        prefix_delim = f"{prefix}{delimiter}"
-
-        def _new_name(_item: Hyperparameter) -> str:
-            if _item.name in ("", prefix):
-                return prefix
-            elif not _item.startswith(prefix_delim):
-                return f"{prefix_delim}{_item.name}"
-            else:
-                return _item.name
-
-        new_parameters = []
-        for hp in configuration_space.get_hyperparameters():
-            new_hp = copy.copy(hp)
-            new_hp.name = _new_name(hp)
-            new_parameters.append(new_hp)
-
-        self.add_hyperparameters(new_parameters)
-
-        conditions_to_add = []
-        for condition in configuration_space.get_conditions():
-            new_condition = copy.copy(condition)
-            for dlc in new_condition.get_descendant_literal_conditions():
-                # Rename children
-                dlc.child.name = _new_name(dlc.child)
-                dlc.parent.name = _new_name(dlc.parent)
-
-            conditions_to_add.append(new_condition)
-
-        self.add_conditions(conditions_to_add)
-
-        forbiddens_to_add = []
-        for forbidden_clause in configuration_space.forbidden_clauses:
-            new_forbidden = forbidden_clause
-            for dlc in new_forbidden.get_descendant_literal_clauses():
-                if isinstance(dlc, ForbiddenRelation):
-                    dlc.left.name = _new_name(dlc.left)
-                    dlc.right.name = _new_name(dlc.right)
-                else:
-                    dlc.hyperparameter = _new_name(dlc.hyperparameter)
-            forbiddens_to_add.append(new_forbidden)
-
-        self.add_forbidden_clauses(forbiddens_to_add)
-
-        conditions_to_add = []
-        if parent_hyperparameter is not None:
-            parent = parent_hyperparameter["parent"]
-            value = parent_hyperparameter["value"]
-
-            # Only add a condition if the parameter is a top-level parameter of the new configuration
-            # space (this will be some kind of tree structure).
-            for new_hp in new_parameters:
-                parents = self.get_parents_of(new_hp)
-                if not any(parents):
-                    condition = EqualsCondition(new_hp, parent, value)
-                    conditions_to_add.append(condition)
-
-        self.add_conditions(conditions_to_add)
-
-        return configuration_space
-
-    def get_hyperparameters(self) -> list[Hyperparameter]:
-        """All hyperparameters in the space.
-
-        Returns
-        -------
-        list(:ref:`Hyperparameters`)
-            A list with all hyperparameters stored in the configuration space object
-        """
-        warnings.warn("Prefer using `list(space.values())`", DeprecationWarning)
-        return list(self._hyperparameters.values())
-
-    def get_hyperparameters_dict(self) -> dict[str, Hyperparameter]:
-        """All the ``(name, Hyperparameter)`` contained in the space.
-
-        Returns
-        -------
-        OrderedDict(str, :ref:`Hyperparameters`)
-            An OrderedDict of names and hyperparameters
-        """
-        warnings.warn("Prefer using `dict(space)`", DeprecationWarning)
-        return self._hyperparameters.copy()
-
-    def get_hyperparameter_names(self) -> list[str]:
-        """Names of all the hyperparameter in the space.
-
-        Returns
-        -------
-        list(str)
-            List of hyperparameter names
-        """
-        warnings.warn("Prefer using `list(space.keys())`", DeprecationWarning)
-        return list(self._hyperparameters.keys())
-
-    def get_hyperparameter(self, name: str) -> Hyperparameter:
-        """
-        Gives the hyperparameter from the configuration space given its name.
-
-        Parameters
-        ----------
-        name : str
-            Name of the searched hyperparameter
-
-        Returns
-        -------
-        :ref:`Hyperparameters`
-            Hyperparameter with the name ``name``
-        """
-        warnings.warn("Prefer `space[name]`", DeprecationWarning)
-        return self[name]
-
-    def get_hyperparameter_by_idx(self, idx: int) -> str:
-        """Name of a hyperparameter from the space given its id.
-
-        Parameters
-        ----------
-        idx : int
-            Id of a hyperparameter
-
-        Returns
-        -------
-        str
-            Name of the hyperparameter
-        """
-        hp = self._idx_to_hyperparameter.get(idx)
-
-        if hp is None:
-            ending = f" {self.name}." if self.name is not None else "."
-            raise KeyError(
-                f"Hyperparameter #'{idx}' does not exist in this "
-                f"configuration space{ending}"
-            )
-
-        return hp
-
-    def get_idx_by_hyperparameter_name(self, name: str) -> int:
-        """
-        Return the id of a hyperparameter by its ``name``.
-
-        Parameters
-        ----------
-        name : str
-            Name of a hyperparameter
-
-        Returns
-        -------
-        int
-            Id of the hyperparameter with name ``name``
-
-        """
-        idx = self._hyperparameter_idx.get(name)
-
-        if idx is None:
-            ending = f" {self.name}." if self.name is not None else "."
-            raise KeyError(
-                f"Hyperparameter '{name}' does not exist in this "
-                f"configuration space{ending}"
-            )
-
-        return idx
-
-    def get_conditions(self) -> list[AbstractCondition]:
-        """list with all conditions from the configuration space.
-
-        Returns
-        -------
-        list(:ref:`Conditions`)
-            Conditions of the configuration space
-        """
-        conditions = []
-        added_conditions: set[str] = set()
-
-        # Nodes is a list of nodes
-        for source_node in self._hyperparameters.values():
-            # This is a list of keys in a dictionary
-            # TODO sort the edges by the order of their source_node in the
-            # hyperparameter list!
-            for target_node in self._children[source_node.name]:
-                if target_node not in added_conditions:
-                    condition = self._children[source_node.name][target_node]
-                    conditions.append(condition)
-                    added_conditions.add(target_node)
-
-        return conditions
-
-    def get_forbiddens(self) -> list[AbstractForbiddenComponent]:
-        """All forbidden clauses from the configuration space.
-
-        Returns
-        -------
-        list(:ref:`Forbidden clauses`)
-            List with the forbidden clauses
-        """
-        return self.forbidden_clauses
-
-    def get_children_of(self, name: str | Hyperparameter) -> list[Hyperparameter]:
-        """
-        Return a list with all children of a given hyperparameter.
-
-        Parameters
-        ----------
-        name : str, :ref:`Hyperparameters`
-            Hyperparameter or its name, for which all children are requested
-
-        Returns
-        -------
-        list(:ref:`Hyperparameters`)
-            Children of the hyperparameter
-        """
-        conditions = self.get_child_conditions_of(name)
-        parents: list[Hyperparameter] = []
-        for condition in conditions:
-            parents.extend(condition.get_children())
-        return parents
-
-    def generate_all_continuous_from_bounds(
-        self, bounds: list[tuple[float, float]]
-    ) -> None:
-        """Generate :class:`~ConfigSpace.hyperparameters.UniformFloatHyperparameter`
-        from a list containing lists with lower and upper bounds.
-
-        The generated hyperparameters are added to the configuration space.
-
-        Parameters
-        ----------
-        bounds : list[tuple([float, float])]
-            List containing lists with two elements: lower and upper bound
-        """
-        self.add_hyperparameters(
-            [
-                UniformFloatHyperparameter(name=f"x{i}", lower=lower, upper=upper)
-                for i, (lower, upper) in enumerate(bounds)
-            ]
-        )
-
     def _get_children_of(self, name: str) -> list[Hyperparameter]:
         conditions = self._get_child_conditions_of(name)
         parents: list[Hyperparameter] = []
         for condition in conditions:
             parents.extend(condition.get_children())
         return parents
-
-    def get_child_conditions_of(
-        self, name: str | Hyperparameter
-    ) -> list[AbstractCondition]:
-        """
-        Return a list with conditions of all children of a given
-        hyperparameter referenced by its ``name``.
-
-        Parameters
-        ----------
-        name : str, :ref:`Hyperparameters`
-            Hyperparameter or its name, for which conditions are requested
-
-        Returns
-        -------
-        list(:ref:`Conditions`)
-            List with the conditions on the children of the given hyperparameter
-        """
-        name = name if isinstance(name, str) else name.name
-
-        # This raises an exception if the hyperparameter does not exist
-        self.get_hyperparameter(name)
-        return self._get_child_conditions_of(name)
 
     def _get_child_conditions_of(self, name: str) -> list[AbstractCondition]:
         children = self._children[name]
@@ -908,30 +1437,8 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         ]
         return conditions
 
-    def get_parents_of(self, name: str | Hyperparameter) -> list[Hyperparameter]:
-        """
-        Return the parent hyperparameters of a given hyperparameter.
-
-        Parameters
-        ----------
-        name : str, :ref:`Hyperparameters`
-            Can either be the name of a hyperparameter or the hyperparameter
-            object
-
-        Returns
-        -------
-        list[:ref:`Conditions`]
-            List with all parent hyperparameters
-        """
-        conditions = self.get_parent_conditions_of(name)
-        parents: list[Hyperparameter] = []
-        for condition in conditions:
-            parents.extend(condition.get_parents())
-        return parents
-
     def _get_parents_of(self, name: str) -> list[Hyperparameter]:
-        """
-        Return the parent hyperparameters of a given hyperparameter.
+        """The parents hyperparameters of a given hyperparameter.
 
         Parameters
         ----------
@@ -948,76 +1455,10 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
             parents.extend(condition.get_parents())
         return parents
 
-    def get_parent_conditions_of(
-        self, name: str | Hyperparameter
-    ) -> list[AbstractCondition]:
-        """
-        Return a list with conditions of all parents of a given hyperparameter.
-
-        Parameters
-        ----------
-        name : str, :ref:`Hyperparameters`
-            Can either be the name of a hyperparameter or the hyperparameter
-            object
-
-        Returns
-        -------
-        list[:ref:`Conditions`]
-            List with all conditions on parent hyperparameters
-        """
-        if isinstance(name, Hyperparameter):
-            name = name.name  # type: ignore
-
-        # This raises an exception if the hyperparameter does not exist
-        self.get_hyperparameter(name)
-        return self._get_parent_conditions_of(name)
-
-    def _get_parent_conditions_of(self, name: str) -> list[AbstractCondition]:
-        parents = self._parents[name]
-        conditions = [
-            parents[parent_name] for parent_name in parents if parent_name != _ROOT
-        ]
-        return conditions
-
-    def get_all_unconditional_hyperparameters(self) -> list[str]:
-        """
-        Return a list with names of unconditional hyperparameters.
-
-        Returns
-        -------
-        list[:ref:`Hyperparameters`]
-            List with all parent hyperparameters, which are not part of a condition
-        """
-        hyperparameters = [hp_name for hp_name in self._children[_ROOT]]
-        return hyperparameters
-
-    def get_all_conditional_hyperparameters(self) -> set[str]:
-        """
-        Return a list with names of all conditional hyperparameters.
-
-        Returns
-        -------
-        set[:ref:`Hyperparameters`]
-            Set with all conditional hyperparameter
-        """
-        return self._conditionals
-
-    def get_default_configuration(self) -> Configuration:
-        """
-        Return a configuration containing hyperparameters with default values.
-
-        Returns
-        -------
-        :class:`~ConfigSpace.configuration_space.Configuration`
-            Configuration with the set default values
-
-        """
-        return self._check_default_configuration()
-
     def _check_default_configuration(self) -> Configuration:
         # Check if adding that hyperparameter leads to an illegal default configuration
         instantiated_hyperparameters: dict[str, int | float | str | None] = {}
-        for hp in self.get_hyperparameters():
+        for hp in self.values():
             conditions = self._get_parent_conditions_of(hp.name)
             active = True
             for condition in conditions:
@@ -1045,87 +1486,19 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
 
         # TODO add an extra Exception type for the case that the default
         # configuration is forbidden!
-        return Configuration(self, instantiated_hyperparameters)
+        return Configuration(self, values=instantiated_hyperparameters)
 
-    # For backward compatibility
-    def check_configuration(self, configuration: Configuration) -> None:
-        """
-        Check if a configuration is legal. Raises an error if not.
-
-        Parameters
-        ----------
-        configuration : :class:`~ConfigSpace.configuration_space.Configuration`
-            Configuration to check
-        """
-        if not isinstance(configuration, Configuration):
-            raise TypeError(
-                "The method check_configuration must be called"
-                f" with an instance of {Configuration}."
-                f" Your input was of type {type(configuration)}"
-            )
-        ConfigSpace.c_util.check_configuration(self, configuration.get_array(), False)
-
-    def check_configuration_vector_representation(self, vector: np.ndarray) -> None:
-        """
-        Raise error if configuration in vector representation is not legal.
-
-        Parameters
-        ----------
-        vector : np.ndarray
-            Configuration in vector representation
-        """
-        if not isinstance(vector, np.ndarray):
-            raise TypeError(
-                "The method check_configuration_vector_representation must be called"
-                f" with an instance of {np.ndarray}."
-                f" Your input was of type {type(vector)}"
-            )
-
-        ConfigSpace.c_util.check_configuration(self, vector, False)
-
-    def get_active_hyperparameters(self, configuration: Configuration) -> set:
-        """
-        Return a set of active hyperparameter for a given configuration.
-
-        Parameters
-        ----------
-        configuration : :class:`~ConfigSpace.configuration_space.Configuration`
-            Configuration for which the active hyperparameter are returned
-
-        Returns
-        -------
-        set(:class:`~ConfigSpace.configuration_space.Configuration`)
-            The set of all active hyperparameter
-
-        """
-        vector = configuration.get_array()
-        active_hyperparameters = set()
-        for hp_name, hyperparameter in self._hyperparameters.items():
-            conditions = self._parent_conditions_of[hyperparameter.name]
-
-            active = True
-            for condition in conditions:
-                parent_vector_idx = condition.get_parents_vector()
-
-                # if one of the parents is None, the hyperparameter cannot be
-                # active! Else we have to check this
-                # Note from trying to optimize this - this is faster than using
-                # dedicated numpy functions and indexing
-                if any([vector[i] != vector[i] for i in parent_vector_idx]):
-                    active = False
-                    break
-
-                else:
-                    if not condition.evaluate_vector(vector):
-                        active = False
-                        break
-
-            if active:
-                active_hyperparameters.add(hp_name)
-        return active_hyperparameters
+    def _get_parent_conditions_of(self, name: str) -> list[AbstractCondition]:
+        parents = self._parents[name]
+        conditions = [
+            parents[parent_name] for parent_name in parents if parent_name != _ROOT
+        ]
+        return conditions
 
     def _check_configuration_rigorous(
-        self, configuration: Configuration, allow_inactive_with_values: bool = False
+        self,
+        configuration: Configuration,
+        allow_inactive_with_values: bool = False,
     ) -> None:
         vector = configuration.get_array()
         active_hyperparameters = self.get_active_hyperparameters(configuration)
@@ -1135,449 +1508,83 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
             active = hp_name in active_hyperparameters
 
             if not np.isnan(hp_value) and not hyperparameter.is_legal_vector(hp_value):
-                raise ValueError(
-                    f"Hyperparameter instantiation '{hp_value}' "
-                    f"(type: {type(hp_value)}) is illegal for hyperparameter {hyperparameter}"
-                )
+                raise IllegalValueError(hyperparameter, hp_value)
 
             if active and np.isnan(hp_value):
-                raise ValueError(f"Active hyperparameter '{hp_name}' not specified!")
+                raise ActiveHyperparameterNotSetError(hyperparameter)
 
             if not allow_inactive_with_values and not active and not np.isnan(hp_value):
-                raise ValueError(
-                    f"Inactive hyperparameter '{hp_name}' must not be "
-                    f"specified, but has the vector value: '{hp_value}'."
-                )
+                raise InactiveHyperparameterSetError(hyperparameter, hp_value)
+
         self._check_forbidden(vector)
 
     def _check_forbidden(self, vector: np.ndarray) -> None:
         ConfigSpace.c_util.check_forbidden(self.forbidden_clauses, vector)
-        # for clause in self.forbidden_clauses:
-        #    if clause.is_forbidden_vector(vector, strict=False):
-        #        raise ForbiddenValueError("Given vector violates forbidden
-        # clause %s" % (str(clause)))
 
-    # http://stackoverflow.com/a/25176504/4636294
-    def __eq__(self, other: Any) -> bool:
-        """Override the default Equals behavior"""
-        if isinstance(other, self.__class__):
-            this_dict = self.__dict__.copy()
-            del this_dict["random"]
-            other_dict = other.__dict__.copy()
-            del other_dict["random"]
-            return this_dict == other_dict
-        return NotImplemented
+    # ------------ Marked Deprecated --------------------
+    # Probably best to only remove these once we actually
+    # make some other breaking changes
+    # * Search `Marked Deprecated` to find others
 
-    def __ne__(self, other: Any) -> bool:
-        """Define a non-equality test"""
-        if isinstance(other, self.__class__):
-            return not self.__eq__(other)
-        return NotImplemented
-
-    def __hash__(self) -> int:
-        """Override the default hash behavior (that returns the id or the object)"""
-        return hash(self.__repr__())
-
-    def __getitem__(self, key: str) -> Hyperparameter:
-        hp = self._hyperparameters.get(key)
-        if hp is None:
-            ending = f" {self.name}." if self.name is not None else "."
-            raise KeyError(f"Hyperparameter '{key}' does not exist in space{ending}")
-        return hp
-
-    def __repr__(self) -> str:
-        retval = io.StringIO()
-        retval.write("Configuration space object:\n  Hyperparameters:\n")
-
-        if self.name is not None:
-            retval.write(self.name)
-            retval.write("\n")
-
-        hyperparameters = sorted(self.get_hyperparameters(), key=lambda t: t.name)
-        if hyperparameters:
-            retval.write("    ")
-            retval.write(
-                "\n    ".join(
-                    [str(hyperparameter) for hyperparameter in hyperparameters]
-                )
-            )
-            retval.write("\n")
-
-        conditions = sorted(self.get_conditions(), key=lambda t: str(t))
-        if conditions:
-            retval.write("  Conditions:\n")
-            retval.write("    ")
-            retval.write("\n    ".join([str(condition) for condition in conditions]))
-            retval.write("\n")
-
-        if self.get_forbiddens():
-            retval.write("  Forbidden Clauses:\n")
-            retval.write("    ")
-            retval.write(
-                "\n    ".join([str(clause) for clause in self.get_forbiddens()])
-            )
-            retval.write("\n")
-
-        retval.seek(0)
-        return retval.getvalue()
-
-    def __iter__(self) -> Iterator[str]:
-        """Iterate over the hyperparameter names in the right order."""
-        return iter(self._hyperparameters.keys())
-
-    def keys(self) -> KeysView[str]:
-        return self._hyperparameters.keys()
-
-    def __len__(self) -> int:
-        return len(self._hyperparameters)
-
-    def sample_configuration(
-        self, size: int = 1
-    ) -> Configuration | list[Configuration]:
-        """
-        Sample ``size`` configurations from the configuration space object.
+    def get_hyperparameter(self, name: str) -> Hyperparameter:
+        """Hyperparameter from the space with a given name.
 
         Parameters
         ----------
-        size : int, optional
-            Number of configurations to sample. Default to 1
+        name : str
+            Name of the searched hyperparameter
 
         Returns
         -------
-        :class:`~ConfigSpace.configuration_space.Configuration`,
-            list[:class:`~ConfigSpace.configuration_space.Configuration`]:
-            A single configuration if ``size`` 1 else a list of Configurations
+        :ref:`Hyperparameters`
+            Hyperparameter with the name ``name``
         """
-        if not isinstance(size, int):
-            raise TypeError(f"Argument size must be of type int, but is {type(size)}")
-        elif size < 1:
-            return []
-
-        iteration = 0
-        missing = size
-        accepted_configurations: list[Configuration] = []
-        num_hyperparameters = len(self._hyperparameters)
-
-        unconditional_hyperparameters = self.get_all_unconditional_hyperparameters()
-        hyperparameters_with_children = list()
-
-        _forbidden_clauses_unconditionals = []
-        _forbidden_clauses_conditionals = []
-        for clause in self.get_forbiddens():
-            based_on_conditionals = False
-            for subclause in clause.get_descendant_literal_clauses():
-                if isinstance(subclause, ForbiddenRelation):
-                    if (
-                        subclause.left.name not in unconditional_hyperparameters
-                        or subclause.right.name not in unconditional_hyperparameters
-                    ):
-                        based_on_conditionals = True
-                        break
-                elif subclause.hyperparameter.name not in unconditional_hyperparameters:
-                    based_on_conditionals = True
-                    break
-            if based_on_conditionals:
-                _forbidden_clauses_conditionals.append(clause)
-            else:
-                _forbidden_clauses_unconditionals.append(clause)
-
-        for uhp in unconditional_hyperparameters:
-            children = self._children_of[uhp]
-            if len(children) > 0:
-                hyperparameters_with_children.append(uhp)
-
-        while len(accepted_configurations) < size:
-            if missing != size:
-                missing = int(1.1 * missing)
-            vector = np.ndarray((missing, num_hyperparameters), dtype=np.float64)
-
-            for i, hp_name in enumerate(self._hyperparameters):
-                hyperparameter = self._hyperparameters[hp_name]
-                vector[:, i] = hyperparameter._sample(self.random, missing)
-
-            for i in range(missing):
-                try:
-                    configuration = Configuration(
-                        self,
-                        vector=ConfigSpace.c_util.correct_sampled_array(
-                            vector[i].copy(),
-                            _forbidden_clauses_unconditionals,
-                            _forbidden_clauses_conditionals,
-                            hyperparameters_with_children,
-                            num_hyperparameters,
-                            unconditional_hyperparameters,
-                            self._hyperparameter_idx,
-                            self._parent_conditions_of,
-                            self._parents_of,
-                            self._children_of,
-                        ),
-                    )
-                    accepted_configurations.append(configuration)
-                except ForbiddenValueError:
-                    iteration += 1
-
-                    if iteration == size * 100:
-                        raise ForbiddenValueError(
-                            f"Cannot sample valid configuration for {self}"
-                        )
-
-            missing = size - len(accepted_configurations)
-
-        if size <= 1:
-            return accepted_configurations[0]
-        else:
-            return accepted_configurations
-
-    def seed(self, seed: int) -> None:
-        """
-        Set the random seed to a number.
-
-        Parameters
-        ----------
-        seed : int
-            The random seed
-        """
-        self.random = np.random.RandomState(seed)
-
-    def remove_hyperparameter_priors(self) -> ConfigurationSpace:
-        """
-        Produces a new ConfigurationSpace where all priors on parameters are removed.
-        Non-uniform hyperpararmeters are replaced with uniform ones, and
-        CategoricalHyperparameters with weights have their weights removed.
-
-        Returns
-        -------
-        :class:`~ConfigSpace.configuration_space.ConfigurationSpace`
-            The resulting configuration space, without priors on the hyperparameters
-        """
-        uniform_config_space = ConfigurationSpace()
-        for parameter in self.get_hyperparameters():
-            if hasattr(parameter, "to_uniform"):
-                uniform_config_space.add_hyperparameter(parameter.to_uniform())
-            else:
-                uniform_config_space.add_hyperparameter(copy.copy(parameter))
-
-        new_conditions = self.substitute_hyperparameters_in_conditions(
-            self.get_conditions(), uniform_config_space
+        warnings.warn(
+            "Prefer `space[name]` over `get_hyperparameter`",
+            DeprecationWarning,
         )
-        new_forbiddens = self.substitute_hyperparameters_in_forbiddens(
-            self.get_forbiddens(), uniform_config_space
+        return self[name]
+
+    def get_hyperparameters(self) -> list[Hyperparameter]:
+        """All hyperparameters in the space.
+
+        Returns
+        -------
+        list(:ref:`Hyperparameters`)
+            A list with all hyperparameters stored in the configuration space object
+        """
+        warnings.warn(
+            "Prefer using `list(space.values())` over `get_hyperparameters`",
+            DeprecationWarning,
         )
-        uniform_config_space.add_conditions(new_conditions)
-        uniform_config_space.add_forbidden_clauses(new_forbiddens)
+        return list(self._hyperparameters.values())
 
-        return uniform_config_space
-
-    def estimate_size(self) -> float | int:
-        """
-        Estimate the size of the current configuration space (i.e. unique configurations).
-
-        This is ``np.inf`` in case if there is a single hyperparameter of size ``np.inf`` (i.e. a
-        :class:`~ConfigSpace.hyperparameters.UniformFloatHyperparameter`), otherwise
-        it is the product of the size of all hyperparameters. The function correctly guesses the
-        number of unique configurations if there are no condition and forbidden statements in the
-        configuration spaces. Otherwise, this is an upper bound. Use
-        :func:`~ConfigSpace.util.generate_grid` to generate all valid configurations if required.
+    def get_hyperparameters_dict(self) -> dict[str, Hyperparameter]:
+        """All the ``(name, Hyperparameter)`` contained in the space.
 
         Returns
         -------
-        Union[float, int]
+        dict(str, :ref:`Hyperparameters`)
+            An OrderedDict of names and hyperparameters
         """
-        sizes = []
-        for hp in self._hyperparameters.values():
-            sizes.append(hp.get_size())
-        if len(sizes) == 0:
-            return 0.0
-        else:
-            size = sizes[0]
-            for i in range(1, len(sizes)):
-                size = size * sizes[i]
-            return size
-
-    @staticmethod
-    def substitute_hyperparameters_in_conditions(
-        conditions, new_configspace
-    ) -> list[ConditionComponent]:
-        """
-        Takes a set of conditions and generates a new set of conditions with the same structure, where
-        each hyperparameter is replaced with its namesake in new_configspace. As such, the set of conditions
-        remain unchanged, but the included hyperparameters are changed to match those types that exist in
-        new_configspace.
-
-        Parameters
-        ----------
-        new_configspace: ConfigurationSpace
-            A ConfigurationSpace containing hyperparameters with the same names as those in the conditions.
-
-        Returns
-        -------
-        list[ConditionComponent]:
-            The list of conditions, adjusted to fit the new ConfigurationSpace
-        """
-        new_conditions = []
-        for condition in conditions:
-            if isinstance(condition, AbstractConjunction):
-                conjunction_type = type(condition)
-                children = condition.get_descendant_literal_conditions()
-                substituted_children = (
-                    ConfigurationSpace.substitute_hyperparameters_in_conditions(
-                        children, new_configspace
-                    )
-                )
-                substituted_conjunction = conjunction_type(*substituted_children)
-                new_conditions.append(substituted_conjunction)
-
-            elif isinstance(condition, AbstractCondition):
-                condition_type = type(condition)
-                child_name = getattr(condition.get_children()[0], "name")
-                parent_name = getattr(condition.get_parents()[0], "name")
-                new_child = new_configspace[child_name]
-                new_parent = new_configspace[parent_name]
-
-                if hasattr(condition, "values"):
-                    condition_arg = getattr(condition, "values")
-                    substituted_condition = condition_type(
-                        child=new_child, parent=new_parent, values=condition_arg
-                    )
-                elif hasattr(condition, "value"):
-                    condition_arg = getattr(condition, "value")
-                    substituted_condition = condition_type(
-                        child=new_child, parent=new_parent, value=condition_arg
-                    )
-                else:
-                    raise AttributeError(
-                        f"Did not find the expected attribute in condition {type(condition)}."
-                    )
-
-                new_conditions.append(substituted_condition)
-            else:
-                raise TypeError(
-                    f"Did not expect the supplied condition type {type(condition)}."
-                )
-
-        return new_conditions
-
-    @staticmethod
-    def substitute_hyperparameters_in_forbiddens(
-        forbiddens, new_configspace
-    ) -> list[ConditionComponent]:
-        """
-        Takes a set of forbidden clauses and generates a new set of forbidden clauses with the same structure,
-        where each hyperparameter is replaced with its namesake in new_configspace. As such, the set of forbidden
-        clauses remain unchanged, but the included hyperparameters are changed to match those types that exist in
-        new_configspace.
-
-        Parameters
-        ----------
-        new_configspace: ConfigurationSpace
-            A ConfigurationSpace containing hyperparameters with the same names as those in the forbidden clauses.
-
-        Returns
-        -------
-        list[AbstractForbiddenComponent]:
-            The list of forbidden clauses, adjusted to fit the new ConfigurationSpace
-        """
-        new_forbiddens = []
-        for forbidden in forbiddens:
-            if isinstance(forbidden, AbstractForbiddenConjunction):
-                conjunction_type = type(forbidden)
-                children = forbidden.get_descendant_literal_clauses()
-                substituted_children = (
-                    ConfigurationSpace.substitute_hyperparameters_in_forbiddens(
-                        children, new_configspace
-                    )
-                )
-                substituted_conjunction = conjunction_type(*substituted_children)
-                new_forbiddens.append(substituted_conjunction)
-
-            elif isinstance(forbidden, AbstractForbiddenClause):
-                forbidden_type = type(forbidden)
-                hyperparameter_name = getattr(forbidden.hyperparameter, "name")
-                new_hyperparameter = new_configspace[hyperparameter_name]
-
-                if hasattr(forbidden, "values"):
-                    forbidden_arg = getattr(forbidden, "values")
-                    substituted_forbidden = forbidden_type(
-                        hyperparameter=new_hyperparameter, values=forbidden_arg
-                    )
-                elif hasattr(forbidden, "value"):
-                    forbidden_arg = getattr(forbidden, "value")
-                    substituted_forbidden = forbidden_type(
-                        hyperparameter=new_hyperparameter, value=forbidden_arg
-                    )
-                else:
-                    raise AttributeError(
-                        f"Did not find the expected attribute in forbidden {type(forbidden)}."
-                    )
-
-                new_forbiddens.append(substituted_forbidden)
-            elif isinstance(forbidden, ForbiddenRelation):
-                forbidden_type = type(forbidden)
-                left_name = getattr(forbidden.left, "name")
-                left_hyperparameter = new_configspace[left_name]
-                right_name = getattr(forbidden.right, "name")
-                right_hyperparameter = new_configspace[right_name]
-
-                substituted_forbidden = forbidden_type(
-                    left=left_hyperparameter, right=right_hyperparameter
-                )
-                new_forbiddens.append(substituted_forbidden)
-            else:
-                raise TypeError(
-                    f"Did not expect the supplied forbidden type {type(forbidden)}."
-                )
-
-        return new_forbiddens
-
-    def _add_hyperparameter(self, hyperparameter: Hyperparameter) -> None:
-        if hyperparameter.name in self._hyperparameters:
-            raise ValueError(f"{hyperparameter.name} is already in the space.")
-
-        self._hyperparameters[hyperparameter.name] = hyperparameter
-        self._children[hyperparameter.name] = OrderedDict()
-
-        # TODO remove (_ROOT) __HPOlib_configuration_space_root__, it is only used in
-        # to check for cyclic configuration spaces. If it is only added when
-        # cycles are checked, the code can become much easier (e.g. the parent
-        # caching can be more or less removed).
-        self._children[_ROOT][hyperparameter.name] = None
-        self._parents[hyperparameter.name] = OrderedDict()
-        self._parents[hyperparameter.name][_ROOT] = None
-
-        # Save the index of each hyperparameter name to later on access a
-        # vector of hyperparameter values by indices, must be done twice
-        # because check_default_configuration depends on it
-        self._hyperparameter_idx.update(
-            {hp: i for i, hp in enumerate(self._hyperparameters)}
+        warnings.warn(
+            "Prefer using `dict(space)` over `get_hyperparameters_dict`",
+            DeprecationWarning,
         )
+        return self._hyperparameters.copy()
 
-    def _check_condition(
-        self, child_node: Hyperparameter, condition: ConditionComponent
-    ) -> None:
-        for other_condition in self._get_parent_conditions_of(child_node.name):
-            if other_condition != condition:
-                raise ValueError(
-                    "Adding a second condition (different) for a hyperparameter is ambiguous"
-                    " and therefore forbidden. Add a conjunction instead!"
-                    f"\nAlready inserted: {other_condition}"
-                    f"\nNew one: {condition}"
-                )
+    def get_hyperparameter_names(self) -> list[str]:
+        """Names of all the hyperparameter in the space.
 
-    def _create_tmp_dag(self) -> ConfigSpace.nx.DiGraph:
-        tmp_dag = ConfigSpace.nx.DiGraph()
-        for hp_name in self._hyperparameters:
-            tmp_dag.add_node(hp_name)
-            tmp_dag.add_edge(_ROOT, hp_name)
+        Returns
+        -------
+        list(str)
+            List of hyperparameter names
+        """
+        warnings.warn(
+            "Prefer using `list(space.keys())` over `get_hyperparameter_names`",
+            DeprecationWarning,
+        )
+        return list(self._hyperparameters.keys())
 
-        for parent_node_ in self._children:
-            if parent_node_ == _ROOT:
-                continue
-            for child_node_ in self._children[parent_node_]:
-                try:
-                    tmp_dag.remove_edge(_ROOT, child_node_)
-                except Exception:
-                    pass
-                condition = self._children[parent_node_][child_node_]
-                tmp_dag.add_edge(parent_node_, child_node_, condition=condition)
-
-        return tmp_dag
+    # ---------------------------------------------------

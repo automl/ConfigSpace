@@ -39,7 +39,7 @@ class TestJson(unittest.TestCase):
         )
         string = write(cs)
         new_cs = read(string)
-        self.assertEqual(new_cs.get_hyperparameter('a').probabilities, (0.2, 0.2, 0.6))
+        self.assertEqual(new_cs['a'].probabilities, (0.2, 0.2, 0.6))
 
     def test_round_trip(self):
         this_file = os.path.abspath(__file__)

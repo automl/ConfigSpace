@@ -29,28 +29,60 @@
 from ConfigSpace.__version__ import __version__
 from ConfigSpace.__authors__ import __authors__
 
-from ConfigSpace.api import (Beta, Categorical, Distribution, Float, Integer,
-                             Normal, Uniform)
-from ConfigSpace.conditions import (AndConjunction, EqualsCondition,
-                                    GreaterThanCondition, InCondition,
-                                    LessThanCondition, NotEqualsCondition,
-                                    OrConjunction)
-from ConfigSpace.configuration_space import Configuration, ConfigurationSpace
-from ConfigSpace.forbidden import (ForbiddenAndConjunction,
-                                   ForbiddenEqualsClause,
-                                   ForbiddenEqualsRelation,
-                                   ForbiddenGreaterThanRelation,
-                                   ForbiddenInClause,
-                                   ForbiddenLessThanRelation)
-from ConfigSpace.hyperparameters import (BetaFloatHyperparameter,
-                                         BetaIntegerHyperparameter,
-                                         CategoricalHyperparameter, Constant,
-                                         NormalFloatHyperparameter,
-                                         NormalIntegerHyperparameter,
-                                         OrdinalHyperparameter,
-                                         UniformFloatHyperparameter,
-                                         UniformIntegerHyperparameter,
-                                         UnParametrizedHyperparameter)
+from ConfigSpace.api import (
+    Beta,
+    Categorical,
+    Distribution,
+    Float,
+    Integer,
+    Normal,
+    Uniform,
+)
+from ConfigSpace.conditions import (
+    AndConjunction,
+    EqualsCondition,
+    GreaterThanCondition,
+    InCondition,
+    LessThanCondition,
+    NotEqualsCondition,
+    OrConjunction,
+)
+from ConfigSpace.configuration_space import ConfigurationSpace
+from ConfigSpace.configuration import Configuration
+from ConfigSpace.exceptions import (
+    ForbiddenValueError,
+    IllegalValueError,
+    ActiveHyperparameterNotSetError,
+    InactiveHyperparameterSetError,
+    HyperparameterNotFoundError,
+    ChildNotFoundError,
+    ParentNotFoundError,
+    HyperparameterIndexError,
+    AmbiguousConditionError,
+    HyperparameterAlreadyExistsError,
+    CyclicDependancyError,
+)
+
+from ConfigSpace.forbidden import (
+    ForbiddenAndConjunction,
+    ForbiddenEqualsClause,
+    ForbiddenEqualsRelation,
+    ForbiddenGreaterThanRelation,
+    ForbiddenInClause,
+    ForbiddenLessThanRelation,
+)
+from ConfigSpace.hyperparameters import (
+    BetaFloatHyperparameter,
+    BetaIntegerHyperparameter,
+    CategoricalHyperparameter,
+    Constant,
+    NormalFloatHyperparameter,
+    NormalIntegerHyperparameter,
+    OrdinalHyperparameter,
+    UniformFloatHyperparameter,
+    UniformIntegerHyperparameter,
+    UnParametrizedHyperparameter,
+)
 import ConfigSpace.api.distributions as distributions
 import ConfigSpace.api.types as types
 
@@ -91,4 +123,15 @@ __all__ = [
     "Uniform",
     "distributions",
     "types",
+    "ForbiddenValueError",
+    "IllegalValueError",
+    "ActiveHyperparameterNotSetError",
+    "InactiveHyperparameterSetError",
+    "HyperparameterNotFoundError",
+    "ChildNotFoundError",
+    "ParentNotFoundError",
+    "HyperparameterIndexError",
+    "AmbiguousConditionError",
+    "HyperparameterAlreadyExistsError",
+    "CyclicDependancyError",
 ]

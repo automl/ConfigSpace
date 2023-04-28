@@ -172,7 +172,6 @@ EXTENSIONS = [
     Extension("ConfigSpace.forbidden", sources=["ConfigSpace/forbidden.pyx"]),
     Extension("ConfigSpace.conditions", sources=["ConfigSpace/conditions.pyx"]),
     Extension("ConfigSpace.c_util", sources=["ConfigSpace/c_util.pyx"]),
-    Extension("ConfigSpace.util", sources=["ConfigSpace/util.pyx"]),
 ]
 
 extras_reqs = {

@@ -294,7 +294,7 @@ def read(pcs_string, debug=False):
                     # TODO maybe add a check if the hyperparameter is
                     # actually in the configuration space
                     clause_list.append(ForbiddenEqualsClause(
-                        configuration_space.get_hyperparameter(tmp_list[0]),
+                        configuration_space[tmp_list[0]],
                         tmp_list[2]))
                 else:
                     raise NotImplementedError()
@@ -315,9 +315,9 @@ def read(pcs_string, debug=False):
     for child_name in conditions_per_child:
         condition_objects = []
         for condition in conditions_per_child[child_name]:
-            child = configuration_space.get_hyperparameter(child_name)
+            child = configuration_space[child_name]
             parent_name = condition[2]
-            parent = configuration_space.get_hyperparameter(parent_name)
+            parent = configuration_space[parent_name]
             restrictions = condition[5:-1:2]
 
             # TODO: cast the type of the restriction!
@@ -373,7 +373,7 @@ def write(configuration_space):
     param_lines = StringIO()
     condition_lines = StringIO()
     forbidden_lines = []
-    for hyperparameter in configuration_space.get_hyperparameters():
+    for hyperparameter in configuration_space.values():
         # Check if the hyperparameter names are valid SMAC names!
         try:
             pp_param_name.parseString(hyperparameter.name)
