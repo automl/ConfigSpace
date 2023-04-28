@@ -27,52 +27,52 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 from __future__ import annotations
 
-from collections import defaultdict, deque, OrderedDict
-from collections.abc import Mapping, KeysView
+import contextlib
 import copy
-from itertools import chain
+import io
 import warnings
+from collections import OrderedDict, defaultdict, deque
+from collections.abc import KeysView, Mapping
+from itertools import chain
+from typing import Any, Final, Iterable, Iterator, cast, overload
 
 import numpy as np
-import io
 
-import ConfigSpace.nx as nx
-from ConfigSpace.exceptions import (
-    CyclicDependancyError,
-    HyperparameterNotFoundError,
-    HyperparameterIndexError,
-    HyperparameterAlreadyExistsError,
-    ChildNotFoundError,
-    IllegalValueError,
-    ParentNotFoundError,
-    AmbiguousConditionError,
-    InactiveHyperparameterSetError,
-    ActiveHyperparameterNotSetError,
-)
-from ConfigSpace.hyperparameters import (
-    Hyperparameter,
-    Constant,
-    UniformIntegerHyperparameter,
-    UniformFloatHyperparameter,
-    CategoricalHyperparameter,
-)
+import ConfigSpace.c_util
+from ConfigSpace import nx
 from ConfigSpace.conditions import (
-    ConditionComponent,
     AbstractCondition,
     AbstractConjunction,
+    ConditionComponent,
     EqualsCondition,
 )
+from ConfigSpace.configuration import Configuration
+from ConfigSpace.exceptions import (
+    ActiveHyperparameterNotSetError,
+    AmbiguousConditionError,
+    ChildNotFoundError,
+    CyclicDependancyError,
+    ForbiddenValueError,
+    HyperparameterAlreadyExistsError,
+    HyperparameterIndexError,
+    HyperparameterNotFoundError,
+    IllegalValueError,
+    InactiveHyperparameterSetError,
+    ParentNotFoundError,
+)
 from ConfigSpace.forbidden import (
-    AbstractForbiddenComponent,
     AbstractForbiddenClause,
+    AbstractForbiddenComponent,
     AbstractForbiddenConjunction,
     ForbiddenRelation,
 )
-from ConfigSpace.configuration import Configuration
-from typing import Any, Iterator, Iterable, overload
-from typing_extensions import Final
-from ConfigSpace.exceptions import ForbiddenValueError
-import ConfigSpace.c_util
+from ConfigSpace.hyperparameters import (
+    CategoricalHyperparameter,
+    Constant,
+    Hyperparameter,
+    UniformFloatHyperparameter,
+    UniformIntegerHyperparameter,
+)
 
 _ROOT: Final = "__HPOlib_configuration_space_root__"
 
@@ -119,17 +119,25 @@ def _assert_type(item: Any, expected: type, method: str | None = None) -> None:
         raise TypeError(msg)
 
 
-def _assert_legal(hyperparameter: Hyperparameter, value: tuple | list | Any):
+def _assert_legal(hyperparameter: Hyperparameter, value: tuple | list | Any) -> None:
     if isinstance(value, (tuple, list)):
         for v in value:
             if not hyperparameter.is_legal(v):
                 raise IllegalValueError(hyperparameter, v)
-    else:
-        if not hyperparameter.is_legal(value):
-            raise IllegalValueError(hyperparameter, value)
+    elif not hyperparameter.is_legal(value):
+        raise IllegalValueError(hyperparameter, value)
 
 
 class ConfigurationSpace(Mapping[str, Hyperparameter]):
+    """A collection-like object containing a set of hyperparameter definitions and conditions.
+
+    A configuration space organizes all hyperparameters and its conditions
+    as well as its forbidden clauses. Configurations can be sampled from
+    this configuration space. As underlying data structure, the
+    configuration space uses a tree-based approach to represent the
+    conditions and restrictions between hyperparameters.
+    """
+
     def __init__(
         self,
         name: str | dict | None = None,
@@ -144,13 +152,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
             ]
         ) = None,
     ) -> None:
-        """A collection-like object containing a set of hyperparameter definitions and conditions.
-
-        A configuration space organizes all hyperparameters and its conditions
-        as well as its forbidden clauses. Configurations can be sampled from
-        this configuration space. As underlying data structure, the
-        configuration space uses a tree-based approach to represent the
-        conditions and restrictions between hyperparameters.
+        """
 
         Parameters
         ----------
@@ -162,7 +164,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         meta : dict, optional
             Field for holding meta data provided by the user.
             Not used by the configuration space.
-        space: dict[str, tuple[int, int] | tuple[float, float] | list[Any] | int | float | str] | None = None
+        space:
             A simple configuration space to use:
 
             .. code:: python
@@ -189,8 +191,8 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         # NOTE: The idx of a hyperparamter is tied to its order in _hyperparamters
         # Having three variables to keep track of this seems excessive
         self._hyperparameters: OrderedDict[str, Hyperparameter] = OrderedDict()
-        self._hyperparameter_idx: dict[str, int] = dict()
-        self._idx_to_hyperparameter: dict[int, str] = dict()
+        self._hyperparameter_idx: dict[str, int] = {}
+        self._idx_to_hyperparameter: dict[int, str] = {}
 
         # Use dictionaries to make sure that we don't accidently add
         # additional keys to these mappings (which happened with defaultdict()).
@@ -212,10 +214,10 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
 
         self._children[_ROOT] = OrderedDict()
 
-        self._parent_conditions_of: dict[str, list[AbstractCondition]] = dict()
-        self._child_conditions_of: dict[str, list[AbstractCondition]] = dict()
-        self._parents_of: dict[str, list[Hyperparameter]] = dict()
-        self._children_of: dict[str, list[Hyperparameter]] = dict()
+        self._parent_conditions_of: dict[str, list[AbstractCondition]] = {}
+        self._child_conditions_of: dict[str, list[AbstractCondition]] = {}
+        self._parents_of: dict[str, list[Hyperparameter]] = {}
+        self._children_of: dict[str, list[Hyperparameter]] = {}
 
         if space is not None:
             hyperparameters = list(_parse_hyperparameters_from_dict(space))
@@ -445,19 +447,18 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         :class:`~ConfigSpace.configuration_space.ConfigurationSpace`
             The configuration space, which was added
         """
-        _assert_type(
-            configuration_space, ConfigurationSpace, method="add_configuration_space"
-        )
+        _assert_type(configuration_space, ConfigurationSpace, method="add_configuration_space")
 
         prefix_delim = f"{prefix}{delimiter}"
 
         def _new_name(_item: Hyperparameter) -> str:
             if _item.name in ("", prefix):
                 return prefix
-            elif not _item.name.startswith(prefix_delim):
+
+            if not _item.name.startswith(prefix_delim):
                 return f"{prefix_delim}{_item.name}"
-            else:
-                return _item.name
+
+            return cast(str, _item.name)
 
         new_parameters = []
         for hp in configuration_space.values():
@@ -497,8 +498,8 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
             parent = parent_hyperparameter["parent"]
             value = parent_hyperparameter["value"]
 
-            # Only add a condition if the parameter is a top-level parameter of the new configuration
-            # space (this will be some kind of tree structure).
+            # Only add a condition if the parameter is a top-level parameter of the new
+            # configuration space (this will be some kind of tree structure).
             for new_hp in new_parameters:
                 parents = self.get_parents_of(new_hp)
                 if not any(parents):
@@ -620,7 +621,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
             [
                 UniformFloatHyperparameter(name=f"x{i}", lower=lower, upper=upper)
                 for i, (lower, upper) in enumerate(bounds)
-            ]
+            ],
         )
 
     def get_child_conditions_of(
@@ -699,8 +700,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         list[:ref:`Hyperparameters`]
             List with all parent hyperparameters, which are not part of a condition
         """
-        hyperparameters = [hp_name for hp_name in self._children[_ROOT]]
-        return hyperparameters
+        return list(self._children[_ROOT])
 
     def get_all_conditional_hyperparameters(self) -> set[str]:
         """Names of all conditional hyperparameters.
@@ -745,9 +745,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         vector : np.ndarray
             Configuration in vector representation
         """
-        _assert_type(
-            vector, np.ndarray, method="check_configuration_vector_representation"
-        )
+        _assert_type(vector, np.ndarray, method="check_configuration_vector_representation")
         ConfigSpace.c_util.check_configuration(self, vector, False)
 
     def get_active_hyperparameters(
@@ -780,14 +778,13 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
                 # active! Else we have to check this
                 # Note from trying to optimize this - this is faster than using
                 # dedicated numpy functions and indexing
-                if any([vector[i] != vector[i] for i in parent_vector_idx]):
+                if any(vector[i] != vector[i] for i in parent_vector_idx):
                     active = False
                     break
 
-                else:
-                    if not condition.evaluate_vector(vector):
-                        active = False
-                        break
+                if not condition.evaluate_vector(vector):
+                    active = False
+                    break
 
             if active:
                 active_hyperparameters.add(hp_name)
@@ -829,6 +826,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
                 "Please leave at default or explicitly set `size=None`."
                 " In the future, specifying a size will always retunr a list, even if 1",
                 DeprecationWarning,
+                stacklevel=2,
             )
 
         # Maintain old behaviour by setting this
@@ -845,7 +843,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         num_hyperparameters = len(self._hyperparameters)
 
         unconditional_hyperparameters = self.get_all_unconditional_hyperparameters()
-        hyperparameters_with_children = list()
+        hyperparameters_with_children = []
 
         _forbidden_clauses_unconditionals = []
         _forbidden_clauses_conditionals = []
@@ -875,7 +873,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         while len(accepted_configurations) < size:
             if missing != size:
                 missing = int(1.1 * missing)
-            vector = np.ndarray((missing, num_hyperparameters), dtype=float)
+            vector: np.ndarray = np.ndarray((missing, num_hyperparameters), dtype=float)
 
             for i, hp_name in enumerate(self._hyperparameters):
                 hyperparameter = self._hyperparameters[hp_name]
@@ -903,16 +901,15 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
                     iteration += 1
 
                     if iteration == size * 100:
-                        raise ForbiddenValueError(
-                            f"Cannot sample valid configuration for {self}"
-                        )
+                        msg = (f"Cannot sample valid configuration for {self}",)
+                        raise ForbiddenValueError(msg) from None
 
             missing = size - len(accepted_configurations)
 
         if size <= 1:
             return accepted_configurations[0]
-        else:
-            return accepted_configurations
+
+        return accepted_configurations
 
     def seed(self, seed: int) -> None:
         """Set the random seed to a number.
@@ -943,10 +940,12 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
                 uniform_config_space.add_hyperparameter(copy.copy(parameter))
 
         new_conditions = self.substitute_hyperparameters_in_conditions(
-            self.get_conditions(), uniform_config_space
+            self.get_conditions(),
+            uniform_config_space,
         )
         new_forbiddens = self.substitute_hyperparameters_in_forbiddens(
-            self.get_forbiddens(), uniform_config_space
+            self.get_forbiddens(),
+            uniform_config_space,
         )
         uniform_config_space.add_conditions(new_conditions)
         uniform_config_space.add_forbidden_clauses(new_forbiddens)
@@ -972,22 +971,28 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         if len(sizes) == 0:
             return 0.0
 
-        return np.prod(sizes, dtype=float)
+        acc = 1
+        for size in sizes:
+            acc *= size
+
+        return acc
 
     @staticmethod
     def substitute_hyperparameters_in_conditions(
-        conditions, new_configspace
+        conditions: Iterable[ConditionComponent],
+        new_configspace: ConfigurationSpace,
     ) -> list[ConditionComponent]:
         """
-        Takes a set of conditions and generates a new set of conditions with the same structure, where
-        each hyperparameter is replaced with its namesake in new_configspace. As such, the set of conditions
-        remain unchanged, but the included hyperparameters are changed to match those types that exist in
-        new_configspace.
+        Takes a set of conditions and generates a new set of conditions with the same structure,
+        where each hyperparameter is replaced with its namesake in new_configspace. As such, the
+        set of conditions remain unchanged, but the included hyperparameters are changed to match
+        those types that exist in new_configspace.
 
         Parameters
         ----------
         new_configspace: ConfigurationSpace
-            A ConfigurationSpace containing hyperparameters with the same names as those in the conditions.
+            A ConfigurationSpace containing hyperparameters with the same names as those in the
+            conditions.
 
         Returns
         -------
@@ -999,41 +1004,42 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
             if isinstance(condition, AbstractConjunction):
                 conjunction_type = type(condition)
                 children = condition.get_descendant_literal_conditions()
-                substituted_children = (
-                    ConfigurationSpace.substitute_hyperparameters_in_conditions(
-                        children, new_configspace
-                    )
+                substituted_children = ConfigurationSpace.substitute_hyperparameters_in_conditions(
+                    children,
+                    new_configspace,
                 )
                 substituted_conjunction = conjunction_type(*substituted_children)
                 new_conditions.append(substituted_conjunction)
 
             elif isinstance(condition, AbstractCondition):
                 condition_type = type(condition)
-                child_name = getattr(condition.get_children()[0], "name")
-                parent_name = getattr(condition.get_parents()[0], "name")
+                child_name = condition.get_children()[0].name
+                parent_name = condition.get_parents()[0].name
                 new_child = new_configspace[child_name]
                 new_parent = new_configspace[parent_name]
 
                 if hasattr(condition, "values"):
-                    condition_arg = getattr(condition, "values")
+                    condition_arg = condition.values
                     substituted_condition = condition_type(
-                        child=new_child, parent=new_parent, values=condition_arg
+                        child=new_child,
+                        parent=new_parent,
+                        values=condition_arg,
                     )
                 elif hasattr(condition, "value"):
-                    condition_arg = getattr(condition, "value")
+                    condition_arg = condition.value
                     substituted_condition = condition_type(
-                        child=new_child, parent=new_parent, value=condition_arg
+                        child=new_child,
+                        parent=new_parent,
+                        value=condition_arg,
                     )
                 else:
                     raise AttributeError(
-                        f"Did not find the expected attribute in condition {type(condition)}."
+                        f"Did not find the expected attribute in condition {type(condition)}.",
                     )
 
                 new_conditions.append(substituted_condition)
             else:
-                raise TypeError(
-                    f"Did not expect the supplied condition type {type(condition)}."
-                )
+                raise TypeError(f"Did not expect the supplied condition type {type(condition)}.")
 
         return new_conditions
 
@@ -1043,17 +1049,18 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         new_configspace: ConfigurationSpace,
     ) -> list[AbstractForbiddenComponent]:
         """
-        Takes a set of forbidden clauses and generates a new set of forbidden clauses with the same structure,
-        where each hyperparameter is replaced with its namesake in new_configspace. As such, the set of forbidden
-        clauses remain unchanged, but the included hyperparameters are changed to match those types that exist in
-        new_configspace.
+        Takes a set of forbidden clauses and generates a new set of forbidden clauses with the
+        same structure, where each hyperparameter is replaced with its namesake in new_configspace.
+        As such, the set of forbidden clauses remain unchanged, but the included hyperparameters are
+        changed to match those types that exist in new_configspace.
 
         Parameters
         ----------
-        forbiddens:
+        forbiddens: Iterable[AbstractForbiddenComponent]
             An iterable of forbiddens
         new_configspace: ConfigurationSpace
-            A ConfigurationSpace containing hyperparameters with the same names as those in the forbidden clauses.
+            A ConfigurationSpace containing hyperparameters with the same names as those in the
+            forbidden clauses.
 
         Returns
         -------
@@ -1065,44 +1072,46 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
             if isinstance(forbidden, AbstractForbiddenConjunction):
                 conjunction_type = type(forbidden)
                 children = forbidden.get_descendant_literal_clauses()
-                substituted_children = (
-                    ConfigurationSpace.substitute_hyperparameters_in_forbiddens(
-                        children, new_configspace
-                    )
+                substituted_children = ConfigurationSpace.substitute_hyperparameters_in_forbiddens(
+                    children,
+                    new_configspace,
                 )
                 substituted_conjunction = conjunction_type(*substituted_children)
                 new_forbiddens.append(substituted_conjunction)
 
             elif isinstance(forbidden, AbstractForbiddenClause):
                 forbidden_type = type(forbidden)
-                hyperparameter_name = getattr(forbidden.hyperparameter, "name")
+                hyperparameter_name = forbidden.hyperparameter.name
                 new_hyperparameter = new_configspace[hyperparameter_name]
 
                 if hasattr(forbidden, "values"):
-                    forbidden_arg = getattr(forbidden, "values")
+                    forbidden_arg = forbidden.values
                     substituted_forbidden = forbidden_type(
-                        hyperparameter=new_hyperparameter, values=forbidden_arg
+                        hyperparameter=new_hyperparameter,
+                        values=forbidden_arg,
                     )
                 elif hasattr(forbidden, "value"):
-                    forbidden_arg = getattr(forbidden, "value")
+                    forbidden_arg = forbidden.value
                     substituted_forbidden = forbidden_type(
-                        hyperparameter=new_hyperparameter, value=forbidden_arg
+                        hyperparameter=new_hyperparameter,
+                        value=forbidden_arg,
                     )
                 else:
                     raise AttributeError(
-                        f"Did not find the expected attribute in forbidden {type(forbidden)}."
+                        f"Did not find the expected attribute in forbidden {type(forbidden)}.",
                     )
 
                 new_forbiddens.append(substituted_forbidden)
             elif isinstance(forbidden, ForbiddenRelation):
                 forbidden_type = type(forbidden)
-                left_name = getattr(forbidden.left, "name")
+                left_name = forbidden.left.name
                 left_hyperparameter = new_configspace[left_name]
-                right_name = getattr(forbidden.right, "name")
+                right_name = forbidden.right.name
                 right_hyperparameter = new_configspace[right_name]
 
                 substituted_forbidden = forbidden_type(
-                    left=left_hyperparameter, right=right_hyperparameter
+                    left=left_hyperparameter,
+                    right=right_hyperparameter,
                 )
                 new_forbiddens.append(substituted_forbidden)
             else:
@@ -1111,7 +1120,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         return new_forbiddens
 
     def __eq__(self, other: Any) -> bool:
-        """Override the default Equals behavior"""
+        """Override the default Equals behavior."""
         if isinstance(other, self.__class__):
             this_dict = self.__dict__.copy()
             del this_dict["random"]
@@ -1121,7 +1130,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         return NotImplemented
 
     def __hash__(self) -> int:
-        """Override the default hash behavior (that returns the id or the object)"""
+        """Override the default hash behavior (that returns the id or the object)."""
         return hash(self.__repr__())
 
     def __getitem__(self, key: str) -> Hyperparameter:
@@ -1139,14 +1148,10 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
             retval.write(self.name)
             retval.write("\n")
 
-        hyperparameters = sorted(self.values(), key=lambda t: t.name)
+        hyperparameters = sorted(self.values(), key=lambda t: t.name)  # type: ignore
         if hyperparameters:
             retval.write("    ")
-            retval.write(
-                "\n    ".join(
-                    [str(hyperparameter) for hyperparameter in hyperparameters]
-                )
-            )
+            retval.write("\n    ".join([str(hyperparameter) for hyperparameter in hyperparameters]))
             retval.write("\n")
 
         conditions = sorted(self.get_conditions(), key=lambda t: str(t))
@@ -1159,9 +1164,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         if self.get_forbiddens():
             retval.write("  Forbidden Clauses:\n")
             retval.write("    ")
-            retval.write(
-                "\n    ".join([str(clause) for clause in self.get_forbiddens()])
-            )
+            retval.write("\n    ".join([str(clause) for clause in self.get_forbiddens()]))
             retval.write("\n")
 
         retval.seek(0)
@@ -1172,6 +1175,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         return iter(self._hyperparameters.keys())
 
     def keys(self) -> KeysView[str]:
+        """Return the hyperparameter names in the right order."""
         return self._hyperparameters.keys()
 
     def __len__(self) -> int:
@@ -1198,9 +1202,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         # Save the index of each hyperparameter name to later on access a
         # vector of hyperparameter values by indices, must be done twice
         # because check_default_configuration depends on it
-        self._hyperparameter_idx.update(
-            {hp: i for i, hp in enumerate(self._hyperparameters)}
-        )
+        self._hyperparameter_idx.update({hp: i for i, hp in enumerate(self._hyperparameters)})
 
     def _sort_hyperparameters(self) -> None:
         levels: OrderedDict[str, int] = OrderedDict()
@@ -1221,8 +1223,8 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
                     if parent not in levels:
                         all_parents_visited = False
                         break
-                    else:
-                        depth = max(depth, levels[parent] + 1)
+
+                    depth = max(depth, levels[parent] + 1)
 
                 if all_parents_visited:
                     levels[current] = depth
@@ -1309,16 +1311,12 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         child_node: Hyperparameter,
         condition: ConditionComponent,
     ) -> None:
-        try:
+        with contextlib.suppress(Exception):
             # TODO maybe this has to be done more carefully
             del self._children[_ROOT][child_node.name]
-        except Exception:
-            pass
 
-        try:
+        with contextlib.suppress(Exception):
             del self._parents[child_node.name][_ROOT]
-        except Exception:
-            pass
 
         self._children[parent_node.name][child_node.name] = condition
         self._parents[child_node.name][parent_node.name] = condition
@@ -1335,10 +1333,9 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
             if parent_node_ == _ROOT:
                 continue
             for child_node_ in self._children[parent_node_]:
-                try:
+                with contextlib.suppress(Exception):
                     tmp_dag.remove_edge(_ROOT, child_node_)
-                except Exception:
-                    pass
+
                 condition = self._children[parent_node_][child_node_]
                 tmp_dag.add_edge(parent_node_, child_node_, condition=condition)
 
@@ -1387,12 +1384,8 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         self._child_conditions_of = {
             name: self._get_child_conditions_of(name) for name in self._hyperparameters
         }
-        self._parents_of = {
-            name: self.get_parents_of(name) for name in self._hyperparameters
-        }
-        self._children_of = {
-            name: self.get_children_of(name) for name in self._hyperparameters
-        }
+        self._parents_of = {name: self.get_parents_of(name) for name in self._hyperparameters}
+        self._children_of = {name: self.get_children_of(name) for name in self._hyperparameters}
 
     def _check_forbidden_component(self, clause: AbstractForbiddenComponent) -> None:
         _assert_type(clause, AbstractForbiddenComponent, "_check_forbidden_component")
@@ -1408,7 +1401,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         else:
             raise NotImplementedError(type(clause))
 
-        def _check_hp(tmp_clause, hp):
+        def _check_hp(tmp_clause: AbstractForbiddenComponent, hp: Hyperparameter) -> None:
             if hp.name not in self._hyperparameters:
                 raise HyperparameterNotFoundError(
                     hp,
@@ -1432,10 +1425,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
 
     def _get_child_conditions_of(self, name: str) -> list[AbstractCondition]:
         children = self._children[name]
-        conditions = [
-            children[child_name] for child_name in children if child_name != _ROOT
-        ]
-        return conditions
+        return [children[child_name] for child_name in children if child_name != _ROOT]
 
     def _get_parents_of(self, name: str) -> list[Hyperparameter]:
         """The parents hyperparameters of a given hyperparameter.
@@ -1490,10 +1480,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
 
     def _get_parent_conditions_of(self, name: str) -> list[AbstractCondition]:
         parents = self._parents[name]
-        conditions = [
-            parents[parent_name] for parent_name in parents if parent_name != _ROOT
-        ]
-        return conditions
+        return [parents[parent_name] for parent_name in parents if parent_name != _ROOT]
 
     def _check_configuration_rigorous(
         self,
@@ -1542,6 +1529,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         warnings.warn(
             "Prefer `space[name]` over `get_hyperparameter`",
             DeprecationWarning,
+            stacklevel=2,
         )
         return self[name]
 
@@ -1556,6 +1544,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         warnings.warn(
             "Prefer using `list(space.values())` over `get_hyperparameters`",
             DeprecationWarning,
+            stacklevel=2,
         )
         return list(self._hyperparameters.values())
 
@@ -1570,6 +1559,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         warnings.warn(
             "Prefer using `dict(space)` over `get_hyperparameters_dict`",
             DeprecationWarning,
+            stacklevel=2,
         )
         return self._hyperparameters.copy()
 
@@ -1584,6 +1574,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         warnings.warn(
             "Prefer using `list(space.keys())` over `get_hyperparameter_names`",
             DeprecationWarning,
+            stacklevel=2,
         )
         return list(self._hyperparameters.keys())
 

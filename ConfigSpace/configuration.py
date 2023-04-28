@@ -1,13 +1,14 @@
 from __future__ import annotations
-from typing import Any, TYPE_CHECKING, Iterator
+
+import warnings
 from collections.abc import KeysView, Mapping
+from typing import TYPE_CHECKING, Any, Iterator, Sequence
 
 import numpy as np
-import warnings
-from ConfigSpace.exceptions import HyperparameterNotFoundError, IllegalValueError
 
+from ConfigSpace import c_util
+from ConfigSpace.exceptions import HyperparameterNotFoundError, IllegalValueError
 from ConfigSpace.hyperparameters import FloatHyperparameter
-import ConfigSpace.c_util as c_util
 
 if TYPE_CHECKING:
     from ConfigSpace.configuration_space import ConfigurationSpace
@@ -18,7 +19,7 @@ class Configuration(Mapping[str, Any]):
         self,
         configuration_space: ConfigurationSpace,
         values: Mapping[str, str | float | int | None] | None = None,
-        vector: np.ndarray | None = None,
+        vector: Sequence[float] | np.ndarray | None = None,
         allow_inactive_with_values: bool = False,
         origin: Any | None = None,
         config_id: int | None = None,
@@ -54,15 +55,8 @@ class Configuration(Mapping[str, Any]):
             Integer configuration ID which can be used by a program using the ConfigSpace
             package.
         """
-        if (
-            values is not None
-            and vector is not None
-            or values is None
-            and vector is None
-        ):
-            raise ValueError(
-                "Specify Configuration as either a dictionary or a vector."
-            )
+        if values is not None and vector is not None or values is None and vector is None:
+            raise ValueError("Specify Configuration as either a dictionary or a vector.")
 
         self.config_space = configuration_space
         self.allow_inactive_with_values = allow_inactive_with_values
@@ -106,25 +100,25 @@ class Configuration(Mapping[str, Any]):
             self.is_valid_configuration()
 
         elif vector is not None:
-            vector = np.asarray(vector, dtype=float)
+            _vector = np.asarray(vector, dtype=float)
 
             # If we have a 2d array with shape (n, 1), flatten it
-            if len(vector.shape) == 2 and vector.shape[1] == 1:
-                vector = vector.flatten()
+            if len(_vector.shape) == 2 and _vector.shape[1] == 1:
+                _vector = _vector.flatten()
 
-            if len(vector.shape) > 1:
+            if len(_vector.shape) > 1:
                 raise ValueError(
                     "Only 1d arrays can be converted to a Configuration, "
-                    f"you passed an array of shape {vector.shape}"
+                    f"you passed an array of shape {_vector.shape}",
                 )
 
             n_hyperparameters = len(self.config_space)
-            if len(vector) != len(self.config_space):
+            if len(_vector) != len(self.config_space):
                 raise ValueError(
-                    f"Expected array of length {n_hyperparameters}, got {len(vector)}"
+                    f"Expected array of length {n_hyperparameters}, got {len(_vector)}",
                 )
 
-            self._vector = vector
+            self._vector = _vector
 
     def is_valid_configuration(self) -> None:
         """Check if the object is a valid.
@@ -155,7 +149,7 @@ class Configuration(Mapping[str, Any]):
         if not isinstance(item, str):
             return False
 
-        return item in self.keys()
+        return item in self
 
     def __setitem__(self, key: str, value: Any) -> None:
         param = self.config_space[key]
@@ -211,6 +205,13 @@ class Configuration(Mapping[str, Any]):
         return value
 
     def keys(self) -> KeysView[str]:
+        """Return the keys of the configuration.
+
+        Returns
+        -------
+        KeysView[str]
+            The keys of the configuration
+        """
         d = {
             key: self._vector[idx]
             for idx, key in enumerate(self.config_space.keys())
@@ -244,7 +245,8 @@ class Configuration(Mapping[str, Any]):
     # make some other breaking changes
     # * Search `Marked Deprecated` to find others
     def get_dictionary(self) -> dict[str, Any]:
-        """A representation of the :class:`~ConfigSpace.configuration_space.Configuration` in dictionary form.
+        """A representation of the :class:`~ConfigSpace.configuration_space.Configuration`
+        in dictionary form.
 
         Returns
         -------
@@ -256,6 +258,7 @@ class Configuration(Mapping[str, Any]):
             " Please use `dict(config)` instead of `get_dictionary`"
             " if you explicitly need a `dict`",
             DeprecationWarning,
+            stacklevel=2,
         )
         return dict(self)
 

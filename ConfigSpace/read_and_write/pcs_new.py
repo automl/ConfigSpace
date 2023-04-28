@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """
 PCS (parameter configuration space) is a simple, human-readable file format for the
 description of an algorithm's configurable parameters, their possible values, as well
@@ -19,6 +18,7 @@ and further examples are provided in the
     AClib 2.0, as well as SMAC (v2 and v3). To write or to read the **old** version of pcs,
     please use the :class:`~ConfigSpace.read_and_write.pcs` module.
 """
+from __future__ import annotations
 
 __authors__ = [
     "Katharina Eggensperger",
@@ -28,41 +28,43 @@ __authors__ = [
 __contact__ = "automl.org"
 
 from collections import OrderedDict
-from itertools import product
 from io import StringIO
+from itertools import product
+from typing import Iterable
 
 import pyparsing
 
+from ConfigSpace.conditions import (
+    AbstractConjunction,
+    AndConjunction,
+    ConditionComponent,
+    EqualsCondition,
+    GreaterThanCondition,
+    InCondition,
+    LessThanCondition,
+    NotEqualsCondition,
+    OrConjunction,
+)
 from ConfigSpace.configuration_space import ConfigurationSpace
+from ConfigSpace.forbidden import (
+    AbstractForbiddenComponent,
+    ForbiddenAndConjunction,
+    ForbiddenEqualsClause,
+    ForbiddenInClause,
+    ForbiddenRelation,
+    MultipleValueForbiddenClause,
+)
 from ConfigSpace.hyperparameters import (
     CategoricalHyperparameter,
-    UniformIntegerHyperparameter,
-    UniformFloatHyperparameter,
-    NumericalHyperparameter,
-    IntegerHyperparameter,
-    FloatHyperparameter,
-    NormalIntegerHyperparameter,
-    NormalFloatHyperparameter,
-    OrdinalHyperparameter,
     Constant,
-)
-from ConfigSpace.conditions import (
-    EqualsCondition,
-    NotEqualsCondition,
-    InCondition,
-    AndConjunction,
-    OrConjunction,
-    ConditionComponent,
-    GreaterThanCondition,
-    LessThanCondition,
-)
-from ConfigSpace.forbidden import (
-    ForbiddenEqualsClause,
-    ForbiddenAndConjunction,
-    ForbiddenInClause,
-    AbstractForbiddenComponent,
-    MultipleValueForbiddenClause,
-    ForbiddenRelation,
+    FloatHyperparameter,
+    IntegerHyperparameter,
+    NormalFloatHyperparameter,
+    NormalIntegerHyperparameter,
+    NumericalHyperparameter,
+    OrdinalHyperparameter,
+    UniformFloatHyperparameter,
+    UniformIntegerHyperparameter,
 )
 
 # Build pyparsing expressions for params
@@ -84,19 +86,15 @@ pp_param_name = pyparsing.Word(
     + "*"
     + "+"
     + "<"
-    + ">"
+    + ">",
 )
 pp_param_operation = pyparsing.Word("in" + "!=" + "==" + ">" + "<")
 pp_digits = "0123456789"
-pp_param_val = pp_param_name + pyparsing.Optional(
-    pyparsing.OneOrMore("," + pp_param_name)
-)
+pp_param_val = pp_param_name + pyparsing.Optional(pyparsing.OneOrMore("," + pp_param_name))
 pp_plusorminus = pyparsing.Literal("+") | pyparsing.Literal("-")
-pp_int = pyparsing.Combine(
-    pyparsing.Optional(pp_plusorminus) + pyparsing.Word(pp_digits)
-)
+pp_int = pyparsing.Combine(pyparsing.Optional(pp_plusorminus) + pyparsing.Word(pp_digits))
 pp_float = pyparsing.Combine(
-    pyparsing.Optional(pp_plusorminus) + pyparsing.Optional(pp_int) + "." + pp_int
+    pyparsing.Optional(pp_plusorminus) + pyparsing.Optional(pp_int) + "." + pp_int,
 )
 pp_eorE = pyparsing.Literal("e") | pyparsing.Literal("E")
 pp_param_type = (
@@ -114,15 +112,9 @@ pp_log = pyparsing.Literal("log")
 # https://pythonhosted.org/pyparsing/pyparsing.Word-class.html
 pp_connectiveOR = pyparsing.Literal("||")
 pp_connectiveAND = pyparsing.Literal("&&")
-pp_choices = pp_param_name + pyparsing.Optional(
-    pyparsing.OneOrMore("," + pp_param_name)
-)
-pp_sequence = pp_param_name + pyparsing.Optional(
-    pyparsing.OneOrMore("," + pp_param_name)
-)
-pp_ord_param = (
-    pp_param_name + pp_param_type + "{" + pp_sequence + "}" + "[" + pp_param_name + "]"
-)
+pp_choices = pp_param_name + pyparsing.Optional(pyparsing.OneOrMore("," + pp_param_name))
+pp_sequence = pp_param_name + pyparsing.Optional(pyparsing.OneOrMore("," + pp_param_name))
+pp_ord_param = pp_param_name + pp_param_type + "{" + pp_sequence + "}" + "[" + pp_param_name + "]"
 pp_cont_param = (
     pp_param_name
     + pp_param_type
@@ -136,9 +128,7 @@ pp_cont_param = (
     + "]"
     + pyparsing.Optional(pp_log)
 )
-pp_cat_param = (
-    pp_param_name + pp_param_type + "{" + pp_choices + "}" + "[" + pp_param_name + "]"
-)
+pp_cat_param = pp_param_name + pp_param_type + "{" + pp_choices + "}" + "[" + pp_param_name + "]"
 pp_condition = (
     pp_param_name
     + "|"
@@ -154,8 +144,8 @@ pp_condition = (
             + pp_param_operation
             + pyparsing.Optional("{")
             + pp_param_val
-            + pyparsing.Optional("}")
-        )
+            + pyparsing.Optional("}"),
+        ),
     )
 )
 pp_forbidden_clause = (
@@ -163,18 +153,16 @@ pp_forbidden_clause = (
     + pp_param_name
     + "="
     + pp_numberorname
-    + pyparsing.Optional(
-        pyparsing.OneOrMore("," + pp_param_name + "=" + pp_numberorname)
-    )
+    + pyparsing.Optional(pyparsing.OneOrMore("," + pp_param_name + "=" + pp_numberorname))
     + "}"
 )
 
 
-def build_categorical(param):
+def build_categorical(param: CategoricalHyperparameter) -> str:
     if param.weights is not None:
         raise ValueError(
             "The pcs format does not support categorical hyperparameters with "
-            "assigned weights (for hyperparameter %s)" % param.name
+            "assigned weights (for hyperparameter %s)" % param.name,
         )
     cat_template = "%s categorical {%s} [%s]"
     return cat_template % (
@@ -184,7 +172,7 @@ def build_categorical(param):
     )
 
 
-def build_ordinal(param):
+def build_ordinal(param: OrdinalHyperparameter) -> str:
     ordinal_template = "%s ordinal {%s} [%s]"
     return ordinal_template % (
         param.name,
@@ -193,12 +181,12 @@ def build_ordinal(param):
     )
 
 
-def build_constant(param):
+def build_constant(param: Constant) -> str:
     const_template = "%s categorical {%s} [%s]"
     return const_template % (param.name, param.value, param.value)
 
 
-def build_continuous(param):
+def build_continuous(param: NormalFloatHyperparameter | NormalIntegerHyperparameter) -> str:
     if type(param) in (NormalIntegerHyperparameter, NormalFloatHyperparameter):
         param = param.to_uniform()
 
@@ -208,10 +196,7 @@ def build_continuous(param):
         float_template += "log"
         int_template += "log"
 
-    if param.q is not None:
-        q_prefix = "Q%d_" % (int(param.q),)
-    else:
-        q_prefix = ""
+    q_prefix = "Q%d_" % (int(param.q),) if param.q is not None else ""
     default_value = param.default_value
 
     if isinstance(param, IntegerHyperparameter):
@@ -223,22 +208,23 @@ def build_continuous(param):
             param.upper,
             default_value,
         )
-    else:
-        return float_template % (
-            q_prefix,
-            param.name,
-            str(param.lower),
-            str(param.upper),
-            str(default_value),
-        )
+
+    return float_template % (
+        q_prefix,
+        param.name,
+        str(param.lower),
+        str(param.upper),
+        str(default_value),
+    )
 
 
-def build_condition(condition):
+def build_condition(condition: ConditionComponent) -> str:
     if not isinstance(condition, ConditionComponent):
         raise TypeError(
-            "build_condition must be called with an instance of '%s', got '%s'"
-            % (ConditionComponent, type(condition))
+            "build_condition must be called with an instance"
+            f" of '{ConditionComponent}', got '{type(condition)}'",
         )
+
     # Now handle the conditions SMAC can handle
     in_template = "%s | %s in {%s}"
     less_template = "%s | %s < %s"
@@ -247,7 +233,7 @@ def build_condition(condition):
     equal_template = "%s | %s == %s"
 
     if isinstance(condition, InCondition):
-        cond_values = [str(value) for value in condition.value]
+        cond_values = ", ".join([str(value) for value in condition.value])
     else:
         cond_values = str(condition.value)
 
@@ -258,37 +244,40 @@ def build_condition(condition):
             cond_values,
         )
 
-    elif isinstance(condition, InCondition):
+    if isinstance(condition, InCondition):
         return in_template % (
             condition.child.name,
             condition.parent.name,
-            ", ".join(cond_values),
+            cond_values,
         )
 
-    elif isinstance(condition, EqualsCondition):
+    if isinstance(condition, EqualsCondition):
         return equal_template % (
             condition.child.name,
             condition.parent.name,
             cond_values,
         )
-    elif isinstance(condition, LessThanCondition):
+    if isinstance(condition, LessThanCondition):
         return less_template % (
             condition.child.name,
             condition.parent.name,
             cond_values,
         )
-    elif isinstance(condition, GreaterThanCondition):
+    if isinstance(condition, GreaterThanCondition):
         return greater_template % (
             condition.child.name,
             condition.parent.name,
             cond_values,
         )
 
+    raise TypeError(f"Didn't find a matching template for type {condition}")
 
-def build_conjunction(conjunction):
+
+def build_conjunction(conjunction: AbstractConjunction) -> str:
+    line: str
     line = conjunction.get_children()[0].name + " | "
 
-    cond_list = list()
+    cond_list = []
     for component in conjunction.components:
         tmp = build_condition(component.get_descendant_literal_conditions()[0])
 
@@ -300,19 +289,21 @@ def build_conjunction(conjunction):
         line += " && ".join(cond_list)
     elif isinstance(conjunction, OrConjunction):
         line += " || ".join(cond_list)
+
     return line
 
 
-def build_forbidden(clause):
+def build_forbidden(clause: AbstractForbiddenComponent) -> str:
     if not isinstance(clause, AbstractForbiddenComponent):
         raise TypeError(
             "build_forbidden must be called with an instance of "
-            "'%s', got '%s'" % (AbstractForbiddenComponent, type(clause))
+            f"'{AbstractForbiddenComponent}', got '{type(clause)}'",
         )
+
     if isinstance(clause, ForbiddenRelation):
         raise TypeError(
             "build_forbidden must not be called with an instance of "
-            "'%s', got '%s'" % (ForbiddenRelation, type(clause))
+            f"'{AbstractForbiddenComponent}', got '{type(clause)}'",
         )
 
     retval = StringIO()
@@ -323,64 +314,68 @@ def build_forbidden(clause):
     for dlc in dlcs:
         if retval.tell() > 1:
             retval.write(", ")
-        retval.write("%s=%s" % (dlc.hyperparameter.name, dlc.value))
+        retval.write(f"{dlc.hyperparameter.name}={dlc.value}")
     retval.write("}")
     retval.seek(0)
     return retval.getvalue()
 
 
-def condition_specification(child_name, condition, configuration_space):
+def condition_specification(
+    child_name: str,
+    condition: list[str],
+    configuration_space: ConfigurationSpace,
+) -> ConditionComponent:
     # specifies the condition type
     child = configuration_space[child_name]
     parent_name = condition[0]
     parent = configuration_space[parent_name]
     operation = condition[1]
     if operation == "in":
-        restrictions = condition[3:-1:2]
-        for i in range(len(restrictions)):
+        restrictions = list(condition[3:-1:2])
+        for i, val in enumerate(restrictions):
             if isinstance(parent, FloatHyperparameter):
-                restrictions[i] = float(restrictions[i])
+                restrictions[i] = float(val)  # type: ignore
             elif isinstance(parent, IntegerHyperparameter):
-                restrictions[i] = int(restrictions[i])
+                restrictions[i] = int(val)  # type: ignore
 
         if len(restrictions) == 1:
             condition = EqualsCondition(child, parent, restrictions[0])
         else:
             condition = InCondition(child, parent, values=restrictions)
         return condition
+
+    restriction: float | int | str = condition[2]
+    if isinstance(parent, FloatHyperparameter):
+        restriction = float(restriction)
+    elif isinstance(parent, IntegerHyperparameter):
+        restriction = int(restriction)
+
+    if operation == "==":
+        condition = EqualsCondition(child, parent, restriction)
+    elif operation == "!=":
+        condition = NotEqualsCondition(child, parent, restriction)
     else:
-        restrictions = condition[2]
         if isinstance(parent, FloatHyperparameter):
-            restrictions = float(restrictions)
+            restriction = float(restriction)
         elif isinstance(parent, IntegerHyperparameter):
-            restrictions = int(restrictions)
-
-        if operation == "==":
-            condition = EqualsCondition(child, parent, restrictions)
-        elif operation == "!=":
-            condition = NotEqualsCondition(child, parent, restrictions)
+            restriction = int(restriction)
+        elif isinstance(parent, OrdinalHyperparameter):
+            pass
         else:
-            if isinstance(parent, FloatHyperparameter):
-                restrictions = float(restrictions)
-            elif isinstance(parent, IntegerHyperparameter):
-                restrictions = int(restrictions)
-            elif isinstance(parent, OrdinalHyperparameter):
-                pass
-            else:
-                raise ValueError(
-                    "The parent of a conditional hyperparameter "
-                    "must be either a float, int or ordinal "
-                    "hyperparameter, but is %s." % type(parent)
-                )
+            raise ValueError(
+                "The parent of a conditional hyperparameter "
+                "must be either a float, int or ordinal "
+                "hyperparameter, but is %s." % type(parent),
+            )
 
-            if operation == "<":
-                condition = LessThanCondition(child, parent, restrictions)
-            elif operation == ">":
-                condition = GreaterThanCondition(child, parent, restrictions)
-        return condition
+        if operation == "<":
+            condition = LessThanCondition(child, parent, restriction)
+        elif operation == ">":
+            condition = GreaterThanCondition(child, parent, restriction)
+    return condition
 
 
-def read(pcs_string, debug=False):
+def read(pcs_string: Iterable[str]) -> ConfigurationSpace:
     """
     Read in a :py:class:`~ConfigSpace.configuration_space.ConfigurationSpace`
     definition from a pcs file.
@@ -406,10 +401,8 @@ def read(pcs_string, debug=False):
 
     Parameters
     ----------
-    pcs_string : str
+    pcs_string : Iterable[str]
         ConfigSpace definition in pcs format
-    debug : bool
-        Provides debug information. Defaults to False.
 
     Returns
     -------
@@ -444,8 +437,9 @@ def read(pcs_string, debug=False):
             try:
                 c = pp_condition.parseString(line)
                 conditions.append(c)
-            except pyparsing.ParseException:
-                raise NotImplementedError("Could not parse condition: %s" % line)
+            except pyparsing.ParseException as e:
+                raise NotImplementedError(f"Could not parse condition: {line}") from e
+
             continue
         if "}" not in line and "]" not in line:
             continue
@@ -480,10 +474,10 @@ def read(pcs_string, debug=False):
                 param_list = param_list[:10]
                 if len(log) > 0:
                     log = log[0]
-                lower = float(param_list[3])
-                upper = float(param_list[5])
-                log_on = True if "log" in log else False
-                default_value = float(param_list[8])
+                lower = float(param_list[3])  # type: ignore
+                upper = float(param_list[5])  # type: ignore
+                log_on = "log" in log
+                default_value = float(param_list[8])  # type: ignore
                 param = create[paramtype](
                     name=name,
                     lower=lower,
@@ -501,7 +495,7 @@ def read(pcs_string, debug=False):
             if "categorical" in line:
                 param_list = pp_cat_param.parseString(line)
                 name = param_list[0]
-                choices = [choice for choice in param_list[3:-4:2]]
+                choices = list(param_list[3:-4:2])
                 default_value = param_list[-2]
                 param = create["categorical"](
                     name=name,
@@ -513,7 +507,7 @@ def read(pcs_string, debug=False):
             elif "ordinal" in line:
                 param_list = pp_ord_param.parseString(line)
                 name = param_list[0]
-                sequence = [seq for seq in param_list[3:-4:2]]
+                sequence = list(param_list[3:-4:2])
                 default_value = param_list[-2]
                 param = create["ordinal"](
                     name=name,
@@ -532,7 +526,7 @@ def read(pcs_string, debug=False):
 
     for clause in forbidden:
         param_list = pp_forbidden_clause.parseString(clause)
-        tmp_list = []
+        tmp_list: list = []
         clause_list = []
         for value in param_list[1:]:
             if len(tmp_list) < 3:
@@ -542,66 +536,65 @@ def read(pcs_string, debug=False):
                 if tmp_list[1] == "=":
                     hp = configuration_space[tmp_list[0]]
                     if isinstance(hp, NumericalHyperparameter):
+                        forbidden_value: float | int
                         if isinstance(hp, IntegerHyperparameter):
                             forbidden_value = int(tmp_list[2])
                         elif isinstance(hp, FloatHyperparameter):
                             forbidden_value = float(tmp_list[2])
                         else:
                             raise NotImplementedError
+
                         if forbidden_value < hp.lower or forbidden_value > hp.upper:
                             raise ValueError(
                                 f"forbidden_value is set out of the bound, it needs to"
                                 f" be set between [{hp.lower}, {hp.upper}]"
-                                f" but its value is {forbidden_value}"
+                                f" but its value is {forbidden_value}",
                             )
-                    elif isinstance(
-                        hp, (CategoricalHyperparameter, OrdinalHyperparameter)
-                    ):
+
+                    elif isinstance(hp, (CategoricalHyperparameter, OrdinalHyperparameter)):
                         hp_values = (
-                            hp.choices
-                            if isinstance(hp, CategoricalHyperparameter)
-                            else hp.sequence
+                            hp.choices if isinstance(hp, CategoricalHyperparameter) else hp.sequence
                         )
                         forbidden_value_in_hp_values = tmp_list[2] in hp_values
+
                         if forbidden_value_in_hp_values:
                             forbidden_value = tmp_list[2]
                         else:
                             raise ValueError(
                                 f"forbidden_value is set out of the allowed value "
                                 f"sets, it needs to be one member from {hp_values} "
-                                f"but its value is {forbidden_value}"
+                                f"but its value is {tmp_list[2]}",
                             )
                     else:
                         raise ValueError("Unsupported Hyperparamter sorts")
 
                     clause_list.append(
-                        ForbiddenEqualsClause(
-                            configuration_space[tmp_list[0]], forbidden_value
-                        )
+                        ForbiddenEqualsClause(configuration_space[tmp_list[0]], forbidden_value),
                     )
                 else:
                     raise NotImplementedError()
                 tmp_list = []
         configuration_space.add_forbidden_clause(ForbiddenAndConjunction(*clause_list))
 
-    conditions_per_child = OrderedDict()
+    conditions_per_child: dict = OrderedDict()
+
     for condition in conditions:
         child_name = condition[0]
         if child_name not in conditions_per_child:
-            conditions_per_child[child_name] = list()
+            conditions_per_child[child_name] = []
         conditions_per_child[child_name].append(condition)
 
     for child_name in conditions_per_child:
         for condition in conditions_per_child[child_name]:
             condition = condition[2:]
-            condition = " ".join(condition)
+            condition = " ".join(condition)  # type: ignore
             if "||" in str(condition):
                 ors = []
                 # 1st case we have a mixture of || and &&
                 if "&&" in str(condition):
                     ors_combis = []
                     for cond_parts in str(condition).split("||"):
-                        condition = str(cond_parts).split("&&")
+                        condition = str(cond_parts).split("&&")  # type: ignore
                         # if length is 1 it must be or
                         if len(condition) == 1:
                             element_list = condition[0].split()
@@ -610,23 +603,21 @@ def read(pcs_string, debug=False):
                                     child_name,
                                     element_list,
                                     configuration_space,
-                                )
+                                ),
                             )
                         else:
                             # now taking care of ands
                             ands = []
                             for and_part in condition:
                                 element_list = [
-                                    element
-                                    for part in condition
-                                    for element in and_part.split()
+                                    element for _ in condition for element in and_part.split()
                                 ]
                                 ands.append(
                                     condition_specification(
                                         child_name,
                                         element_list,
                                         configuration_space,
-                                    )
+                                    ),
                                 )
                             ors_combis.append(AndConjunction(*ands))
                     mixed_conjunction = OrConjunction(*ors_combis)
@@ -634,45 +625,46 @@ def read(pcs_string, debug=False):
                 else:
                     # 2nd case: we only have ors
                     for cond_parts in str(condition).split("||"):
-                        element_list = [element for element in cond_parts.split()]
+                        element_list = list(cond_parts.split())
                         ors.append(
                             condition_specification(
                                 child_name,
                                 element_list,
                                 configuration_space,
-                            )
+                            ),
                         )
                     or_conjunction = OrConjunction(*ors)
                     configuration_space.add_condition(or_conjunction)
-            else:
-                # 3rd case: we only have ands
-                if "&&" in str(condition):
-                    ands = []
-                    for cond_parts in str(condition).split("&&"):
-                        element_list = [element for element in cond_parts.split()]
-                        ands.append(
-                            condition_specification(
-                                child_name,
-                                element_list,
-                                configuration_space,
-                            )
-                        )
-                    and_conjunction = AndConjunction(*ands)
-                    configuration_space.add_condition(and_conjunction)
-                else:
-                    # 4th case: we have a normal condition
-                    element_list = [element for element in condition.split()]
-                    normal_condition = condition_specification(
-                        child_name,
-                        element_list,
-                        configuration_space,
+
+            # 3rd case: we only have ands
+            elif "&&" in str(condition):
+                ands = []
+                for cond_parts in str(condition).split("&&"):
+                    element_list = list(cond_parts.split())
+                    ands.append(
+                        condition_specification(
+                            child_name,
+                            element_list,
+                            configuration_space,
+                        ),
                     )
-                    configuration_space.add_condition(normal_condition)
+                and_conjunction = AndConjunction(*ands)
+                configuration_space.add_condition(and_conjunction)
+
+            # 4th case: we have a normal condition
+            else:
+                element_list = list(condition.split())
+                normal_condition = condition_specification(
+                    child_name,
+                    element_list,
+                    configuration_space,
+                )
+                configuration_space.add_condition(normal_condition)
 
     return configuration_space
 
 
-def write(configuration_space):
+def write(configuration_space: ConfigurationSpace) -> str:
     """
     Create a string representation of a
     :class:`~ConfigSpace.configuration_space.ConfigurationSpace`
@@ -707,21 +699,21 @@ def write(configuration_space):
     """
     if not isinstance(configuration_space, ConfigurationSpace):
         raise TypeError(
-            "pcs_parser.write expects an instance of %s, "
-            "you provided '%s'" % (ConfigurationSpace, type(configuration_space))
+            "pcs_parser.write expects an instance of {}, "
+            "you provided '{}'".format(ConfigurationSpace, type(configuration_space)),
         )
 
     param_lines = StringIO()
     condition_lines = StringIO()
     forbidden_lines = []
     for hyperparameter in configuration_space.values():
-        # Check if the hyperparameter names are valid SMAC names!
+        # Check if the hyperparameter names are valid ConfigSpace names!
         try:
             pp_param_name.parseString(hyperparameter.name)
-        except pyparsing.ParseException:
+        except pyparsing.ParseException as e:
             raise ValueError(
-                "Illegal hyperparameter name for SMAC: %s" % hyperparameter.name
-            )
+                f"Illegal hyperparameter name for ConfigSpace: {hyperparameter.name}",
+            ) from e
 
         # First build params
         if param_lines.tell() > 0:
@@ -735,16 +727,12 @@ def write(configuration_space):
         elif isinstance(hyperparameter, Constant):
             param_lines.write(build_constant(hyperparameter))
         else:
-            raise TypeError(
-                "Unknown type: %s (%s)" % (type(hyperparameter), hyperparameter)
-            )
+            raise TypeError(f"Unknown type: {type(hyperparameter)} ({hyperparameter})")
 
     for condition in configuration_space.get_conditions():
         if condition_lines.tell() > 0:
             condition_lines.write("\n")
-        if isinstance(condition, AndConjunction) or isinstance(
-            condition, OrConjunction
-        ):
+        if isinstance(condition, (AndConjunction, OrConjunction)):
             condition_lines.write(build_conjunction(condition))
         else:
             condition_lines.write(build_condition(condition))
@@ -758,14 +746,9 @@ def write(configuration_space):
         for dlc in dlcs:
             if isinstance(dlc, MultipleValueForbiddenClause):
                 if not isinstance(dlc, ForbiddenInClause):
-                    raise ValueError(
-                        "SMAC cannot handle this forbidden " "clause: %s" % dlc
-                    )
+                    raise ValueError("SMAC cannot handle this forbidden " "clause: %s" % dlc)
                 in_statements.append(
-                    [
-                        ForbiddenEqualsClause(dlc.hyperparameter, value)
-                        for value in dlc.values
-                    ]
+                    [ForbiddenEqualsClause(dlc.hyperparameter, value) for value in dlc.values],
                 )
             else:
                 other_statements.append(dlc)
@@ -773,7 +756,7 @@ def write(configuration_space):
         # Second, create the product of all elements in the IN statements,
         # create a ForbiddenAnd and add all ForbiddenEquals
         if len(in_statements) > 0:
-            for i, p in enumerate(product(*in_statements)):
+            for p in product(*in_statements):
                 all_forbidden_clauses = list(p) + other_statements
                 f = ForbiddenAndConjunction(*all_forbidden_clauses)
                 forbidden_lines.append(build_forbidden(f))

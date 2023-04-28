@@ -1,7 +1,7 @@
 # Version 0.6.1
 
-# MAINT #286: Add support for Python 3.11.
-# FIX #282: Fixes a memory leak in the neighborhood generation of integer hyperparameters.
+* MAINT #286: Add support for Python 3.11.
+* FIX #282: Fixes a memory leak in the neighborhood generation of integer hyperparameters.
 
 # Version 0.6.0
 

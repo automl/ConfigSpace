@@ -26,9 +26,8 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from ConfigSpace.__version__ import __version__
 from ConfigSpace.__authors__ import __authors__
-
+from ConfigSpace.__version__ import __version__
 from ConfigSpace.api import (
     Beta,
     Categorical,
@@ -37,6 +36,8 @@ from ConfigSpace.api import (
     Integer,
     Normal,
     Uniform,
+    distributions,
+    types,
 )
 from ConfigSpace.conditions import (
     AndConjunction,
@@ -47,22 +48,21 @@ from ConfigSpace.conditions import (
     NotEqualsCondition,
     OrConjunction,
 )
-from ConfigSpace.configuration_space import ConfigurationSpace
 from ConfigSpace.configuration import Configuration
+from ConfigSpace.configuration_space import ConfigurationSpace
 from ConfigSpace.exceptions import (
-    ForbiddenValueError,
-    IllegalValueError,
     ActiveHyperparameterNotSetError,
-    InactiveHyperparameterSetError,
-    HyperparameterNotFoundError,
-    ChildNotFoundError,
-    ParentNotFoundError,
-    HyperparameterIndexError,
     AmbiguousConditionError,
-    HyperparameterAlreadyExistsError,
+    ChildNotFoundError,
     CyclicDependancyError,
+    ForbiddenValueError,
+    HyperparameterAlreadyExistsError,
+    HyperparameterIndexError,
+    HyperparameterNotFoundError,
+    IllegalValueError,
+    InactiveHyperparameterSetError,
+    ParentNotFoundError,
 )
-
 from ConfigSpace.forbidden import (
     ForbiddenAndConjunction,
     ForbiddenEqualsClause,
@@ -83,8 +83,6 @@ from ConfigSpace.hyperparameters import (
     UniformIntegerHyperparameter,
     UnParametrizedHyperparameter,
 )
-import ConfigSpace.api.distributions as distributions
-import ConfigSpace.api.types as types
 
 __all__ = [
     "__authors__",

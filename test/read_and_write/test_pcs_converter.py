@@ -25,26 +25,35 @@
 # ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+from __future__ import annotations
 
-from io import StringIO
 import os
 import tempfile
 import unittest
+from io import StringIO
 
+from ConfigSpace.conditions import (
+    AndConjunction,
+    EqualsCondition,
+    GreaterThanCondition,
+    InCondition,
+    NotEqualsCondition,
+    OrConjunction,
+)
 from ConfigSpace.configuration_space import ConfigurationSpace
-import ConfigSpace.read_and_write.pcs as pcs
-import ConfigSpace.read_and_write.pcs_new as pcs_new
-from ConfigSpace.hyperparameters import CategoricalHyperparameter, \
-    UniformIntegerHyperparameter, UniformFloatHyperparameter, OrdinalHyperparameter
-from ConfigSpace.conditions import EqualsCondition, InCondition, \
-    AndConjunction, OrConjunction, NotEqualsCondition, \
-    GreaterThanCondition
 from ConfigSpace.forbidden import (
-    ForbiddenInClause,
     ForbiddenAndConjunction,
     ForbiddenEqualsClause,
     ForbiddenGreaterThanRelation,
+    ForbiddenInClause,
 )
+from ConfigSpace.hyperparameters import (
+    CategoricalHyperparameter,
+    OrdinalHyperparameter,
+    UniformFloatHyperparameter,
+    UniformIntegerHyperparameter,
+)
+from ConfigSpace.read_and_write import pcs, pcs_new
 
 # More complex search space
 classifier = CategoricalHyperparameter("classifier", ["svm", "nn"])
@@ -79,7 +88,7 @@ conditional_space.add_condition(degree_condition)
 conditional_space.add_condition(gamma_condition)
 
 float_a = UniformFloatHyperparameter("float_a", -1.23, 6.45)
-e_float_a = UniformFloatHyperparameter("e_float_a", .5E-2, 4.5e+06)
+e_float_a = UniformFloatHyperparameter("e_float_a", 0.5e-2, 4.5e06)
 int_a = UniformIntegerHyperparameter("int_a", -1, 6)
 log_a = UniformFloatHyperparameter("log_a", 4e-1, 6.45, log=True)
 int_log_a = UniformIntegerHyperparameter("int_log_a", 1, 6, log=True)
@@ -106,29 +115,30 @@ class TestPCSConverter(unittest.TestCase):
         a_real = {"b": int_a, "a": float_a}
         self.assertDictEqual(a_real, a_copy)
 
-    '''
+    """
     Tests for the "older pcs" version
 
-    '''
+    """
+
     def test_read_configuration_space_easy(self):
         expected = StringIO()
-        expected.write('# This is a \n')
-        expected.write('   # This is a comment with a leading whitespace ### ffds \n')
-        expected.write('\n')
-        expected.write('float_a [-1.23, 6.45] [2.61] # bla\n')
-        expected.write('e_float_a [.5E-2, 4.5e+06] [2250000.0025]\n')
-        expected.write('int_a [-1, 6] [2]i\n')
-        expected.write('log_a [4e-1, 6.45] [1.6062378404]l\n')
-        expected.write('int_log_a [1, 6] [2]il\n')
+        expected.write("# This is a \n")
+        expected.write("   # This is a comment with a leading whitespace ### ffds \n")
+        expected.write("\n")
+        expected.write("float_a [-1.23, 6.45] [2.61] # bla\n")
+        expected.write("e_float_a [.5E-2, 4.5e+06] [2250000.0025]\n")
+        expected.write("int_a [-1, 6] [2]i\n")
+        expected.write("log_a [4e-1, 6.45] [1.6062378404]l\n")
+        expected.write("int_log_a [1, 6] [2]il\n")
         expected.write('cat_a {a,"b",c,d} [a]\n')
         expected.write(r'@.:;/\?!$%&_-<>*+1234567890 {"const"} ["const"]\n')
         expected.seek(0)
         cs = pcs.read(expected)
-        self.assertEqual(cs, easy_space)
+        assert cs == easy_space
 
     def test_read_configuration_space_conditional(self):
         # More complex search space as string array
-        complex_cs = list()
+        complex_cs = []
         complex_cs.append("preprocessing {None, pca} [None]")
         complex_cs.append("classifier {svm, nn} [svm]")
         complex_cs.append("kernel {rbf, poly, sigmoid} [rbf]")
@@ -146,103 +156,109 @@ class TestPCSConverter(unittest.TestCase):
         complex_cs.append("gamma | kernel in {rbf}")
 
         cs = pcs.read(complex_cs)
-        self.assertEqual(cs, conditional_space)
+        assert cs == conditional_space
 
     def test_read_configuration_space_conditional_with_two_parents(self):
-        config_space = list()
+        config_space = []
         config_space.append("@1:0:restarts {F,L,D,x,+,no}[x]")
         config_space.append("@1:S:Luby:aryrestarts {1,2}[1]")
         config_space.append("@1:2:Luby:restarts [1,65535][1000]il")
         config_space.append("@1:2:Luby:restarts | @1:0:restarts in {L}")
         config_space.append("@1:2:Luby:restarts | @1:S:Luby:aryrestarts in {2}")
         cs = pcs.read(config_space)
-        self.assertEqual(len(cs.get_conditions()), 1)
-        self.assertIsInstance(cs.get_conditions()[0], AndConjunction)
+        assert len(cs.get_conditions()) == 1
+        assert isinstance(cs.get_conditions()[0], AndConjunction)
 
     def test_write_illegal_argument(self):
         sp = {"a": int_a}
-        self.assertRaisesRegex(TypeError, r"pcs_parser.write expects an "
-                               r"instance of "
-                               r"<class "
-                               r"'ConfigSpace.configuration_"
-                               r"space.ConfigurationSpace'>, you provided "
-                               r"'<(type|class) 'dict'>'", pcs.write, sp)
+        self.assertRaisesRegex(
+            TypeError,
+            r"pcs_parser.write expects an "
+            r"instance of "
+            r"<class "
+            r"'ConfigSpace.configuration_"
+            r"space.ConfigurationSpace'>, you provided "
+            r"'<(type|class) 'dict'>'",
+            pcs.write,
+            sp,
+        )
 
     def test_write_int(self):
         expected = "int_a [-1, 6] [2]i"
         cs = ConfigurationSpace()
         cs.add_hyperparameter(int_a)
         value = pcs.write(cs)
-        self.assertEqual(expected, value)
+        assert expected == value
 
     def test_write_log_int(self):
         expected = "int_log_a [1, 6] [2]il"
         cs = ConfigurationSpace()
         cs.add_hyperparameter(int_log_a)
         value = pcs.write(cs)
-        self.assertEqual(expected, value)
+        assert expected == value
 
     def test_write_q_int(self):
         expected = "Q16_int_a [16, 1024] [520]i"
         cs = ConfigurationSpace()
-        cs.add_hyperparameter(
-            UniformIntegerHyperparameter("int_a", 16, 1024, q=16))
+        cs.add_hyperparameter(UniformIntegerHyperparameter("int_a", 16, 1024, q=16))
         value = pcs.write(cs)
-        self.assertEqual(expected, value)
+        assert expected == value
 
     def test_write_q_float(self):
         expected = "Q16_float_a [16.0, 1024.0] [520.0]"
         cs = ConfigurationSpace()
-        cs.add_hyperparameter(
-            UniformFloatHyperparameter("float_a", 16, 1024, q=16))
+        cs.add_hyperparameter(UniformFloatHyperparameter("float_a", 16, 1024, q=16))
         value = pcs.write(cs)
-        self.assertEqual(expected, value)
+        assert expected == value
 
     def test_write_log10(self):
         expected = "a [10.0, 1000.0] [100.0]l"
         cs = ConfigurationSpace()
-        cs.add_hyperparameter(
-            UniformFloatHyperparameter("a", 10, 1000, log=True))
+        cs.add_hyperparameter(UniformFloatHyperparameter("a", 10, 1000, log=True))
         value = pcs.write(cs)
-        self.assertEqual(expected, value)
+        assert expected == value
 
     def test_build_forbidden(self):
-        expected = "a {a, b, c} [a]\nb {a, b, c} [c]\n\n" \
-                   "{a=a, b=a}\n{a=a, b=b}\n{a=b, b=a}\n{a=b, b=b}"
+        expected = (
+            "a {a, b, c} [a]\nb {a, b, c} [c]\n\n" "{a=a, b=a}\n{a=a, b=b}\n{a=b, b=a}\n{a=b, b=b}"
+        )
         cs = ConfigurationSpace()
         a = CategoricalHyperparameter("a", ["a", "b", "c"], "a")
         b = CategoricalHyperparameter("b", ["a", "b", "c"], "c")
         cs.add_hyperparameter(a)
         cs.add_hyperparameter(b)
-        fb = ForbiddenAndConjunction(ForbiddenInClause(a, ["a", "b"]),
-                                     ForbiddenInClause(b, ["a", "b"]))
+        fb = ForbiddenAndConjunction(
+            ForbiddenInClause(a, ["a", "b"]),
+            ForbiddenInClause(b, ["a", "b"]),
+        )
         cs.add_forbidden_clause(fb)
         value = pcs.write(cs)
-        self.assertIn(expected, value)
+        assert expected in value
 
     """
     Tests for the "newer pcs" version in order to check
     if both deliver the same results
     """
+
     def test_read_new_configuration_space_easy(self):
         expected = StringIO()
-        expected.write('# This is a \n')
-        expected.write('   # This is a comment with a leading whitespace ### ffds \n')
-        expected.write('\n')
-        expected.write('float_a real [-1.23, 6.45] [2.61] # bla\n')
-        expected.write('e_float_a real [.5E-2, 4.5e+06] [2250000.0025]\n')
-        expected.write('int_a integer [-1, 6] [2]\n')
-        expected.write('log_a real [4e-1, 6.45] [1.6062378404]log\n')
-        expected.write('int_log_a integer [1, 6] [2]log\n')
+        expected.write("# This is a \n")
+        expected.write("   # This is a comment with a leading whitespace ### ffds \n")
+        expected.write("\n")
+        expected.write("float_a real [-1.23, 6.45] [2.61] # bla\n")
+        expected.write("e_float_a real [.5E-2, 4.5e+06] [2250000.0025]\n")
+        expected.write("int_a integer [-1, 6] [2]\n")
+        expected.write("log_a real [4e-1, 6.45] [1.6062378404]log\n")
+        expected.write("int_log_a integer [1, 6] [2]log\n")
         expected.write('cat_a categorical {a,"b",c,d} [a]\n')
         expected.write(r'@.:;/\?!$%&_-<>*+1234567890 categorical {"const"} ["const"]\n')
         expected.seek(0)
         cs = pcs_new.read(expected)
-        self.assertEqual(cs, easy_space)
+        assert cs == easy_space
 
     def test_read_new_configuration_space_conditional(self):
         # More complex search space as string array
-        complex_cs = list()
+        complex_cs = []
         complex_cs.append("preprocessing categorical {None, pca} [None]")
         complex_cs.append("classifier categorical {svm, nn} [svm]")
         complex_cs.append("kernel categorical {rbf, poly, sigmoid} [rbf]")
@@ -260,10 +276,10 @@ class TestPCSConverter(unittest.TestCase):
         complex_cs.append("gamma | kernel in {rbf}")
 
         cs_new = pcs_new.read(complex_cs)
-        self.assertEqual(cs_new, conditional_space)
+        assert cs_new == conditional_space
 
         # same in older version
-        complex_cs_old = list()
+        complex_cs_old = []
         complex_cs_old.append("preprocessing {None, pca} [None]")
         complex_cs_old.append("classifier {svm, nn} [svm]")
         complex_cs_old.append("kernel {rbf, poly, sigmoid} [rbf]")
@@ -281,74 +297,77 @@ class TestPCSConverter(unittest.TestCase):
         complex_cs_old.append("gamma | kernel in {rbf}")
 
         cs_old = pcs.read(complex_cs_old)
-        self.assertEqual(cs_old, cs_new)
+        assert cs_old == cs_new
 
     def test_write_new_illegal_argument(self):
         sp = {"a": int_a}
-        self.assertRaisesRegex(TypeError,
-                               r"pcs_parser.write expects an "
-                               r"instance of "
-                               r"<class "
-                               r"'ConfigSpace.configuration_"
-                               r"space.ConfigurationSpace'>, you provided "
-                               r"'<(type|class) 'dict'>'", pcs_new.write, sp)
+        self.assertRaisesRegex(
+            TypeError,
+            r"pcs_parser.write expects an "
+            r"instance of "
+            r"<class "
+            r"'ConfigSpace.configuration_"
+            r"space.ConfigurationSpace'>, you provided "
+            r"'<(type|class) 'dict'>'",
+            pcs_new.write,
+            sp,
+        )
 
     def test_write_new_int(self):
         expected = "int_a integer [-1, 6] [2]"
         cs = ConfigurationSpace()
         cs.add_hyperparameter(int_a)
         value = pcs_new.write(cs)
-        self.assertEqual(expected, value)
+        assert expected == value
 
     def test_write_new_log_int(self):
         expected = "int_log_a integer [1, 6] [2]log"
         cs = ConfigurationSpace()
         cs.add_hyperparameter(int_log_a)
         value = pcs_new.write(cs)
-        self.assertEqual(expected, value)
+        assert expected == value
 
     def test_write_new_q_int(self):
         expected = "Q16_int_a integer [16, 1024] [520]"
         cs = ConfigurationSpace()
-        cs.add_hyperparameter(
-            UniformIntegerHyperparameter("int_a", 16, 1024, q=16))
+        cs.add_hyperparameter(UniformIntegerHyperparameter("int_a", 16, 1024, q=16))
         value = pcs_new.write(cs)
-        self.assertEqual(expected, value)
+        assert expected == value
 
     def test_write_new_q_float(self):
         expected = "Q16_float_a real [16.0, 1024.0] [520.0]"
         cs = ConfigurationSpace()
-        cs.add_hyperparameter(
-            UniformFloatHyperparameter("float_a", 16, 1024, q=16))
+        cs.add_hyperparameter(UniformFloatHyperparameter("float_a", 16, 1024, q=16))
         value = pcs_new.write(cs)
-        self.assertEqual(expected, value)
+        assert expected == value
 
     def test_write_new_log10(self):
         expected = "a real [10.0, 1000.0] [100.0]log"
         cs = ConfigurationSpace()
-        cs.add_hyperparameter(
-            UniformFloatHyperparameter("a", 10, 1000, log=True))
+        cs.add_hyperparameter(UniformFloatHyperparameter("a", 10, 1000, log=True))
         value = pcs_new.write(cs)
-        self.assertEqual(expected, value)
+        assert expected == value
 
     def test_build_new_forbidden(self):
-        expected = "a categorical {a, b, c} [a]\nb categorical {a, b, c} [c]\n\n" \
-                   "{a=a, b=a}\n{a=a, b=b}\n{a=b, b=a}\n{a=b, b=b}\n"
+        expected = (
+            "a categorical {a, b, c} [a]\nb categorical {a, b, c} [c]\n\n"
+            "{a=a, b=a}\n{a=a, b=b}\n{a=b, b=a}\n{a=b, b=b}\n"
+        )
         cs = ConfigurationSpace()
         a = CategoricalHyperparameter("a", ["a", "b", "c"], "a")
         b = CategoricalHyperparameter("b", ["a", "b", "c"], "c")
         cs.add_hyperparameter(a)
         cs.add_hyperparameter(b)
-        fb = ForbiddenAndConjunction(ForbiddenInClause(a, ["a", "b"]),
-                                     ForbiddenInClause(b, ["a", "b"]))
+        fb = ForbiddenAndConjunction(
+            ForbiddenInClause(a, ["a", "b"]),
+            ForbiddenInClause(b, ["a", "b"]),
+        )
         cs.add_forbidden_clause(fb)
         value = pcs_new.write(cs)
-        self.assertEqual(expected, value)
+        assert expected == value
 
     def test_build_new_GreaterThanFloatCondition(self):
-        expected = "b integer [0, 10] [5]\n" \
-                   "a real [0.0, 1.0] [0.5]\n\n" \
-                   "a | b > 5"
+        expected = "b integer [0, 10] [5]\n" "a real [0.0, 1.0] [0.5]\n\n" "a | b > 5"
         cs = ConfigurationSpace()
         a = UniformFloatHyperparameter("a", 0, 1, 0.5)
         b = UniformIntegerHyperparameter("b", 0, 10, 5)
@@ -358,11 +377,9 @@ class TestPCSConverter(unittest.TestCase):
         cs.add_condition(cond)
 
         value = pcs_new.write(cs)
-        self.assertEqual(expected, value)
+        assert expected == value
 
-        expected = "b real [0.0, 10.0] [5.0]\n" \
-                   "a real [0.0, 1.0] [0.5]\n\n" \
-                   "a | b > 5"
+        expected = "b real [0.0, 10.0] [5.0]\n" "a real [0.0, 1.0] [0.5]\n\n" "a | b > 5"
         cs = ConfigurationSpace()
         a = UniformFloatHyperparameter("a", 0, 1, 0.5)
         b = UniformFloatHyperparameter("b", 0, 10, 5)
@@ -372,12 +389,10 @@ class TestPCSConverter(unittest.TestCase):
         cs.add_condition(cond)
 
         value = pcs_new.write(cs)
-        self.assertEqual(expected, value)
+        assert expected == value
 
     def test_build_new_GreaterThanIntCondition(self):
-        expected = "a real [0.0, 1.0] [0.5]\n" \
-                   "b integer [0, 10] [5]\n\n" \
-                   "b | a > 0.5"
+        expected = "a real [0.0, 1.0] [0.5]\n" "b integer [0, 10] [5]\n\n" "b | a > 0.5"
         cs = ConfigurationSpace()
         a = UniformFloatHyperparameter("a", 0, 1, 0.5)
         b = UniformIntegerHyperparameter("b", 0, 10, 5)
@@ -387,11 +402,9 @@ class TestPCSConverter(unittest.TestCase):
         cs.add_condition(cond)
 
         value = pcs_new.write(cs)
-        self.assertEqual(expected, value)
+        assert expected == value
 
-        expected = "a integer [0, 10] [5]\n" \
-                   "b integer [0, 10] [5]\n\n" \
-                   "b | a > 5"
+        expected = "a integer [0, 10] [5]\n" "b integer [0, 10] [5]\n\n" "b | a > 5"
         cs = ConfigurationSpace()
         a = UniformIntegerHyperparameter("a", 0, 10, 5)
         b = UniformIntegerHyperparameter("b", 0, 10, 5)
@@ -401,14 +414,14 @@ class TestPCSConverter(unittest.TestCase):
         cs.add_condition(cond)
 
         value = pcs_new.write(cs)
-        self.assertEqual(expected, value)
+        assert expected == value
 
     def test_read_new_configuration_space_forbidden(self):
         cs_with_forbidden = ConfigurationSpace()
-        int_hp = UniformIntegerHyperparameter('int_hp', 0, 50, 30)
-        float_hp = UniformFloatHyperparameter('float_hp', 0., 50., 30.)
-        cat_hp_str = CategoricalHyperparameter('cat_hp_str', ['a', 'b', 'c'], 'b')
-        ord_hp_str = OrdinalHyperparameter('ord_hp_str', ['a', 'b', 'c'], 'b')
+        int_hp = UniformIntegerHyperparameter("int_hp", 0, 50, 30)
+        float_hp = UniformFloatHyperparameter("float_hp", 0.0, 50.0, 30.0)
+        cat_hp_str = CategoricalHyperparameter("cat_hp_str", ["a", "b", "c"], "b")
+        ord_hp_str = OrdinalHyperparameter("ord_hp_str", ["a", "b", "c"], "b")
 
         cs_with_forbidden.add_hyperparameters([int_hp, float_hp, cat_hp_str, ord_hp_str])
 
@@ -418,12 +431,13 @@ class TestPCSConverter(unittest.TestCase):
         float_hp_forbidden_2 = ForbiddenEqualsClause(float_hp, 2.0)
         float_hp_forbidden = ForbiddenAndConjunction(float_hp_forbidden_1, float_hp_forbidden_2)
 
-        cat_hp_str_forbidden = ForbiddenAndConjunction(ForbiddenEqualsClause(cat_hp_str, 'a'))
-        ord_hp_float_forbidden = ForbiddenAndConjunction(ForbiddenEqualsClause(ord_hp_str, 'a'))
-        cs_with_forbidden.add_forbidden_clauses([int_hp_forbidden, float_hp_forbidden,
-                                                 cat_hp_str_forbidden, ord_hp_float_forbidden])
+        cat_hp_str_forbidden = ForbiddenAndConjunction(ForbiddenEqualsClause(cat_hp_str, "a"))
+        ord_hp_float_forbidden = ForbiddenAndConjunction(ForbiddenEqualsClause(ord_hp_str, "a"))
+        cs_with_forbidden.add_forbidden_clauses(
+            [int_hp_forbidden, float_hp_forbidden, cat_hp_str_forbidden, ord_hp_float_forbidden],
+        )
 
-        complex_cs = list()
+        complex_cs = []
         complex_cs.append("int_hp integer [0,50] [30]")
         complex_cs.append("float_hp real [0.0, 50.0] [30.0]")
         complex_cs.append("cat_hp_str categorical {a, b, c} [b]")
@@ -435,18 +449,18 @@ class TestPCSConverter(unittest.TestCase):
         complex_cs.append("{ord_hp_str=a}")
         cs_new = pcs_new.read(complex_cs)
 
-        self.assertEqual(cs_new, cs_with_forbidden)
+        assert cs_new == cs_with_forbidden
 
     def test_write_new_configuration_space_forbidden_relation(self):
         cs_with_forbidden = ConfigurationSpace()
-        int_hp = UniformIntegerHyperparameter('int_hp', 0, 50, 30)
-        float_hp = UniformFloatHyperparameter('float_hp', 0., 50., 30.)
+        int_hp = UniformIntegerHyperparameter("int_hp", 0, 50, 30)
+        float_hp = UniformFloatHyperparameter("float_hp", 0.0, 50.0, 30.0)
 
         forbidden = ForbiddenGreaterThanRelation(int_hp, float_hp)
         cs_with_forbidden.add_hyperparameters([int_hp, float_hp])
         cs_with_forbidden.add_forbidden_clause(forbidden)
 
-        self.assertRaises(TypeError, pcs_new.write, {'configuration_space': cs_with_forbidden})
+        self.assertRaises(TypeError, pcs_new.write, {"configuration_space": cs_with_forbidden})
 
     def test_read_new_configuration_space_complex_conditionals(self):
         classi = OrdinalHyperparameter(
@@ -461,20 +475,32 @@ class TestPCSConverter(unittest.TestCase):
         heur1 = CategoricalHyperparameter("heur1", ["off", "on"])
         heur2 = CategoricalHyperparameter("heur2", ["off", "on"])
         heur_order = CategoricalHyperparameter("heur_order", ["heur1then2", "heur2then1"])
-        gloves_condition = OrConjunction(EqualsCondition(gloves, rain, "yes"),
-                                         EqualsCondition(gloves, temperature, "low"))
-        heur_condition = AndConjunction(EqualsCondition(heur_order, heur1, "on"),
-                                        EqualsCondition(heur_order, heur2, "on"))
-        and_conjunction = AndConjunction(NotEqualsCondition(knn_weights, classi, "extra_trees"),
-                                         EqualsCondition(knn_weights, classi, "random_forest"))
-        Cl_condition = OrConjunction(EqualsCondition(knn_weights, classi, "k_nearest_neighbors"),
-                                     and_conjunction,
-                                     EqualsCondition(knn_weights, classi, "something"))
+        gloves_condition = OrConjunction(
+            EqualsCondition(gloves, rain, "yes"),
+            EqualsCondition(gloves, temperature, "low"),
+        )
+        heur_condition = AndConjunction(
+            EqualsCondition(heur_order, heur1, "on"),
+            EqualsCondition(heur_order, heur2, "on"),
+        )
+        and_conjunction = AndConjunction(
+            NotEqualsCondition(knn_weights, classi, "extra_trees"),
+            EqualsCondition(knn_weights, classi, "random_forest"),
+        )
+        Cl_condition = OrConjunction(
+            EqualsCondition(knn_weights, classi, "k_nearest_neighbors"),
+            and_conjunction,
+            EqualsCondition(knn_weights, classi, "something"),
+        )
 
-        and1 = AndConjunction(EqualsCondition(temperature, weather, "rainy"),
-                              EqualsCondition(temperature, weather, "cloudy"))
-        and2 = AndConjunction(EqualsCondition(temperature, weather, "sunny"),
-                              NotEqualsCondition(temperature, weather, "snowing"))
+        and1 = AndConjunction(
+            EqualsCondition(temperature, weather, "rainy"),
+            EqualsCondition(temperature, weather, "cloudy"),
+        )
+        and2 = AndConjunction(
+            EqualsCondition(temperature, weather, "sunny"),
+            NotEqualsCondition(temperature, weather, "snowing"),
+        )
         another_condition = OrConjunction(and1, and2)
 
         complex_conditional_space = ConfigurationSpace()
@@ -493,10 +519,10 @@ class TestPCSConverter(unittest.TestCase):
         complex_conditional_space.add_condition(Cl_condition)
         complex_conditional_space.add_condition(another_condition)
 
-        complex_cs = list()
+        complex_cs = []
         complex_cs.append(
             "classi ordinal {random_forest,extra_trees,k_nearest_neighbors, something} "
-            "[random_forest]"
+            "[random_forest]",
         )
         complex_cs.append("knn_weights categorical {uniform, distance} [uniform]")
         complex_cs.append("weather ordinal {sunny, rainy, cloudy, snowing} [sunny]")
@@ -508,12 +534,16 @@ class TestPCSConverter(unittest.TestCase):
         complex_cs.append("heur_order categorical { heur1then2, heur2then1 } [heur1then2]")
         complex_cs.append("gloves | rain == yes || temperature == low")
         complex_cs.append("heur_order | heur1 == on && heur2 == on")
-        complex_cs.append("knn_weights | classi == k_nearest_neighbors || "
-                          "classi != extra_trees && classi == random_forest || classi == something")
-        complex_cs.append("temperature | weather == rainy && weather == cloudy || "
-                          "weather == sunny && weather != snowing")
+        complex_cs.append(
+            "knn_weights | classi == k_nearest_neighbors || "
+            "classi != extra_trees && classi == random_forest || classi == something",
+        )
+        complex_cs.append(
+            "temperature | weather == rainy && weather == cloudy || "
+            "weather == sunny && weather != snowing",
+        )
         cs_new = pcs_new.read(complex_cs)
-        self.assertEqual(cs_new, complex_conditional_space)
+        assert cs_new == complex_conditional_space
 
     def test_convert_restrictions(self):
         # This is a smoke test to make sure that the int/float values in the
@@ -529,53 +559,53 @@ class TestPCSConverter(unittest.TestCase):
         x3 | x4 > 1 && x4 == 2 && x4 in {2}
         x5 | x6 > luke-warm"""
 
-        pcs_new.read(s.split('\n'))
+        pcs_new.read(s.split("\n"))
 
     def test_write_restrictions(self):
-        s = "c integer [0, 2] [0]\n" + \
-            "d ordinal {cold, luke-warm, hot} [cold]\n" + \
-            "e real [0.0, 1.0] [0.0]\n" + \
-            "b real [0.0, 1.0] [0.0]\n" + \
-            "a real [0.0, 1.0] [0.0]\n" + \
-            "\n" + \
-            "b | d in {luke-warm, hot} || c > 1\n" + \
-            "a | b == 0.5 && e > 0.5"
+        s = (
+            "c integer [0, 2] [0]\n"
+            + "d ordinal {cold, luke-warm, hot} [cold]\n"
+            + "e real [0.0, 1.0] [0.0]\n"
+            + "b real [0.0, 1.0] [0.0]\n"
+            + "a real [0.0, 1.0] [0.0]\n"
+            + "\n"
+            + "b | d in {luke-warm, hot} || c > 1\n"
+            + "a | b == 0.5 && e > 0.5"
+        )
 
-        a = pcs_new.read(s.split('\n'))
+        a = pcs_new.read(s.split("\n"))
         out = pcs_new.write(a)
-        self.assertEqual(out, s)
+        assert out == s
 
     def test_read_write(self):
         # Some smoke tests whether reading, writing, reading alters makes the
         #  configspace incomparable
         this_file = os.path.abspath(__file__)
         this_directory = os.path.dirname(this_file)
-        configuration_space_path = os.path.join(this_directory,
-                                                "..", "test_searchspaces")
+        configuration_space_path = os.path.join(this_directory, "..", "test_searchspaces")
         configuration_space_path = os.path.abspath(configuration_space_path)
-        configuration_space_path = os.path.join(configuration_space_path,
-                                                "spear-params-mixed.pcs")
+        configuration_space_path = os.path.join(configuration_space_path, "spear-params-mixed.pcs")
         with open(configuration_space_path) as fh:
             cs = pcs.read(fh)
 
         tf = tempfile.NamedTemporaryFile()
         name = tf.name
         tf.close()
-        with open(name, 'w') as fh:
+        with open(name, "w") as fh:
             pcs_string = pcs.write(cs)
             fh.write(pcs_string)
-        with open(name, 'r') as fh:
+        with open(name) as fh:
             pcs_new = pcs.read(fh)
 
-        self.assertEqual(pcs_new, cs, msg=(pcs_new, cs))
+        assert pcs_new == cs, (pcs_new, cs)
 
     def test_write_categorical_with_weights(self):
-        cat = CategoricalHyperparameter('a', ['a', 'b'], weights=[0.3, 0.7])
+        cat = CategoricalHyperparameter("a", ["a", "b"], weights=[0.3, 0.7])
         cs = ConfigurationSpace()
         cs.add_hyperparameter(cat)
-        with self.assertRaisesRegex(ValueError, 'The pcs format does not support'):
+        with self.assertRaisesRegex(ValueError, "The pcs format does not support"):
             pcs.write(cs)
-        with self.assertRaisesRegex(ValueError, 'The pcs format does not support'):
+        with self.assertRaisesRegex(ValueError, "The pcs format does not support"):
             pcs.write(cs)
 
     def test_write_numerical_cond_and_forb(self):
@@ -584,7 +614,7 @@ class TestPCSConverter(unittest.TestCase):
         hc1 = CategoricalHyperparameter(name="hc1", choices=[True, False], default_value=True)
         hc2 = CategoricalHyperparameter(name="hc2", choices=[True, False], default_value=True)
 
-        hf1 = UniformFloatHyperparameter(name="hf1", lower=1.0, upper=10., default_value=5.0)
+        hf1 = UniformFloatHyperparameter(name="hf1", lower=1.0, upper=10.0, default_value=5.0)
         hi1 = UniformIntegerHyperparameter(name="hi1", lower=1, upper=10, default_value=5)
         cs.add_hyperparameters([hc1, hc2, hf1, hi1])
         c1 = InCondition(child=hc1, parent=hc2, values=[True])
@@ -599,16 +629,18 @@ class TestPCSConverter(unittest.TestCase):
         f2 = ForbiddenEqualsClause(hf1, 2.0)
         f3 = ForbiddenEqualsClause(hi1, 3)
         cs.add_forbidden_clauses([ForbiddenAndConjunction(f2, f3), f1])
-        expected = "hf1 real [1.0, 10.0] [5.0]\n" + \
-                   "hi1 integer [1, 10] [5]\n" + \
-                   "hc2 categorical {True, False} [True]\n" + \
-                   "hc1 categorical {True, False} [True]\n" + \
-                   "\n" + \
-                   "hi1 | hf1 > 6.0 && hf1 == 8.0\n" + \
-                   "hc2 | hi1 in {1, 2, 3, 4}\n" + \
-                   "hc1 | hc2 in {True}\n" + \
-                   "\n" + \
-                   "{hc1=False}\n" + \
-                   "{hf1=2.0, hi1=3}\n"
+        expected = (
+            "hf1 real [1.0, 10.0] [5.0]\n"
+            + "hi1 integer [1, 10] [5]\n"
+            + "hc2 categorical {True, False} [True]\n"
+            + "hc1 categorical {True, False} [True]\n"
+            + "\n"
+            + "hi1 | hf1 > 6.0 && hf1 == 8.0\n"
+            + "hc2 | hi1 in {1, 2, 3, 4}\n"
+            + "hc1 | hc2 in {True}\n"
+            + "\n"
+            + "{hc1=False}\n"
+            + "{hf1=2.0, hi1=3}\n"
+        )
         out = pcs_new.write(cs)
-        self.assertEqual(out, expected)
+        assert out == expected

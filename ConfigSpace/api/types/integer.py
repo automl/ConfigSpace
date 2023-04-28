@@ -165,7 +165,8 @@ def Integer(
             default_value=default,
             meta=meta,
         )
-    elif isinstance(distribution, Normal):
+
+    if isinstance(distribution, Normal):
         return NormalIntegerHyperparameter(
             name=name,
             lower=lower,
@@ -177,7 +178,8 @@ def Integer(
             mu=distribution.mu,
             sigma=distribution.sigma,
         )
-    elif isinstance(distribution, Beta):
+
+    if isinstance(distribution, Beta):
         return BetaIntegerHyperparameter(
             name=name,
             lower=lower,
@@ -189,5 +191,5 @@ def Integer(
             alpha=distribution.alpha,
             beta=distribution.beta,
         )
-    else:
-        raise ValueError(f"Unknown distribution type {type(distribution)}")
+
+    raise ValueError(f"Unknown distribution type {type(distribution)}")

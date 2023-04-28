@@ -25,36 +25,28 @@
 # ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+from __future__ import annotations
 
+import json
+import unittest
 from collections import OrderedDict
 from itertools import product
-import json
-import sys
-import unittest
 
 import numpy as np
 
 from ConfigSpace import (
-    ConfigurationSpace,
-    Configuration,
+    AndConjunction,
     CategoricalHyperparameter,
-    UniformIntegerHyperparameter,
+    Configuration,
+    ConfigurationSpace,
     Constant,
     EqualsCondition,
-    NotEqualsCondition,
-    InCondition,
-    AndConjunction,
-    OrConjunction,
-    ForbiddenEqualsClause,
     ForbiddenAndConjunction,
-)
-from ConfigSpace.hyperparameters import (
-    UniformFloatHyperparameter,
-    NormalFloatHyperparameter,
-    BetaFloatHyperparameter,
-    NormalIntegerHyperparameter,
-    BetaIntegerHyperparameter,
-    OrdinalHyperparameter,
+    ForbiddenEqualsClause,
+    InCondition,
+    NotEqualsCondition,
+    OrConjunction,
+    UniformIntegerHyperparameter,
 )
 from ConfigSpace.exceptions import (
     AmbiguousConditionError,
@@ -68,21 +60,18 @@ from ConfigSpace.exceptions import (
     ParentNotFoundError,
 )
 from ConfigSpace.forbidden import ForbiddenEqualsRelation, ForbiddenLessThanRelation
+from ConfigSpace.hyperparameters import (
+    BetaFloatHyperparameter,
+    BetaIntegerHyperparameter,
+    NormalFloatHyperparameter,
+    NormalIntegerHyperparameter,
+    OrdinalHyperparameter,
+    UniformFloatHyperparameter,
+)
 
 
 def byteify(input):
-    if sys.version_info >= (3, 0):
-        return input
-
-    # From http://stackoverflow.com/a/13105359/4636294
-    if isinstance(input, dict):
-        return {byteify(key): byteify(value) for key, value in input.iteritems()}
-    elif isinstance(input, list):
-        return [byteify(element) for element in input]
-    elif isinstance(input, str):
-        return input.encode("utf-8")
-    else:
-        return input
+    return input
 
 
 class TestConfigurationSpace(unittest.TestCase):
@@ -118,7 +107,6 @@ class TestConfigurationSpace(unittest.TestCase):
         forb1 = ForbiddenEqualsClause(hp1, "l1")
         forb2 = ForbiddenEqualsClause(hp2, "l1")
         forb3 = ForbiddenAndConjunction(forb1, forb2)
-        # cs.add_forbidden_clause(forb3)
 
         with self.assertRaises(ForbiddenValueError):
             cs.add_forbidden_clause(forb3)
@@ -130,7 +118,7 @@ class TestConfigurationSpace(unittest.TestCase):
             "input_id": 42,
         }
         cs = ConfigurationSpace(meta=dict(meta_data))
-        self.assertEqual(cs.meta, meta_data)
+        assert cs.meta == meta_data
 
     def test_add_non_condition(self):
         cs = ConfigurationSpace()
@@ -146,7 +134,7 @@ class TestConfigurationSpace(unittest.TestCase):
         cs.add_hyperparameter(hp2)
         cond = EqualsCondition(hp2, hp1, 0)
         cs.add_condition(cond)
-        self.assertEqual(len(cs._hyperparameters), 2)
+        assert len(cs._hyperparameters) == 2
 
     def test_condition_without_added_hyperparameters(self):
         cs = ConfigurationSpace()
@@ -201,7 +189,7 @@ class TestConfigurationSpace(unittest.TestCase):
         cs.add_hyperparameter(hp4)
 
         cs.add_condition(andconj1)
-        self.assertNotIn(hp4, cs.get_all_unconditional_hyperparameters())
+        assert hp4 not in cs.get_all_unconditional_hyperparameters()
 
     def test_add_second_condition_wo_conjunction(self):
         hp1 = CategoricalHyperparameter("input1", [0, 1])
@@ -229,14 +217,9 @@ class TestConfigurationSpace(unittest.TestCase):
         # TODO add checking whether a forbidden clause makes sense at all
         cs.add_forbidden_clause(forb)
         # TODO add something to properly retrieve the forbidden clauses
-        self.assertEqual(
-            str(cs),
-            "Configuration space object:\n  "
-            "Hyperparameters:\n    input1, "
-            "Type: Categorical, Choices: {0, 1}, "
-            "Default: 0\n"
-            "  Forbidden Clauses:\n"
-            "    Forbidden: input1 == 1\n",
+        assert (
+            str(cs)
+            == "Configuration space object:\n  Hyperparameters:\n    input1, Type: Categorical, Choices: {0, 1}, Default: 0\n  Forbidden Clauses:\n    Forbidden: input1 == 1\n"
         )
 
     def test_add_forbidden_relation(self):
@@ -248,14 +231,9 @@ class TestConfigurationSpace(unittest.TestCase):
         # TODO add checking whether a forbidden clause makes sense at all
         cs.add_forbidden_clause(forb)
         # TODO add something to properly retrieve the forbidden clauses
-        self.assertEqual(
-            str(cs),
-            "Configuration space object:\n  "
-            "Hyperparameters:\n"
-            "    input1, Type: Categorical, Choices: {0, 1}, Default: 0\n"
-            "    input2, Type: Categorical, Choices: {1, 0}, Default: 1\n"
-            "  Forbidden Clauses:\n"
-            "    Forbidden: input1 == input2\n",
+        assert (
+            str(cs)
+            == "Configuration space object:\n  Hyperparameters:\n    input1, Type: Categorical, Choices: {0, 1}, Default: 0\n    input2, Type: Categorical, Choices: {1, 0}, Default: 1\n  Forbidden Clauses:\n    Forbidden: input1 == input2\n"
         )
 
     def test_add_forbidden_relation_categorical(self):
@@ -288,17 +266,9 @@ class TestConfigurationSpace(unittest.TestCase):
         cs.add_condition(EqualsCondition(hp2, hp1, 0))
         cs2 = ConfigurationSpace()
         cs2.add_configuration_space("prefix", cs, delimiter="__")
-        self.assertEqual(
-            str(cs2),
-            """Configuration space object:
-  Hyperparameters:
-    prefix__child, Type: UniformInteger, Range: [0, 10], Default: 5
-    prefix__input1, Type: Categorical, Choices: {0, 1}, Default: 0
-  Conditions:
-    prefix__child | prefix__input1 == 0
-  Forbidden Clauses:
-    Forbidden: prefix__input1 == 1
-""",
+        assert (
+            str(cs2)
+            == "Configuration space object:\n  Hyperparameters:\n    prefix__child, Type: UniformInteger, Range: [0, 10], Default: 5\n    prefix__input1, Type: Categorical, Choices: {0, 1}, Default: 0\n  Conditions:\n    prefix__child | prefix__input1 == 0\n  Forbidden Clauses:\n    Forbidden: prefix__input1 == 1\n"
         )
 
     def test_add_configuration_space_conjunctions(self):
@@ -318,9 +288,9 @@ class TestConfigurationSpace(unittest.TestCase):
         cs1.add_conditions([cond1, andCond])
         cs2.add_configuration_space(prefix="test", configuration_space=cs1)
 
-        self.assertEqual(str(cs2).count("test:"), 10)
+        assert str(cs2).count("test:") == 10
         # Check that they're equal except for the "test:" prefix
-        self.assertEqual(str(cs1), str(cs2).replace("test:", ""))
+        assert str(cs1) == str(cs2).replace("test:", "")
 
     def test_add_conditions(self):
         cs1 = ConfigurationSpace()
@@ -344,21 +314,21 @@ class TestConfigurationSpace(unittest.TestCase):
         cs2.add_condition(cond1)
         cs2.add_condition(andCond)
 
-        self.assertEqual(str(cs1), str(cs2))
+        assert str(cs1) == str(cs2)
 
     def test_get_hyperparamforbidden_clauseseters(self):
         cs = ConfigurationSpace()
-        self.assertEqual(0, len(cs))
+        assert len(cs) == 0
         hp1 = CategoricalHyperparameter("parent", [0, 1])
         cs.add_hyperparameter(hp1)
-        self.assertEqual([hp1], list(cs.values()))
+        assert [hp1] == list(cs.values())
         hp2 = UniformIntegerHyperparameter("child", 0, 10)
         cs.add_hyperparameter(hp2)
         cond1 = EqualsCondition(hp2, hp1, 1)
         cs.add_condition(cond1)
-        self.assertEqual([hp1, hp2], list(cs.values()))
+        assert [hp1, hp2] == list(cs.values())
         # TODO: I need more tests for the topological sort!
-        self.assertEqual([hp1, hp2], list(cs.values()))
+        assert [hp1, hp2] == list(cs.values())
 
     def test_get_hyperparameters_topological_sort_simple(self):
         for _ in range(10):
@@ -370,7 +340,7 @@ class TestConfigurationSpace(unittest.TestCase):
             cond1 = EqualsCondition(hp2, hp1, 0)
             cs.add_condition(cond1)
             # This automatically checks the configuration!
-            Configuration(cs, dict(parent=0, child=5))
+            Configuration(cs, {"parent": 0, "child": 5})
 
     def test_get_hyperparameters_topological_sort(self):
         # and now for something more complicated
@@ -405,25 +375,23 @@ class TestConfigurationSpace(unittest.TestCase):
         hps = list(cs.values())
         # AND is moved to the front because of alphabetical sorting
         for hp, idx in zip(hyperparameters, [1, 2, 3, 4, 6, 0, 5]):
-            self.assertEqual(hps.index(hp), idx)
-            self.assertEqual(cs._hyperparameter_idx[hp.name], idx)
-            self.assertEqual(cs._idx_to_hyperparameter[idx], hp.name)
+            assert hps.index(hp) == idx
+            assert cs._hyperparameter_idx[hp.name] == idx
+            assert cs._idx_to_hyperparameter[idx] == hp.name
 
         cs.add_condition(cond5)
         hps = list(cs.values())
         for hp, idx in zip(hyperparameters, [1, 2, 3, 6, 5, 0, 4]):
-            self.assertEqual(hps.index(hp), idx)
-            self.assertEqual(cs._hyperparameter_idx[hp.name], idx)
-            self.assertEqual(cs._idx_to_hyperparameter[idx], hp.name)
+            assert hps.index(hp) == idx
+            assert cs._hyperparameter_idx[hp.name] == idx
+            assert cs._idx_to_hyperparameter[idx] == hp.name
 
         cs.add_condition(conj3)
         hps = list(cs.values())
-        # print(hps, hyperparameters)
         for hp, idx in zip(hyperparameters, [0, 1, 2, 5, 4, 6, 3]):
-            # print(hp, idx)
-            self.assertEqual(hps.index(hp), idx)
-            self.assertEqual(cs._hyperparameter_idx[hp.name], idx)
-        self.assertEqual(cs._idx_to_hyperparameter[idx], hp.name)
+            assert hps.index(hp) == idx
+            assert cs._hyperparameter_idx[hp.name] == idx
+            assert cs._idx_to_hyperparameter[idx] == hp.name
 
     def test_get_hyperparameter(self):
         cs = ConfigurationSpace()
@@ -433,9 +401,9 @@ class TestConfigurationSpace(unittest.TestCase):
         cs.add_hyperparameter(hp2)
 
         retval = cs["parent"]
-        self.assertEqual(hp1, retval)
+        assert hp1 == retval
         retval = cs["child"]
-        self.assertEqual(hp2, retval)
+        assert hp2 == retval
 
         with self.assertRaises(HyperparameterNotFoundError):
             cs["grandfather"]
@@ -446,10 +414,10 @@ class TestConfigurationSpace(unittest.TestCase):
         cs.add_hyperparameter(hp1)
         hp2 = UniformIntegerHyperparameter("child", 0, 10)
         cs.add_hyperparameter(hp2)
-        self.assertEqual([], cs.get_conditions())
+        assert [] == cs.get_conditions()
         cond1 = EqualsCondition(hp2, hp1, 0)
         cs.add_condition(cond1)
-        self.assertEqual([cond1], cs.get_conditions())
+        assert [cond1] == cs.get_conditions()
 
     def test_get_parent_and_chil_conditions_of(self):
         cs = ConfigurationSpace()
@@ -460,10 +428,10 @@ class TestConfigurationSpace(unittest.TestCase):
         cond1 = EqualsCondition(hp2, hp1, 0)
         cs.add_condition(cond1)
 
-        self.assertEqual([cond1], cs.get_parent_conditions_of(hp2.name))
-        self.assertEqual([cond1], cs.get_parent_conditions_of(hp2))
-        self.assertEqual([cond1], cs.get_child_conditions_of(hp1.name))
-        self.assertEqual([cond1], cs.get_child_conditions_of(hp1))
+        assert [cond1] == cs.get_parent_conditions_of(hp2.name)
+        assert [cond1] == cs.get_parent_conditions_of(hp2)
+        assert [cond1] == cs.get_child_conditions_of(hp1.name)
+        assert [cond1] == cs.get_child_conditions_of(hp1)
 
         with self.assertRaises(HyperparameterNotFoundError):
             cs.get_parents_of("Foo")
@@ -480,10 +448,10 @@ class TestConfigurationSpace(unittest.TestCase):
         cond1 = EqualsCondition(hp2, hp1, 0)
         cs.add_condition(cond1)
 
-        self.assertEqual([hp1], cs.get_parents_of(hp2.name))
-        self.assertEqual([hp1], cs.get_parents_of(hp2))
-        self.assertEqual([hp2], cs.get_children_of(hp1.name))
-        self.assertEqual([hp2], cs.get_children_of(hp1))
+        assert [hp1] == cs.get_parents_of(hp2.name)
+        assert [hp1] == cs.get_parents_of(hp2)
+        assert [hp2] == cs.get_children_of(hp1.name)
+        assert [hp2] == cs.get_children_of(hp1)
 
         with self.assertRaises(HyperparameterNotFoundError):
             cs.get_parents_of("Foo")
@@ -511,7 +479,7 @@ class TestConfigurationSpace(unittest.TestCase):
         cond1 = EqualsCondition(hp2, hp1, 0)
         cs.add_condition(cond1)
         # This automatically checks the configuration!
-        Configuration(cs, dict(parent=0, child=5))
+        Configuration(cs, {"parent": 0, "child": 5})
 
         # and now for something more complicated
         cs = ConfigurationSpace()
@@ -583,7 +551,7 @@ class TestConfigurationSpace(unittest.TestCase):
             }
 
             evaluation = conj3.evaluate(instantiations)
-            self.assertEqual(expected_outcomes[idx], evaluation)
+            assert expected_outcomes[idx] == evaluation
 
             if not evaluation:
                 with self.assertRaises(InactiveHyperparameterSetError):
@@ -616,14 +584,10 @@ class TestConfigurationSpace(unittest.TestCase):
         # that evaluating forbidden clauses does not choke on missing
         # hyperparameters
         cs = ConfigurationSpace()
-        classifier = CategoricalHyperparameter(
-            "classifier", ["k_nearest_neighbors", "extra_trees"]
-        )
+        classifier = CategoricalHyperparameter("classifier", ["k_nearest_neighbors", "extra_trees"])
         metric = CategoricalHyperparameter("metric", ["minkowski", "other"])
         p = CategoricalHyperparameter("k_nearest_neighbors:p", [1, 2])
-        metric_depends_on_classifier = EqualsCondition(
-            metric, classifier, "k_nearest_neighbors"
-        )
+        metric_depends_on_classifier = EqualsCondition(metric, classifier, "k_nearest_neighbors")
         p_depends_on_metric = EqualsCondition(p, metric, "minkowski")
         cs.add_hyperparameter(metric)
         cs.add_hyperparameter(p)
@@ -634,7 +598,7 @@ class TestConfigurationSpace(unittest.TestCase):
         forbidden = ForbiddenEqualsClause(metric, "other")
         cs.add_forbidden_clause(forbidden)
 
-        configuration = Configuration(cs, dict(classifier="extra_trees"))
+        configuration = Configuration(cs, {"classifier": "extra_trees"})
 
         # check backward compatibility with checking configurations instead of vectors
         cs.check_configuration(configuration)
@@ -655,10 +619,10 @@ class TestConfigurationSpace(unittest.TestCase):
         # Compare empty configuration spaces
         cs1 = ConfigurationSpace()
         cs2 = ConfigurationSpace()
-        self.assertEqual(cs1, cs2)
+        assert cs1 == cs2
 
         # Compare to something which isn't a configuration space
-        self.assertTrue(not (cs1 == "ConfigurationSpace"))
+        assert cs1 != "ConfigurationSpace"
 
         # Compare to equal configuration spaces
         hp1 = CategoricalHyperparameter("parent", [0, 1])
@@ -671,37 +635,32 @@ class TestConfigurationSpace(unittest.TestCase):
         cs2.add_hyperparameter(hp1)
         cs2.add_hyperparameter(hp2)
         cs2.add_condition(cond1)
-        self.assertEqual(cs1, cs2)
+        assert cs1 == cs2
         cs1.add_hyperparameter(hp3)
-        self.assertFalse(cs1 == cs2)
+        assert cs1 != cs2
 
     def test_neq(self):
         cs1 = ConfigurationSpace()
-        self.assertNotEqual(cs1, "ConfigurationSpace")
+        assert cs1 != "ConfigurationSpace"
 
     def test_repr(self):
         cs1 = ConfigurationSpace()
         retval = cs1.__str__()
-        self.assertEqual("Configuration space object:\n  Hyperparameters:\n", retval)
+        assert retval == "Configuration space object:\n  Hyperparameters:\n"
 
         hp1 = CategoricalHyperparameter("parent", [0, 1])
         cs1.add_hyperparameter(hp1)
         retval = cs1.__str__()
-        self.assertEqual(
-            "Configuration space object:\n  Hyperparameters:\n" "    %s\n" % str(hp1),
-            retval,
-        )
+        assert "Configuration space object:\n  Hyperparameters:\n    %s\n" % str(hp1) == retval
 
         hp2 = UniformIntegerHyperparameter("child", 0, 10)
         cond1 = EqualsCondition(hp2, hp1, 0)
         cs1.add_hyperparameter(hp2)
         cs1.add_condition(cond1)
         retval = cs1.__str__()
-        self.assertEqual(
-            "Configuration space object:\n  Hyperparameters:\n"
-            "    %s\n    %s\n  Conditions:\n    %s\n"
-            % (str(hp2), str(hp1), str(cond1)),
-            retval,
+        assert (
+            f"Configuration space object:\n  Hyperparameters:\n    {str(hp2)}\n    {str(hp1)}\n  Conditions:\n    {str(cond1)}\n"
+            == retval
         )
 
     def test_sample_configuration(self):
@@ -713,7 +672,7 @@ class TestConfigurationSpace(unittest.TestCase):
         cond1 = EqualsCondition(hp2, hp1, 0)
         cs.add_condition(cond1)
         # This automatically checks the configuration!
-        Configuration(cs, dict(parent=0, child=5))
+        Configuration(cs, {"parent": 0, "child": 5})
 
         # and now for something more complicated
         cs = ConfigurationSpace(seed=1)
@@ -745,17 +704,17 @@ class TestConfigurationSpace(unittest.TestCase):
         cs.add_condition(cond5)
         cs.add_condition(conj3)
 
-        samples = []
+        samples: list[list[Configuration]] = []
         for i in range(5):
             cs.seed(1)
             samples.append([])
-            for j in range(100):
+            for _ in range(100):
                 sample = cs.sample_configuration()
                 samples[-1].append(sample)
 
             if i > 0:
                 for j in range(100):
-                    self.assertEqual(samples[-1][j], samples[-2][j])
+                    assert samples[-1][j] == samples[-2][j]
 
     def test_sample_configuration_with_or_conjunction(self):
         cs = ConfigurationSpace(seed=1)
@@ -773,7 +732,7 @@ class TestConfigurationSpace(unittest.TestCase):
             OrConjunction(
                 InCondition(hyper_params["hp7"], hyper_params["hp8"], ["7"]),
                 InCondition(hyper_params["hp7"], hyper_params["hp5"], ["1"]),
-            )
+            ),
         )
 
         for cfg, fixture in zip(
@@ -796,7 +755,7 @@ class TestConfigurationSpace(unittest.TestCase):
     def test_sample_no_configuration(self):
         cs = ConfigurationSpace()
         rval = cs.sample_configuration(size=0)
-        self.assertEqual(len(rval), 0)
+        assert len(rval) == 0
 
     def test_subspace_switches(self):
         # create a switch to select one of two algorithms
@@ -819,9 +778,7 @@ class TestConfigurationSpace(unittest.TestCase):
 
         # create sub-configuration space for algorithm 2
         algo2_cs = ConfigurationSpace()
-        hp2 = CategoricalHyperparameter(
-            name="algo2_param1", choices=["X", "Y"], default_value="Y"
-        )
+        hp2 = CategoricalHyperparameter(name="algo2_param1", choices=["X", "Y"], default_value="Y")
         algo2_cs.add_hyperparameter(hp2)
 
         # create a configuration space and populate it with both the switch
@@ -840,25 +797,22 @@ class TestConfigurationSpace(unittest.TestCase):
         )
 
         # check choices in the final configuration space
-        self.assertEqual(("algo1", "algo2"), cs["switch"].choices)
-        self.assertEqual(("A", "B"), cs["algo1_subspace:algo1_param1"].choices)
-        self.assertEqual(("X", "Y"), cs["algo2_subspace:algo2_param1"].choices)
+        assert cs["switch"].choices == ("algo1", "algo2")
+        assert cs["algo1_subspace:algo1_param1"].choices == ("A", "B")
+        assert cs["algo2_subspace:algo2_param1"].choices == ("X", "Y")
 
         # check probabilities in the final configuration space
-        self.assertEqual((0.25, 0.75), cs["switch"].probabilities)
-        self.assertEqual(
-            (0.3, 0.7),
-            cs["algo1_subspace:algo1_param1"].probabilities,
-        )
+        assert cs["switch"].probabilities == (0.25, 0.75)
+        assert cs["algo1_subspace:algo1_param1"].probabilities == (0.3, 0.7)
         self.assertTupleEqual(
             (0.5, 0.5),
             cs["algo2_subspace:algo2_param1"].probabilities,
         )
 
         # check default values in the final configuration space
-        self.assertEqual("algo1", cs["switch"].default_value)
-        self.assertEqual("B", cs["algo1_subspace:algo1_param1"].default_value)
-        self.assertEqual("Y", cs["algo2_subspace:algo2_param1"].default_value)
+        assert cs["switch"].default_value == "algo1"
+        assert cs["algo1_subspace:algo1_param1"].default_value == "B"
+        assert cs["algo2_subspace:algo2_param1"].default_value == "Y"
 
     def test_acts_as_mapping(self):
         """
@@ -902,9 +856,7 @@ class TestConfigurationSpace(unittest.TestCase):
 
         # add some conditions, to test that remove_parameter_priors keeps the forbiddens
         cond_1 = EqualsCondition(norm, cat, 2)
-        cond_2 = OrConjunction(
-            EqualsCondition(beta, cat, 0), EqualsCondition(beta, cat, 1)
-        )
+        cond_2 = OrConjunction(EqualsCondition(beta, cat, 0), EqualsCondition(beta, cat, 1))
         cond_3 = OrConjunction(
             EqualsCondition(norm, integer, 1),
             EqualsCondition(norm, integer, 3),
@@ -915,23 +867,25 @@ class TestConfigurationSpace(unittest.TestCase):
         # add some forbidden clauses too, to test that remove_parameter_priors keeps the forbiddens
         forbidden_clause_a = ForbiddenEqualsClause(cat, 0)
         forbidden_clause_c = ForbiddenEqualsClause(integer, 3)
-        forbidden_clause_d = ForbiddenAndConjunction(
-            forbidden_clause_a, forbidden_clause_c
-        )
+        forbidden_clause_d = ForbiddenAndConjunction(forbidden_clause_a, forbidden_clause_c)
         cs.add_forbidden_clauses([forbidden_clause_c, forbidden_clause_d])
         uniform_cs = cs.remove_hyperparameter_priors()
 
         expected_cs = ConfigurationSpace()
         unif_integer = UniformIntegerHyperparameter("integer", 1, 5, log=True)
-        unif_cat = CategoricalHyperparameter(
-            "cat", [0, 1, 2], default_value=cat_default
-        )
+        unif_cat = CategoricalHyperparameter("cat", [0, 1, 2], default_value=cat_default)
 
         unif_beta = UniformFloatHyperparameter(
-            "beta", lower=-1, upper=11, default_value=beta_default
+            "beta",
+            lower=-1,
+            upper=11,
+            default_value=beta_default,
         )
         unif_norm = UniformIntegerHyperparameter(
-            "norm", lower=1, upper=15, default_value=norm_default
+            "norm",
+            lower=1,
+            upper=15,
+            default_value=norm_default,
         )
         expected_cs.add_hyperparameters([unif_integer, unif_cat, unif_beta, unif_norm])
 
@@ -951,13 +905,11 @@ class TestConfigurationSpace(unittest.TestCase):
         # add some forbidden clauses too, to test that remove_parameter_priors keeps the forbiddens
         forbidden_clause_a = ForbiddenEqualsClause(unif_cat, 0)
         forbidden_clause_c = ForbiddenEqualsClause(unif_integer, 3)
-        forbidden_clause_d = ForbiddenAndConjunction(
-            forbidden_clause_a, forbidden_clause_c
-        )
+        forbidden_clause_d = ForbiddenAndConjunction(forbidden_clause_a, forbidden_clause_c)
         expected_cs.add_forbidden_clauses([forbidden_clause_c, forbidden_clause_d])
 
         # __eq__ not implemented, so this is the next best thing
-        self.assertEqual(repr(uniform_cs), repr(expected_cs))
+        assert repr(uniform_cs) == repr(expected_cs)
 
     def test_substitute_hyperparameters_in_conditions(self):
         cs1 = ConfigurationSpace()
@@ -975,16 +927,10 @@ class TestConfigurationSpace(unittest.TestCase):
         cs2 = ConfigurationSpace()
         sub_hp1 = CategoricalHyperparameter("input1", [0, 1, 2])
         sub_hp2 = CategoricalHyperparameter("input2", [0, 1, 3])
-        sub_hp3 = NormalIntegerHyperparameter(
-            "child1", lower=0, upper=10, mu=5, sigma=2
-        )
-        sub_hp4 = BetaIntegerHyperparameter(
-            "child2", lower=0, upper=10, alpha=3, beta=5
-        )
+        sub_hp3 = NormalIntegerHyperparameter("child1", lower=0, upper=10, mu=5, sigma=2)
+        sub_hp4 = BetaIntegerHyperparameter("child2", lower=0, upper=10, alpha=3, beta=5)
         cs2.add_hyperparameters([sub_hp1, sub_hp2, sub_hp3, sub_hp4])
-        new_conditions = cs1.substitute_hyperparameters_in_conditions(
-            cs1.get_conditions(), cs2
-        )
+        new_conditions = cs1.substitute_hyperparameters_in_conditions(cs1.get_conditions(), cs2)
 
         test_cond1 = EqualsCondition(sub_hp2, sub_hp3, 0)
         test_cond2 = EqualsCondition(sub_hp1, sub_hp3, 5)
@@ -993,8 +939,8 @@ class TestConfigurationSpace(unittest.TestCase):
         cs2.add_conditions([test_cond1, test_andCond])
         test_conditions = cs2.get_conditions()
 
-        self.assertEqual(new_conditions[0], test_conditions[0])
-        self.assertEqual(new_conditions[1], test_conditions[1])
+        assert new_conditions[0] == test_conditions[0]
+        assert new_conditions[1] == test_conditions[1]
 
     def test_substitute_hyperparameters_in_inconditions(self):
         cs1 = ConfigurationSpace()
@@ -1009,30 +955,20 @@ class TestConfigurationSpace(unittest.TestCase):
         sub_a = UniformIntegerHyperparameter("a", lower=0, upper=10)
         sub_b = UniformFloatHyperparameter("b", lower=1.0, upper=8.0, log=False)
         cs2.add_hyperparameters([sub_a, sub_b])
-        new_conditions = cs1.substitute_hyperparameters_in_conditions(
-            cs1.get_conditions(), cs2
-        )
+        new_conditions = cs1.substitute_hyperparameters_in_conditions(cs1.get_conditions(), cs2)
 
         test_cond = InCondition(b, a, [1, 2, 3, 4])
         cs2.add_conditions([test_cond])
         test_conditions = cs2.get_conditions()
 
-        self.assertEqual(new_conditions[0], test_conditions[0])
-        self.assertIsNot(new_conditions[0], test_conditions[0])
+        assert new_conditions[0] == test_conditions[0]
+        assert new_conditions[0] is not test_conditions[0]
 
-        self.assertEqual(
-            new_conditions[0].get_parents(), test_conditions[0].get_parents()
-        )
-        self.assertIsNot(
-            new_conditions[0].get_parents(), test_conditions[0].get_parents()
-        )
+        assert new_conditions[0].get_parents() == test_conditions[0].get_parents()
+        assert new_conditions[0].get_parents() is not test_conditions[0].get_parents()
 
-        self.assertEqual(
-            new_conditions[0].get_children(), test_conditions[0].get_children()
-        )
-        self.assertIsNot(
-            new_conditions[0].get_children(), test_conditions[0].get_children()
-        )
+        assert new_conditions[0].get_children() == test_conditions[0].get_children()
+        assert new_conditions[0].get_children() is not test_conditions[0].get_children()
 
     def test_substitute_hyperparameters_in_forbiddens(self):
         cs1 = ConfigurationSpace()
@@ -1051,16 +987,10 @@ class TestConfigurationSpace(unittest.TestCase):
         cs2 = ConfigurationSpace()
         sub_hp1 = CategoricalHyperparameter("input1", [0, 1, 2])
         sub_hp2 = CategoricalHyperparameter("input2", [0, 1, 3])
-        sub_hp3 = NormalIntegerHyperparameter(
-            "input3", lower=0, upper=10, mu=5, sigma=2
-        )
-        sub_hp4 = BetaIntegerHyperparameter(
-            "input4", lower=0, upper=10, alpha=3, beta=5
-        )
+        sub_hp3 = NormalIntegerHyperparameter("input3", lower=0, upper=10, mu=5, sigma=2)
+        sub_hp4 = BetaIntegerHyperparameter("input4", lower=0, upper=10, alpha=3, beta=5)
         cs2.add_hyperparameters([sub_hp1, sub_hp2, sub_hp3, sub_hp4])
-        new_forbiddens = cs1.substitute_hyperparameters_in_forbiddens(
-            cs1.get_forbiddens(), cs2
-        )
+        new_forbiddens = cs1.substitute_hyperparameters_in_forbiddens(cs1.get_forbiddens(), cs2)
 
         test_forb_1 = ForbiddenEqualsClause(sub_hp1, 0)
         test_forb_2 = ForbiddenEqualsClause(sub_hp2, 1)
@@ -1070,21 +1000,21 @@ class TestConfigurationSpace(unittest.TestCase):
         cs2.add_forbidden_clauses([test_forb_3, test_forb_4, test_forb_5])
         test_forbiddens = cs2.get_forbiddens()
 
-        self.assertEqual(new_forbiddens[2], test_forbiddens[2])
-        self.assertEqual(new_forbiddens[1], test_forbiddens[1])
-        self.assertEqual(new_forbiddens[0], test_forbiddens[0])
+        assert new_forbiddens[2] == test_forbiddens[2]
+        assert new_forbiddens[1] == test_forbiddens[1]
+        assert new_forbiddens[0] == test_forbiddens[0]
 
     def test_estimate_size(self):
         cs = ConfigurationSpace()
-        self.assertEqual(cs.estimate_size(), 0)
+        assert cs.estimate_size() == 0
         cs.add_hyperparameter(Constant("constant", 0))
-        self.assertEqual(cs.estimate_size(), 1)
+        assert cs.estimate_size() == 1
         cs.add_hyperparameter(UniformIntegerHyperparameter("integer", 0, 5))
-        self.assertEqual(cs.estimate_size(), 6)
+        assert cs.estimate_size() == 6
         cs.add_hyperparameter(CategoricalHyperparameter("cat", [0, 1, 2]))
-        self.assertEqual(cs.estimate_size(), 18)
+        assert cs.estimate_size() == 18
         cs.add_hyperparameter(UniformFloatHyperparameter("float", 0, 1))
-        self.assertTrue(np.isinf(cs.estimate_size()))
+        assert np.isinf(cs.estimate_size())
 
 
 class ConfigurationTest(unittest.TestCase):
@@ -1113,34 +1043,34 @@ class ConfigurationTest(unittest.TestCase):
             "child": 0.22727223140405708,
             "friend": 0.583333611112037,
         }
-        vector = [None] * 3
+        vector = [0.0] * 3
         for name in self.cs._hyperparameter_idx:
             vector[self.cs._hyperparameter_idx[name]] = vector_values[name]
         c2 = Configuration(self.cs, vector=vector)
         # This tests
         # a) that the vector representation of both are the same
         # b) that the dictionary representation of both are the same
-        self.assertEqual(c1, c2)
+        assert c1 == c2
 
     def test_uniformfloat_transform(self):
         """This checks whether a value sampled through the configuration
         space (it does not happend when the variable is sampled alone) stays
-        equal when it is serialized via JSON and the deserialized again."""
-
+        equal when it is serialized via JSON and the deserialized again.
+        """
         cs = ConfigurationSpace()
         a = cs.add_hyperparameter(UniformFloatHyperparameter("a", -5, 10))
         b = cs.add_hyperparameter(NormalFloatHyperparameter("b", 1, 2, log=True))
-        for i in range(100):
+        for _i in range(100):
             config = cs.sample_configuration()
             value = OrderedDict(sorted(config.items()))
             string = json.dumps(value)
             saved_value = json.loads(string)
             saved_value = OrderedDict(sorted(byteify(saved_value).items()))
-            self.assertEqual(repr(value), repr(saved_value))
+            assert repr(value) == repr(saved_value)
 
         # Next, test whether the truncation also works when initializing the
         # Configuration with a dictionary
-        for i in range(100):
+        for _i in range(100):
             rs = np.random.RandomState(1)
             value_a = a.sample(rs)
             value_b = b.sample(rs)
@@ -1149,20 +1079,14 @@ class ConfigurationTest(unittest.TestCase):
             string = json.dumps(dict(config))
             saved_value = json.loads(string)
             saved_value = byteify(saved_value)
-            self.assertEqual(values_dict, saved_value)
+            assert values_dict == saved_value
 
     def test_setitem(self):
-        """
-        Checks overriding a sampled configuration
-        """
+        """Checks overriding a sampled configuration."""
         pcs = ConfigurationSpace()
-        pcs.add_hyperparameter(
-            UniformIntegerHyperparameter("x0", 1, 5, default_value=1)
-        )
+        pcs.add_hyperparameter(UniformIntegerHyperparameter("x0", 1, 5, default_value=1))
         x1 = pcs.add_hyperparameter(
-            CategoricalHyperparameter(
-                "x1", ["ab", "bc", "cd", "de"], default_value="ab"
-            )
+            CategoricalHyperparameter("x1", ["ab", "bc", "cd", "de"], default_value="ab"),
         )
 
         # Condition
@@ -1187,7 +1111,7 @@ class ConfigurationTest(unittest.TestCase):
         with self.assertRaises(ForbiddenValueError):
             conf["x3"] = 2
 
-        self.assertEqual(conf["x3"], 1)
+        assert conf["x3"] == 1
 
         # successful operation 1
         x0_old = conf["x0"]
@@ -1196,9 +1120,9 @@ class ConfigurationTest(unittest.TestCase):
         else:
             conf["x0"] = 1
         x0_new = conf["x0"]
-        self.assertNotEqual(x0_old, x0_new)
+        assert x0_old != x0_new
         pcs._check_configuration_rigorous(conf)
-        self.assertEqual(conf["x2"], 1)
+        assert conf["x2"] == 1
 
         # successful operation 2
         x1_old = conf["x1"]
@@ -1207,7 +1131,7 @@ class ConfigurationTest(unittest.TestCase):
         else:
             conf["x1"] = "ab"
         x1_new = conf["x1"]
-        self.assertNotEqual(x1_old, x1_new)
+        assert x1_old != x1_new
         pcs._check_configuration_rigorous(conf)
 
         with self.assertRaises(KeyError):
@@ -1242,16 +1166,12 @@ class ConfigurationTest(unittest.TestCase):
 
         for _ in range(10):
             config = cs.sample_configuration()
-            {
-                hp_name: config[hp_name]
-                for hp_name in config
-                if config[hp_name] is not None
-            }
+            {hp_name: config[hp_name] for hp_name in config if config[hp_name] is not None}
 
     def test_acts_as_mapping(self):
         """
         This tests checks that a Configuration can be used as a a dictionary by
-        checking indexing[], iteration ..., items, keys
+        checking indexing[], iteration ..., items, keys.
         """
         names = ["parent", "child", "friend"]
         values = [1, 2, 3]
@@ -1260,10 +1180,8 @@ class ConfigurationTest(unittest.TestCase):
         config = Configuration(self.cs, values=values_dict)
 
         # Test indexing
-        assert (
-            config["parent"] == values_dict["parent"]
-            and config["child"] == values_dict["child"]
-        )
+        assert config["parent"] == values_dict["parent"]
+        assert config["child"] == values_dict["child"]
 
         # Test dict methods
         assert set(config.keys()) == set(names)
@@ -1292,46 +1210,42 @@ class ConfigurationTest(unittest.TestCase):
         # configuration space with at least one UniformIntegerHyperparameter which is quantized.
         cs = ConfigurationSpace()
         cs.add_hyperparameter(
-            UniformIntegerHyperparameter("uihp", lower=1, upper=101, q=2, log=False)
+            UniformIntegerHyperparameter("uihp", lower=1, upper=101, q=2, log=False),
         )
 
-        self.assertIsNotNone(cs.sample_configuration())
-        self.assertEqual(10, len(cs.sample_configuration(size=10)))
+        assert cs.sample_configuration() is not None
+        assert len(cs.sample_configuration(size=10)) == 10
 
     def test_meta_field(self):
         cs = ConfigurationSpace()
         cs.add_hyperparameter(
-            UniformIntegerHyperparameter(
-                "uihp", lower=1, upper=10, meta=dict(uihp=True)
-            )
+            UniformIntegerHyperparameter("uihp", lower=1, upper=10, meta={"uihp": True}),
         )
         cs.add_hyperparameter(
-            NormalIntegerHyperparameter("nihp", mu=0, sigma=1, meta=dict(nihp=True))
+            NormalIntegerHyperparameter("nihp", mu=0, sigma=1, meta={"nihp": True}),
         )
         cs.add_hyperparameter(
-            UniformFloatHyperparameter("ufhp", lower=1, upper=10, meta=dict(ufhp=True))
+            UniformFloatHyperparameter("ufhp", lower=1, upper=10, meta={"ufhp": True}),
         )
         cs.add_hyperparameter(
-            NormalFloatHyperparameter("nfhp", mu=0, sigma=1, meta=dict(nfhp=True))
+            NormalFloatHyperparameter("nfhp", mu=0, sigma=1, meta={"nfhp": True}),
         )
         cs.add_hyperparameter(
-            CategoricalHyperparameter(
-                "chp", choices=["1", "2", "3"], meta=dict(chp=True)
-            )
+            CategoricalHyperparameter("chp", choices=["1", "2", "3"], meta={"chp": True}),
         )
         cs.add_hyperparameter(
-            OrdinalHyperparameter("ohp", sequence=["1", "2", "3"], meta=dict(ohp=True))
+            OrdinalHyperparameter("ohp", sequence=["1", "2", "3"], meta={"ohp": True}),
         )
-        cs.add_hyperparameter(Constant("const", value=1, meta=dict(const=True)))
+        cs.add_hyperparameter(Constant("const", value=1, meta={"const": True}))
         parent = ConfigurationSpace()
         parent.add_configuration_space("sub", cs, delimiter=":")
-        self.assertEqual(parent["sub:uihp"].meta, dict(uihp=True))
-        self.assertEqual(parent["sub:nihp"].meta, dict(nihp=True))
-        self.assertEqual(parent["sub:ufhp"].meta, dict(ufhp=True))
-        self.assertEqual(parent["sub:nfhp"].meta, dict(nfhp=True))
-        self.assertEqual(parent["sub:chp"].meta, dict(chp=True))
-        self.assertEqual(parent["sub:ohp"].meta, dict(ohp=True))
-        self.assertEqual(parent["sub:const"].meta, dict(const=True))
+        assert parent["sub:uihp"].meta == {"uihp": True}
+        assert parent["sub:nihp"].meta == {"nihp": True}
+        assert parent["sub:ufhp"].meta == {"ufhp": True}
+        assert parent["sub:nfhp"].meta == {"nfhp": True}
+        assert parent["sub:chp"].meta == {"chp": True}
+        assert parent["sub:ohp"].meta == {"ohp": True}
+        assert parent["sub:const"].meta == {"const": True}
 
     def test_repr_roundtrip(self):
         cs = ConfigurationSpace()
@@ -1346,4 +1260,4 @@ class ConfigurationTest(unittest.TestCase):
         repr = default.__repr__()
         repr = repr.replace("})", "}, configuration_space=cs)")
         config = eval(repr)
-        self.assertEqual(default, config)
+        assert default == config

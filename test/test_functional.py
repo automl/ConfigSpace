@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import numpy as np
 
-from ConfigSpace.functional import center_range, arange_chunked
+from ConfigSpace.functional import arange_chunked, center_range
 
 
 def test_center_range_equal():

@@ -1,18 +1,16 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
 
 
 @dataclass
 class Distribution:
-    """Base distribution type"""
-
-    pass
+    """Base distribution type."""
 
 
 @dataclass
 class Uniform(Distribution):
-    """A uniform distribution"""
-
-    pass
+    """A uniform distribution."""
 
 
 @dataclass
