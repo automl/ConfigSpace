@@ -7,7 +7,7 @@ ConfigSpace.nx, which are copied from the networkx package and licensed
 under a BSD license.
 
 The documentation can be found at [https://automl.github.io/ConfigSpace/main/](https://automl.github.io/ConfigSpace/main/).
-Further examples can be found in the [SMAC documentation](https://automl.github.io/SMAC3/main/pages/examples/index.html).
+Further examples can be found in the [SMAC documentation](https://automl.github.io/SMAC3/main/examples/index.html).
 
 
 ## Minimum Example
