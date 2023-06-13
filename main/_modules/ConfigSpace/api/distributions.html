@@ -201,21 +201,19 @@
               <div>
                 
   <h1>Source code for ConfigSpace.api.distributions</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
 
 
 <span class="nd">@dataclass</span>
 <span class="k">class</span> <span class="nc">Distribution</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Base distribution type&quot;&quot;&quot;</span>
-
-    <span class="k">pass</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Base distribution type.&quot;&quot;&quot;</span>
 
 
 <div class="viewcode-block" id="Uniform"><a class="viewcode-back" href="../../../api/hyperparameters.html#ConfigSpace.api.distributions.Uniform">[docs]</a><span class="nd">@dataclass</span>
 <span class="k">class</span> <span class="nc">Uniform</span><span class="p">(</span><span class="n">Distribution</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;A uniform distribution&quot;&quot;&quot;</span>
-
-    <span class="k">pass</span></div>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;A uniform distribution.&quot;&quot;&quot;</span></div>
 
 
 <div class="viewcode-block" id="Normal"><a class="viewcode-back" href="../../../api/hyperparameters.html#ConfigSpace.api.distributions.Normal">[docs]</a><span class="nd">@dataclass</span>
@@ -271,7 +269,7 @@
     
     <div class="footer-item">
       <p class="copyright">
-    &copy; Copyright Copyright 2023, Matthias Feurer, Katharina Eggensperger, Syed Mohsin Ali, Christina Hernandez Wunsch, Julien-Charles Levesque, Jost Tobias Springenberg, Philipp Mueller, Marius Lindauer, Jorn Tuyls, Eddie Bergman.<br>
+    &copy; Copyright Copyright 2023, Matthias Feurer, Katharina Eggensperger, Syed Mohsin Ali, Christina Hernandez Wunsch, Julien-Charles Levesque, Jost Tobias Springenberg, Philipp Mueller, Marius Lindauer, Jorn Tuyls, Eddie Bergman, Arjun Krishnakumar.<br>
 </p>
     </div>
     

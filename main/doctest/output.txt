@@ -1,21 +1,40 @@
-Results of doctest builder run on 2023-05-05 08:03:27
+Results of doctest builder run on 2023-06-13 10:04:53
 =====================================================
 
-Document: api/forbidden_clauses
--------------------------------
-1 items passed all tests:
-  14 tests in default
-14 tests in 1 items.
-14 passed and 0 failed.
-Test passed.
-
-Document: quickstart
---------------------
-1 items passed all tests:
-   5 tests in default
-5 tests in 1 items.
-5 passed and 0 failed.
-Test passed.
+Document: index
+---------------
+**********************************************************************
+File "index.rst", line 86, in default
+Failed example:
+    cs.sample_configuration(2)
+Expected:
+    [Configuration(values={
+      'a': 0.17013149799713567,
+      'b': 5,
+      'c': 'dog',
+    })
+    , Configuration(values={
+      'a': 0.5476203000512754,
+      'b': 9,
+      'c': 'mouse',
+    })
+    ]
+Got:
+    [Configuration(values={
+      'a': 0.17013149799713567,
+      'b': 5,
+      'c': 'dog',
+    }), Configuration(values={
+      'a': 0.5476203000512754,
+      'b': 9,
+      'c': 'mouse',
+    })]
+**********************************************************************
+1 items had failures:
+   1 of  13 in default
+13 tests in 1 items.
+12 passed and 1 failed.
+***Test Failed*** 1 failures.
 
 Document: api/hyperparameters
 -----------------------------
@@ -23,14 +42,6 @@ Document: api/hyperparameters
   16 tests in default
 16 tests in 1 items.
 16 passed and 0 failed.
-Test passed.
-
-Document: index
----------------
-1 items passed all tests:
-  13 tests in default
-13 tests in 1 items.
-13 passed and 0 failed.
 Test passed.
 
 Document: api/conditions
@@ -41,8 +52,40 @@ Document: api/conditions
 30 passed and 0 failed.
 Test passed.
 
+Document: api/forbidden_clauses
+-------------------------------
+1 items passed all tests:
+  14 tests in default
+14 tests in 1 items.
+14 passed and 0 failed.
+Test passed.
+
+Document: api/serialization
+---------------------------
+2 items passed all tests:
+   6 tests in default
+   2 tests in pcs_new_test
+8 tests in 2 items.
+8 passed and 0 failed.
+Test passed.
+
 Document: guide
 ---------------
+**********************************************************************
+File "guide.rst", line 51, in default
+Failed example:
+    cs.sample_configuration()
+Expected:
+    Configuration(values={
+      'C': -0.6169610992422154,
+      'max_iter': 66,
+    })
+    <BLANKLINE>
+Got:
+    Configuration(values={
+      'C': -0.6169610992422154,
+      'max_iter': 66,
+    })
 **********************************************************************
 File "guide.rst", line 241, in default
 Failed example:
@@ -72,23 +115,36 @@ Got:
     <BLANKLINE>
 **********************************************************************
 1 items had failures:
-   2 of  43 in default
+   3 of  43 in default
 43 tests in 1 items.
-41 passed and 2 failed.
-***Test Failed*** 2 failures.
+40 passed and 3 failed.
+***Test Failed*** 3 failures.
 
-Document: api/serialization
----------------------------
-2 items passed all tests:
-   6 tests in default
-   2 tests in pcs_new_test
-8 tests in 2 items.
-8 passed and 0 failed.
-Test passed.
+Document: quickstart
+--------------------
+**********************************************************************
+File "quickstart.rst", line 64, in default
+Failed example:
+    print(config)
+Expected:
+    Configuration(values={
+      'alpha': 0.1915194503788923,
+    })
+    <BLANKLINE>
+Got:
+    Configuration(values={
+      'alpha': 0.1915194503788923,
+    })
+**********************************************************************
+1 items had failures:
+   1 of   5 in default
+5 tests in 1 items.
+4 passed and 1 failed.
+***Test Failed*** 1 failures.
 
 Doctest summary
 ===============
   129 tests
-    2 failures in tests
+    5 failures in tests
     0 failures in setup code
     0 failures in cleanup code

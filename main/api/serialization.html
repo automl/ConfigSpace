@@ -390,7 +390,7 @@ please use the <a class="reference internal" href="#module-ConfigSpace.read_and_
 </div>
 <dl class="py function">
 <dt class="sig sig-object py" id="ConfigSpace.read_and_write.pcs_new.read">
-<span class="sig-prename descclassname"><span class="pre">ConfigSpace.read_and_write.pcs_new.</span></span><span class="sig-name descname"><span class="pre">read</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pcs_string</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ConfigSpace/read_and_write/pcs_new.html#read"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ConfigSpace.read_and_write.pcs_new.read" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">ConfigSpace.read_and_write.pcs_new.</span></span><span class="sig-name descname"><span class="pre">read</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pcs_string</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ConfigSpace/read_and_write/pcs_new.html#read"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ConfigSpace.read_and_write.pcs_new.read" title="Permalink to this definition">¶</a></dt>
 <dd><p>Read in a <a class="reference internal" href="configurationspace.html#ConfigSpace.configuration_space.ConfigurationSpace" title="ConfigSpace.configuration_space.ConfigurationSpace"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigurationSpace</span></code></a>
 definition from a pcs file.</p>
 <p class="rubric">Example</p>
@@ -401,10 +401,7 @@ definition from a pcs file.</p>
 </div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>pcs_string</strong> (<em>str</em>) – ConfigSpace definition in pcs format</p></li>
-<li><p><strong>debug</strong> (<em>bool</em>) – Provides debug information. Defaults to False.</p></li>
-</ul>
+<dd class="field-odd"><p><strong>pcs_string</strong> (<em>Iterable</em><em>[</em><em>str</em><em>]</em>) – ConfigSpace definition in pcs format</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>The deserialized ConfigurationSpace object</p>
@@ -455,7 +452,7 @@ in pcs_new format. This string can be written to file.</p>
 <a class="reference external" href="http://aclib.net/cssc2014/pcs-format.pdf">here.</a></p>
 <dl class="py function">
 <dt class="sig sig-object py" id="ConfigSpace.read_and_write.pcs.read">
-<span class="sig-prename descclassname"><span class="pre">ConfigSpace.read_and_write.pcs.</span></span><span class="sig-name descname"><span class="pre">read</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pcs_string</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ConfigSpace/read_and_write/pcs.html#read"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ConfigSpace.read_and_write.pcs.read" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">ConfigSpace.read_and_write.pcs.</span></span><span class="sig-name descname"><span class="pre">read</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pcs_string</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ConfigSpace/read_and_write/pcs.html#read"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ConfigSpace.read_and_write.pcs.read" title="Permalink to this definition">¶</a></dt>
 <dd><p>Read in a <a class="reference internal" href="configurationspace.html#ConfigSpace.configuration_space.ConfigurationSpace" title="ConfigSpace.configuration_space.ConfigurationSpace"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigurationSpace</span></code></a>
 definition from a pcs file.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ConfigSpace</span> <span class="kn">import</span> <span class="n">ConfigurationSpace</span>
@@ -471,10 +468,7 @@ definition from a pcs file.</p>
 </div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>pcs_string</strong> (<em>str</em>) – ConfigSpace definition in pcs format</p></li>
-<li><p><strong>debug</strong> (<em>bool = False</em>) – Provides debug information. Defaults to False.</p></li>
-</ul>
+<dd class="field-odd"><p><strong>pcs_string</strong> (<em>Iterable</em><em>[</em><em>str</em><em>]</em>) – ConfigSpace definition in pcs format as an iterable of strings</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>The deserialized ConfigurationSpace object</p>
@@ -550,7 +544,7 @@ This string can be written to file.</p>
     
     <div class="footer-item">
       <p class="copyright">
-    &copy; Copyright Copyright 2023, Matthias Feurer, Katharina Eggensperger, Syed Mohsin Ali, Christina Hernandez Wunsch, Julien-Charles Levesque, Jost Tobias Springenberg, Philipp Mueller, Marius Lindauer, Jorn Tuyls, Eddie Bergman.<br>
+    &copy; Copyright Copyright 2023, Matthias Feurer, Katharina Eggensperger, Syed Mohsin Ali, Christina Hernandez Wunsch, Julien-Charles Levesque, Jost Tobias Springenberg, Philipp Mueller, Marius Lindauer, Jorn Tuyls, Eddie Bergman, Arjun Krishnakumar.<br>
 </p>
     </div>
     

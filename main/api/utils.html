@@ -282,8 +282,8 @@ develop custom tools that create configurations from a given configuration
 space or modify a given configuration space.</p>
 <span class="target" id="module-ConfigSpace.util"></span><dl class="py function">
 <dt class="sig sig-object py" id="ConfigSpace.util.deactivate_inactive_hyperparameters">
-<span class="sig-prename descclassname"><span class="pre">ConfigSpace.util.</span></span><span class="sig-name descname"><span class="pre">deactivate_inactive_hyperparameters</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.util.deactivate_inactive_hyperparameters" title="Permalink to this definition">¶</a></dt>
-<dd><p>Remove inactive hyperparameters from a given configuration</p>
+<span class="sig-prename descclassname"><span class="pre">ConfigSpace.util.</span></span><span class="sig-name descname"><span class="pre">deactivate_inactive_hyperparameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">configuration</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">configuration_space</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vector</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ConfigSpace/util.html#deactivate_inactive_hyperparameters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ConfigSpace.util.deactivate_inactive_hyperparameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove inactive hyperparameters from a given configuration.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -310,7 +310,7 @@ that inactivate hyperparameters have been removed.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="ConfigSpace.util.fix_types">
-<span class="sig-prename descclassname"><span class="pre">ConfigSpace.util.</span></span><span class="sig-name descname"><span class="pre">fix_types</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.util.fix_types" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">ConfigSpace.util.</span></span><span class="sig-name descname"><span class="pre">fix_types</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">configuration</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">configuration_space</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ConfigSpace/util.html#fix_types"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ConfigSpace.util.fix_types" title="Permalink to this definition">¶</a></dt>
 <dd><p>Iterate over all hyperparameters in the ConfigSpace
 and fix the types of the parameter values in configuration.</p>
 <dl class="field-list simple">
@@ -332,7 +332,7 @@ Value: value of this hyperparamter</p></li>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="ConfigSpace.util.generate_grid">
-<span class="sig-prename descclassname"><span class="pre">ConfigSpace.util.</span></span><span class="sig-name descname"><span class="pre">generate_grid</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.util.generate_grid" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">ConfigSpace.util.</span></span><span class="sig-name descname"><span class="pre">generate_grid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">configuration_space</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_steps_dict</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ConfigSpace/util.html#generate_grid"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ConfigSpace.util.generate_grid" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generates a grid of Configurations for a given ConfigurationSpace.
 Can be used, for example, for grid search.</p>
 <dl class="field-list simple">
@@ -362,7 +362,7 @@ for the OrderedDict within the ConfigurationSpace.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="ConfigSpace.util.get_one_exchange_neighbourhood">
-<span class="sig-prename descclassname"><span class="pre">ConfigSpace.util.</span></span><span class="sig-name descname"><span class="pre">get_one_exchange_neighbourhood</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.util.get_one_exchange_neighbourhood" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">ConfigSpace.util.</span></span><span class="sig-name descname"><span class="pre">get_one_exchange_neighbourhood</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">configuration</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_neighbors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stdev</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ConfigSpace/util.html#get_one_exchange_neighbourhood"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ConfigSpace.util.get_one_exchange_neighbourhood" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return all configurations in a one-exchange neighborhood.</p>
 <p>The method is implemented as defined by:
 Frank Hutter, Holger H. Hoos and Kevin Leyton-Brown
@@ -386,14 +386,14 @@ of the input configuration</p></li>
 the given configuration.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Generator</p>
+<dd class="field-odd"><p>Iterator</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="ConfigSpace.util.get_random_neighbor">
-<span class="sig-prename descclassname"><span class="pre">ConfigSpace.util.</span></span><span class="sig-name descname"><span class="pre">get_random_neighbor</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.util.get_random_neighbor" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">ConfigSpace.util.</span></span><span class="sig-name descname"><span class="pre">get_random_neighbor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">configuration</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ConfigSpace/util.html#get_random_neighbor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ConfigSpace.util.get_random_neighbor" title="Permalink to this definition">¶</a></dt>
 <dd><p>Draw a random neighbor by changing one parameter of a configuration.</p>
 <ul class="simple">
 <li><p>If the parameter is categorical, it changes it to another value.</p></li>
@@ -423,7 +423,7 @@ ValueError.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="ConfigSpace.util.impute_inactive_values">
-<span class="sig-prename descclassname"><span class="pre">ConfigSpace.util.</span></span><span class="sig-name descname"><span class="pre">impute_inactive_values</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.util.impute_inactive_values" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">ConfigSpace.util.</span></span><span class="sig-name descname"><span class="pre">impute_inactive_values</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">configuration</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strategy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'default'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ConfigSpace/util.html#impute_inactive_values"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ConfigSpace.util.impute_inactive_values" title="Permalink to this definition">¶</a></dt>
 <dd><p>Impute inactive parameters.</p>
 <p>Iterate through the hyperparameters of a <code class="docutils literal notranslate"><span class="pre">Configuration</span></code> and set the
 values of the inactive hyperparamters to their default values if the choosen
@@ -478,7 +478,7 @@ In this new configuration inactive values are included.</p>
     
     <div class="footer-item">
       <p class="copyright">
-    &copy; Copyright Copyright 2023, Matthias Feurer, Katharina Eggensperger, Syed Mohsin Ali, Christina Hernandez Wunsch, Julien-Charles Levesque, Jost Tobias Springenberg, Philipp Mueller, Marius Lindauer, Jorn Tuyls, Eddie Bergman.<br>
+    &copy; Copyright Copyright 2023, Matthias Feurer, Katharina Eggensperger, Syed Mohsin Ali, Christina Hernandez Wunsch, Julien-Charles Levesque, Jost Tobias Springenberg, Philipp Mueller, Marius Lindauer, Jorn Tuyls, Eddie Bergman, Arjun Krishnakumar.<br>
 </p>
     </div>
     

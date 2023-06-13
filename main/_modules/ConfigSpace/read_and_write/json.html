@@ -202,335 +202,324 @@
                 
   <h1>Source code for ConfigSpace.read_and_write.json</h1><div class="highlight"><pre>
 <span></span><span class="ch">#!/usr/bin/env python</span>
-<span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
 
 <span class="kn">import</span> <span class="nn">json</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Dict</span>
 
 <span class="kn">from</span> <span class="nn">ConfigSpace</span> <span class="kn">import</span> <span class="n">__version__</span>
-<span class="kn">from</span> <span class="nn">ConfigSpace.configuration_space</span> <span class="kn">import</span> <span class="n">ConfigurationSpace</span>
-<span class="kn">from</span> <span class="nn">ConfigSpace.hyperparameters</span> <span class="kn">import</span> <span class="p">(</span>
-    <span class="n">Hyperparameter</span><span class="p">,</span>
-    <span class="n">CategoricalHyperparameter</span><span class="p">,</span>
-    <span class="n">UniformIntegerHyperparameter</span><span class="p">,</span>
-    <span class="n">UniformFloatHyperparameter</span><span class="p">,</span>
-    <span class="n">NormalIntegerHyperparameter</span><span class="p">,</span>
-    <span class="n">NormalFloatHyperparameter</span><span class="p">,</span>
-    <span class="n">OrdinalHyperparameter</span><span class="p">,</span>
-    <span class="n">Constant</span><span class="p">,</span>
-    <span class="n">UnParametrizedHyperparameter</span><span class="p">,</span>
-    <span class="n">BetaFloatHyperparameter</span><span class="p">,</span>
-    <span class="n">BetaIntegerHyperparameter</span>
-<span class="p">)</span>
 <span class="kn">from</span> <span class="nn">ConfigSpace.conditions</span> <span class="kn">import</span> <span class="p">(</span>
     <span class="n">AbstractCondition</span><span class="p">,</span>
-    <span class="n">EqualsCondition</span><span class="p">,</span>
-    <span class="n">NotEqualsCondition</span><span class="p">,</span>
-    <span class="n">InCondition</span><span class="p">,</span>
     <span class="n">AndConjunction</span><span class="p">,</span>
-    <span class="n">OrConjunction</span><span class="p">,</span>
+    <span class="n">EqualsCondition</span><span class="p">,</span>
     <span class="n">GreaterThanCondition</span><span class="p">,</span>
+    <span class="n">InCondition</span><span class="p">,</span>
     <span class="n">LessThanCondition</span><span class="p">,</span>
+    <span class="n">NotEqualsCondition</span><span class="p">,</span>
+    <span class="n">OrConjunction</span><span class="p">,</span>
 <span class="p">)</span>
+<span class="kn">from</span> <span class="nn">ConfigSpace.configuration_space</span> <span class="kn">import</span> <span class="n">ConfigurationSpace</span>
 <span class="kn">from</span> <span class="nn">ConfigSpace.forbidden</span> <span class="kn">import</span> <span class="p">(</span>
-    <span class="n">ForbiddenEqualsClause</span><span class="p">,</span>
-    <span class="n">ForbiddenAndConjunction</span><span class="p">,</span>
-    <span class="n">ForbiddenInClause</span><span class="p">,</span>
     <span class="n">AbstractForbiddenComponent</span><span class="p">,</span>
-    <span class="n">ForbiddenRelation</span><span class="p">,</span>
-    <span class="n">ForbiddenLessThanRelation</span><span class="p">,</span>
+    <span class="n">ForbiddenAndConjunction</span><span class="p">,</span>
+    <span class="n">ForbiddenEqualsClause</span><span class="p">,</span>
     <span class="n">ForbiddenEqualsRelation</span><span class="p">,</span>
     <span class="n">ForbiddenGreaterThanRelation</span><span class="p">,</span>
+    <span class="n">ForbiddenInClause</span><span class="p">,</span>
+    <span class="n">ForbiddenLessThanRelation</span><span class="p">,</span>
+    <span class="n">ForbiddenRelation</span><span class="p">,</span>
 <span class="p">)</span>
-
+<span class="kn">from</span> <span class="nn">ConfigSpace.hyperparameters</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">BetaFloatHyperparameter</span><span class="p">,</span>
+    <span class="n">BetaIntegerHyperparameter</span><span class="p">,</span>
+    <span class="n">CategoricalHyperparameter</span><span class="p">,</span>
+    <span class="n">Constant</span><span class="p">,</span>
+    <span class="n">Hyperparameter</span><span class="p">,</span>
+    <span class="n">NormalFloatHyperparameter</span><span class="p">,</span>
+    <span class="n">NormalIntegerHyperparameter</span><span class="p">,</span>
+    <span class="n">OrdinalHyperparameter</span><span class="p">,</span>
+    <span class="n">UniformFloatHyperparameter</span><span class="p">,</span>
+    <span class="n">UniformIntegerHyperparameter</span><span class="p">,</span>
+    <span class="n">UnParametrizedHyperparameter</span><span class="p">,</span>
+<span class="p">)</span>
 
 <span class="n">JSON_FORMAT_VERSION</span> <span class="o">=</span> <span class="mf">0.4</span>
 
 
 <span class="c1">################################################################################</span>
 <span class="c1"># Builder for hyperparameters</span>
-<span class="k">def</span> <span class="nf">_build_constant</span><span class="p">(</span><span class="n">param</span><span class="p">:</span> <span class="n">Constant</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+<span class="k">def</span> <span class="nf">_build_constant</span><span class="p">(</span><span class="n">param</span><span class="p">:</span> <span class="n">Constant</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
     <span class="k">return</span> <span class="p">{</span>
-        <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
-        <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;constant&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
+        <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;constant&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
     <span class="p">}</span>
 
 
-<span class="k">def</span> <span class="nf">_build_unparametrized_hyperparameter</span><span class="p">(</span><span class="n">param</span><span class="p">:</span> <span class="n">UnParametrizedHyperparameter</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+<span class="k">def</span> <span class="nf">_build_unparametrized_hyperparameter</span><span class="p">(</span><span class="n">param</span><span class="p">:</span> <span class="n">UnParametrizedHyperparameter</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
     <span class="k">return</span> <span class="p">{</span>
-        <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
-        <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;unparametrized&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
+        <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;unparametrized&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
     <span class="p">}</span>
 
 
-<span class="k">def</span> <span class="nf">_build_uniform_float</span><span class="p">(</span><span class="n">param</span><span class="p">:</span> <span class="n">UniformFloatHyperparameter</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+<span class="k">def</span> <span class="nf">_build_uniform_float</span><span class="p">(</span><span class="n">param</span><span class="p">:</span> <span class="n">UniformFloatHyperparameter</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
     <span class="k">return</span> <span class="p">{</span>
-        <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
-        <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;uniform_float&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;log&#39;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">log</span><span class="p">,</span>
-        <span class="s1">&#39;lower&#39;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">lower</span><span class="p">,</span>
-        <span class="s1">&#39;upper&#39;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">upper</span><span class="p">,</span>
-        <span class="s1">&#39;default&#39;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">default_value</span><span class="p">,</span>
-        <span class="s1">&#39;q&#39;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">q</span><span class="p">,</span>
+        <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;uniform_float&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;log&quot;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">log</span><span class="p">,</span>
+        <span class="s2">&quot;lower&quot;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">lower</span><span class="p">,</span>
+        <span class="s2">&quot;upper&quot;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">upper</span><span class="p">,</span>
+        <span class="s2">&quot;default&quot;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">default_value</span><span class="p">,</span>
+        <span class="s2">&quot;q&quot;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">q</span><span class="p">,</span>
     <span class="p">}</span>
 
 
-<span class="k">def</span> <span class="nf">_build_normal_float</span><span class="p">(</span><span class="n">param</span><span class="p">:</span> <span class="n">NormalFloatHyperparameter</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+<span class="k">def</span> <span class="nf">_build_normal_float</span><span class="p">(</span><span class="n">param</span><span class="p">:</span> <span class="n">NormalFloatHyperparameter</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
     <span class="k">return</span> <span class="p">{</span>
-        <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
-        <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;normal_float&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;log&#39;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">log</span><span class="p">,</span>
-        <span class="s1">&#39;mu&#39;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">mu</span><span class="p">,</span>
-        <span class="s1">&#39;sigma&#39;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">sigma</span><span class="p">,</span>
-        <span class="s1">&#39;default&#39;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">default_value</span><span class="p">,</span>
-        <span class="s1">&#39;lower&#39;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">lower</span><span class="p">,</span>
-        <span class="s1">&#39;upper&#39;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">upper</span><span class="p">,</span>
-        <span class="s1">&#39;q&#39;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">q</span><span class="p">,</span>
+        <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;normal_float&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;log&quot;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">log</span><span class="p">,</span>
+        <span class="s2">&quot;mu&quot;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">mu</span><span class="p">,</span>
+        <span class="s2">&quot;sigma&quot;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">sigma</span><span class="p">,</span>
+        <span class="s2">&quot;default&quot;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">default_value</span><span class="p">,</span>
+        <span class="s2">&quot;lower&quot;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">lower</span><span class="p">,</span>
+        <span class="s2">&quot;upper&quot;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">upper</span><span class="p">,</span>
+        <span class="s2">&quot;q&quot;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">q</span><span class="p">,</span>
     <span class="p">}</span>
 
 
-<span class="k">def</span> <span class="nf">_build_beta_float</span><span class="p">(</span><span class="n">param</span><span class="p">:</span> <span class="n">BetaFloatHyperparameter</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+<span class="k">def</span> <span class="nf">_build_beta_float</span><span class="p">(</span><span class="n">param</span><span class="p">:</span> <span class="n">BetaFloatHyperparameter</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
     <span class="k">return</span> <span class="p">{</span>
-        <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
-        <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;beta_float&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;log&#39;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">log</span><span class="p">,</span>
-        <span class="s1">&#39;alpha&#39;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">alpha</span><span class="p">,</span>
-        <span class="s1">&#39;beta&#39;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">beta</span><span class="p">,</span>
-        <span class="s1">&#39;lower&#39;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">lower</span><span class="p">,</span>
-        <span class="s1">&#39;upper&#39;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">upper</span><span class="p">,</span>
-        <span class="s1">&#39;default&#39;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">default_value</span><span class="p">,</span>
-        <span class="s1">&#39;q&#39;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">q</span><span class="p">,</span>
+        <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;beta_float&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;log&quot;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">log</span><span class="p">,</span>
+        <span class="s2">&quot;alpha&quot;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">alpha</span><span class="p">,</span>
+        <span class="s2">&quot;beta&quot;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">beta</span><span class="p">,</span>
+        <span class="s2">&quot;lower&quot;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">lower</span><span class="p">,</span>
+        <span class="s2">&quot;upper&quot;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">upper</span><span class="p">,</span>
+        <span class="s2">&quot;default&quot;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">default_value</span><span class="p">,</span>
+        <span class="s2">&quot;q&quot;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">q</span><span class="p">,</span>
     <span class="p">}</span>
 
 
-<span class="k">def</span> <span class="nf">_build_uniform_int</span><span class="p">(</span><span class="n">param</span><span class="p">:</span> <span class="n">UniformIntegerHyperparameter</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+<span class="k">def</span> <span class="nf">_build_uniform_int</span><span class="p">(</span><span class="n">param</span><span class="p">:</span> <span class="n">UniformIntegerHyperparameter</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
     <span class="k">return</span> <span class="p">{</span>
-        <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
-        <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;uniform_int&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;log&#39;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">log</span><span class="p">,</span>
-        <span class="s1">&#39;lower&#39;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">lower</span><span class="p">,</span>
-        <span class="s1">&#39;upper&#39;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">upper</span><span class="p">,</span>
-        <span class="s1">&#39;default&#39;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">default_value</span><span class="p">,</span>
-        <span class="s1">&#39;q&#39;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">q</span><span class="p">,</span>
+        <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;uniform_int&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;log&quot;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">log</span><span class="p">,</span>
+        <span class="s2">&quot;lower&quot;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">lower</span><span class="p">,</span>
+        <span class="s2">&quot;upper&quot;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">upper</span><span class="p">,</span>
+        <span class="s2">&quot;default&quot;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">default_value</span><span class="p">,</span>
+        <span class="s2">&quot;q&quot;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">q</span><span class="p">,</span>
     <span class="p">}</span>
 
 
-<span class="k">def</span> <span class="nf">_build_normal_int</span><span class="p">(</span><span class="n">param</span><span class="p">:</span> <span class="n">NormalIntegerHyperparameter</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+<span class="k">def</span> <span class="nf">_build_normal_int</span><span class="p">(</span><span class="n">param</span><span class="p">:</span> <span class="n">NormalIntegerHyperparameter</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
     <span class="k">return</span> <span class="p">{</span>
-        <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
-        <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;normal_int&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;log&#39;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">log</span><span class="p">,</span>
-        <span class="s1">&#39;mu&#39;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">mu</span><span class="p">,</span>
-        <span class="s1">&#39;sigma&#39;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">sigma</span><span class="p">,</span>
-        <span class="s1">&#39;lower&#39;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">lower</span><span class="p">,</span>
-        <span class="s1">&#39;upper&#39;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">upper</span><span class="p">,</span>
-        <span class="s1">&#39;default&#39;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">default_value</span><span class="p">,</span>
-        <span class="s1">&#39;q&#39;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">q</span><span class="p">,</span>
+        <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;normal_int&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;log&quot;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">log</span><span class="p">,</span>
+        <span class="s2">&quot;mu&quot;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">mu</span><span class="p">,</span>
+        <span class="s2">&quot;sigma&quot;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">sigma</span><span class="p">,</span>
+        <span class="s2">&quot;lower&quot;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">lower</span><span class="p">,</span>
+        <span class="s2">&quot;upper&quot;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">upper</span><span class="p">,</span>
+        <span class="s2">&quot;default&quot;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">default_value</span><span class="p">,</span>
+        <span class="s2">&quot;q&quot;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">q</span><span class="p">,</span>
     <span class="p">}</span>
 
 
-<span class="k">def</span> <span class="nf">_build_beta_int</span><span class="p">(</span><span class="n">param</span><span class="p">:</span> <span class="n">BetaIntegerHyperparameter</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+<span class="k">def</span> <span class="nf">_build_beta_int</span><span class="p">(</span><span class="n">param</span><span class="p">:</span> <span class="n">BetaIntegerHyperparameter</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
     <span class="k">return</span> <span class="p">{</span>
-        <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
-        <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;beta_int&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;log&#39;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">log</span><span class="p">,</span>
-        <span class="s1">&#39;alpha&#39;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">alpha</span><span class="p">,</span>
-        <span class="s1">&#39;beta&#39;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">beta</span><span class="p">,</span>
-        <span class="s1">&#39;lower&#39;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">lower</span><span class="p">,</span>
-        <span class="s1">&#39;upper&#39;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">upper</span><span class="p">,</span>
-        <span class="s1">&#39;default&#39;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">default_value</span><span class="p">,</span>
-        <span class="s1">&#39;q&#39;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">q</span><span class="p">,</span>
+        <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;beta_int&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;log&quot;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">log</span><span class="p">,</span>
+        <span class="s2">&quot;alpha&quot;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">alpha</span><span class="p">,</span>
+        <span class="s2">&quot;beta&quot;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">beta</span><span class="p">,</span>
+        <span class="s2">&quot;lower&quot;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">lower</span><span class="p">,</span>
+        <span class="s2">&quot;upper&quot;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">upper</span><span class="p">,</span>
+        <span class="s2">&quot;default&quot;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">default_value</span><span class="p">,</span>
+        <span class="s2">&quot;q&quot;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">q</span><span class="p">,</span>
     <span class="p">}</span>
 
 
-<span class="k">def</span> <span class="nf">_build_categorical</span><span class="p">(</span><span class="n">param</span><span class="p">:</span> <span class="n">CategoricalHyperparameter</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+<span class="k">def</span> <span class="nf">_build_categorical</span><span class="p">(</span><span class="n">param</span><span class="p">:</span> <span class="n">CategoricalHyperparameter</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
     <span class="k">return</span> <span class="p">{</span>
-        <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
-        <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;categorical&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;choices&#39;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">choices</span><span class="p">,</span>
-        <span class="s1">&#39;default&#39;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">default_value</span><span class="p">,</span>
-        <span class="s1">&#39;weights&#39;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">weights</span><span class="p">,</span>
+        <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;categorical&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;choices&quot;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">choices</span><span class="p">,</span>
+        <span class="s2">&quot;default&quot;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">default_value</span><span class="p">,</span>
+        <span class="s2">&quot;weights&quot;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">weights</span><span class="p">,</span>
     <span class="p">}</span>
 
 
-<span class="k">def</span> <span class="nf">_build_ordinal</span><span class="p">(</span><span class="n">param</span><span class="p">:</span> <span class="n">OrdinalHyperparameter</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+<span class="k">def</span> <span class="nf">_build_ordinal</span><span class="p">(</span><span class="n">param</span><span class="p">:</span> <span class="n">OrdinalHyperparameter</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
     <span class="k">return</span> <span class="p">{</span>
-        <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
-        <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;ordinal&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;sequence&#39;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">sequence</span><span class="p">,</span>
-        <span class="s1">&#39;default&#39;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">default_value</span>
+        <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;ordinal&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;sequence&quot;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">sequence</span><span class="p">,</span>
+        <span class="s2">&quot;default&quot;</span><span class="p">:</span> <span class="n">param</span><span class="o">.</span><span class="n">default_value</span><span class="p">,</span>
     <span class="p">}</span>
 
 
 <span class="c1">################################################################################</span>
 <span class="c1"># Builder for Conditions</span>
-<span class="k">def</span> <span class="nf">_build_condition</span><span class="p">(</span><span class="n">condition</span><span class="p">:</span> <span class="n">AbstractCondition</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">condition</span><span class="p">,</span> <span class="n">AndConjunction</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">_build_and_conjunction</span><span class="p">(</span><span class="n">condition</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">condition</span><span class="p">,</span> <span class="n">OrConjunction</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">_build_or_conjunction</span><span class="p">(</span><span class="n">condition</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">condition</span><span class="p">,</span> <span class="n">InCondition</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">_build_in_condition</span><span class="p">(</span><span class="n">condition</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">condition</span><span class="p">,</span> <span class="n">EqualsCondition</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">_build_equals_condition</span><span class="p">(</span><span class="n">condition</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">condition</span><span class="p">,</span> <span class="n">NotEqualsCondition</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">_build_not_equals_condition</span><span class="p">(</span><span class="n">condition</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">condition</span><span class="p">,</span> <span class="n">GreaterThanCondition</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">_build_greater_than_condition</span><span class="p">(</span><span class="n">condition</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">condition</span><span class="p">,</span> <span class="n">LessThanCondition</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">_build_less_than_condition</span><span class="p">(</span><span class="n">condition</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="n">condition</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">_build_condition</span><span class="p">(</span><span class="n">condition</span><span class="p">:</span> <span class="n">AbstractCondition</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+    <span class="n">methods</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">AndConjunction</span><span class="p">:</span> <span class="n">_build_and_conjunction</span><span class="p">,</span>
+        <span class="n">OrConjunction</span><span class="p">:</span> <span class="n">_build_or_conjunction</span><span class="p">,</span>
+        <span class="n">InCondition</span><span class="p">:</span> <span class="n">_build_in_condition</span><span class="p">,</span>
+        <span class="n">EqualsCondition</span><span class="p">:</span> <span class="n">_build_equals_condition</span><span class="p">,</span>
+        <span class="n">NotEqualsCondition</span><span class="p">:</span> <span class="n">_build_not_equals_condition</span><span class="p">,</span>
+        <span class="n">GreaterThanCondition</span><span class="p">:</span> <span class="n">_build_greater_than_condition</span><span class="p">,</span>
+        <span class="n">LessThanCondition</span><span class="p">:</span> <span class="n">_build_less_than_condition</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="n">methods</span><span class="p">[</span><span class="nb">type</span><span class="p">(</span><span class="n">condition</span><span class="p">)](</span><span class="n">condition</span><span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">_build_and_conjunction</span><span class="p">(</span><span class="n">conjunction</span><span class="p">:</span> <span class="n">AndConjunction</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+<span class="k">def</span> <span class="nf">_build_and_conjunction</span><span class="p">(</span><span class="n">conjunction</span><span class="p">:</span> <span class="n">AndConjunction</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
     <span class="n">child</span> <span class="o">=</span> <span class="n">conjunction</span><span class="o">.</span><span class="n">get_descendant_literal_conditions</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">child</span><span class="o">.</span><span class="n">name</span>
-    <span class="n">cond_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+    <span class="n">cond_list</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">component</span> <span class="ow">in</span> <span class="n">conjunction</span><span class="o">.</span><span class="n">components</span><span class="p">:</span>
         <span class="n">cond_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_build_condition</span><span class="p">(</span><span class="n">component</span><span class="p">))</span>
     <span class="k">return</span> <span class="p">{</span>
-        <span class="s1">&#39;child&#39;</span><span class="p">:</span> <span class="n">child</span><span class="p">,</span>
-        <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;AND&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;conditions&#39;</span><span class="p">:</span> <span class="n">cond_list</span><span class="p">,</span>
+        <span class="s2">&quot;child&quot;</span><span class="p">:</span> <span class="n">child</span><span class="p">,</span>
+        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;AND&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;conditions&quot;</span><span class="p">:</span> <span class="n">cond_list</span><span class="p">,</span>
     <span class="p">}</span>
 
 
-<span class="k">def</span> <span class="nf">_build_or_conjunction</span><span class="p">(</span><span class="n">conjunction</span><span class="p">:</span> <span class="n">OrConjunction</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+<span class="k">def</span> <span class="nf">_build_or_conjunction</span><span class="p">(</span><span class="n">conjunction</span><span class="p">:</span> <span class="n">OrConjunction</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
     <span class="n">child</span> <span class="o">=</span> <span class="n">conjunction</span><span class="o">.</span><span class="n">get_descendant_literal_conditions</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">child</span><span class="o">.</span><span class="n">name</span>
-    <span class="n">cond_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+    <span class="n">cond_list</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">component</span> <span class="ow">in</span> <span class="n">conjunction</span><span class="o">.</span><span class="n">components</span><span class="p">:</span>
         <span class="n">cond_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_build_condition</span><span class="p">(</span><span class="n">component</span><span class="p">))</span>
     <span class="k">return</span> <span class="p">{</span>
-        <span class="s1">&#39;child&#39;</span><span class="p">:</span> <span class="n">child</span><span class="p">,</span>
-        <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;OR&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;conditions&#39;</span><span class="p">:</span> <span class="n">cond_list</span><span class="p">,</span>
+        <span class="s2">&quot;child&quot;</span><span class="p">:</span> <span class="n">child</span><span class="p">,</span>
+        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;OR&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;conditions&quot;</span><span class="p">:</span> <span class="n">cond_list</span><span class="p">,</span>
     <span class="p">}</span>
 
 
-<span class="k">def</span> <span class="nf">_build_in_condition</span><span class="p">(</span><span class="n">condition</span><span class="p">:</span> <span class="n">InCondition</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+<span class="k">def</span> <span class="nf">_build_in_condition</span><span class="p">(</span><span class="n">condition</span><span class="p">:</span> <span class="n">InCondition</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
     <span class="n">child</span> <span class="o">=</span> <span class="n">condition</span><span class="o">.</span><span class="n">child</span><span class="o">.</span><span class="n">name</span>
     <span class="n">parent</span> <span class="o">=</span> <span class="n">condition</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">name</span>
     <span class="n">values</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">condition</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
     <span class="k">return</span> <span class="p">{</span>
-        <span class="s1">&#39;child&#39;</span><span class="p">:</span> <span class="n">child</span><span class="p">,</span>
-        <span class="s1">&#39;parent&#39;</span><span class="p">:</span> <span class="n">parent</span><span class="p">,</span>
-        <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;IN&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;values&#39;</span><span class="p">:</span> <span class="n">values</span><span class="p">,</span>
+        <span class="s2">&quot;child&quot;</span><span class="p">:</span> <span class="n">child</span><span class="p">,</span>
+        <span class="s2">&quot;parent&quot;</span><span class="p">:</span> <span class="n">parent</span><span class="p">,</span>
+        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;IN&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;values&quot;</span><span class="p">:</span> <span class="n">values</span><span class="p">,</span>
     <span class="p">}</span>
 
 
-<span class="k">def</span> <span class="nf">_build_equals_condition</span><span class="p">(</span><span class="n">condition</span><span class="p">:</span> <span class="n">EqualsCondition</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+<span class="k">def</span> <span class="nf">_build_equals_condition</span><span class="p">(</span><span class="n">condition</span><span class="p">:</span> <span class="n">EqualsCondition</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
     <span class="n">child</span> <span class="o">=</span> <span class="n">condition</span><span class="o">.</span><span class="n">child</span><span class="o">.</span><span class="n">name</span>
     <span class="n">parent</span> <span class="o">=</span> <span class="n">condition</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">name</span>
     <span class="n">value</span> <span class="o">=</span> <span class="n">condition</span><span class="o">.</span><span class="n">value</span>
     <span class="k">return</span> <span class="p">{</span>
-        <span class="s1">&#39;child&#39;</span><span class="p">:</span> <span class="n">child</span><span class="p">,</span>
-        <span class="s1">&#39;parent&#39;</span><span class="p">:</span> <span class="n">parent</span><span class="p">,</span>
-        <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;EQ&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="n">value</span><span class="p">,</span>
+        <span class="s2">&quot;child&quot;</span><span class="p">:</span> <span class="n">child</span><span class="p">,</span>
+        <span class="s2">&quot;parent&quot;</span><span class="p">:</span> <span class="n">parent</span><span class="p">,</span>
+        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;EQ&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="n">value</span><span class="p">,</span>
     <span class="p">}</span>
 
 
-<span class="k">def</span> <span class="nf">_build_not_equals_condition</span><span class="p">(</span><span class="n">condition</span><span class="p">:</span> <span class="n">NotEqualsCondition</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+<span class="k">def</span> <span class="nf">_build_not_equals_condition</span><span class="p">(</span><span class="n">condition</span><span class="p">:</span> <span class="n">NotEqualsCondition</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
     <span class="n">child</span> <span class="o">=</span> <span class="n">condition</span><span class="o">.</span><span class="n">child</span><span class="o">.</span><span class="n">name</span>
     <span class="n">parent</span> <span class="o">=</span> <span class="n">condition</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">name</span>
     <span class="n">value</span> <span class="o">=</span> <span class="n">condition</span><span class="o">.</span><span class="n">value</span>
     <span class="k">return</span> <span class="p">{</span>
-        <span class="s1">&#39;child&#39;</span><span class="p">:</span> <span class="n">child</span><span class="p">,</span>
-        <span class="s1">&#39;parent&#39;</span><span class="p">:</span> <span class="n">parent</span><span class="p">,</span>
-        <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;NEQ&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="n">value</span><span class="p">,</span>
+        <span class="s2">&quot;child&quot;</span><span class="p">:</span> <span class="n">child</span><span class="p">,</span>
+        <span class="s2">&quot;parent&quot;</span><span class="p">:</span> <span class="n">parent</span><span class="p">,</span>
+        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;NEQ&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="n">value</span><span class="p">,</span>
     <span class="p">}</span>
 
 
-<span class="k">def</span> <span class="nf">_build_greater_than_condition</span><span class="p">(</span><span class="n">condition</span><span class="p">:</span> <span class="n">GreaterThanCondition</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+<span class="k">def</span> <span class="nf">_build_greater_than_condition</span><span class="p">(</span><span class="n">condition</span><span class="p">:</span> <span class="n">GreaterThanCondition</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
     <span class="n">child</span> <span class="o">=</span> <span class="n">condition</span><span class="o">.</span><span class="n">child</span><span class="o">.</span><span class="n">name</span>
     <span class="n">parent</span> <span class="o">=</span> <span class="n">condition</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">name</span>
     <span class="n">value</span> <span class="o">=</span> <span class="n">condition</span><span class="o">.</span><span class="n">value</span>
     <span class="k">return</span> <span class="p">{</span>
-        <span class="s1">&#39;child&#39;</span><span class="p">:</span> <span class="n">child</span><span class="p">,</span>
-        <span class="s1">&#39;parent&#39;</span><span class="p">:</span> <span class="n">parent</span><span class="p">,</span>
-        <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;GT&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="n">value</span><span class="p">,</span>
+        <span class="s2">&quot;child&quot;</span><span class="p">:</span> <span class="n">child</span><span class="p">,</span>
+        <span class="s2">&quot;parent&quot;</span><span class="p">:</span> <span class="n">parent</span><span class="p">,</span>
+        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;GT&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="n">value</span><span class="p">,</span>
     <span class="p">}</span>
 
 
-<span class="k">def</span> <span class="nf">_build_less_than_condition</span><span class="p">(</span><span class="n">condition</span><span class="p">:</span> <span class="n">LessThanCondition</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+<span class="k">def</span> <span class="nf">_build_less_than_condition</span><span class="p">(</span><span class="n">condition</span><span class="p">:</span> <span class="n">LessThanCondition</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
     <span class="n">child</span> <span class="o">=</span> <span class="n">condition</span><span class="o">.</span><span class="n">child</span><span class="o">.</span><span class="n">name</span>
     <span class="n">parent</span> <span class="o">=</span> <span class="n">condition</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">name</span>
     <span class="n">value</span> <span class="o">=</span> <span class="n">condition</span><span class="o">.</span><span class="n">value</span>
     <span class="k">return</span> <span class="p">{</span>
-        <span class="s1">&#39;child&#39;</span><span class="p">:</span> <span class="n">child</span><span class="p">,</span>
-        <span class="s1">&#39;parent&#39;</span><span class="p">:</span> <span class="n">parent</span><span class="p">,</span>
-        <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;LT&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="n">value</span><span class="p">,</span>
+        <span class="s2">&quot;child&quot;</span><span class="p">:</span> <span class="n">child</span><span class="p">,</span>
+        <span class="s2">&quot;parent&quot;</span><span class="p">:</span> <span class="n">parent</span><span class="p">,</span>
+        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;LT&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="n">value</span><span class="p">,</span>
     <span class="p">}</span>
 
 
 <span class="c1">################################################################################</span>
 <span class="c1"># Builder for forbidden</span>
-<span class="k">def</span> <span class="nf">_build_forbidden</span><span class="p">(</span><span class="n">clause</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">clause</span><span class="p">,</span> <span class="n">ForbiddenEqualsClause</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">_build_forbidden_equals_clause</span><span class="p">(</span><span class="n">clause</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">clause</span><span class="p">,</span> <span class="n">ForbiddenInClause</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">_build_forbidden_in_clause</span><span class="p">(</span><span class="n">clause</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">clause</span><span class="p">,</span> <span class="n">ForbiddenAndConjunction</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">_build_forbidden_and_conjunction</span><span class="p">(</span><span class="n">clause</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">clause</span><span class="p">,</span> <span class="n">ForbiddenRelation</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">_build_forbidden_relation</span><span class="p">(</span><span class="n">clause</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="n">clause</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">_build_forbidden</span><span class="p">(</span><span class="n">clause</span><span class="p">:</span> <span class="n">AbstractForbiddenComponent</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+    <span class="n">methods</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">ForbiddenEqualsClause</span><span class="p">:</span> <span class="n">_build_forbidden_equals_clause</span><span class="p">,</span>
+        <span class="n">ForbiddenInClause</span><span class="p">:</span> <span class="n">_build_forbidden_in_clause</span><span class="p">,</span>
+        <span class="n">ForbiddenAndConjunction</span><span class="p">:</span> <span class="n">_build_forbidden_and_conjunction</span><span class="p">,</span>
+        <span class="n">ForbiddenEqualsRelation</span><span class="p">:</span> <span class="n">_build_forbidden_relation</span><span class="p">,</span>
+        <span class="n">ForbiddenLessThanRelation</span><span class="p">:</span> <span class="n">_build_forbidden_relation</span><span class="p">,</span>
+        <span class="n">ForbiddenGreaterThanRelation</span><span class="p">:</span> <span class="n">_build_forbidden_relation</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="n">methods</span><span class="p">[</span><span class="nb">type</span><span class="p">(</span><span class="n">clause</span><span class="p">)](</span><span class="n">clause</span><span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">_build_forbidden_equals_clause</span><span class="p">(</span><span class="n">clause</span><span class="p">:</span> <span class="n">ForbiddenEqualsClause</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+<span class="k">def</span> <span class="nf">_build_forbidden_equals_clause</span><span class="p">(</span><span class="n">clause</span><span class="p">:</span> <span class="n">ForbiddenEqualsClause</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
     <span class="k">return</span> <span class="p">{</span>
-        <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">clause</span><span class="o">.</span><span class="n">hyperparameter</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
-        <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;EQUALS&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="n">clause</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
+        <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">clause</span><span class="o">.</span><span class="n">hyperparameter</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;EQUALS&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="n">clause</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
     <span class="p">}</span>
 
 
-<span class="k">def</span> <span class="nf">_build_forbidden_in_clause</span><span class="p">(</span><span class="n">clause</span><span class="p">:</span> <span class="n">ForbiddenInClause</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+<span class="k">def</span> <span class="nf">_build_forbidden_in_clause</span><span class="p">(</span><span class="n">clause</span><span class="p">:</span> <span class="n">ForbiddenInClause</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
     <span class="k">return</span> <span class="p">{</span>
-        <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">clause</span><span class="o">.</span><span class="n">hyperparameter</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
-        <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;IN&#39;</span><span class="p">,</span>
+        <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">clause</span><span class="o">.</span><span class="n">hyperparameter</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;IN&quot;</span><span class="p">,</span>
         <span class="c1"># The values are a set, but a set cannot be serialized to json</span>
-        <span class="s1">&#39;values&#39;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">clause</span><span class="o">.</span><span class="n">values</span><span class="p">),</span>
+        <span class="s2">&quot;values&quot;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">clause</span><span class="o">.</span><span class="n">values</span><span class="p">),</span>
     <span class="p">}</span>
 
 
-<span class="k">def</span> <span class="nf">_build_forbidden_and_conjunction</span><span class="p">(</span><span class="n">clause</span><span class="p">:</span> <span class="n">ForbiddenAndConjunction</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+<span class="k">def</span> <span class="nf">_build_forbidden_and_conjunction</span><span class="p">(</span><span class="n">clause</span><span class="p">:</span> <span class="n">ForbiddenAndConjunction</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
     <span class="k">return</span> <span class="p">{</span>
-        <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">clause</span><span class="o">.</span><span class="n">get_descendant_literal_clauses</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">hyperparameter</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
-        <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;AND&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;clauses&#39;</span><span class="p">:</span> <span class="p">[</span>
-            <span class="n">_build_forbidden</span><span class="p">(</span><span class="n">component</span><span class="p">)</span> <span class="k">for</span> <span class="n">component</span> <span class="ow">in</span> <span class="n">clause</span><span class="o">.</span><span class="n">components</span>
-        <span class="p">],</span>
+        <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">clause</span><span class="o">.</span><span class="n">get_descendant_literal_clauses</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">hyperparameter</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;AND&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;clauses&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">_build_forbidden</span><span class="p">(</span><span class="n">component</span><span class="p">)</span> <span class="k">for</span> <span class="n">component</span> <span class="ow">in</span> <span class="n">clause</span><span class="o">.</span><span class="n">components</span><span class="p">],</span>
     <span class="p">}</span>
 
 
-<span class="k">def</span> <span class="nf">_build_forbidden_relation</span><span class="p">(</span><span class="n">clause</span><span class="p">:</span> <span class="n">ForbiddenRelation</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+<span class="k">def</span> <span class="nf">_build_forbidden_relation</span><span class="p">(</span><span class="n">clause</span><span class="p">:</span> <span class="n">ForbiddenRelation</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">clause</span><span class="p">,</span> <span class="n">ForbiddenLessThanRelation</span><span class="p">):</span>
-        <span class="n">lambda_</span> <span class="o">=</span> <span class="s1">&#39;LESS&#39;</span>
+        <span class="n">lambda_</span> <span class="o">=</span> <span class="s2">&quot;LESS&quot;</span>
     <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">clause</span><span class="p">,</span> <span class="n">ForbiddenEqualsRelation</span><span class="p">):</span>
-        <span class="n">lambda_</span> <span class="o">=</span> <span class="s1">&#39;EQUALS&#39;</span>
+        <span class="n">lambda_</span> <span class="o">=</span> <span class="s2">&quot;EQUALS&quot;</span>
     <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">clause</span><span class="p">,</span> <span class="n">ForbiddenGreaterThanRelation</span><span class="p">):</span>
-        <span class="n">lambda_</span> <span class="o">=</span> <span class="s1">&#39;GREATER&#39;</span>
+        <span class="n">lambda_</span> <span class="o">=</span> <span class="s2">&quot;GREATER&quot;</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unknown relation &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span><span class="n">clause</span><span class="p">))</span>
 
     <span class="k">return</span> <span class="p">{</span>
-        <span class="s1">&#39;left&#39;</span><span class="p">:</span> <span class="n">clause</span><span class="o">.</span><span class="n">left</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
-        <span class="s1">&#39;right&#39;</span><span class="p">:</span> <span class="n">clause</span><span class="o">.</span><span class="n">right</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
-        <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;RELATION&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;lambda&#39;</span><span class="p">:</span> <span class="n">lambda_</span>
+        <span class="s2">&quot;left&quot;</span><span class="p">:</span> <span class="n">clause</span><span class="o">.</span><span class="n">left</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+        <span class="s2">&quot;right&quot;</span><span class="p">:</span> <span class="n">clause</span><span class="o">.</span><span class="n">right</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;RELATION&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;lambda&quot;</span><span class="p">:</span> <span class="n">lambda_</span><span class="p">,</span>
     <span class="p">}</span>
 
 
 <span class="c1">################################################################################</span>
-<div class="viewcode-block" id="write"><a class="viewcode-back" href="../../../api/serialization.html#ConfigSpace.read_and_write.json.write">[docs]</a><span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="n">configuration_space</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
+<div class="viewcode-block" id="write"><a class="viewcode-back" href="../../../api/serialization.html#ConfigSpace.read_and_write.json.write">[docs]</a><span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="n">configuration_space</span><span class="p">:</span> <span class="n">ConfigurationSpace</span><span class="p">,</span> <span class="n">indent</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Create a string representation of a</span>
 <span class="sd">    :class:`~ConfigSpace.configuration_space.ConfigurationSpace` in json format.</span>
@@ -560,22 +549,20 @@
 <span class="sd">        which will be written to file</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">configuration_space</span><span class="p">,</span> <span class="n">ConfigurationSpace</span><span class="p">):</span>
-        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;pcs_parser.write expects an instance of </span><span class="si">%s</span><span class="s2">, &quot;</span>
-                        <span class="s2">&quot;you provided &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ConfigurationSpace</span><span class="p">,</span>
-                                               <span class="nb">type</span><span class="p">(</span><span class="n">configuration_space</span><span class="p">)))</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+            <span class="s2">&quot;pcs_parser.write expects an instance of </span><span class="si">{}</span><span class="s2">, &quot;</span>
+            <span class="s2">&quot;you provided &#39;</span><span class="si">{}</span><span class="s2">&#39;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ConfigurationSpace</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="n">configuration_space</span><span class="p">)),</span>
+        <span class="p">)</span>
 
     <span class="n">hyperparameters</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">conditions</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">forbiddens</span> <span class="o">=</span> <span class="p">[]</span>
 
-    <span class="k">for</span> <span class="n">hyperparameter</span> <span class="ow">in</span> <span class="n">configuration_space</span><span class="o">.</span><span class="n">get_hyperparameters</span><span class="p">():</span>
-
+    <span class="k">for</span> <span class="n">hyperparameter</span> <span class="ow">in</span> <span class="n">configuration_space</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">hyperparameter</span><span class="p">,</span> <span class="n">Constant</span><span class="p">):</span>
             <span class="n">hyperparameters</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_build_constant</span><span class="p">(</span><span class="n">hyperparameter</span><span class="p">))</span>
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">hyperparameter</span><span class="p">,</span> <span class="n">UnParametrizedHyperparameter</span><span class="p">):</span>
-            <span class="n">hyperparameters</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-                <span class="n">_build_unparametrized_hyperparameter</span><span class="p">(</span><span class="n">hyperparameter</span><span class="p">)</span>
-            <span class="p">)</span>
+            <span class="n">hyperparameters</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_build_unparametrized_hyperparameter</span><span class="p">(</span><span class="n">hyperparameter</span><span class="p">))</span>
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">hyperparameter</span><span class="p">,</span> <span class="n">BetaFloatHyperparameter</span><span class="p">):</span>
             <span class="n">hyperparameters</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_build_beta_float</span><span class="p">(</span><span class="n">hyperparameter</span><span class="p">))</span>
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">hyperparameter</span><span class="p">,</span> <span class="n">UniformFloatHyperparameter</span><span class="p">):</span>
@@ -594,9 +581,10 @@
             <span class="n">hyperparameters</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_build_ordinal</span><span class="p">(</span><span class="n">hyperparameter</span><span class="p">))</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
-                <span class="s2">&quot;Unknown type: </span><span class="si">%s</span><span class="s2"> (</span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span>
-                    <span class="nb">type</span><span class="p">(</span><span class="n">hyperparameter</span><span class="p">),</span> <span class="n">hyperparameter</span><span class="p">,</span>
-                <span class="p">)</span>
+                <span class="s2">&quot;Unknown type: </span><span class="si">{}</span><span class="s2"> (</span><span class="si">{}</span><span class="s2">)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="nb">type</span><span class="p">(</span><span class="n">hyperparameter</span><span class="p">),</span>
+                    <span class="n">hyperparameter</span><span class="p">,</span>
+                <span class="p">),</span>
             <span class="p">)</span>
 
     <span class="k">for</span> <span class="n">condition</span> <span class="ow">in</span> <span class="n">configuration_space</span><span class="o">.</span><span class="n">get_conditions</span><span class="p">():</span>
@@ -605,20 +593,20 @@
     <span class="k">for</span> <span class="n">forbidden_clause</span> <span class="ow">in</span> <span class="n">configuration_space</span><span class="o">.</span><span class="n">get_forbiddens</span><span class="p">():</span>
         <span class="n">forbiddens</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_build_forbidden</span><span class="p">(</span><span class="n">forbidden_clause</span><span class="p">))</span>
 
-    <span class="n">rval</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">rval</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">if</span> <span class="n">configuration_space</span><span class="o">.</span><span class="n">name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">rval</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">configuration_space</span><span class="o">.</span><span class="n">name</span>
-    <span class="n">rval</span><span class="p">[</span><span class="s1">&#39;hyperparameters&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">hyperparameters</span>
-    <span class="n">rval</span><span class="p">[</span><span class="s1">&#39;conditions&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">conditions</span>
-    <span class="n">rval</span><span class="p">[</span><span class="s1">&#39;forbiddens&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">forbiddens</span>
-    <span class="n">rval</span><span class="p">[</span><span class="s1">&#39;python_module_version&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">__version__</span>
-    <span class="n">rval</span><span class="p">[</span><span class="s1">&#39;json_format_version&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">JSON_FORMAT_VERSION</span>
+        <span class="n">rval</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">configuration_space</span><span class="o">.</span><span class="n">name</span>
+    <span class="n">rval</span><span class="p">[</span><span class="s2">&quot;hyperparameters&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">hyperparameters</span>
+    <span class="n">rval</span><span class="p">[</span><span class="s2">&quot;conditions&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">conditions</span>
+    <span class="n">rval</span><span class="p">[</span><span class="s2">&quot;forbiddens&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">forbiddens</span>
+    <span class="n">rval</span><span class="p">[</span><span class="s2">&quot;python_module_version&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">__version__</span>
+    <span class="n">rval</span><span class="p">[</span><span class="s2">&quot;json_format_version&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">JSON_FORMAT_VERSION</span>
 
     <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">rval</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="n">indent</span><span class="p">)</span></div>
 
 
 <span class="c1">################################################################################</span>
-<div class="viewcode-block" id="read"><a class="viewcode-back" href="../../../api/serialization.html#ConfigSpace.read_and_write.json.read">[docs]</a><span class="k">def</span> <span class="nf">read</span><span class="p">(</span><span class="n">jason_string</span><span class="p">):</span>
+<div class="viewcode-block" id="read"><a class="viewcode-back" href="../../../api/serialization.html#ConfigSpace.read_and_write.json.read">[docs]</a><span class="k">def</span> <span class="nf">read</span><span class="p">(</span><span class="n">jason_string</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ConfigurationSpace</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Create a configuration space definition from a json string.</span>
 
@@ -649,277 +637,279 @@
 <span class="sd">        The deserialized ConfigurationSpace object</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">jason</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">jason_string</span><span class="p">)</span>
-    <span class="k">if</span> <span class="s1">&#39;name&#39;</span> <span class="ow">in</span> <span class="n">jason</span><span class="p">:</span>
-        <span class="n">configuration_space</span> <span class="o">=</span> <span class="n">ConfigurationSpace</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">jason</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">])</span>
+    <span class="k">if</span> <span class="s2">&quot;name&quot;</span> <span class="ow">in</span> <span class="n">jason</span><span class="p">:</span>
+        <span class="n">configuration_space</span> <span class="o">=</span> <span class="n">ConfigurationSpace</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">jason</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">])</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">configuration_space</span> <span class="o">=</span> <span class="n">ConfigurationSpace</span><span class="p">()</span>
 
-    <span class="k">for</span> <span class="n">hyperparameter</span> <span class="ow">in</span> <span class="n">jason</span><span class="p">[</span><span class="s1">&#39;hyperparameters&#39;</span><span class="p">]:</span>
-        <span class="n">configuration_space</span><span class="o">.</span><span class="n">add_hyperparameter</span><span class="p">(</span><span class="n">_construct_hyperparameter</span><span class="p">(</span>
-            <span class="n">hyperparameter</span><span class="p">,</span>
-        <span class="p">))</span>
+    <span class="k">for</span> <span class="n">hyperparameter</span> <span class="ow">in</span> <span class="n">jason</span><span class="p">[</span><span class="s2">&quot;hyperparameters&quot;</span><span class="p">]:</span>
+        <span class="n">configuration_space</span><span class="o">.</span><span class="n">add_hyperparameter</span><span class="p">(</span>
+            <span class="n">_construct_hyperparameter</span><span class="p">(</span>
+                <span class="n">hyperparameter</span><span class="p">,</span>
+            <span class="p">),</span>
+        <span class="p">)</span>
 
-    <span class="k">for</span> <span class="n">condition</span> <span class="ow">in</span> <span class="n">jason</span><span class="p">[</span><span class="s1">&#39;conditions&#39;</span><span class="p">]:</span>
-        <span class="n">configuration_space</span><span class="o">.</span><span class="n">add_condition</span><span class="p">(</span><span class="n">_construct_condition</span><span class="p">(</span>
-            <span class="n">condition</span><span class="p">,</span> <span class="n">configuration_space</span><span class="p">,</span>
-        <span class="p">))</span>
+    <span class="k">for</span> <span class="n">condition</span> <span class="ow">in</span> <span class="n">jason</span><span class="p">[</span><span class="s2">&quot;conditions&quot;</span><span class="p">]:</span>
+        <span class="n">configuration_space</span><span class="o">.</span><span class="n">add_condition</span><span class="p">(</span>
+            <span class="n">_construct_condition</span><span class="p">(</span>
+                <span class="n">condition</span><span class="p">,</span>
+                <span class="n">configuration_space</span><span class="p">,</span>
+            <span class="p">),</span>
+        <span class="p">)</span>
 
-    <span class="k">for</span> <span class="n">forbidden</span> <span class="ow">in</span> <span class="n">jason</span><span class="p">[</span><span class="s1">&#39;forbiddens&#39;</span><span class="p">]:</span>
-        <span class="n">configuration_space</span><span class="o">.</span><span class="n">add_forbidden_clause</span><span class="p">(</span><span class="n">_construct_forbidden</span><span class="p">(</span>
-            <span class="n">forbidden</span><span class="p">,</span> <span class="n">configuration_space</span><span class="p">,</span>
-        <span class="p">))</span>
+    <span class="k">for</span> <span class="n">forbidden</span> <span class="ow">in</span> <span class="n">jason</span><span class="p">[</span><span class="s2">&quot;forbiddens&quot;</span><span class="p">]:</span>
+        <span class="n">configuration_space</span><span class="o">.</span><span class="n">add_forbidden_clause</span><span class="p">(</span>
+            <span class="n">_construct_forbidden</span><span class="p">(</span>
+                <span class="n">forbidden</span><span class="p">,</span>
+                <span class="n">configuration_space</span><span class="p">,</span>
+            <span class="p">),</span>
+        <span class="p">)</span>
 
     <span class="k">return</span> <span class="n">configuration_space</span></div>
 
 
-<span class="k">def</span> <span class="nf">_construct_hyperparameter</span><span class="p">(</span><span class="n">hyperparameter</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Hyperparameter</span><span class="p">:</span>
-    <span class="n">hp_type</span> <span class="o">=</span> <span class="n">hyperparameter</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span>
-    <span class="n">name</span> <span class="o">=</span> <span class="n">hyperparameter</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span>
-    <span class="k">if</span> <span class="n">hp_type</span> <span class="o">==</span> <span class="s1">&#39;constant&#39;</span><span class="p">:</span>
+<span class="k">def</span> <span class="nf">_construct_hyperparameter</span><span class="p">(</span><span class="n">hyperparameter</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Hyperparameter</span><span class="p">:</span>  <span class="c1"># noqa: PLR0911</span>
+    <span class="n">hp_type</span> <span class="o">=</span> <span class="n">hyperparameter</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">hyperparameter</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">hp_type</span> <span class="o">==</span> <span class="s2">&quot;constant&quot;</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">Constant</span><span class="p">(</span>
             <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
-            <span class="n">value</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">],</span>
+            <span class="n">value</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">],</span>
         <span class="p">)</span>
-    <span class="k">elif</span> <span class="n">hp_type</span> <span class="o">==</span> <span class="s1">&#39;unparametrized&#39;</span><span class="p">:</span>
+
+    <span class="k">if</span> <span class="n">hp_type</span> <span class="o">==</span> <span class="s2">&quot;unparametrized&quot;</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">UnParametrizedHyperparameter</span><span class="p">(</span>
             <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
-            <span class="n">value</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">],</span>
+            <span class="n">value</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">],</span>
         <span class="p">)</span>
-    <span class="k">elif</span> <span class="n">hp_type</span> <span class="o">==</span> <span class="s1">&#39;uniform_float&#39;</span><span class="p">:</span>
+
+    <span class="k">if</span> <span class="n">hp_type</span> <span class="o">==</span> <span class="s2">&quot;uniform_float&quot;</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">UniformFloatHyperparameter</span><span class="p">(</span>
             <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
-            <span class="n">log</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s1">&#39;log&#39;</span><span class="p">],</span>
-            <span class="n">lower</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s1">&#39;lower&#39;</span><span class="p">],</span>
-            <span class="n">upper</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s1">&#39;upper&#39;</span><span class="p">],</span>
-            <span class="n">default_value</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s1">&#39;default&#39;</span><span class="p">],</span>
-            <span class="n">q</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s1">&#39;q&#39;</span><span class="p">],</span>
+            <span class="n">log</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s2">&quot;log&quot;</span><span class="p">],</span>
+            <span class="n">lower</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s2">&quot;lower&quot;</span><span class="p">],</span>
+            <span class="n">upper</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s2">&quot;upper&quot;</span><span class="p">],</span>
+            <span class="n">default_value</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s2">&quot;default&quot;</span><span class="p">],</span>
+            <span class="n">q</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s2">&quot;q&quot;</span><span class="p">],</span>
         <span class="p">)</span>
-    <span class="k">elif</span> <span class="n">hp_type</span> <span class="o">==</span> <span class="s1">&#39;normal_float&#39;</span><span class="p">:</span>
+
+    <span class="k">if</span> <span class="n">hp_type</span> <span class="o">==</span> <span class="s2">&quot;normal_float&quot;</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">NormalFloatHyperparameter</span><span class="p">(</span>
             <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
-            <span class="n">log</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s1">&#39;log&#39;</span><span class="p">],</span>
-            <span class="n">mu</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s1">&#39;mu&#39;</span><span class="p">],</span>
-            <span class="n">sigma</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s1">&#39;sigma&#39;</span><span class="p">],</span>
-            <span class="n">lower</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s1">&#39;lower&#39;</span><span class="p">],</span>
-            <span class="n">upper</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s1">&#39;upper&#39;</span><span class="p">],</span>
-            <span class="n">default_value</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s1">&#39;default&#39;</span><span class="p">],</span>
-            <span class="n">q</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s1">&#39;q&#39;</span><span class="p">],</span>
+            <span class="n">log</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s2">&quot;log&quot;</span><span class="p">],</span>
+            <span class="n">mu</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s2">&quot;mu&quot;</span><span class="p">],</span>
+            <span class="n">sigma</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s2">&quot;sigma&quot;</span><span class="p">],</span>
+            <span class="n">lower</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s2">&quot;lower&quot;</span><span class="p">],</span>
+            <span class="n">upper</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s2">&quot;upper&quot;</span><span class="p">],</span>
+            <span class="n">default_value</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s2">&quot;default&quot;</span><span class="p">],</span>
+            <span class="n">q</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s2">&quot;q&quot;</span><span class="p">],</span>
         <span class="p">)</span>
-    <span class="k">elif</span> <span class="n">hp_type</span> <span class="o">==</span> <span class="s1">&#39;beta_float&#39;</span><span class="p">:</span>
+
+    <span class="k">if</span> <span class="n">hp_type</span> <span class="o">==</span> <span class="s2">&quot;beta_float&quot;</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">BetaFloatHyperparameter</span><span class="p">(</span>
             <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
-            <span class="n">alpha</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s1">&#39;alpha&#39;</span><span class="p">],</span>
-            <span class="n">beta</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s1">&#39;beta&#39;</span><span class="p">],</span>
-            <span class="n">lower</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s1">&#39;lower&#39;</span><span class="p">],</span>
-            <span class="n">upper</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s1">&#39;upper&#39;</span><span class="p">],</span>
-            <span class="n">log</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s1">&#39;log&#39;</span><span class="p">],</span>
-            <span class="n">q</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s1">&#39;q&#39;</span><span class="p">],</span>
-            <span class="n">default_value</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s1">&#39;default&#39;</span><span class="p">],</span>
+            <span class="n">alpha</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s2">&quot;alpha&quot;</span><span class="p">],</span>
+            <span class="n">beta</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s2">&quot;beta&quot;</span><span class="p">],</span>
+            <span class="n">lower</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s2">&quot;lower&quot;</span><span class="p">],</span>
+            <span class="n">upper</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s2">&quot;upper&quot;</span><span class="p">],</span>
+            <span class="n">log</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s2">&quot;log&quot;</span><span class="p">],</span>
+            <span class="n">q</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s2">&quot;q&quot;</span><span class="p">],</span>
+            <span class="n">default_value</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s2">&quot;default&quot;</span><span class="p">],</span>
         <span class="p">)</span>
-    <span class="k">elif</span> <span class="n">hp_type</span> <span class="o">==</span> <span class="s1">&#39;uniform_int&#39;</span><span class="p">:</span>
+
+    <span class="k">if</span> <span class="n">hp_type</span> <span class="o">==</span> <span class="s2">&quot;uniform_int&quot;</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">UniformIntegerHyperparameter</span><span class="p">(</span>
             <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
-            <span class="n">log</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s1">&#39;log&#39;</span><span class="p">],</span>
-            <span class="n">lower</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s1">&#39;lower&#39;</span><span class="p">],</span>
-            <span class="n">upper</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s1">&#39;upper&#39;</span><span class="p">],</span>
-            <span class="n">default_value</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s1">&#39;default&#39;</span><span class="p">],</span>
-            <span class="n">q</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s1">&#39;q&#39;</span><span class="p">],</span>
+            <span class="n">log</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s2">&quot;log&quot;</span><span class="p">],</span>
+            <span class="n">lower</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s2">&quot;lower&quot;</span><span class="p">],</span>
+            <span class="n">upper</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s2">&quot;upper&quot;</span><span class="p">],</span>
+            <span class="n">default_value</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s2">&quot;default&quot;</span><span class="p">],</span>
+            <span class="n">q</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s2">&quot;q&quot;</span><span class="p">],</span>
         <span class="p">)</span>
-    <span class="k">elif</span> <span class="n">hp_type</span> <span class="o">==</span> <span class="s1">&#39;normal_int&#39;</span><span class="p">:</span>
+
+    <span class="k">if</span> <span class="n">hp_type</span> <span class="o">==</span> <span class="s2">&quot;normal_int&quot;</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">NormalIntegerHyperparameter</span><span class="p">(</span>
             <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
-            <span class="n">mu</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s1">&#39;mu&#39;</span><span class="p">],</span>
-            <span class="n">sigma</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s1">&#39;sigma&#39;</span><span class="p">],</span>
-            <span class="n">log</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s1">&#39;log&#39;</span><span class="p">],</span>
-            <span class="n">lower</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s1">&#39;lower&#39;</span><span class="p">],</span>
-            <span class="n">upper</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s1">&#39;upper&#39;</span><span class="p">],</span>
-            <span class="n">default_value</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s1">&#39;default&#39;</span><span class="p">],</span>
-            <span class="n">q</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s1">&#39;q&#39;</span><span class="p">],</span>
+            <span class="n">mu</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s2">&quot;mu&quot;</span><span class="p">],</span>
+            <span class="n">sigma</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s2">&quot;sigma&quot;</span><span class="p">],</span>
+            <span class="n">log</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s2">&quot;log&quot;</span><span class="p">],</span>
+            <span class="n">lower</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s2">&quot;lower&quot;</span><span class="p">],</span>
+            <span class="n">upper</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s2">&quot;upper&quot;</span><span class="p">],</span>
+            <span class="n">default_value</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s2">&quot;default&quot;</span><span class="p">],</span>
+            <span class="n">q</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s2">&quot;q&quot;</span><span class="p">],</span>
         <span class="p">)</span>
-    <span class="k">elif</span> <span class="n">hp_type</span> <span class="o">==</span> <span class="s1">&#39;beta_int&#39;</span><span class="p">:</span>
+
+    <span class="k">if</span> <span class="n">hp_type</span> <span class="o">==</span> <span class="s2">&quot;beta_int&quot;</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">BetaIntegerHyperparameter</span><span class="p">(</span>
             <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
-            <span class="n">alpha</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s1">&#39;alpha&#39;</span><span class="p">],</span>
-            <span class="n">beta</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s1">&#39;beta&#39;</span><span class="p">],</span>
-            <span class="n">lower</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s1">&#39;lower&#39;</span><span class="p">],</span>
-            <span class="n">upper</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s1">&#39;upper&#39;</span><span class="p">],</span>
-            <span class="n">log</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s1">&#39;log&#39;</span><span class="p">],</span>
-            <span class="n">q</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s1">&#39;q&#39;</span><span class="p">],</span>
-            <span class="n">default_value</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s1">&#39;default&#39;</span><span class="p">],</span>
+            <span class="n">alpha</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s2">&quot;alpha&quot;</span><span class="p">],</span>
+            <span class="n">beta</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s2">&quot;beta&quot;</span><span class="p">],</span>
+            <span class="n">lower</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s2">&quot;lower&quot;</span><span class="p">],</span>
+            <span class="n">upper</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s2">&quot;upper&quot;</span><span class="p">],</span>
+            <span class="n">log</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s2">&quot;log&quot;</span><span class="p">],</span>
+            <span class="n">q</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s2">&quot;q&quot;</span><span class="p">],</span>
+            <span class="n">default_value</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s2">&quot;default&quot;</span><span class="p">],</span>
         <span class="p">)</span>
-    <span class="k">elif</span> <span class="n">hp_type</span> <span class="o">==</span> <span class="s1">&#39;categorical&#39;</span><span class="p">:</span>
+
+    <span class="k">if</span> <span class="n">hp_type</span> <span class="o">==</span> <span class="s2">&quot;categorical&quot;</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">CategoricalHyperparameter</span><span class="p">(</span>
             <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
-            <span class="n">choices</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s1">&#39;choices&#39;</span><span class="p">],</span>
-            <span class="n">default_value</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s1">&#39;default&#39;</span><span class="p">],</span>
-            <span class="n">weights</span><span class="o">=</span><span class="n">hyperparameter</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;weights&#39;</span><span class="p">),</span>
+            <span class="n">choices</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s2">&quot;choices&quot;</span><span class="p">],</span>
+            <span class="n">default_value</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s2">&quot;default&quot;</span><span class="p">],</span>
+            <span class="n">weights</span><span class="o">=</span><span class="n">hyperparameter</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;weights&quot;</span><span class="p">),</span>
         <span class="p">)</span>
-    <span class="k">elif</span> <span class="n">hp_type</span> <span class="o">==</span> <span class="s1">&#39;ordinal&#39;</span><span class="p">:</span>
+
+    <span class="k">if</span> <span class="n">hp_type</span> <span class="o">==</span> <span class="s2">&quot;ordinal&quot;</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">OrdinalHyperparameter</span><span class="p">(</span>
             <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
-            <span class="n">sequence</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s1">&#39;sequence&#39;</span><span class="p">],</span>
-            <span class="n">default_value</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s1">&#39;default&#39;</span><span class="p">],</span>
+            <span class="n">sequence</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s2">&quot;sequence&quot;</span><span class="p">],</span>
+            <span class="n">default_value</span><span class="o">=</span><span class="n">hyperparameter</span><span class="p">[</span><span class="s2">&quot;default&quot;</span><span class="p">],</span>
         <span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">hp_type</span><span class="p">)</span>
+
+    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">hp_type</span><span class="p">)</span>
 
 
 <span class="k">def</span> <span class="nf">_construct_condition</span><span class="p">(</span>
-        <span class="n">condition</span><span class="p">:</span> <span class="n">Dict</span><span class="p">,</span>
-        <span class="n">cs</span><span class="p">:</span> <span class="n">ConfigurationSpace</span><span class="p">,</span>
+    <span class="n">condition</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+    <span class="n">cs</span><span class="p">:</span> <span class="n">ConfigurationSpace</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AbstractCondition</span><span class="p">:</span>
-    <span class="n">condition_type</span> <span class="o">=</span> <span class="n">condition</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span>
-    <span class="k">if</span> <span class="n">condition_type</span> <span class="o">==</span> <span class="s1">&#39;AND&#39;</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">_construct_and_condition</span><span class="p">(</span><span class="n">condition</span><span class="p">,</span> <span class="n">cs</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="n">condition_type</span> <span class="o">==</span> <span class="s1">&#39;OR&#39;</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">_construct_or_condition</span><span class="p">(</span><span class="n">condition</span><span class="p">,</span> <span class="n">cs</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="n">condition_type</span> <span class="o">==</span> <span class="s1">&#39;IN&#39;</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">_construct_in_condition</span><span class="p">(</span><span class="n">condition</span><span class="p">,</span> <span class="n">cs</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="n">condition_type</span> <span class="o">==</span> <span class="s1">&#39;EQ&#39;</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">_construct_eq_condition</span><span class="p">(</span><span class="n">condition</span><span class="p">,</span> <span class="n">cs</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="n">condition_type</span> <span class="o">==</span> <span class="s1">&#39;NEQ&#39;</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">_construct_neq_condition</span><span class="p">(</span><span class="n">condition</span><span class="p">,</span> <span class="n">cs</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="n">condition_type</span> <span class="o">==</span> <span class="s1">&#39;GT&#39;</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">_construct_gt_condition</span><span class="p">(</span><span class="n">condition</span><span class="p">,</span> <span class="n">cs</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="n">condition_type</span> <span class="o">==</span> <span class="s1">&#39;LT&#39;</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">_construct_lt_condition</span><span class="p">(</span><span class="n">condition</span><span class="p">,</span> <span class="n">cs</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">condition_type</span><span class="p">)</span>
+    <span class="n">condition_type</span> <span class="o">=</span> <span class="n">condition</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span>
+    <span class="n">methods</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;AND&quot;</span><span class="p">:</span> <span class="n">_construct_and_condition</span><span class="p">,</span>
+        <span class="s2">&quot;OR&quot;</span><span class="p">:</span> <span class="n">_construct_or_condition</span><span class="p">,</span>
+        <span class="s2">&quot;IN&quot;</span><span class="p">:</span> <span class="n">_construct_in_condition</span><span class="p">,</span>
+        <span class="s2">&quot;EQ&quot;</span><span class="p">:</span> <span class="n">_construct_eq_condition</span><span class="p">,</span>
+        <span class="s2">&quot;NEQ&quot;</span><span class="p">:</span> <span class="n">_construct_neq_condition</span><span class="p">,</span>
+        <span class="s2">&quot;GT&quot;</span><span class="p">:</span> <span class="n">_construct_gt_condition</span><span class="p">,</span>
+        <span class="s2">&quot;LT&quot;</span><span class="p">:</span> <span class="n">_construct_lt_condition</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="n">methods</span><span class="p">[</span><span class="n">condition_type</span><span class="p">](</span><span class="n">condition</span><span class="p">,</span> <span class="n">cs</span><span class="p">)</span>
 
 
 <span class="k">def</span> <span class="nf">_construct_and_condition</span><span class="p">(</span>
-        <span class="n">condition</span><span class="p">:</span> <span class="n">Dict</span><span class="p">,</span>
-        <span class="n">cs</span><span class="p">:</span> <span class="n">ConfigurationSpace</span><span class="p">,</span>
+    <span class="n">condition</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+    <span class="n">cs</span><span class="p">:</span> <span class="n">ConfigurationSpace</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AndConjunction</span><span class="p">:</span>
-    <span class="n">conditions</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="n">_construct_condition</span><span class="p">(</span><span class="n">cond</span><span class="p">,</span> <span class="n">cs</span><span class="p">)</span> <span class="k">for</span> <span class="n">cond</span> <span class="ow">in</span> <span class="n">condition</span><span class="p">[</span><span class="s1">&#39;conditions&#39;</span><span class="p">]</span>
-    <span class="p">]</span>
+    <span class="n">conditions</span> <span class="o">=</span> <span class="p">[</span><span class="n">_construct_condition</span><span class="p">(</span><span class="n">cond</span><span class="p">,</span> <span class="n">cs</span><span class="p">)</span> <span class="k">for</span> <span class="n">cond</span> <span class="ow">in</span> <span class="n">condition</span><span class="p">[</span><span class="s2">&quot;conditions&quot;</span><span class="p">]]</span>
     <span class="k">return</span> <span class="n">AndConjunction</span><span class="p">(</span><span class="o">*</span><span class="n">conditions</span><span class="p">)</span>
 
 
 <span class="k">def</span> <span class="nf">_construct_or_condition</span><span class="p">(</span>
-        <span class="n">condition</span><span class="p">:</span> <span class="n">Dict</span><span class="p">,</span>
-        <span class="n">cs</span><span class="p">:</span> <span class="n">ConfigurationSpace</span><span class="p">,</span>
+    <span class="n">condition</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+    <span class="n">cs</span><span class="p">:</span> <span class="n">ConfigurationSpace</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">OrConjunction</span><span class="p">:</span>
-    <span class="n">conditions</span> <span class="o">=</span> <span class="p">[</span><span class="n">_construct_condition</span><span class="p">(</span><span class="n">cond</span><span class="p">,</span> <span class="n">cs</span><span class="p">)</span> <span class="k">for</span> <span class="n">cond</span> <span class="ow">in</span> <span class="n">condition</span><span class="p">[</span><span class="s1">&#39;conditions&#39;</span><span class="p">]]</span>
+    <span class="n">conditions</span> <span class="o">=</span> <span class="p">[</span><span class="n">_construct_condition</span><span class="p">(</span><span class="n">cond</span><span class="p">,</span> <span class="n">cs</span><span class="p">)</span> <span class="k">for</span> <span class="n">cond</span> <span class="ow">in</span> <span class="n">condition</span><span class="p">[</span><span class="s2">&quot;conditions&quot;</span><span class="p">]]</span>
     <span class="k">return</span> <span class="n">OrConjunction</span><span class="p">(</span><span class="o">*</span><span class="n">conditions</span><span class="p">)</span>
 
 
 <span class="k">def</span> <span class="nf">_construct_in_condition</span><span class="p">(</span>
-        <span class="n">condition</span><span class="p">:</span> <span class="n">Dict</span><span class="p">,</span>
-        <span class="n">cs</span><span class="p">:</span> <span class="n">ConfigurationSpace</span><span class="p">,</span>
+    <span class="n">condition</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+    <span class="n">cs</span><span class="p">:</span> <span class="n">ConfigurationSpace</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">InCondition</span><span class="p">:</span>
     <span class="k">return</span> <span class="n">InCondition</span><span class="p">(</span>
-        <span class="n">child</span><span class="o">=</span><span class="n">cs</span><span class="o">.</span><span class="n">get_hyperparameter</span><span class="p">(</span><span class="n">condition</span><span class="p">[</span><span class="s1">&#39;child&#39;</span><span class="p">]),</span>
-        <span class="n">parent</span><span class="o">=</span><span class="n">cs</span><span class="o">.</span><span class="n">get_hyperparameter</span><span class="p">(</span><span class="n">condition</span><span class="p">[</span><span class="s1">&#39;parent&#39;</span><span class="p">]),</span>
-        <span class="n">values</span><span class="o">=</span><span class="n">condition</span><span class="p">[</span><span class="s1">&#39;values&#39;</span><span class="p">],</span>
+        <span class="n">child</span><span class="o">=</span><span class="n">cs</span><span class="p">[</span><span class="n">condition</span><span class="p">[</span><span class="s2">&quot;child&quot;</span><span class="p">]],</span>
+        <span class="n">parent</span><span class="o">=</span><span class="n">cs</span><span class="p">[</span><span class="n">condition</span><span class="p">[</span><span class="s2">&quot;parent&quot;</span><span class="p">]],</span>
+        <span class="n">values</span><span class="o">=</span><span class="n">condition</span><span class="p">[</span><span class="s2">&quot;values&quot;</span><span class="p">],</span>
     <span class="p">)</span>
 
 
 <span class="k">def</span> <span class="nf">_construct_eq_condition</span><span class="p">(</span>
-        <span class="n">condition</span><span class="p">:</span> <span class="n">Dict</span><span class="p">,</span>
-        <span class="n">cs</span><span class="p">:</span> <span class="n">ConfigurationSpace</span><span class="p">,</span>
+    <span class="n">condition</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+    <span class="n">cs</span><span class="p">:</span> <span class="n">ConfigurationSpace</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">EqualsCondition</span><span class="p">:</span>
     <span class="k">return</span> <span class="n">EqualsCondition</span><span class="p">(</span>
-        <span class="n">child</span><span class="o">=</span><span class="n">cs</span><span class="o">.</span><span class="n">get_hyperparameter</span><span class="p">(</span><span class="n">condition</span><span class="p">[</span><span class="s1">&#39;child&#39;</span><span class="p">]),</span>
-        <span class="n">parent</span><span class="o">=</span><span class="n">cs</span><span class="o">.</span><span class="n">get_hyperparameter</span><span class="p">(</span><span class="n">condition</span><span class="p">[</span><span class="s1">&#39;parent&#39;</span><span class="p">]),</span>
-        <span class="n">value</span><span class="o">=</span><span class="n">condition</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">],</span>
+        <span class="n">child</span><span class="o">=</span><span class="n">cs</span><span class="p">[</span><span class="n">condition</span><span class="p">[</span><span class="s2">&quot;child&quot;</span><span class="p">]],</span>
+        <span class="n">parent</span><span class="o">=</span><span class="n">cs</span><span class="p">[</span><span class="n">condition</span><span class="p">[</span><span class="s2">&quot;parent&quot;</span><span class="p">]],</span>
+        <span class="n">value</span><span class="o">=</span><span class="n">condition</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">],</span>
     <span class="p">)</span>
 
 
 <span class="k">def</span> <span class="nf">_construct_neq_condition</span><span class="p">(</span>
-        <span class="n">condition</span><span class="p">:</span> <span class="n">Dict</span><span class="p">,</span>
-        <span class="n">cs</span><span class="p">:</span> <span class="n">ConfigurationSpace</span><span class="p">,</span>
+    <span class="n">condition</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+    <span class="n">cs</span><span class="p">:</span> <span class="n">ConfigurationSpace</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">NotEqualsCondition</span><span class="p">:</span>
     <span class="k">return</span> <span class="n">NotEqualsCondition</span><span class="p">(</span>
-        <span class="n">child</span><span class="o">=</span><span class="n">cs</span><span class="o">.</span><span class="n">get_hyperparameter</span><span class="p">(</span><span class="n">condition</span><span class="p">[</span><span class="s1">&#39;child&#39;</span><span class="p">]),</span>
-        <span class="n">parent</span><span class="o">=</span><span class="n">cs</span><span class="o">.</span><span class="n">get_hyperparameter</span><span class="p">(</span><span class="n">condition</span><span class="p">[</span><span class="s1">&#39;parent&#39;</span><span class="p">]),</span>
-        <span class="n">value</span><span class="o">=</span><span class="n">condition</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">],</span>
+        <span class="n">child</span><span class="o">=</span><span class="n">cs</span><span class="p">[</span><span class="n">condition</span><span class="p">[</span><span class="s2">&quot;child&quot;</span><span class="p">]],</span>
+        <span class="n">parent</span><span class="o">=</span><span class="n">cs</span><span class="p">[</span><span class="n">condition</span><span class="p">[</span><span class="s2">&quot;parent&quot;</span><span class="p">]],</span>
+        <span class="n">value</span><span class="o">=</span><span class="n">condition</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">],</span>
     <span class="p">)</span>
 
 
 <span class="k">def</span> <span class="nf">_construct_gt_condition</span><span class="p">(</span>
-        <span class="n">condition</span><span class="p">:</span> <span class="n">Dict</span><span class="p">,</span>
-        <span class="n">cs</span><span class="p">:</span> <span class="n">ConfigurationSpace</span><span class="p">,</span>
+    <span class="n">condition</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+    <span class="n">cs</span><span class="p">:</span> <span class="n">ConfigurationSpace</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">GreaterThanCondition</span><span class="p">:</span>
     <span class="k">return</span> <span class="n">GreaterThanCondition</span><span class="p">(</span>
-        <span class="n">child</span><span class="o">=</span><span class="n">cs</span><span class="o">.</span><span class="n">get_hyperparameter</span><span class="p">(</span><span class="n">condition</span><span class="p">[</span><span class="s1">&#39;child&#39;</span><span class="p">]),</span>
-        <span class="n">parent</span><span class="o">=</span><span class="n">cs</span><span class="o">.</span><span class="n">get_hyperparameter</span><span class="p">(</span><span class="n">condition</span><span class="p">[</span><span class="s1">&#39;parent&#39;</span><span class="p">]),</span>
-        <span class="n">value</span><span class="o">=</span><span class="n">condition</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">],</span>
+        <span class="n">child</span><span class="o">=</span><span class="n">cs</span><span class="p">[</span><span class="n">condition</span><span class="p">[</span><span class="s2">&quot;child&quot;</span><span class="p">]],</span>
+        <span class="n">parent</span><span class="o">=</span><span class="n">cs</span><span class="p">[</span><span class="n">condition</span><span class="p">[</span><span class="s2">&quot;parent&quot;</span><span class="p">]],</span>
+        <span class="n">value</span><span class="o">=</span><span class="n">condition</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">],</span>
     <span class="p">)</span>
 
 
 <span class="k">def</span> <span class="nf">_construct_lt_condition</span><span class="p">(</span>
-        <span class="n">condition</span><span class="p">:</span> <span class="n">Dict</span><span class="p">,</span>
-        <span class="n">cs</span><span class="p">:</span> <span class="n">ConfigurationSpace</span><span class="p">,</span>
+    <span class="n">condition</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+    <span class="n">cs</span><span class="p">:</span> <span class="n">ConfigurationSpace</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">LessThanCondition</span><span class="p">:</span>
     <span class="k">return</span> <span class="n">LessThanCondition</span><span class="p">(</span>
-        <span class="n">child</span><span class="o">=</span><span class="n">cs</span><span class="o">.</span><span class="n">get_hyperparameter</span><span class="p">(</span><span class="n">condition</span><span class="p">[</span><span class="s1">&#39;child&#39;</span><span class="p">]),</span>
-        <span class="n">parent</span><span class="o">=</span><span class="n">cs</span><span class="o">.</span><span class="n">get_hyperparameter</span><span class="p">(</span><span class="n">condition</span><span class="p">[</span><span class="s1">&#39;parent&#39;</span><span class="p">]),</span>
-        <span class="n">value</span><span class="o">=</span><span class="n">condition</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">],</span>
+        <span class="n">child</span><span class="o">=</span><span class="n">cs</span><span class="p">[</span><span class="n">condition</span><span class="p">[</span><span class="s2">&quot;child&quot;</span><span class="p">]],</span>
+        <span class="n">parent</span><span class="o">=</span><span class="n">cs</span><span class="p">[</span><span class="n">condition</span><span class="p">[</span><span class="s2">&quot;parent&quot;</span><span class="p">]],</span>
+        <span class="n">value</span><span class="o">=</span><span class="n">condition</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">],</span>
     <span class="p">)</span>
 
 
 <span class="k">def</span> <span class="nf">_construct_forbidden</span><span class="p">(</span>
-        <span class="n">clause</span><span class="p">:</span> <span class="n">Dict</span><span class="p">,</span>
-        <span class="n">cs</span><span class="p">:</span> <span class="n">ConfigurationSpace</span><span class="p">,</span>
+    <span class="n">clause</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+    <span class="n">cs</span><span class="p">:</span> <span class="n">ConfigurationSpace</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AbstractForbiddenComponent</span><span class="p">:</span>
-    <span class="n">forbidden_type</span> <span class="o">=</span> <span class="n">clause</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span>
-    <span class="k">if</span> <span class="n">forbidden_type</span> <span class="o">==</span> <span class="s1">&#39;EQUALS&#39;</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">_construct_forbidden_equals</span><span class="p">(</span><span class="n">clause</span><span class="p">,</span> <span class="n">cs</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="n">forbidden_type</span> <span class="o">==</span> <span class="s1">&#39;IN&#39;</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">_construct_forbidden_in</span><span class="p">(</span><span class="n">clause</span><span class="p">,</span> <span class="n">cs</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="n">forbidden_type</span> <span class="o">==</span> <span class="s1">&#39;AND&#39;</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">_construct_forbidden_and</span><span class="p">(</span><span class="n">clause</span><span class="p">,</span> <span class="n">cs</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="n">forbidden_type</span> <span class="o">==</span> <span class="s1">&#39;RELATION&#39;</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">_construct_forbidden_equals</span><span class="p">(</span><span class="n">clause</span><span class="p">,</span> <span class="n">cs</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">forbidden_type</span><span class="p">)</span>
+    <span class="n">forbidden_type</span> <span class="o">=</span> <span class="n">clause</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span>
+    <span class="n">methods</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;EQUALS&quot;</span><span class="p">:</span> <span class="n">_construct_forbidden_equals</span><span class="p">,</span>
+        <span class="s2">&quot;IN&quot;</span><span class="p">:</span> <span class="n">_construct_forbidden_in</span><span class="p">,</span>
+        <span class="s2">&quot;AND&quot;</span><span class="p">:</span> <span class="n">_construct_forbidden_and</span><span class="p">,</span>
+        <span class="s2">&quot;RELATION&quot;</span><span class="p">:</span> <span class="n">_construct_forbidden_equals</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="n">methods</span><span class="p">[</span><span class="n">forbidden_type</span><span class="p">](</span><span class="n">clause</span><span class="p">,</span> <span class="n">cs</span><span class="p">)</span>
 
 
 <span class="k">def</span> <span class="nf">_construct_forbidden_equals</span><span class="p">(</span>
-        <span class="n">clause</span><span class="p">:</span> <span class="n">Dict</span><span class="p">,</span>
-        <span class="n">cs</span><span class="p">:</span> <span class="n">ConfigurationSpace</span><span class="p">,</span>
+    <span class="n">clause</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+    <span class="n">cs</span><span class="p">:</span> <span class="n">ConfigurationSpace</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ForbiddenEqualsClause</span><span class="p">:</span>
-    <span class="k">return</span> <span class="n">ForbiddenEqualsClause</span><span class="p">(</span>
-        <span class="n">hyperparameter</span><span class="o">=</span><span class="n">cs</span><span class="o">.</span><span class="n">get_hyperparameter</span><span class="p">(</span><span class="n">clause</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]),</span>
-        <span class="n">value</span><span class="o">=</span><span class="n">clause</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span>
-    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">ForbiddenEqualsClause</span><span class="p">(</span><span class="n">hyperparameter</span><span class="o">=</span><span class="n">cs</span><span class="p">[</span><span class="n">clause</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]],</span> <span class="n">value</span><span class="o">=</span><span class="n">clause</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">])</span>
 
 
 <span class="k">def</span> <span class="nf">_construct_forbidden_in</span><span class="p">(</span>
-        <span class="n">clause</span><span class="p">:</span> <span class="n">Dict</span><span class="p">,</span>
-        <span class="n">cs</span><span class="p">:</span> <span class="n">ConfigurationSpace</span><span class="p">,</span>
+    <span class="n">clause</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+    <span class="n">cs</span><span class="p">:</span> <span class="n">ConfigurationSpace</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ForbiddenEqualsClause</span><span class="p">:</span>
-    <span class="k">return</span> <span class="n">ForbiddenInClause</span><span class="p">(</span>
-        <span class="n">hyperparameter</span><span class="o">=</span><span class="n">cs</span><span class="o">.</span><span class="n">get_hyperparameter</span><span class="p">(</span><span class="n">clause</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]),</span>
-        <span class="n">values</span><span class="o">=</span><span class="n">clause</span><span class="p">[</span><span class="s1">&#39;values&#39;</span><span class="p">]</span>
-    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">ForbiddenInClause</span><span class="p">(</span><span class="n">hyperparameter</span><span class="o">=</span><span class="n">cs</span><span class="p">[</span><span class="n">clause</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]],</span> <span class="n">values</span><span class="o">=</span><span class="n">clause</span><span class="p">[</span><span class="s2">&quot;values&quot;</span><span class="p">])</span>
 
 
 <span class="k">def</span> <span class="nf">_construct_forbidden_and</span><span class="p">(</span>
-        <span class="n">clause</span><span class="p">:</span> <span class="n">Dict</span><span class="p">,</span>
-        <span class="n">cs</span><span class="p">:</span> <span class="n">ConfigurationSpace</span><span class="p">,</span>
+    <span class="n">clause</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+    <span class="n">cs</span><span class="p">:</span> <span class="n">ConfigurationSpace</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ForbiddenAndConjunction</span><span class="p">:</span>
-    <span class="n">clauses</span> <span class="o">=</span> <span class="p">[</span><span class="n">_construct_forbidden</span><span class="p">(</span><span class="n">cl</span><span class="p">,</span> <span class="n">cs</span><span class="p">)</span> <span class="k">for</span> <span class="n">cl</span> <span class="ow">in</span> <span class="n">clause</span><span class="p">[</span><span class="s1">&#39;clauses&#39;</span><span class="p">]]</span>
+    <span class="n">clauses</span> <span class="o">=</span> <span class="p">[</span><span class="n">_construct_forbidden</span><span class="p">(</span><span class="n">cl</span><span class="p">,</span> <span class="n">cs</span><span class="p">)</span> <span class="k">for</span> <span class="n">cl</span> <span class="ow">in</span> <span class="n">clause</span><span class="p">[</span><span class="s2">&quot;clauses&quot;</span><span class="p">]]</span>
     <span class="k">return</span> <span class="n">ForbiddenAndConjunction</span><span class="p">(</span><span class="o">*</span><span class="n">clauses</span><span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">_construct_forbidden_relation</span><span class="p">(</span>
-        <span class="n">clause</span><span class="p">:</span> <span class="n">Dict</span><span class="p">,</span>
-        <span class="n">cs</span><span class="p">:</span> <span class="n">ConfigurationSpace</span><span class="p">,</span>
+<span class="k">def</span> <span class="nf">_construct_forbidden_relation</span><span class="p">(</span>  <span class="c1"># pyright: ignore</span>
+    <span class="n">clause</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+    <span class="n">cs</span><span class="p">:</span> <span class="n">ConfigurationSpace</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ForbiddenRelation</span><span class="p">:</span>
-    <span class="n">left</span> <span class="o">=</span> <span class="n">cs</span><span class="o">.</span><span class="n">get_hyperparameter</span><span class="p">(</span><span class="n">clause</span><span class="p">[</span><span class="s1">&#39;left&#39;</span><span class="p">])</span>
-    <span class="n">right</span> <span class="o">=</span> <span class="n">cs</span><span class="o">.</span><span class="n">get_hyperparameter</span><span class="p">(</span><span class="n">clause</span><span class="p">[</span><span class="s1">&#39;right&#39;</span><span class="p">])</span>
+    <span class="n">left</span> <span class="o">=</span> <span class="n">cs</span><span class="p">[</span><span class="n">clause</span><span class="p">[</span><span class="s2">&quot;left&quot;</span><span class="p">]]</span>
+    <span class="n">right</span> <span class="o">=</span> <span class="n">cs</span><span class="p">[</span><span class="n">clause</span><span class="p">[</span><span class="s2">&quot;right&quot;</span><span class="p">]]</span>
 
-    <span class="k">if</span> <span class="n">clause</span><span class="p">[</span><span class="s1">&#39;lambda&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;LESS&quot;</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">clause</span><span class="p">[</span><span class="s2">&quot;lambda&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;LESS&quot;</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">ForbiddenLessThanRelation</span><span class="p">(</span><span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="n">clause</span><span class="p">[</span><span class="s1">&#39;lambda&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;EQUALS&quot;</span><span class="p">:</span>
+
+    <span class="k">if</span> <span class="n">clause</span><span class="p">[</span><span class="s2">&quot;lambda&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;EQUALS&quot;</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">ForbiddenEqualsRelation</span><span class="p">(</span><span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="n">clause</span><span class="p">[</span><span class="s1">&#39;lambda&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;GREATER&quot;</span><span class="p">:</span>
+
+    <span class="k">if</span> <span class="n">clause</span><span class="p">[</span><span class="s2">&quot;lambda&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;GREATER&quot;</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">ForbiddenGreaterThanRelation</span><span class="p">(</span><span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unknown relation &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="n">clause</span><span class="p">[</span><span class="s1">&#39;lambda&#39;</span><span class="p">])</span>
+
+    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unknown relation &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="n">clause</span><span class="p">[</span><span class="s2">&quot;lambda&quot;</span><span class="p">])</span>
 </pre></div>
 
               </div>
@@ -941,7 +931,7 @@
     
     <div class="footer-item">
       <p class="copyright">
-    &copy; Copyright Copyright 2023, Matthias Feurer, Katharina Eggensperger, Syed Mohsin Ali, Christina Hernandez Wunsch, Julien-Charles Levesque, Jost Tobias Springenberg, Philipp Mueller, Marius Lindauer, Jorn Tuyls, Eddie Bergman.<br>
+    &copy; Copyright Copyright 2023, Matthias Feurer, Katharina Eggensperger, Syed Mohsin Ali, Christina Hernandez Wunsch, Julien-Charles Levesque, Jost Tobias Springenberg, Philipp Mueller, Marius Lindauer, Jorn Tuyls, Eddie Bergman, Arjun Krishnakumar.<br>
 </p>
     </div>
     
