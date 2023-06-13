@@ -1,47 +1,13 @@
-Results of doctest builder run on 2023-06-13 10:04:53
+Results of doctest builder run on 2023-06-13 10:05:45
 =====================================================
 
-Document: index
----------------
-**********************************************************************
-File "index.rst", line 86, in default
-Failed example:
-    cs.sample_configuration(2)
-Expected:
-    [Configuration(values={
-      'a': 0.17013149799713567,
-      'b': 5,
-      'c': 'dog',
-    })
-    , Configuration(values={
-      'a': 0.5476203000512754,
-      'b': 9,
-      'c': 'mouse',
-    })
-    ]
-Got:
-    [Configuration(values={
-      'a': 0.17013149799713567,
-      'b': 5,
-      'c': 'dog',
-    }), Configuration(values={
-      'a': 0.5476203000512754,
-      'b': 9,
-      'c': 'mouse',
-    })]
-**********************************************************************
-1 items had failures:
-   1 of  13 in default
-13 tests in 1 items.
-12 passed and 1 failed.
-***Test Failed*** 1 failures.
-
-Document: api/hyperparameters
------------------------------
-1 items passed all tests:
-  16 tests in default
-16 tests in 1 items.
-16 passed and 0 failed.
+Document: api/serialization
+---------------------------
+2 items passed all tests:
+   6 tests in default
+   2 tests in pcs_new_test
+8 tests in 2 items.
+8 passed and 0 failed.
 Test passed.
 
 Document: api/conditions
@@ -60,13 +26,12 @@ Document: api/forbidden_clauses
 14 passed and 0 failed.
 Test passed.
 
-Document: api/serialization
----------------------------
-2 items passed all tests:
-   6 tests in default
-   2 tests in pcs_new_test
-8 tests in 2 items.
-8 passed and 0 failed.
+Document: api/hyperparameters
+-----------------------------
+1 items passed all tests:
+  16 tests in default
+16 tests in 1 items.
+16 passed and 0 failed.
 Test passed.
 
 Document: guide
@@ -140,6 +105,41 @@ Got:
    1 of   5 in default
 5 tests in 1 items.
 4 passed and 1 failed.
+***Test Failed*** 1 failures.
+
+Document: index
+---------------
+**********************************************************************
+File "index.rst", line 86, in default
+Failed example:
+    cs.sample_configuration(2)
+Expected:
+    [Configuration(values={
+      'a': 0.17013149799713567,
+      'b': 5,
+      'c': 'dog',
+    })
+    , Configuration(values={
+      'a': 0.5476203000512754,
+      'b': 9,
+      'c': 'mouse',
+    })
+    ]
+Got:
+    [Configuration(values={
+      'a': 0.17013149799713567,
+      'b': 5,
+      'c': 'dog',
+    }), Configuration(values={
+      'a': 0.5476203000512754,
+      'b': 9,
+      'c': 'mouse',
+    })]
+**********************************************************************
+1 items had failures:
+   1 of  13 in default
+13 tests in 1 items.
+12 passed and 1 failed.
 ***Test Failed*** 1 failures.
 
 Doctest summary
