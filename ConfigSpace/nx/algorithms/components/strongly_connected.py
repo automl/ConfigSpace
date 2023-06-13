@@ -1,21 +1,23 @@
-# -*- coding: utf-8 -*-
-"""
-Strongly connected components.
-"""
+"""Strongly connected components."""
 # Copyright (C) 2004-2011 by
 #    Aric Hagberg <hagberg@lanl.gov>
 #    Dan Schult <dschult@colgate.edu>
 #    Pieter Swart <swart@lanl.gov>
 #    All rights reserved.
 #    BSD license.
+from __future__ import annotations
+
 import ConfigSpace.nx
 
-__authors__ = "\n".join(['Eben Kenah',
-                         'Aric Hagberg (hagberg@lanl.gov)'
-                         'Christopher Ellison',
-                         'Ben Edwards (bedwards@cs.unm.edu)'])
+__authors__ = "\n".join(
+    [
+        "Eben Kenah",
+        "Aric Hagberg (hagberg@lanl.gov)" "Christopher Ellison",
+        "Ben Edwards (bedwards@cs.unm.edu)",
+    ],
+)
 
-__all__ = ['strongly_connected_components']
+__all__ = ["strongly_connected_components"]
 
 
 def strongly_connected_components(G):
@@ -55,8 +57,10 @@ def strongly_connected_components(G):
        Information Processing Letters 49(1): 9-14, (1994)..
     """
     if not G.is_directed():
-        raise ConfigSpace.nx.NetworkXError("""Not allowed for undirected graph G.
-              Use connected_components() """)
+        raise ConfigSpace.nx.NetworkXError(
+            """Not allowed for undirected graph G.
+              Use connected_components() """,
+        )
     preorder = {}
     lowlink = {}
     scc_found = {}
@@ -90,8 +94,7 @@ def strongly_connected_components(G):
                     if lowlink[v] == preorder[v]:
                         scc_found[v] = True
                         scc = [v]
-                        while (scc_queue
-                               and preorder[scc_queue[-1]] > preorder[v]):
+                        while scc_queue and preorder[scc_queue[-1]] > preorder[v]:
                             k = scc_queue.pop()
                             scc_found[k] = True
                             scc.append(k)

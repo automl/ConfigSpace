@@ -25,14 +25,15 @@
 # ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+from __future__ import annotations
 
 import os
 import unittest
 
 import ConfigSpace
-import ConfigSpace.util
 import ConfigSpace.read_and_write.pcs as pcs_parser
 import ConfigSpace.read_and_write.pcs_new as pcs_new_parser
+import ConfigSpace.util
 
 
 class ExampleSearchSpacesTest(unittest.TestCase):
@@ -51,8 +52,7 @@ def generate(configuration_space_path):
         default = cs.get_default_configuration()
         cs._check_configuration_rigorous(default)
         for i in range(10):
-            neighborhood = ConfigSpace.util.get_one_exchange_neighbourhood(
-                default, seed=i)
+            neighborhood = ConfigSpace.util.get_one_exchange_neighbourhood(default, seed=i)
 
             for shuffle, n in enumerate(neighborhood):
                 n.is_valid_configuration()
@@ -64,35 +64,36 @@ def generate(configuration_space_path):
         for i in range(10):
             cs.seed(i)
             configurations = cs.sample_configuration(size=5)
-            for j, c in enumerate(configurations):
+            for _j, c in enumerate(configurations):
                 c.is_valid_configuration()
                 cs._check_configuration_rigorous(c)
-                neighborhood = ConfigSpace.util.get_one_exchange_neighbourhood(
-                    c, seed=i)
+                neighborhood = ConfigSpace.util.get_one_exchange_neighbourhood(c, seed=i)
 
                 for shuffle, n in enumerate(neighborhood):
                     n.is_valid_configuration()
                     cs._check_configuration_rigorous(n)
                     if shuffle == 20:
                         break
+
     return run_test
 
 
 this_file = os.path.abspath(__file__)
 this_directory = os.path.dirname(this_file)
-configuration_space_path = os.path.join(this_directory,
-                                        "..", "test_searchspaces")
+configuration_space_path = os.path.join(this_directory, "..", "test_searchspaces")
 configuration_space_path = os.path.abspath(configuration_space_path)
 pcs_files = sorted(os.listdir(configuration_space_path))
 
 for pcs_file in pcs_files:
-    if '.pcs' in pcs_file:
+    if ".pcs" in pcs_file:
         full_path = os.path.join(configuration_space_path, pcs_file)
-        setattr(ExampleSearchSpacesTest, 'test_%s' % pcs_file.replace('.', '_'),
-                generate(full_path))
+        setattr(
+            ExampleSearchSpacesTest,
+            "test_%s" % pcs_file.replace(".", "_"),
+            generate(full_path),
+        )
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     suite = unittest.TestSuite()
-    suite.addTest(ExampleSearchSpacesTest(
-        methodName='test_auto-sklearn_2017_04_pcs'))
+    suite.addTest(ExampleSearchSpacesTest(methodName="test_auto-sklearn_2017_04_pcs"))
     runner = unittest.TextTestRunner().run(suite)

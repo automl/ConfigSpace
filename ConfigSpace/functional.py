@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 from typing import Iterator
 
-from more_itertools import roundrobin
 import numpy as np
+from more_itertools import roundrobin
 
 
 def center_range(

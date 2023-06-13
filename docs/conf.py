@@ -21,15 +21,15 @@ options = {
 automl_sphinx_theme.set_options(globals(), options)
 
 extensions = [
-    'sphinx.ext.autodoc',
-    'sphinx.ext.doctest',
-    'sphinx.ext.coverage',
-    'sphinx.ext.mathjax',
-    'sphinx.ext.viewcode',
-    'sphinx.ext.autosummary',
-    'sphinx.ext.napoleon',
-    'sphinx.ext.githubpages',
-    'sphinx.ext.doctest',
+    "sphinx.ext.autodoc",
+    "sphinx.ext.doctest",
+    "sphinx.ext.coverage",
+    "sphinx.ext.mathjax",
+    "sphinx.ext.viewcode",
+    "sphinx.ext.autosummary",
+    "sphinx.ext.napoleon",
+    "sphinx.ext.githubpages",
+    "sphinx.ext.doctest",
 ]
 
 autodoc_typehints = "description"

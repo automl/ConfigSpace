@@ -1,2 +1,307 @@
+[project]
+name = "ConfigSpace"
+version = "0.7.0"
+description = """\
+    Creation and manipulation of parameter configuration spaces for \
+    automated algorithm configuration and hyperparameter tuning. \
+    """
+license.file = "LICENSE"
+requires-python = ">=3.7"
+readme = "README.md"
+authors = [
+  { name = "Matthias Feurer" },
+  { name = "Katharina Eggensperger" },
+  { name = "Syed Mohsin Ali" },
+  { name = "Christina Hernandez Wunsch" },
+  { name = "Julien-Charles Levesque" },
+  { name = "Jost Tobias Springenberg" },
+  { name = "Philipp Mueller" },
+  { name = "Marius Lindauer" },
+  { name = "Jorn Tuyls" },
+  { name = "Eddie Bergman" },
+  { name = "Arjun Krishnakumar" },
+]
+maintainers = [
+  { name = "Matthias Feurer", email = "feurerm@informatik.uni-freiburg.de" },
+  { name = "Eddie Bergman", email = "eddiebergmanhs@gmail.com" },
+  { name = "Arjun Krishnakumar", email = "arjunkrishnakumarmec@gmail.com" },
+]
+keywords = [
+  "algorithm",
+  "configuration",
+  "hyperparameter",
+  "optimization",
+  "empirical",
+  "evaluation",
+  "black",
+  "box",
+]
+classifiers = [
+  "Programming Language :: Python :: 3.7",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Natural Language :: English",
+  "Intended Audience :: Developers",
+  "Intended Audience :: Education",
+  "Intended Audience :: Science/Research",
+  "License :: OSI Approved :: BSD License",
+  "Operating System :: POSIX :: Linux",
+  "Operating System :: Microsoft :: Windows",
+  "Operating System :: MacOS",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+  "Topic :: Scientific/Engineering",
+  "Topic :: Software Development",
+]
+urls.homepage = "https://github.com/automl/ConfigSpace"
+urls.documentation = "https://automl.github.io/ConfigSpace/main/"
+
+dependencies = [
+  "numpy",
+  "pyparsing",
+  "scipy",
+  "typing_extensions",
+  "more_itertools",
+]
+
+[project.optional-dependencies]
+dev = [
+  "mypy",
+  "pre-commit",
+  "build",
+  "ruff",
+  "black",
+  "pytest>=4.6",
+  "pytest-cov",
+  "automl_sphinx_theme>=0.1.11",
+]
+
 [build-system]
 requires = ["setuptools", "wheel", "oldest-supported-numpy", "Cython"]
+build-backend = "setuptools.build_meta"
+
+
+[tool.pytest.ini_options]
+testpaths = ["test"]
+minversion = "7.0"
+log_cli = false
+log_level = "DEBUG"
+xfail_strict = true
+addopts = "--durations=10 -vv"
+markers = ["example: An example"]
+
+
+[tool.coverage.run]
+branch = true
+context = "ConfigSpace"
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
+exclude_lines = [
+  "pragma: no cover",
+  '\.\.\.',
+  "raise NotImplementedError",
+  "if TYPE_CHECKING",
+]
+
+[tool.black]
+target-version = ['py37']
+line-length = 100
+
+# https://github.com/charliermarsh/ruff
+[tool.ruff]
+target-version = "py37"
+line-length = 100
+show-source = true
+src = ["ConfigSpace", "test"]
+
+# Allow unused variables when underscore-prefixed.
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+
+select = [
+  "A",
+  # "ANN", # Handled by mypy
+  "ARG",
+  "B",
+  "BLE",
+  "COM",
+  "C4",
+  "D",
+  "DTZ",
+  "E",
+  # "EXE", Meh
+  "ERA",
+  "F",
+  # "FBT", # Too many boolean positional params around
+  "I",
+  # "ISC",  # Favours implicit string concatenation
+  "INP",
+  # "INT", # I don't understand this one
+  "N",
+  "NPY",
+  # "PD",  # Pandas specific
+  "PLC",
+  "PLE",
+  "PLR",
+  "PLW",
+  "PIE",
+  # "PT", # Too ingrained into unittest settings to go `pytest` style
+  # "PTH",  # Too ingrained into `os` module over `Path`
+  # "PYI", # Specific to .pyi files for type stubs
+  "Q",
+  "PGH004",
+  "RET",
+  "RUF",
+  # "C90",  # Too many methods marked as too complex
+  "S",
+  # "SLF",    # Private member accessed (sure, it's python)
+  "SIM",
+  # "TRY", # Good in principle, would take a lot of work to statisfy
+  "T10",
+  "T20",
+  "TID",
+  "TCH",
+  "UP",
+  "N",
+  "W",
+  "YTT",
+]
+
+ignore = [
+  "D100",
+  "D101",    # Missing docstring in public class
+  "D104",    # Missing docstring in public package
+  "D105",    # Missing docstring in magic mthod
+  "D203",    # 1 blank line required before class docstring
+  "D205",    # 1 blank line between summary and description
+  "D401",    # First line of docstring should be in imperative mood
+  "N806",    # Variable X in function should be lowercase
+  "E731",    # Do not assign a lambda expression, use a def
+  "A003",    # Shadowing a builtin
+  "S101",    # Use of assert detected.
+  "W292",    # No newline at end of file
+  "PLC1901", # "" can be simplified to be falsey
+  "TCH003",  # Move stdlib import into TYPE_CHECKING
+  "PLR0915", # Too many statements
+  "PLR0912", # Too many branches
+  "PLR0913", # Too many arguments to function call
+  "PLR2004", # Magic constants
+  "N999", # Invalid Module name
+  "N802", # Function name should be lowercase
+  # These tend to be lighweight and confuse pyright
+]
+
+exclude = [
+  ".bzr",
+  ".direnv",
+  ".eggs",
+  ".git",
+  ".hg",
+  ".mypy_cache",
+  ".nox",
+  ".pants.d",
+  ".ruff_cache",
+  ".svn",
+  ".tox",
+  ".venv",
+  "__pypackages__",
+  "_build",
+  "buck-out",
+  "build",
+  "dist",
+  "node_modules",
+  "venv",
+  "docs",
+  # This is vendored, ignore it
+  "ConfigSpace/nx/**"
+]
+
+# Exclude a variety of commonly ignored directories.
+[tool.ruff.per-file-ignores]
+"test/*.py" = [
+  "S101",
+  "D102",
+  "D103",
+  "D404",
+  "ARG001",
+  "A002",
+  "INP001",
+  "A001",
+  "E501",
+  "ANN001",
+  "ANN201",
+  "FBT001",
+  "D100",
+  "PLR2004",
+  "TCH",
+  "N802",
+  "PLR0915",
+  "BLE001",
+]
+"setup.py" = ["D102"]
+"__init__.py" = ["I002"]
+"ConfigSpace/read_and_write/pcs_new.py" = [
+  "N816",
+  "D103",
+  "PLW2901",
+]
+"ConfigSpace/read_and_write/pcs.py" = [
+  "N816",
+  "D103",
+  "PLW2901",
+  "T201",
+]
+
+
+[tool.ruff.isort]
+known-first-party = ["ConfigSpace"]
+no-lines-before = ["future"]
+required-imports = ["from __future__ import annotations"]
+combine-as-imports = true
+extra-standard-library = ["typing_extensions"]
+force-wrap-aliases = true
+
+[tool.ruff.pydocstyle]
+convention = "numpy"
+
+
+[tool.mypy]
+python_version = "3.7"
+packages = ["ConfigSpace", "test"]
+
+show_error_codes = true
+
+warn_unused_configs = true # warn about unused [tool.mypy] lines
+
+follow_imports = "normal"      # Type check top level api code we use from imports
+ignore_missing_imports = false # prefer explicit ignores
+
+disallow_untyped_defs = true       # All functions must have types
+disallow_incomplete_defs = true    # ...all types
+disallow_untyped_decorators = false # ... but not decorators
+
+no_implicit_optional = true
+check_untyped_defs = true
+
+warn_return_any = true
+
+[[tool.mypy.overrides]]
+module = [
+  "ConfigSpace.hyperparameters.*",
+  "ConfigSpace.conditions.*",
+  "ConfigSpace.forbidden.*",
+  "ConfigSpace.c_util.*",
+]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["test.*"]
+disallow_untyped_defs = false       # Sometimes we just want to ignore verbose types
+disallow_untyped_decorators = false # Test decorators are not properly typed
+disallow_incomplete_defs = false    # Sometimes we just want to ignore verbose types
+
+[[tool.mypy.overrides]]
+module = ["ConfigSpace.nx.*"]  # This is vendored, we ignore it
+ignore_errors = true

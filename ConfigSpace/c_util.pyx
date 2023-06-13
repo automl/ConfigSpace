@@ -8,7 +8,12 @@ from ConfigSpace.hyperparameters.hyperparameter cimport Hyperparameter
 from ConfigSpace.conditions import ConditionComponent
 from ConfigSpace.conditions cimport ConditionComponent
 from ConfigSpace.conditions import OrConjunction
-from ConfigSpace.exceptions import ForbiddenValueError
+from ConfigSpace.exceptions import (
+    ForbiddenValueError,
+    IllegalValueError,
+    ActiveHyperparameterNotSetError,
+    InactiveHyperparameterSetError,
+)
 
 from libc.stdlib cimport malloc, free
 cimport numpy as np
@@ -73,10 +78,7 @@ cpdef int check_configuration(
 
         if not np.isnan(hp_value) and not hyperparameter.is_legal_vector(hp_value):
             free(active)
-            raise ValueError("Hyperparameter instantiation '%s' "
-                             "(type: %s) is illegal for hyperparameter %s" %
-                             (hp_value, str(type(hp_value)),
-                              hyperparameter))
+            raise IllegalValueError(hyperparameter, hp_value)
 
         children = self._children_of[hp_name]
         for child in children:
@@ -95,8 +97,7 @@ cpdef int check_configuration(
 
         if active[hp_idx] and np.isnan(hp_value):
             free(active)
-            raise ValueError("Active hyperparameter '%s' not specified!" %
-                             hyperparameter.name)
+            raise ActiveHyperparameterNotSetError(hyperparameter)
 
     for hp_idx in self._idx_to_hyperparameter:
 
@@ -105,9 +106,8 @@ cpdef int check_configuration(
             hp_name = self._idx_to_hyperparameter[hp_idx]
             hp_value = vector[hp_idx]
             free(active)
-            raise ValueError("Inactive hyperparameter '%s' must not be "
-                             "specified, but has the vector value: '%s'." %
-                             (hp_name, hp_value))
+            raise InactiveHyperparameterSetError(hyperparameter, hp_value)
+
     free(active)
     self._check_forbidden(vector)
 
@@ -148,11 +148,8 @@ cpdef np.ndarray correct_sampled_array(
         clause = forbidden_clauses_unconditionals[j]
         if clause.c_is_forbidden_vector(vector, strict=False):
             free(active)
-            raise ForbiddenValueError(
-                "Given vector violates forbidden clause %s" % (
-                    str(clause)
-                )
-            )
+            msg = "Given vector violates forbidden clause %s" % str(clause)
+            raise ForbiddenValueError(msg)
 
     hps = deque()
     visited = set()
@@ -223,9 +220,8 @@ cpdef np.ndarray correct_sampled_array(
     for j in range(len(forbidden_clauses_conditionals)):
         clause = forbidden_clauses_conditionals[j]
         if clause.c_is_forbidden_vector(vector, strict=False):
-            raise ForbiddenValueError(
-                "Given vector violates forbidden clause %s" % (
-                    str(clause)))
+            msg = "Given vector violates forbidden clause %s" % str(clause)
+            raise ForbiddenValueError(msg)
 
     return vector
 

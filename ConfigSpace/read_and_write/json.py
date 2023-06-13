@@ -1,333 +1,322 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
+from __future__ import annotations
 
 import json
-from typing import Dict
 
 from ConfigSpace import __version__
-from ConfigSpace.configuration_space import ConfigurationSpace
-from ConfigSpace.hyperparameters import (
-    Hyperparameter,
-    CategoricalHyperparameter,
-    UniformIntegerHyperparameter,
-    UniformFloatHyperparameter,
-    NormalIntegerHyperparameter,
-    NormalFloatHyperparameter,
-    OrdinalHyperparameter,
-    Constant,
-    UnParametrizedHyperparameter,
-    BetaFloatHyperparameter,
-    BetaIntegerHyperparameter
-)
 from ConfigSpace.conditions import (
     AbstractCondition,
-    EqualsCondition,
-    NotEqualsCondition,
-    InCondition,
     AndConjunction,
-    OrConjunction,
+    EqualsCondition,
     GreaterThanCondition,
+    InCondition,
     LessThanCondition,
+    NotEqualsCondition,
+    OrConjunction,
 )
+from ConfigSpace.configuration_space import ConfigurationSpace
 from ConfigSpace.forbidden import (
-    ForbiddenEqualsClause,
-    ForbiddenAndConjunction,
-    ForbiddenInClause,
     AbstractForbiddenComponent,
-    ForbiddenRelation,
-    ForbiddenLessThanRelation,
+    ForbiddenAndConjunction,
+    ForbiddenEqualsClause,
     ForbiddenEqualsRelation,
     ForbiddenGreaterThanRelation,
+    ForbiddenInClause,
+    ForbiddenLessThanRelation,
+    ForbiddenRelation,
 )
-
+from ConfigSpace.hyperparameters import (
+    BetaFloatHyperparameter,
+    BetaIntegerHyperparameter,
+    CategoricalHyperparameter,
+    Constant,
+    Hyperparameter,
+    NormalFloatHyperparameter,
+    NormalIntegerHyperparameter,
+    OrdinalHyperparameter,
+    UniformFloatHyperparameter,
+    UniformIntegerHyperparameter,
+    UnParametrizedHyperparameter,
+)
 
 JSON_FORMAT_VERSION = 0.4
 
 
 ################################################################################
 # Builder for hyperparameters
-def _build_constant(param: Constant) -> Dict:
+def _build_constant(param: Constant) -> dict:
     return {
-        'name': param.name,
-        'type': 'constant',
-        'value': param.value,
+        "name": param.name,
+        "type": "constant",
+        "value": param.value,
     }
 
 
-def _build_unparametrized_hyperparameter(param: UnParametrizedHyperparameter) -> Dict:
+def _build_unparametrized_hyperparameter(param: UnParametrizedHyperparameter) -> dict:
     return {
-        'name': param.name,
-        'type': 'unparametrized',
-        'value': param.value,
+        "name": param.name,
+        "type": "unparametrized",
+        "value": param.value,
     }
 
 
-def _build_uniform_float(param: UniformFloatHyperparameter) -> Dict:
+def _build_uniform_float(param: UniformFloatHyperparameter) -> dict:
     return {
-        'name': param.name,
-        'type': 'uniform_float',
-        'log': param.log,
-        'lower': param.lower,
-        'upper': param.upper,
-        'default': param.default_value,
-        'q': param.q,
+        "name": param.name,
+        "type": "uniform_float",
+        "log": param.log,
+        "lower": param.lower,
+        "upper": param.upper,
+        "default": param.default_value,
+        "q": param.q,
     }
 
 
-def _build_normal_float(param: NormalFloatHyperparameter) -> Dict:
+def _build_normal_float(param: NormalFloatHyperparameter) -> dict:
     return {
-        'name': param.name,
-        'type': 'normal_float',
-        'log': param.log,
-        'mu': param.mu,
-        'sigma': param.sigma,
-        'default': param.default_value,
-        'lower': param.lower,
-        'upper': param.upper,
-        'q': param.q,
+        "name": param.name,
+        "type": "normal_float",
+        "log": param.log,
+        "mu": param.mu,
+        "sigma": param.sigma,
+        "default": param.default_value,
+        "lower": param.lower,
+        "upper": param.upper,
+        "q": param.q,
     }
 
 
-def _build_beta_float(param: BetaFloatHyperparameter) -> Dict:
+def _build_beta_float(param: BetaFloatHyperparameter) -> dict:
     return {
-        'name': param.name,
-        'type': 'beta_float',
-        'log': param.log,
-        'alpha': param.alpha,
-        'beta': param.beta,
-        'lower': param.lower,
-        'upper': param.upper,
-        'default': param.default_value,
-        'q': param.q,
+        "name": param.name,
+        "type": "beta_float",
+        "log": param.log,
+        "alpha": param.alpha,
+        "beta": param.beta,
+        "lower": param.lower,
+        "upper": param.upper,
+        "default": param.default_value,
+        "q": param.q,
     }
 
 
-def _build_uniform_int(param: UniformIntegerHyperparameter) -> Dict:
+def _build_uniform_int(param: UniformIntegerHyperparameter) -> dict:
     return {
-        'name': param.name,
-        'type': 'uniform_int',
-        'log': param.log,
-        'lower': param.lower,
-        'upper': param.upper,
-        'default': param.default_value,
-        'q': param.q,
+        "name": param.name,
+        "type": "uniform_int",
+        "log": param.log,
+        "lower": param.lower,
+        "upper": param.upper,
+        "default": param.default_value,
+        "q": param.q,
     }
 
 
-def _build_normal_int(param: NormalIntegerHyperparameter) -> Dict:
+def _build_normal_int(param: NormalIntegerHyperparameter) -> dict:
     return {
-        'name': param.name,
-        'type': 'normal_int',
-        'log': param.log,
-        'mu': param.mu,
-        'sigma': param.sigma,
-        'lower': param.lower,
-        'upper': param.upper,
-        'default': param.default_value,
-        'q': param.q,
+        "name": param.name,
+        "type": "normal_int",
+        "log": param.log,
+        "mu": param.mu,
+        "sigma": param.sigma,
+        "lower": param.lower,
+        "upper": param.upper,
+        "default": param.default_value,
+        "q": param.q,
     }
 
 
-def _build_beta_int(param: BetaIntegerHyperparameter) -> Dict:
+def _build_beta_int(param: BetaIntegerHyperparameter) -> dict:
     return {
-        'name': param.name,
-        'type': 'beta_int',
-        'log': param.log,
-        'alpha': param.alpha,
-        'beta': param.beta,
-        'lower': param.lower,
-        'upper': param.upper,
-        'default': param.default_value,
-        'q': param.q,
+        "name": param.name,
+        "type": "beta_int",
+        "log": param.log,
+        "alpha": param.alpha,
+        "beta": param.beta,
+        "lower": param.lower,
+        "upper": param.upper,
+        "default": param.default_value,
+        "q": param.q,
     }
 
 
-def _build_categorical(param: CategoricalHyperparameter) -> Dict:
+def _build_categorical(param: CategoricalHyperparameter) -> dict:
     return {
-        'name': param.name,
-        'type': 'categorical',
-        'choices': param.choices,
-        'default': param.default_value,
-        'weights': param.weights,
+        "name": param.name,
+        "type": "categorical",
+        "choices": param.choices,
+        "default": param.default_value,
+        "weights": param.weights,
     }
 
 
-def _build_ordinal(param: OrdinalHyperparameter) -> Dict:
+def _build_ordinal(param: OrdinalHyperparameter) -> dict:
     return {
-        'name': param.name,
-        'type': 'ordinal',
-        'sequence': param.sequence,
-        'default': param.default_value
+        "name": param.name,
+        "type": "ordinal",
+        "sequence": param.sequence,
+        "default": param.default_value,
     }
 
 
 ################################################################################
 # Builder for Conditions
-def _build_condition(condition: AbstractCondition) -> Dict:
-    if isinstance(condition, AndConjunction):
-        return _build_and_conjunction(condition)
-    elif isinstance(condition, OrConjunction):
-        return _build_or_conjunction(condition)
-    elif isinstance(condition, InCondition):
-        return _build_in_condition(condition)
-    elif isinstance(condition, EqualsCondition):
-        return _build_equals_condition(condition)
-    elif isinstance(condition, NotEqualsCondition):
-        return _build_not_equals_condition(condition)
-    elif isinstance(condition, GreaterThanCondition):
-        return _build_greater_than_condition(condition)
-    elif isinstance(condition, LessThanCondition):
-        return _build_less_than_condition(condition)
-    else:
-        raise TypeError(condition)
+def _build_condition(condition: AbstractCondition) -> dict:
+    methods = {
+        AndConjunction: _build_and_conjunction,
+        OrConjunction: _build_or_conjunction,
+        InCondition: _build_in_condition,
+        EqualsCondition: _build_equals_condition,
+        NotEqualsCondition: _build_not_equals_condition,
+        GreaterThanCondition: _build_greater_than_condition,
+        LessThanCondition: _build_less_than_condition,
+    }
+    return methods[type(condition)](condition)
 
 
-def _build_and_conjunction(conjunction: AndConjunction) -> Dict:
+def _build_and_conjunction(conjunction: AndConjunction) -> dict:
     child = conjunction.get_descendant_literal_conditions()[0].child.name
-    cond_list = list()
+    cond_list = []
     for component in conjunction.components:
         cond_list.append(_build_condition(component))
     return {
-        'child': child,
-        'type': 'AND',
-        'conditions': cond_list,
+        "child": child,
+        "type": "AND",
+        "conditions": cond_list,
     }
 
 
-def _build_or_conjunction(conjunction: OrConjunction) -> Dict:
+def _build_or_conjunction(conjunction: OrConjunction) -> dict:
     child = conjunction.get_descendant_literal_conditions()[0].child.name
-    cond_list = list()
+    cond_list = []
     for component in conjunction.components:
         cond_list.append(_build_condition(component))
     return {
-        'child': child,
-        'type': 'OR',
-        'conditions': cond_list,
+        "child": child,
+        "type": "OR",
+        "conditions": cond_list,
     }
 
 
-def _build_in_condition(condition: InCondition) -> Dict:
+def _build_in_condition(condition: InCondition) -> dict:
     child = condition.child.name
     parent = condition.parent.name
     values = list(condition.values)
     return {
-        'child': child,
-        'parent': parent,
-        'type': 'IN',
-        'values': values,
+        "child": child,
+        "parent": parent,
+        "type": "IN",
+        "values": values,
     }
 
 
-def _build_equals_condition(condition: EqualsCondition) -> Dict:
+def _build_equals_condition(condition: EqualsCondition) -> dict:
     child = condition.child.name
     parent = condition.parent.name
     value = condition.value
     return {
-        'child': child,
-        'parent': parent,
-        'type': 'EQ',
-        'value': value,
+        "child": child,
+        "parent": parent,
+        "type": "EQ",
+        "value": value,
     }
 
 
-def _build_not_equals_condition(condition: NotEqualsCondition) -> Dict:
+def _build_not_equals_condition(condition: NotEqualsCondition) -> dict:
     child = condition.child.name
     parent = condition.parent.name
     value = condition.value
     return {
-        'child': child,
-        'parent': parent,
-        'type': 'NEQ',
-        'value': value,
+        "child": child,
+        "parent": parent,
+        "type": "NEQ",
+        "value": value,
     }
 
 
-def _build_greater_than_condition(condition: GreaterThanCondition) -> Dict:
+def _build_greater_than_condition(condition: GreaterThanCondition) -> dict:
     child = condition.child.name
     parent = condition.parent.name
     value = condition.value
     return {
-        'child': child,
-        'parent': parent,
-        'type': 'GT',
-        'value': value,
+        "child": child,
+        "parent": parent,
+        "type": "GT",
+        "value": value,
     }
 
 
-def _build_less_than_condition(condition: LessThanCondition) -> Dict:
+def _build_less_than_condition(condition: LessThanCondition) -> dict:
     child = condition.child.name
     parent = condition.parent.name
     value = condition.value
     return {
-        'child': child,
-        'parent': parent,
-        'type': 'LT',
-        'value': value,
+        "child": child,
+        "parent": parent,
+        "type": "LT",
+        "value": value,
     }
 
 
 ################################################################################
 # Builder for forbidden
-def _build_forbidden(clause) -> Dict:
-    if isinstance(clause, ForbiddenEqualsClause):
-        return _build_forbidden_equals_clause(clause)
-    elif isinstance(clause, ForbiddenInClause):
-        return _build_forbidden_in_clause(clause)
-    elif isinstance(clause, ForbiddenAndConjunction):
-        return _build_forbidden_and_conjunction(clause)
-    elif isinstance(clause, ForbiddenRelation):
-        return _build_forbidden_relation(clause)
-    else:
-        raise TypeError(clause)
+def _build_forbidden(clause: AbstractForbiddenComponent) -> dict:
+    methods = {
+        ForbiddenEqualsClause: _build_forbidden_equals_clause,
+        ForbiddenInClause: _build_forbidden_in_clause,
+        ForbiddenAndConjunction: _build_forbidden_and_conjunction,
+        ForbiddenEqualsRelation: _build_forbidden_relation,
+        ForbiddenLessThanRelation: _build_forbidden_relation,
+        ForbiddenGreaterThanRelation: _build_forbidden_relation,
+    }
+    return methods[type(clause)](clause)
 
 
-def _build_forbidden_equals_clause(clause: ForbiddenEqualsClause) -> Dict:
+def _build_forbidden_equals_clause(clause: ForbiddenEqualsClause) -> dict:
     return {
-        'name': clause.hyperparameter.name,
-        'type': 'EQUALS',
-        'value': clause.value,
+        "name": clause.hyperparameter.name,
+        "type": "EQUALS",
+        "value": clause.value,
     }
 
 
-def _build_forbidden_in_clause(clause: ForbiddenInClause) -> Dict:
+def _build_forbidden_in_clause(clause: ForbiddenInClause) -> dict:
     return {
-        'name': clause.hyperparameter.name,
-        'type': 'IN',
+        "name": clause.hyperparameter.name,
+        "type": "IN",
         # The values are a set, but a set cannot be serialized to json
-        'values': list(clause.values),
+        "values": list(clause.values),
     }
 
 
-def _build_forbidden_and_conjunction(clause: ForbiddenAndConjunction) -> Dict:
+def _build_forbidden_and_conjunction(clause: ForbiddenAndConjunction) -> dict:
     return {
-        'name': clause.get_descendant_literal_clauses()[0].hyperparameter.name,
-        'type': 'AND',
-        'clauses': [
-            _build_forbidden(component) for component in clause.components
-        ],
+        "name": clause.get_descendant_literal_clauses()[0].hyperparameter.name,
+        "type": "AND",
+        "clauses": [_build_forbidden(component) for component in clause.components],
     }
 
 
-def _build_forbidden_relation(clause: ForbiddenRelation) -> Dict:
+def _build_forbidden_relation(clause: ForbiddenRelation) -> dict:
     if isinstance(clause, ForbiddenLessThanRelation):
-        lambda_ = 'LESS'
+        lambda_ = "LESS"
     elif isinstance(clause, ForbiddenEqualsRelation):
-        lambda_ = 'EQUALS'
+        lambda_ = "EQUALS"
     elif isinstance(clause, ForbiddenGreaterThanRelation):
-        lambda_ = 'GREATER'
+        lambda_ = "GREATER"
     else:
         raise ValueError("Unknown relation '%s'" % type(clause))
 
     return {
-        'left': clause.left.name,
-        'right': clause.right.name,
-        'type': 'RELATION',
-        'lambda': lambda_
+        "left": clause.left.name,
+        "right": clause.right.name,
+        "type": "RELATION",
+        "lambda": lambda_,
     }
 
 
 ################################################################################
-def write(configuration_space, indent=2):
+def write(configuration_space: ConfigurationSpace, indent: int = 2) -> str:
     """
     Create a string representation of a
     :class:`~ConfigSpace.configuration_space.ConfigurationSpace` in json format.
@@ -357,22 +346,20 @@ def write(configuration_space, indent=2):
         which will be written to file
     """
     if not isinstance(configuration_space, ConfigurationSpace):
-        raise TypeError("pcs_parser.write expects an instance of %s, "
-                        "you provided '%s'" % (ConfigurationSpace,
-                                               type(configuration_space)))
+        raise TypeError(
+            "pcs_parser.write expects an instance of {}, "
+            "you provided '{}'".format(ConfigurationSpace, type(configuration_space)),
+        )
 
     hyperparameters = []
     conditions = []
     forbiddens = []
 
-    for hyperparameter in configuration_space.get_hyperparameters():
-
+    for hyperparameter in configuration_space.values():
         if isinstance(hyperparameter, Constant):
             hyperparameters.append(_build_constant(hyperparameter))
         elif isinstance(hyperparameter, UnParametrizedHyperparameter):
-            hyperparameters.append(
-                _build_unparametrized_hyperparameter(hyperparameter)
-            )
+            hyperparameters.append(_build_unparametrized_hyperparameter(hyperparameter))
         elif isinstance(hyperparameter, BetaFloatHyperparameter):
             hyperparameters.append(_build_beta_float(hyperparameter))
         elif isinstance(hyperparameter, UniformFloatHyperparameter):
@@ -391,9 +378,10 @@ def write(configuration_space, indent=2):
             hyperparameters.append(_build_ordinal(hyperparameter))
         else:
             raise TypeError(
-                "Unknown type: %s (%s)" % (
-                    type(hyperparameter), hyperparameter,
-                )
+                "Unknown type: {} ({})".format(
+                    type(hyperparameter),
+                    hyperparameter,
+                ),
             )
 
     for condition in configuration_space.get_conditions():
@@ -402,20 +390,20 @@ def write(configuration_space, indent=2):
     for forbidden_clause in configuration_space.get_forbiddens():
         forbiddens.append(_build_forbidden(forbidden_clause))
 
-    rval = {}
+    rval: dict = {}
     if configuration_space.name is not None:
-        rval['name'] = configuration_space.name
-    rval['hyperparameters'] = hyperparameters
-    rval['conditions'] = conditions
-    rval['forbiddens'] = forbiddens
-    rval['python_module_version'] = __version__
-    rval['json_format_version'] = JSON_FORMAT_VERSION
+        rval["name"] = configuration_space.name
+    rval["hyperparameters"] = hyperparameters
+    rval["conditions"] = conditions
+    rval["forbiddens"] = forbiddens
+    rval["python_module_version"] = __version__
+    rval["json_format_version"] = JSON_FORMAT_VERSION
 
     return json.dumps(rval, indent=indent)
 
 
 ################################################################################
-def read(jason_string):
+def read(jason_string: str) -> ConfigurationSpace:
     """
     Create a configuration space definition from a json string.
 
@@ -446,274 +434,276 @@ def read(jason_string):
         The deserialized ConfigurationSpace object
     """
     jason = json.loads(jason_string)
-    if 'name' in jason:
-        configuration_space = ConfigurationSpace(name=jason['name'])
+    if "name" in jason:
+        configuration_space = ConfigurationSpace(name=jason["name"])
     else:
         configuration_space = ConfigurationSpace()
 
-    for hyperparameter in jason['hyperparameters']:
-        configuration_space.add_hyperparameter(_construct_hyperparameter(
-            hyperparameter,
-        ))
+    for hyperparameter in jason["hyperparameters"]:
+        configuration_space.add_hyperparameter(
+            _construct_hyperparameter(
+                hyperparameter,
+            ),
+        )
 
-    for condition in jason['conditions']:
-        configuration_space.add_condition(_construct_condition(
-            condition, configuration_space,
-        ))
+    for condition in jason["conditions"]:
+        configuration_space.add_condition(
+            _construct_condition(
+                condition,
+                configuration_space,
+            ),
+        )
 
-    for forbidden in jason['forbiddens']:
-        configuration_space.add_forbidden_clause(_construct_forbidden(
-            forbidden, configuration_space,
-        ))
+    for forbidden in jason["forbiddens"]:
+        configuration_space.add_forbidden_clause(
+            _construct_forbidden(
+                forbidden,
+                configuration_space,
+            ),
+        )
 
     return configuration_space
 
 
-def _construct_hyperparameter(hyperparameter: Dict) -> Hyperparameter:
-    hp_type = hyperparameter['type']
-    name = hyperparameter['name']
-    if hp_type == 'constant':
+def _construct_hyperparameter(hyperparameter: dict) -> Hyperparameter:  # noqa: PLR0911
+    hp_type = hyperparameter["type"]
+    name = hyperparameter["name"]
+    if hp_type == "constant":
         return Constant(
             name=name,
-            value=hyperparameter['value'],
+            value=hyperparameter["value"],
         )
-    elif hp_type == 'unparametrized':
+
+    if hp_type == "unparametrized":
         return UnParametrizedHyperparameter(
             name=name,
-            value=hyperparameter['value'],
+            value=hyperparameter["value"],
         )
-    elif hp_type == 'uniform_float':
+
+    if hp_type == "uniform_float":
         return UniformFloatHyperparameter(
             name=name,
-            log=hyperparameter['log'],
-            lower=hyperparameter['lower'],
-            upper=hyperparameter['upper'],
-            default_value=hyperparameter['default'],
-            q=hyperparameter['q'],
+            log=hyperparameter["log"],
+            lower=hyperparameter["lower"],
+            upper=hyperparameter["upper"],
+            default_value=hyperparameter["default"],
+            q=hyperparameter["q"],
         )
-    elif hp_type == 'normal_float':
+
+    if hp_type == "normal_float":
         return NormalFloatHyperparameter(
             name=name,
-            log=hyperparameter['log'],
-            mu=hyperparameter['mu'],
-            sigma=hyperparameter['sigma'],
-            lower=hyperparameter['lower'],
-            upper=hyperparameter['upper'],
-            default_value=hyperparameter['default'],
-            q=hyperparameter['q'],
+            log=hyperparameter["log"],
+            mu=hyperparameter["mu"],
+            sigma=hyperparameter["sigma"],
+            lower=hyperparameter["lower"],
+            upper=hyperparameter["upper"],
+            default_value=hyperparameter["default"],
+            q=hyperparameter["q"],
         )
-    elif hp_type == 'beta_float':
+
+    if hp_type == "beta_float":
         return BetaFloatHyperparameter(
             name=name,
-            alpha=hyperparameter['alpha'],
-            beta=hyperparameter['beta'],
-            lower=hyperparameter['lower'],
-            upper=hyperparameter['upper'],
-            log=hyperparameter['log'],
-            q=hyperparameter['q'],
-            default_value=hyperparameter['default'],
+            alpha=hyperparameter["alpha"],
+            beta=hyperparameter["beta"],
+            lower=hyperparameter["lower"],
+            upper=hyperparameter["upper"],
+            log=hyperparameter["log"],
+            q=hyperparameter["q"],
+            default_value=hyperparameter["default"],
         )
-    elif hp_type == 'uniform_int':
+
+    if hp_type == "uniform_int":
         return UniformIntegerHyperparameter(
             name=name,
-            log=hyperparameter['log'],
-            lower=hyperparameter['lower'],
-            upper=hyperparameter['upper'],
-            default_value=hyperparameter['default'],
-            q=hyperparameter['q'],
+            log=hyperparameter["log"],
+            lower=hyperparameter["lower"],
+            upper=hyperparameter["upper"],
+            default_value=hyperparameter["default"],
+            q=hyperparameter["q"],
         )
-    elif hp_type == 'normal_int':
+
+    if hp_type == "normal_int":
         return NormalIntegerHyperparameter(
             name=name,
-            mu=hyperparameter['mu'],
-            sigma=hyperparameter['sigma'],
-            log=hyperparameter['log'],
-            lower=hyperparameter['lower'],
-            upper=hyperparameter['upper'],
-            default_value=hyperparameter['default'],
-            q=hyperparameter['q'],
+            mu=hyperparameter["mu"],
+            sigma=hyperparameter["sigma"],
+            log=hyperparameter["log"],
+            lower=hyperparameter["lower"],
+            upper=hyperparameter["upper"],
+            default_value=hyperparameter["default"],
+            q=hyperparameter["q"],
         )
-    elif hp_type == 'beta_int':
+
+    if hp_type == "beta_int":
         return BetaIntegerHyperparameter(
             name=name,
-            alpha=hyperparameter['alpha'],
-            beta=hyperparameter['beta'],
-            lower=hyperparameter['lower'],
-            upper=hyperparameter['upper'],
-            log=hyperparameter['log'],
-            q=hyperparameter['q'],
-            default_value=hyperparameter['default'],
+            alpha=hyperparameter["alpha"],
+            beta=hyperparameter["beta"],
+            lower=hyperparameter["lower"],
+            upper=hyperparameter["upper"],
+            log=hyperparameter["log"],
+            q=hyperparameter["q"],
+            default_value=hyperparameter["default"],
         )
-    elif hp_type == 'categorical':
+
+    if hp_type == "categorical":
         return CategoricalHyperparameter(
             name=name,
-            choices=hyperparameter['choices'],
-            default_value=hyperparameter['default'],
-            weights=hyperparameter.get('weights'),
+            choices=hyperparameter["choices"],
+            default_value=hyperparameter["default"],
+            weights=hyperparameter.get("weights"),
         )
-    elif hp_type == 'ordinal':
+
+    if hp_type == "ordinal":
         return OrdinalHyperparameter(
             name=name,
-            sequence=hyperparameter['sequence'],
-            default_value=hyperparameter['default'],
+            sequence=hyperparameter["sequence"],
+            default_value=hyperparameter["default"],
         )
-    else:
-        raise ValueError(hp_type)
+
+    raise ValueError(hp_type)
 
 
 def _construct_condition(
-        condition: Dict,
-        cs: ConfigurationSpace,
+    condition: dict,
+    cs: ConfigurationSpace,
 ) -> AbstractCondition:
-    condition_type = condition['type']
-    if condition_type == 'AND':
-        return _construct_and_condition(condition, cs)
-    elif condition_type == 'OR':
-        return _construct_or_condition(condition, cs)
-    elif condition_type == 'IN':
-        return _construct_in_condition(condition, cs)
-    elif condition_type == 'EQ':
-        return _construct_eq_condition(condition, cs)
-    elif condition_type == 'NEQ':
-        return _construct_neq_condition(condition, cs)
-    elif condition_type == 'GT':
-        return _construct_gt_condition(condition, cs)
-    elif condition_type == 'LT':
-        return _construct_lt_condition(condition, cs)
-    else:
-        raise ValueError(condition_type)
+    condition_type = condition["type"]
+    methods = {
+        "AND": _construct_and_condition,
+        "OR": _construct_or_condition,
+        "IN": _construct_in_condition,
+        "EQ": _construct_eq_condition,
+        "NEQ": _construct_neq_condition,
+        "GT": _construct_gt_condition,
+        "LT": _construct_lt_condition,
+    }
+    return methods[condition_type](condition, cs)
 
 
 def _construct_and_condition(
-        condition: Dict,
-        cs: ConfigurationSpace,
+    condition: dict,
+    cs: ConfigurationSpace,
 ) -> AndConjunction:
-    conditions = [
-        _construct_condition(cond, cs) for cond in condition['conditions']
-    ]
+    conditions = [_construct_condition(cond, cs) for cond in condition["conditions"]]
     return AndConjunction(*conditions)
 
 
 def _construct_or_condition(
-        condition: Dict,
-        cs: ConfigurationSpace,
+    condition: dict,
+    cs: ConfigurationSpace,
 ) -> OrConjunction:
-    conditions = [_construct_condition(cond, cs) for cond in condition['conditions']]
+    conditions = [_construct_condition(cond, cs) for cond in condition["conditions"]]
     return OrConjunction(*conditions)
 
 
 def _construct_in_condition(
-        condition: Dict,
-        cs: ConfigurationSpace,
+    condition: dict,
+    cs: ConfigurationSpace,
 ) -> InCondition:
     return InCondition(
-        child=cs.get_hyperparameter(condition['child']),
-        parent=cs.get_hyperparameter(condition['parent']),
-        values=condition['values'],
+        child=cs[condition["child"]],
+        parent=cs[condition["parent"]],
+        values=condition["values"],
     )
 
 
 def _construct_eq_condition(
-        condition: Dict,
-        cs: ConfigurationSpace,
+    condition: dict,
+    cs: ConfigurationSpace,
 ) -> EqualsCondition:
     return EqualsCondition(
-        child=cs.get_hyperparameter(condition['child']),
-        parent=cs.get_hyperparameter(condition['parent']),
-        value=condition['value'],
+        child=cs[condition["child"]],
+        parent=cs[condition["parent"]],
+        value=condition["value"],
     )
 
 
 def _construct_neq_condition(
-        condition: Dict,
-        cs: ConfigurationSpace,
+    condition: dict,
+    cs: ConfigurationSpace,
 ) -> NotEqualsCondition:
     return NotEqualsCondition(
-        child=cs.get_hyperparameter(condition['child']),
-        parent=cs.get_hyperparameter(condition['parent']),
-        value=condition['value'],
+        child=cs[condition["child"]],
+        parent=cs[condition["parent"]],
+        value=condition["value"],
     )
 
 
 def _construct_gt_condition(
-        condition: Dict,
-        cs: ConfigurationSpace,
+    condition: dict,
+    cs: ConfigurationSpace,
 ) -> GreaterThanCondition:
     return GreaterThanCondition(
-        child=cs.get_hyperparameter(condition['child']),
-        parent=cs.get_hyperparameter(condition['parent']),
-        value=condition['value'],
+        child=cs[condition["child"]],
+        parent=cs[condition["parent"]],
+        value=condition["value"],
     )
 
 
 def _construct_lt_condition(
-        condition: Dict,
-        cs: ConfigurationSpace,
+    condition: dict,
+    cs: ConfigurationSpace,
 ) -> LessThanCondition:
     return LessThanCondition(
-        child=cs.get_hyperparameter(condition['child']),
-        parent=cs.get_hyperparameter(condition['parent']),
-        value=condition['value'],
+        child=cs[condition["child"]],
+        parent=cs[condition["parent"]],
+        value=condition["value"],
     )
 
 
 def _construct_forbidden(
-        clause: Dict,
-        cs: ConfigurationSpace,
+    clause: dict,
+    cs: ConfigurationSpace,
 ) -> AbstractForbiddenComponent:
-    forbidden_type = clause['type']
-    if forbidden_type == 'EQUALS':
-        return _construct_forbidden_equals(clause, cs)
-    elif forbidden_type == 'IN':
-        return _construct_forbidden_in(clause, cs)
-    elif forbidden_type == 'AND':
-        return _construct_forbidden_and(clause, cs)
-    elif forbidden_type == 'RELATION':
-        return _construct_forbidden_equals(clause, cs)
-    else:
-        return ValueError(forbidden_type)
+    forbidden_type = clause["type"]
+    methods = {
+        "EQUALS": _construct_forbidden_equals,
+        "IN": _construct_forbidden_in,
+        "AND": _construct_forbidden_and,
+        "RELATION": _construct_forbidden_equals,
+    }
+    return methods[forbidden_type](clause, cs)
 
 
 def _construct_forbidden_equals(
-        clause: Dict,
-        cs: ConfigurationSpace,
+    clause: dict,
+    cs: ConfigurationSpace,
 ) -> ForbiddenEqualsClause:
-    return ForbiddenEqualsClause(
-        hyperparameter=cs.get_hyperparameter(clause['name']),
-        value=clause['value']
-    )
+    return ForbiddenEqualsClause(hyperparameter=cs[clause["name"]], value=clause["value"])
 
 
 def _construct_forbidden_in(
-        clause: Dict,
-        cs: ConfigurationSpace,
+    clause: dict,
+    cs: ConfigurationSpace,
 ) -> ForbiddenEqualsClause:
-    return ForbiddenInClause(
-        hyperparameter=cs.get_hyperparameter(clause['name']),
-        values=clause['values']
-    )
+    return ForbiddenInClause(hyperparameter=cs[clause["name"]], values=clause["values"])
 
 
 def _construct_forbidden_and(
-        clause: Dict,
-        cs: ConfigurationSpace,
+    clause: dict,
+    cs: ConfigurationSpace,
 ) -> ForbiddenAndConjunction:
-    clauses = [_construct_forbidden(cl, cs) for cl in clause['clauses']]
+    clauses = [_construct_forbidden(cl, cs) for cl in clause["clauses"]]
     return ForbiddenAndConjunction(*clauses)
 
 
-def _construct_forbidden_relation(
-        clause: Dict,
-        cs: ConfigurationSpace,
+def _construct_forbidden_relation(  # pyright: ignore
+    clause: dict,
+    cs: ConfigurationSpace,
 ) -> ForbiddenRelation:
-    left = cs.get_hyperparameter(clause['left'])
-    right = cs.get_hyperparameter(clause['right'])
+    left = cs[clause["left"]]
+    right = cs[clause["right"]]
 
-    if clause['lambda'] == "LESS":
+    if clause["lambda"] == "LESS":
         return ForbiddenLessThanRelation(left, right)
-    elif clause['lambda'] == "EQUALS":
+
+    if clause["lambda"] == "EQUALS":
         return ForbiddenEqualsRelation(left, right)
-    elif clause['lambda'] == "GREATER":
+
+    if clause["lambda"] == "GREATER":
         return ForbiddenGreaterThanRelation(left, right)
-    else:
-        raise ValueError("Unknown relation '%s'" % clause['lambda'])
+
+    raise ValueError("Unknown relation '%s'" % clause["lambda"])

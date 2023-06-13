@@ -1,12 +1,13 @@
-# -*- coding: utf-8 -*-
 """
 **********
 Exceptions
-**********
+**********.
 
 Base exceptions and errors for NetworkX.
 
 """
+from __future__ import annotations
+
 __author__ = """Aric Hagberg (hagberg@lanl.gov)
 Pieter Swart (swart@lanl.gov)
 Dan Schult(dschult@colgate.edu)
@@ -28,14 +29,14 @@ class NetworkXException(Exception):
 
 
 class NetworkXError(NetworkXException):
-    """Exception for a serious error in NetworkX"""
+    """Exception for a serious error in NetworkX."""
 
 
 class NetworkXPointlessConcept(NetworkXException):
     """Harary, F. and Read, R. "Is the Null Graph a Pointless Concept?"
-In Graphs and Combinatorics Conference, George Washington University.
-New York: Springer-Verlag, 1973.
-"""
+    In Graphs and Combinatorics Conference, George Washington University.
+    New York: Springer-Verlag, 1973.
+    """
 
 
 class NetworkXAlgorithmError(NetworkXException):
@@ -44,17 +45,20 @@ class NetworkXAlgorithmError(NetworkXException):
 
 class NetworkXUnfeasible(NetworkXAlgorithmError):
     """Exception raised by algorithms trying to solve a problem
-    instance that has no feasible solution."""
+    instance that has no feasible solution.
+    """
 
 
 class NetworkXNoPath(NetworkXUnfeasible):
     """Exception for algorithms that should return a path when running
-    on graphs where such a path does not exist."""
+    on graphs where such a path does not exist.
+    """
 
 
 class NetworkXUnbounded(NetworkXAlgorithmError):
     """Exception raised by algorithms trying to solve a maximization
-    or a minimization problem instance that is unbounded."""
+    or a minimization problem instance that is unbounded.
+    """
 
 
 class NetworkXNotImplemented(NetworkXException):

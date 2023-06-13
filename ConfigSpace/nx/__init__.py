@@ -9,34 +9,38 @@
 #
 # Modified by Matthias Feurer for the package HPOlibConfigSpace
 
-from __future__ import absolute_import
 
 # Release data
-from ConfigSpace.nx.release import authors, license, date, version
+from ConfigSpace.nx.release import authors, date, license, version
 
-__author__ = '%s <%s>\n%s <%s>\n%s <%s>' % \
-              (authors['Hagberg'] + authors['Schult'] + authors['Swart'])
+__author__ = "%s <%s>\n%s <%s>\n%s <%s>" % (
+    authors["Hagberg"] + authors["Schult"] + authors["Swart"]
+)
 __license__ = license
 
 __date__ = date
 __version__ = version
 
-from ConfigSpace.nx.exception import (
-    NetworkXException, NetworkXError,
-    NetworkXPointlessConcept, NetworkXAlgorithmError,
-    NetworkXUnfeasible, NetworkXNoPath,
-    NetworkXUnbounded, NetworkXNotImplemented
-)
-
-#  import ConfigSpace.nx.classes
-from ConfigSpace.nx.classes import (
-    Graph, DiGraph
-)
-
 from ConfigSpace.nx.algorithms import (
-    descendants, ancestors, topological_sort, topological_sort_recursive,
-    is_directed_acyclic_graph, is_aperiodic, simple_cycles,
-    strongly_connected_components
+    ancestors,
+    descendants,
+    is_aperiodic,
+    is_directed_acyclic_graph,
+    simple_cycles,
+    strongly_connected_components,
+    topological_sort,
+    topological_sort_recursive,
+)
+from ConfigSpace.nx.classes import DiGraph, Graph
+from ConfigSpace.nx.exception import (
+    NetworkXAlgorithmError,
+    NetworkXError,
+    NetworkXException,
+    NetworkXNoPath,
+    NetworkXNotImplemented,
+    NetworkXPointlessConcept,
+    NetworkXUnbounded,
+    NetworkXUnfeasible,
 )
 
 __all__ = [
@@ -57,5 +61,5 @@ __all__ = [
     "is_directed_acyclic_graph",
     "is_aperiodic",
     "simple_cycles",
-    "strongly_connected_components"
+    "strongly_connected_components",
 ]

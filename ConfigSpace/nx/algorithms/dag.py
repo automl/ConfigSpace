@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 try:
     # >= Python 3.9
     from math import gcd  # type: ignore
@@ -7,7 +9,6 @@ except ImportError:
 
 import ConfigSpace.nx
 
-
 """Algorithms for directed acyclic graphs (DAGs)."""
 # Copyright (C) 2006-2011 by
 #    Aric Hagberg <hagberg@lanl.gov>
@@ -15,17 +16,21 @@ import ConfigSpace.nx
 #    Pieter Swart <swart@lanl.gov>
 #    All rights reserved.
 #    BSD license.
-__author__ = """\n""".join(['Aric Hagberg <aric.hagberg@gmail.com>',
-                            'Dan Schult (dschult@colgate.edu)',
-                            'Ben Edwards (bedwards@cs.unm.edu)'])
+__author__ = """\n""".join(
+    [
+        "Aric Hagberg <aric.hagberg@gmail.com>",
+        "Dan Schult (dschult@colgate.edu)",
+        "Ben Edwards (bedwards@cs.unm.edu)",
+    ],
+)
 __all__ = [
-            'descendants',
-            'ancestors',
-            'topological_sort',
-            'topological_sort_recursive',
-            'is_directed_acyclic_graph',
-            'is_aperiodic'
-           ]
+    "descendants",
+    "ancestors",
+    "topological_sort",
+    "topological_sort_recursive",
+    "is_directed_acyclic_graph",
+    "is_aperiodic",
+]
 
 
 def descendants(G, source):
@@ -42,11 +47,8 @@ def descendants(G, source):
        The descendants of source in G
     """
     if not G.has_node(source):
-        raise ConfigSpace.nx.NetworkXError(
-            "The node %s is not in the graph." % source)
-    des = set(ConfigSpace.nx.shortest_path_length(G,
-                                                  source=source).keys()) - set(
-        [source])
+        raise ConfigSpace.nx.NetworkXError("The node %s is not in the graph." % source)
+    des = set(ConfigSpace.nx.shortest_path_length(G, source=source).keys()) - {source}
     return des
 
 
@@ -64,11 +66,8 @@ def ancestors(G, source):
        The ancestors of source in G
     """
     if not G.has_node(source):
-        raise ConfigSpace.nx.NetworkXError(
-            "The node %s is not in the graph." % source)
-    anc = set(ConfigSpace.nx.shortest_path_length(G,
-                                                  target=source).keys()) - set(
-        [source])
+        raise ConfigSpace.nx.NetworkXError("The node %s is not in the graph." % source)
+    anc = set(ConfigSpace.nx.shortest_path_length(G, target=source).keys()) - {source}
     return anc
 
 
@@ -125,7 +124,7 @@ def topological_sort(G, nbunch=None):
     This algorithm is based on a description and proof in
     The Algorithm Design Manual [1]_ .
 
-    See also
+    See Also
     --------
     is_directed_acyclic_graph
 
@@ -135,8 +134,7 @@ def topological_sort(G, nbunch=None):
         http://www.amazon.com/exec/obidos/ASIN/0387948600/ref=ase_thealgorithmrepo/
     """
     if not G.is_directed():
-        raise ConfigSpace.nx.NetworkXError(
-            "Topological sort not defined on undirected graphs.")
+        raise ConfigSpace.nx.NetworkXError("Topological sort not defined on undirected graphs.")
 
     # nonrecursive version
     seen = set()
@@ -160,8 +158,7 @@ def topological_sort(G, nbunch=None):
             for n in G[w]:
                 if n not in explored:
                     if n in seen:  # CYCLE !!
-                        raise ConfigSpace.nx.NetworkXUnfeasible(
-                            "Graph contains a cycle.")
+                        raise ConfigSpace.nx.NetworkXUnfeasible("Graph contains a cycle.")
                     new_nodes.append(n)
             if new_nodes:  # Add new_nodes to fringe
                 fringe.extend(new_nodes)
@@ -200,23 +197,21 @@ def topological_sort_recursive(G, nbunch=None):
     -----
     This is a recursive version of topological sort.
 
-    See also
+    See Also
     --------
     topological_sort
     is_directed_acyclic_graph
 
     """
     if not G.is_directed():
-        raise ConfigSpace.nx.NetworkXError(
-            "Topological sort not defined on undirected graphs.")
+        raise ConfigSpace.nx.NetworkXError("Topological sort not defined on undirected graphs.")
 
     def _dfs(v):
         ancestors.add(v)
 
         for w in G[v]:
             if w in ancestors:
-                raise ConfigSpace.nx.NetworkXUnfeasible(
-                    "Graph contains a cycle.")
+                raise ConfigSpace.nx.NetworkXUnfeasible("Graph contains a cycle.")
 
             if w not in explored:
                 _dfs(w)
@@ -274,8 +269,7 @@ def is_aperiodic(G):
        A Multidisciplinary Approach, CRC Press.
     """
     if not G.is_directed():
-        raise ConfigSpace.nx.NetworkXError(
-            "is_aperiodic not defined for undirected graphs")
+        raise ConfigSpace.nx.NetworkXError("is_aperiodic not defined for undirected graphs")
 
     s = next(G.nodes_iter())
     levels = {s: 0}
@@ -296,5 +290,4 @@ def is_aperiodic(G):
     if len(levels) == len(G):  # All nodes in tree
         return g == 1
     else:
-        return g == 1 and ConfigSpace.nx.is_aperiodic(
-            G.subgraph(set(G) - set(levels)))
+        return g == 1 and ConfigSpace.nx.is_aperiodic(G.subgraph(set(G) - set(levels)))

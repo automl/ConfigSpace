@@ -1,7 +1,7 @@
 """
 ========================
 Cycle finding algorithms
-========================
+========================.
 """
 #    Copyright (C) 2010-2012 by
 #    Aric Hagberg <hagberg@lanl.gov>
@@ -9,13 +9,20 @@ Cycle finding algorithms
 #    Pieter Swart <swart@lanl.gov>
 #    All rights reserved.
 #    BSD license.
+from __future__ import annotations
+
 from collections import defaultdict
+
 import ConfigSpace.nx
 
-__all__ = ['simple_cycles']
-__author__ = "\n".join(['Jon Olav Vik <jonovik@gmail.com>',
-                        'Dan Schult <dschult@colgate.edu>',
-                        'Aric Hagberg <hagberg@lanl.gov>'])
+__all__ = ["simple_cycles"]
+__author__ = "\n".join(
+    [
+        "Jon Olav Vik <jonovik@gmail.com>",
+        "Dan Schult <dschult@colgate.edu>",
+        "Aric Hagberg <hagberg@lanl.gov>",
+    ],
+)
 
 
 def simple_cycles(G):
@@ -78,8 +85,9 @@ def simple_cycles(G):
     --------
     cycle_basis
     """
+
     def _unblock(thisnode, blocked, B):
-        stack = set([thisnode])
+        stack = {thisnode}
         while stack:
             node = stack.pop()
             if node in blocked:
@@ -90,7 +98,7 @@ def simple_cycles(G):
     # Johnson's algorithm requires some ordering of the nodes.
     # We assign the arbitrary ordering given by the strongly connected comps
     # There is no need to track the ordering as each node removed as processed.
-    subG = G.copy()   # save the actual graph so we can mutate it here
+    subG = G.copy()  # save the actual graph so we can mutate it here
     sccs = ConfigSpace.nx.strongly_connected_components(subG)
     while sccs:
         scc = sccs.pop()
@@ -107,12 +115,9 @@ def simple_cycles(G):
             thisnode, nbrs = stack[-1]
             if nbrs:
                 nextnode = nbrs.pop()
-#                    print thisnode,nbrs,":",nextnode,blocked,B,path,stack,startnode
-#                    f=raw_input("pause")
                 if nextnode == startnode:
                     yield path[:]
                     closed.update(path)
-#                        print "Found a cycle",path,closed
                 elif nextnode not in blocked:
                     path.append(nextnode)
                     stack.append((nextnode, list(subG[nextnode])))
@@ -127,7 +132,6 @@ def simple_cycles(G):
                         if thisnode not in B[nbr]:
                             B[nbr].add(thisnode)
                 stack.pop()
-#                assert path[-1]==thisnode
                 path.pop()
         # done processing this node
         subG.remove_node(startnode)

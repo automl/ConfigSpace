@@ -1,12 +1,13 @@
 from __future__ import annotations
 
-from typing import Sequence, Union, overload
+from typing import (
+    Sequence,
+    Union,
+    overload,
+)
+from typing_extensions import Literal, TypeAlias
 
-from typing_extensions import (Literal,  # Move to `typing` when 3.8 minimum
-                               TypeAlias)
-
-from ConfigSpace.hyperparameters import (CategoricalHyperparameter,
-                                         OrdinalHyperparameter)
+from ConfigSpace.hyperparameters import CategoricalHyperparameter, OrdinalHyperparameter
 
 # We only accept these types in `items`
 T: TypeAlias = Union[str, int, float]
@@ -130,11 +131,11 @@ def Categorical(
             default_value=default,
             meta=meta,
         )
-    else:
-        return CategoricalHyperparameter(
-            name=name,
-            choices=items,
-            default_value=default,
-            weights=weights,
-            meta=meta,
-        )
+
+    return CategoricalHyperparameter(
+        name=name,
+        choices=items,
+        default_value=default,
+        weights=weights,
+        meta=meta,
+    )

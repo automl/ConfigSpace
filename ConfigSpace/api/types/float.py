@@ -3,9 +3,11 @@ from __future__ import annotations
 from typing import overload
 
 from ConfigSpace.api.distributions import Beta, Distribution, Normal, Uniform
-from ConfigSpace.hyperparameters import (BetaFloatHyperparameter,
-                                         NormalFloatHyperparameter,
-                                         UniformFloatHyperparameter)
+from ConfigSpace.hyperparameters import (
+    BetaFloatHyperparameter,
+    NormalFloatHyperparameter,
+    UniformFloatHyperparameter,
+)
 
 
 # Uniform | None -> UniformFloatHyperparameter
@@ -153,7 +155,8 @@ def Float(
             log=log,
             meta=meta,
         )
-    elif isinstance(distribution, Normal):
+
+    if isinstance(distribution, Normal):
         return NormalFloatHyperparameter(
             name=name,
             lower=lower,
@@ -165,7 +168,8 @@ def Float(
             log=log,
             meta=meta,
         )
-    elif isinstance(distribution, Beta):
+
+    if isinstance(distribution, Beta):
         return BetaFloatHyperparameter(
             name=name,
             lower=lower,
@@ -177,5 +181,5 @@ def Float(
             log=log,
             meta=meta,
         )
-    else:
-        raise ValueError(f"Unknown distribution type {type(distribution)}")
+
+    raise ValueError(f"Unknown distribution type {type(distribution)}")

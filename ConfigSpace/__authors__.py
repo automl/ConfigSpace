@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 __authors__ = [
     "Matthias Feurer",
     "Katharina Eggensperger",
@@ -9,4 +11,5 @@ __authors__ = [
     "Marius Lindauer",
     "Jorn Tuyls",
     "Eddie Bergman",
+    "Arjun Krishnakumar",
 ]
