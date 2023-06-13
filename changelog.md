@@ -1,3 +1,11 @@
+# Version 0.7.1
+
+* MAINT #321: De-cythonize main modules, add deprecation wranings
+
+# Version 0.7.0
+
+* Many bugfixes, please see Github
+
 # Version 0.6.1
 
 * MAINT #286: Add support for Python 3.11.
