@@ -1,6 +1,6 @@
 [project]
 name = "ConfigSpace"
-version = "0.7.1"
+version = "0.7.2"
 description = """\
     Creation and manipulation of parameter configuration spaces for \
     automated algorithm configuration and hyperparameter tuning. \

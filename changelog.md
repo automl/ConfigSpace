@@ -1,3 +1,7 @@
+# Version 0.7.2
+
+*  MAINT #671465e2: Make loading json files from earlier versions backwards compatible
+
 # Version 0.7.1
 
 * MAINT #321: De-cythonize main modules, add deprecation wranings
