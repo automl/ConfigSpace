@@ -487,7 +487,9 @@ def _construct_hyperparameter(hyperparameter: dict) -> Hyperparameter:  # noqa: 
             lower=hyperparameter["lower"],
             upper=hyperparameter["upper"],
             default_value=hyperparameter["default"],
-            q=hyperparameter["q"],
+            # Backwards compatibily issue
+            # https://github.com/automl/ConfigSpace/issues/325
+            q=hyperparameter.get("q", None),
         )
 
     if hp_type == "normal_float":
@@ -499,7 +501,9 @@ def _construct_hyperparameter(hyperparameter: dict) -> Hyperparameter:  # noqa: 
             lower=hyperparameter["lower"],
             upper=hyperparameter["upper"],
             default_value=hyperparameter["default"],
-            q=hyperparameter["q"],
+            # Backwards compatibily issue
+            # https://github.com/automl/ConfigSpace/issues/325
+            q=hyperparameter.get("q", None),
         )
 
     if hp_type == "beta_float":
@@ -510,7 +514,9 @@ def _construct_hyperparameter(hyperparameter: dict) -> Hyperparameter:  # noqa: 
             lower=hyperparameter["lower"],
             upper=hyperparameter["upper"],
             log=hyperparameter["log"],
-            q=hyperparameter["q"],
+            # Backwards compatibily issue
+            # https://github.com/automl/ConfigSpace/issues/325
+            q=hyperparameter.get("q", None),
             default_value=hyperparameter["default"],
         )
 
@@ -521,7 +527,9 @@ def _construct_hyperparameter(hyperparameter: dict) -> Hyperparameter:  # noqa: 
             lower=hyperparameter["lower"],
             upper=hyperparameter["upper"],
             default_value=hyperparameter["default"],
-            q=hyperparameter["q"],
+            # Backwards compatibily issue
+            # https://github.com/automl/ConfigSpace/issues/325
+            q=hyperparameter.get("q", None),
         )
 
     if hp_type == "normal_int":
@@ -533,7 +541,9 @@ def _construct_hyperparameter(hyperparameter: dict) -> Hyperparameter:  # noqa: 
             lower=hyperparameter["lower"],
             upper=hyperparameter["upper"],
             default_value=hyperparameter["default"],
-            q=hyperparameter["q"],
+            # Backwards compatibily issue
+            # https://github.com/automl/ConfigSpace/issues/325
+            q=hyperparameter.get("q", None),
         )
 
     if hp_type == "beta_int":
@@ -544,7 +554,9 @@ def _construct_hyperparameter(hyperparameter: dict) -> Hyperparameter:  # noqa: 
             lower=hyperparameter["lower"],
             upper=hyperparameter["upper"],
             log=hyperparameter["log"],
-            q=hyperparameter["q"],
+            # Backwards compatibily issue
+            # https://github.com/automl/ConfigSpace/issues/325
+            q=hyperparameter.get("q", None),
             default_value=hyperparameter["default"],
         )
 
