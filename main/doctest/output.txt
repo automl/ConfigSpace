@@ -1,38 +1,5 @@
-Results of doctest builder run on 2023-06-13 10:05:45
+Results of doctest builder run on 2023-06-29 08:07:34
 =====================================================
-
-Document: api/serialization
----------------------------
-2 items passed all tests:
-   6 tests in default
-   2 tests in pcs_new_test
-8 tests in 2 items.
-8 passed and 0 failed.
-Test passed.
-
-Document: api/conditions
-------------------------
-1 items passed all tests:
-  30 tests in default
-30 tests in 1 items.
-30 passed and 0 failed.
-Test passed.
-
-Document: api/forbidden_clauses
--------------------------------
-1 items passed all tests:
-  14 tests in default
-14 tests in 1 items.
-14 passed and 0 failed.
-Test passed.
-
-Document: api/hyperparameters
------------------------------
-1 items passed all tests:
-  16 tests in default
-16 tests in 1 items.
-16 passed and 0 failed.
-Test passed.
 
 Document: guide
 ---------------
@@ -76,7 +43,7 @@ Got:
       Hyperparameters:
         activation, Type: Categorical, Choices: {tanh, relu}, Default: relu, Probabilities: (0.2, 0.8)
         dropout, Type: BetaFloat, Alpha: 2.0 Beta: 4.0, Range: [0.0, 0.99], Default: 0.25
-        lr, Type: NormalFloat, Mu: -6.907755278982137 Sigma: 2.302585092994046, Range: [1e-05, 0.1], Default: 0.001, on log-scale
+        lr, Type: NormalFloat, Mu: -6.907755278982137 Sigma: 2.3025850929940455, Range: [1e-05, 0.1], Default: 0.001, on log-scale
     <BLANKLINE>
 **********************************************************************
 1 items had failures:
@@ -85,27 +52,13 @@ Got:
 40 passed and 3 failed.
 ***Test Failed*** 3 failures.
 
-Document: quickstart
---------------------
-**********************************************************************
-File "quickstart.rst", line 64, in default
-Failed example:
-    print(config)
-Expected:
-    Configuration(values={
-      'alpha': 0.1915194503788923,
-    })
-    <BLANKLINE>
-Got:
-    Configuration(values={
-      'alpha': 0.1915194503788923,
-    })
-**********************************************************************
-1 items had failures:
-   1 of   5 in default
-5 tests in 1 items.
-4 passed and 1 failed.
-***Test Failed*** 1 failures.
+Document: api/conditions
+------------------------
+1 items passed all tests:
+  30 tests in default
+30 tests in 1 items.
+30 passed and 0 failed.
+Test passed.
 
 Document: index
 ---------------
@@ -141,6 +94,53 @@ Got:
 13 tests in 1 items.
 12 passed and 1 failed.
 ***Test Failed*** 1 failures.
+
+Document: api/serialization
+---------------------------
+2 items passed all tests:
+   6 tests in default
+   2 tests in pcs_new_test
+8 tests in 2 items.
+8 passed and 0 failed.
+Test passed.
+
+Document: api/hyperparameters
+-----------------------------
+1 items passed all tests:
+  16 tests in default
+16 tests in 1 items.
+16 passed and 0 failed.
+Test passed.
+
+Document: quickstart
+--------------------
+**********************************************************************
+File "quickstart.rst", line 64, in default
+Failed example:
+    print(config)
+Expected:
+    Configuration(values={
+      'alpha': 0.1915194503788923,
+    })
+    <BLANKLINE>
+Got:
+    Configuration(values={
+      'alpha': 0.1915194503788923,
+    })
+**********************************************************************
+1 items had failures:
+   1 of   5 in default
+5 tests in 1 items.
+4 passed and 1 failed.
+***Test Failed*** 1 failures.
+
+Document: api/forbidden_clauses
+-------------------------------
+1 items passed all tests:
+  14 tests in default
+14 tests in 1 items.
+14 passed and 0 failed.
+Test passed.
 
 Doctest summary
 ===============
