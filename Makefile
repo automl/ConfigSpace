@@ -40,6 +40,12 @@ install-dev:
 	$(PIP) install -e ".[dev]"
 	pre-commit install
 
+install-test:
+	$(PIP) install -e ".[test]"
+
+install-docs:
+	$(PIP) install -e ".[docs]"
+
 check:
 	$(PRECOMMIT) run --all-files
 
