@@ -1,6 +1,7 @@
 import io
 from typing import Any, Dict, Optional, Union
 
+from scipy.stats import beta as spbeta
 
 import numpy as np
 cimport numpy as np
