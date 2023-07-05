@@ -581,6 +581,12 @@ class TestHyperparameters(unittest.TestCase):
             assert np.isinf(float_hp.get_size())
         assert f6.get_size() == 100
 
+        with pytest.raises(ValueError):
+            _ = NormalFloatHyperparameter("param", 5, 10, lower=0.1, upper=10, default_value=10.01)
+
+        with pytest.raises(ValueError):
+            _ = NormalFloatHyperparameter("param", 5, 10, lower=0.1, upper=10, default_value=0.09)
+
     def test_normalfloat_to_uniformfloat(self):
         f1 = NormalFloatHyperparameter("param", 0, 10, q=0.1)
         f1_expected = UniformFloatHyperparameter("param", -30, 30, q=0.1)
@@ -606,6 +612,11 @@ class TestHyperparameters(unittest.TestCase):
         assert f1.is_legal_vector(-0.1)
         assert f1.is_legal_vector(1.1)
         self.assertRaises(TypeError, f1.is_legal_vector, "Hahaha")
+
+        f2 = NormalFloatHyperparameter("param", 5, 10, lower=0.1, upper=10, default_value=5.0)
+        assert f2.is_legal(5.0)
+        assert not f2.is_legal(10.01)
+        assert not f2.is_legal(0.09)
 
     def test_normalfloat_to_integer(self):
         f1 = NormalFloatHyperparameter("param", 0, 10)
@@ -1516,6 +1527,13 @@ class TestHyperparameters(unittest.TestCase):
         assert f1.get_neighbors(2, np.random.RandomState(9001), number=1) == [-11]
         assert f1.get_neighbors(2, np.random.RandomState(9001), number=5) == [4, 11, 12, 15, -11]
 
+        # Bounded case with default value out of bounds
+        with pytest.raises(ValueError):
+            _ = NormalIntegerHyperparameter("param", 5, 10, lower=1, upper=10, default_value=11)
+
+        with pytest.raises(ValueError):
+            _ = NormalIntegerHyperparameter("param", 5, 10, lower=1, upper=10, default_value=0)
+
     def test_normalint_legal_float_values(self):
         n_iter = NormalIntegerHyperparameter("n_iter", 0, 1.0, default_value=2.0)
         assert isinstance(n_iter.default_value, int)
@@ -1563,6 +1581,11 @@ class TestHyperparameters(unittest.TestCase):
         assert f1.is_legal_vector(-0.1)
         assert f1.is_legal_vector(1.1)
         self.assertRaises(TypeError, f1.is_legal_vector, "Hahaha")
+
+        f2 = NormalIntegerHyperparameter("param", 5, 10, lower=1, upper=10, default_value=5)
+        assert f2.is_legal(5)
+        assert not f2.is_legal(0)
+        assert not f2.is_legal(11)
 
     def test_normalint_pdf(self):
         c1 = NormalIntegerHyperparameter("param", lower=0, upper=10, mu=3, sigma=2)
