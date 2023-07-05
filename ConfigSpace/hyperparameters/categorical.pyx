@@ -80,11 +80,11 @@ cdef class CategoricalHyperparameter(Hyperparameter):
             if choice is None:
                 raise TypeError("Choice 'None' is not supported")
         if isinstance(choices, set):
-            raise TypeError('Using a set of choices is prohibited as it can result in '
-                            'non-deterministic behavior. Please use a list or a tuple.')
+            raise TypeError("Using a set of choices is prohibited as it can result in "
+                            "non-deterministic behavior. Please use a list or a tuple.")
         if isinstance(weights, set):
-            raise TypeError('Using a set of weights is prohibited as it can result in '
-                            'non-deterministic behavior. Please use a list or a tuple.')
+            raise TypeError("Using a set of weights is prohibited as it can result in "
+                            "non-deterministic behavior. Please use a list or a tuple.")
         self.choices = tuple(choices)
         if weights is not None:
             self.weights = tuple(weights)
@@ -177,7 +177,7 @@ cdef class CategoricalHyperparameter(Hyperparameter):
             meta=self.meta
         )
 
-    def to_uniform(self) -> 'CategoricalHyperparameter':
+    def to_uniform(self) -> "CategoricalHyperparameter":
         """
         Creates a categorical parameter with equal weights for all choices
         This is used for the uniform configspace when sampling configurations in the local search
@@ -255,20 +255,20 @@ cdef class CategoricalHyperparameter(Hyperparameter):
         if np.equal(np.mod(vector, 1), 0):
             return self.choices[vector.astype(int)]
 
-        raise ValueError('Can only index the choices of the ordinal '
-                         'hyperparameter %s with an integer, but provided '
-                         'the following float: %f' % (self, vector))
+        raise ValueError("Can only index the choices of the ordinal "
+                         "hyperparameter %s with an integer, but provided "
+                         "the following float: %f" % (self, vector))
 
     def _transform_scalar(self, scalar: Union[float, int]) -> Union[float, int, str]:
         if scalar != scalar:
-            raise ValueError('Number %s is NaN' % scalar)
+            raise ValueError("Number %s is NaN" % scalar)
 
         if scalar % 1 == 0:
             return self.choices[int(scalar)]
 
-        raise ValueError('Can only index the choices of the ordinal '
-                         'hyperparameter %s with an integer, but provided '
-                         'the following float: %f' % (self, scalar))
+        raise ValueError("Can only index the choices of the ordinal "
+                         "hyperparameter %s with an integer, but provided "
+                         "the following float: %f" % (self, scalar))
 
     def _transform(self, vector: Union[np.ndarray, float, int, str]
                    ) -> Optional[Union[np.ndarray, float, int]]:

@@ -1,4 +1,6 @@
 """Version information."""
 
 # The following line *must* be the last in the module, exactly as formatted:
-__version__ = "0.6.1"
+from __future__ import annotations
+
+__version__ = "0.7.2"

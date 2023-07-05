@@ -79,8 +79,8 @@ cdef class Hyperparameter(object):
                     return seed
             except AttributeError:
                 pass
-            raise ValueError('%r cannot be used to seed a numpy.random.RandomState'
-                             ' instance' % seed)
+            raise ValueError("%r cannot be used to seed a numpy.random.RandomState"
+                             " instance" % seed)
 
         # if size=None, return a value, but if size=1, return a 1-element array
 

@@ -8,7 +8,12 @@ from ConfigSpace.hyperparameters.hyperparameter cimport Hyperparameter
 from ConfigSpace.conditions import ConditionComponent
 from ConfigSpace.conditions cimport ConditionComponent
 from ConfigSpace.conditions import OrConjunction
-from ConfigSpace.exceptions import ForbiddenValueError
+from ConfigSpace.exceptions import (
+    ForbiddenValueError,
+    IllegalValueError,
+    ActiveHyperparameterNotSetError,
+    InactiveHyperparameterSetError,
+)
 
 from libc.stdlib cimport malloc, free
 cimport numpy as np
@@ -39,7 +44,6 @@ cpdef int check_configuration(
     bint allow_inactive_with_values
 ) except 1:
     cdef str hp_name
-    cdef int hp_index
     cdef Hyperparameter hyperparameter
     cdef int hyperparameter_idx
     cdef DTYPE_t hp_value
@@ -47,7 +51,6 @@ cpdef int check_configuration(
     cdef ConditionComponent condition
     cdef Hyperparameter child
     cdef list conditions
-    cdef list parents
     cdef list children
     cdef set inactive
     cdef set visited
@@ -75,15 +78,11 @@ cpdef int check_configuration(
 
         if not np.isnan(hp_value) and not hyperparameter.is_legal_vector(hp_value):
             free(active)
-            raise ValueError("Hyperparameter instantiation '%s' "
-                             "(type: %s) is illegal for hyperparameter %s" %
-                             (hp_value, str(type(hp_value)),
-                              hyperparameter))
+            raise IllegalValueError(hyperparameter, hp_value)
 
         children = self._children_of[hp_name]
         for child in children:
             if child.name not in inactive:
-                parents = self._parents_of[child.name]
                 conditions = self._parent_conditions_of[child.name]
                 add = True
                 for condition in conditions:
@@ -98,8 +97,7 @@ cpdef int check_configuration(
 
         if active[hp_idx] and np.isnan(hp_value):
             free(active)
-            raise ValueError("Active hyperparameter '%s' not specified!" %
-                             hyperparameter.name)
+            raise ActiveHyperparameterNotSetError(hyperparameter)
 
     for hp_idx in self._idx_to_hyperparameter:
 
@@ -108,9 +106,8 @@ cpdef int check_configuration(
             hp_name = self._idx_to_hyperparameter[hp_idx]
             hp_value = vector[hp_idx]
             free(active)
-            raise ValueError("Inactive hyperparameter '%s' must not be "
-                             "specified, but has the vector value: '%s'." %
-                             (hp_name, hp_value))
+            raise InactiveHyperparameterSetError(hyperparameter, hp_value)
+
     free(active)
     self._check_forbidden(vector)
 
@@ -151,11 +148,8 @@ cpdef np.ndarray correct_sampled_array(
         clause = forbidden_clauses_unconditionals[j]
         if clause.c_is_forbidden_vector(vector, strict=False):
             free(active)
-            raise ForbiddenValueError(
-                "Given vector violates forbidden clause %s" % (
-                    str(clause)
-                )
-            )
+            msg = "Given vector violates forbidden clause %s" % str(clause)
+            raise ForbiddenValueError(msg)
 
     hps = deque()
     visited = set()
@@ -226,9 +220,8 @@ cpdef np.ndarray correct_sampled_array(
     for j in range(len(forbidden_clauses_conditionals)):
         clause = forbidden_clauses_conditionals[j]
         if clause.c_is_forbidden_vector(vector, strict=False):
-            raise ForbiddenValueError(
-                "Given vector violates forbidden clause %s" % (
-                    str(clause)))
+            msg = "Given vector violates forbidden clause %s" % str(clause)
+            raise ForbiddenValueError(msg)
 
     return vector
 
@@ -267,7 +260,6 @@ cpdef np.ndarray change_hp_value(
     cdef list disabled
     cdef set hps_to_be_activate
     cdef set visited
-    cdef dict activated_values
     cdef int active
     cdef ConditionComponent condition
     cdef int current_idx
@@ -298,7 +290,6 @@ cpdef np.ndarray change_hp_value(
         to_visit = deque()  # type: deque
         to_visit.extendleft(children)
         visited = set()  # type: Set[str]
-        activated_values = dict()  # type: Dict[str, Union[int, float, str]]
 
         while len(to_visit) > 0:
             current = to_visit.pop()

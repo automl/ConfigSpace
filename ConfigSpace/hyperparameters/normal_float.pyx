@@ -70,12 +70,12 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
 
             if self.lower >= self.upper:
                 raise ValueError("Upper bound %f must be larger than lower bound "
-                                "%f for hyperparameter %s" %
-                                (self.upper, self.lower, name))
+                                 "%f for hyperparameter %s" %
+                                 (self.upper, self.lower, name))
             elif log and self.lower <= 0:
                 raise ValueError("Negative lower bound (%f) for log-scale "
-                                "hyperparameter %s is forbidden." %
-                                (self.lower, name))
+                                 "hyperparameter %s is forbidden." %
+                                 (self.lower, name))
 
             self.default_value = self.check_default(default_value)
 
@@ -101,7 +101,7 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
                 # Out[13]: 0.1999999999999998
                 if np.round((self.upper - self.lower) % self.q, 10) not in (0, self.q):
                     raise ValueError(
-                        'Upper bound (%f) - lower bound (%f) must be a multiple of q (%f)'
+                        "Upper bound (%f) - lower bound (%f) must be a multiple of q (%f)"
                         % (self.upper, self.lower, self.q)
                     )
 
@@ -161,9 +161,9 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
         )
 
     def __hash__(self):
-        return hash((self.name, self.mu, self.sigma, self.log, self.q))
+        return hash((self.name, self.mu, self.sigma, self.log, self.q, self.lower, self.upper))
 
-    def to_uniform(self, z: int = 3) -> 'UniformFloatHyperparameter':
+    def to_uniform(self, z: int = 3) -> "UniformFloatHyperparameter":
         if self.lower is None or self.upper is None:
             lb = self.mu - (z * self.sigma)
             ub = self.mu + (z * self.sigma)
@@ -189,7 +189,7 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
         else:
             raise ValueError("Illegal default value %s" % str(default_value))
 
-    def to_integer(self) -> 'NormalIntegerHyperparameter':
+    def to_integer(self) -> "NormalIntegerHyperparameter":
         if self.q is None:
             q_int = None
         else:
@@ -207,7 +207,9 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
                                            q=q_int, log=self.log)
 
     def is_legal(self, value: Union[float]) -> bool:
-        return isinstance(value, float) or isinstance(value, int)
+        return (isinstance(value, (float, int, np.number)))  and \
+               (self.lower is None or value >= self.lower) and \
+               (self.upper is None or value <= self.upper)
 
     cpdef bint is_legal_vector(self, DTYPE_t value):
         return isinstance(value, float) or isinstance(value, int)
@@ -215,7 +217,7 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
     def _sample(self, rs: np.random.RandomState, size: Optional[int] = None
                 ) -> Union[np.ndarray, float]:
 
-        if self.lower == None:
+        if self.lower is None:
             mu = self.mu
             sigma = self.sigma
             return rs.normal(mu, sigma, size=size)
@@ -240,7 +242,7 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
 
     cpdef double _transform_scalar(self, double scalar):
         if scalar != scalar:
-            raise ValueError('Number %s is NaN' % scalar)
+            raise ValueError("Number %s is NaN" % scalar)
         if self.log:
             scalar = math.exp(scalar)
         if self.q is not None:
@@ -262,7 +264,7 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
             new_value = rs.normal(value, self.sigma)
 
             if self.lower is not None and self.upper is not None:
-                    new_value = min(max(new_value, self.lower), self.upper)
+                new_value = min(max(new_value, self.lower), self.upper)
 
             neighbors.append(new_value)
         return neighbors
@@ -296,7 +298,7 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
         """
         mu = self.mu
         sigma = self.sigma
-        if self.lower == None:
+        if self.lower is None:
             return norm(loc=mu, scale=sigma).pdf(vector)
         else:
             mu = self.mu

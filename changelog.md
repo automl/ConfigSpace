@@ -1,7 +1,19 @@
+# Version 0.7.2
+
+*  MAINT #671465e2: Make loading json files from earlier versions backwards compatible
+
+# Version 0.7.1
+
+* MAINT #321: De-cythonize main modules, add deprecation wranings
+
+# Version 0.7.0
+
+* Many bugfixes, please see Github
+
 # Version 0.6.1
 
-# MAINT #286: Add support for Python 3.11.
-# FIX #282: Fixes a memory leak in the neighborhood generation of integer hyperparameters.
+* MAINT #286: Add support for Python 3.11.
+* FIX #282: Fixes a memory leak in the neighborhood generation of integer hyperparameters.
 
 # Version 0.6.0
 

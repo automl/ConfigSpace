@@ -1,19 +1,69 @@
+default_language_version:
+  python: python3
+files: |
+  (?x)^(
+    ConfigSpace|
+    test
+  )/.*\.py$
 repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+      - id: check-added-large-files
+        files: ".*"
+      - id: check-case-conflict
+        files: ".*"
+      - id: check-merge-conflict
+        files: ".*"
+      - id: check-yaml
+        files: ".*"
+      - id: end-of-file-fixer
+        files: ".*"
+        types: ["yaml"]
+      - id: check-toml
+        files: ".*"
+        types: ["toml"]
+      - id: debug-statements
+        files: '^src/.*\.py$'
+  - repo: https://github.com/python-jsonschema/check-jsonschema
+    rev: 0.22.0
+    hooks:
+      - id: check-github-workflows
+        files: '^github/workflows/.*\.ya?ml$'
+        types: ["yaml"]
+      - id: check-dependabot
+        files: '^\.github/dependabot\.ya?ml$'
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v0.961
+    rev: v1.2.0
     hooks:
       - id: mypy
-        args: [--show-error-codes, --ignore-missing-imports, --follow-imports, skip]
-        name: mypy ConfigSpace
-        files: ConfigSpace
+        files: '^ConfigSpace/.*\.py$'
+        args:
+          - "--no-warn-return-any" # Disable this because it doesn't know about 3rd party imports
+          - "--ignore-missing-imports"
+          - "--show-traceback"
+      - id: mypy
+        files: '^test/.*\.py$'
+        args:
+          - "--no-warn-return-any" # Disable this because it doesn't know about 3rd party imports
+          - "--ignore-missing-imports"
+          - "--show-traceback"
+          - "--disable-error-code"
+          - "no-untyped-def"
 
-  - repo: https://github.com/pycqa/flake8
-    rev: 5.0.4
+  - repo: https://github.com/psf/black
+    rev: 23.3.0
     hooks:
-      - id: flake8
-        name: flake8 ConfigSpace
-        files: ConfigSpace
-
-      - id: flake8
-        name: flake8 test
-        files: test
+      - id: black
+        args: ["--config=pyproject.toml"]
+  - repo: https://github.com/charliermarsh/ruff-pre-commit
+    rev: v0.0.263
+    hooks:
+      - id: ruff
+        args: ["--fix", "ConfigSpace", "test"]
+  - repo: https://github.com/MarcoGorelli/cython-lint
+    rev: v0.15.0
+    hooks:
+      - id: cython-lint
+        args: [--ignore=E501]
+      - id: double-quote-cython-strings

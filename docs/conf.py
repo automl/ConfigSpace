@@ -12,7 +12,7 @@ options = {
     "version": __version__,
     "name": "ConfigSpace",
     "html_theme_options": {
-        "github_url": "https://github.com/automl/automl_sphinx_theme",
+        "github_url": "https://github.com/automl/ConfigSpace",
         "twitter_url": "https://twitter.com/automl_org?lang=de",
     },
 }
@@ -21,15 +21,15 @@ options = {
 automl_sphinx_theme.set_options(globals(), options)
 
 extensions = [
-    'sphinx.ext.autodoc',
-    'sphinx.ext.doctest',
-    'sphinx.ext.coverage',
-    'sphinx.ext.mathjax',
-    'sphinx.ext.viewcode',
-    'sphinx.ext.autosummary',
-    'sphinx.ext.napoleon',
-    'sphinx.ext.githubpages',
-    'sphinx.ext.doctest',
+    "sphinx.ext.autodoc",
+    "sphinx.ext.doctest",
+    "sphinx.ext.coverage",
+    "sphinx.ext.mathjax",
+    "sphinx.ext.viewcode",
+    "sphinx.ext.autosummary",
+    "sphinx.ext.napoleon",
+    "sphinx.ext.githubpages",
+    "sphinx.ext.doctest",
 ]
 
 autodoc_typehints = "description"

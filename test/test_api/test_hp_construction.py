@@ -5,21 +5,23 @@ These are intentionally verbose and using all parameters to ensure they maintain
 from __future__ import annotations
 
 from ConfigSpace import Beta, Categorical, Float, Integer, Normal, Uniform
-from ConfigSpace.hyperparameters import (BetaFloatHyperparameter,
-                                         BetaIntegerHyperparameter,
-                                         CategoricalHyperparameter,
-                                         NormalFloatHyperparameter,
-                                         NormalIntegerHyperparameter,
-                                         OrdinalHyperparameter,
-                                         UniformFloatHyperparameter,
-                                         UniformIntegerHyperparameter)
+from ConfigSpace.hyperparameters import (
+    BetaFloatHyperparameter,
+    BetaIntegerHyperparameter,
+    CategoricalHyperparameter,
+    NormalFloatHyperparameter,
+    NormalIntegerHyperparameter,
+    OrdinalHyperparameter,
+    UniformFloatHyperparameter,
+    UniformIntegerHyperparameter,
+)
 
 
 def test_uniform_int() -> None:
     """
     Expects
     -------
-    * Should create an identical UniformIntegerHyperparameter
+    * Should create an identical UniformIntegerHyperparameter.
     """
     expected = UniformIntegerHyperparameter(
         "hp",
@@ -48,7 +50,7 @@ def test_normal_int() -> None:
     """
     Expects
     -------
-    * Should create an identical NormalIntegerHyperparameter with Normal distribution
+    * Should create an identical NormalIntegerHyperparameter with Normal distribution.
     """
     expected = NormalIntegerHyperparameter(
         "hp",
@@ -80,7 +82,7 @@ def test_beta_int() -> None:
     """
     Expects
     -------
-    * Should create an identical BetaIntegerHyperparameter with a BetaDistribution
+    * Should create an identical BetaIntegerHyperparameter with a BetaDistribution.
     """
     expected = BetaIntegerHyperparameter(
         "hp",
@@ -112,7 +114,7 @@ def test_uniform_float() -> None:
     """
     Expects
     -------
-    * Should create an identical UniformFloatHyperparameter with a UniformDistribution
+    * Should create an identical UniformFloatHyperparameter with a UniformDistribution.
     """
     expected = UniformFloatHyperparameter(
         "hp",
@@ -142,7 +144,7 @@ def test_normal_float() -> None:
     """
     Expects
     -------
-    * Should create an identical NormalFloatHyperparameter with a Normal distribution
+    * Should create an identical NormalFloatHyperparameter with a Normal distribution.
     """
     expected = NormalFloatHyperparameter(
         "hp",
@@ -174,7 +176,7 @@ def test_beta_float() -> None:
     """
     Expects
     -------
-    * Should create an identical BetaFloatHyperparameter with a BetaDistribution
+    * Should create an identical BetaFloatHyperparameter with a BetaDistribution.
     """
     expected = BetaFloatHyperparameter(
         "hp",
@@ -204,7 +206,7 @@ def test_categorical() -> None:
     """
     Expects
     -------
-    * Should create an identical CategoricalHyperparameter
+    * Should create an identical CategoricalHyperparameter.
     """
     expected = CategoricalHyperparameter(
         "hp",
@@ -231,7 +233,7 @@ def test_ordinal() -> None:
     """
     Expects
     -------
-    * Should create an identical CategoricalHyperparameter
+    * Should create an identical CategoricalHyperparameter.
     """
     expected = OrdinalHyperparameter(
         "hp",

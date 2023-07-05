@@ -61,7 +61,7 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
                 self.q = self.check_int(q, "q")
                 if (self.upper - self.lower) % self.q != 0:
                     raise ValueError(
-                        'Upper bound (%d) - lower bound (%d) must be a multiple of q (%d)'
+                        "Upper bound (%d) - lower bound (%d) must be a multiple of q (%d)"
                         % (self.upper, self.lower, self.q)
                     )
         else:
@@ -242,7 +242,7 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
             for v in range(lower, center):
                 neighbors.append(v)
 
-            for v in range(center + 1, upper):
+            for v in range(center + 1, upper + 1):
                 neighbors.append(v)
 
             if transform:
@@ -299,7 +299,6 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
             return neighbors
         else:
             return self._inverse_transform(np.array(neighbors)).tolist()
-
 
     def _pdf(self, vector: np.ndarray) -> np.ndarray:
         """

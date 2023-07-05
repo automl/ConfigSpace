@@ -1,7 +1,7 @@
 from itertools import count
 import io
 from more_itertools import roundrobin
-from typing import List, Any, Dict, Union, Set, Tuple, Optional, Sequence
+from typing import List, Any, Dict, Union, Optional
 import warnings
 
 from scipy.stats import truncnorm, norm
@@ -95,12 +95,12 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
             self.lower = self.check_int(lower, "lower")
             if self.lower >= self.upper:
                 raise ValueError("Upper bound %d must be larger than lower bound "
-                                "%d for hyperparameter %s" %
-                                (self.lower, self.upper, name))
+                                 "%d for hyperparameter %s" %
+                                 (self.lower, self.upper, name))
             elif log and self.lower <= 0:
                 raise ValueError("Negative lower bound (%d) for log-scale "
-                                "hyperparameter %s is forbidden." %
-                                (self.lower, name))
+                                 "hyperparameter %s is forbidden." %
+                                 (self.lower, name))
             self.lower = lower
             self.upper = upper
 
@@ -165,7 +165,7 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
         )
 
     def __hash__(self):
-        return hash((self.name, self.mu, self.sigma, self.log, self.q))
+        return hash((self.name, self.mu, self.sigma, self.log, self.q, self.lower, self.upper))
 
     def __copy__(self):
         return NormalIntegerHyperparameter(
@@ -180,7 +180,7 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
             meta=self.meta
         )
 
-    def to_uniform(self, z: int = 3) -> 'UniformIntegerHyperparameter':
+    def to_uniform(self, z: int = 3) -> "UniformIntegerHyperparameter":
         if self.lower is None or self.upper is None:
             lb = np.round(int(self.mu - (z * self.sigma)))
             ub = np.round(int(self.mu + (z * self.sigma)))
@@ -195,7 +195,9 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
                                             q=self.q, log=self.log, meta=self.meta)
 
     def is_legal(self, value: int) -> bool:
-        return isinstance(value, (int, np.int32, np.int64))
+        return (isinstance(value, (int, np.integer))) and \
+               (self.lower is None or value >= self.lower) and \
+               (self.upper is None or value <= self.upper)
 
     cpdef bint is_legal_vector(self, DTYPE_t value):
         return isinstance(value, float) or isinstance(value, int)
@@ -252,7 +254,7 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
         neighbors: set[int] = set()
         center = self._transform(value)
 
-        if bounded:
+        if not bounded:
             float_indices = norm.rvs(
                 loc=mu,
                 scale=sigma,
@@ -260,11 +262,14 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
                 random_state=rs,
             )
         else:
-            float_indices = truncnorm(
+            dist = truncnorm(
                 a = (self.lower - mu) / sigma,
                 b = (self.upper - mu) / sigma,
                 loc=center,
                 scale=sigma,
+            )
+
+            float_indices = dist.rvs(
                 size=number,
                 random_state=rs,
             )
@@ -298,15 +303,15 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
             # We now have a valid sample, add it to the list of neighbors
             neighbors.add(possible_neighbor)
 
-            if transform:
-                return [self._transform(neighbor) for neighbor in neighbors]
-            else:
-                return list(neighbors)
+        if transform:
+            return [self._transform(neighbor) for neighbor in neighbors]
+        else:
+            return list(neighbors)
 
     def _compute_normalization(self):
         if self.lower is None:
-            warnings.warn('Cannot normalize the pdf exactly for a NormalIntegerHyperparameter'
-            f' {self.name} without bounds. Skipping normalization for that hyperparameter.')
+            warnings.warn("Cannot normalize the pdf exactly for a NormalIntegerHyperparameter"
+                          f" {self.name} without bounds. Skipping normalization for that hyperparameter.")
             return 1
 
         else:

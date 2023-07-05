@@ -4,7 +4,7 @@
 # These have been configured to only really run short tasks. Longer form tasks
 # are usually completed in github actions.
 
-.PHONY: help install-dev pre-commit clean clean-doc clean-build build docs links publish test
+.PHONY: help install-dev install-test install-docs pre-commit clean clean-doc clean-build build docs links publish test clean-test
 
 help:
 	@echo "Makefile ConfigSpace"
@@ -36,18 +36,31 @@ CP := )
 benchmark:
 	python scripts/benchmark_sampling.py
 
-cython-annotate:
-	C_INCLUDE_PATH=$(NUMPY_INCLUDE) cython -3 --directive boundscheck=False,wraparound=False --annotate ConfigSpace/*.pyx
-
-cython-html: cython-annotate
-	python -c "import webbrowser; from pathlib import Path; [webbrowser.open(f'file://{path}') for path in Path('ConfigSpace').absolute().glob('*.html')]"
-
 install-dev:
 	$(PIP) install -e ".[dev]"
 	pre-commit install
 
-pre-commit:
+install-test:
+	$(PIP) install -e ".[test]"
+
+install-docs:
+	$(PIP) install -e ".[docs]"
+
+check:
 	$(PRECOMMIT) run --all-files
+
+check-types:
+	mypy ConfigSpace
+
+fix:
+	black --quiet ConfigSpace test
+	ruff --silent --exit-zero --no-cache --fix ConfigSpace test
+
+build:
+	python -m build
+
+test:
+	$(PYTEST) test
 
 clean-build:
 	rm -rf ${BUILD}
@@ -57,8 +70,7 @@ clean-docs:
 
 clean: clean-build clean-docs
 
-build:
-	python -m build
+clean-test: clean-build build test
 
 # Running build before making docs is needed all be it very slow.
 # Without doing a full build, the doctests seem to use docstrings from the last compiled build
@@ -92,5 +104,8 @@ publish:
 	@echo
 	@echo "    python -m twine upload dist/*"
 
-test:
-	$(PYTEST) test
+cython-annotate:
+	C_INCLUDE_PATH=$(NUMPY_INCLUDE) cython -3 --directive boundscheck=False,wraparound=False --annotate ConfigSpace/*.pyx
+
+cython-html: cython-annotate
+	python -c "import webbrowser; from pathlib import Path; [webbrowser.open(f'file://{path}') for path in Path('ConfigSpace').absolute().glob('*.html')]"
