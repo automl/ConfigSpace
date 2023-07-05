@@ -195,7 +195,7 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
                                             q=self.q, log=self.log, meta=self.meta)
 
     def is_legal(self, value: int) -> bool:
-        return (isinstance(value, (int, np.int32, np.int64))) and \
+        return (isinstance(value, (int, np.integer))) and \
                (self.lower is None or value >= self.lower) and \
                (self.upper is None or value <= self.upper)
 

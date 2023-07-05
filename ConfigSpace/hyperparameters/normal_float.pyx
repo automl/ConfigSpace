@@ -207,7 +207,7 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
                                            q=q_int, log=self.log)
 
     def is_legal(self, value: Union[float]) -> bool:
-        return (isinstance(value, float) or isinstance(value, int))  and \
+        return (isinstance(value, (float, int, np.number)))  and \
                (self.lower is None or value >= self.lower) and \
                (self.upper is None or value <= self.upper)
 
