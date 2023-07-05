@@ -36,7 +36,8 @@ jobs:
 
     - name: Install dependencies
       run: |
-        pip install ".[dev]"
+        pip install build
+        pip install ".[docs]"
 
     - name: Make docs
       run: |

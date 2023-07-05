@@ -72,8 +72,14 @@ dev = [
   "build",
   "ruff",
   "black",
+]
+
+test = [
   "pytest>=4.6",
   "pytest-cov",
+]
+
+docs = [
   "automl_sphinx_theme>=0.1.11",
 ]
 
