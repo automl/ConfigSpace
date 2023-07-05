@@ -33,6 +33,7 @@ import pytest
 
 import numpy as np
 
+from ConfigSpace.functional import arange_chunked
 from ConfigSpace.hyperparameters import (Constant,
                                          UniformFloatHyperparameter, NormalFloatHyperparameter,
                                          BetaFloatHyperparameter, UniformIntegerHyperparameter,
@@ -1410,6 +1411,16 @@ class TestHyperparameters(unittest.TestCase):
         self.assertAlmostEqual(c2.get_max_density(), 0.002790371598208875)
         self.assertAlmostEqual(c3.get_max_density(), 0.9988874412972069)
 
+    def test_normalint_compute_normalization(self):
+        ARANGE_CHUNKSIZE = 10_000_000
+        lower, upper = 1, ARANGE_CHUNKSIZE * 2
+
+        c = NormalIntegerHyperparameter("c", mu=10, sigma=500, lower=lower, upper=upper)
+        chunks = arange_chunked(lower, upper, chunk_size=ARANGE_CHUNKSIZE)
+        # exact computation over the complete range
+        N = sum(c.nfhp.pdf(chunk).sum() for chunk in chunks)
+        self.assertAlmostEqual(c._compute_normalization(), N, places=5)
+
     ############################################################
     def test_betaint(self):
         # TODO test non-equality
@@ -1704,6 +1715,16 @@ class TestHyperparameters(unittest.TestCase):
         self.assertAlmostEqual(c1.get_max_density(), 0.1781818181818181)
         self.assertAlmostEqual(c2.get_max_density(), 0.0018733953504422762)
         self.assertAlmostEqual(c3.get_max_density(), 0.9979110652388783)
+
+    def test_betaint_compute_normalization(self):
+        ARANGE_CHUNKSIZE = 10_000_000
+        lower, upper = 0, ARANGE_CHUNKSIZE * 2
+
+        c = BetaIntegerHyperparameter("c", alpha=3, beta=2, lower=lower, upper=upper)
+        chunks = arange_chunked(lower, upper, chunk_size=ARANGE_CHUNKSIZE)
+        # exact computation over the complete range
+        N = sum(c.bfhp.pdf(chunk).sum() for chunk in chunks)
+        self.assertAlmostEqual(c._compute_normalization(), N, places=5)
 
     def test_categorical(self):
         # TODO test for inequality

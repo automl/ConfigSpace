@@ -69,6 +69,9 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
         """
         super(NormalIntegerHyperparameter, self).__init__(name, default_value, meta)
 
+        import time
+
+        st = time.time()
         self.mu = mu
         self.sigma = sigma
 
@@ -112,15 +115,18 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
                                               lower=self.lower,
                                               upper=self.upper,
                                               default_value=default_value)
+        print("Running time for NormalIntegerHyperparameter", time.time() - st)
 
         self.default_value = self.check_default(default_value)
         self.normalized_default_value = self._inverse_transform(self.default_value)
 
+        st = time.time()
         if (self.lower is None) or (self.upper is None):
             # Since a bound is missing, the pdf cannot be normalized. Working with the unnormalized variant)
             self.normalization_constant = 1
         else:
             self.normalization_constant = self._compute_normalization()
+        print("Running time for _compute_normalization", time.time() - st)
 
     def __repr__(self) -> str:
         repr_str = io.StringIO()
@@ -310,7 +316,18 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
             return 1
 
         else:
-            chunks = arange_chunked(self.lower, self.upper + 1, chunk_size=ARANGE_CHUNKSIZE)
+            if self.upper - self.lower > ARANGE_CHUNKSIZE:
+                a = (self.lower - self.mu) / self.sigma
+                b = (self.upper - self.mu) / self.sigma
+                rv = truncnorm(a=a, b=b, loc=self.mu, scale=self.sigma)
+                u, v = rv.interval(confidence=0.999999)
+                lb = max(u, self.lower)
+                ub = min(v, self.upper + 1)
+            else:
+                lb = self.lower
+                ub = self.upper + 1
+
+            chunks = arange_chunked(lb, ub, chunk_size=ARANGE_CHUNKSIZE)
             return sum(self.nfhp.pdf(chunk).sum() for chunk in chunks)
 
     def _pdf(self, vector: np.ndarray) -> np.ndarray:
