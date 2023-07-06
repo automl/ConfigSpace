@@ -18,4 +18,4 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
     cdef public mu
     cdef public sigma
     cdef public nfhp
-    cdef normalization_constant
+    cdef public normalization_constant

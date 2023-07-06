@@ -319,7 +319,7 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
                 a = (self.lower - self.mu) / self.sigma
                 b = (self.upper - self.mu) / self.sigma
                 rv = truncnorm(a=a, b=b, loc=self.mu, scale=self.sigma)
-                u, v = rv.interval(confidence=0.999999)
+                u, v = rv.interval(alpha=0.999999)
                 lb = max(u, self.lower)
                 ub = min(v, self.upper + 1)
             else:

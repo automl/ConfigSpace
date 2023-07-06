@@ -1717,7 +1717,7 @@ class TestHyperparameters(unittest.TestCase):
         chunks = arange_chunked(lower, upper, chunk_size=ARANGE_CHUNKSIZE)
         # exact computation over the complete range
         N = sum(c.nfhp.pdf(chunk).sum() for chunk in chunks)
-        self.assertAlmostEqual(c._compute_normalization(), N, places=5)
+        self.assertAlmostEqual(c.normalization_constant, N, places=5)
 
     ############################################################
     def test_betaint(self):
@@ -2115,7 +2115,7 @@ class TestHyperparameters(unittest.TestCase):
         chunks = arange_chunked(lower, upper, chunk_size=ARANGE_CHUNKSIZE)
         # exact computation over the complete range
         N = sum(c.bfhp.pdf(chunk).sum() for chunk in chunks)
-        self.assertAlmostEqual(c._compute_normalization(), N, places=5)
+        self.assertAlmostEqual(c.normalization_constant, N, places=5)
 
     def test_categorical(self):
         # TODO test for inequality

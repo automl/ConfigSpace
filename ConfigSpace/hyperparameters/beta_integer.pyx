@@ -179,7 +179,7 @@ cdef class BetaIntegerHyperparameter(UniformIntegerHyperparameter):
         if self.upper - self.lower > ARANGE_CHUNKSIZE:
             a = self.bfhp._inverse_transform(self.lower)
             b = self.bfhp._inverse_transform(self.upper)
-            u, v = spbeta(self.alpha, self.beta, loc=a, scale=b-a).interval(confidence=0.999999)
+            u, v = spbeta(self.alpha, self.beta, loc=a, scale=b-a).interval(alpha=0.999999)
             lb = max(self.bfhp._transform(u), self.lower)
             ub = min(self.bfhp._transform(v), self.upper + 1)
         else:
