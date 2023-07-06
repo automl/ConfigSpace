@@ -318,8 +318,9 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
             if self.upper - self.lower > ARANGE_CHUNKSIZE:
                 a = (self.lower - self.mu) / self.sigma
                 b = (self.upper - self.mu) / self.sigma
+                confidence = 0.999999
                 rv = truncnorm(a=a, b=b, loc=self.mu, scale=self.sigma)
-                u, v = rv.interval(alpha=0.999999)
+                u, v = rv.ppf((1 - confidence) / 2), rv.ppf((1 + confidence) / 2)
                 lb = max(u, self.lower)
                 ub = min(v, self.upper + 1)
             else:
