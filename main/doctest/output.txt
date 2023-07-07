@@ -1,21 +1,74 @@
-Results of doctest builder run on 2023-07-05 10:32:29
+Results of doctest builder run on 2023-07-07 07:46:09
 =====================================================
 
-Document: api/serialization
----------------------------
-2 items passed all tests:
-   6 tests in default
-   2 tests in pcs_new_test
-8 tests in 2 items.
-8 passed and 0 failed.
-Test passed.
+Document: index
+---------------
+**********************************************************************
+File "index.rst", line 77, in default
+Failed example:
+    cs = ConfigurationSpace(
+        name="myspace",
+        seed=1234,
+        space={
+            "a": Float("a", bounds=(0.1, 1.5), distribution=Normal(1, 10), log=True),
+            "b": Integer("b", bounds=(2, 10)),
+            "c": Categorical("c", ["mouse", "cat", "dog"], weights=[2, 1, 1]),
+        },
+    )
+Exception raised:
+    Traceback (most recent call last):
+      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/doctest.py", line 1336, in __run
+        exec(compile(example.source, filename, "single",
+      File "<doctest default[1]>", line 1, in <module>
+        cs = ConfigurationSpace(
+      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/site-packages/ConfigSpace/configuration_space.py", line 224, in __init__
+        self.add_hyperparameters(hyperparameters)
+      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/site-packages/ConfigSpace/configuration_space.py", line 272, in add_hyperparameters
+        self._check_default_configuration()
+      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/site-packages/ConfigSpace/configuration_space.py", line 1479, in _check_default_configuration
+        return Configuration(self, values=instantiated_hyperparameters)
+      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/site-packages/ConfigSpace/configuration.py", line 90, in __init__
+        raise IllegalValueError(hp, value)
+    ConfigSpace.exceptions.IllegalValueError: Value 2.718281828459045: (<class 'float'>) is not allowed for hyperparameter a, Type: NormalFloat, Mu: 1.0 Sigma: 10.0, Range: [0.1, 1.5], Default: 2.718281828459045, on log-scale
+**********************************************************************
+File "index.rst", line 86, in default
+Failed example:
+    cs.sample_configuration(2)
+Expected:
+    [Configuration(values={
+      'a': 0.17013149799713567,
+      'b': 5,
+      'c': 'dog',
+    })
+    , Configuration(values={
+      'a': 0.5476203000512754,
+      'b': 9,
+      'c': 'mouse',
+    })
+    ]
+Got:
+    [Configuration(values={
+      'myfloat': 1.3616545546841328,
+      'myint': 2,
+      'species': 'mouse',
+    }), Configuration(values={
+      'myfloat': 0.20341852469915983,
+      'myint': 8,
+      'species': 'dog',
+    })]
+**********************************************************************
+1 items had failures:
+   2 of  13 in default
+13 tests in 1 items.
+11 passed and 2 failed.
+***Test Failed*** 2 failures.
 
-Document: api/hyperparameters
------------------------------
+Document: api/conditions
+------------------------
 1 items passed all tests:
-  16 tests in default
-16 tests in 1 items.
-16 passed and 0 failed.
+  30 tests in default
+30 tests in 1 items.
+30 passed and 0 failed.
 Test passed.
 
 Document: guide
@@ -69,75 +122,13 @@ Got:
 40 passed and 3 failed.
 ***Test Failed*** 3 failures.
 
-Document: api/conditions
-------------------------
+Document: api/forbidden_clauses
+-------------------------------
 1 items passed all tests:
-  30 tests in default
-30 tests in 1 items.
-30 passed and 0 failed.
+  14 tests in default
+14 tests in 1 items.
+14 passed and 0 failed.
 Test passed.
-
-Document: index
----------------
-**********************************************************************
-File "index.rst", line 77, in default
-Failed example:
-    cs = ConfigurationSpace(
-        name="myspace",
-        seed=1234,
-        space={
-            "a": Float("a", bounds=(0.1, 1.5), distribution=Normal(1, 10), log=True),
-            "b": Integer("b", bounds=(2, 10)),
-            "c": Categorical("c", ["mouse", "cat", "dog"], weights=[2, 1, 1]),
-        },
-    )
-Exception raised:
-    Traceback (most recent call last):
-      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/doctest.py", line 1336, in __run
-        exec(compile(example.source, filename, "single",
-      File "<doctest default[1]>", line 1, in <module>
-        cs = ConfigurationSpace(
-      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/site-packages/ConfigSpace/configuration_space.py", line 224, in __init__
-        self.add_hyperparameters(hyperparameters)
-      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/site-packages/ConfigSpace/configuration_space.py", line 272, in add_hyperparameters
-        self._check_default_configuration()
-      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/site-packages/ConfigSpace/configuration_space.py", line 1479, in _check_default_configuration
-        return Configuration(self, values=instantiated_hyperparameters)
-      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/site-packages/ConfigSpace/configuration.py", line 90, in __init__
-        raise IllegalValueError(hp, value)
-    ConfigSpace.exceptions.IllegalValueError: Value 2.718281828459045: (<class 'float'>) is not allowed for hyperparameter a, Type: NormalFloat, Mu: 1.0 Sigma: 10.0, Range: [0.1, 1.5], Default: 2.718281828459045, on log-scale
-**********************************************************************
-File "index.rst", line 86, in default
-Failed example:
-    cs.sample_configuration(2)
-Expected:
-    [Configuration(values={
-      'a': 0.17013149799713567,
-      'b': 5,
-      'c': 'dog',
-    })
-    , Configuration(values={
-      'a': 0.5476203000512754,
-      'b': 9,
-      'c': 'mouse',
-    })
-    ]
-Got:
-    [Configuration(values={
-      'myfloat': 0.4694776113143636,
-      'myint': 4,
-      'species': 'mouse',
-    }), Configuration(values={
-      'myfloat': 0.4340252946007459,
-      'myint': 4,
-      'species': 'cat',
-    })]
-**********************************************************************
-1 items had failures:
-   2 of  13 in default
-13 tests in 1 items.
-11 passed and 2 failed.
-***Test Failed*** 2 failures.
 
 Document: quickstart
 --------------------
@@ -161,12 +152,21 @@ Got:
 4 passed and 1 failed.
 ***Test Failed*** 1 failures.
 
-Document: api/forbidden_clauses
--------------------------------
+Document: api/serialization
+---------------------------
+2 items passed all tests:
+   6 tests in default
+   2 tests in pcs_new_test
+8 tests in 2 items.
+8 passed and 0 failed.
+Test passed.
+
+Document: api/hyperparameters
+-----------------------------
 1 items passed all tests:
-  14 tests in default
-14 tests in 1 items.
-14 passed and 0 failed.
+  16 tests in default
+16 tests in 1 items.
+16 passed and 0 failed.
 Test passed.
 
 Doctest summary
