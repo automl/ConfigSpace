@@ -74,6 +74,9 @@ cdef class ConditionComponent(object):
     def evaluate_vector(self, instantiated_vector):
         return bool(self._evaluate_vector(instantiated_vector))
 
+    def get_referenced_hyperparameters(self) -> List[Hyperparameter]:
+        pass
+
     cdef int _evaluate_vector(self, np.ndarray value):
         pass
 
@@ -146,6 +149,9 @@ cdef class AbstractCondition(ConditionComponent):
                  ) -> bool:
         hp_name = self.parent.name
         return self._evaluate(instantiated_parent_hyperparameter[hp_name])
+
+    def get_referenced_hyperparameters(self) -> List[Hyperparameter]:
+        return self.get_children() + self.get_parents()
 
     cdef int _evaluate_vector(self, np.ndarray instantiated_vector):
         if self.parent_vector_id is None:
@@ -522,6 +528,9 @@ cdef class AbstractConjunction(ConditionComponent):
             if c1 != c2:
                 raise ValueError("All Conjunctions and Conditions must have "
                                  "the same child.")
+
+    def get_referenced_hyperparameters(self) -> List[Hyperparameter]:
+        return sum([cond.get_referenced_hyperparameters() for cond in self.components], [])
 
     def __eq__(self, other: Any) -> bool:
         """

@@ -708,3 +708,68 @@ def generate_grid(
         unchecked_grid_pts.popleft()
 
     return checked_grid_pts
+
+
+def remove_hyperparameter(name: str, configuration_space: ConfigurationSpace) -> ConfigurationSpace:
+    """
+    Returns a new configuration space with the hyperparameter removed.
+
+    Parameters
+    ----------
+    name: str
+        Name of the hyperparameter to remove
+
+    configuration_space: :class:`~ConfigSpace.configuration_space.ConfigurationSpace`
+        Configuration space from which to remove the hyperparameter.
+
+    Returns
+    -------
+    :class:`~ConfigSpace.configuration_space.Configuration`
+        A new configuration space without the hyperparameter
+    """
+    if name not in configuration_space._hyperparameters:
+        raise ValueError(f"{name} not in {configuration_space}")
+
+    hp_to_remove = configuration_space.get_hyperparameter(name)
+    hps = [
+        copy(hp)  # type: ignore
+        for hp in configuration_space.get_hyperparameters()
+        if hp.name != name
+    ]
+
+    conditions = [
+        cond
+        for cond in configuration_space.get_conditions()
+        if hp_to_remove not in cond.get_referenced_hyperparameters()
+    ]
+    forbiddens = [
+        forbidden
+        for forbidden in configuration_space.get_forbiddens()
+        if hp_to_remove not in forbidden.get_referenced_hyperparameters()
+    ]
+
+    if isinstance(configuration_space.random, np.random.RandomState):
+        new_seed = configuration_space.random.randint(2**32 - 1)
+    else:
+        new_seed = copy(configuration_space.random)  # type: ignore
+
+    new_space = ConfigurationSpace(
+        seed=new_seed,
+        name=copy(configuration_space.name),  # type: ignore
+        meta=copy(configuration_space.meta),  # type: ignore
+    )
+    new_space.add_hyperparameters(hps)
+
+    new_conditions = ConfigurationSpace.substitute_hyperparameters_in_conditions(
+        conditions=conditions,
+        new_configspace=new_space,
+    )
+    new_forbiddens = ConfigurationSpace.substitute_hyperparameters_in_forbiddens(
+        forbiddens=forbiddens,
+        new_configspace=new_space,
+    )
+
+    new_space.add_conditions(new_conditions)
+    new_space.add_forbidden_clauses(new_forbiddens)
+
+    return new_space
