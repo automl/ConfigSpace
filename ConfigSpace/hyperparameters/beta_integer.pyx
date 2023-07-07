@@ -1,6 +1,7 @@
 import io
 from typing import Any, Dict, Optional, Union
 
+from scipy.stats import beta as spbeta
 
 import numpy as np
 cimport numpy as np
@@ -175,7 +176,19 @@ cdef class BetaIntegerHyperparameter(UniformIntegerHyperparameter):
         return value
 
     def _compute_normalization(self):
-        chunks = arange_chunked(self.lower, self.upper + 1, chunk_size=ARANGE_CHUNKSIZE)
+        if self.upper - self.lower > ARANGE_CHUNKSIZE:
+            a = self.bfhp._inverse_transform(self.lower)
+            b = self.bfhp._inverse_transform(self.upper)
+            confidence = 0.999999
+            rv = spbeta(self.alpha, self.beta, loc=a, scale=b-a)
+            u, v = rv.ppf((1 - confidence) / 2), rv.ppf((1 + confidence) / 2)
+            lb = max(self.bfhp._transform(u), self.lower)
+            ub = min(self.bfhp._transform(v), self.upper + 1)
+        else:
+            lb = self.lower
+            ub = self.upper + 1
+            
+        chunks = arange_chunked(lb, ub, chunk_size=ARANGE_CHUNKSIZE)
         return sum(self.bfhp.pdf(chunk).sum() for chunk in chunks)
 
     def _pdf(self, vector: np.ndarray) -> np.ndarray:

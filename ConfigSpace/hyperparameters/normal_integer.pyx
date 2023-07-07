@@ -315,7 +315,19 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
             return 1
 
         else:
-            chunks = arange_chunked(self.lower, self.upper + 1, chunk_size=ARANGE_CHUNKSIZE)
+            if self.upper - self.lower > ARANGE_CHUNKSIZE:
+                a = (self.lower - self.mu) / self.sigma
+                b = (self.upper - self.mu) / self.sigma
+                confidence = 0.999999
+                rv = truncnorm(a=a, b=b, loc=self.mu, scale=self.sigma)
+                u, v = rv.ppf((1 - confidence) / 2), rv.ppf((1 + confidence) / 2)
+                lb = max(u, self.lower)
+                ub = min(v, self.upper + 1)
+            else:
+                lb = self.lower
+                ub = self.upper + 1
+
+            chunks = arange_chunked(lb, ub, chunk_size=ARANGE_CHUNKSIZE)
             return sum(self.nfhp.pdf(chunk).sum() for chunk in chunks)
 
     def _pdf(self, vector: np.ndarray) -> np.ndarray:

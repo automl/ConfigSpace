@@ -18,4 +18,4 @@ cdef class BetaIntegerHyperparameter(UniformIntegerHyperparameter):
     cdef public alpha
     cdef public beta
     cdef public bfhp
-    cdef normalization_constant
+    cdef public normalization_constant
