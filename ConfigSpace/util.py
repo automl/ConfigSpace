@@ -699,7 +699,7 @@ def generate_grid(
             if len(new_active_hp_names) <= 0:
                 raise RuntimeError(
                     "Unexpected error: There should have been a newly activated hyperparameter"
-                    f" for the current configuration values: {str(unchecked_grid_pts[0])}. "
+                    f" for the current configuration values: {unchecked_grid_pts[0]!s}. "
                     "Please contact the developers with the code you ran and the stack trace.",
                 ) from None
 
@@ -730,9 +730,16 @@ def remove_hyperparameter(name: str, configuration_space: ConfigurationSpace) ->
     if name not in configuration_space._hyperparameters:
         raise ValueError(f"{name} not in {configuration_space}")
 
+    # First, delete children hyperparameters
+    for child in configuration_space._children[name]:  # type: ignore
+        configuration_space = remove_hyperparameter(
+            name=child,
+            configuration_space=configuration_space,
+        )
+
     hp_to_remove = configuration_space.get_hyperparameter(name)
     hps = [
-        copy(hp)  # type: ignore
+        copy.deepcopy(hp)  # type: ignore
         for hp in configuration_space.get_hyperparameters()
         if hp.name != name
     ]
@@ -748,17 +755,12 @@ def remove_hyperparameter(name: str, configuration_space: ConfigurationSpace) ->
         if hp_to_remove not in forbidden.get_referenced_hyperparameters()
     ]
 
-    if isinstance(configuration_space.random, np.random.RandomState):
-        new_seed = configuration_space.random.randint(2**32 - 1)
-    else:
-        new_seed = copy(configuration_space.random)  # type: ignore
-
     new_space = ConfigurationSpace(
-        seed=new_seed,
-        name=copy(configuration_space.name),  # type: ignore
-        meta=copy(configuration_space.meta),  # type: ignore
+        name=copy.deepcopy(configuration_space.name),  # type: ignore
+        meta=copy.deepcopy(configuration_space.meta),  # type: ignore
     )
     new_space.add_hyperparameters(hps)
+    new_space.random.set_state(configuration_space.random.get_state())
 
     new_conditions = ConfigurationSpace.substitute_hyperparameters_in_conditions(
         conditions=conditions,
