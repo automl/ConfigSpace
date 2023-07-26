@@ -130,7 +130,7 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
                            ) -> Union[np.ndarray, float, int]:
         return self.ufhp._inverse_transform(vector)
 
-    def is_legal(self, value: int) -> bool:
+    def is_legal(self, value: Union[int, None]) -> bool:
         if not (isinstance(value, (int, np.int32, np.int64))):
             return False
         elif self.upper >= value >= self.lower:
