@@ -202,7 +202,7 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
     cpdef bint is_legal_vector(self, DTYPE_t value):
         return isinstance(value, float) or isinstance(value, int)
 
-    def check_default(self, default_value: int) -> int:
+    def check_default(self, default_value: Union[int, None]) -> int:
         if default_value is None:
             if self.log:
                 return self._transform_scalar(self.mu)
