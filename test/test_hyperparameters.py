@@ -1452,7 +1452,7 @@ class TestHyperparameters(unittest.TestCase):
         f1 = NormalIntegerHyperparameter("param", 0.5, 5.5)
         f1_ = NormalIntegerHyperparameter("param", 0.5, 5.5)
         assert f1 == f1_
-        assert str(f1) == "param, Type: NormalInteger, Mu: 0.5 Sigma: 5.5, Default: 0.5"
+        assert str(f1) == "param, Type: NormalInteger, Mu: 0.5 Sigma: 5.5, Default: 0"
 
         # Test attributes are accessible
         assert f1.name == "param"
@@ -1460,8 +1460,8 @@ class TestHyperparameters(unittest.TestCase):
         assert f1.sigma == 5.5
         assert f1.q is None
         assert f1.log is False
-        self.assertAlmostEqual(f1.default_value, 0.5)
-        self.assertAlmostEqual(f1.normalized_default_value, 0.5)
+        self.assertAlmostEqual(f1.default_value, 0)
+        self.assertAlmostEqual(f1.normalized_default_value, 0)
 
         with pytest.warns(
             UserWarning,
