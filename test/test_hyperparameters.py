@@ -1276,7 +1276,7 @@ class TestHyperparameters(unittest.TestCase):
         assert f5.get_size() == 10
 
     def test_uniformint_legal_float_values(self):
-        n_iter = UniformIntegerHyperparameter("n_iter", 5.0, 1000.0, default_value=20.0)
+        n_iter = UniformIntegerHyperparameter("n_iter", 5, 1000, default_value=20)
 
         assert isinstance(n_iter.default_value, int)
         self.assertRaisesRegex(

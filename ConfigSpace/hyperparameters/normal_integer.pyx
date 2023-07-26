@@ -189,8 +189,8 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
             ub = self.upper
 
         return UniformIntegerHyperparameter(self.name,
-                                            lb,
-                                            ub,
+                                            int(lb),
+                                            int(ub),
                                             default_value=self.default_value,
                                             q=self.q, log=self.log, meta=self.meta)
 
