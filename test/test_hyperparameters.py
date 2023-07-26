@@ -1069,7 +1069,7 @@ class TestHyperparameters(unittest.TestCase):
 
     def test_betafloat_to_integer(self):
         f1 = BetaFloatHyperparameter("param", lower=-2.0, upper=2.0, alpha=4, beta=2)
-        f2_expected = BetaIntegerHyperparameter("param", lower=-2.0, upper=2.0, alpha=4, beta=2)
+        f2_expected = BetaIntegerHyperparameter("param", lower=-2, upper=2, alpha=4, beta=2)
         f2_actual = f1.to_integer()
         assert f2_expected == f2_actual
 

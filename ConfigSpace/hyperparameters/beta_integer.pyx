@@ -23,8 +23,8 @@ ARANGE_CHUNKSIZE = 10_000_000
 cdef class BetaIntegerHyperparameter(UniformIntegerHyperparameter):
 
     def __init__(self, name: str, alpha: Union[int, float], beta: Union[int, float],
-                 lower: Union[int, float],
-                 upper: Union[int, float],
+                 lower: int,
+                 upper: int,
                  default_value: Union[int, None] = None, q: Union[None, int] = None,
                  log: bool = False,
                  meta: Optional[Dict] = None) -> None:
@@ -51,9 +51,9 @@ cdef class BetaIntegerHyperparameter(UniformIntegerHyperparameter):
         beta : int, float
             Beta parameter of the distribution, from which
             hyperparameter is sampled
-        lower : int, float
+        lower : int
             Lower bound of a range of values from which the hyperparameter will be sampled
-        upper : int, float
+        upper : int
             Upper bound of a range of values from which the hyperparameter will be sampled
         default_value : int, optional
             Sets the default value of a hyperparameter to a given value
