@@ -68,7 +68,7 @@ cdef class BetaIntegerHyperparameter(UniformIntegerHyperparameter):
 
         """
         super(BetaIntegerHyperparameter, self).__init__(
-            name, lower, upper, np.round((upper + lower) / 2), q, log, meta)
+            name, lower, upper, int(np.round((upper + lower) / 2)), q, log, meta)
         self.alpha = float(alpha)
         self.beta = float(beta)
         if (alpha < 1) or (beta < 1):
