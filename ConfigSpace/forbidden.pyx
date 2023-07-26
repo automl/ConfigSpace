@@ -250,7 +250,7 @@ cdef class ForbiddenEqualsClause(SingleValueForbiddenClause):
 
 
 cdef class ForbiddenInClause(MultipleValueForbiddenClause):
-    def __init__(self, hyperparameter: Dict[str, Union[None, str, float, int]],
+    def __init__(self, hyperparameter: Union[Dict[str, Union[None, str, float, int]], Hyperparameter],
                  values: Any) -> None:
         """A ForbiddenInClause.
 
