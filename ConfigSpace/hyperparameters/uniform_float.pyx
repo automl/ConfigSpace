@@ -101,7 +101,7 @@ cdef class UniformFloatHyperparameter(FloatHyperparameter):
         repr_str.seek(0)
         return repr_str.getvalue()
 
-    def is_legal(self, value: Union[float]) -> bool:
+    def is_legal(self, value: Union[float, int]) -> bool:
         if not (isinstance(value, float) or isinstance(value, int)):
             return False
         elif self.upper >= value >= self.lower:
@@ -115,7 +115,7 @@ cdef class UniformFloatHyperparameter(FloatHyperparameter):
         else:
             return False
 
-    def check_default(self, default_value: Optional[float]) -> float:
+    def check_default(self, default_value: Union[float, int]) -> float:
         if default_value is None:
             if self.log:
                 default_value = float(np.exp((np.log(self.lower) + np.log(self.upper)) / 2.))
@@ -124,7 +124,7 @@ cdef class UniformFloatHyperparameter(FloatHyperparameter):
         default_value = float(np.round(float(default_value), 10))
 
         if self.is_legal(default_value):
-            return default_value
+            return float(default_value)
         else:
             raise ValueError("Illegal default value %s" % str(default_value))
 
