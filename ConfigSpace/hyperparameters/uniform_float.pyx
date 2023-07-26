@@ -118,7 +118,7 @@ cdef class UniformFloatHyperparameter(FloatHyperparameter):
     def check_default(self, default_value: Optional[float]) -> float:
         if default_value is None:
             if self.log:
-                default_value = np.exp((np.log(self.lower) + np.log(self.upper)) / 2.)
+                default_value = float(np.exp((np.log(self.lower) + np.log(self.upper)) / 2.))
             else:
                 default_value = (self.lower + self.upper) / 2.
         default_value = float(np.round(float(default_value), 10))
