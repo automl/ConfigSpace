@@ -22,14 +22,14 @@
       
 
     
-    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/css/custom.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=362ab14a" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/custom.css?v=2eb4fb78" />
     
   <link rel="preload" as="script" href="../_static/js/index.9ea38e314b9e6d9dab77.js">
 
-    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-    <script src="../_static/doctools.js"></script>
-    <script src="../_static/sphinx_highlight.js"></script>
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=4856959a"></script>
+    <script src="../_static/doctools.js?v=888ff710"></script>
+    <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
     <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -1171,11 +1171,16 @@ Not used by the configuration space.</p></li>
 <span class="sig-name descname"><span class="pre">get_max_density</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.hyperparameters.UniformIntegerHyperparameter.get_max_density" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the maximal density on the pdf for the parameter (so not
 the mode, but the value of the pdf on the mode).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ConfigSpace.hyperparameters.UniformIntegerHyperparameter.get_neighbors">
-<span class="sig-name descname"><span class="pre">get_neighbors</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.hyperparameters.UniformIntegerHyperparameter.get_neighbors" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">get_neighbors</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">number</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transform</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">std</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.hyperparameters.UniformIntegerHyperparameter.get_neighbors" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get the neighbors of a value</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -1205,7 +1210,7 @@ for neighbors.</p></li>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ConfigSpace.hyperparameters.UniformIntegerHyperparameter.is_legal_vector">
-<span class="sig-name descname"><span class="pre">is_legal_vector</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.hyperparameters.UniformIntegerHyperparameter.is_legal_vector" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">is_legal_vector</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.hyperparameters.UniformIntegerHyperparameter.is_legal_vector" title="Permalink to this definition">¶</a></dt>
 <dd><p>Check whether the given value is a legal value for the vector
 representation of this hyperparameter.</p>
 <dl class="field-list simple">
@@ -1223,7 +1228,7 @@ representation of this hyperparameter.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ConfigSpace.hyperparameters.UniformIntegerHyperparameter.pdf">
-<span class="sig-name descname"><span class="pre">pdf</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.hyperparameters.UniformIntegerHyperparameter.pdf" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">pdf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vector</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.hyperparameters.UniformIntegerHyperparameter.pdf" title="Permalink to this definition">¶</a></dt>
 <dd><p>Computes the probability density function of the hyperparameter in
 the hyperparameter space (the one specified by the user).
 For each hyperparameter type, there is also a method _pdf which
@@ -1246,10 +1251,21 @@ function is to be computed.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ConfigSpace.hyperparameters.UniformIntegerHyperparameter.rvs">
-<span class="sig-name descname"><span class="pre">rvs</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.hyperparameters.UniformIntegerHyperparameter.rvs" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">rvs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_state</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.hyperparameters.UniformIntegerHyperparameter.rvs" title="Permalink to this definition">¶</a></dt>
 <dd><p>scipy compatibility wrapper for <code class="docutils literal notranslate"><span class="pre">_sample</span></code>,
 allowing the hyperparameter to be used in sklearn API
 hyperparameter searchers, eg. GridSearchCV.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>size</strong> (<em>Optional</em><em>[</em><em>int</em><em>]</em>) – </p></li>
+<li><p><strong>random_state</strong> (<em>Optional</em><em>[</em><em>Union</em><em>[</em><em>int</em><em>, </em><em>np.random</em><em>, </em><em>np.random.RandomState</em><em>]</em><em>]</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Union[float, np.ndarray]</p>
+</dd>
+</dl>
 </dd></dl>
 
 </dd></dl>
@@ -1293,7 +1309,7 @@ the mode, but the value of the pdf on the mode).</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ConfigSpace.hyperparameters.NormalIntegerHyperparameter.is_legal_vector">
-<span class="sig-name descname"><span class="pre">is_legal_vector</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.hyperparameters.NormalIntegerHyperparameter.is_legal_vector" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">is_legal_vector</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.hyperparameters.NormalIntegerHyperparameter.is_legal_vector" title="Permalink to this definition">¶</a></dt>
 <dd><p>Check whether the given value is a legal value for the vector
 representation of this hyperparameter.</p>
 <dl class="field-list simple">
@@ -1311,7 +1327,7 @@ representation of this hyperparameter.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ConfigSpace.hyperparameters.NormalIntegerHyperparameter.pdf">
-<span class="sig-name descname"><span class="pre">pdf</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.hyperparameters.NormalIntegerHyperparameter.pdf" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">pdf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vector</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.hyperparameters.NormalIntegerHyperparameter.pdf" title="Permalink to this definition">¶</a></dt>
 <dd><p>Computes the probability density function of the hyperparameter in
 the hyperparameter space (the one specified by the user).
 For each hyperparameter type, there is also a method _pdf which
@@ -1334,10 +1350,21 @@ function is to be computed.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ConfigSpace.hyperparameters.NormalIntegerHyperparameter.rvs">
-<span class="sig-name descname"><span class="pre">rvs</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.hyperparameters.NormalIntegerHyperparameter.rvs" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">rvs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_state</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.hyperparameters.NormalIntegerHyperparameter.rvs" title="Permalink to this definition">¶</a></dt>
 <dd><p>scipy compatibility wrapper for <code class="docutils literal notranslate"><span class="pre">_sample</span></code>,
 allowing the hyperparameter to be used in sklearn API
 hyperparameter searchers, eg. GridSearchCV.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>size</strong> (<em>Optional</em><em>[</em><em>int</em><em>]</em>) – </p></li>
+<li><p><strong>random_state</strong> (<em>Optional</em><em>[</em><em>Union</em><em>[</em><em>int</em><em>, </em><em>np.random</em><em>, </em><em>np.random.RandomState</em><em>]</em><em>]</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Union[float, np.ndarray]</p>
+</dd>
+</dl>
 </dd></dl>
 
 </dd></dl>
@@ -1383,7 +1410,7 @@ the mode, but the value of the pdf on the mode).</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ConfigSpace.hyperparameters.BetaIntegerHyperparameter.get_neighbors">
-<span class="sig-name descname"><span class="pre">get_neighbors</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.hyperparameters.BetaIntegerHyperparameter.get_neighbors" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">get_neighbors</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">number</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transform</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">std</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.hyperparameters.BetaIntegerHyperparameter.get_neighbors" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get the neighbors of a value</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -1413,7 +1440,7 @@ for neighbors.</p></li>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ConfigSpace.hyperparameters.BetaIntegerHyperparameter.is_legal_vector">
-<span class="sig-name descname"><span class="pre">is_legal_vector</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.hyperparameters.BetaIntegerHyperparameter.is_legal_vector" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">is_legal_vector</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.hyperparameters.BetaIntegerHyperparameter.is_legal_vector" title="Permalink to this definition">¶</a></dt>
 <dd><p>Check whether the given value is a legal value for the vector
 representation of this hyperparameter.</p>
 <dl class="field-list simple">
@@ -1431,7 +1458,7 @@ representation of this hyperparameter.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ConfigSpace.hyperparameters.BetaIntegerHyperparameter.pdf">
-<span class="sig-name descname"><span class="pre">pdf</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.hyperparameters.BetaIntegerHyperparameter.pdf" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">pdf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vector</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.hyperparameters.BetaIntegerHyperparameter.pdf" title="Permalink to this definition">¶</a></dt>
 <dd><p>Computes the probability density function of the hyperparameter in
 the hyperparameter space (the one specified by the user).
 For each hyperparameter type, there is also a method _pdf which
@@ -1454,10 +1481,21 @@ function is to be computed.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ConfigSpace.hyperparameters.BetaIntegerHyperparameter.rvs">
-<span class="sig-name descname"><span class="pre">rvs</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.hyperparameters.BetaIntegerHyperparameter.rvs" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">rvs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_state</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.hyperparameters.BetaIntegerHyperparameter.rvs" title="Permalink to this definition">¶</a></dt>
 <dd><p>scipy compatibility wrapper for <code class="docutils literal notranslate"><span class="pre">_sample</span></code>,
 allowing the hyperparameter to be used in sklearn API
 hyperparameter searchers, eg. GridSearchCV.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>size</strong> (<em>Optional</em><em>[</em><em>int</em><em>]</em>) – </p></li>
+<li><p><strong>random_state</strong> (<em>Optional</em><em>[</em><em>Union</em><em>[</em><em>int</em><em>, </em><em>np.random</em><em>, </em><em>np.random.RandomState</em><em>]</em><em>]</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Union[float, np.ndarray]</p>
+</dd>
+</dl>
 </dd></dl>
 
 </dd></dl>
@@ -1499,11 +1537,16 @@ Not used by the configuration space.</p></li>
 <span class="sig-name descname"><span class="pre">get_max_density</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.hyperparameters.UniformFloatHyperparameter.get_max_density" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the maximal density on the pdf for the parameter (so not
 the mode, but the value of the pdf on the mode).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ConfigSpace.hyperparameters.UniformFloatHyperparameter.is_legal_vector">
-<span class="sig-name descname"><span class="pre">is_legal_vector</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.hyperparameters.UniformFloatHyperparameter.is_legal_vector" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">is_legal_vector</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.hyperparameters.UniformFloatHyperparameter.is_legal_vector" title="Permalink to this definition">¶</a></dt>
 <dd><p>Check whether the given value is a legal value for the vector
 representation of this hyperparameter.</p>
 <dl class="field-list simple">
@@ -1521,7 +1564,7 @@ representation of this hyperparameter.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ConfigSpace.hyperparameters.UniformFloatHyperparameter.pdf">
-<span class="sig-name descname"><span class="pre">pdf</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.hyperparameters.UniformFloatHyperparameter.pdf" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">pdf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vector</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.hyperparameters.UniformFloatHyperparameter.pdf" title="Permalink to this definition">¶</a></dt>
 <dd><p>Computes the probability density function of the parameter in
 the original parameter space (the one specified by the user).
 For each parameter type, there is also a method _pdf which
@@ -1544,10 +1587,21 @@ function is to be computed.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ConfigSpace.hyperparameters.UniformFloatHyperparameter.rvs">
-<span class="sig-name descname"><span class="pre">rvs</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.hyperparameters.UniformFloatHyperparameter.rvs" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">rvs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_state</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.hyperparameters.UniformFloatHyperparameter.rvs" title="Permalink to this definition">¶</a></dt>
 <dd><p>scipy compatibility wrapper for <code class="docutils literal notranslate"><span class="pre">_sample</span></code>,
 allowing the hyperparameter to be used in sklearn API
 hyperparameter searchers, eg. GridSearchCV.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>size</strong> (<em>Optional</em><em>[</em><em>int</em><em>]</em>) – </p></li>
+<li><p><strong>random_state</strong> (<em>Optional</em><em>[</em><em>Union</em><em>[</em><em>int</em><em>, </em><em>np.random</em><em>, </em><em>np.random.RandomState</em><em>]</em><em>]</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Union[float, np.ndarray]</p>
+</dd>
+</dl>
 </dd></dl>
 
 </dd></dl>
@@ -1586,11 +1640,16 @@ Not used by the configuration space.</p></li>
 <span class="sig-name descname"><span class="pre">get_max_density</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.hyperparameters.NormalFloatHyperparameter.get_max_density" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the maximal density on the pdf for the parameter (so not
 the mode, but the value of the pdf on the mode).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ConfigSpace.hyperparameters.NormalFloatHyperparameter.is_legal_vector">
-<span class="sig-name descname"><span class="pre">is_legal_vector</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.hyperparameters.NormalFloatHyperparameter.is_legal_vector" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">is_legal_vector</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.hyperparameters.NormalFloatHyperparameter.is_legal_vector" title="Permalink to this definition">¶</a></dt>
 <dd><p>Check whether the given value is a legal value for the vector
 representation of this hyperparameter.</p>
 <dl class="field-list simple">
@@ -1608,7 +1667,7 @@ representation of this hyperparameter.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ConfigSpace.hyperparameters.NormalFloatHyperparameter.pdf">
-<span class="sig-name descname"><span class="pre">pdf</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.hyperparameters.NormalFloatHyperparameter.pdf" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">pdf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vector</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.hyperparameters.NormalFloatHyperparameter.pdf" title="Permalink to this definition">¶</a></dt>
 <dd><p>Computes the probability density function of the parameter in
 the original parameter space (the one specified by the user).
 For each parameter type, there is also a method _pdf which
@@ -1631,10 +1690,21 @@ function is to be computed.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ConfigSpace.hyperparameters.NormalFloatHyperparameter.rvs">
-<span class="sig-name descname"><span class="pre">rvs</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.hyperparameters.NormalFloatHyperparameter.rvs" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">rvs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_state</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.hyperparameters.NormalFloatHyperparameter.rvs" title="Permalink to this definition">¶</a></dt>
 <dd><p>scipy compatibility wrapper for <code class="docutils literal notranslate"><span class="pre">_sample</span></code>,
 allowing the hyperparameter to be used in sklearn API
 hyperparameter searchers, eg. GridSearchCV.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>size</strong> (<em>Optional</em><em>[</em><em>int</em><em>]</em>) – </p></li>
+<li><p><strong>random_state</strong> (<em>Optional</em><em>[</em><em>Union</em><em>[</em><em>int</em><em>, </em><em>np.random</em><em>, </em><em>np.random.RandomState</em><em>]</em><em>]</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Union[float, np.ndarray]</p>
+</dd>
+</dl>
 </dd></dl>
 
 </dd></dl>
@@ -1677,11 +1747,16 @@ Not used by the configuration space.</p></li>
 <span class="sig-name descname"><span class="pre">get_max_density</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.hyperparameters.BetaFloatHyperparameter.get_max_density" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the maximal density on the pdf for the parameter (so not
 the mode, but the value of the pdf on the mode).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ConfigSpace.hyperparameters.BetaFloatHyperparameter.is_legal_vector">
-<span class="sig-name descname"><span class="pre">is_legal_vector</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.hyperparameters.BetaFloatHyperparameter.is_legal_vector" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">is_legal_vector</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.hyperparameters.BetaFloatHyperparameter.is_legal_vector" title="Permalink to this definition">¶</a></dt>
 <dd><p>Check whether the given value is a legal value for the vector
 representation of this hyperparameter.</p>
 <dl class="field-list simple">
@@ -1699,7 +1774,7 @@ representation of this hyperparameter.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ConfigSpace.hyperparameters.BetaFloatHyperparameter.pdf">
-<span class="sig-name descname"><span class="pre">pdf</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.hyperparameters.BetaFloatHyperparameter.pdf" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">pdf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vector</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.hyperparameters.BetaFloatHyperparameter.pdf" title="Permalink to this definition">¶</a></dt>
 <dd><p>Computes the probability density function of the parameter in
 the original parameter space (the one specified by the user).
 For each parameter type, there is also a method _pdf which
@@ -1722,10 +1797,21 @@ function is to be computed.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ConfigSpace.hyperparameters.BetaFloatHyperparameter.rvs">
-<span class="sig-name descname"><span class="pre">rvs</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.hyperparameters.BetaFloatHyperparameter.rvs" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">rvs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_state</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.hyperparameters.BetaFloatHyperparameter.rvs" title="Permalink to this definition">¶</a></dt>
 <dd><p>scipy compatibility wrapper for <code class="docutils literal notranslate"><span class="pre">_sample</span></code>,
 allowing the hyperparameter to be used in sklearn API
 hyperparameter searchers, eg. GridSearchCV.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>size</strong> (<em>Optional</em><em>[</em><em>int</em><em>]</em>) – </p></li>
+<li><p><strong>random_state</strong> (<em>Optional</em><em>[</em><em>Union</em><em>[</em><em>int</em><em>, </em><em>np.random</em><em>, </em><em>np.random.RandomState</em><em>]</em><em>]</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Union[float, np.ndarray]</p>
+</dd>
+</dl>
 </dd></dl>
 
 </dd></dl>
@@ -1764,7 +1850,7 @@ probabilities during sampling, no negative values allowed</p></li>
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="ConfigSpace.hyperparameters.CategoricalHyperparameter.is_legal_vector">
-<span class="sig-name descname"><span class="pre">is_legal_vector</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.hyperparameters.CategoricalHyperparameter.is_legal_vector" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">is_legal_vector</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.hyperparameters.CategoricalHyperparameter.is_legal_vector" title="Permalink to this definition">¶</a></dt>
 <dd><p>Check whether the given value is a legal value for the vector
 representation of this hyperparameter.</p>
 <dl class="field-list simple">
@@ -1782,7 +1868,7 @@ representation of this hyperparameter.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ConfigSpace.hyperparameters.CategoricalHyperparameter.pdf">
-<span class="sig-name descname"><span class="pre">pdf</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.hyperparameters.CategoricalHyperparameter.pdf" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">pdf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vector</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.hyperparameters.CategoricalHyperparameter.pdf" title="Permalink to this definition">¶</a></dt>
 <dd><p>Computes the probability density function of the parameter in
 the original parameter space (the one specified by the user).
 For each parameter type, there is also a method _pdf which
@@ -1805,10 +1891,21 @@ function is to be computed.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ConfigSpace.hyperparameters.CategoricalHyperparameter.rvs">
-<span class="sig-name descname"><span class="pre">rvs</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.hyperparameters.CategoricalHyperparameter.rvs" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">rvs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_state</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.hyperparameters.CategoricalHyperparameter.rvs" title="Permalink to this definition">¶</a></dt>
 <dd><p>scipy compatibility wrapper for <code class="docutils literal notranslate"><span class="pre">_sample</span></code>,
 allowing the hyperparameter to be used in sklearn API
 hyperparameter searchers, eg. GridSearchCV.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>size</strong> (<em>Optional</em><em>[</em><em>int</em><em>]</em>) – </p></li>
+<li><p><strong>random_state</strong> (<em>Optional</em><em>[</em><em>Union</em><em>[</em><em>int</em><em>, </em><em>np.random</em><em>, </em><em>np.random.RandomState</em><em>]</em><em>]</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Union[float, np.ndarray]</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -1862,35 +1959,83 @@ Not used by the configuration space.</p></li>
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="ConfigSpace.hyperparameters.OrdinalHyperparameter.check_default">
-<span class="sig-name descname"><span class="pre">check_default</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.hyperparameters.OrdinalHyperparameter.check_default" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">check_default</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">default_value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.hyperparameters.OrdinalHyperparameter.check_default" title="Permalink to this definition">¶</a></dt>
 <dd><p>check if given default value is represented in the sequence.
 If there’s no default value we simply choose the
 first element in our sequence as default.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>default_value</strong> (<em>int</em><em> | </em><em>float</em><em> | </em><em>str</em><em> | </em><em>None</em>) – </p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>int | float | str</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ConfigSpace.hyperparameters.OrdinalHyperparameter.check_order">
-<span class="sig-name descname"><span class="pre">check_order</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.hyperparameters.OrdinalHyperparameter.check_order" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">check_order</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">val1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">val2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.hyperparameters.OrdinalHyperparameter.check_order" title="Permalink to this definition">¶</a></dt>
 <dd><p>check whether value1 is smaller than value2.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>val1</strong> (<em>int</em><em> | </em><em>str</em><em> | </em><em>float</em>) – </p></li>
+<li><p><strong>val2</strong> (<em>int</em><em> | </em><em>str</em><em> | </em><em>float</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>bool</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ConfigSpace.hyperparameters.OrdinalHyperparameter.get_neighbors">
-<span class="sig-name descname"><span class="pre">get_neighbors</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.hyperparameters.OrdinalHyperparameter.get_neighbors" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">get_neighbors</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">number</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transform</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.hyperparameters.OrdinalHyperparameter.get_neighbors" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the neighbors of a given value.
 Value must be in vector form. Ordinal name will not work.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>value</strong> (<em>int</em><em> | </em><em>str</em><em> | </em><em>float</em>) – </p></li>
+<li><p><strong>rs</strong> (<em>None</em>) – </p></li>
+<li><p><strong>number</strong> (<em>int</em>) – </p></li>
+<li><p><strong>transform</strong> (<em>bool</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>List</em>[str | float | int]</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ConfigSpace.hyperparameters.OrdinalHyperparameter.get_num_neighbors">
-<span class="sig-name descname"><span class="pre">get_num_neighbors</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.hyperparameters.OrdinalHyperparameter.get_num_neighbors" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">get_num_neighbors</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.hyperparameters.OrdinalHyperparameter.get_num_neighbors" title="Permalink to this definition">¶</a></dt>
 <dd><p>return the number of existing neighbors in the sequence</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>value</strong> (<em>int</em><em> | </em><em>float</em><em> | </em><em>str</em>) – </p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ConfigSpace.hyperparameters.OrdinalHyperparameter.get_order">
-<span class="sig-name descname"><span class="pre">get_order</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.hyperparameters.OrdinalHyperparameter.get_order" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">get_order</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.hyperparameters.OrdinalHyperparameter.get_order" title="Permalink to this definition">¶</a></dt>
 <dd><p>return the seuence position/order of a certain value from the sequence</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>value</strong> (<em>int</em><em> | </em><em>float</em><em> | </em><em>str</em><em> | </em><em>None</em>) – </p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -1898,12 +2043,25 @@ Value must be in vector form. Ordinal name will not work.</p>
 <span class="sig-name descname"><span class="pre">get_seq_order</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.hyperparameters.OrdinalHyperparameter.get_seq_order" title="Permalink to this definition">¶</a></dt>
 <dd><p>return the ordinal sequence as numeric sequence
 (according to the the ordering) from 1 to length of our sequence.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><em>ndarray</em></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ConfigSpace.hyperparameters.OrdinalHyperparameter.get_value">
-<span class="sig-name descname"><span class="pre">get_value</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.hyperparameters.OrdinalHyperparameter.get_value" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">get_value</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idx</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.hyperparameters.OrdinalHyperparameter.get_value" title="Permalink to this definition">¶</a></dt>
 <dd><p>return the sequence value of a given order/position</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>idx</strong> (<em>int</em>) – </p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>int | str | float</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -1911,17 +2069,30 @@ Value must be in vector form. Ordinal name will not work.</p>
 <span class="sig-name descname"><span class="pre">has_neighbors</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.hyperparameters.OrdinalHyperparameter.has_neighbors" title="Permalink to this definition">¶</a></dt>
 <dd><p>check if there are neighbors or we’re only dealing with an
 one-element sequence</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ConfigSpace.hyperparameters.OrdinalHyperparameter.is_legal">
-<span class="sig-name descname"><span class="pre">is_legal</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.hyperparameters.OrdinalHyperparameter.is_legal" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">is_legal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.hyperparameters.OrdinalHyperparameter.is_legal" title="Permalink to this definition">¶</a></dt>
 <dd><p>check if a certain value is represented in the sequence</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>value</strong> (<em>int</em><em> | </em><em>float</em><em> | </em><em>str</em>) – </p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>bool</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ConfigSpace.hyperparameters.OrdinalHyperparameter.is_legal_vector">
-<span class="sig-name descname"><span class="pre">is_legal_vector</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.hyperparameters.OrdinalHyperparameter.is_legal_vector" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">is_legal_vector</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.hyperparameters.OrdinalHyperparameter.is_legal_vector" title="Permalink to this definition">¶</a></dt>
 <dd><p>Check whether the given value is a legal value for the vector
 representation of this hyperparameter.</p>
 <dl class="field-list simple">
@@ -1939,7 +2110,7 @@ representation of this hyperparameter.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ConfigSpace.hyperparameters.OrdinalHyperparameter.pdf">
-<span class="sig-name descname"><span class="pre">pdf</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.hyperparameters.OrdinalHyperparameter.pdf" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">pdf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vector</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.hyperparameters.OrdinalHyperparameter.pdf" title="Permalink to this definition">¶</a></dt>
 <dd><p>Computes the probability density function of the hyperparameter in
 the original hyperparameter space (the one specified by the user).
 For each parameter type, there is also a method _pdf which
@@ -1963,10 +2134,21 @@ function is to be computed.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ConfigSpace.hyperparameters.OrdinalHyperparameter.rvs">
-<span class="sig-name descname"><span class="pre">rvs</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.hyperparameters.OrdinalHyperparameter.rvs" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">rvs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_state</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.hyperparameters.OrdinalHyperparameter.rvs" title="Permalink to this definition">¶</a></dt>
 <dd><p>scipy compatibility wrapper for <code class="docutils literal notranslate"><span class="pre">_sample</span></code>,
 allowing the hyperparameter to be used in sklearn API
 hyperparameter searchers, eg. GridSearchCV.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>size</strong> (<em>Optional</em><em>[</em><em>int</em><em>]</em>) – </p></li>
+<li><p><strong>random_state</strong> (<em>Optional</em><em>[</em><em>Union</em><em>[</em><em>int</em><em>, </em><em>np.random</em><em>, </em><em>np.random.RandomState</em><em>]</em><em>]</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Union[float, np.ndarray]</p>
+</dd>
+</dl>
 </dd></dl>
 
 </dd></dl>
@@ -1992,7 +2174,7 @@ Not used by the configuration space.</p></li>
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="ConfigSpace.hyperparameters.Constant.is_legal_vector">
-<span class="sig-name descname"><span class="pre">is_legal_vector</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.hyperparameters.Constant.is_legal_vector" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">is_legal_vector</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.hyperparameters.Constant.is_legal_vector" title="Permalink to this definition">¶</a></dt>
 <dd><p>Check whether the given value is a legal value for the vector
 representation of this hyperparameter.</p>
 <dl class="field-list simple">
@@ -2010,7 +2192,7 @@ representation of this hyperparameter.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ConfigSpace.hyperparameters.Constant.pdf">
-<span class="sig-name descname"><span class="pre">pdf</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.hyperparameters.Constant.pdf" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">pdf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vector</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.hyperparameters.Constant.pdf" title="Permalink to this definition">¶</a></dt>
 <dd><p>Computes the probability density function of the parameter in
 the original parameter space (the one specified by the user).
 For each hyperparameter type, there is also a method _pdf which
@@ -2033,10 +2215,21 @@ function is to be computed.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ConfigSpace.hyperparameters.Constant.rvs">
-<span class="sig-name descname"><span class="pre">rvs</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.hyperparameters.Constant.rvs" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">rvs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_state</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ConfigSpace.hyperparameters.Constant.rvs" title="Permalink to this definition">¶</a></dt>
 <dd><p>scipy compatibility wrapper for <code class="docutils literal notranslate"><span class="pre">_sample</span></code>,
 allowing the hyperparameter to be used in sklearn API
 hyperparameter searchers, eg. GridSearchCV.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>size</strong> (<em>Optional</em><em>[</em><em>int</em><em>]</em>) – </p></li>
+<li><p><strong>random_state</strong> (<em>Optional</em><em>[</em><em>Union</em><em>[</em><em>int</em><em>, </em><em>np.random</em><em>, </em><em>np.random.RandomState</em><em>]</em><em>]</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Union[float, np.ndarray]</p>
+</dd>
+</dl>
 </dd></dl>
 
 </dd></dl>
@@ -2086,7 +2279,7 @@ hyperparameter searchers, eg. GridSearchCV.</p>
     <div class="footer-item">
       <p class="sphinx-version">
 Created using <a href="http://sphinx-doc.org/">Sphinx</a>
-7.0.1. Template is modified version of <a
+7.1.1. Template is modified version of <a
 href="https://pydata-sphinx-theme.readthedocs.io">PyData Sphinx Theme</a>. <br>
 </p>
     </div>

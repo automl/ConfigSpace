@@ -1,8 +1,362 @@
-Results of doctest builder run on 2023-07-07 07:46:09
+Results of doctest builder run on 2023-08-01 15:34:07
 =====================================================
+
+Document: api/conditions
+------------------------
+**********************************************************************
+File "docstring of ConfigSpace.conditions.EqualsCondition", line 16, in default
+Failed example:
+    cs = ConfigurationSpace({
+        "a": [1, 2, 3],
+        "b": (1.0, 8.0)
+    })
+Exception raised:
+    Traceback (most recent call last):
+      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/doctest.py", line 1336, in __run
+        exec(compile(example.source, filename, "single",
+      File "<doctest default[1]>", line 1, in <module>
+        cs = ConfigurationSpace({
+      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/site-packages/ConfigSpace/configuration_space.py", line 223, in __init__
+        hyperparameters = list(_parse_hyperparameters_from_dict(space))
+      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/site-packages/ConfigSpace/configuration_space.py", line 95, in _parse_hyperparameters_from_dict
+        yield UniformFloatHyperparameter(name, lower, upper)
+      File "ConfigSpace/hyperparameters/uniform_float.pyx", line 62, in ConfigSpace.hyperparameters.uniform_float.UniformFloatHyperparameter.__init__
+      File "ConfigSpace/hyperparameters/uniform_float.pyx", line 124, in ConfigSpace.hyperparameters.uniform_float.UniformFloatHyperparameter.check_default
+    TypeError: Expected float, got numpy.float64
+**********************************************************************
+File "docstring of ConfigSpace.conditions.EqualsCondition", line 20, in default
+Failed example:
+    cond = EqualsCondition(cs['b'], cs['a'], 1)
+Exception raised:
+    Traceback (most recent call last):
+      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/doctest.py", line 1336, in __run
+        exec(compile(example.source, filename, "single",
+      File "<doctest default[2]>", line 1, in <module>
+        cond = EqualsCondition(cs['b'], cs['a'], 1)
+    NameError: name 'cs' is not defined
+**********************************************************************
+File "docstring of ConfigSpace.conditions.EqualsCondition", line 21, in default
+Failed example:
+    cs.add_condition(cond)
+Exception raised:
+    Traceback (most recent call last):
+      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/doctest.py", line 1336, in __run
+        exec(compile(example.source, filename, "single",
+      File "<doctest default[3]>", line 1, in <module>
+        cs.add_condition(cond)
+    NameError: name 'cs' is not defined
+**********************************************************************
+File "docstring of ConfigSpace.conditions.NotEqualsCondition", line 16, in default
+Failed example:
+    cs = ConfigurationSpace({
+        "a": [1, 2, 3],
+        "b": (1.0, 8.0)
+    })
+Exception raised:
+    Traceback (most recent call last):
+      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/doctest.py", line 1336, in __run
+        exec(compile(example.source, filename, "single",
+      File "<doctest default[1]>", line 1, in <module>
+        cs = ConfigurationSpace({
+      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/site-packages/ConfigSpace/configuration_space.py", line 223, in __init__
+        hyperparameters = list(_parse_hyperparameters_from_dict(space))
+      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/site-packages/ConfigSpace/configuration_space.py", line 95, in _parse_hyperparameters_from_dict
+        yield UniformFloatHyperparameter(name, lower, upper)
+      File "ConfigSpace/hyperparameters/uniform_float.pyx", line 62, in ConfigSpace.hyperparameters.uniform_float.UniformFloatHyperparameter.__init__
+      File "ConfigSpace/hyperparameters/uniform_float.pyx", line 124, in ConfigSpace.hyperparameters.uniform_float.UniformFloatHyperparameter.check_default
+    TypeError: Expected float, got numpy.float64
+**********************************************************************
+File "docstring of ConfigSpace.conditions.NotEqualsCondition", line 20, in default
+Failed example:
+    cond = NotEqualsCondition(cs['b'], cs['a'], 1)
+Exception raised:
+    Traceback (most recent call last):
+      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/doctest.py", line 1336, in __run
+        exec(compile(example.source, filename, "single",
+      File "<doctest default[2]>", line 1, in <module>
+        cond = NotEqualsCondition(cs['b'], cs['a'], 1)
+    NameError: name 'cs' is not defined
+**********************************************************************
+File "docstring of ConfigSpace.conditions.NotEqualsCondition", line 21, in default
+Failed example:
+    cs.add_condition(cond)
+Exception raised:
+    Traceback (most recent call last):
+      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/doctest.py", line 1336, in __run
+        exec(compile(example.source, filename, "single",
+      File "<doctest default[3]>", line 1, in <module>
+        cs.add_condition(cond)
+    NameError: name 'cs' is not defined
+**********************************************************************
+File "docstring of ConfigSpace.conditions.LessThanCondition", line 16, in default
+Failed example:
+    cs = ConfigurationSpace({
+       "a": (0, 10),
+       "b": (1.0, 8.0)
+    })
+Exception raised:
+    Traceback (most recent call last):
+      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/doctest.py", line 1336, in __run
+        exec(compile(example.source, filename, "single",
+      File "<doctest default[1]>", line 1, in <module>
+        cs = ConfigurationSpace({
+      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/site-packages/ConfigSpace/configuration_space.py", line 223, in __init__
+        hyperparameters = list(_parse_hyperparameters_from_dict(space))
+      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/site-packages/ConfigSpace/configuration_space.py", line 97, in _parse_hyperparameters_from_dict
+        yield UniformIntegerHyperparameter(name, lower, upper)
+      File "ConfigSpace/hyperparameters/uniform_integer.pyx", line 48, in ConfigSpace.hyperparameters.uniform_integer.UniformIntegerHyperparameter.__init__
+    TypeError: Argument 'default_value' has incorrect type (expected int, got NoneType)
+**********************************************************************
+File "docstring of ConfigSpace.conditions.LessThanCondition", line 20, in default
+Failed example:
+    cond = LessThanCondition(cs['b'], cs['a'], 5)
+Exception raised:
+    Traceback (most recent call last):
+      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/doctest.py", line 1336, in __run
+        exec(compile(example.source, filename, "single",
+      File "<doctest default[2]>", line 1, in <module>
+        cond = LessThanCondition(cs['b'], cs['a'], 5)
+    NameError: name 'cs' is not defined
+**********************************************************************
+File "docstring of ConfigSpace.conditions.LessThanCondition", line 21, in default
+Failed example:
+    cs.add_condition(cond)
+Exception raised:
+    Traceback (most recent call last):
+      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/doctest.py", line 1336, in __run
+        exec(compile(example.source, filename, "single",
+      File "<doctest default[3]>", line 1, in <module>
+        cs.add_condition(cond)
+    NameError: name 'cs' is not defined
+**********************************************************************
+File "docstring of ConfigSpace.conditions.GreaterThanCondition", line 16, in default
+Failed example:
+    cs = ConfigurationSpace({
+        "a": (0, 10),
+        "b": (1.0, 8.0)
+    })
+Exception raised:
+    Traceback (most recent call last):
+      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/doctest.py", line 1336, in __run
+        exec(compile(example.source, filename, "single",
+      File "<doctest default[1]>", line 1, in <module>
+        cs = ConfigurationSpace({
+      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/site-packages/ConfigSpace/configuration_space.py", line 223, in __init__
+        hyperparameters = list(_parse_hyperparameters_from_dict(space))
+      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/site-packages/ConfigSpace/configuration_space.py", line 97, in _parse_hyperparameters_from_dict
+        yield UniformIntegerHyperparameter(name, lower, upper)
+      File "ConfigSpace/hyperparameters/uniform_integer.pyx", line 48, in ConfigSpace.hyperparameters.uniform_integer.UniformIntegerHyperparameter.__init__
+    TypeError: Argument 'default_value' has incorrect type (expected int, got NoneType)
+**********************************************************************
+File "docstring of ConfigSpace.conditions.GreaterThanCondition", line 20, in default
+Failed example:
+    cond = GreaterThanCondition(cs['b'], cs['a'], 5)
+Exception raised:
+    Traceback (most recent call last):
+      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/doctest.py", line 1336, in __run
+        exec(compile(example.source, filename, "single",
+      File "<doctest default[2]>", line 1, in <module>
+        cond = GreaterThanCondition(cs['b'], cs['a'], 5)
+    NameError: name 'cs' is not defined
+**********************************************************************
+File "docstring of ConfigSpace.conditions.GreaterThanCondition", line 21, in default
+Failed example:
+    cs.add_condition(cond)
+Exception raised:
+    Traceback (most recent call last):
+      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/doctest.py", line 1336, in __run
+        exec(compile(example.source, filename, "single",
+      File "<doctest default[3]>", line 1, in <module>
+        cs.add_condition(cond)
+    NameError: name 'cs' is not defined
+**********************************************************************
+File "docstring of ConfigSpace.conditions.InCondition", line 16, in default
+Failed example:
+    cs = ConfigurationSpace({
+        "a": (0, 10),
+        "b": (1.0, 8.0)
+    })
+Exception raised:
+    Traceback (most recent call last):
+      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/doctest.py", line 1336, in __run
+        exec(compile(example.source, filename, "single",
+      File "<doctest default[1]>", line 1, in <module>
+        cs = ConfigurationSpace({
+      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/site-packages/ConfigSpace/configuration_space.py", line 223, in __init__
+        hyperparameters = list(_parse_hyperparameters_from_dict(space))
+      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/site-packages/ConfigSpace/configuration_space.py", line 97, in _parse_hyperparameters_from_dict
+        yield UniformIntegerHyperparameter(name, lower, upper)
+      File "ConfigSpace/hyperparameters/uniform_integer.pyx", line 48, in ConfigSpace.hyperparameters.uniform_integer.UniformIntegerHyperparameter.__init__
+    TypeError: Argument 'default_value' has incorrect type (expected int, got NoneType)
+**********************************************************************
+File "docstring of ConfigSpace.conditions.InCondition", line 20, in default
+Failed example:
+    cond = InCondition(cs['b'], cs['a'], [1, 2, 3, 4])
+Exception raised:
+    Traceback (most recent call last):
+      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/doctest.py", line 1336, in __run
+        exec(compile(example.source, filename, "single",
+      File "<doctest default[2]>", line 1, in <module>
+        cond = InCondition(cs['b'], cs['a'], [1, 2, 3, 4])
+    NameError: name 'cs' is not defined
+**********************************************************************
+File "docstring of ConfigSpace.conditions.InCondition", line 21, in default
+Failed example:
+    cs.add_condition(cond)
+Exception raised:
+    Traceback (most recent call last):
+      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/doctest.py", line 1336, in __run
+        exec(compile(example.source, filename, "single",
+      File "<doctest default[3]>", line 1, in <module>
+        cs.add_condition(cond)
+    NameError: name 'cs' is not defined
+**********************************************************************
+File "docstring of ConfigSpace.conditions.AndConjunction", line 28, in default
+Failed example:
+    cs = ConfigurationSpace({
+        "a": (5, 15),
+        "b": (0, 10),
+        "c": (0.0, 1.0)
+    })
+Exception raised:
+    Traceback (most recent call last):
+      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/doctest.py", line 1336, in __run
+        exec(compile(example.source, filename, "single",
+      File "<doctest default[1]>", line 1, in <module>
+        cs = ConfigurationSpace({
+      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/site-packages/ConfigSpace/configuration_space.py", line 223, in __init__
+        hyperparameters = list(_parse_hyperparameters_from_dict(space))
+      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/site-packages/ConfigSpace/configuration_space.py", line 97, in _parse_hyperparameters_from_dict
+        yield UniformIntegerHyperparameter(name, lower, upper)
+      File "ConfigSpace/hyperparameters/uniform_integer.pyx", line 48, in ConfigSpace.hyperparameters.uniform_integer.UniformIntegerHyperparameter.__init__
+    TypeError: Argument 'default_value' has incorrect type (expected int, got NoneType)
+**********************************************************************
+File "docstring of ConfigSpace.conditions.AndConjunction", line 33, in default
+Failed example:
+    less_cond = LessThanCondition(cs['c'], cs['a'], 10)
+Exception raised:
+    Traceback (most recent call last):
+      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/doctest.py", line 1336, in __run
+        exec(compile(example.source, filename, "single",
+      File "<doctest default[2]>", line 1, in <module>
+        less_cond = LessThanCondition(cs['c'], cs['a'], 10)
+    NameError: name 'cs' is not defined
+**********************************************************************
+File "docstring of ConfigSpace.conditions.AndConjunction", line 34, in default
+Failed example:
+    greater_cond = GreaterThanCondition(cs['c'], cs['b'], 5)
+Exception raised:
+    Traceback (most recent call last):
+      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/doctest.py", line 1336, in __run
+        exec(compile(example.source, filename, "single",
+      File "<doctest default[3]>", line 1, in <module>
+        greater_cond = GreaterThanCondition(cs['c'], cs['b'], 5)
+    NameError: name 'cs' is not defined
+**********************************************************************
+File "docstring of ConfigSpace.conditions.AndConjunction", line 35, in default
+Failed example:
+    cs.add_condition(AndConjunction(less_cond, greater_cond))
+Exception raised:
+    Traceback (most recent call last):
+      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/doctest.py", line 1336, in __run
+        exec(compile(example.source, filename, "single",
+      File "<doctest default[4]>", line 1, in <module>
+        cs.add_condition(AndConjunction(less_cond, greater_cond))
+    NameError: name 'cs' is not defined
+**********************************************************************
+File "docstring of ConfigSpace.conditions.OrConjunction", line 26, in default
+Failed example:
+    cs = ConfigurationSpace({
+        "a": (5, 15),
+        "b": (0, 10),
+        "c": (0.0, 1.0)
+    })
+Exception raised:
+    Traceback (most recent call last):
+      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/doctest.py", line 1336, in __run
+        exec(compile(example.source, filename, "single",
+      File "<doctest default[1]>", line 1, in <module>
+        cs = ConfigurationSpace({
+      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/site-packages/ConfigSpace/configuration_space.py", line 223, in __init__
+        hyperparameters = list(_parse_hyperparameters_from_dict(space))
+      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/site-packages/ConfigSpace/configuration_space.py", line 97, in _parse_hyperparameters_from_dict
+        yield UniformIntegerHyperparameter(name, lower, upper)
+      File "ConfigSpace/hyperparameters/uniform_integer.pyx", line 48, in ConfigSpace.hyperparameters.uniform_integer.UniformIntegerHyperparameter.__init__
+    TypeError: Argument 'default_value' has incorrect type (expected int, got NoneType)
+**********************************************************************
+File "docstring of ConfigSpace.conditions.OrConjunction", line 31, in default
+Failed example:
+    less_cond = LessThanCondition(cs['c'], cs['a'], 10)
+Exception raised:
+    Traceback (most recent call last):
+      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/doctest.py", line 1336, in __run
+        exec(compile(example.source, filename, "single",
+      File "<doctest default[2]>", line 1, in <module>
+        less_cond = LessThanCondition(cs['c'], cs['a'], 10)
+    NameError: name 'cs' is not defined
+**********************************************************************
+File "docstring of ConfigSpace.conditions.OrConjunction", line 32, in default
+Failed example:
+    greater_cond = GreaterThanCondition(cs['c'], cs['b'], 5)
+Exception raised:
+    Traceback (most recent call last):
+      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/doctest.py", line 1336, in __run
+        exec(compile(example.source, filename, "single",
+      File "<doctest default[3]>", line 1, in <module>
+        greater_cond = GreaterThanCondition(cs['c'], cs['b'], 5)
+    NameError: name 'cs' is not defined
+**********************************************************************
+File "docstring of ConfigSpace.conditions.OrConjunction", line 33, in default
+Failed example:
+    cs.add_condition(OrConjunction(less_cond, greater_cond))
+Exception raised:
+    Traceback (most recent call last):
+      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/doctest.py", line 1336, in __run
+        exec(compile(example.source, filename, "single",
+      File "<doctest default[4]>", line 1, in <module>
+        cs.add_condition(OrConjunction(less_cond, greater_cond))
+    NameError: name 'cs' is not defined
+**********************************************************************
+1 items had failures:
+  23 of  30 in default
+30 tests in 1 items.
+7 passed and 23 failed.
+***Test Failed*** 23 failures.
 
 Document: index
 ---------------
+**********************************************************************
+File "index.rst", line 51, in default
+Failed example:
+    cs = ConfigurationSpace({
+        "myfloat": (0.1, 1.5),                # Uniform Float
+        "myint": (2, 10),                     # Uniform Integer
+        "species": ["mouse", "cat", "dog"],   # Categorical
+    })
+Exception raised:
+    Traceback (most recent call last):
+      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/doctest.py", line 1336, in __run
+        exec(compile(example.source, filename, "single",
+      File "<doctest default[1]>", line 1, in <module>
+        cs = ConfigurationSpace({
+      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/site-packages/ConfigSpace/configuration_space.py", line 223, in __init__
+        hyperparameters = list(_parse_hyperparameters_from_dict(space))
+      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/site-packages/ConfigSpace/configuration_space.py", line 95, in _parse_hyperparameters_from_dict
+        yield UniformFloatHyperparameter(name, lower, upper)
+      File "ConfigSpace/hyperparameters/uniform_float.pyx", line 62, in ConfigSpace.hyperparameters.uniform_float.UniformFloatHyperparameter.__init__
+      File "ConfigSpace/hyperparameters/uniform_float.pyx", line 124, in ConfigSpace.hyperparameters.uniform_float.UniformFloatHyperparameter.check_default
+    TypeError: Expected float, got numpy.float64
+**********************************************************************
+File "index.rst", line 56, in default
+Failed example:
+    configs = cs.sample_configuration(2)
+Exception raised:
+    Traceback (most recent call last):
+      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/doctest.py", line 1336, in __run
+        exec(compile(example.source, filename, "single",
+      File "<doctest default[2]>", line 1, in <module>
+        configs = cs.sample_configuration(2)
+    NameError: name 'cs' is not defined
 **********************************************************************
 File "index.rst", line 77, in default
 Failed example:
@@ -19,75 +373,325 @@ Exception raised:
     Traceback (most recent call last):
       File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/doctest.py", line 1336, in __run
         exec(compile(example.source, filename, "single",
-      File "<doctest default[1]>", line 1, in <module>
-        cs = ConfigurationSpace(
-      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/site-packages/ConfigSpace/configuration_space.py", line 224, in __init__
-        self.add_hyperparameters(hyperparameters)
-      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/site-packages/ConfigSpace/configuration_space.py", line 272, in add_hyperparameters
-        self._check_default_configuration()
-      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/site-packages/ConfigSpace/configuration_space.py", line 1479, in _check_default_configuration
-        return Configuration(self, values=instantiated_hyperparameters)
-      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/site-packages/ConfigSpace/configuration.py", line 90, in __init__
-        raise IllegalValueError(hp, value)
-    ConfigSpace.exceptions.IllegalValueError: Value 2.718281828459045: (<class 'float'>) is not allowed for hyperparameter a, Type: NormalFloat, Mu: 1.0 Sigma: 10.0, Range: [0.1, 1.5], Default: 2.718281828459045, on log-scale
+      File "<doctest default[1]>", line 5, in <module>
+        "a": Float("a", bounds=(0.1, 1.5), distribution=Normal(1, 10), log=True),
+      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/site-packages/ConfigSpace/api/types/float.py", line 160, in Float
+        return NormalFloatHyperparameter(
+      File "ConfigSpace/hyperparameters/normal_float.pyx", line 62, in ConfigSpace.hyperparameters.normal_float.NormalFloatHyperparameter.__init__
+    TypeError: Argument 'vector' has incorrect type (expected numpy.ndarray, got float)
 **********************************************************************
 File "index.rst", line 86, in default
 Failed example:
     cs.sample_configuration(2)
-Expected:
-    [Configuration(values={
-      'a': 0.17013149799713567,
-      'b': 5,
-      'c': 'dog',
-    })
-    , Configuration(values={
-      'a': 0.5476203000512754,
-      'b': 9,
-      'c': 'mouse',
-    })
-    ]
-Got:
-    [Configuration(values={
-      'myfloat': 1.3616545546841328,
-      'myint': 2,
-      'species': 'mouse',
-    }), Configuration(values={
-      'myfloat': 0.20341852469915983,
-      'myint': 8,
-      'species': 'dog',
-    })]
+Exception raised:
+    Traceback (most recent call last):
+      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/doctest.py", line 1336, in __run
+        exec(compile(example.source, filename, "single",
+      File "<doctest default[2]>", line 1, in <module>
+        cs.sample_configuration(2)
+    NameError: name 'cs' is not defined
+**********************************************************************
+File "index.rst", line 97, in default
+Failed example:
+    f = Float("f1", bounds=(1.0, 10.0))
+Exception raised:
+    Traceback (most recent call last):
+      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/doctest.py", line 1336, in __run
+        exec(compile(example.source, filename, "single",
+      File "<doctest default[3]>", line 1, in <module>
+        f = Float("f1", bounds=(1.0, 10.0))
+      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/site-packages/ConfigSpace/api/types/float.py", line 149, in Float
+        return UniformFloatHyperparameter(
+      File "ConfigSpace/hyperparameters/uniform_float.pyx", line 62, in ConfigSpace.hyperparameters.uniform_float.UniformFloatHyperparameter.__init__
+      File "ConfigSpace/hyperparameters/uniform_float.pyx", line 124, in ConfigSpace.hyperparameters.uniform_float.UniformFloatHyperparameter.check_default
+    TypeError: Expected float, got numpy.float64
+**********************************************************************
+File "index.rst", line 100, in default
+Failed example:
+    cond = EqualsCondition(f, c, "a")
+Exception raised:
+    Traceback (most recent call last):
+      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/doctest.py", line 1336, in __run
+        exec(compile(example.source, filename, "single",
+      File "<doctest default[4]>", line 1, in <module>
+        cond = EqualsCondition(f, c, "a")
+    NameError: name 'f' is not defined
+**********************************************************************
+File "index.rst", line 103, in default
+Failed example:
+    cs.add_hyperparameters([c, f])
+Exception raised:
+    Traceback (most recent call last):
+      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/doctest.py", line 1336, in __run
+        exec(compile(example.source, filename, "single",
+      File "<doctest default[5]>", line 1, in <module>
+        cs.add_hyperparameters([c, f])
+    NameError: name 'f' is not defined
+**********************************************************************
+File "index.rst", line 95, in default
+Failed example:
+    cs.add_condition(cond)
+Exception raised:
+    Traceback (most recent call last):
+      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/doctest.py", line 1336, in __run
+        exec(compile(example.source, filename, "single",
+      File "<doctest default[0]>", line 1, in <module>
+        cs.add_condition(cond)
+    NameError: name 'cond' is not defined
 **********************************************************************
 1 items had failures:
-   2 of  13 in default
+   8 of  13 in default
 13 tests in 1 items.
-11 passed and 2 failed.
-***Test Failed*** 2 failures.
+5 passed and 8 failed.
+***Test Failed*** 8 failures.
 
-Document: api/conditions
-------------------------
-1 items passed all tests:
-  30 tests in default
-30 tests in 1 items.
-30 passed and 0 failed.
-Test passed.
+Document: api/forbidden_clauses
+-------------------------------
+**********************************************************************
+File "docstring of ConfigSpace.forbidden.ForbiddenInClause", line 16, in default
+Failed example:
+    forbidden_clause_a = ForbiddenInClause(cs['a'], [2, 3])
+Exception raised:
+    Traceback (most recent call last):
+      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/doctest.py", line 1336, in __run
+        exec(compile(example.source, filename, "single",
+      File "<doctest default[2]>", line 1, in <module>
+        forbidden_clause_a = ForbiddenInClause(cs['a'], [2, 3])
+    TypeError: Argument 'hyperparameter' has incorrect type (expected dict, got ConfigSpace.hyperparameters.categorical.CategoricalHyperparameter)
+**********************************************************************
+File "docstring of ConfigSpace.forbidden.ForbiddenInClause", line 17, in default
+Failed example:
+    cs.add_forbidden_clause(forbidden_clause_a)
+Expected:
+    Forbidden: a in {2, 3}
+Got:
+    Forbidden: a == 2
+**********************************************************************
+File "docstring of ConfigSpace.forbidden.ForbiddenAndConjunction", line 31, in default
+Failed example:
+    forbidden_clause_b = ForbiddenInClause(cs["b"], [2])
+Exception raised:
+    Traceback (most recent call last):
+      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/doctest.py", line 1336, in __run
+        exec(compile(example.source, filename, "single",
+      File "<doctest default[3]>", line 1, in <module>
+        forbidden_clause_b = ForbiddenInClause(cs["b"], [2])
+    TypeError: Argument 'hyperparameter' has incorrect type (expected dict, got ConfigSpace.hyperparameters.categorical.CategoricalHyperparameter)
+**********************************************************************
+File "docstring of ConfigSpace.forbidden.ForbiddenAndConjunction", line 33, in default
+Failed example:
+    forbidden_clause = ForbiddenAndConjunction(forbidden_clause_a, forbidden_clause_b)
+Exception raised:
+    Traceback (most recent call last):
+      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/doctest.py", line 1336, in __run
+        exec(compile(example.source, filename, "single",
+      File "<doctest default[4]>", line 1, in <module>
+        forbidden_clause = ForbiddenAndConjunction(forbidden_clause_a, forbidden_clause_b)
+    NameError: name 'forbidden_clause_b' is not defined
+**********************************************************************
+File "docstring of ConfigSpace.forbidden.ForbiddenAndConjunction", line 35, in default
+Failed example:
+    cs.add_forbidden_clause(forbidden_clause)
+Exception raised:
+    Traceback (most recent call last):
+      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/doctest.py", line 1336, in __run
+        exec(compile(example.source, filename, "single",
+      File "<doctest default[5]>", line 1, in <module>
+        cs.add_forbidden_clause(forbidden_clause)
+    NameError: name 'forbidden_clause' is not defined
+**********************************************************************
+1 items had failures:
+   5 of  14 in default
+14 tests in 1 items.
+9 passed and 5 failed.
+***Test Failed*** 5 failures.
 
 Document: guide
 ---------------
 **********************************************************************
+File "guide.rst", line 44, in default
+Failed example:
+    cs = ConfigurationSpace(
+        seed=1234,
+        space={
+            "C": (-1.0, 1.0),  # Note the decimal to make it a float
+            "max_iter": (10, 100),
+        }
+    )
+Exception raised:
+    Traceback (most recent call last):
+      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/doctest.py", line 1336, in __run
+        exec(compile(example.source, filename, "single",
+      File "<doctest default[1]>", line 1, in <module>
+        cs = ConfigurationSpace(
+      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/site-packages/ConfigSpace/configuration_space.py", line 223, in __init__
+        hyperparameters = list(_parse_hyperparameters_from_dict(space))
+      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/site-packages/ConfigSpace/configuration_space.py", line 95, in _parse_hyperparameters_from_dict
+        yield UniformFloatHyperparameter(name, lower, upper)
+      File "ConfigSpace/hyperparameters/uniform_float.pyx", line 62, in ConfigSpace.hyperparameters.uniform_float.UniformFloatHyperparameter.__init__
+      File "ConfigSpace/hyperparameters/uniform_float.pyx", line 124, in ConfigSpace.hyperparameters.uniform_float.UniformFloatHyperparameter.check_default
+    TypeError: Expected float, got numpy.float64
+**********************************************************************
 File "guide.rst", line 51, in default
 Failed example:
     cs.sample_configuration()
-Expected:
-    Configuration(values={
-      'C': -0.6169610992422154,
-      'max_iter': 66,
-    })
-    <BLANKLINE>
-Got:
-    Configuration(values={
-      'C': -0.6169610992422154,
-      'max_iter': 66,
-    })
+Exception raised:
+    Traceback (most recent call last):
+      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/doctest.py", line 1336, in __run
+        exec(compile(example.source, filename, "single",
+      File "<doctest default[0]>", line 1, in <module>
+        cs.sample_configuration()
+    NameError: name 'cs' is not defined
+**********************************************************************
+File "guide.rst", line 67, in default
+Failed example:
+    conf = cs.sample_configuration()
+Exception raised:
+    Traceback (most recent call last):
+      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/doctest.py", line 1336, in __run
+        exec(compile(example.source, filename, "single",
+      File "<doctest default[0]>", line 1, in <module>
+        conf = cs.sample_configuration()
+    NameError: name 'cs' is not defined
+**********************************************************************
+File "guide.rst", line 68, in default
+Failed example:
+    conf['max_iter'] = 42
+Exception raised:
+    Traceback (most recent call last):
+      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/doctest.py", line 1336, in __run
+        exec(compile(example.source, filename, "single",
+      File "<doctest default[1]>", line 1, in <module>
+        conf['max_iter'] = 42
+    NameError: name 'conf' is not defined
+**********************************************************************
+File "guide.rst", line 69, in default
+Failed example:
+    print(conf['max_iter'])
+Exception raised:
+    Traceback (most recent call last):
+      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/doctest.py", line 1336, in __run
+        exec(compile(example.source, filename, "single",
+      File "<doctest default[2]>", line 1, in <module>
+        print(conf['max_iter'])
+    NameError: name 'conf' is not defined
+**********************************************************************
+File "guide.rst", line 116, in default
+Failed example:
+    degree = Integer('degree', bounds=(2, 4), default=2)
+Exception raised:
+    Traceback (most recent call last):
+      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/doctest.py", line 1336, in __run
+        exec(compile(example.source, filename, "single",
+      File "<doctest default[2]>", line 1, in <module>
+        degree = Integer('degree', bounds=(2, 4), default=2)
+      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/site-packages/ConfigSpace/api/types/integer.py", line 159, in Integer
+        return UniformIntegerHyperparameter(
+      File "ConfigSpace/hyperparameters/uniform_integer.pyx", line 82, in ConfigSpace.hyperparameters.uniform_integer.UniformIntegerHyperparameter.__init__
+      File "ConfigSpace/hyperparameters/uniform_float.pyx", line 62, in ConfigSpace.hyperparameters.uniform_float.UniformFloatHyperparameter.__init__
+    TypeError: Argument 'default_value' has incorrect type (expected float, got int)
+**********************************************************************
+File "guide.rst", line 117, in default
+Failed example:
+    coef0 = Float('coef0', bounds=(0, 1), default=0.0)
+Exception raised:
+    Traceback (most recent call last):
+      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/doctest.py", line 1336, in __run
+        exec(compile(example.source, filename, "single",
+      File "<doctest default[3]>", line 1, in <module>
+        coef0 = Float('coef0', bounds=(0, 1), default=0.0)
+      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/site-packages/ConfigSpace/api/types/float.py", line 149, in Float
+        return UniformFloatHyperparameter(
+      File "ConfigSpace/hyperparameters/uniform_float.pyx", line 62, in ConfigSpace.hyperparameters.uniform_float.UniformFloatHyperparameter.__init__
+      File "ConfigSpace/hyperparameters/uniform_float.pyx", line 124, in ConfigSpace.hyperparameters.uniform_float.UniformFloatHyperparameter.check_default
+    TypeError: Expected float, got numpy.float64
+**********************************************************************
+File "guide.rst", line 118, in default
+Failed example:
+    gamma = Float('gamma', bounds=(1e-5, 1e2), default=1, log=True)
+Exception raised:
+    Traceback (most recent call last):
+      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/doctest.py", line 1336, in __run
+        exec(compile(example.source, filename, "single",
+      File "<doctest default[4]>", line 1, in <module>
+        gamma = Float('gamma', bounds=(1e-5, 1e2), default=1, log=True)
+      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/site-packages/ConfigSpace/api/types/float.py", line 149, in Float
+        return UniformFloatHyperparameter(
+      File "ConfigSpace/hyperparameters/uniform_float.pyx", line 62, in ConfigSpace.hyperparameters.uniform_float.UniformFloatHyperparameter.__init__
+    TypeError: Argument 'default_value' has incorrect type (expected float, got int)
+**********************************************************************
+File "guide.rst", line 121, in default
+Failed example:
+    cs.add_hyperparameters([kernel_type, degree, coef0, gamma])
+Exception raised:
+    Traceback (most recent call last):
+      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/doctest.py", line 1336, in __run
+        exec(compile(example.source, filename, "single",
+      File "<doctest default[6]>", line 1, in <module>
+        cs.add_hyperparameters([kernel_type, degree, coef0, gamma])
+    NameError: name 'degree' is not defined
+**********************************************************************
+File "guide.rst", line 140, in default
+Failed example:
+    cond_1 = EqualsCondition(degree, kernel_type, 'poly')
+Exception raised:
+    Traceback (most recent call last):
+      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/doctest.py", line 1336, in __run
+        exec(compile(example.source, filename, "single",
+      File "<doctest default[1]>", line 1, in <module>
+        cond_1 = EqualsCondition(degree, kernel_type, 'poly')
+    NameError: name 'degree' is not defined
+**********************************************************************
+File "guide.rst", line 142, in default
+Failed example:
+    cond_2 = OrConjunction(
+        EqualsCondition(coef0, kernel_type, 'poly'),
+        EqualsCondition(coef0, kernel_type, 'sigmoid')
+    )
+Exception raised:
+    Traceback (most recent call last):
+      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/doctest.py", line 1336, in __run
+        exec(compile(example.source, filename, "single",
+      File "<doctest default[2]>", line 2, in <module>
+        EqualsCondition(coef0, kernel_type, 'poly'),
+    NameError: name 'coef0' is not defined
+**********************************************************************
+File "guide.rst", line 147, in default
+Failed example:
+    cond_3 = OrConjunction(
+        EqualsCondition(gamma, kernel_type, 'rbf'),
+        EqualsCondition(gamma, kernel_type, 'poly'),
+        EqualsCondition(gamma, kernel_type, 'sigmoid')
+    )
+Exception raised:
+    Traceback (most recent call last):
+      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/doctest.py", line 1336, in __run
+        exec(compile(example.source, filename, "single",
+      File "<doctest default[3]>", line 2, in <module>
+        EqualsCondition(gamma, kernel_type, 'rbf'),
+    NameError: name 'gamma' is not defined
+**********************************************************************
+File "guide.rst", line 147, in default
+Failed example:
+    cond_3 = InCondition(gamma, kernel_type, ["rbf", "poly", "sigmoid"])
+Exception raised:
+    Traceback (most recent call last):
+      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/doctest.py", line 1336, in __run
+        exec(compile(example.source, filename, "single",
+      File "<doctest default[1]>", line 1, in <module>
+        cond_3 = InCondition(gamma, kernel_type, ["rbf", "poly", "sigmoid"])
+    NameError: name 'gamma' is not defined
+**********************************************************************
+File "guide.rst", line 150, in default
+Failed example:
+    cs.add_conditions([cond_1, cond_2, cond_3])
+Exception raised:
+    Traceback (most recent call last):
+      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/doctest.py", line 1336, in __run
+        exec(compile(example.source, filename, "single",
+      File "<doctest default[0]>", line 1, in <module>
+        cs.add_conditions([cond_1, cond_2, cond_3])
+    NameError: name 'cond_1' is not defined
 **********************************************************************
 File "guide.rst", line 241, in default
 Failed example:
@@ -96,7 +700,28 @@ Failed example:
 Expected:
     2828
 Got:
-    2879
+    1540
+**********************************************************************
+File "guide.rst", line 286, in default
+Failed example:
+    cs = ConfigurationSpace(
+        seed=1234,
+        space={
+          "lr": Float('lr', bounds=(1e-5, 1e-1), default=1e-3, log=True, distribution=Normal(logmean, logstd)),
+          "dropout": Float('dropout', bounds=(0, 0.99), default=0.25, distribution=Beta(alpha=2, beta=4)),
+          "activation": Categorical('activation', ['tanh', 'relu'], weights=[0.2, 0.8]),
+        }
+    )
+Exception raised:
+    Traceback (most recent call last):
+      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/doctest.py", line 1336, in __run
+        exec(compile(example.source, filename, "single",
+      File "<doctest default[4]>", line 4, in <module>
+        "lr": Float('lr', bounds=(1e-5, 1e-1), default=1e-3, log=True, distribution=Normal(logmean, logstd)),
+      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/site-packages/ConfigSpace/api/types/float.py", line 160, in Float
+        return NormalFloatHyperparameter(
+      File "ConfigSpace/hyperparameters/normal_float.pyx", line 62, in ConfigSpace.hyperparameters.normal_float.NormalFloatHyperparameter.__init__
+    TypeError: Argument 'vector' has incorrect type (expected numpy.ndarray, got float)
 **********************************************************************
 File "guide.rst", line 294, in default
 Failed example:
@@ -111,46 +736,177 @@ Expected:
 Got:
     Configuration space object:
       Hyperparameters:
-        activation, Type: Categorical, Choices: {tanh, relu}, Default: relu, Probabilities: (0.2, 0.8)
-        dropout, Type: BetaFloat, Alpha: 2.0 Beta: 4.0, Range: [0.0, 0.99], Default: 0.25
-        lr, Type: NormalFloat, Mu: -6.907755278982137 Sigma: 2.3025850929940455, Range: [1e-05, 0.1], Default: 0.001, on log-scale
+        dual, Type: Constant, Value: False
+        loss, Type: Categorical, Choices: {hinge, squared_hinge}, Default: squared_hinge
+        penalty, Type: Categorical, Choices: {l1, l2}, Default: l2
+      Forbidden Clauses:
+        (Forbidden: penalty == 'l1' && Forbidden: loss == 'hinge')
+        (Forbidden: dual == 'False' && Forbidden: penalty == 'l2' && Forbidden: loss == 'hinge')
+        (Forbidden: dual == 'False' && Forbidden: penalty == 'l1')
     <BLANKLINE>
 **********************************************************************
-1 items had failures:
-   3 of  43 in default
-43 tests in 1 items.
-40 passed and 3 failed.
-***Test Failed*** 3 failures.
+File "guide.rst", line 289, in default
+Failed example:
+    cs['lr'].pdf(test_points)
+Exception raised:
+    Traceback (most recent call last):
+      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/doctest.py", line 1336, in __run
+        exec(compile(example.source, filename, "single",
+      File "<doctest default[0]>", line 1, in <module>
+        cs['lr'].pdf(test_points)
+      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/site-packages/ConfigSpace/configuration_space.py", line 1139, in __getitem__
+        raise HyperparameterNotFoundError(key, space=self)
+    ConfigSpace.exceptions.HyperparameterNotFoundError: Hyperparameter lr not found in space.
+    Configuration space object:
+      Hyperparameters:
+        dual, Type: Constant, Value: False
+        loss, Type: Categorical, Choices: {hinge, squared_hinge}, Default: squared_hinge
+        penalty, Type: Categorical, Choices: {l1, l2}, Default: l2
+      Forbidden Clauses:
+        (Forbidden: penalty == 'l1' && Forbidden: loss == 'hinge')
+        (Forbidden: dual == 'False' && Forbidden: penalty == 'l2' && Forbidden: loss == 'hinge')
+        (Forbidden: dual == 'False' && Forbidden: penalty == 'l1')
 
-Document: api/forbidden_clauses
--------------------------------
-1 items passed all tests:
-  14 tests in default
-14 tests in 1 items.
-14 passed and 0 failed.
-Test passed.
+**********************************************************************
+1 items had failures:
+  18 of  43 in default
+43 tests in 1 items.
+25 passed and 18 failed.
+***Test Failed*** 18 failures.
 
 Document: quickstart
 --------------------
 **********************************************************************
+File "quickstart.rst", line 55, in default
+Failed example:
+    cs = ConfigurationSpace(
+        seed=1234,
+        space={ "alpha": (0.0, 1.0) }
+    )
+Exception raised:
+    Traceback (most recent call last):
+      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/doctest.py", line 1336, in __run
+        exec(compile(example.source, filename, "single",
+      File "<doctest default[1]>", line 1, in <module>
+        cs = ConfigurationSpace(
+      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/site-packages/ConfigSpace/configuration_space.py", line 223, in __init__
+        hyperparameters = list(_parse_hyperparameters_from_dict(space))
+      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/site-packages/ConfigSpace/configuration_space.py", line 95, in _parse_hyperparameters_from_dict
+        yield UniformFloatHyperparameter(name, lower, upper)
+      File "ConfigSpace/hyperparameters/uniform_float.pyx", line 62, in ConfigSpace.hyperparameters.uniform_float.UniformFloatHyperparameter.__init__
+      File "ConfigSpace/hyperparameters/uniform_float.pyx", line 124, in ConfigSpace.hyperparameters.uniform_float.UniformFloatHyperparameter.check_default
+    TypeError: Expected float, got numpy.float64
+**********************************************************************
+File "quickstart.rst", line 63, in default
+Failed example:
+    config = cs.sample_configuration()
+Exception raised:
+    Traceback (most recent call last):
+      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/doctest.py", line 1336, in __run
+        exec(compile(example.source, filename, "single",
+      File "<doctest default[0]>", line 1, in <module>
+        config = cs.sample_configuration()
+    NameError: name 'cs' is not defined
+**********************************************************************
 File "quickstart.rst", line 64, in default
 Failed example:
     print(config)
-Expected:
-    Configuration(values={
-      'alpha': 0.1915194503788923,
-    })
-    <BLANKLINE>
-Got:
-    Configuration(values={
-      'alpha': 0.1915194503788923,
-    })
+Exception raised:
+    Traceback (most recent call last):
+      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/doctest.py", line 1336, in __run
+        exec(compile(example.source, filename, "single",
+      File "<doctest default[1]>", line 1, in <module>
+        print(config)
+    NameError: name 'config' is not defined
+**********************************************************************
+File "quickstart.rst", line 69, in default
+Failed example:
+    for key, value in config.items():
+        print(key, value)
+Exception raised:
+    Traceback (most recent call last):
+      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/doctest.py", line 1336, in __run
+        exec(compile(example.source, filename, "single",
+      File "<doctest default[0]>", line 1, in <module>
+        for key, value in config.items():
+    NameError: name 'config' is not defined
 **********************************************************************
 1 items had failures:
-   1 of   5 in default
+   4 of   5 in default
 5 tests in 1 items.
-4 passed and 1 failed.
-***Test Failed*** 1 failures.
+1 passed and 4 failed.
+***Test Failed*** 4 failures.
+
+Document: api/hyperparameters
+-----------------------------
+**********************************************************************
+File "docstring of ConfigSpace.hyperparameters.uniform_integer.UniformIntegerHyperparameter", line 11, in default
+Failed example:
+    UniformIntegerHyperparameter(name='u', lower=10, upper=100, log=False)
+Exception raised:
+    Traceback (most recent call last):
+      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/doctest.py", line 1336, in __run
+        exec(compile(example.source, filename, "single",
+      File "<doctest default[1]>", line 1, in <module>
+        UniformIntegerHyperparameter(name='u', lower=10, upper=100, log=False)
+      File "ConfigSpace/hyperparameters/uniform_integer.pyx", line 48, in ConfigSpace.hyperparameters.uniform_integer.UniformIntegerHyperparameter.__init__
+    TypeError: Argument 'default_value' has incorrect type (expected int, got NoneType)
+**********************************************************************
+File "docstring of ConfigSpace.hyperparameters.normal_integer.NormalIntegerHyperparameter", line 11, in default
+Failed example:
+    NormalIntegerHyperparameter(name='n', mu=0, sigma=1, log=False)
+Exception raised:
+    Traceback (most recent call last):
+      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/doctest.py", line 1336, in __run
+        exec(compile(example.source, filename, "single",
+      File "<doctest default[1]>", line 1, in <module>
+        NormalIntegerHyperparameter(name='n', mu=0, sigma=1, log=False)
+      File "ConfigSpace/hyperparameters/normal_integer.pyx", line 70, in ConfigSpace.hyperparameters.normal_integer.NormalIntegerHyperparameter.__init__
+    TypeError: Argument 'default_value' has incorrect type (expected int, got NoneType)
+**********************************************************************
+File "docstring of ConfigSpace.hyperparameters.beta_integer.BetaIntegerHyperparameter", line 13, in default
+Failed example:
+    BetaIntegerHyperparameter('b', alpha=3, beta=2, lower=1, upper=4, log=False)
+Exception raised:
+    Traceback (most recent call last):
+      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/doctest.py", line 1336, in __run
+        exec(compile(example.source, filename, "single",
+      File "<doctest default[1]>", line 1, in <module>
+        BetaIntegerHyperparameter('b', alpha=3, beta=2, lower=1, upper=4, log=False)
+      File "ConfigSpace/hyperparameters/beta_integer.pyx", line 70, in ConfigSpace.hyperparameters.beta_integer.BetaIntegerHyperparameter.__init__
+      File "ConfigSpace/hyperparameters/uniform_integer.pyx", line 48, in ConfigSpace.hyperparameters.uniform_integer.UniformIntegerHyperparameter.__init__
+    TypeError: Argument 'default_value' has incorrect type (expected int, got numpy.float64)
+**********************************************************************
+File "docstring of ConfigSpace.hyperparameters.uniform_float.UniformFloatHyperparameter", line 11, in default
+Failed example:
+    UniformFloatHyperparameter('u', lower=10, upper=100, log = False)
+Exception raised:
+    Traceback (most recent call last):
+      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/doctest.py", line 1336, in __run
+        exec(compile(example.source, filename, "single",
+      File "<doctest default[1]>", line 1, in <module>
+        UniformFloatHyperparameter('u', lower=10, upper=100, log = False)
+      File "ConfigSpace/hyperparameters/uniform_float.pyx", line 62, in ConfigSpace.hyperparameters.uniform_float.UniformFloatHyperparameter.__init__
+      File "ConfigSpace/hyperparameters/uniform_float.pyx", line 124, in ConfigSpace.hyperparameters.uniform_float.UniformFloatHyperparameter.check_default
+    TypeError: Expected float, got numpy.float64
+**********************************************************************
+File "docstring of ConfigSpace.hyperparameters.normal_float.NormalFloatHyperparameter", line 11, in default
+Failed example:
+    NormalFloatHyperparameter('n', mu=0, sigma=1, log=False)
+Exception raised:
+    Traceback (most recent call last):
+      File "/opt/hostedtoolcache/Python/3.8.17/x64/lib/python3.8/doctest.py", line 1336, in __run
+        exec(compile(example.source, filename, "single",
+      File "<doctest default[1]>", line 1, in <module>
+        NormalFloatHyperparameter('n', mu=0, sigma=1, log=False)
+      File "ConfigSpace/hyperparameters/normal_float.pyx", line 62, in ConfigSpace.hyperparameters.normal_float.NormalFloatHyperparameter.__init__
+    TypeError: Argument 'vector' has incorrect type (expected numpy.ndarray, got float)
+**********************************************************************
+1 items had failures:
+   5 of  16 in default
+16 tests in 1 items.
+11 passed and 5 failed.
+***Test Failed*** 5 failures.
 
 Document: api/serialization
 ---------------------------
@@ -161,17 +917,9 @@ Document: api/serialization
 8 passed and 0 failed.
 Test passed.
 
-Document: api/hyperparameters
------------------------------
-1 items passed all tests:
-  16 tests in default
-16 tests in 1 items.
-16 passed and 0 failed.
-Test passed.
-
 Doctest summary
 ===============
   129 tests
-    6 failures in tests
+   63 failures in tests
     0 failures in setup code
     0 failures in cleanup code
