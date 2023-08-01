@@ -1140,6 +1140,9 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
 
         return hp
 
+    def __contains__(self, key: str) -> bool:
+        return key in self._hyperparameters
+
     def __repr__(self) -> str:
         retval = io.StringIO()
         retval.write("Configuration space object:\n  Hyperparameters:\n")
