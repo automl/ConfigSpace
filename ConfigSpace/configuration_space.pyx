@@ -135,7 +135,7 @@ class ConfigurationSpace(collections.abc.Mapping):
 
         # changing this to a normal dict will break sampling because there is
         #  no guarantee that the parent of a condition was evaluated before
-        self._conditionals = set()   # type: Set[str]
+        self._conditionals = []#set()   # type: Set[str]
         self.forbidden_clauses = []  # type: List['AbstractForbiddenComponent']
         self.random = np.random.RandomState(seed)
 
