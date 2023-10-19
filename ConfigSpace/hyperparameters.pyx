@@ -1150,7 +1150,7 @@ cdef class NormalFloatHyperparameter(FloatHyperparameter):
         mu = self.mu
         sigma = self.sigma
         if sigma == 0:
-            return np.float64(vector == mu)
+            return (vector == mu).astype(np.float64)
         elif self.lower == None:
             return norm(loc=mu, scale=sigma).pdf(vector)
         else:
