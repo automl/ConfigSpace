@@ -18,7 +18,7 @@
 # Version 0.6.0
 
 * ADD #255: An easy interface of `Float`, `Integer`, `Categorical` for creating search spaces.
-* ADD #243: Add forbidden relations between two hyperparamters
+* ADD #243: Add forbidden relations between two hyperparameters
 * MAINT #243: Change branch `master` to `main`
 * FIX #259: Numpy runtime error when rounding
 * FIX #247: No longer errors when serliazing spaces with an `InCondition`
@@ -32,7 +32,7 @@
 * FIX #221: Normal Hyperparameters should now properly sample from correct distribution in log space
 * FIX #221: Fixed boundary problems with integer hyperparameters due to numerical rounding after sampling.
 * MAINT #221: Categorical Hyperparameters now always have associated probabilities, remaining uniform if non are provided. (Same behaviour)
-* ADD #222: BetaFloat and BetaInteger hyperparamters, hyperparameters distributed according to a beta distribution.
+* ADD #222: BetaFloat and BetaInteger hyperparameters, hyperparameters distributed according to a beta distribution.
 * ADD #241: Implements support for [PiBo](https://openreview.net/forum?id=MMAeCXIa89), you can now embed some prior distribution knowledge into ConfigSpace hyperparameters.
     * See the example [here](https://automl.github.io/ConfigSpace/main/User-Guide.html#th-example-placing-priors-on-the-hyperparameters).
     * Hyperparameters now have a `pdf(vector: np.ndarray) -> np.ndarray` to get the probability density values for the input

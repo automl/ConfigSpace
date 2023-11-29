@@ -188,7 +188,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         self.name = name
         self.meta = meta
 
-        # NOTE: The idx of a hyperparamter is tied to its order in _hyperparamters
+        # NOTE: The idx of a hyperparamter is tied to its order in _hyperparameters
         # Having three variables to keep track of this seems excessive
         self._hyperparameters: OrderedDict[str, Hyperparameter] = OrderedDict()
         self._hyperparameter_idx: dict[str, int] = {}

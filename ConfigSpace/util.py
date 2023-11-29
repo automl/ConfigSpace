@@ -54,7 +54,7 @@ def impute_inactive_values(
     """Impute inactive parameters.
 
     Iterate through the hyperparameters of a ``Configuration`` and set the
-    values of the inactive hyperparamters to their default values if the choosen
+    values of the inactive hyperparameters to their default values if the choosen
     ``strategy`` is 'default'. Otherwise ``strategy`` contains a float number.
     Set the hyperparameters' value to this number.
 
