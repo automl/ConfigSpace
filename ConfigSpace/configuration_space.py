@@ -183,6 +183,10 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         """
         # If first arg is a dict, we assume this to be `space`
         if isinstance(name, dict):
+            if space is not None:
+                raise ValueError(
+                    f"If name (or the first arg) is a dict, space must be None, got: {space}",
+                )
             space = name
             name = None
 
