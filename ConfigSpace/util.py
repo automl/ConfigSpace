@@ -341,7 +341,7 @@ def deactivate_inactive_hyperparameters(
     ----------
     configuration : dict
         a configuration as a dictionary. Key: name of the hyperparameter.
-        Value: value of this hyperparamter
+        Value: value of this hyperparameter
         configuration from which inactive hyperparameters will be removed
     configuration_space : :class:`~ConfigSpace.configuration_space.ConfigurationSpace`
         The defined configuration space. It is necessary to find the inactive
@@ -427,7 +427,7 @@ def fix_types(
     ----------
     configuration : dict
         a configuration as a dictionary. Key: name of the hyperparameter.
-        Value: value of this hyperparamter
+        Value: value of this hyperparameter
     configuration_space : :class:`~ConfigSpace.configuration_space.ConfigurationSpace`
         Configuration space which knows the types for all parameter values
 
