@@ -1,26 +1,34 @@
-from typing import Dict, Optional, Union
+from __future__ import annotations
+
+from typing import Optional, Union
 
 import numpy as np
-cimport numpy as np
-np.import_array()
+
+from ConfigSpace.hyperparameters.numerical import NumericalHyperparameter
 
 
-cdef class FloatHyperparameter(NumericalHyperparameter):
-    def __init__(self, name: str, default_value: Union[int, float], meta: Optional[Dict] = None
-                 ) -> None:
+class FloatHyperparameter(NumericalHyperparameter):
+    def __init__(
+        self,
+        name: str,
+        default_value: Union[int, float],
+        meta: Optional[dict] = None,
+    ) -> None:
         super(FloatHyperparameter, self).__init__(name, default_value, meta)
 
     def is_legal(self, value: Union[int, float]) -> bool:
         raise NotImplementedError()
 
-    cpdef bint is_legal_vector(self, DTYPE_t value):
+    def is_legal_vector(self, value) -> int:
         raise NotImplementedError()
 
     def check_default(self, default_value: Union[int, float]) -> float:
         raise NotImplementedError()
 
-    def _transform(self, vector: Union[np.ndarray, float, int]
-                   ) -> Optional[Union[np.ndarray, float, int]]:
+    def _transform(
+        self,
+        vector: Union[np.ndarray, float, int],
+    ) -> Optional[Union[np.ndarray, float, int]]:
         try:
             if isinstance(vector, np.ndarray):
                 return self._transform_vector(vector)
@@ -28,10 +36,10 @@ cdef class FloatHyperparameter(NumericalHyperparameter):
         except ValueError:
             return None
 
-    cpdef double _transform_scalar(self, double scalar):
+    def _transform_scalar(self, scalar: float) -> float:
         raise NotImplementedError()
 
-    cpdef np.ndarray _transform_vector(self, np.ndarray vector):
+    def _transform_vector(self, vector: np.ndarray) -> np.ndarray:
         raise NotImplementedError()
 
     def pdf(self, vector: np.ndarray) -> np.ndarray:
@@ -50,7 +58,7 @@ cdef class FloatHyperparameter(NumericalHyperparameter):
             function is to be computed.
 
         Returns
-        ----------
+        -------
         np.ndarray(N, )
             Probability density values of the input vector
         """
@@ -74,7 +82,7 @@ cdef class FloatHyperparameter(NumericalHyperparameter):
             function is to be computed.
 
         Returns
-        ----------
+        -------
         np.ndarray(N, )
             Probability density values of the input vector
         """

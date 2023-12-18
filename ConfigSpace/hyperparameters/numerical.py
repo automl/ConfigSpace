@@ -1,24 +1,24 @@
-from typing import Any, Dict, Optional, Union
+from __future__ import annotations
+
+from typing import Any, Optional, Union
 
 import numpy as np
-cimport numpy as np
-np.import_array()
+
+from ConfigSpace.hyperparameters.hyperparameter import Hyperparameter
 
 
-cdef class NumericalHyperparameter(Hyperparameter):
-
-    def __init__(self, name: str, default_value: Any, meta: Optional[Dict]) -> None:
-        super(NumericalHyperparameter, self).__init__(name, meta)
+class NumericalHyperparameter(Hyperparameter):
+    def __init__(self, name: str, default_value: Any, meta: Optional[dict]) -> None:
+        super().__init__(name, meta)
         self.default_value = default_value
 
     def has_neighbors(self) -> bool:
         return True
 
-    def get_num_neighbors(self, value = None) -> float:
-
+    def get_num_neighbors(self, value=None) -> float:
         return np.inf
 
-    cpdef int compare(self, value: Union[int, float, str], value2: Union[int, float, str]):
+    def compare(self, value: Union[int, float, str], value2: Union[int, float, str]) -> int:
         if value < value2:
             return -1
         elif value > value2:
@@ -26,13 +26,14 @@ cdef class NumericalHyperparameter(Hyperparameter):
         elif value == value2:
             return 0
 
-    cpdef int compare_vector(self, DTYPE_t value, DTYPE_t value2):
+    def compare_vector(self, value, value2) -> int:
         if value < value2:
             return -1
-        elif value > value2:
+
+        if value > value2:
             return 1
-        elif value == value2:
-            return 0
+
+        return 0
 
     def allow_greater_less_comparison(self) -> bool:
         return True
@@ -54,24 +55,16 @@ cdef class NumericalHyperparameter(Hyperparameter):
             return False
 
         return (
-            self.name == other.name and
-            self.default_value == other.default_value and
-            self.lower == other.lower and
-            self.upper == other.upper and
-            self.log == other.log and
-            self.q == other.q
+            self.name == other.name
+            and self.default_value == other.default_value
+            and self.lower == other.lower
+            and self.upper == other.upper
+            and self.log == other.log
+            and self.q == other.q
         )
 
     def __hash__(self):
-        return hash(
-            (
-                self.name,
-                self.lower,
-                self.upper,
-                self.log,
-                self.q
-            )
-        )
+        return hash((self.name, self.lower, self.upper, self.log, self.q))
 
     def __copy__(self):
         return self.__class__(
@@ -81,5 +74,5 @@ cdef class NumericalHyperparameter(Hyperparameter):
             upper=self.upper,
             log=self.log,
             q=self.q,
-            meta=self.meta
+            meta=self.meta,
         )

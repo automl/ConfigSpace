@@ -4,28 +4,11 @@ import io
 from typing import Any, Dict, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
-cimport numpy as np
-np.import_array()
 
-# We now need to fix a datatype for our arrays. I've used the variable
-# DTYPE for this, which is assigned to the usual NumPy runtime
-# type info object.
-DTYPE = float
-# "ctypedef" assigns a corresponding compile-time type to DTYPE_t. For
-# every type in the numpy module there's a corresponding compile-time
-# type with a _t-suffix.
-ctypedef np.float_t DTYPE_t
-
-from ConfigSpace.hyperparameters.hyperparameter cimport Hyperparameter
+from ConfigSpace.hyperparameters.hyperparameter import Hyperparameter
 
 
-cdef class CategoricalHyperparameter(Hyperparameter):
-    cdef public tuple choices
-    cdef public tuple weights
-    cdef public int num_choices
-    cdef public tuple probabilities
-    cdef list choices_vector
-    cdef set _choices_set
+class CategoricalHyperparameter(Hyperparameter):
 
     # TODO add more magic for automated type recognition
     # TODO move from list to tuple for choices argument
@@ -35,7 +18,7 @@ cdef class CategoricalHyperparameter(Hyperparameter):
         choices: Union[List[Union[str, float, int]], Tuple[Union[float, int, str]]],
         default_value: Union[int, float, str, None] = None,
         meta: Optional[Dict] = None,
-        weights: Optional[Sequence[Union[int, float]]] = None
+        weights: Optional[Sequence[Union[int, float]]] = None,
     ) -> None:
         """
         A categorical hyperparameter.
@@ -75,7 +58,7 @@ cdef class CategoricalHyperparameter(Hyperparameter):
                 raise ValueError(
                     "Choices for categorical hyperparameters %s contain choice '%s' %d "
                     "times, while only a single oocurence is allowed."
-                    % (name, choice, counter[choice])
+                    % (name, choice, counter[choice]),
                 )
             if choice is None:
                 raise TypeError("Choice 'None' is not supported")
@@ -174,7 +157,7 @@ cdef class CategoricalHyperparameter(Hyperparameter):
             choices=copy.deepcopy(self.choices),
             default_value=self.default_value,
             weights=copy.deepcopy(self.weights),
-            meta=self.meta
+            meta=self.meta,
         )
 
     def to_uniform(self) -> "CategoricalHyperparameter":
@@ -192,16 +175,16 @@ cdef class CategoricalHyperparameter(Hyperparameter):
             name=self.name,
             choices=copy.deepcopy(self.choices),
             default_value=self.default_value,
-            meta=self.meta
+            meta=self.meta,
         )
 
-    cpdef int compare(self, value: Union[int, float, str], value2: Union[int, float, str]):
+    def compare(self, value: Union[int, float, str], value2: Union[int, float, str]) -> int:
         if value == value2:
             return 0
         else:
             return 1
 
-    cpdef int compare_vector(self, DTYPE_t value, DTYPE_t value2):
+    def compare_vector(self, DTYPE_t value, DTYPE_t value2) -> int:
         if value == value2:
             return 0
         else:
@@ -213,7 +196,7 @@ cdef class CategoricalHyperparameter(Hyperparameter):
         else:
             return False
 
-    cpdef bint is_legal_vector(self, DTYPE_t value):
+    def is_legal_vector(self, DTYPE_t value) -> int:
         return value in self._choices_set
 
     def _get_probabilities(self, choices: Tuple[Union[None, str, float, int]],
@@ -235,7 +218,7 @@ cdef class CategoricalHyperparameter(Hyperparameter):
 
         return tuple(weights / np.sum(weights))
 
-    def check_default(self, default_value: Union[None, str, float, int]
+    def check_default(self, default_value: Union[None, str, float, int],
                       ) -> Union[str, float, int]:
         if default_value is None:
             return self.choices[np.argmax(self.weights) if self.weights is not None else 0]
@@ -244,13 +227,13 @@ cdef class CategoricalHyperparameter(Hyperparameter):
         else:
             raise ValueError("Illegal default value %s" % str(default_value))
 
-    def _sample(self, rs: np.random.RandomState, size: Optional[int] = None
+    def _sample(self, rs: np.random.RandomState, size: Optional[int] = None,
                 ) -> Union[int, np.ndarray]:
         return rs.choice(a=self.num_choices, size=size, replace=True, p=self.probabilities)
 
-    cpdef np.ndarray _transform_vector(self, np.ndarray vector):
+    def _transform_vector(self, vector: np.ndarray ) -> np.ndarray:
         if np.isnan(vector).any():
-            raise ValueError('Vector %s contains NaN\'s' % vector)
+            raise ValueError("Vector %s contains NaN\'s" % vector)
 
         if np.equal(np.mod(vector, 1), 0):
             return self.choices[vector.astype(int)]
@@ -270,7 +253,7 @@ cdef class CategoricalHyperparameter(Hyperparameter):
                          "hyperparameter %s with an integer, but provided "
                          "the following float: %f" % (self, scalar))
 
-    def _transform(self, vector: Union[np.ndarray, float, int, str]
+    def _transform(self, vector: Union[np.ndarray, float, int, str],
                    ) -> Optional[Union[np.ndarray, float, int]]:
         try:
             if isinstance(vector, np.ndarray):
@@ -291,7 +274,7 @@ cdef class CategoricalHyperparameter(Hyperparameter):
         return len(self.choices) - 1
 
     def get_neighbors(self, value: int, rs: np.random.RandomState,
-                      number: Union[int, float] = np.inf, transform: bool = False
+                      number: Union[int, float] = np.inf, transform: bool = False,
                       ) -> List[Union[float, int, str]]:
         neighbors = []  # type: List[Union[float, int, str]]
         if number < len(self.choices):

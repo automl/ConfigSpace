@@ -28,9 +28,9 @@
 from __future__ import annotations
 
 import os
-import unittest
 
 import numpy as np
+import pytest
 from pytest import approx
 
 import ConfigSpace.c_util
@@ -61,567 +61,576 @@ from ConfigSpace.util import (
 )
 
 
-class UtilTest(unittest.TestCase):
-    def test_impute_inactive_values(self):
-        mini_autosklearn_config_space_path = os.path.join(
-            os.path.dirname(__file__),
-            "test_searchspaces",
-            "mini_autosklearn_original.pcs",
-        )
-        with open(mini_autosklearn_config_space_path) as fh:
-            cs = read(fh)
+def _test_random_neigbor(hp):
+    cs = ConfigurationSpace()
+    if not isinstance(hp, list):
+        hp = [hp]
+    for hp_ in hp:
+        cs.add_hyperparameter(hp_)
+    cs.seed(1)
+    config = cs.sample_configuration()
+    for i in range(100):
+        new_config = get_random_neighbor(config, i)
+        assert config != new_config
 
-        cs.seed(1)
-        configuration = cs.sample_configuration()
-        new_configuration = impute_inactive_values(configuration)
-        assert id(configuration) != id(new_configuration)
-        assert len(new_configuration) == 11
-        for key in new_configuration:
-            assert new_configuration[key] is not None
-        assert new_configuration["random_forest:max_features"] == 9
 
-    def _test_random_neigbor(self, hp):
-        cs = ConfigurationSpace()
-        if not isinstance(hp, list):
-            hp = [hp]
-        for hp_ in hp:
-            cs.add_hyperparameter(hp_)
-        cs.seed(1)
-        config = cs.sample_configuration()
-        for i in range(100):
-            new_config = get_random_neighbor(config, i)
+def _test_get_one_exchange_neighbourhood(hp):
+    cs = ConfigurationSpace()
+    num_neighbors = 0
+    if not isinstance(hp, list):
+        hp = [hp]
+    for hp_ in hp:
+        cs.add_hyperparameter(hp_)
+        if np.isinf(hp_.get_num_neighbors()):
+            num_neighbors += 4
+        else:
+            num_neighbors += hp_.get_num_neighbors()
+
+    cs.seed(1)
+    config = cs.get_default_configuration()
+    all_neighbors = []
+    for i in range(100):
+        neighborhood = get_one_exchange_neighbourhood(config, i)
+        for new_config in neighborhood:
             assert config != new_config
+            assert dict(config) != dict(new_config)
+            all_neighbors.append(new_config)
 
-    def _test_get_one_exchange_neighbourhood(self, hp):
-        cs = ConfigurationSpace()
-        num_neighbors = 0
-        if not isinstance(hp, list):
-            hp = [hp]
-        for hp_ in hp:
-            cs.add_hyperparameter(hp_)
-            if np.isinf(hp_.get_num_neighbors()):
-                num_neighbors += 4
-            else:
-                num_neighbors += hp_.get_num_neighbors()
+    return all_neighbors
 
-        cs.seed(1)
-        config = cs.get_default_configuration()
-        all_neighbors = []
-        for i in range(100):
-            neighborhood = get_one_exchange_neighbourhood(config, i)
-            for new_config in neighborhood:
-                assert config != new_config
-                assert dict(config) != dict(new_config)
-                all_neighbors.append(new_config)
 
-        return all_neighbors
+def test_impute_inactive_values():
+    mini_autosklearn_config_space_path = os.path.join(
+        os.path.dirname(__file__),
+        "test_searchspaces",
+        "mini_autosklearn_original.pcs",
+    )
+    with open(mini_autosklearn_config_space_path) as fh:
+        cs = read(fh)
 
-    def test_random_neighbor_float(self):
-        hp = UniformFloatHyperparameter("a", 1, 10)
-        self._test_random_neigbor(hp)
-        hp = UniformFloatHyperparameter("a", 1, 10, log=True)
-        self._test_random_neigbor(hp)
+    cs.seed(1)
+    configuration = cs.sample_configuration()
+    new_configuration = impute_inactive_values(configuration)
+    assert id(configuration) != id(new_configuration)
+    assert len(new_configuration) == 11
+    for key in new_configuration:
+        assert new_configuration[key] is not None
+    assert new_configuration["random_forest:max_features"] == 9
 
-    def test_random_neighborhood_float(self):
-        hp = UniformFloatHyperparameter("a", 1, 10)
-        all_neighbors = self._test_get_one_exchange_neighbourhood(hp)
-        all_neighbors = [neighbor["a"] for neighbor in all_neighbors]
-        self.assertAlmostEqual(5.49, np.mean(all_neighbors), places=2)
-        self.assertAlmostEqual(3.192, np.var(all_neighbors), places=2)
-        hp = UniformFloatHyperparameter("a", 1, 10, log=True)
-        all_neighbors = self._test_get_one_exchange_neighbourhood(hp)
-        all_neighbors = [neighbor["a"] for neighbor in all_neighbors]
-        # Default value is 3.16
-        self.assertAlmostEqual(3.50, np.mean(all_neighbors), places=2)
-        self.assertAlmostEqual(2.79, np.var(all_neighbors), places=2)
 
-    def test_random_neighbor_int(self):
-        hp = UniformIntegerHyperparameter("a", 1, 10)
-        self._test_random_neigbor(hp)
-        hp = UniformIntegerHyperparameter("a", 1, 10, log=True)
-        self._test_random_neigbor(hp)
+def test_random_neighbor_float():
+    hp = UniformFloatHyperparameter("a", 1, 10)
+    _test_random_neigbor(hp)
+    hp = UniformFloatHyperparameter("a", 1, 10, log=True)
+    _test_random_neigbor(hp)
 
-    def test_random_neighborhood_int(self):
-        hp = UniformIntegerHyperparameter("a", 1, 10)
-        all_neighbors = self._test_get_one_exchange_neighbourhood(hp)
-        all_neighbors = [neighbor["a"] for neighbor in all_neighbors]
-        self.assertAlmostEqual(5.8125, np.mean(all_neighbors), places=2)
-        self.assertAlmostEqual(5.6023, np.var(all_neighbors), places=2)
 
-        hp = UniformIntegerHyperparameter("a", 1, 10, log=True)
-        all_neighbors = self._test_get_one_exchange_neighbourhood(hp)
-        all_neighbors = [neighbor["a"] for neighbor in all_neighbors]
-        # Default value is 3.16
-        self.assertAlmostEqual(3.9375, np.mean(all_neighbors), places=2)
-        self.assertAlmostEqual(5.8886, np.var(all_neighbors), places=2)
+def test_random_neighborhood_float():
+    hp = UniformFloatHyperparameter("a", 1, 10)
+    all_neighbors = _test_get_one_exchange_neighbourhood(hp)
+    all_neighbors = [neighbor["a"] for neighbor in all_neighbors]
+    assert pytest.approx(np.mean(all_neighbors), abs=1e-2) == 5.49
+    assert pytest.approx(np.var(all_neighbors), abs=1e-2) == 3.192
+    hp = UniformFloatHyperparameter("a", 1, 10, log=True)
+    all_neighbors = _test_get_one_exchange_neighbourhood(hp)
+    all_neighbors = [neighbor["a"] for neighbor in all_neighbors]
+    # Default value is 3.16
+    assert pytest.approx(np.mean(all_neighbors), abs=1e-2) == 3.50
+    assert pytest.approx(np.var(all_neighbors), abs=1e-2) == 2.79
 
-        cs = ConfigurationSpace()
-        cs.add_hyperparameter(hp)
-        for val in range(1, 11):
-            config = Configuration(cs, values={"a": val})
-            for _i in range(100):
-                neighborhood = get_one_exchange_neighbourhood(config, 1)
-                neighbors = [neighbor["a"] for neighbor in neighborhood]
-                assert len(neighbors) == len(np.unique(neighbors)), neighbors
-                assert val not in neighbors, neighbors
 
-    def test_random_neighbor_cat(self):
-        hp = CategoricalHyperparameter("a", [5, 6, 7, 8])
-        all_neighbors = self._test_get_one_exchange_neighbourhood(hp)
-        all_neighbors = list(all_neighbors)
-        assert len(all_neighbors) == 300  # 3 (neighbors) * 100 (samples)
+def test_random_neighbor_int():
+    hp = UniformIntegerHyperparameter("a", 1, 10)
+    _test_random_neigbor(hp)
+    hp = UniformIntegerHyperparameter("a", 1, 10, log=True)
+    _test_random_neigbor(hp)
 
-    def test_random_neighborhood_cat(self):
-        hp = CategoricalHyperparameter("a", [5, 6, 7, 8])
-        self._test_random_neigbor(hp)
 
-    def test_random_neighbor_failing(self):
-        hp = Constant("a", "b")
-        self.assertRaisesRegex(
-            ValueError,
-            "Probably caught in an infinite " "loop.",
-            self._test_random_neigbor,
-            hp,
-        )
+def test_random_neighborhood_int():
+    hp = UniformIntegerHyperparameter("a", 1, 10)
+    all_neighbors = _test_get_one_exchange_neighbourhood(hp)
+    all_neighbors = [neighbor["a"] for neighbor in all_neighbors]
+    assert pytest.approx(np.mean(all_neighbors), abs=1e-2) == 5.8125
+    assert pytest.approx(np.var(all_neighbors), abs=1e-2) == 5.6023
 
-        hp = CategoricalHyperparameter("a", ["a"])
-        self.assertRaisesRegex(
-            ValueError,
-            "Probably caught in an infinite " "loop.",
-            self._test_random_neigbor,
-            hp,
-        )
+    hp = UniformIntegerHyperparameter("a", 1, 10, log=True)
+    all_neighbors = _test_get_one_exchange_neighbourhood(hp)
+    all_neighbors = [neighbor["a"] for neighbor in all_neighbors]
+    # Default value is 3.16
+    assert pytest.approx(np.mean(all_neighbors), abs=1e-2) == 3.9375
+    assert pytest.approx(np.var(all_neighbors), abs=1e-2) == 5.8886
 
-    def test_random_neigbor_conditional(self):
-        mini_autosklearn_config_space_path = os.path.join(
-            os.path.dirname(__file__),
-            "test_searchspaces",
-            "mini_autosklearn_original.pcs",
-        )
-        with open(mini_autosklearn_config_space_path) as fh:
-            cs = read(fh)
+    cs = ConfigurationSpace()
+    cs.add_hyperparameter(hp)
+    for val in range(1, 11):
+        config = Configuration(cs, values={"a": val})
+        for _ in range(100):
+            neighborhood = get_one_exchange_neighbourhood(config, 1)
+            neighbors = [neighbor["a"] for neighbor in neighborhood]
+            assert len(neighbors) == len(np.unique(neighbors)), neighbors
+            assert val not in neighbors, neighbors
 
-        cs.seed(1)
-        configuration = cs.get_default_configuration()
-        for i in range(100):
-            new_config = get_random_neighbor(configuration, i)
+
+def test_random_neighbor_cat():
+    hp = CategoricalHyperparameter("a", [5, 6, 7, 8])
+    all_neighbors = _test_get_one_exchange_neighbourhood(hp)
+    all_neighbors = list(all_neighbors)
+    assert len(all_neighbors) == 300  # 3 (neighbors) * 100 (samples)
+
+
+def test_random_neighborhood_cat():
+    hp = CategoricalHyperparameter("a", [5, 6, 7, 8])
+    _test_random_neigbor(hp)
+
+
+def test_random_neighbor_failing():
+    hp = Constant("a", "b")
+    with pytest.raises(ValueError, match="Probably caught in an infinite " "loop."):
+        _test_random_neigbor(hp)
+
+    hp = CategoricalHyperparameter("a", ["a"])
+    with pytest.raises(ValueError, match="Probably caught in an infinite " "loop."):
+        _test_random_neigbor(hp)
+
+
+def test_random_neigbor_conditional():
+    mini_autosklearn_config_space_path = os.path.join(
+        os.path.dirname(__file__),
+        "test_searchspaces",
+        "mini_autosklearn_original.pcs",
+    )
+    with open(mini_autosklearn_config_space_path) as fh:
+        cs = read(fh)
+
+    cs.seed(1)
+    configuration = cs.get_default_configuration()
+    for i in range(100):
+        new_config = get_random_neighbor(configuration, i)
+        assert configuration != new_config
+
+
+def test_random_neigborhood_conditional():
+    mini_autosklearn_config_space_path = os.path.join(
+        os.path.dirname(__file__),
+        "test_searchspaces",
+        "mini_autosklearn_original.pcs",
+    )
+    with open(mini_autosklearn_config_space_path) as fh:
+        cs = read(fh)
+
+    cs.seed(1)
+    configuration = cs.get_default_configuration()
+    for i in range(100):
+        neighborhood = get_one_exchange_neighbourhood(configuration, i)
+        for new_config in neighborhood:
             assert configuration != new_config
 
-    def test_random_neigborhood_conditional(self):
-        mini_autosklearn_config_space_path = os.path.join(
-            os.path.dirname(__file__),
-            "test_searchspaces",
-            "mini_autosklearn_original.pcs",
+
+def test_deactivate_inactive_hyperparameters():
+    diamond = ConfigurationSpace()
+    head = CategoricalHyperparameter("head", [0, 1])
+    left = CategoricalHyperparameter("left", [0, 1])
+    right = CategoricalHyperparameter("right", [0, 1])
+    bottom = CategoricalHyperparameter("bottom", [0, 1])
+    diamond.add_hyperparameters([head, left, right, bottom])
+    diamond.add_condition(EqualsCondition(left, head, 0))
+    diamond.add_condition(EqualsCondition(right, head, 0))
+    diamond.add_condition(
+        AndConjunction(EqualsCondition(bottom, left, 0), EqualsCondition(bottom, right, 0)),
+    )
+
+    c = deactivate_inactive_hyperparameters(
+        {"head": 0, "left": 0, "right": 0, "bottom": 0},
+        diamond,
+    )
+    diamond._check_configuration_rigorous(c)
+
+    c = deactivate_inactive_hyperparameters(
+        {"head": 1, "left": 0, "right": 0, "bottom": 0},
+        diamond,
+    )
+    diamond._check_configuration_rigorous(c)
+
+    c = deactivate_inactive_hyperparameters(
+        {"head": 0, "left": 1, "right": 0, "bottom": 0},
+        diamond,
+    )
+    diamond._check_configuration_rigorous(c)
+
+    diamond = ConfigurationSpace()
+    head = CategoricalHyperparameter("head", [0, 1])
+    left = CategoricalHyperparameter("left", [0, 1])
+    right = CategoricalHyperparameter("right", [0, 1])
+    bottom = CategoricalHyperparameter("bottom", [0, 1])
+    diamond.add_hyperparameters([head, left, right, bottom])
+    diamond.add_condition(EqualsCondition(left, head, 0))
+    diamond.add_condition(EqualsCondition(right, head, 0))
+    diamond.add_condition(
+        OrConjunction(EqualsCondition(bottom, left, 0), EqualsCondition(bottom, right, 0)),
+    )
+
+    c = deactivate_inactive_hyperparameters(
+        {"head": 0, "left": 0, "right": 0, "bottom": 0},
+        diamond,
+    )
+    diamond._check_configuration_rigorous(c)
+
+    c = deactivate_inactive_hyperparameters(
+        {"head": 1, "left": 1, "right": 0, "bottom": 0},
+        diamond,
+    )
+    diamond._check_configuration_rigorous(c)
+
+    c = deactivate_inactive_hyperparameters(
+        {"head": 0, "left": 1, "right": 0, "bottom": 0},
+        diamond,
+    )
+    diamond._check_configuration_rigorous(c)
+
+    plain = ConfigurationSpace()
+    a = UniformIntegerHyperparameter("a", 0, 10)
+    b = UniformIntegerHyperparameter("b", 0, 10)
+    plain.add_hyperparameters([a, b])
+    c = deactivate_inactive_hyperparameters({"a": 5, "b": 6}, plain)
+    plain.check_configuration(c)
+
+
+def test_check_neighbouring_config_diamond():
+    diamond = ConfigurationSpace()
+    head = CategoricalHyperparameter("head", [0, 1])
+    left = CategoricalHyperparameter("left", [0, 1])
+    right = CategoricalHyperparameter("right", [0, 1, 2, 3])
+    bottom = CategoricalHyperparameter("bottom", [0, 1])
+    diamond.add_hyperparameters([head, left, right, bottom])
+    diamond.add_condition(EqualsCondition(left, head, 0))
+    diamond.add_condition(EqualsCondition(right, head, 0))
+    diamond.add_condition(
+        AndConjunction(EqualsCondition(bottom, left, 1), EqualsCondition(bottom, right, 1)),
+    )
+
+    config = Configuration(diamond, {"bottom": 0, "head": 0, "left": 1, "right": 1})
+    hp_name = "head"
+    index = diamond.get_idx_by_hyperparameter_name(hp_name)
+    neighbor_value = 1
+
+    new_array = ConfigSpace.c_util.change_hp_value(
+        diamond,
+        config.get_array(),
+        hp_name,
+        neighbor_value,
+        index,
+    )
+    expected_array = np.array([1, np.nan, np.nan, np.nan])
+
+    np.testing.assert_almost_equal(new_array, expected_array)
+
+
+def test_check_neighbouring_config_diamond_or_conjunction():
+    diamond = ConfigurationSpace()
+    top = CategoricalHyperparameter("top", [0, 1], 0)
+    middle = CategoricalHyperparameter("middle", [0, 1], 1)
+    bottom_left = CategoricalHyperparameter("bottom_left", [0, 1], 1)
+    bottom_right = CategoricalHyperparameter("bottom_right", [0, 1, 2, 3], 1)
+
+    diamond.add_hyperparameters([top, bottom_left, bottom_right, middle])
+    diamond.add_condition(EqualsCondition(middle, top, 0))
+    diamond.add_condition(EqualsCondition(bottom_left, middle, 0))
+    diamond.add_condition(
+        OrConjunction(
+            EqualsCondition(bottom_right, middle, 1),
+            EqualsCondition(bottom_right, top, 1),
+        ),
+    )
+
+    config = Configuration(diamond, {"top": 0, "middle": 1, "bottom_right": 1})
+    hp_name = "top"
+    index = diamond.get_idx_by_hyperparameter_name(hp_name)
+    neighbor_value = 1
+
+    new_array = ConfigSpace.c_util.change_hp_value(
+        diamond,
+        config.get_array(),
+        hp_name,
+        neighbor_value,
+        index,
+    )
+    expected_array = np.array([1, np.nan, np.nan, 1])
+
+    np.testing.assert_almost_equal(new_array, expected_array)
+
+
+def test_check_neighbouring_config_diamond_str():
+    diamond = ConfigurationSpace()
+    head = CategoricalHyperparameter("head", ["red", "green"])
+    left = CategoricalHyperparameter("left", ["red", "green"])
+    right = CategoricalHyperparameter("right", ["red", "green", "blue", "yellow"])
+    bottom = CategoricalHyperparameter("bottom", ["red", "green"])
+    diamond.add_hyperparameters([head, left, right, bottom])
+    diamond.add_condition(EqualsCondition(left, head, "red"))
+    diamond.add_condition(EqualsCondition(right, head, "red"))
+    diamond.add_condition(
+        AndConjunction(
+            EqualsCondition(bottom, left, "green"),
+            EqualsCondition(bottom, right, "green"),
+        ),
+    )
+
+    config = Configuration(
+        diamond,
+        {"bottom": "red", "head": "red", "left": "green", "right": "green"},
+    )
+    hp_name = "head"
+    index = diamond.get_idx_by_hyperparameter_name(hp_name)
+    neighbor_value = 1
+
+    new_array = ConfigSpace.c_util.change_hp_value(
+        diamond,
+        config.get_array(),
+        hp_name,
+        neighbor_value,
+        index,
+    )
+    expected_array = np.array([1, np.nan, np.nan, np.nan])
+
+    np.testing.assert_almost_equal(new_array, expected_array)
+
+
+def test_fix_types():
+    # Test categorical and ordinal
+    for hyperparameter_type in [CategoricalHyperparameter, OrdinalHyperparameter]:
+        cs = ConfigurationSpace()
+        cs.add_hyperparameters(
+            [
+                hyperparameter_type("bools", [True, False]),
+                hyperparameter_type("ints", [1, 2, 3, 4, 5]),
+                hyperparameter_type("floats", [1.5, 2.5, 3.5, 4.5, 5.5]),
+                hyperparameter_type("str", ["string", "ding", "dong"]),
+                hyperparameter_type("mixed", [2, True, 1.5, "string", False, "False"]),
+            ],
         )
-        with open(mini_autosklearn_config_space_path) as fh:
-            cs = read(fh)
-
-        cs.seed(1)
-        configuration = cs.get_default_configuration()
-        for i in range(100):
-            neighborhood = get_one_exchange_neighbourhood(configuration, i)
-            for new_config in neighborhood:
-                assert configuration != new_config
-
-    def test_deactivate_inactive_hyperparameters(self):
-        diamond = ConfigurationSpace()
-        head = CategoricalHyperparameter("head", [0, 1])
-        left = CategoricalHyperparameter("left", [0, 1])
-        right = CategoricalHyperparameter("right", [0, 1])
-        bottom = CategoricalHyperparameter("bottom", [0, 1])
-        diamond.add_hyperparameters([head, left, right, bottom])
-        diamond.add_condition(EqualsCondition(left, head, 0))
-        diamond.add_condition(EqualsCondition(right, head, 0))
-        diamond.add_condition(
-            AndConjunction(EqualsCondition(bottom, left, 0), EqualsCondition(bottom, right, 0)),
-        )
-
-        c = deactivate_inactive_hyperparameters(
-            {"head": 0, "left": 0, "right": 0, "bottom": 0},
-            diamond,
-        )
-        diamond._check_configuration_rigorous(c)
-
-        c = deactivate_inactive_hyperparameters(
-            {"head": 1, "left": 0, "right": 0, "bottom": 0},
-            diamond,
-        )
-        diamond._check_configuration_rigorous(c)
-
-        c = deactivate_inactive_hyperparameters(
-            {"head": 0, "left": 1, "right": 0, "bottom": 0},
-            diamond,
-        )
-        diamond._check_configuration_rigorous(c)
-
-        diamond = ConfigurationSpace()
-        head = CategoricalHyperparameter("head", [0, 1])
-        left = CategoricalHyperparameter("left", [0, 1])
-        right = CategoricalHyperparameter("right", [0, 1])
-        bottom = CategoricalHyperparameter("bottom", [0, 1])
-        diamond.add_hyperparameters([head, left, right, bottom])
-        diamond.add_condition(EqualsCondition(left, head, 0))
-        diamond.add_condition(EqualsCondition(right, head, 0))
-        diamond.add_condition(
-            OrConjunction(EqualsCondition(bottom, left, 0), EqualsCondition(bottom, right, 0)),
-        )
-
-        c = deactivate_inactive_hyperparameters(
-            {"head": 0, "left": 0, "right": 0, "bottom": 0},
-            diamond,
-        )
-        diamond._check_configuration_rigorous(c)
-
-        c = deactivate_inactive_hyperparameters(
-            {"head": 1, "left": 1, "right": 0, "bottom": 0},
-            diamond,
-        )
-        diamond._check_configuration_rigorous(c)
-
-        c = deactivate_inactive_hyperparameters(
-            {"head": 0, "left": 1, "right": 0, "bottom": 0},
-            diamond,
-        )
-        diamond._check_configuration_rigorous(c)
-
-        plain = ConfigurationSpace()
-        a = UniformIntegerHyperparameter("a", 0, 10)
-        b = UniformIntegerHyperparameter("b", 0, 10)
-        plain.add_hyperparameters([a, b])
-        c = deactivate_inactive_hyperparameters({"a": 5, "b": 6}, plain)
-        plain.check_configuration(c)
-
-    def test_check_neighbouring_config_diamond(self):
-        diamond = ConfigurationSpace()
-        head = CategoricalHyperparameter("head", [0, 1])
-        left = CategoricalHyperparameter("left", [0, 1])
-        right = CategoricalHyperparameter("right", [0, 1, 2, 3])
-        bottom = CategoricalHyperparameter("bottom", [0, 1])
-        diamond.add_hyperparameters([head, left, right, bottom])
-        diamond.add_condition(EqualsCondition(left, head, 0))
-        diamond.add_condition(EqualsCondition(right, head, 0))
-        diamond.add_condition(
-            AndConjunction(EqualsCondition(bottom, left, 1), EqualsCondition(bottom, right, 1)),
-        )
-
-        config = Configuration(diamond, {"bottom": 0, "head": 0, "left": 1, "right": 1})
-        hp_name = "head"
-        index = diamond.get_idx_by_hyperparameter_name(hp_name)
-        neighbor_value = 1
-
-        new_array = ConfigSpace.c_util.change_hp_value(
-            diamond,
-            config.get_array(),
-            hp_name,
-            neighbor_value,
-            index,
-        )
-        expected_array = np.array([1, np.nan, np.nan, np.nan])
-
-        np.testing.assert_almost_equal(new_array, expected_array)
-
-    def test_check_neighbouring_config_diamond_or_conjunction(self):
-        diamond = ConfigurationSpace()
-        top = CategoricalHyperparameter("top", [0, 1], 0)
-        middle = CategoricalHyperparameter("middle", [0, 1], 1)
-        bottom_left = CategoricalHyperparameter("bottom_left", [0, 1], 1)
-        bottom_right = CategoricalHyperparameter("bottom_right", [0, 1, 2, 3], 1)
-
-        diamond.add_hyperparameters([top, bottom_left, bottom_right, middle])
-        diamond.add_condition(EqualsCondition(middle, top, 0))
-        diamond.add_condition(EqualsCondition(bottom_left, middle, 0))
-        diamond.add_condition(
-            OrConjunction(
-                EqualsCondition(bottom_right, middle, 1),
-                EqualsCondition(bottom_right, top, 1),
-            ),
-        )
-
-        config = Configuration(diamond, {"top": 0, "middle": 1, "bottom_right": 1})
-        hp_name = "top"
-        index = diamond.get_idx_by_hyperparameter_name(hp_name)
-        neighbor_value = 1
-
-        new_array = ConfigSpace.c_util.change_hp_value(
-            diamond,
-            config.get_array(),
-            hp_name,
-            neighbor_value,
-            index,
-        )
-        expected_array = np.array([1, np.nan, np.nan, 1])
-
-        np.testing.assert_almost_equal(new_array, expected_array)
-
-    def test_check_neighbouring_config_diamond_str(self):
-        diamond = ConfigurationSpace()
-        head = CategoricalHyperparameter("head", ["red", "green"])
-        left = CategoricalHyperparameter("left", ["red", "green"])
-        right = CategoricalHyperparameter("right", ["red", "green", "blue", "yellow"])
-        bottom = CategoricalHyperparameter("bottom", ["red", "green"])
-        diamond.add_hyperparameters([head, left, right, bottom])
-        diamond.add_condition(EqualsCondition(left, head, "red"))
-        diamond.add_condition(EqualsCondition(right, head, "red"))
-        diamond.add_condition(
-            AndConjunction(
-                EqualsCondition(bottom, left, "green"),
-                EqualsCondition(bottom, right, "green"),
-            ),
-        )
-
-        config = Configuration(
-            diamond,
-            {"bottom": "red", "head": "red", "left": "green", "right": "green"},
-        )
-        hp_name = "head"
-        index = diamond.get_idx_by_hyperparameter_name(hp_name)
-        neighbor_value = 1
-
-        new_array = ConfigSpace.c_util.change_hp_value(
-            diamond,
-            config.get_array(),
-            hp_name,
-            neighbor_value,
-            index,
-        )
-        expected_array = np.array([1, np.nan, np.nan, np.nan])
-
-        np.testing.assert_almost_equal(new_array, expected_array)
-
-    def test_fix_types(self):
-        # Test categorical and ordinal
-        for hyperparameter_type in [CategoricalHyperparameter, OrdinalHyperparameter]:
-            cs = ConfigurationSpace()
-            cs.add_hyperparameters(
-                [
-                    hyperparameter_type("bools", [True, False]),
-                    hyperparameter_type("ints", [1, 2, 3, 4, 5]),
-                    hyperparameter_type("floats", [1.5, 2.5, 3.5, 4.5, 5.5]),
-                    hyperparameter_type("str", ["string", "ding", "dong"]),
-                    hyperparameter_type("mixed", [2, True, 1.5, "string", False, "False"]),
-                ],
-            )
-            c = dict(cs.get_default_configuration())
-            # Check bools
-            for b in [False, True]:
-                c["bools"] = b
-                c_str = {k: str(v) for k, v in c.items()}
-                assert fix_types(c_str, cs) == c
-            # Check legal mixed values
-            for m in [2, True, 1.5, "string"]:
-                c["mixed"] = m
-                c_str = {k: str(v) for k, v in c.items()}
-                assert fix_types(c_str, cs) == c
-            # Check error on cornercase that cannot be caught
-            for m in [False, "False"]:
-                c["mixed"] = m
-                c_str = {k: str(v) for k, v in c.items()}
-                self.assertRaises(ValueError, fix_types, c_str, cs)
-        # Test constant
-        for m in [2, 1.5, "string"]:
-            cs = ConfigurationSpace()
-            cs.add_hyperparameter(Constant("constant", m))
-            c = dict(cs.get_default_configuration())
+        c = dict(cs.get_default_configuration())
+        # Check bools
+        for b in [False, True]:
+            c["bools"] = b
             c_str = {k: str(v) for k, v in c.items()}
             assert fix_types(c_str, cs) == c
+        # Check legal mixed values
+        for m in [2, True, 1.5, "string"]:
+            c["mixed"] = m
+            c_str = {k: str(v) for k, v in c.items()}
+            assert fix_types(c_str, cs) == c
+        # Check error on cornercase that cannot be caught
+        for m in [False, "False"]:
+            c["mixed"] = m
+            c_str = {k: str(v) for k, v in c.items()}
+            with pytest.raises(ValueError):
+                fix_types(c_str, cs)
+    # Test constant
+    for m in [2, 1.5, "string"]:
+        cs = ConfigurationSpace()
+        cs.add_hyperparameter(Constant("constant", m))
+        c = dict(cs.get_default_configuration())
+        c_str = {k: str(v) for k, v in c.items()}
+        assert fix_types(c_str, cs) == c
 
-    def test_generate_grid(self):
-        """Test grid generation."""
-        # Sub-test 1
-        cs = ConfigurationSpace(seed=1234)
 
-        cat1 = CategoricalHyperparameter(name="cat1", choices=["T", "F"])
-        const1 = Constant(name="const1", value=4)
-        float1 = UniformFloatHyperparameter(name="float1", lower=-1, upper=1, log=False)
-        int1 = UniformIntegerHyperparameter(name="int1", lower=10, upper=100, log=True)
-        ord1 = OrdinalHyperparameter(name="ord1", sequence=["1", "2", "3"])
+def test_generate_grid():
+    """Test grid generation."""
+    # Sub-test 1
+    cs = ConfigurationSpace(seed=1234)
 
-        cs.add_hyperparameters([float1, int1, cat1, ord1, const1])
+    cat1 = CategoricalHyperparameter(name="cat1", choices=["T", "F"])
+    const1 = Constant(name="const1", value=4)
+    float1 = UniformFloatHyperparameter(name="float1", lower=-1, upper=1, log=False)
+    int1 = UniformIntegerHyperparameter(name="int1", lower=10, upper=100, log=True)
+    ord1 = OrdinalHyperparameter(name="ord1", sequence=["1", "2", "3"])
 
-        num_steps_dict = {"float1": 11, "int1": 6}
-        generated_grid = generate_grid(cs, num_steps_dict)
+    cs.add_hyperparameters([float1, int1, cat1, ord1, const1])
 
-        # Check randomly pre-selected values in the generated_grid
-        # 2 * 1 * 11 * 6 * 3 total diff. possible configurations
-        assert len(generated_grid) == 396
-        # Check 1st and last generated configurations completely:
-        first_expected_dict = {
-            "cat1": "T",
-            "const1": 4,
-            "float1": -1.0,
-            "int1": 10,
-            "ord1": "1",
-        }
-        last_expected_dict = {
-            "cat1": "F",
-            "const1": 4,
-            "float1": 1.0,
-            "int1": 100,
-            "ord1": "3",
-        }
-        assert dict(generated_grid[0]) == first_expected_dict
-        assert dict(generated_grid[-1]) == last_expected_dict
-        assert generated_grid[198]["cat1"] == "F"
-        assert generated_grid[45]["const1"] == 4
-        # The 2 most frequently changing HPs (int1 and ord1) have 3 * 6 = 18 different values for
-        # each value of float1, so the 4th value of float1 of -0.4 is reached after
-        # 3 * 18 = 54 values in the generated_grid (and remains the same for the next 18 values):
-        for i in range(18):
-            self.assertAlmostEqual(generated_grid[54 + i]["float1"], -0.4, places=2)
-        # 5th diff. value for int1 after 4 * 3 = 12 values. Reasoning as above.
-        assert generated_grid[12]["int1"] == 63
-        assert generated_grid[3]["ord1"] == "1"
-        assert generated_grid[4]["ord1"] == "2"
-        assert generated_grid[5]["ord1"] == "3"
+    num_steps_dict = {"float1": 11, "int1": 6}
+    generated_grid = generate_grid(cs, num_steps_dict)
 
-        # Sub-test 2
-        # Test for extreme cases: only numerical
-        cs = ConfigurationSpace(seed=1234)
-        cs.add_hyperparameters([float1, int1])
+    # Check randomly pre-selected values in the generated_grid
+    # 2 * 1 * 11 * 6 * 3 total diff. possible configurations
+    assert len(generated_grid) == 396
+    # Check 1st and last generated configurations completely:
+    first_expected_dict = {
+        "cat1": "T",
+        "const1": 4,
+        "float1": -1.0,
+        "int1": 10,
+        "ord1": "1",
+    }
+    last_expected_dict = {
+        "cat1": "F",
+        "const1": 4,
+        "float1": 1.0,
+        "int1": 100,
+        "ord1": "3",
+    }
+    assert dict(generated_grid[0]) == first_expected_dict
+    assert dict(generated_grid[-1]) == last_expected_dict
+    assert generated_grid[198]["cat1"] == "F"
+    assert generated_grid[45]["const1"] == 4
+    # The 2 most frequently changing HPs (int1 and ord1) have 3 * 6 = 18 different values for
+    # each value of float1, so the 4th value of float1 of -0.4 is reached after
+    # 3 * 18 = 54 values in the generated_grid (and remains the same for the next 18 values):
+    for i in range(18):
+        assert generated_grid[54 + i]["float1"] == pytest.approx(-0.4, abs=1e-2)
+    # 5th diff. value for int1 after 4 * 3 = 12 values. Reasoning as above.
+    assert generated_grid[12]["int1"] == 63
+    assert generated_grid[3]["ord1"] == "1"
+    assert generated_grid[4]["ord1"] == "2"
+    assert generated_grid[5]["ord1"] == "3"
 
-        num_steps_dict = {"float1": 11, "int1": 6}
-        generated_grid = generate_grid(cs, num_steps_dict)
+    # Sub-test 2
+    # Test for extreme cases: only numerical
+    cs = ConfigurationSpace(seed=1234)
+    cs.add_hyperparameters([float1, int1])
 
-        assert len(generated_grid) == 66
-        # Check 1st and last generated configurations completely:
-        first_expected_dict = {"float1": -1.0, "int1": 10}
-        last_expected_dict = {"float1": 1.0, "int1": 100}
-        assert dict(generated_grid[0]) == first_expected_dict
-        assert dict(generated_grid[-1]) == last_expected_dict
+    num_steps_dict = {"float1": 11, "int1": 6}
+    generated_grid = generate_grid(cs, num_steps_dict)
 
-        # Test: only categorical
-        cs = ConfigurationSpace(seed=1234)
-        cs.add_hyperparameters([cat1])
+    assert len(generated_grid) == 66
+    # Check 1st and last generated configurations completely:
+    first_expected_dict = {"float1": -1.0, "int1": 10}
+    last_expected_dict = {"float1": 1.0, "int1": 100}
+    assert dict(generated_grid[0]) == first_expected_dict
+    assert dict(generated_grid[-1]) == last_expected_dict
 
+    # Test: only categorical
+    cs = ConfigurationSpace(seed=1234)
+    cs.add_hyperparameters([cat1])
+
+    generated_grid = generate_grid(cs)
+
+    assert len(generated_grid) == 2
+    # Check 1st and last generated configurations completely:
+    assert generated_grid[0]["cat1"] == "T"
+    assert generated_grid[-1]["cat1"] == "F"
+
+    # Test: only constant
+    cs = ConfigurationSpace(seed=1234)
+    cs.add_hyperparameters([const1])
+
+    generated_grid = generate_grid(cs)
+
+    assert len(generated_grid) == 1
+    # Check 1st and only generated configuration completely:
+    assert generated_grid[0]["const1"] == 4
+
+    # Test: no hyperparameters yet
+    cs = ConfigurationSpace(seed=1234)
+
+    generated_grid = generate_grid(cs, num_steps_dict)
+
+    # For the case of no hyperparameters, in get_cartesian_product, itertools.product() returns
+    # a single empty tuple element which leads to a single empty Configuration.
+    assert len(generated_grid) == 0
+
+    # Sub-test 3
+    # Tests for quantization and conditional spaces. num_steps_dict supports specifying steps
+    # for only some of the int and float HPs. The rest are taken from the 'q' member variables
+    # of these HPs. The conditional space tested has 2 levels of conditions.
+    cs2 = ConfigurationSpace(seed=123)
+    float1 = UniformFloatHyperparameter(name="float1", lower=-1, upper=1, log=False)
+    int1 = UniformIntegerHyperparameter(name="int1", lower=0, upper=1000, log=False, q=500)
+    cs2.add_hyperparameters([float1, int1])
+
+    int2_cond = UniformIntegerHyperparameter(name="int2_cond", lower=10, upper=100, log=True)
+    cs2.add_hyperparameters([int2_cond])
+    cond_1 = AndConjunction(
+        LessThanCondition(int2_cond, float1, -0.5),
+        GreaterThanCondition(int2_cond, int1, 600),
+    )
+    cs2.add_conditions([cond_1])
+    cat1_cond = CategoricalHyperparameter(name="cat1_cond", choices=["apple", "orange"])
+    cs2.add_hyperparameters([cat1_cond])
+    cond_2 = AndConjunction(
+        GreaterThanCondition(cat1_cond, int1, 300),
+        LessThanCondition(cat1_cond, int1, 700),
+        GreaterThanCondition(cat1_cond, float1, -0.5),
+        LessThanCondition(cat1_cond, float1, 0.5),
+    )
+    cs2.add_conditions([cond_2])
+    float2_cond = UniformFloatHyperparameter(
+        name="float2_cond",
+        lower=10.0,
+        upper=100.0,
+        log=True,
+    )
+    # 2nd level dependency in ConfigurationSpace tree being tested
+    cs2.add_hyperparameters([float2_cond])
+    cond_3 = GreaterThanCondition(float2_cond, int2_cond, 50)
+    cs2.add_conditions([cond_3])
+    num_steps_dict1 = {"float1": 4, "int2_cond": 3, "float2_cond": 3}
+    generated_grid = generate_grid(cs2, num_steps_dict1)
+    assert len(generated_grid) == 18
+
+    # RR: I manually generated the grid and verified the values were correct.
+    # Check 1st and last generated configurations completely:
+    first_expected_dict = {"float1": -1.0, "int1": 0}
+    last_expected_dict = {
+        "float1": -1.0,
+        "int1": 1000,
+        "int2_cond": 100,
+        "float2_cond": 100.0,
+    }
+
+    assert dict(generated_grid[0]) == first_expected_dict
+
+    # This was having slight numerical instability (99.99999999999994 vs 100.0) and so
+    # we manually do a pass over each value
+    last_config = generated_grid[-1]
+    for k, expected_value in last_config.items():
+        generated_value = last_config[k]
+        if isinstance(generated_value, float):
+            assert generated_value == approx(expected_value)
+        else:
+            assert generated_value == expected_value
+    # Here, we test that a few randomly chosen values in the generated grid
+    # correspond to the ones I checked.
+    assert generated_grid[3]["int1"] == 1000
+    assert generated_grid[12]["cat1_cond"] == "orange"
+    assert generated_grid[-2]["float2_cond"] == pytest.approx(31.622776601683803, abs=1e-3)
+
+    # Sub-test 4
+    # Test: only a single hyperparameter and num_steps_dict is None
+    cs = ConfigurationSpace(seed=1234)
+    cs.add_hyperparameters([float1])
+
+    num_steps_dict = {"float1": 11}
+    try:
         generated_grid = generate_grid(cs)
-
-        assert len(generated_grid) == 2
-        # Check 1st and last generated configurations completely:
-        assert generated_grid[0]["cat1"] == "T"
-        assert generated_grid[-1]["cat1"] == "F"
-
-        # Test: only constant
-        cs = ConfigurationSpace(seed=1234)
-        cs.add_hyperparameters([const1])
-
-        generated_grid = generate_grid(cs)
-
-        assert len(generated_grid) == 1
-        # Check 1st and only generated configuration completely:
-        assert generated_grid[0]["const1"] == 4
-
-        # Test: no hyperparameters yet
-        cs = ConfigurationSpace(seed=1234)
-
-        generated_grid = generate_grid(cs, num_steps_dict)
-
-        # For the case of no hyperparameters, in get_cartesian_product, itertools.product() returns
-        # a single empty tuple element which leads to a single empty Configuration.
-        assert len(generated_grid) == 0
-
-        # Sub-test 3
-        # Tests for quantization and conditional spaces. num_steps_dict supports specifying steps
-        # for only some of the int and float HPs. The rest are taken from the 'q' member variables
-        # of these HPs. The conditional space tested has 2 levels of conditions.
-        cs2 = ConfigurationSpace(seed=123)
-        float1 = UniformFloatHyperparameter(name="float1", lower=-1, upper=1, log=False)
-        int1 = UniformIntegerHyperparameter(name="int1", lower=0, upper=1000, log=False, q=500)
-        cs2.add_hyperparameters([float1, int1])
-
-        int2_cond = UniformIntegerHyperparameter(name="int2_cond", lower=10, upper=100, log=True)
-        cs2.add_hyperparameters([int2_cond])
-        cond_1 = AndConjunction(
-            LessThanCondition(int2_cond, float1, -0.5),
-            GreaterThanCondition(int2_cond, int1, 600),
-        )
-        cs2.add_conditions([cond_1])
-        cat1_cond = CategoricalHyperparameter(name="cat1_cond", choices=["apple", "orange"])
-        cs2.add_hyperparameters([cat1_cond])
-        cond_2 = AndConjunction(
-            GreaterThanCondition(cat1_cond, int1, 300),
-            LessThanCondition(cat1_cond, int1, 700),
-            GreaterThanCondition(cat1_cond, float1, -0.5),
-            LessThanCondition(cat1_cond, float1, 0.5),
-        )
-        cs2.add_conditions([cond_2])
-        float2_cond = UniformFloatHyperparameter(
-            name="float2_cond",
-            lower=10.0,
-            upper=100.0,
-            log=True,
-        )
-        # 2nd level dependency in ConfigurationSpace tree being tested
-        cs2.add_hyperparameters([float2_cond])
-        cond_3 = GreaterThanCondition(float2_cond, int2_cond, 50)
-        cs2.add_conditions([cond_3])
-        num_steps_dict1 = {"float1": 4, "int2_cond": 3, "float2_cond": 3}
-        generated_grid = generate_grid(cs2, num_steps_dict1)
-        assert len(generated_grid) == 18
-
-        # RR: I manually generated the grid and verified the values were correct.
-        # Check 1st and last generated configurations completely:
-        first_expected_dict = {"float1": -1.0, "int1": 0}
-        last_expected_dict = {
-            "float1": -1.0,
-            "int1": 1000,
-            "int2_cond": 100,
-            "float2_cond": 100.0,
-        }
-
-        assert dict(generated_grid[0]) == first_expected_dict
-
-        # This was having slight numerical instability (99.99999999999994 vs 100.0) and so
-        # we manually do a pass over each value
-        last_config = generated_grid[-1]
-        for k, expected_value in last_config.items():
-            generated_value = last_config[k]
-            if isinstance(generated_value, float):
-                assert generated_value == approx(expected_value)
-            else:
-                assert generated_value == expected_value
-        # Here, we test that a few randomly chosen values in the generated grid
-        # correspond to the ones I checked.
-        assert generated_grid[3]["int1"] == 1000
-        assert generated_grid[12]["cat1_cond"] == "orange"
-        self.assertAlmostEqual(generated_grid[-2]["float2_cond"], 31.622776601683803, places=3)
-
-        # Sub-test 4
-        # Test: only a single hyperparameter and num_steps_dict is None
-        cs = ConfigurationSpace(seed=1234)
-        cs.add_hyperparameters([float1])
-
-        num_steps_dict = {"float1": 11}
-        try:
-            generated_grid = generate_grid(cs)
-        except ValueError as e:
-            assert (
-                str(e) == "num_steps_dict is None or doesn't contain "
-                "the number of points to divide float1 into. And its quantization "
-                "factor is None. Please provide/set one of these values."
-            )
-
-        generated_grid = generate_grid(cs, num_steps_dict)
-
-        assert len(generated_grid) == 11
-        # Check 1st and last generated configurations completely:
-        assert generated_grid[0]["float1"] == -1.0
-        assert generated_grid[-1]["float1"] == 1.0
-
-        # Test forbidden clause
-        cs = ConfigurationSpace(seed=1234)
-        cs.add_hyperparameters([cat1, ord1, int1])
-        cs.add_condition(EqualsCondition(int1, cat1, "T"))  # int1 only active if cat1 == T
-        cs.add_forbidden_clause(
-            ForbiddenAndConjunction(  # Forbid ord1 == 3 if cat1 == F
-                ForbiddenEqualsClause(cat1, "F"),
-                ForbiddenEqualsClause(ord1, "3"),
-            ),
+    except ValueError as e:
+        assert (
+            str(e) == "num_steps_dict is None or doesn't contain "
+            "the number of points to divide float1 into. And its quantization "
+            "factor is None. Please provide/set one of these values."
         )
 
-        generated_grid = generate_grid(cs, {"int1": 2})
+    generated_grid = generate_grid(cs, num_steps_dict)
 
-        assert len(generated_grid) == 8
-        assert dict(generated_grid[0]) == {"cat1": "F", "ord1": "1"}
-        assert dict(generated_grid[1]) == {"cat1": "F", "ord1": "2"}
-        assert dict(generated_grid[2]) == {"cat1": "T", "ord1": "1", "int1": 0}
-        assert dict(generated_grid[-1]) == {"cat1": "T", "ord1": "3", "int1": 1000}
+    assert len(generated_grid) == 11
+    # Check 1st and last generated configurations completely:
+    assert generated_grid[0]["float1"] == -1.0
+    assert generated_grid[-1]["float1"] == 1.0
+
+    # Test forbidden clause
+    cs = ConfigurationSpace(seed=1234)
+    cs.add_hyperparameters([cat1, ord1, int1])
+    cs.add_condition(EqualsCondition(int1, cat1, "T"))  # int1 only active if cat1 == T
+    cs.add_forbidden_clause(
+        ForbiddenAndConjunction(  # Forbid ord1 == 3 if cat1 == F
+            ForbiddenEqualsClause(cat1, "F"),
+            ForbiddenEqualsClause(ord1, "3"),
+        ),
+    )
+
+    generated_grid = generate_grid(cs, {"int1": 2})
+
+    assert len(generated_grid) == 8
+    assert dict(generated_grid[0]) == {"cat1": "F", "ord1": "1"}
+    assert dict(generated_grid[1]) == {"cat1": "F", "ord1": "2"}
+    assert dict(generated_grid[2]) == {"cat1": "T", "ord1": "1", "int1": 0}
+    assert dict(generated_grid[-1]) == {"cat1": "T", "ord1": "3", "int1": 1000}

@@ -52,6 +52,7 @@ COMPILER_DIRECTIVES = {
 if PROFILING:
     COMPILER_DIRECTIVES.update({"profile": True, "linetrace": True})
 
+"""
 EXTENSIONS = [
     Extension(
         "ConfigSpace.hyperparameters.beta_float",
@@ -109,11 +110,12 @@ EXTENSIONS = [
     Extension("ConfigSpace.conditions", sources=["ConfigSpace/conditions.pyx"]),
     Extension("ConfigSpace.c_util", sources=["ConfigSpace/c_util.pyx"]),
 ]
+"""
 
 
 setup(
     name="ConfigSpace",
-    cmdclass={"build_ext": BuildExt},
-    ext_modules=cythonize(EXTENSIONS, compiler_directives=COMPILER_DIRECTIVES),
+    #cmdclass={"build_ext": BuildExt},
+    #ext_modules=cythonize(EXTENSIONS, compiler_directives=COMPILER_DIRECTIVES),
     packages=find_packages(),
 )

@@ -27,73 +27,51 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 from __future__ import annotations
 
-import os
-import unittest
+from pathlib import Path
+
+import pytest
 
 import ConfigSpace
 import ConfigSpace.read_and_write.pcs as pcs_parser
 import ConfigSpace.read_and_write.pcs_new as pcs_new_parser
 import ConfigSpace.util
 
+this_file = Path(__file__).absolute().resolve()
+this_directory = this_file.parent
+configuration_space_path = (this_directory.parent / "test_searchspaces").absolute().resolve()
+pcs_files = Path(configuration_space_path).glob("*.pcs")
 
-class ExampleSearchSpacesTest(unittest.TestCase):
-    pass
 
+@pytest.mark.parametrize("pcs_file", pcs_files)
+def test_autosklearn_space(pcs_file: Path):
+    try:
+        with pcs_file.open("r") as fh:
+            cs = pcs_parser.read(fh)
+    except Exception:
+        with pcs_file.open("r") as fh:
+            cs = pcs_new_parser.read(fh)
 
-def generate(configuration_space_path):
-    def run_test(self):
-        try:
-            with open(configuration_space_path) as fh:
-                cs = pcs_parser.read(fh)
-        except Exception:
-            with open(configuration_space_path) as fh:
-                cs = pcs_new_parser.read(fh)
+    default = cs.get_default_configuration()
+    cs._check_configuration_rigorous(default)
+    for i in range(10):
+        neighborhood = ConfigSpace.util.get_one_exchange_neighbourhood(default, seed=i)
 
-        default = cs.get_default_configuration()
-        cs._check_configuration_rigorous(default)
-        for i in range(10):
-            neighborhood = ConfigSpace.util.get_one_exchange_neighbourhood(default, seed=i)
+        for shuffle, n in enumerate(neighborhood):
+            n.is_valid_configuration()
+            cs._check_configuration_rigorous(n)
+            if shuffle == 10:
+                break
+
+    # Sample a little bit
+    for i in range(10):
+        cs.seed(i)
+        for c in cs.sample_configuration(size=5):
+            c.is_valid_configuration()
+            cs._check_configuration_rigorous(c)
+            neighborhood = ConfigSpace.util.get_one_exchange_neighbourhood(c, seed=i)
 
             for shuffle, n in enumerate(neighborhood):
                 n.is_valid_configuration()
                 cs._check_configuration_rigorous(n)
-                if shuffle == 10:
+                if shuffle == 20:
                     break
-
-        # Sample a little bit
-        for i in range(10):
-            cs.seed(i)
-            configurations = cs.sample_configuration(size=5)
-            for _j, c in enumerate(configurations):
-                c.is_valid_configuration()
-                cs._check_configuration_rigorous(c)
-                neighborhood = ConfigSpace.util.get_one_exchange_neighbourhood(c, seed=i)
-
-                for shuffle, n in enumerate(neighborhood):
-                    n.is_valid_configuration()
-                    cs._check_configuration_rigorous(n)
-                    if shuffle == 20:
-                        break
-
-    return run_test
-
-
-this_file = os.path.abspath(__file__)
-this_directory = os.path.dirname(this_file)
-configuration_space_path = os.path.join(this_directory, "..", "test_searchspaces")
-configuration_space_path = os.path.abspath(configuration_space_path)
-pcs_files = sorted(os.listdir(configuration_space_path))
-
-for pcs_file in pcs_files:
-    if ".pcs" in pcs_file:
-        full_path = os.path.join(configuration_space_path, pcs_file)
-        setattr(
-            ExampleSearchSpacesTest,
-            "test_%s" % pcs_file.replace(".", "_"),
-            generate(full_path),
-        )
-
-if __name__ == "__main__":
-    suite = unittest.TestSuite()
-    suite.addTest(ExampleSearchSpacesTest(methodName="test_auto-sklearn_2017_04_pcs"))
-    runner = unittest.TextTestRunner().run(suite)

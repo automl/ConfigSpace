@@ -25,22 +25,19 @@
 # ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+from __future__ import annotations
 
 import copy
-import numpy as np
 import io
+from typing import Any
+
+import numpy as np
+
+from ConfigSpace.forbidden import AbstractForbiddenComponent
 from ConfigSpace.hyperparameters import Hyperparameter
-from ConfigSpace.hyperparameters.hyperparameter cimport Hyperparameter
-from typing import Dict, Any, Union
-
-from ConfigSpace.forbidden cimport AbstractForbiddenComponent
-
-from libc.stdlib cimport malloc, free
-cimport numpy as np
 
 
-cdef class AbstractForbiddenComponent(object):
-
+class AbstractForbiddenComponent:
     def __init__(self):
         pass
 
@@ -68,155 +65,162 @@ cdef class AbstractForbiddenComponent(object):
         if other.value is None:
             other.value = other.values
 
-        return (self.value == other.value and
-                self.hyperparameter.name == other.hyperparameter.name)
+        return self.value == other.value and self.hyperparameter.name == other.hyperparameter.name
 
     def __hash__(self) -> int:
-        """Override the default hash behavior (that returns the id or the object)"""
+        """Override the default hash behavior (that returns the id or the object)."""
         return hash(tuple(sorted(self.__dict__.items())))
 
     def __copy__(self):
         raise NotImplementedError()
 
-    cpdef get_descendant_literal_clauses(self):
+    def get_descendant_literal_clauses(self):
         pass
 
-    cpdef set_vector_idx(self, hyperparameter_to_idx):
+    def set_vector_idx(self, hyperparameter_to_idx):
         pass
 
-    cpdef is_forbidden(self, instantiated_hyperparameters, strict):
+    def is_forbidden(self, instantiated_hyperparameters, strict):
         pass
 
     def is_forbidden_vector(self, instantiated_hyperparameters, strict):
         return bool(self.c_is_forbidden_vector(instantiated_hyperparameters, strict))
 
-    cdef int c_is_forbidden_vector(self, np.ndarray instantiated_hyperparameters, int strict):
+    def c_is_forbidden_vector(self, instantiated_hyperparameters: np.ndarray, strict: int) -> int:
         pass
 
 
-cdef class AbstractForbiddenClause(AbstractForbiddenComponent):
-
+class AbstractForbiddenClause(AbstractForbiddenComponent):
     def __init__(self, hyperparameter: Hyperparameter):
         if not isinstance(hyperparameter, Hyperparameter):
-            raise TypeError("Argument 'hyperparameter' is not of type %s." %
-                            Hyperparameter)
+            raise TypeError("Argument 'hyperparameter' is not of type %s." % Hyperparameter)
         self.hyperparameter = hyperparameter
         self.vector_id = -1
 
-    cpdef get_descendant_literal_clauses(self):
-        return (self, )
+    def get_descendant_literal_clauses(self):
+        return (self,)
 
-    cpdef set_vector_idx(self, hyperparameter_to_idx):
+    def set_vector_idx(self, hyperparameter_to_idx):
         self.vector_id = hyperparameter_to_idx[self.hyperparameter.name]
 
 
-cdef class SingleValueForbiddenClause(AbstractForbiddenClause):
+class SingleValueForbiddenClause(AbstractForbiddenClause):
     def __init__(self, hyperparameter: Hyperparameter, value: Any) -> None:
-        super(SingleValueForbiddenClause, self).__init__(hyperparameter)
+        super().__init__(hyperparameter)
         if not self.hyperparameter.is_legal(value):
-            raise ValueError("Forbidden clause must be instantiated with a "
-                             "legal hyperparameter value for '%s', but got "
-                             "'%s'" % (self.hyperparameter, str(value)))
+            raise ValueError(
+                "Forbidden clause must be instantiated with a "
+                "legal hyperparameter value for '{}', but got "
+                "'{}'".format(self.hyperparameter, str(value)),
+            )
         self.value = value
         self.vector_value = self.hyperparameter._inverse_transform(self.value)
 
     def __copy__(self):
         return self.__class__(
             hyperparameter=copy.copy(self.hyperparameter),
-            value=self.value
+            value=self.value,
         )
 
-    cpdef is_forbidden(self, instantiated_hyperparameters, strict):
+    def is_forbidden(self, instantiated_hyperparameters, strict) -> int:
         value = instantiated_hyperparameters.get(self.hyperparameter.name)
         if value is None:
             if strict:
-                raise ValueError("Is_forbidden must be called with the "
-                                 "instantiated hyperparameter in the "
-                                 "forbidden clause; you are missing "
-                                 "'%s'" % self.hyperparameter.name)
+                raise ValueError(
+                    "Is_forbidden must be called with the "
+                    "instantiated hyperparameter in the "
+                    "forbidden clause; you are missing "
+                    "'%s'" % self.hyperparameter.name,
+                )
             else:
                 return False
 
         return self._is_forbidden(value)
 
-    cdef int c_is_forbidden_vector(self, np.ndarray instantiated_vector, int strict):
-        cdef DTYPE_t value = instantiated_vector[self.vector_id]
+    def c_is_forbidden_vector(self, instantiated_vector: np.ndarray, strict: int) -> int:
+        value = instantiated_vector[self.vector_id]
         if value != value:
             if strict:
-                raise ValueError("Is_forbidden must be called with the "
-                                 "instantiated vector id in the "
-                                 "forbidden clause; you are missing "
-                                 "'%s'" % self.vector_id)
+                raise ValueError(
+                    "Is_forbidden must be called with the "
+                    "instantiated vector id in the "
+                    "forbidden clause; you are missing "
+                    "'%s'" % self.vector_id,
+                )
             else:
                 return False
 
         return self._is_forbidden_vector(value)
 
-    cdef int _is_forbidden(self, value):
+    def _is_forbidden(self, value) -> int:
         pass
 
-    cdef int _is_forbidden_vector(self, DTYPE_t value):
+    def _is_forbidden_vector(self, value) -> int:
         pass
 
 
-cdef class MultipleValueForbiddenClause(AbstractForbiddenClause):
-    cdef public values
-    cdef public vector_values
-
+class MultipleValueForbiddenClause(AbstractForbiddenClause):
     def __init__(self, hyperparameter: Hyperparameter, values: Any) -> None:
-        super(MultipleValueForbiddenClause, self).__init__(hyperparameter)
+        super().__init__(hyperparameter)
 
         for value in values:
             if not self.hyperparameter.is_legal(value):
-                raise ValueError("Forbidden clause must be instantiated with a "
-                                 "legal hyperparameter value for '%s', but got "
-                                 "'%s'" % (self.hyperparameter, str(value)))
+                raise ValueError(
+                    "Forbidden clause must be instantiated with a "
+                    "legal hyperparameter value for '{}', but got "
+                    "'{}'".format(self.hyperparameter, str(value)),
+                )
         self.values = values
-        self.vector_values = [self.hyperparameter._inverse_transform(value)
-                              for value in self.values]
+        self.vector_values = [
+            self.hyperparameter._inverse_transform(value) for value in self.values
+        ]
 
     def __copy__(self):
         return self.__class__(
             hyperparameter=copy.copy(self.hyperparameter),
-            values=copy.deepcopy(self.values)
+            values=copy.deepcopy(self.values),
         )
 
-    cpdef is_forbidden(self, instantiated_hyperparameters, strict):
+    def is_forbidden(self, instantiated_hyperparameters, strict) -> bool:
         value = instantiated_hyperparameters.get(self.hyperparameter.name)
         if value is None:
             if strict:
-                raise ValueError("Is_forbidden must be called with the "
-                                 "instantiated hyperparameter in the "
-                                 "forbidden clause; you are missing "
-                                 "'%s'." % self.hyperparameter.name)
+                raise ValueError(
+                    "Is_forbidden must be called with the "
+                    "instantiated hyperparameter in the "
+                    "forbidden clause; you are missing "
+                    "'%s'." % self.hyperparameter.name,
+                )
             else:
                 return False
 
         return self._is_forbidden(value)
 
-    cdef int c_is_forbidden_vector(self, np.ndarray instantiated_vector, int strict):
-        cdef DTYPE_t value = instantiated_vector[self.vector_id]
+    def c_is_forbidden_vector(self, instantiated_vector: np.ndarray, strict: int) -> int:
+        value = instantiated_vector[self.vector_id]
 
         if value != value:
             if strict:
-                raise ValueError("Is_forbidden must be called with the "
-                                 "instantiated vector id in the "
-                                 "forbidden clause; you are missing "
-                                 "'%s'" % self.vector_id)
+                raise ValueError(
+                    "Is_forbidden must be called with the "
+                    "instantiated vector id in the "
+                    "forbidden clause; you are missing "
+                    "'%s'" % self.vector_id,
+                )
             else:
                 return False
 
         return self._is_forbidden_vector(value)
 
-    cdef int _is_forbidden(self, value):
+    def _is_forbidden(self, value) -> int:
         pass
 
-    cdef int _is_forbidden_vector(self, DTYPE_t value):
+    def _is_forbidden_vector(self, value) -> int:
         pass
 
 
-cdef class ForbiddenEqualsClause(SingleValueForbiddenClause):
-    """A ForbiddenEqualsClause
+class ForbiddenEqualsClause(SingleValueForbiddenClause):
+    """A ForbiddenEqualsClause.
 
     It forbids a value from the value range of a hyperparameter to be
     *equal to* ``value``.
@@ -239,19 +243,21 @@ cdef class ForbiddenEqualsClause(SingleValueForbiddenClause):
     """
 
     def __repr__(self):
-        return "Forbidden: %s == %s" % (self.hyperparameter.name,
-                                        repr(self.value))
+        return f"Forbidden: {self.hyperparameter.name} == {self.value!r}"
 
-    cdef int _is_forbidden(self, value):
+    def _is_forbidden(self, value) -> bool:
         return value == self.value
 
-    cdef int _is_forbidden_vector(self, DTYPE_t value):
+    def _is_forbidden_vector(self, value) -> bool:
         return value == self.vector_value
 
 
-cdef class ForbiddenInClause(MultipleValueForbiddenClause):
-    def __init__(self, hyperparameter: Dict[str, Union[None, str, float, int]],
-                 values: Any) -> None:
+class ForbiddenInClause(MultipleValueForbiddenClause):
+    def __init__(
+        self,
+        hyperparameter: dict[str, None | str | float | int],
+        values: Any,
+    ) -> None:
         """A ForbiddenInClause.
 
         It forbids a value from the value range of a hyperparameter to be
@@ -278,38 +284,33 @@ cdef class ForbiddenInClause(MultipleValueForbiddenClause):
         values : Any
             Collection of forbidden values
         """
-
-        super(ForbiddenInClause, self).__init__(hyperparameter, values)
+        super().__init__(hyperparameter, values)
         self.values = set(self.values)
         self.vector_values = set(self.vector_values)
 
     def __repr__(self) -> str:
-        return "Forbidden: %s in %s" % (
+        return "Forbidden: {} in {}".format(
             self.hyperparameter.name,
-            "{" + ", ".join((repr(value)
-                             for value in sorted(self.values))) + "}")
+            "{" + ", ".join(repr(value) for value in sorted(self.values)) + "}",
+        )
 
-    cdef int _is_forbidden(self, value):
+    def _is_forbidden(self, value) -> int:
         return value in self.values
 
-    cdef int _is_forbidden_vector(self, DTYPE_t value):
+    def _is_forbidden_vector(self, value) -> int:
         return value in self.vector_values
 
 
-cdef class AbstractForbiddenConjunction(AbstractForbiddenComponent):
-    cdef public tuple components
-    cdef tuple dlcs
-    cdef public int n_components
-
+class AbstractForbiddenConjunction(AbstractForbiddenComponent):
     def __init__(self, *args: AbstractForbiddenComponent) -> None:
-        super(AbstractForbiddenConjunction, self).__init__()
+        super().__init__()
         # Test the classes
         for idx, component in enumerate(args):
             if not isinstance(component, AbstractForbiddenComponent):
-                raise TypeError("Argument #%d is not an instance of %s, "
-                                "but %s" % (
-                                    idx, AbstractForbiddenComponent,
-                                    type(component)))
+                raise TypeError(
+                    "Argument #%d is not an instance of %s, "
+                    "but %s" % (idx, AbstractForbiddenComponent, type(component)),
+                )
 
         self.components = args
         self.n_components = len(self.components)
@@ -333,21 +334,19 @@ cdef class AbstractForbiddenConjunction(AbstractForbiddenComponent):
             For __ne__(), by default it delegates to __eq__() and inverts the result
             unless it is NotImplemented.
         """
-
         if not isinstance(other, self.__class__):
             return False
 
         if self.n_components != other.n_components:
             return False
 
-        return all([self.components[i] == other.components[i]
-                    for i in range(self.n_components)])
+        return all(self.components[i] == other.components[i] for i in range(self.n_components))
 
-    cpdef set_vector_idx(self, hyperparameter_to_idx):
+    def set_vector_idx(self, hyperparameter_to_idx) -> None:
         for component in self.components:
             component.set_vector_idx(hyperparameter_to_idx)
 
-    cpdef get_descendant_literal_clauses(self):
+    def get_descendant_literal_clauses(self):
         children = []
         for component in self.components:
             if isinstance(component, AbstractForbiddenConjunction):
@@ -356,43 +355,37 @@ cdef class AbstractForbiddenConjunction(AbstractForbiddenComponent):
                 children.append(component)
         return tuple(children)
 
-    cpdef is_forbidden(self, instantiated_hyperparameters, strict):
+    def is_forbidden(self, instantiated_hyperparameters, strict) -> bool:
         ihp_names = list(instantiated_hyperparameters.keys())
 
         for dlc in self.dlcs:
             if dlc.hyperparameter.name not in ihp_names:
                 if strict:
-                    raise ValueError("Is_forbidden must be called with all "
-                                     "instantiated hyperparameters in the "
-                                     "and conjunction of forbidden clauses; "
-                                     "you are (at least) missing "
-                                     "'%s'" % dlc.hyperparameter.name)
+                    raise ValueError(
+                        "Is_forbidden must be called with all "
+                        "instantiated hyperparameters in the "
+                        "and conjunction of forbidden clauses; "
+                        "you are (at least) missing "
+                        "'%s'" % dlc.hyperparameter.name,
+                    )
                 else:
                     return False
 
-        cdef int* arrptr
-        arrptr = <int*> malloc(sizeof(int) * self.n_components)
+        values = np.empty(self.n_components, dtype=np.int32)
 
         # Finally, call is_forbidden for all direct descendents and combine the
         # outcomes
         np_index = 0
         for component in self.components:
-            e = component.is_forbidden(instantiated_hyperparameters,
-                                       strict=strict)
-            arrptr[np_index] = e
+            e = component.is_forbidden(instantiated_hyperparameters, strict=strict)
+            values[np_index] = e
             np_index += 1
 
-        rval = self._is_forbidden(self.n_components, arrptr)
-        free(arrptr)
-        return rval
+        return self._is_forbidden(self.n_components, values)
 
-    cdef int c_is_forbidden_vector(self, np.ndarray instantiated_vector, int strict):
-        cdef int e = 0
-        cdef int rval
-        cdef AbstractForbiddenComponent component
-
-        cdef int* arrptr
-        arrptr = <int*> malloc(sizeof(int) * self.n_components)
+    def c_is_forbidden_vector(self, instantiated_vector: np.ndarray, strict: int) -> int:
+        e: int = 0
+        values = np.empty(self.n_components, dtype=np.int32)
 
         # Finally, call is_forbidden for all direct descendents and combine the
         # outcomes. Check only as many forbidden clauses as the actual
@@ -402,17 +395,15 @@ cdef class AbstractForbiddenConjunction(AbstractForbiddenComponent):
         for i in range(self.n_components):
             component = self.components[i]
             e = component.c_is_forbidden_vector(instantiated_vector, strict)
-            arrptr[i] = e
+            values[i] = e
 
-        rval = self._is_forbidden(self.n_components, arrptr)
-        free(arrptr)
-        return rval
+        return self._is_forbidden(self.n_components, values)
 
-    cdef int _is_forbidden(self, int I, int* evaluations):
+    def _is_forbidden(self, I: int, evaluations) -> int:
         pass
 
 
-cdef class ForbiddenAndConjunction(AbstractForbiddenConjunction):
+class ForbiddenAndConjunction(AbstractForbiddenConjunction):
     """A ForbiddenAndConjunction.
 
     The ForbiddenAndConjunction combines forbidden-clauses, which allows to
@@ -451,7 +442,7 @@ cdef class ForbiddenAndConjunction(AbstractForbiddenConjunction):
         retval.write(")")
         return retval.getvalue()
 
-    cdef int _is_forbidden(self, int I, int* evaluations):
+    def _is_forbidden(self, I: int, evaluations) -> int:
         # Return False if one of the components evaluates to False
 
         for i in range(I):
@@ -459,13 +450,12 @@ cdef class ForbiddenAndConjunction(AbstractForbiddenConjunction):
                 return 0
         return 1
 
-    cdef int c_is_forbidden_vector(self, np.ndarray instantiated_vector, int strict):
+    def c_is_forbidden_vector(self, instantiated_vector: np.ndarray, strict: int) -> int:
         # Copy from above to have early stopping of the evaluation of clauses -
         # gave only very modest improvements of ~5%; should probably be reworked
         # if adding more conjunctions in order to use better software design to
         # avoid code duplication.
-        cdef int e = 0
-        cdef AbstractForbiddenComponent component
+        e: int = 0
 
         # Finally, call is_forbidden for all direct descendents and combine the
         # outcomes. Check only as many forbidden clauses as the actual
@@ -481,13 +471,8 @@ cdef class ForbiddenAndConjunction(AbstractForbiddenConjunction):
         return 1
 
 
-cdef class ForbiddenRelation(AbstractForbiddenComponent):
-
-    cdef public left
-    cdef public right
-    cdef public int[2] vector_ids
-
-    def __init__(self, left: Hyperparameter, right : Hyperparameter):
+class ForbiddenRelation(AbstractForbiddenComponent):
+    def __init__(self, left: Hyperparameter, right: Hyperparameter):
         if not isinstance(left, Hyperparameter):
             raise TypeError("Argument 'left' is not of type %s." % Hyperparameter)
         if not isinstance(right, Hyperparameter):
@@ -505,70 +490,81 @@ cdef class ForbiddenRelation(AbstractForbiddenComponent):
     def __copy__(self):
         return self.__class__(
             a=copy.copy(self.left),
-            b=copy.copy(self.right)
+            b=copy.copy(self.right),
         )
 
-    cpdef get_descendant_literal_clauses(self):
+    def get_descendant_literal_clauses(self):
         return (self,)
 
-    cpdef set_vector_idx(self, hyperparameter_to_idx):
-        self.vector_ids = (hyperparameter_to_idx[self.left.name], hyperparameter_to_idx[self.right.name])
+    def set_vector_idx(self, hyperparameter_to_idx):
+        self.vector_ids = (
+            hyperparameter_to_idx[self.left.name],
+            hyperparameter_to_idx[self.right.name],
+        )
 
-    cpdef is_forbidden(self, instantiated_hyperparameters, strict):
+    def is_forbidden(self, instantiated_hyperparameters, strict):
         left = instantiated_hyperparameters.get(self.left.name)
         right = instantiated_hyperparameters.get(self.right.name)
         if left is None:
             if strict:
-                raise ValueError("Is_forbidden must be called with the "
-                                 "instantiated hyperparameters in the "
-                                 "forbidden clause; you are missing "
-                                 "'%s'" % self.left.name)
+                raise ValueError(
+                    "Is_forbidden must be called with the "
+                    "instantiated hyperparameters in the "
+                    "forbidden clause; you are missing "
+                    "'%s'" % self.left.name,
+                )
             else:
                 return False
         if right is None:
             if strict:
-                raise ValueError("Is_forbidden must be called with the "
-                                 "instantiated hyperparameters in the "
-                                 "forbidden clause; you are missing "
-                                 "'%s'" % self.right.name)
+                raise ValueError(
+                    "Is_forbidden must be called with the "
+                    "instantiated hyperparameters in the "
+                    "forbidden clause; you are missing "
+                    "'%s'" % self.right.name,
+                )
             else:
                 return False
 
         return self._is_forbidden(left, right)
 
-    cdef int _is_forbidden(self, left, right) except -1:
+    def _is_forbidden(self, left, right) -> int:
         pass
 
-    cdef int c_is_forbidden_vector(self, np.ndarray instantiated_vector, int strict):
-        cdef DTYPE_t left = instantiated_vector[self.vector_ids[0]]
-        cdef DTYPE_t right = instantiated_vector[self.vector_ids[1]]
+    def c_is_forbidden_vector(self, instantiated_vector: np.ndarray, strict: int) -> int:
+        left = instantiated_vector[self.vector_ids[0]]
+        right = instantiated_vector[self.vector_ids[1]]
 
         if left != left:
             if strict:
-                raise ValueError("Is_forbidden must be called with the "
-                                 "instantiated vector id in the "
-                                 "forbidden clause; you are missing "
-                                 "'%s'" % self.vector_ids[0])
+                raise ValueError(
+                    "Is_forbidden must be called with the "
+                    "instantiated vector id in the "
+                    "forbidden clause; you are missing "
+                    "'%s'" % self.vector_ids[0],
+                )
             else:
                 return False
 
         if right != right:
             if strict:
-                raise ValueError("Is_forbidden must be called with the "
-                                 "instantiated vector id in the "
-                                 "forbidden clause; you are missing "
-                                 "'%s'" % self.vector_ids[1])
+                raise ValueError(
+                    "Is_forbidden must be called with the "
+                    "instantiated vector id in the "
+                    "forbidden clause; you are missing "
+                    "'%s'" % self.vector_ids[1],
+                )
             else:
                 return False
 
         # Relation is always evaluated against actual value and not vector representation
         return self._is_forbidden(self.left._transform(left), self.right._transform(right))
 
-    cdef int _is_forbidden_vector(self, DTYPE_t left, DTYPE_t right) except -1:
+    def _is_forbidden_vector(self, left, right) -> int:
         pass
 
 
-cdef class ForbiddenLessThanRelation(ForbiddenRelation):
+class ForbiddenLessThanRelation(ForbiddenRelation):
     """A ForbiddenLessThan relation between two hyperparameters.
 
     The ForbiddenLessThan compares the values of two hyperparameters.
@@ -597,16 +593,16 @@ cdef class ForbiddenLessThanRelation(ForbiddenRelation):
     """
 
     def __repr__(self):
-        return "Forbidden: %s < %s" % (self.left.name, self.right.name)
+        return f"Forbidden: {self.left.name} < {self.right.name}"
 
-    cdef int _is_forbidden(self, left, right) except -1:
+    def _is_forbidden(self, left, right) -> int:
         return left < right
 
-    cdef int _is_forbidden_vector(self, DTYPE_t left, DTYPE_t right) except -1:
+    def _is_forbidden_vector(self, left, right) -> int:
         return left < right
 
 
-cdef class ForbiddenEqualsRelation(ForbiddenRelation):
+class ForbiddenEqualsRelation(ForbiddenRelation):
     """A ForbiddenEquals relation between two hyperparameters.
 
     The ForbiddenEquals compares the values of two hyperparameters.
@@ -634,16 +630,16 @@ cdef class ForbiddenEqualsRelation(ForbiddenRelation):
     """
 
     def __repr__(self):
-        return "Forbidden: %s == %s" % (self.left.name, self.right.name)
+        return f"Forbidden: {self.left.name} == {self.right.name}"
 
-    cdef int _is_forbidden(self, left, right) except -1:
+    def _is_forbidden(self, left, right) -> int:
         return left == right
 
-    cdef int _is_forbidden_vector(self, DTYPE_t left, DTYPE_t right) except -1:
+    def _is_forbidden_vector(self, left, right) -> int:
         return left == right
 
 
-cdef class ForbiddenGreaterThanRelation(ForbiddenRelation):
+class ForbiddenGreaterThanRelation(ForbiddenRelation):
     """A ForbiddenGreaterThan relation between two hyperparameters.
 
     The ForbiddenGreaterThan compares the values of two hyperparameters.
@@ -671,10 +667,10 @@ cdef class ForbiddenGreaterThanRelation(ForbiddenRelation):
     """
 
     def __repr__(self):
-        return "Forbidden: %s > %s" % (self.left.name, self.right.name)
+        return f"Forbidden: {self.left.name} > {self.right.name}"
 
-    cdef int _is_forbidden(self, left, right) except -1:
+    def _is_forbidden(self, left, right) -> int:
         return left > right
 
-    cdef int _is_forbidden_vector(self, DTYPE_t left, DTYPE_t right) except -1:
+    def _is_forbidden_vector(self, left, right) -> int:
         return left > right

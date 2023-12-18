@@ -1,36 +1,24 @@
+from __future__ import annotations
+
 from collections import deque
 
 import numpy as np
-from ConfigSpace.forbidden import AbstractForbiddenComponent
-from ConfigSpace.forbidden cimport AbstractForbiddenComponent
-from ConfigSpace.hyperparameters import Hyperparameter
-from ConfigSpace.hyperparameters.hyperparameter cimport Hyperparameter
-from ConfigSpace.conditions import ConditionComponent
-from ConfigSpace.conditions cimport ConditionComponent
-from ConfigSpace.conditions import OrConjunction
+
+from ConfigSpace.conditions import ConditionComponent, OrConjunction
 from ConfigSpace.exceptions import (
+    ActiveHyperparameterNotSetError,
     ForbiddenValueError,
     IllegalValueError,
-    ActiveHyperparameterNotSetError,
     InactiveHyperparameterSetError,
 )
-
-from libc.stdlib cimport malloc, free
-cimport numpy as np
-
-# We now need to fix a datatype for our arrays. I've used the variable
-# DTYPE for this, which is assigned to the usual NumPy runtime
-# type info object.
-DTYPE = float
-# "ctypedef" assigns a corresponding compile-time type to DTYPE_t. For
-# every type in the numpy module there's a corresponding compile-time
-# type with a _t-suffix.
-ctypedef np.float_t DTYPE_t
+from ConfigSpace.forbidden import AbstractForbiddenComponent
+from ConfigSpace.hyperparameters import Hyperparameter
+from ConfigSpace.hyperparameters.hyperparameter import Hyperparameter
 
 
-cpdef int check_forbidden(list forbidden_clauses, np.ndarray vector) except 1:
-    cdef int Iforbidden = len(forbidden_clauses)
-    cdef AbstractForbiddenComponent clause
+def check_forbidden(forbidden_clauses: list, vector: np.ndarray) -> int:
+    Iforbidden: int = len(forbidden_clauses)
+    clause: AbstractForbiddenComponent
 
     for i in range(Iforbidden):
         clause = forbidden_clauses[i]
@@ -38,27 +26,24 @@ cpdef int check_forbidden(list forbidden_clauses, np.ndarray vector) except 1:
             raise ForbiddenValueError("Given vector violates forbidden clause %s" % (str(clause)))
 
 
-cpdef int check_configuration(
+def check_configuration(
     self,
-    np.ndarray vector,
-    bint allow_inactive_with_values
-) except 1:
-    cdef str hp_name
-    cdef Hyperparameter hyperparameter
-    cdef int hyperparameter_idx
-    cdef DTYPE_t hp_value
-    cdef int add
-    cdef ConditionComponent condition
-    cdef Hyperparameter child
-    cdef list conditions
-    cdef list children
-    cdef set inactive
-    cdef set visited
+    vector: np.ndarray,
+    allow_inactive_with_values: bool,
+) -> int:
+    hp_name: str
+    hyperparameter: Hyperparameter
+    hyperparameter_idx: int
+    hp_value: float | int
+    add: int
+    condition: ConditionComponent
+    child: Hyperparameter
+    conditions: list
+    children: list
+    inactive: set
+    visited: set
 
-    cdef int* active
-    active = <int*> malloc(sizeof(int) * len(vector))
-    for i in range(len(vector)):
-        active[i] = 0
+    active: np.ndarray = np.zeros(len(vector), dtype=int)
 
     unconditional_hyperparameters = self.get_all_unconditional_hyperparameters()
     to_visit = deque()
@@ -77,7 +62,6 @@ cpdef int check_configuration(
         hp_value = vector[hp_idx]
 
         if not np.isnan(hp_value) and not hyperparameter.is_legal_vector(hp_value):
-            free(active)
             raise IllegalValueError(hyperparameter, hp_value)
 
         children = self._children_of[hp_name]
@@ -96,58 +80,50 @@ cpdef int check_configuration(
                     to_visit.appendleft(child.name)
 
         if active[hp_idx] and np.isnan(hp_value):
-            free(active)
             raise ActiveHyperparameterNotSetError(hyperparameter)
 
     for hp_idx in self._idx_to_hyperparameter:
-
         if not allow_inactive_with_values and not active[hp_idx] and not np.isnan(vector[hp_idx]):
             # Only look up the value (in the line above) if the hyperparameter is inactive!
             hp_name = self._idx_to_hyperparameter[hp_idx]
             hp_value = vector[hp_idx]
-            free(active)
             raise InactiveHyperparameterSetError(hyperparameter, hp_value)
 
-    free(active)
     self._check_forbidden(vector)
 
 
-cpdef np.ndarray correct_sampled_array(
-    np.ndarray[DTYPE_t, ndim=1] vector,
-    list forbidden_clauses_unconditionals,
-    list forbidden_clauses_conditionals,
-    list hyperparameters_with_children,
-    int num_hyperparameters,
-    list unconditional_hyperparameters,
-    dict hyperparameter_to_idx,
-    dict parent_conditions_of,
-    dict parents_of,
-    dict children_of,
-):
-    cdef AbstractForbiddenComponent clause
-    cdef ConditionComponent condition
-    cdef int hyperparameter_idx
-    cdef DTYPE_t NaN = np.NaN
-    cdef set visited
-    cdef set inactive
-    cdef Hyperparameter child
-    cdef list children
-    cdef str child_name
-    cdef list parents
-    cdef Hyperparameter parent
-    cdef int parents_visited
-    cdef list conditions
-    cdef int add
+def correct_sampled_array(
+    vector: np.ndarray,
+    forbidden_clauses_unconditionals: list,
+    forbidden_clauses_conditionals: list,
+    hyperparameters_with_children: list,
+    num_hyperparameters: int,
+    unconditional_hyperparameters: list,
+    hyperparameter_to_idx: dict,
+    parent_conditions_of: dict,
+    parents_of: dict,
+    children_of: dict,
+) -> np.ndarray:
+    clause: AbstractForbiddenComponent
+    condition: ConditionComponent
+    hyperparameter_idx: int
+    NaN: float = np.NaN
+    visited: set
+    inactive: set
+    child: Hyperparameter
+    children: list
+    child_name: str
+    parents: list
+    parent: Hyperparameter
+    parents_visited: int
+    conditions: list
+    add: int
 
-    cdef int* active
-    active = <int*> malloc(sizeof(int) * num_hyperparameters)
-    for j in range(num_hyperparameters):
-        active[j] = 0
+    active: np.ndarray = np.zeros(len(vector), dtype=int)
 
     for j in range(len(forbidden_clauses_unconditionals)):
         clause = forbidden_clauses_unconditionals[j]
         if clause.c_is_forbidden_vector(vector, strict=False):
-            free(active)
             msg = "Given vector violates forbidden clause %s" % str(clause)
             raise ForbiddenValueError(msg)
 
@@ -216,7 +192,6 @@ cpdef np.ndarray correct_sampled_array(
         if not active[j]:
             vector[j] = NaN
 
-    free(active)
     for j in range(len(forbidden_clauses_conditionals)):
         clause = forbidden_clauses_conditionals[j]
         if clause.c_is_forbidden_vector(vector, strict=False):
@@ -226,13 +201,13 @@ cpdef np.ndarray correct_sampled_array(
     return vector
 
 
-cpdef np.ndarray change_hp_value(
+def change_hp_value(
     configuration_space,
-    np.ndarray[DTYPE_t, ndim=1] configuration_array,
-    str hp_name,
-    DTYPE_t hp_value,
-    int index,
-):
+    configuration_array: np.ndarray,
+    hp_name: str,
+    hp_value: float,
+    index: int,
+) -> np.ndarray:
     """Change hyperparameter value in configuration array to given value.
 
     Does not check if the new value is legal. Activates and deactivates other
@@ -255,23 +230,23 @@ cpdef np.ndarray change_hp_value(
     -------
     np.ndarray
     """
-    cdef Hyperparameter current
-    cdef str current_name
-    cdef list disabled
-    cdef set hps_to_be_activate
-    cdef set visited
-    cdef int active
-    cdef ConditionComponent condition
-    cdef int current_idx
-    cdef DTYPE_t current_value
-    cdef DTYPE_t default_value
-    cdef list children
-    cdef list children_
-    cdef Hyperparameter ch
-    cdef str child
-    cdef set to_disable
-    cdef DTYPE_t NaN = np.NaN
-    cdef dict children_of = configuration_space._children_of
+    current: Hyperparameter
+    current_name: str
+    disabled: list
+    hps_to_be_activate: set
+    visited: set
+    active: int
+    condition: ConditionComponent
+    current_idx: int
+    current_value: float
+    default_value: float
+    children: list
+    children_: list
+    ch: Hyperparameter
+    child: str
+    to_disable: set
+    NaN: float = np.NaN
+    children_of: dict = configuration_space._children_of
 
     configuration_array[index] = hp_value
 
@@ -321,7 +296,7 @@ cpdef np.ndarray change_hp_value(
             if current_name in disabled:
                 continue
 
-            if active and not current_value == current_value:
+            if active and current_value != current_value:
                 default_value = current.normalized_default_value
                 configuration_array[current_idx] = default_value
                 children_ = children_of[current_name]

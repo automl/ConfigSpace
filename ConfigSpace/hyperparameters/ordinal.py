@@ -1,36 +1,22 @@
-from collections import OrderedDict
+from __future__ import annotations
+
 import copy
 import io
-from typing import Any, Dict, List, Optional, Tuple, Union
+from collections import OrderedDict
+from typing import Any, Optional, Union
 
 import numpy as np
-cimport numpy as np
-np.import_array()
 
-# We now need to fix a datatype for our arrays. I've used the variable
-# DTYPE for this, which is assigned to the usual NumPy runtime
-# type info object.
-DTYPE = float
-# "ctypedef" assigns a corresponding compile-time type to DTYPE_t. For
-# every type in the numpy module there's a corresponding compile-time
-# type with a _t-suffix.
-ctypedef np.float_t DTYPE_t
-
-from ConfigSpace.hyperparameters.hyperparameter cimport Hyperparameter
+from ConfigSpace.hyperparameters.hyperparameter import Hyperparameter
 
 
-cdef class OrdinalHyperparameter(Hyperparameter):
-    cdef public tuple sequence
-    cdef public int num_elements
-    cdef sequence_vector
-    cdef value_dict
-
+class OrdinalHyperparameter(Hyperparameter):
     def __init__(
         self,
         name: str,
-        sequence: Union[List[Union[float, int, str]], Tuple[Union[float, int, str]]],
+        sequence: Union[list[Union[float, int, str]], tuple[Union[float, int, str]]],
         default_value: Union[str, int, float, None] = None,
-        meta: Optional[Dict] = None
+        meta: Optional[dict] = None,
     ) -> None:
         """
         An ordinal hyperparameter.
@@ -59,7 +45,6 @@ cdef class OrdinalHyperparameter(Hyperparameter):
             Field for holding meta data provided by the user.
             Not used by the configuration space.
         """
-
         # Remark
         # Since the sequence can consist of elements from different types,
         # they are stored into a dictionary in order to handle them as a
@@ -67,7 +52,8 @@ cdef class OrdinalHyperparameter(Hyperparameter):
         super(OrdinalHyperparameter, self).__init__(name, meta)
         if len(sequence) > len(set(sequence)):
             raise ValueError(
-                "Ordinal Hyperparameter Sequence %s contain duplicate values." % sequence)
+                "Ordinal Hyperparameter Sequence %s contain duplicate values." % sequence,
+            )
         self.sequence = tuple(sequence)
         self.num_elements = len(sequence)
         self.sequence_vector = list(range(self.num_elements))
@@ -115,20 +101,20 @@ cdef class OrdinalHyperparameter(Hyperparameter):
             return False
 
         return (
-            self.name == other.name and
-            self.sequence == other.sequence and
-            self.default_value == other.default_value
+            self.name == other.name
+            and self.sequence == other.sequence
+            and self.default_value == other.default_value
         )
 
     def __copy__(self):
         return OrdinalHyperparameter(
-                name=self.name,
-                sequence=copy.deepcopy(self.sequence),
-                default_value=self.default_value,
-                meta=self.meta
-            )
+            name=self.name,
+            sequence=copy.deepcopy(self.sequence),
+            default_value=self.default_value,
+            meta=self.meta,
+        )
 
-    cpdef int compare(self, value: Union[int, float, str], value2: Union[int, float, str]):
+    def compare(self, value: Union[int, float, str], value2: Union[int, float, str]) -> int:
         if self.value_dict[value] < self.value_dict[value2]:
             return -1
         elif self.value_dict[value] > self.value_dict[value2]:
@@ -136,7 +122,7 @@ cdef class OrdinalHyperparameter(Hyperparameter):
         elif self.value_dict[value] == self.value_dict[value2]:
             return 0
 
-    cpdef int compare_vector(self, DTYPE_t value, DTYPE_t value2):
+    def compare_vector(self, value, value2) -> int:
         if value < value2:
             return -1
         elif value > value2:
@@ -150,11 +136,13 @@ cdef class OrdinalHyperparameter(Hyperparameter):
         """
         return value in self.sequence
 
-    cpdef bint is_legal_vector(self, DTYPE_t value):
+    def is_legal_vector(self, value) -> int:
         return value in self.sequence_vector
 
-    def check_default(self, default_value: Optional[Union[int, float, str]]
-                      ) -> Union[int, float, str]:
+    def check_default(
+        self,
+        default_value: Optional[Union[int, float, str]],
+    ) -> Union[int, float, str]:
         """
         check if given default value is represented in the sequence.
         If there's no default value we simply choose the
@@ -167,16 +155,18 @@ cdef class OrdinalHyperparameter(Hyperparameter):
         else:
             raise ValueError("Illegal default value %s" % str(default_value))
 
-    cpdef np.ndarray _transform_vector(self, np.ndarray vector):
+    def _transform_vector(self, vector: np.ndarray) -> np.ndarray:
         if np.isnan(vector).any():
-            raise ValueError('Vector %s contains NaN\'s' % vector)
+            raise ValueError("Vector %s contains NaN's" % vector)
 
         if np.equal(np.mod(vector, 1), 0):
             return self.sequence[vector.astype(int)]
 
-        raise ValueError("Can only index the choices of the ordinal "
-                         "hyperparameter %s with an integer, but provided "
-                         "the following float: %f" % (self, vector))
+        raise ValueError(
+            "Can only index the choices of the ordinal "
+            "hyperparameter %s with an integer, but provided "
+            "the following float: %f" % (self, vector),
+        )
 
     def _transform_scalar(self, scalar: Union[float, int]) -> Union[float, int, str]:
         if scalar != scalar:
@@ -185,12 +175,16 @@ cdef class OrdinalHyperparameter(Hyperparameter):
         if scalar % 1 == 0:
             return self.sequence[int(scalar)]
 
-        raise ValueError("Can only index the choices of the ordinal "
-                         "hyperparameter %s with an integer, but provided "
-                         "the following float: %f" % (self, scalar))
+        raise ValueError(
+            "Can only index the choices of the ordinal "
+            "hyperparameter %s with an integer, but provided "
+            "the following float: %f" % (self, scalar),
+        )
 
-    def _transform(self, vector: Union[np.ndarray, float, int]
-                   ) -> Optional[Union[np.ndarray, float, int]]:
+    def _transform(
+        self,
+        vector: Union[np.ndarray, float, int],
+    ) -> Optional[Union[np.ndarray, float, int]]:
         try:
             if isinstance(vector, np.ndarray):
                 return self._transform_vector(vector)
@@ -198,8 +192,10 @@ cdef class OrdinalHyperparameter(Hyperparameter):
         except ValueError:
             return None
 
-    def _inverse_transform(self, vector: Optional[Union[np.ndarray, List, int, str, float]]
-                           ) -> Union[float, List[int], List[str], List[float]]:
+    def _inverse_transform(
+        self,
+        vector: Optional[Union[np.ndarray, list, int, str, float]],
+    ) -> Union[float, list[int], list[str], list[float]]:
         if vector is None:
             return np.NaN
         return self.sequence.index(vector)
@@ -260,8 +256,13 @@ cdef class OrdinalHyperparameter(Hyperparameter):
         else:
             return 2
 
-    def get_neighbors(self, value: Union[int, str, float], rs: None, number: int = 0,
-                      transform: bool = False) -> List[Union[str, float, int]]:
+    def get_neighbors(
+        self,
+        value: Union[int, str, float],
+        rs: None,
+        number: int = 0,
+        transform: bool = False,
+    ) -> list[Union[str, float, int]]:
         """
         Return the neighbors of a given value.
         Value must be in vector form. Ordinal name will not work.
@@ -317,7 +318,7 @@ cdef class OrdinalHyperparameter(Hyperparameter):
             function is to be computed.
 
         Returns
-        ----------
+        -------
         np.ndarray(N, )
             Probability density values of the input vector
         """
@@ -341,12 +342,14 @@ cdef class OrdinalHyperparameter(Hyperparameter):
             function is to be computed.
 
         Returns
-        ----------
+        -------
         np.ndarray(N, )
             Probability density values of the input vector
         """
         if not np.all(np.isin(vector, self.sequence)):
-            raise ValueError(f"Some element in the vector {vector} is not in the sequence {self.sequence}.")
+            raise ValueError(
+                f"Some element in the vector {vector} is not in the sequence {self.sequence}.",
+            )
         return np.ones_like(vector, dtype=np.float64) / self.num_elements
 
     def get_max_density(self) -> float:
