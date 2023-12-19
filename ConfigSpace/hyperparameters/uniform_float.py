@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 import io
-import math
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, overload
 
 import numpy as np
+import numpy.typing as npt
 
+from ConfigSpace.deprecate import deprecate
 from ConfigSpace.hyperparameters.float_hyperparameter import FloatHyperparameter
 
 if TYPE_CHECKING:
@@ -53,90 +54,74 @@ class UniformFloatHyperparameter(FloatHyperparameter):
             Field for holding meta data provided by the user.
             Not used by the configuration space.
         """
-        default_value = None if default_value is None else float(default_value)
-        super().__init__(name, default_value, meta)
-        self.lower = float(lower)
-        self.upper = float(upper)
-        self.q = float(q) if q is not None else None
-        self.log = bool(log)
-
-        if self.lower >= self.upper:
+        lower = float(lower)
+        upper = float(upper)
+        q = float(q) if q is not None else None
+        log = bool(log)
+        if lower >= upper:
             raise ValueError(
-                f"Upper bound {self.upper:f} must be larger than lower bound "
-                f"{self.lower:f} for hyperparameter {name}",
+                f"Upper bound {upper:f} must be larger than lower bound "
+                f"{lower:f} for hyperparameter {name}",
             )
-        elif log and self.lower <= 0:
+
+        if log and lower <= 0:
             raise ValueError(
-                f"Negative lower bound ({self.lower:f}) for log-scale "
+                f"Negative lower bound ({lower:f}) for log-scale "
                 f"hyperparameter {name} is forbidden.",
             )
 
-        self.default_value = self.check_default(default_value)
+        if q is not None and (np.round((upper - lower) % q, 10) not in (0, q)):
+            # There can be weird rounding errors, so we compare the result against self.q
+            # for example, 2.4 % 0.2 = 0.1999999999999998
+            diff = upper - lower
+            raise ValueError(
+                f"Upper bound minus lower bound ({upper:f} - {lower:f} = {diff}) must be"
+                f" a multiple of q ({q})",
+            )
 
-        if self.log:
-            if self.q is not None:
-                lower = self.lower - (np.float64(self.q) / 2.0 - 0.0001)
-                upper = self.upper + (np.float64(self.q) / 2.0 - 0.0001)
-            else:
-                lower = self.lower
-                upper = self.upper
-            self._lower = np.log(lower)
-            self._upper = np.log(upper)
+        self.lower = lower
+        self.upper = upper
+        self.q = q
+        self.log = log
+
+        q_lower, q_upper = (lower, upper)
+        if q is not None:
+            q_lower = lower - (q / 2.0 - 0.0001)
+            q_upper = upper + (q / 2.0 - 0.0001)
+
+        if log:
+            self._lower = np.log(q_lower)
+            self._upper = np.log(q_upper)
         else:
-            if self.q is not None:
-                self._lower = self.lower - (self.q / 2.0 - 0.0001)
-                self._upper = self.upper + (self.q / 2.0 - 0.0001)
+            self._lower = q_lower
+            self._upper = q_upper
+
+        if default_value is None:
+            if log:
+                default_value = float(np.exp((np.log(lower) + np.log(upper)) / 2.0))
             else:
-                self._lower = self.lower
-                self._upper = self.upper
-        if self.q is not None:
-            # There can be weird rounding errors, so we compare the result against self.q, see
-            # In [13]: 2.4 % 0.2
-            # Out[13]: 0.1999999999999998
-            if np.round((self.upper - self.lower) % self.q, 10) not in (0, self.q):
-                raise ValueError(
-                    f"Upper bound ({self.upper:f}) - lower bound ({self.lower:f}) must be a multiple of q ({self.q:f})",
-                )
+                default_value = (lower + upper) / 2.0
 
+        default_value = float(np.round(default_value, 10))
+        if not self.is_legal(default_value):
+            raise ValueError(f"Illegal default value {default_value}")
+
+        self.default_value = default_value
         self.normalized_default_value = self._inverse_transform(self.default_value)
-
-    def __repr__(self) -> str:
-        repr_str = io.StringIO()
-        repr_str.write(
-            f"{self.name}, Type: UniformFloat, Range: [{self.lower!r}, {self.upper!r}], Default: {self.default_value!r}",
-        )
-        if self.log:
-            repr_str.write(", on log-scale")
-        if self.q is not None:
-            repr_str.write(", Q: %s" % str(self.q))
-        repr_str.seek(0)
-        return repr_str.getvalue()
+        super().__init__(name=name, default_value=default_value, meta=meta)
 
     def is_legal(self, value: float) -> bool:
         if not isinstance(value, (float, int)):
             return False
         return self.upper >= value >= self.lower
 
-    def is_legal_vector(self, value) -> bool:
+    def is_legal_vector(self, value: float) -> bool:
+        # NOTE: This really needs a better name as it doesn't operate on vectors,
+        # it means that it operates on the normalzied space, i.e. what is gotten
+        # by inverse_transform
         return 1.0 >= value >= 0.0
 
-    def check_default(self, default_value: float | int | None) -> float:
-        if default_value is None:
-            if self.log:
-                default_value = float(np.exp((np.log(self.lower) + np.log(self.upper)) / 2.0))
-            else:
-                default_value = (self.lower + self.upper) / 2.0
-        default_value = float(np.round(default_value, 10))
-
-        if self.is_legal(default_value):
-            return default_value
-        else:
-            raise ValueError("Illegal default value %s" % str(default_value))
-
     def to_integer(self) -> UniformIntegerHyperparameter:
-        # TODO check if conversion makes sense at all (at least two integer values possible!)
-        # todo check if params should be converted to int while class initialization
-        # or inside class itself
         from ConfigSpace.hyperparameters.uniform_integer import UniformIntegerHyperparameter
 
         return UniformIntegerHyperparameter(
@@ -146,67 +131,106 @@ class UniformFloatHyperparameter(FloatHyperparameter):
             default_value=int(np.rint(self.default_value)),
             q=int(np.rint(self.q)) if self.q is not None else None,
             log=self.log,
+            meta=None,
         )
 
-    def _sample(self, rs: np.random, size: int | None = None) -> float | np.ndarray:
+    @overload
+    def _sample(self, rs: np.random.RandomState, size: None = None) -> float:
+        ...
+
+    @overload
+    def _sample(self, rs: np.random.RandomState, size: int) -> npt.NDArray[np.float64]:
+        ...
+
+    def _sample(
+        self,
+        rs: np.random.RandomState,
+        size: int | None = None,
+    ) -> float | npt.NDArray[np.float64]:
         return rs.uniform(size=size)
 
-    def _transform_vector(self, vector: np.ndarray) -> np.ndarray:
-        if np.isnan(vector).any():
-            raise ValueError("Vector %s contains NaN's" % vector)
+    def _transform_scalar(self, scalar: float) -> np.float64:
+        deprecate(self._transform_scalar, "Please use _transform instead")
+        return self._transform(scalar)
+
+    def _transform_vector(self, vector: npt.NDArray[np.number]) -> npt.NDArray[np.float64]:
+        deprecate(self._transform_scalar, "Please use _transform instead")
+        return self._transform(vector)
+
+    @overload
+    def _transform(self, vector: float) -> np.float64:
+        ...
+
+    @overload
+    def _transform(self, vector: npt.NDArray[np.number]) -> npt.NDArray[np.float64]:
+        ...
+
+    def _transform(
+        self,
+        vector: npt.NDArray[np.number] | float,
+    ) -> npt.NDArray[np.float64] | np.float64:
         vector = vector * (self._upper - self._lower) + self._lower
         if self.log:
-            vector = np.exp(vector)
-        if self.q is not None:
-            vector = np.rint((vector - self.lower) / self.q) * self.q + self.lower
-            vector = np.minimum(vector, self.upper)
-            vector = np.maximum(vector, self.lower)
-        return np.maximum(self.lower, np.minimum(self.upper, vector))
+            vector = np.exp(vector, dtype=np.float64)
 
-    def _transform_scalar(self, scalar: float) -> float:
-        if scalar != scalar:
-            raise ValueError("Number %s is NaN" % scalar)
-        scalar = scalar * (self._upper - self._lower) + self._lower
-        if self.log:
-            scalar = math.exp(scalar)
         if self.q is not None:
-            scalar = np.round((scalar - self.lower) / self.q) * self.q + self.lower
-            scalar = min(scalar, self.upper)
-            scalar = max(scalar, self.lower)
-        return min(self.upper, max(self.lower, scalar))
+            quantized = (vector - self.lower) / self.q
+            vector = np.rint(quantized) * self.q + self.lower
+
+        return np.clip(vector, self.lower, self.upper, dtype=np.float64)
+
+    @overload
+    def _inverse_transform(self, vector: float) -> np.float64:
+        ...
+
+    @overload
+    def _inverse_transform(self, vector: npt.NDArray[np.number]) -> npt.NDArray[np.float64]:
+        ...
 
     def _inverse_transform(
         self,
-        vector: np.ndarray | float | int | None,
-    ) -> np.ndarray | float:
-        if vector is None:
-            return np.NaN
+        vector: npt.NDArray[np.number] | float,
+    ) -> npt.NDArray[np.float64] | np.float64:
+        """Converts a value from the original space to the transformed space (0, 1)."""
         if self.log:
             vector = np.log(vector)
         vector = (vector - self._lower) / (self._upper - self._lower)
-        vector = np.minimum(1.0, vector)
-        return np.maximum(0.0, vector)
+        return np.clip(vector, 0.0, 1.0, dtype=np.float64)
 
     def get_neighbors(
         self,
-        value: Any,
+        value: float,  # Should be normalized closely into 0, 1!
         rs: np.random.RandomState,
         number: int = 4,
         transform: bool = False,
         std: float = 0.2,
-    ) -> list[float]:
-        neighbors = []  # type: List[float]
-        while len(neighbors) < number:
-            neighbor = rs.normal(value, std)  # type: float
-            if neighbor < 0 or neighbor > 1:
-                continue
-            if transform:
-                neighbors.append(self._transform(neighbor))
-            else:
-                neighbors.append(neighbor)
+    ) -> npt.NDArray[np.float64]:
+        BUFFER_MULTIPLIER = 2
+        SAMPLE_SIZE = number * BUFFER_MULTIPLIER
+        # Make sure we can accomidate the number of (neighbors - 1) + a new sample set
+        BUFFER_SIZE = number + number * BUFFER_MULTIPLIER
+
+        neighbors = np.empty(BUFFER_SIZE, dtype=np.float64)
+        offset = 0
+
+        # Generate batches of number * 2 candidates, filling the above
+        # buffer until we have enough valid candidates.
+        # We should not overflow as the buffer
+        while offset <= number:
+            candidates = rs.normal(value, std, size=SAMPLE_SIZE)
+            valid_candidates = candidates[(candidates >= 0) & (candidates <= 1)]
+
+            n_candidates = len(valid_candidates)
+            neighbors[offset:n_candidates] = valid_candidates
+            offset += n_candidates
+
+        neighbors = neighbors[:number]
+        if transform:
+            return self._transform(neighbors)
+
         return neighbors
 
-    def _pdf(self, vector: np.ndarray) -> np.ndarray:
+    def _pdf(self, vector: npt.NDArray[np.number]) -> npt.NDArray[np.float64]:
         """
         Computes the probability density function of the parameter in
         the transformed (and possibly normalized, depends on the parameter
@@ -230,8 +254,8 @@ class UniformFloatHyperparameter(FloatHyperparameter):
         # or lower bound.
         ub = 1
         lb = 0
-        inside_range = ((lb <= vector) & (vector <= ub)).astype(int)
-        return inside_range / (self.upper - self.lower)
+        inside_range = ((lb <= vector) & (vector <= ub)).astype(dtype=np.uint64)
+        return np.true_divide(inside_range, self.upper - self.lower, dtype=np.float64)
 
     def get_max_density(self) -> float:
         return 1 / (self.upper - self.lower)
@@ -241,3 +265,17 @@ class UniformFloatHyperparameter(FloatHyperparameter):
             return np.inf
 
         return np.rint((self.upper - self.lower) / self.q) + 1
+
+    def __repr__(self) -> str:
+        repr_str = io.StringIO()
+        repr_str.write(
+            f"{self.name}, Type: UniformFloat, "
+            f"Range: [{self.lower!r}, {self.upper!r}], "
+            f"Default: {self.default_value!r}",
+        )
+        if self.log:
+            repr_str.write(", on log-scale")
+        if self.q is not None:
+            repr_str.write(", Q: %s" % str(self.q))
+        repr_str.seek(0)
+        return repr_str.getvalue()
