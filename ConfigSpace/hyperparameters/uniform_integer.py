@@ -59,7 +59,7 @@ class UniformIntegerHyperparameter(IntegerHyperparameter):
             if q < 1:
                 raise ValueError(
                     "Setting quantization < 1 for Integer "
-                    f"Hyperparameter {name} has no effect."
+                    f"Hyperparameter {name} has no effect.",
                 )
 
             self.q = self.check_int(q, "q")
@@ -102,12 +102,14 @@ class UniformIntegerHyperparameter(IntegerHyperparameter):
     def __repr__(self) -> str:
         repr_str = io.StringIO()
         repr_str.write(
-            f"{self.name}, Type: UniformInteger, Range: [{self.lower!r}, {self.upper!r}], Default: {self.default_value!r}",
+            f"{self.name}, Type: UniformInteger,"
+            f" Range: [{self.lower!r}, {self.upper!r}],"
+            f" Default: {self.default_value!r}",
         )
         if self.log:
             repr_str.write(", on log-scale")
         if self.q is not None:
-            repr_str.write(", Q: %s" % repr(self.q))
+            repr_str.write(f", Q: {self.q}")
         repr_str.seek(0)
         return repr_str.getvalue()
 
@@ -165,8 +167,8 @@ class UniformIntegerHyperparameter(IntegerHyperparameter):
 
         if self.is_legal(default_value):
             return default_value
-        else:
-            raise ValueError("Illegal default value %s" % str(default_value))
+
+        raise ValueError("Illegal default value %s" % str(default_value))
 
     def has_neighbors(self) -> bool:
         if self.log:
@@ -179,13 +181,13 @@ class UniformIntegerHyperparameter(IntegerHyperparameter):
         # If there is only one active value, this is not enough
         return upper - lower >= 1
 
-    def get_num_neighbors(self, value=None) -> int:
+    def get_num_neighbors(self, value: int | None = None) -> int:
         # If there is a value in the range, then that value is not a neighbor of itself
         # so we need to remove one
         if value is not None and self.lower <= value <= self.upper:
             return self.upper - self.lower - 1
-        else:
-            return self.upper - self.lower
+
+        return self.upper - self.lower
 
     def get_neighbors(
         self,
@@ -252,8 +254,8 @@ class UniformIntegerHyperparameter(IntegerHyperparameter):
 
             if transform:
                 return neighbors
-            else:
-                return self._inverse_transform(np.asarray(neighbors)).tolist()
+
+            return self._inverse_transform(np.asarray(neighbors)).tolist()
 
         # A truncated normal between 0 and 1, centered on the value with a scale of std.
         # This will be sampled from and converted to the corresponding int value
@@ -297,8 +299,8 @@ class UniformIntegerHyperparameter(IntegerHyperparameter):
         neighbors = list(seen)
         if transform:
             return neighbors
-        else:
-            return self._inverse_transform(np.array(neighbors)).tolist()
+
+        return self._inverse_transform(np.array(neighbors)).tolist()
 
     def _pdf(self, vector: np.ndarray) -> np.ndarray:
         """

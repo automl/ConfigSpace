@@ -125,7 +125,10 @@ class NormalFloatHyperparameter(FloatHyperparameter):
 
         if self.lower is None or self.upper is None:
             repr_str.write(
-                f"{self.name}, Type: NormalFloat, Mu: {self.mu!r} Sigma: {self.sigma!r}, Default: {self.default_value!r}",
+                f"{self.name}, Type: NormalFloat,"
+                f" Mu: {self.mu!r}"
+                f" Sigma: {self.sigma!r},"
+                f" Default: {self.default_value!r}",
             )
         else:
             repr_str.write(

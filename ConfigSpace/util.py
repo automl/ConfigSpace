@@ -172,8 +172,8 @@ def get_one_exchange_neighbourhood(
             array = configuration.get_array()  # type: np.ndarray
             value = array[index]  # type: float
 
-            # Check for NaNs (inactive value)
-            if value != value:
+            # Inactive value
+            if isinstance(value, float) and np.isnan(value):
                 continue
 
             iteration = 0

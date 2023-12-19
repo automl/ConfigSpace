@@ -4,7 +4,6 @@ from enum import Enum, auto
 
 import numpy as np
 
-NotSet = object()
 
 class Comparison(Enum):
     """Enumeration of possible comparison results."""

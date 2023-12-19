@@ -45,7 +45,7 @@ from ConfigSpace.conditions import (
     ConditionComponent,
     EqualsCondition,
 )
-from ConfigSpace.configuration import Configuration
+from ConfigSpace.configuration import Configuration, NotSet
 from ConfigSpace.exceptions import (
     ActiveHyperparameterNotSetError,
     AmbiguousConditionError,
@@ -72,7 +72,6 @@ from ConfigSpace.hyperparameters import (
     UniformFloatHyperparameter,
     UniformIntegerHyperparameter,
 )
-from ConfigSpace.hyperparameters.hyperparameter import NotSet
 
 _ROOT: Final = "__HPOlib_configuration_space_root__"
 

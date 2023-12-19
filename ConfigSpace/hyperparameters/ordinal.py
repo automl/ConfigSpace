@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import copy
 import io
-from collections import OrderedDict
 from typing import Any
 
 import numpy as np
