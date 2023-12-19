@@ -124,6 +124,7 @@ class UniformFloatHyperparameter(FloatHyperparameter):
         # rather individual values.
         # it means that it operates on the normalzied space, i.e. what is gotten
         # by inverse_transform
+        deprecate(self.is_legal_vector, "Please use is_legal(..., normalized=True) instead")
         return 1.0 >= value >= 0.0
 
     def to_integer(self) -> UniformIntegerHyperparameter:
