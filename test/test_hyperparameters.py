@@ -277,7 +277,6 @@ def test_uniformfloat_is_legal():
     assert not f1.is_legal_vector(-0.1)
     assert not f1.is_legal_vector(1.1)
 
-
     with pytest.raises(TypeError):
         assert not f1.is_legal_vector("Hahaha")
 
@@ -742,9 +741,9 @@ def test_betafloat():
     b1 = BetaFloatHyperparameter("param", lower=0.0, upper=1.0, alpha=3.0, beta=1.0)
 
     # with identical domains, beta and uniform should sample the same points
-    assert u1.get_neighbors(0.5, rs=np.random.RandomState(42)) == b1.get_neighbors(
-        0.5,
-        rs=np.random.RandomState(42),
+    np.testing.assert_equal(
+        u1.get_neighbors(0.5, rs=np.random.RandomState(42)),
+        b1.get_neighbors(0.5, rs=np.random.RandomState(42)),
     )
     # Test copy
     copy_f1 = copy.copy(f1)
@@ -1186,9 +1185,7 @@ def test_uniforminteger():
     assert f1.log is False
     assert f1.normalized_default_value == pytest.approx((2.0 + 0.49999) / (5.49999 + 0.49999))
 
-    quantization_warning = (
-        "Setting quantization < 1 for Integer Hyperparameter param has no effect"
-    )
+    quantization_warning = "Setting quantization < 1 for Integer Hyperparameter param has no effect"
     with pytest.raises(ValueError, match=quantization_warning):
         _ = UniformIntegerHyperparameter("param", 0, 10, q=0.1)  # type: ignore
     with pytest.raises(ValueError, match=quantization_warning):
@@ -1881,7 +1878,12 @@ def test_betaint_legal_float_values():
         match="Illegal default value 0.5",
     ):
         _ = BetaIntegerHyperparameter(
-            "param", lower=-2.0, upper=2.0, alpha=3.0, beta=1.1, default_value=0.5,
+            "param",
+            lower=-2.0,
+            upper=2.0,
+            alpha=3.0,
+            beta=1.1,
+            default_value=0.5,
         )
 
 

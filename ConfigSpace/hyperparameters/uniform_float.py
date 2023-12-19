@@ -110,13 +110,18 @@ class UniformFloatHyperparameter(FloatHyperparameter):
         self.normalized_default_value = self._inverse_transform(self.default_value)
         super().__init__(name=name, default_value=default_value, meta=meta)
 
-    def is_legal(self, value: float) -> bool:
+    def is_legal(self, value: float, *, normalized: bool = False) -> bool:
         if not isinstance(value, (float, int)):
             return False
-        return self.upper >= value >= self.lower
+
+        if normalized:
+            return 0.0 <= value <= 1.0
+
+        return self.lower <= value <= self.upper
 
     def is_legal_vector(self, value: float) -> bool:
         # NOTE: This really needs a better name as it doesn't operate on vectors,
+        # rather individual values.
         # it means that it operates on the normalzied space, i.e. what is gotten
         # by inverse_transform
         return 1.0 >= value >= 0.0
@@ -216,8 +221,8 @@ class UniformFloatHyperparameter(FloatHyperparameter):
         # Generate batches of number * 2 candidates, filling the above
         # buffer until we have enough valid candidates.
         # We should not overflow as the buffer
-        while offset <= number:
-            candidates = rs.normal(value, std, size=SAMPLE_SIZE)
+        while offset < number:
+            candidates = rs.normal(value, std, size=(SAMPLE_SIZE,))
             valid_candidates = candidates[(candidates >= 0) & (candidates <= 1)]
 
             n_candidates = len(valid_candidates)

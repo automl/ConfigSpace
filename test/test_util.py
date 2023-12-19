@@ -79,6 +79,7 @@ def _test_get_one_exchange_neighbourhood(hp):
     num_neighbors = 0
     if not isinstance(hp, list):
         hp = [hp]
+
     for hp_ in hp:
         cs.add_hyperparameter(hp_)
         if np.isinf(hp_.get_num_neighbors()):
@@ -90,7 +91,7 @@ def _test_get_one_exchange_neighbourhood(hp):
     config = cs.get_default_configuration()
     all_neighbors = []
     for i in range(100):
-        neighborhood = get_one_exchange_neighbourhood(config, i)
+        neighborhood = get_one_exchange_neighbourhood(config, i, num_neighbors=num_neighbors)
         for new_config in neighborhood:
             assert config != new_config
             assert dict(config) != dict(new_config)
@@ -129,14 +130,14 @@ def test_random_neighborhood_float():
     hp = UniformFloatHyperparameter("a", 1, 10)
     all_neighbors = _test_get_one_exchange_neighbourhood(hp)
     all_neighbors = [neighbor["a"] for neighbor in all_neighbors]
-    assert pytest.approx(np.mean(all_neighbors), abs=1e-2) == 5.49
-    assert pytest.approx(np.var(all_neighbors), abs=1e-2) == 3.192
+    assert pytest.approx(np.mean(all_neighbors), abs=1e-2) == 5.47
+    assert pytest.approx(np.var(all_neighbors), abs=1e-2) == 2.78
     hp = UniformFloatHyperparameter("a", 1, 10, log=True)
     all_neighbors = _test_get_one_exchange_neighbourhood(hp)
     all_neighbors = [neighbor["a"] for neighbor in all_neighbors]
     # Default value is 3.16
-    assert pytest.approx(np.mean(all_neighbors), abs=1e-2) == 3.50
-    assert pytest.approx(np.var(all_neighbors), abs=1e-2) == 2.79
+    assert pytest.approx(np.mean(all_neighbors), abs=1e-2) == 3.43
+    assert pytest.approx(np.var(all_neighbors), abs=1e-2) == 2.17
 
 
 def test_random_neighbor_int():
