@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Optional, Union
-
 import numpy as np
 
 from ConfigSpace.hyperparameters.numerical import NumericalHyperparameter
@@ -11,24 +9,24 @@ class FloatHyperparameter(NumericalHyperparameter):
     def __init__(
         self,
         name: str,
-        default_value: Union[int, float],
-        meta: Optional[dict] = None,
+        default_value: int | float,
+        meta: dict | None = None,
     ) -> None:
-        super(FloatHyperparameter, self).__init__(name, default_value, meta)
+        super().__init__(name, default_value, meta)
 
-    def is_legal(self, value: Union[int, float]) -> bool:
+    def is_legal(self, value: int | float) -> bool:
         raise NotImplementedError()
 
     def is_legal_vector(self, value) -> int:
         raise NotImplementedError()
 
-    def check_default(self, default_value: Union[int, float]) -> float:
+    def check_default(self, default_value: int | float) -> float:
         raise NotImplementedError()
 
     def _transform(
         self,
-        vector: Union[np.ndarray, float, int],
-    ) -> Optional[Union[np.ndarray, float, int]]:
+        vector: np.ndarray | float | int,
+    ) -> np.ndarray | float | int | None:
         try:
             if isinstance(vector, np.ndarray):
                 return self._transform_vector(vector)

@@ -77,7 +77,7 @@ def arange_chunked(
     n_items = int(np.ceil((stop - start) / step))
     n_chunks = int(np.ceil(n_items / chunk_size))
 
-    for chunk in range(0, n_chunks):
+    for chunk in range(n_chunks):
         chunk_start = start + (chunk * chunk_size)
         chunk_stop = min(chunk_start + chunk_size, stop)
         yield np.arange(chunk_start, chunk_stop, step)

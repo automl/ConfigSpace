@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections import deque
+from typing import TYPE_CHECKING
 
 import numpy as np
 
@@ -11,9 +12,11 @@ from ConfigSpace.exceptions import (
     IllegalValueError,
     InactiveHyperparameterSetError,
 )
-from ConfigSpace.forbidden import AbstractForbiddenComponent
 from ConfigSpace.hyperparameters import Hyperparameter
-from ConfigSpace.hyperparameters.hyperparameter import Hyperparameter
+
+if TYPE_CHECKING:
+    from ConfigSpace.forbidden import AbstractForbiddenComponent
+    from ConfigSpace.hyperparameters.hyperparameter import Hyperparameter
 
 
 def check_forbidden(forbidden_clauses: list, vector: np.ndarray) -> int:
@@ -30,7 +33,7 @@ def check_configuration(
     self,
     vector: np.ndarray,
     allow_inactive_with_values: bool,
-) -> int:
+) -> None:
     hp_name: str
     hyperparameter: Hyperparameter
     hyperparameter_idx: int
@@ -43,7 +46,7 @@ def check_configuration(
     inactive: set
     visited: set
 
-    active: np.ndarray = np.zeros(len(vector), dtype=int)
+    active: list[bool] = [False] * len(vector)
 
     unconditional_hyperparameters = self.get_all_unconditional_hyperparameters()
     to_visit = deque()
@@ -52,7 +55,7 @@ def check_configuration(
     inactive = set()
 
     for ch in unconditional_hyperparameters:
-        active[self._hyperparameter_idx[ch]] = 1
+        active[self._hyperparameter_idx[ch]] = True
 
     while len(to_visit) > 0:
         hp_name = to_visit.pop()
@@ -70,16 +73,16 @@ def check_configuration(
                 conditions = self._parent_conditions_of[child.name]
                 add = True
                 for condition in conditions:
-                    if not condition._evaluate_vector(vector):
+                    if condition._evaluate_vector(vector) is False:
                         add = False
                         inactive.add(child.name)
                         break
                 if add:
                     hyperparameter_idx = self._hyperparameter_idx[child.name]
-                    active[hyperparameter_idx] = 1
+                    active[hyperparameter_idx] =  True
                     to_visit.appendleft(child.name)
 
-        if active[hp_idx] and np.isnan(hp_value):
+        if active[hp_idx] is True and np.isnan(hp_value):
             raise ActiveHyperparameterNotSetError(hyperparameter)
 
     for hp_idx in self._idx_to_hyperparameter:
@@ -150,7 +153,7 @@ def correct_sampled_array(
                     add = True
                     for j in range(len(conditions)):
                         condition = conditions[j]
-                        if not condition._evaluate_vector(vector):
+                        if condition._evaluate_vector(vector) is False:
                             add = False
                             vector[hyperparameter_idx] = NaN
                             inactive.add(child_name)
@@ -175,7 +178,7 @@ def correct_sampled_array(
                         add = True
                         for j in range(len(conditions)):
                             condition = conditions[j]
-                            if not condition._evaluate_vector(vector):
+                            if condition._evaluate_vector(vector) is False:
                                 add = False
                                 vector[hyperparameter_idx] = NaN
                                 inactive.add(child_name)
@@ -282,7 +285,7 @@ def change_hp_value(
 
             active = True
             for condition in conditions:
-                if not condition._evaluate_vector(configuration_array):
+                if condition._evaluate_vector(configuration_array) is False:
                     active = False
                     break
 

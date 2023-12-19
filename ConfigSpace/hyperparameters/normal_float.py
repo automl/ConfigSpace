@@ -2,28 +2,30 @@ from __future__ import annotations
 
 import io
 import math
-from typing import Any, Optional, Union
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 from scipy.stats import norm, truncnorm
 
 from ConfigSpace.hyperparameters.float_hyperparameter import FloatHyperparameter
-from ConfigSpace.hyperparameters.normal_integer import NormalIntegerHyperparameter
 from ConfigSpace.hyperparameters.uniform_float import UniformFloatHyperparameter
+
+if TYPE_CHECKING:
+    from ConfigSpace.hyperparameters.normal_integer import NormalIntegerHyperparameter
 
 
 class NormalFloatHyperparameter(FloatHyperparameter):
     def __init__(
         self,
         name: str,
-        mu: Union[int, float],
-        sigma: Union[int, float],
-        default_value: Union[None, float] = None,
-        q: Union[int, float, None] = None,
+        mu: int | float,
+        sigma: int | float,
+        default_value: None | float = None,
+        q: int | float | None = None,
         log: bool = False,
-        lower: Optional[Union[float, int]] = None,
-        upper: Optional[Union[float, int]] = None,
-        meta: Optional[dict] = None,
+        lower: float | int | None = None,
+        upper: float | int | None = None,
+        meta: dict | None = None,
     ) -> None:
         r"""
         A normally distributed float hyperparameter.
@@ -59,13 +61,12 @@ class NormalFloatHyperparameter(FloatHyperparameter):
             Field for holding meta data provided by the user.
             Not used by the configuration space.
         """
-        super(NormalFloatHyperparameter, self).__init__(name, default_value, meta)
         self.mu = float(mu)
         self.sigma = float(sigma)
         self.q = float(q) if q is not None else None
         self.log = bool(log)
-        self.default_value = self.check_default(default_value)
-        self.normalized_default_value = self._inverse_transform(self.default_value)
+        self.lower: float | None = None
+        self.upper: float | None = None
 
         if (lower is not None) ^ (upper is not None):
             raise ValueError(
@@ -78,13 +79,13 @@ class NormalFloatHyperparameter(FloatHyperparameter):
 
             if self.lower >= self.upper:
                 raise ValueError(
-                    "Upper bound %f must be larger than lower bound "
-                    "%f for hyperparameter %s" % (self.upper, self.lower, name),
+                    f"Upper bound {self.upper:f} must be larger than lower bound "
+                    f"{self.lower:f} for hyperparameter {name}",
                 )
-            elif log and self.lower <= 0:
+            if log and self.lower <= 0:
                 raise ValueError(
-                    "Negative lower bound (%f) for log-scale "
-                    "hyperparameter %s is forbidden." % (self.lower, name),
+                    f"Negative lower bound ({self.lower:f}) for log-scale "
+                    f"hyperparameter {name} is forbidden.",
                 )
 
             self.default_value = self.check_default(default_value)
@@ -105,28 +106,30 @@ class NormalFloatHyperparameter(FloatHyperparameter):
                 else:
                     self._lower = self.lower
                     self._upper = self.upper
+
             if self.q is not None:
                 # There can be weird rounding errors, so we compare the result against self.q, see
                 # In [13]: 2.4 % 0.2
                 # Out[13]: 0.1999999999999998
                 if np.round((self.upper - self.lower) % self.q, 10) not in (0, self.q):
                     raise ValueError(
-                        "Upper bound (%f) - lower bound (%f) must be a multiple of q (%f)"
-                        % (self.upper, self.lower, self.q),
+                        f"Upper bound ({self.upper:f}) - lower bound ({self.lower:f}) must be a multiple of q ({self.q:f})",
                     )
+
+        default_value = self.check_default(default_value)
+        super().__init__(name, default_value, meta)
+        self.normalized_default_value = self._inverse_transform(self.default_value)
 
     def __repr__(self) -> str:
         repr_str = io.StringIO()
 
         if self.lower is None or self.upper is None:
             repr_str.write(
-                "%s, Type: NormalFloat, Mu: %s Sigma: %s, Default: %s"
-                % (self.name, repr(self.mu), repr(self.sigma), repr(self.default_value)),
+                f"{self.name}, Type: NormalFloat, Mu: {self.mu!r} Sigma: {self.sigma!r}, Default: {self.default_value!r}",
             )
         else:
             repr_str.write(
-                "%s, Type: NormalFloat, Mu: %s Sigma: %s, Range: [%s, %s], Default: %s"
-                % (
+                "{}, Type: NormalFloat, Mu: {} Sigma: {}, Range: [{}, {}], Default: {}".format(
                     self.name,
                     repr(self.mu),
                     repr(self.sigma),
@@ -204,7 +207,7 @@ class NormalFloatHyperparameter(FloatHyperparameter):
             meta=self.meta,
         )
 
-    def check_default(self, default_value: Union[int, float]) -> Union[int, float]:
+    def check_default(self, default_value: int | float | None) -> int | float:
         if default_value is None:
             if self.log:
                 return self._transform_scalar(self.mu)
@@ -217,16 +220,15 @@ class NormalFloatHyperparameter(FloatHyperparameter):
             raise ValueError("Illegal default value %s" % str(default_value))
 
     def to_integer(self) -> NormalIntegerHyperparameter:
-        if self.q is None:
-            q_int = None
-        else:
-            q_int = int(np.rint(self.q))
+        q_int = None if self.q is None else int(np.rint(self.q))
         if self.lower is None:
             lower = None
             upper = None
         else:
             lower = np.ceil(self.lower)
             upper = np.floor(self.upper)
+
+        from ConfigSpace.hyperparameters.normal_integer import NormalIntegerHyperparameter
 
         return NormalIntegerHyperparameter(
             self.name,
@@ -252,8 +254,8 @@ class NormalFloatHyperparameter(FloatHyperparameter):
     def _sample(
         self,
         rs: np.random.RandomState,
-        size: Optional[int] = None,
-    ) -> Union[np.ndarray, float]:
+        size: int | None = None,
+    ) -> np.ndarray | float:
         if self.lower is None:
             mu = self.mu
             sigma = self.sigma
@@ -287,8 +289,9 @@ class NormalFloatHyperparameter(FloatHyperparameter):
         return scalar
 
     def _inverse_transform(
-        self, vector: Union[float, np.ndarray, None],
-    ) -> Union[float, np.ndarray]:
+        self,
+        vector: float | np.ndarray | None,
+    ) -> float | np.ndarray:
         # TODO: Should probably use generics here
         if vector is None:
             return np.NaN
@@ -299,10 +302,14 @@ class NormalFloatHyperparameter(FloatHyperparameter):
         return vector
 
     def get_neighbors(
-        self, value: float, rs: np.random.RandomState, number: int = 4, transform: bool = False,
+        self,
+        value: float,
+        rs: np.random.RandomState,
+        number: int = 4,
+        transform: bool = False,
     ) -> list[float]:
         neighbors = []
-        for i in range(number):
+        for _i in range(number):
             new_value = rs.normal(value, self.sigma)
 
             if self.lower is not None and self.upper is not None:

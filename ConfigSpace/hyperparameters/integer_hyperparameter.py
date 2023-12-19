@@ -1,15 +1,13 @@
 from __future__ import annotations
 
-from typing import Optional, Union
-
 import numpy as np
 
 from ConfigSpace.hyperparameters.numerical import NumericalHyperparameter
 
 
 class IntegerHyperparameter(NumericalHyperparameter):
-    def __init__(self, name: str, default_value: int, meta: Optional[dict] = None) -> None:
-        super(IntegerHyperparameter, self).__init__(name, default_value, meta)
+    def __init__(self, name: str, default_value: int, meta: dict | None = None) -> None:
+        super().__init__(name, default_value, meta)
 
     def is_legal(self, value: int) -> bool:
         raise NotImplementedError
@@ -23,16 +21,16 @@ class IntegerHyperparameter(NumericalHyperparameter):
     def check_int(self, parameter: int, name: str) -> int:
         if abs(int(parameter) - parameter) > 0.00000001 and type(parameter) is not int:
             raise ValueError(
-                "For the Integer parameter %s, the value must be "
-                "an Integer, too. Right now it is a %s with value"
-                " %s." % (name, type(parameter), str(parameter)),
+                f"For the Integer parameter {name}, the value must be "
+                f"an Integer, too. Right now it is a {type(parameter)} with value"
+                f" {parameter!s}.",
             )
         return int(parameter)
 
     def _transform(
         self,
-        vector: Union[np.ndarray, float, int],
-    ) -> Optional[Union[np.ndarray, float, int]]:
+        vector: np.ndarray | float | int,
+    ) -> np.ndarray | float | int | None:
         try:
             if isinstance(vector, np.ndarray):
                 return self._transform_vector(vector)
@@ -80,7 +78,7 @@ class IntegerHyperparameter(NumericalHyperparameter):
         distributions, only normal distributions (as the inverse_transform
         in the pdf method handles these). Optimally, an IntegerHyperparameter
         should have a corresponding float, which can be utlized for the calls
-        to the probability density function (see e.g. NormalIntegerHyperparameter)
+        to the probability density function (see e.g. NormalIntegerHyperparameter).
 
         Parameters
         ----------

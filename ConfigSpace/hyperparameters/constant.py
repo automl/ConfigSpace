@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Optional, Union
+from typing import Any
 
 import numpy as np
 
@@ -11,8 +11,8 @@ class Constant(Hyperparameter):
     def __init__(
         self,
         name: str,
-        value: Union[str, int, float],
-        meta: Optional[dict] = None,
+        value: str | int | float,
+        meta: dict | None = None,
     ) -> None:
         """
         Representing a constant hyperparameter in the configuration space.
@@ -30,13 +30,13 @@ class Constant(Hyperparameter):
             Field for holding meta data provided by the user.
             Not used by the configuration space.
         """
-        super(Constant, self).__init__(name, meta)
+        super().__init__(name, meta)
         allowed_types = (int, float, str)
 
         if not isinstance(value, allowed_types) or isinstance(value, bool):
             raise TypeError(
-                "Constant value is of type %s, but only the "
-                "following types are allowed: %s" % (type(value), allowed_types),
+                f"Constant value is of type {type(value)}, but only the "
+                f"following types are allowed: {allowed_types}",
             )  # type: ignore
 
         self.value = value
@@ -76,34 +76,34 @@ class Constant(Hyperparameter):
     def __hash__(self):
         return hash((self.name, self.value))
 
-    def is_legal(self, value: Union[str, int, float]) -> bool:
+    def is_legal(self, value: str | int | float) -> bool:
         return value == self.value
 
     def is_legal_vector(self, value) -> int:
         return value == self.value_vector
 
-    def _sample(self, rs: None, size: Optional[int] = None) -> Union[int, np.ndarray]:
+    def _sample(self, rs: None, size: int | None = None) -> int | np.ndarray:
         return 0 if size == 1 else np.zeros((size,))
 
     def _transform(
-        self, vector: Optional[Union[np.ndarray, float, int]],
-    ) -> Optional[Union[np.ndarray, float, int]]:
+        self, vector: np.ndarray | float | int | None,
+    ) -> np.ndarray | float | int | None:
         return self.value
 
     def _transform_vector(
-        self, vector: Optional[np.ndarray],
-    ) -> Optional[Union[np.ndarray, float, int]]:
+        self, vector: np.ndarray | None,
+    ) -> np.ndarray | float | int | None:
         return self.value
 
     def _transform_scalar(
-        self, vector: Optional[Union[float, int]],
-    ) -> Optional[Union[np.ndarray, float, int]]:
+        self, vector: float | int | None,
+    ) -> np.ndarray | float | int | None:
         return self.value
 
     def _inverse_transform(
         self,
-        vector: Union[np.ndarray, float, int],
-    ) -> Union[np.ndarray, int, float]:
+        vector: np.ndarray | float | int,
+    ) -> np.ndarray | int | float:
         if vector != self.value:
             return np.NaN
         return 0

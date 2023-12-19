@@ -33,8 +33,7 @@ import io
 import warnings
 from collections import OrderedDict, defaultdict, deque
 from itertools import chain
-from typing import Any, Iterable, Iterator, KeysView, Mapping, cast, overload
-from typing_extensions import Final
+from typing import Any, Final, Iterable, Iterator, KeysView, Mapping, cast, overload
 
 import numpy as np
 
@@ -73,6 +72,7 @@ from ConfigSpace.hyperparameters import (
     UniformFloatHyperparameter,
     UniformIntegerHyperparameter,
 )
+from ConfigSpace.hyperparameters.hyperparameter import NotSet
 
 _ROOT: Final = "__HPOlib_configuration_space_root__"
 
@@ -346,20 +346,27 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         values = []
         conditions_to_add = []
         for condition in conditions:
+            # TODO: Need to check that we can't add a condition twice!
+
             if isinstance(condition, AbstractCondition):
                 edges.append((condition.parent, condition.child))
                 values.append(condition.value)
                 conditions_to_add.append(condition)
+
             elif isinstance(condition, AbstractConjunction):
                 dlcs = condition.get_descendant_literal_conditions()
                 edges.extend([(dlc.parent, dlc.child) for dlc in dlcs])
                 values.extend([dlc.value for dlc in dlcs])
                 conditions_to_add.extend([condition] * len(dlcs))
 
+            else:
+                raise TypeError(f"Unknown condition type {type(condition)}")
+
         for edge, condition in zip(edges, conditions_to_add):
             self._check_condition(edge[1], condition)
 
         self._check_edges(edges, values)
+        print(conditions_to_add)
         for edge, condition in zip(edges, conditions_to_add):
             self._add_edge(edge[0], edge[1], condition)
 
@@ -1140,7 +1147,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
 
         return hp
 
-    #def __contains__(self, key: str) -> bool:
+    # def __contains__(self, key: str) -> bool:
     #    return key in self._hyperparameters
 
     def __repr__(self) -> str:
@@ -1314,12 +1321,18 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         child_node: Hyperparameter,
         condition: ConditionComponent,
     ) -> None:
-        with contextlib.suppress(Exception):
-            # TODO maybe this has to be done more carefully
-            del self._children[_ROOT][child_node.name]
+        self._children[_ROOT].pop(child_node.name, None)
+        self._parents[child_node.name].pop(_ROOT, None)
 
-        with contextlib.suppress(Exception):
-            del self._parents[child_node.name][_ROOT]
+        if (
+            existing := self._children[parent_node.name].pop(child_node.name, None)
+        ) is not None and existing != condition:
+            raise AmbiguousConditionError(existing, condition)
+
+        if (
+            existing := self._parents[child_node.name].pop(parent_node.name, None)
+        ) is not None and existing != condition:
+            raise AmbiguousConditionError(existing, condition)
 
         self._children[parent_node.name][child_node.name] = condition
         self._parents[child_node.name][parent_node.name] = condition
@@ -1453,23 +1466,25 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         instantiated_hyperparameters: dict[str, int | float | str | None] = {}
         for hp in self.values():
             conditions = self._get_parent_conditions_of(hp.name)
-            active = True
-            for condition in conditions:
-                parent_names = [
-                    c.parent.name for c in condition.get_descendant_literal_conditions()
-                ]
+            active: bool = True
 
+            for condition in conditions:
+                parent_names = (
+                    c.parent.name for c in condition.get_descendant_literal_conditions()
+                )
                 parents = {
                     parent_name: instantiated_hyperparameters[parent_name]
                     for parent_name in parent_names
                 }
 
-                if not condition.evaluate(parents):
-                    # TODO find out why a configuration is illegal!
+                # OPTIM: Can speed up things here by just breaking early?
+                if condition.evaluate(parents) is False:
                     active = False
 
             if not active:
-                instantiated_hyperparameters[hp.name] = None
+                # the evaluate above will use compares so we need to use None
+                # and replace later....
+                instantiated_hyperparameters[hp.name] = NotSet
             elif isinstance(hp, Constant):
                 instantiated_hyperparameters[hp.name] = hp.value
             else:

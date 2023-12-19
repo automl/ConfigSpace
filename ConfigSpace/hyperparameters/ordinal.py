@@ -3,20 +3,20 @@ from __future__ import annotations
 import copy
 import io
 from collections import OrderedDict
-from typing import Any, Optional, Union
+from typing import Any
 
 import numpy as np
 
-from ConfigSpace.hyperparameters.hyperparameter import Hyperparameter
+from ConfigSpace.hyperparameters.hyperparameter import Comparison, Hyperparameter
 
 
 class OrdinalHyperparameter(Hyperparameter):
     def __init__(
         self,
         name: str,
-        sequence: Union[list[Union[float, int, str]], tuple[Union[float, int, str]]],
-        default_value: Union[str, int, float, None] = None,
-        meta: Optional[dict] = None,
+        sequence: list[float | int | str] | tuple[float | int | str],
+        default_value: str | int | float | None = None,
+        meta: dict | None = None,
     ) -> None:
         """
         An ordinal hyperparameter.
@@ -49,7 +49,7 @@ class OrdinalHyperparameter(Hyperparameter):
         # Since the sequence can consist of elements from different types,
         # they are stored into a dictionary in order to handle them as a
         # numeric sequence according to their order/position.
-        super(OrdinalHyperparameter, self).__init__(name, meta)
+        super().__init__(name, meta)
         if len(sequence) > len(set(sequence)):
             raise ValueError(
                 "Ordinal Hyperparameter Sequence %s contain duplicate values." % sequence,
@@ -59,19 +59,13 @@ class OrdinalHyperparameter(Hyperparameter):
         self.sequence_vector = list(range(self.num_elements))
         self.default_value = self.check_default(default_value)
         self.normalized_default_value = self._inverse_transform(self.default_value)
-        self.value_dict = OrderedDict()  # type: OrderedDict[Union[int, float, str], int]
-        counter = 0
-        for element in self.sequence:
-            self.value_dict[element] = counter
-            counter += 1
+        self.value_dict = {e: i for i, e in enumerate(self.sequence)}
 
     def __hash__(self):
         return hash((self.name, self.sequence))
 
     def __repr__(self) -> str:
-        """
-        write out the parameter definition
-        """
+        """Write out the parameter definition."""
         repr_str = io.StringIO()
         repr_str.write("%s, Type: Ordinal, Sequence: {" % (self.name))
         for idx, seq in enumerate(self.sequence):
@@ -85,9 +79,7 @@ class OrdinalHyperparameter(Hyperparameter):
         return repr_str.getvalue()
 
     def __eq__(self, other: Any) -> bool:
-        """
-        This method implements a comparison between self and another
-        object.
+        """Comparison between self and another object.
 
         Additionally, it defines the __ne__() as stated in the
         documentation from python:
@@ -114,26 +106,25 @@ class OrdinalHyperparameter(Hyperparameter):
             meta=self.meta,
         )
 
-    def compare(self, value: Union[int, float, str], value2: Union[int, float, str]) -> int:
+    def compare(self, value: int | float | str, value2: int | float | str) -> Comparison:
         if self.value_dict[value] < self.value_dict[value2]:
-            return -1
-        elif self.value_dict[value] > self.value_dict[value2]:
-            return 1
-        elif self.value_dict[value] == self.value_dict[value2]:
-            return 0
+            return Comparison.LESS_THAN
 
-    def compare_vector(self, value, value2) -> int:
+        if self.value_dict[value] > self.value_dict[value2]:
+            return Comparison.GREATER_THAN
+
+        return Comparison.EQUAL
+
+    def compare_vector(self, value, value2) -> Comparison:
         if value < value2:
-            return -1
-        elif value > value2:
-            return 1
-        elif value == value2:
-            return 0
+            return Comparison.LESS_THAN
+        if value > value2:
+            return Comparison.GREATER_THAN
 
-    def is_legal(self, value: Union[int, float, str]) -> bool:
-        """
-        check if a certain value is represented in the sequence
-        """
+        return Comparison.EQUAL
+
+    def is_legal(self, value: int | float | str) -> bool:
+        """Check if a certain value is represented in the sequence."""
         return value in self.sequence
 
     def is_legal_vector(self, value) -> int:
@@ -141,8 +132,8 @@ class OrdinalHyperparameter(Hyperparameter):
 
     def check_default(
         self,
-        default_value: Optional[Union[int, float, str]],
-    ) -> Union[int, float, str]:
+        default_value: int | float | str | None,
+    ) -> int | float | str:
         """
         check if given default value is represented in the sequence.
         If there's no default value we simply choose the
@@ -164,11 +155,11 @@ class OrdinalHyperparameter(Hyperparameter):
 
         raise ValueError(
             "Can only index the choices of the ordinal "
-            "hyperparameter %s with an integer, but provided "
-            "the following float: %f" % (self, vector),
+            f"hyperparameter {self} with an integer, but provided "
+            f"the following float: {vector:f}",
         )
 
-    def _transform_scalar(self, scalar: Union[float, int]) -> Union[float, int, str]:
+    def _transform_scalar(self, scalar: float | int) -> float | int | str:
         if scalar != scalar:
             raise ValueError("Number %s is NaN" % scalar)
 
@@ -177,14 +168,14 @@ class OrdinalHyperparameter(Hyperparameter):
 
         raise ValueError(
             "Can only index the choices of the ordinal "
-            "hyperparameter %s with an integer, but provided "
-            "the following float: %f" % (self, scalar),
+            f"hyperparameter {self} with an integer, but provided "
+            f"the following float: {scalar:f}",
         )
 
     def _transform(
         self,
-        vector: Union[np.ndarray, float, int],
-    ) -> Optional[Union[np.ndarray, float, int]]:
+        vector: np.ndarray | float | int,
+    ) -> np.ndarray | float | int | None:
         try:
             if isinstance(vector, np.ndarray):
                 return self._transform_vector(vector)
@@ -194,8 +185,8 @@ class OrdinalHyperparameter(Hyperparameter):
 
     def _inverse_transform(
         self,
-        vector: Optional[Union[np.ndarray, list, int, str, float]],
-    ) -> Union[float, list[int], list[str], list[float]]:
+        vector: np.ndarray | list | int | str | float | None,
+    ) -> float | list[int] | list[str] | list[float]:
         if vector is None:
             return np.NaN
         return self.sequence.index(vector)
@@ -207,62 +198,49 @@ class OrdinalHyperparameter(Hyperparameter):
         """
         return np.arange(0, self.num_elements)
 
-    def get_order(self, value: Optional[Union[int, str, float]]) -> int:
-        """
-        return the seuence position/order of a certain value from the sequence
-        """
+    def get_order(self, value: int | str | float | None) -> int:
+        """Return the seuence position/order of a certain value from the sequence."""
         return self.value_dict[value]
 
-    def get_value(self, idx: int) -> Union[int, str, float]:
-        """
-        return the sequence value of a given order/position
-        """
+    def get_value(self, idx: int) -> int | str | float:
+        """Return the sequence value of a given order/position."""
         return list(self.value_dict.keys())[list(self.value_dict.values()).index(idx)]
 
-    def check_order(self, val1: Union[int, str, float], val2: Union[int, str, float]) -> bool:
-        """
-        check whether value1 is smaller than value2.
-        """
+    def check_order(self, val1: int | str | float, val2: int | str | float) -> bool:
+        """Check whether value1 is smaller than value2."""
         idx1 = self.get_order(val1)
         idx2 = self.get_order(val2)
-        if idx1 < idx2:
-            return True
-        else:
-            return False
+        return idx1 < idx2
 
-    def _sample(self, rs: np.random.RandomState, size: Optional[int] = None) -> int:
-        """
-        return a random sample from our sequence as order/position index
-        """
+    def _sample(self, rs: np.random.RandomState, size: int | None = None) -> int:
+        """Return a random sample from our sequence as order/position index."""
         return rs.randint(0, self.num_elements, size=size)
 
     def has_neighbors(self) -> bool:
         """
         check if there are neighbors or we're only dealing with an
-        one-element sequence
+        one-element sequence.
         """
         return len(self.sequence) > 1
 
-    def get_num_neighbors(self, value: Union[int, float, str]) -> int:
-        """
-        return the number of existing neighbors in the sequence
-        """
+    def get_num_neighbors(self, value: int | float | str) -> int:
+        """Return the number of existing neighbors in the sequence."""
         max_idx = len(self.sequence) - 1
         # check if there is only one value
         if value == self.sequence[0] and value == self.sequence[max_idx]:
             return 0
-        elif value == self.sequence[0] or value == self.sequence[max_idx]:
+        elif value in (self.sequence[0], self.sequence[max_idx]):
             return 1
         else:
             return 2
 
     def get_neighbors(
         self,
-        value: Union[int, str, float],
+        value: int | str | float,
         rs: None,
         number: int = 0,
         transform: bool = False,
-    ) -> list[Union[str, float, int]]:
+    ) -> list[str | float | int]:
         """
         Return the neighbors of a given value.
         Value must be in vector form. Ordinal name will not work.

@@ -60,10 +60,6 @@ def test_equals_condition():
     assert cond.vector_value == cond_.vector_value
 
     # Test invalid conditions:
-    with pytest.raises(TypeError):
-        EqualsCondition(hp2, "parent", 0)
-    with pytest.raises(TypeError):
-        EqualsCondition("child", hp1, 0)
     with pytest.raises(ValueError):
         EqualsCondition(hp1, hp1, 0)
 

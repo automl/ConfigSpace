@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import io
-import warnings
 
 import numpy as np
 
@@ -14,8 +13,8 @@ class UniformIntegerHyperparameter(IntegerHyperparameter):
     def __init__(
         self,
         name: str,
-        lower: int,
-        upper: int,
+        lower: int | float,
+        upper: int | float,
         default_value: int | None = None,
         q: int | None = None,
         log: bool = False,
@@ -51,9 +50,37 @@ class UniformIntegerHyperparameter(IntegerHyperparameter):
             Field for holding meta data provided by the user.
             Not used by the configuration space.
         """
+        self.log = bool(log)
         self.lower = self.check_int(lower, "lower")
         self.upper = self.check_int(upper, "upper")
 
+        self.q = None
+        if q is not None:
+            if q < 1:
+                raise ValueError(
+                    "Setting quantization < 1 for Integer "
+                    f"Hyperparameter {name} has no effect."
+                )
+
+            self.q = self.check_int(q, "q")
+            if (self.upper - self.lower) % self.q != 0:
+                raise ValueError(
+                    "Upper bound (%d) - lower bound (%d) must be a multiple of q (%d)"
+                    % (self.upper, self.lower, self.q),
+                )
+
+        if self.lower >= self.upper:
+            raise ValueError(
+                "Upper bound %d must be larger than lower bound "
+                "%d for hyperparameter %s" % (self.lower, self.upper, name),
+            )
+        if log and self.lower <= 0:
+            raise ValueError(
+                "Negative lower bound (%d) for log-scale "
+                "hyperparameter %s is forbidden." % (self.lower, name),
+            )
+
+        # Requires `log` to be set first
         if default_value is not None:
             default_value = self.check_int(default_value, name)
         else:
@@ -61,35 +88,6 @@ class UniformIntegerHyperparameter(IntegerHyperparameter):
 
         # NOTE: Placed after the default value check to ensure it's set and not None
         super().__init__(name, default_value, meta)
-
-        if q is not None:
-            if q < 1:
-                warnings.warn(
-                    "Setting quantization < 1 for Integer "
-                    "Hyperparameter '%s' has no effect." % name,
-                )
-                self.q = None
-            else:
-                self.q = self.check_int(q, "q")
-                if (self.upper - self.lower) % self.q != 0:
-                    raise ValueError(
-                        "Upper bound (%d) - lower bound (%d) must be a multiple of q (%d)"
-                        % (self.upper, self.lower, self.q),
-                    )
-        else:
-            self.q = None
-        self.log = bool(log)
-
-        if self.lower >= self.upper:
-            raise ValueError(
-                "Upper bound %d must be larger than lower bound "
-                "%d for hyperparameter %s" % (self.lower, self.upper, name),
-            )
-        elif log and self.lower <= 0:
-            raise ValueError(
-                "Negative lower bound (%d) for log-scale "
-                "hyperparameter %s is forbidden." % (self.lower, name),
-            )
 
         self.ufhp = UniformFloatHyperparameter(
             self.name,
@@ -157,6 +155,7 @@ class UniformIntegerHyperparameter(IntegerHyperparameter):
         return 1.0 >= value >= 0.0
 
     def check_default(self, default_value: int | float | None) -> int:
+        # Doesn't seem to quantize with q?
         if default_value is None:
             if self.log:
                 default_value = np.exp((np.log(self.lower) + np.log(self.upper)) / 2.0)

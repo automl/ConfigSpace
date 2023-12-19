@@ -3,7 +3,7 @@ from __future__ import annotations
 import io
 import warnings
 from itertools import count
-from typing import Any, Optional, Union
+from typing import Any
 
 import numpy as np
 from more_itertools import roundrobin
@@ -29,13 +29,13 @@ class NormalIntegerHyperparameter(IntegerHyperparameter):
         self,
         name: str,
         mu: int,
-        sigma: Union[int, float],
-        default_value: Union[int, None] = None,
-        q: Union[None, int] = None,
+        sigma: int | float,
+        default_value: int | None = None,
+        q: None | int = None,
         log: bool = False,
-        lower: Optional[int] = None,
-        upper: Optional[int] = None,
-        meta: Optional[dict] = None,
+        lower: int | None = None,
+        upper: int | None = None,
+        meta: dict | None = None,
     ) -> None:
         r"""
         A normally distributed integer hyperparameter.
@@ -73,7 +73,7 @@ class NormalIntegerHyperparameter(IntegerHyperparameter):
             Not used by the configuration space.
 
         """
-        super(NormalIntegerHyperparameter, self).__init__(name, default_value, meta)
+        super().__init__(name, default_value, meta)
 
         self.mu = mu
         self.sigma = sigma
@@ -99,6 +99,8 @@ class NormalIntegerHyperparameter(IntegerHyperparameter):
                 "Only one bound was provided when both lower and upper bounds must be provided.",
             )
 
+        self.lower: int | None = None
+        self.upper: int | None = None
         if lower is not None and upper is not None:
             self.upper = self.check_int(upper, "upper")
             self.lower = self.check_int(lower, "lower")
@@ -107,13 +109,11 @@ class NormalIntegerHyperparameter(IntegerHyperparameter):
                     "Upper bound %d must be larger than lower bound "
                     "%d for hyperparameter %s" % (self.lower, self.upper, name),
                 )
-            elif log and self.lower <= 0:
+            if log and self.lower <= 0:
                 raise ValueError(
                     "Negative lower bound (%d) for log-scale "
                     "hyperparameter %s is forbidden." % (self.lower, name),
                 )
-            self.lower = lower
-            self.upper = upper
 
         self.nfhp = NormalFloatHyperparameter(
             self.name,
@@ -140,13 +140,11 @@ class NormalIntegerHyperparameter(IntegerHyperparameter):
 
         if self.lower is None or self.upper is None:
             repr_str.write(
-                "%s, Type: NormalInteger, Mu: %s Sigma: %s, Default: %s"
-                % (self.name, repr(self.mu), repr(self.sigma), repr(self.default_value)),
+                f"{self.name}, Type: NormalInteger, Mu: {self.mu!r} Sigma: {self.sigma!r}, Default: {self.default_value!r}",
             )
         else:
             repr_str.write(
-                "%s, Type: NormalInteger, Mu: %s Sigma: %s, Range: [%s, %s], Default: %s"
-                % (
+                "{}, Type: NormalInteger, Mu: {} Sigma: {}, Range: [{}, {}], Default: {}".format(
                     self.name,
                     repr(self.mu),
                     repr(self.sigma),
@@ -234,7 +232,7 @@ class NormalIntegerHyperparameter(IntegerHyperparameter):
     def is_legal_vector(self, value) -> int:
         return isinstance(value, (float, int))
 
-    def check_default(self, default_value: int) -> int:
+    def check_default(self, default_value: int | None) -> int:
         if default_value is None:
             if self.log:
                 return self._transform_scalar(self.mu)
@@ -249,15 +247,14 @@ class NormalIntegerHyperparameter(IntegerHyperparameter):
     def _sample(
         self,
         rs: np.random.RandomState,
-        size: Optional[int] = None,
-    ) -> Union[np.ndarray, float]:
+        size: int | None = None,
+    ) -> np.ndarray | float:
         value = self.nfhp._sample(rs, size=size)
         # Map all floats which belong to the same integer value to the same
         # float value by first transforming it to an integer and then
         # transforming it back to a float between zero and one
         value = self._transform(value)
-        value = self._inverse_transform(value)
-        return value
+        return self._inverse_transform(value)
 
     def _transform_vector(self, vector) -> np.ndarray:
         vector = self.nfhp._transform_vector(vector)
@@ -269,8 +266,8 @@ class NormalIntegerHyperparameter(IntegerHyperparameter):
 
     def _inverse_transform(
         self,
-        vector: Union[np.ndarray, float, int],
-    ) -> Union[np.ndarray, float]:
+        vector: np.ndarray | float | int,
+    ) -> np.ndarray | float:
         return self.nfhp._inverse_transform(vector)
 
     def has_neighbors(self) -> bool:
@@ -278,7 +275,7 @@ class NormalIntegerHyperparameter(IntegerHyperparameter):
 
     def get_neighbors(
         self,
-        value: Union[int, float],
+        value: int | float,
         rs: np.random.RandomState,
         number: int = 4,
         transform: bool = False,
@@ -377,7 +374,7 @@ class NormalIntegerHyperparameter(IntegerHyperparameter):
         distributions, only normal distributions (as the inverse_transform
         in the pdf method handles these). Optimally, an IntegerHyperparameter
         should have a corresponding float, which can be utlized for the calls
-        to the probability density function (see e.g. NormalIntegerHyperparameter)
+        to the probability density function (see e.g. NormalIntegerHyperparameter).
 
         Parameters
         ----------
@@ -401,8 +398,4 @@ class NormalIntegerHyperparameter(IntegerHyperparameter):
         if self.lower is None:
             return np.inf
         else:
-            if self.q is None:
-                q = 1
-            else:
-                q = self.q
             return np.rint((self.upper - self.lower) / self.q) + 1

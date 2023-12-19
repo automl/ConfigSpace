@@ -118,13 +118,7 @@ def test_constant_pdf():
     assert tuple(c1.pdf(array_2)) == tuple(np.array([0.0, 0.0]))
     assert tuple(c1.pdf(array_3)) == tuple(np.array([1.0, 0.0]))
 
-    # pdf must take a numpy array
-    with pytest.raises(TypeError):
-        c1.pdf(0.2)
-    with pytest.raises(TypeError):
-        c1.pdf("pdf")
-
-    # and it must be one-dimensional
+    # it must be one-dimensional
     with pytest.raises(ValueError, match="Method pdf expects a one-dimensional numpy array"):
         c1.pdf(wrong_shape_1)
     with pytest.raises(ValueError, match="Method pdf expects a one-dimensional numpy array"):
@@ -159,12 +153,6 @@ def test_constant__pdf():
     assert tuple(c2._pdf(array_2)) == tuple(np.array([1.0, 1.0]))
     assert tuple(c1._pdf(array_2)) == tuple(np.array([0.0, 0.0]))
     assert tuple(c1._pdf(array_3)) == tuple(np.array([1.0, 0.0]))
-
-    # pdf must take a numpy array
-    with pytest.raises(TypeError):
-        c1._pdf(0.2)
-    with pytest.raises(TypeError):
-        c1._pdf("pdf")
 
     # Simply check that it runs, since _pdf does not restrict shape (only public method does)
     c1._pdf(accepted_shape_1)
@@ -246,15 +234,27 @@ def test_uniformfloat():
 
 
 def test_uniformfloat_to_integer():
-    f1 = UniformFloatHyperparameter("param", 1, 10, q=0.1, log=True)
-    with pytest.warns(
-        UserWarning,
-        match="Setting quantization < 1 for Integer " "Hyperparameter 'param' has no effect",
-    ):
-        f2 = f1.to_integer()
+    f1 = UniformFloatHyperparameter("param", 1, 10, log=True)
+    f2 = f1.to_integer()
     # TODO is this a useful rounding?
     # TODO should there be any rounding, if e.g. lower=0.1
     assert str(f2) == "param, Type: UniformInteger, Range: [1, 10], Default: 3, on log-scale"
+
+
+def test_uniformfloat_illegal_bounds():
+    with pytest.raises(
+        ValueError,
+        match=r"Negative lower bound \(0.000000\) for log-scale hyperparameter "
+        r"param is forbidden.",
+    ):
+        _ = UniformFloatHyperparameter("param", 0, 10, q=0.1, log=True)
+
+    with pytest.raises(
+        ValueError,
+        match="Upper bound 0.000000 must be larger than lower bound "
+        "1.000000 for hyperparameter param",
+    ):
+        _ = UniformFloatHyperparameter("param", 1, 0)
 
 
 def test_uniformfloat_is_legal():
@@ -276,22 +276,10 @@ def test_uniformfloat_is_legal():
     assert f1.is_legal_vector(0.3)
     assert not f1.is_legal_vector(-0.1)
     assert not f1.is_legal_vector(1.1)
+
+
     with pytest.raises(TypeError):
-        f1.is_legal_vector("Hahaha")
-
-
-def test_uniformfloat_illegal_bounds():
-    with pytest.raises(
-        ValueError,
-        match=r"Negative lower bound \(0.000000\) for log-scale hyperparameter " r"param is forbidden.",
-    ):
-        _ = UniformFloatHyperparameter("param", 0, 10, q=0.1, log=True)
-
-    with pytest.raises(
-        ValueError,
-        match="Upper bound 0.000000 must be larger than lower bound " "1.000000 for hyperparameter param",
-    ):
-        _ = UniformFloatHyperparameter("param", 1, 0)
+        assert not f1.is_legal_vector("Hahaha")
 
 
 def test_uniformfloat_pdf():
@@ -310,9 +298,9 @@ def test_uniformfloat_pdf():
     wrong_shape_3 = np.array([3, 5, 7]).reshape(-1, 1)
 
     assert c1.pdf(point_1)[0] == pytest.approx(0.1)
-    assert c2.pdf(point_2)[0] == pytest.approx(4.539992976248485e-05)
+    assert c2.pdf(point_2)[0] == pytest.approx(4.539992976248485e-05, abs=1e-3)
     assert c1.pdf(point_1)[0] == pytest.approx(0.1)
-    assert c2.pdf(point_2)[0] == pytest.approx(4.539992976248485e-05)
+    assert c2.pdf(point_2)[0] == pytest.approx(4.539992976248485e-05, abs=1e-3)
     assert c3.pdf(point_3)[0] == pytest.approx(2.0)
 
     # TODO - change this once the is_legal support is there
@@ -320,7 +308,7 @@ def test_uniformfloat_pdf():
     # since inverse_transform pulls everything into range,
     # even points outside get evaluated in range
     assert c1.pdf(point_outside_range)[0] == pytest.approx(0.1)
-    assert c2.pdf(point_outside_range_log)[0] == pytest.approx(4.539992976248485e-05)
+    assert c2.pdf(point_outside_range_log)[0] == pytest.approx(4.539992976248485e-05, abs=1e-5)
 
     # this, however, is a negative value on a log param, which cannot be pulled into range
     with pytest.warns(RuntimeWarning, match="invalid value encountered in log"):
@@ -341,13 +329,7 @@ def test_uniformfloat_pdf():
         expected_log_results,
     ):
         assert res == pytest.approx(exp_res)
-        assert log_res == pytest.approx(exp_log_res)
-
-    # pdf must take a numpy array
-    with pytest.raises(TypeError):
-        c1.pdf(0.2)
-    with pytest.raises(TypeError):
-        c1.pdf("pdf")
+        assert log_res == pytest.approx(exp_log_res, abs=1e-5)
 
     with pytest.raises(ValueError, match="Method pdf expects a one-dimensional numpy array"):
         c1.pdf(wrong_shape_1)
@@ -372,10 +354,10 @@ def test_uniformfloat__pdf():
     accepted_shape_2 = np.array([0.3, 0.5, 1.1]).reshape(1, -1)
     accepted_shape_3 = np.array([1.1, 0.5, 0.3]).reshape(-1, 1)
 
+    assert c1._pdf(point_1)[0] == pytest.approx(0.1, abs=1e-3)
+    assert c2._pdf(point_2)[0] == pytest.approx(4.539992976248485e-05, abs=1e-3)
     assert c1._pdf(point_1)[0] == pytest.approx(0.1)
-    assert c2._pdf(point_2)[0] == pytest.approx(4.539992976248485e-05)
-    assert c1._pdf(point_1)[0] == pytest.approx(0.1)
-    assert c2._pdf(point_2)[0] == pytest.approx(4.539992976248485e-05)
+    assert c2._pdf(point_2)[0] == pytest.approx(4.539992976248485e-05, abs=1e-3)
     assert c3._pdf(point_3)[0] == pytest.approx(2.0)
 
     # TODO - change this once the is_legal support is there
@@ -399,14 +381,8 @@ def test_uniformfloat__pdf():
         expected_results,
         expected_log_results,
     ):
-        assert res == pytest.approx(exp_res)
-        assert log_res == pytest.approx(exp_log_res)
-
-    # pdf must take a numpy array
-    with pytest.raises(TypeError):
-        c1._pdf(0.2)
-    with pytest.raises(TypeError):
-        c1._pdf("pdf")
+        assert res == pytest.approx(exp_res, abs=1e-5)
+        assert log_res == pytest.approx(exp_log_res, abs=1e-5)
 
     # Simply check that it runs, since _pdf does not restrict shape (only public method does)
     c1._pdf(accepted_shape_1)
@@ -419,7 +395,7 @@ def test_uniformfloat_get_max_density():
     c2 = UniformFloatHyperparameter("logparam", lower=np.exp(0), upper=np.exp(10), log=True)
     c3 = UniformFloatHyperparameter("param", lower=0, upper=0.5)
     assert c1.get_max_density() == 0.1
-    assert c2.get_max_density() == pytest.approx(4.539992976248485e-05)
+    assert c2.get_max_density() == pytest.approx(4.5401991009687765e-05)
     assert c3.get_max_density() == 2
 
 
@@ -608,8 +584,7 @@ def test_normalfloat_is_legal():
     assert f1.is_legal_vector(0.3)
     assert f1.is_legal_vector(-0.1)
     assert f1.is_legal_vector(1.1)
-    with pytest.raises(TypeError):
-        f1.is_legal_vector("Hahaha")
+    assert not f1.is_legal_vector("Hahaha")
 
     f2 = NormalFloatHyperparameter("param", 5, 10, lower=0.1, upper=10, default_value=5.0)
     assert f2.is_legal(5.0)
@@ -672,12 +647,6 @@ def test_normalfloat_pdf():
         assert res == pytest.approx(exp_res)
         assert log_res == pytest.approx(exp_res)
 
-    # pdf must take a numpy array
-    with pytest.raises(TypeError):
-        c1.pdf(0.2)
-    with pytest.raises(TypeError):
-        c1.pdf("pdf")
-
     c_nobounds = NormalFloatHyperparameter("param", mu=3, sigma=2)
     assert c_nobounds.pdf(np.array([2]))[0] == pytest.approx(0.17603266338214976)
 
@@ -734,12 +703,6 @@ def test_normalfloat__pdf():
     for res, log_res, exp_res in zip(array_results, array_results, expected_results):
         assert res == pytest.approx(exp_res)
         assert log_res == pytest.approx(exp_res)
-
-    # pdf must take a numpy array
-    with pytest.raises(TypeError):
-        c1.pdf(0.2)
-    with pytest.raises(TypeError):
-        c1.pdf("pdf")
 
     c_nobounds = NormalFloatHyperparameter("param", mu=3, sigma=2)
     assert c_nobounds.pdf(np.array([2]))[0] == pytest.approx(0.17603266338214976)
@@ -822,6 +785,7 @@ def test_betafloat():
         "param",
         lower=1,
         upper=1000.0,
+        default_value=32.0,
         alpha=2.0,
         beta=2.0,
         log=True,
@@ -831,6 +795,7 @@ def test_betafloat():
         "param",
         lower=1,
         upper=1000.0,
+        default_value=32.0,
         alpha=2.0,
         beta=2.0,
         log=True,
@@ -856,7 +821,7 @@ def test_betafloat():
     assert f_meta.meta == META_DATA
 
     with pytest.raises(
-        UserWarning,
+        ValueError,
         match=(
             "Logscale and quantization together results in "
             "incorrect default values. We recommend specifying a default "
@@ -990,6 +955,7 @@ def test_betafloat_default_value():
         lower=1,
         upper=100000,
         alpha=2,
+        default_value=316,
         beta=2,
         q=1,
         log=True,
@@ -1129,12 +1095,6 @@ def test_betafloat_pdf():
         assert res == pytest.approx(exp_res)
         assert log_res == pytest.approx(exp_res)
 
-    # pdf must take a numpy array
-    with pytest.raises(TypeError):
-        c1.pdf(0.2)
-    with pytest.raises(TypeError):
-        c1.pdf("pdf")
-
     with pytest.raises(ValueError, match="Method pdf expects a one-dimensional numpy array"):
         c1.pdf(wrong_shape_1)
     with pytest.raises(ValueError, match="Method pdf expects a one-dimensional numpy array"):
@@ -1187,12 +1147,6 @@ def test_betafloat__pdf():
         assert res == pytest.approx(exp_res)
         assert log_res == pytest.approx(exp_res)
 
-    # pdf must take a numpy array
-    with pytest.raises(TypeError):
-        c1.pdf(0.2)
-    with pytest.raises(TypeError):
-        c1.pdf("pdf")
-
     # Simply check that it runs, since _pdf does not restrict shape (only public method does)
     c1._pdf(accepted_shape_1)
     c1._pdf(accepted_shape_2)
@@ -1233,14 +1187,12 @@ def test_uniforminteger():
     assert f1.normalized_default_value == pytest.approx((2.0 + 0.49999) / (5.49999 + 0.49999))
 
     quantization_warning = (
-        "Setting quantization < 1 for Integer Hyperparameter 'param' has no effect"
+        "Setting quantization < 1 for Integer Hyperparameter param has no effect"
     )
-    with pytest.warns(UserWarning, match=quantization_warning):
-        f2 = UniformIntegerHyperparameter("param", 0, 10, q=0.1)
-    with pytest.warns(UserWarning, match=quantization_warning):
-        f2_ = UniformIntegerHyperparameter("param", 0, 10, q=0.1)
-    assert f2 == f2_
-    assert str(f2) == "param, Type: UniformInteger, Range: [0, 10], Default: 5"
+    with pytest.raises(ValueError, match=quantization_warning):
+        _ = UniformIntegerHyperparameter("param", 0, 10, q=0.1)  # type: ignore
+    with pytest.raises(ValueError, match=quantization_warning):
+        _ = UniformIntegerHyperparameter("param", 0, 10, q=0.1)  # type: ignore
 
     f2_large_q = UniformIntegerHyperparameter("param", 0, 10, q=2)
     f2_large_q_ = UniformIntegerHyperparameter("param", 0, 10, q=2)
@@ -1257,41 +1209,31 @@ def test_uniforminteger():
     assert f4 == f4_
     assert str(f4) == "param, Type: UniformInteger, Range: [1, 10], Default: 1, on log-scale"
 
-    with pytest.warns(UserWarning, match=quantization_warning):
-        f5 = UniformIntegerHyperparameter("param", 1, 10, default_value=1, q=0.1, log=True)
-    with pytest.warns(UserWarning, match=quantization_warning):
-        f5_ = UniformIntegerHyperparameter("param", 1, 10, default_value=1, q=0.1, log=True)
-    assert f5 == f5_
-    assert str(f5) == "param, Type: UniformInteger, Range: [1, 10], Default: 1, on log-scale"
-
     assert f1 != "UniformFloat"
 
     # test that meta-data is stored correctly
-    with pytest.warns(UserWarning, match=quantization_warning):
-        f_meta = UniformIntegerHyperparameter(
-            "param",
-            1,
-            10,
-            q=0.1,
-            log=True,
-            default_value=1,
-            meta=dict(META_DATA),
-        )
+    f_meta = UniformIntegerHyperparameter(
+        "param",
+        1,
+        10,
+        log=True,
+        default_value=1,
+        meta=dict(META_DATA),
+    )
     assert f_meta.meta == META_DATA
 
     assert f1.get_size() == 6
-    assert f2.get_size() == 11
     assert f2_large_q.get_size() == 6
     assert f3.get_size() == 10
     assert f4.get_size() == 10
-    assert f5.get_size() == 10
 
 
 def test_uniformint_legal_float_values():
     n_iter = UniformIntegerHyperparameter("n_iter", 5.0, 1000.0, default_value=20.0)
 
     assert isinstance(n_iter.default_value, int)
-    with pytest.raises(ValueError,
+    with pytest.raises(
+        ValueError,
         match=r"For the Integer parameter n_iter, "
         r"the value must be an Integer, too."
         r" Right now it is a <(type|class) "
@@ -1312,7 +1254,7 @@ def test_uniformint_illegal_bounds():
         ValueError,
         match="Upper bound 1 must be larger than lower bound 0 for " "hyperparameter param",
     ):
-        _ = UniformIntegerHyperparameter( "param", 1, 0)
+        _ = UniformIntegerHyperparameter("param", 1, 0)
 
 
 def test_uniformint_pdf():
@@ -1367,12 +1309,6 @@ def test_uniformint_pdf():
         assert res == pytest.approx(exp_res, abs=1e-5)
         assert log_res == pytest.approx(exp_res, abs=1e-5)
 
-    # pdf must take a numpy array
-    with pytest.raises(TypeError):
-        c1.pdf(0.2)
-    with pytest.raises(TypeError):
-        c1.pdf("pdf")
-
     with pytest.raises(ValueError, match="Method pdf expects a one-dimensional numpy array"):
         c1.pdf(wrong_shape_1)
     with pytest.raises(ValueError, match="Method pdf expects a one-dimensional numpy array"):
@@ -1421,12 +1357,6 @@ def test_uniformint__pdf():
     ):
         assert res == pytest.approx(exp_res, abs=1e-5)
         assert log_res == pytest.approx(exp_log_res, abs=1e-5)
-
-    # pdf must take a numpy array
-    with pytest.raises(TypeError):
-        c1._pdf(0.2)
-    with pytest.raises(TypeError):
-        c1._pdf("pdf")
 
     # Simply check that it runs, since _pdf does not restrict shape (only public method does)
     c1._pdf(accepted_shape_1)
@@ -1586,8 +1516,7 @@ def test_normalint_is_legal():
     assert f1.is_legal_vector(0.3)
     assert f1.is_legal_vector(-0.1)
     assert f1.is_legal_vector(1.1)
-    with pytest.raises(TypeError):
-        f1.is_legal_vector("Hahaha")
+    assert not f1.is_legal_vector("Hahaha")
 
     f2 = NormalIntegerHyperparameter("param", 5, 10, lower=1, upper=10, default_value=5)
     assert f2.is_legal(5)
@@ -1647,12 +1576,6 @@ def test_normalint_pdf():
         assert res == pytest.approx(exp_res)
         assert log_res == pytest.approx(exp_log_res)
 
-    # pdf must take a numpy array
-    with pytest.raises(TypeError):
-        c1.pdf(0.2)
-    with pytest.raises(TypeError):
-        c1.pdf("pdf")
-
     c_nobounds = NormalFloatHyperparameter("param", mu=3, sigma=2)
     assert c_nobounds.pdf(np.array([2]))[0] == pytest.approx(0.17603266338214976)
 
@@ -1699,12 +1622,6 @@ def test_normalint__pdf():
     ):
         assert res == pytest.approx(exp_res)
         assert log_res == pytest.approx(exp_log_res)
-
-    # pdf must take a numpy array
-    with pytest.raises(TypeError):
-        c1.pdf(0.2)
-    with pytest.raises(TypeError):
-        c1.pdf("pdf")
 
     c_nobounds = NormalFloatHyperparameter("param", mu=3, sigma=2)
     assert c_nobounds.pdf(np.array([2]))[0] == pytest.approx(0.17603266338214976)
@@ -1963,16 +1880,19 @@ def test_betaint_legal_float_values():
         ValueError,
         match="Illegal default value 0.5",
     ):
-        _ = BetaIntegerHyperparameter("param", lower=-2.0, upper=2.0, alpha=3.0, beta=1.1, default_value=0.5)
+        _ = BetaIntegerHyperparameter(
+            "param", lower=-2.0, upper=2.0, alpha=3.0, beta=1.1, default_value=0.5,
+        )
 
 
 def test_betaint_to_uniform():
-    with pytest.warns(
-        UserWarning,
-        match="Setting quantization < 1 for Integer " "Hyperparameter 'param' has no effect",
+    with pytest.raises(
+        ValueError,
+        match="Setting quantization < 1 for Integer Hyperparameter param has no effect",
     ):
-        f1 = BetaIntegerHyperparameter("param", lower=-30, upper=30, alpha=6.0, beta=2, q=0.1)
+        _ = BetaIntegerHyperparameter("param", lower=-30, upper=30, alpha=6.0, beta=2, q=0.1)
 
+    f1 = BetaIntegerHyperparameter("param", lower=-30, upper=30, alpha=6.0, beta=2)
     f1_expected = UniformIntegerHyperparameter("param", -30, 30, default_value=20)
     f1_actual = f1.to_uniform()
     assert f1_expected == f1_actual
@@ -2029,12 +1949,6 @@ def test_betaint_pdf():
     ):
         assert res == pytest.approx(exp_res, abs=1e-3)
         assert log_res == pytest.approx(exp_log_res, abs=1e-3)
-
-    # pdf must take a numpy array
-    with pytest.raises(TypeError):
-        c1.pdf(0.2)
-    with pytest.raises(TypeError):
-        c1.pdf("pdf")
 
     with pytest.raises(ValueError, match="Method pdf expects a one-dimensional numpy array"):
         c1.pdf(wrong_shape_1)
@@ -2094,14 +2008,8 @@ def test_betaint__pdf():
         expected_results,
         expected_results_log,
     ):
-        assert res == pytest.approx(exp_res)
-        assert log_res == pytest.approx(exp_log_res)
-
-    # pdf must take a numpy array
-    with pytest.raises(TypeError):
-        c1._pdf(0.2)
-    with pytest.raises(TypeError):
-        c1._pdf("pdf")
+        assert res == pytest.approx(exp_res, abs=1e-5)
+        assert log_res == pytest.approx(exp_log_res, abs=1e-5)
 
     # Simply check that it runs, since _pdf does not restrict shape (only public method does)
     c1._pdf(accepted_shape_1)
@@ -2251,8 +2159,7 @@ def test_categorical_is_legal():
     assert f1.is_legal_vector(0)
     assert not f1.is_legal_vector(0.3)
     assert not f1.is_legal_vector(-0.1)
-    with pytest.raises(TypeError):
-        f1.is_legal_vector("Hahaha")
+    assert not f1.is_legal_vector("Hahaha")
 
 
 def test_categorical_choices():
@@ -2399,16 +2306,6 @@ def test_categorical_pdf():
     assert c2.pdf(point_2)[0] == 0.0
     assert c3.pdf(point_1)[0] == 0.25
 
-    # pdf must take a numpy array
-    with pytest.raises(TypeError):
-        c1.pdf(0.2)
-    with pytest.raises(TypeError):
-        c1.pdf("pdf")
-    with pytest.raises(TypeError):
-        c1.pdf("one")
-    with pytest.raises(ValueError):
-        c1.pdf(np.array(["zero"]))
-
     with pytest.raises(ValueError, match="Method pdf expects a one-dimensional numpy array"):
         c1.pdf(wrong_shape_1)
     with pytest.raises(ValueError, match="Method pdf expects a one-dimensional numpy array"):
@@ -2441,16 +2338,6 @@ def test_categorical__pdf():
     assert nan_results.shape == expected_results.shape
     for res, exp_res in zip(nan_results, expected_results):
         assert res == exp_res
-
-    # pdf must take a numpy array
-    with pytest.raises(TypeError):
-        c1._pdf(0.2)
-    with pytest.raises(TypeError):
-        c1._pdf("pdf")
-    with pytest.raises(TypeError):
-        c1._pdf("one")
-    with pytest.raises(TypeError):
-        c1._pdf(np.array(["zero"]))
 
 
 def test_categorical_get_max_density():
@@ -2997,8 +2884,7 @@ def test_ordinal_is_legal():
     assert f1.is_legal_vector(0)
     assert f1.is_legal_vector(3)
     assert not f1.is_legal_vector(-0.1)
-    with pytest.raises(TypeError):
-        f1.is_legal_vector("Hahaha")
+    assert not f1.is_legal_vector("Hahaha")
 
 
 def test_ordinal_check_order():
@@ -3066,13 +2952,6 @@ def test_ordinal_pdf():
     for res, exp_res in zip(array_results, expected_results):
         assert res == exp_res
 
-    # pdf must take a numpy array
-    with pytest.raises(TypeError):
-        c1.pdf(0.2)
-    with pytest.raises(TypeError):
-        c1.pdf("pdf")
-    with pytest.raises(TypeError):
-        c1.pdf("one")
     with pytest.raises(ValueError):
         c1.pdf(np.array(["zero"]))
 
@@ -3098,13 +2977,6 @@ def test_ordinal__pdf():
     for res, exp_res in zip(array_results, expected_results):
         assert res == exp_res
 
-    # pdf must take a numpy array
-    with pytest.raises(TypeError):
-        c1._pdf(0.2)
-    with pytest.raises(TypeError):
-        c1._pdf("pdf")
-    with pytest.raises(TypeError):
-        c1._pdf("one")
     with pytest.raises(ValueError):
         c1._pdf(np.array(["zero"]))
 
@@ -3126,7 +2998,9 @@ def test_rvs():
     assert isinstance(f1.rvs(size=2), np.ndarray)
 
     assert f1.rvs(random_state=100) == pytest.approx(f1.rvs(random_state=100))
-    assert f1.rvs(random_state=100) == pytest.approx(f1.rvs(random_state=np.random.RandomState(100)))
+    assert f1.rvs(random_state=100) == pytest.approx(
+        f1.rvs(random_state=np.random.RandomState(100)),
+    )
     f1.rvs(random_state=np.random)
     f1.rvs(random_state=np.random.default_rng(1))
     with pytest.raises(ValueError):

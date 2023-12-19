@@ -441,8 +441,8 @@ def fix_types(
         result = [c for c in candidates if str(value) == str(c)]
         if len(result) != 1:
             raise ValueError(
-                "Parameter value {} cannot be matched to candidates {}. "
-                "Either none or too many matching candidates.".format(str(value), candidates),
+                f"Parameter value {value!s} cannot be matched to candidates {candidates}. "
+                "Either none or too many matching candidates.",
             )
         return result[0]
 
@@ -658,7 +658,7 @@ def generate_grid(
 
     while len(unchecked_grid_pts) > 0:
         try:
-            grid_point = Configuration(configuration_space, unchecked_grid_pts[0])
+            grid_point = Configuration(configuration_space, values=unchecked_grid_pts[0])
             checked_grid_pts.append(grid_point)
 
         # When creating a configuration that violates a forbidden clause, simply skip it
@@ -673,9 +673,7 @@ def generate_grid(
 
             # "for" loop over currently active HP names
             for hp_name in unchecked_grid_pts[0]:
-                value_sets.append(
-                    (unchecked_grid_pts[0][hp_name],),
-                )
+                value_sets.append((unchecked_grid_pts[0][hp_name],))
                 hp_names.append(hp_name)
                 # Checks if the conditionally dependent children of already active
                 # HPs are now active
@@ -694,12 +692,13 @@ def generate_grid(
             for hp_name in new_active_hp_names:
                 value_sets.append(get_value_set(num_steps_dict, hp_name))
                 hp_names.append(hp_name)
+
             # this check might not be needed, as there is always going to be a new
             # active HP when in this except block?
             if len(new_active_hp_names) <= 0:
                 raise RuntimeError(
                     "Unexpected error: There should have been a newly activated hyperparameter"
-                    f" for the current configuration values: {str(unchecked_grid_pts[0])}. "
+                    f" for the current configuration values: {unchecked_grid_pts[0]!s}. "
                     "Please contact the developers with the code you ran and the stack trace.",
                 ) from None
 

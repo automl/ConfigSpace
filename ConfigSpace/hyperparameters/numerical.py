@@ -1,14 +1,14 @@
 from __future__ import annotations
 
-from typing import Any, Optional, Union
+from typing import Any
 
 import numpy as np
 
-from ConfigSpace.hyperparameters.hyperparameter import Hyperparameter
+from ConfigSpace.hyperparameters.hyperparameter import Comparison, Hyperparameter
 
 
 class NumericalHyperparameter(Hyperparameter):
-    def __init__(self, name: str, default_value: Any, meta: Optional[dict]) -> None:
+    def __init__(self, name: str, default_value: Any, meta: dict | None) -> None:
         super().__init__(name, meta)
         self.default_value = default_value
 
@@ -18,22 +18,22 @@ class NumericalHyperparameter(Hyperparameter):
     def get_num_neighbors(self, value=None) -> float:
         return np.inf
 
-    def compare(self, value: Union[int, float, str], value2: Union[int, float, str]) -> int:
+    def compare(self, value: int | float, value2: int | float) -> Comparison:
         if value < value2:
-            return -1
-        elif value > value2:
-            return 1
-        elif value == value2:
-            return 0
+            return Comparison.LESS_THAN
+        if value > value2:
+            return Comparison.GREATER_THAN
 
-    def compare_vector(self, value, value2) -> int:
+        return Comparison.EQUAL
+
+    def compare_vector(self, value: float, value2: float) -> Comparison:
         if value < value2:
-            return -1
+            return Comparison.LESS_THAN
 
         if value > value2:
-            return 1
+            return Comparison.GREATER_THAN
 
-        return 0
+        return Comparison.EQUAL
 
     def allow_greater_less_comparison(self) -> bool:
         return True

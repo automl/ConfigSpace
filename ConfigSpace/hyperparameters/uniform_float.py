@@ -2,24 +2,26 @@ from __future__ import annotations
 
 import io
 import math
-from typing import Any, Optional, Union
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 
 from ConfigSpace.hyperparameters.float_hyperparameter import FloatHyperparameter
-from ConfigSpace.hyperparameters.uniform_integer import UniformIntegerHyperparameter
+
+if TYPE_CHECKING:
+    from ConfigSpace.hyperparameters.uniform_integer import UniformIntegerHyperparameter
 
 
 class UniformFloatHyperparameter(FloatHyperparameter):
     def __init__(
         self,
         name: str,
-        lower: Union[int, float],
-        upper: Union[int, float],
-        default_value: Union[int, float, None] = None,
-        q: Union[int, float, None] = None,
+        lower: int | float,
+        upper: int | float,
+        default_value: int | float | None = None,
+        q: int | float | None = None,
         log: bool = False,
-        meta: Optional[dict] = None,
+        meta: dict | None = None,
     ) -> None:
         """
         A uniformly distributed float hyperparameter.
@@ -52,7 +54,7 @@ class UniformFloatHyperparameter(FloatHyperparameter):
             Not used by the configuration space.
         """
         default_value = None if default_value is None else float(default_value)
-        super(UniformFloatHyperparameter, self).__init__(name, default_value, meta)
+        super().__init__(name, default_value, meta)
         self.lower = float(lower)
         self.upper = float(upper)
         self.q = float(q) if q is not None else None
@@ -60,13 +62,13 @@ class UniformFloatHyperparameter(FloatHyperparameter):
 
         if self.lower >= self.upper:
             raise ValueError(
-                "Upper bound %f must be larger than lower bound "
-                "%f for hyperparameter %s" % (self.upper, self.lower, name),
+                f"Upper bound {self.upper:f} must be larger than lower bound "
+                f"{self.lower:f} for hyperparameter {name}",
             )
         elif log and self.lower <= 0:
             raise ValueError(
-                "Negative lower bound (%f) for log-scale "
-                "hyperparameter %s is forbidden." % (self.lower, name),
+                f"Negative lower bound ({self.lower:f}) for log-scale "
+                f"hyperparameter {name} is forbidden.",
             )
 
         self.default_value = self.check_default(default_value)
@@ -93,8 +95,7 @@ class UniformFloatHyperparameter(FloatHyperparameter):
             # Out[13]: 0.1999999999999998
             if np.round((self.upper - self.lower) % self.q, 10) not in (0, self.q):
                 raise ValueError(
-                    "Upper bound (%f) - lower bound (%f) must be a multiple of q (%f)"
-                    % (self.upper, self.lower, self.q),
+                    f"Upper bound ({self.upper:f}) - lower bound ({self.lower:f}) must be a multiple of q ({self.q:f})",
                 )
 
         self.normalized_default_value = self._inverse_transform(self.default_value)
@@ -102,8 +103,7 @@ class UniformFloatHyperparameter(FloatHyperparameter):
     def __repr__(self) -> str:
         repr_str = io.StringIO()
         repr_str.write(
-            "%s, Type: UniformFloat, Range: [%s, %s], Default: %s"
-            % (self.name, repr(self.lower), repr(self.upper), repr(self.default_value)),
+            f"{self.name}, Type: UniformFloat, Range: [{self.lower!r}, {self.upper!r}], Default: {self.default_value!r}",
         )
         if self.log:
             repr_str.write(", on log-scale")
@@ -112,21 +112,15 @@ class UniformFloatHyperparameter(FloatHyperparameter):
         repr_str.seek(0)
         return repr_str.getvalue()
 
-    def is_legal(self, value: Union[float]) -> bool:
-        if not (isinstance(value, (float, int))):
+    def is_legal(self, value: float) -> bool:
+        if not isinstance(value, (float, int)):
             return False
-        elif self.upper >= value >= self.lower:
-            return True
-        else:
-            return False
+        return self.upper >= value >= self.lower
 
     def is_legal_vector(self, value) -> bool:
-        if 1.0 >= value >= 0.0:
-            return True
-        else:
-            return False
+        return 1.0 >= value >= 0.0
 
-    def check_default(self, default_value: Union[float, int, None]) -> float:
+    def check_default(self, default_value: float | int | None) -> float:
         if default_value is None:
             if self.log:
                 default_value = float(np.exp((np.log(self.lower) + np.log(self.upper)) / 2.0))
@@ -143,16 +137,18 @@ class UniformFloatHyperparameter(FloatHyperparameter):
         # TODO check if conversion makes sense at all (at least two integer values possible!)
         # todo check if params should be converted to int while class initialization
         # or inside class itself
+        from ConfigSpace.hyperparameters.uniform_integer import UniformIntegerHyperparameter
+
         return UniformIntegerHyperparameter(
             name=self.name,
             lower=int(np.ceil(self.lower)),
             upper=int(np.floor(self.upper)),
             default_value=int(np.rint(self.default_value)),
-            q=int(np.rint(self.q)),
+            q=int(np.rint(self.q)) if self.q is not None else None,
             log=self.log,
         )
 
-    def _sample(self, rs: np.random, size: Optional[int] = None) -> Union[float, np.ndarray]:
+    def _sample(self, rs: np.random, size: int | None = None) -> float | np.ndarray:
         return rs.uniform(size=size)
 
     def _transform_vector(self, vector: np.ndarray) -> np.ndarray:
@@ -177,18 +173,19 @@ class UniformFloatHyperparameter(FloatHyperparameter):
             scalar = np.round((scalar - self.lower) / self.q) * self.q + self.lower
             scalar = min(scalar, self.upper)
             scalar = max(scalar, self.lower)
-        scalar = min(self.upper, max(self.lower, scalar))
-        return scalar
+        return min(self.upper, max(self.lower, scalar))
 
-    def _inverse_transform(self, vector: Union[np.ndarray, None]) -> Union[np.ndarray, float, int]:
+    def _inverse_transform(
+        self,
+        vector: np.ndarray | float | int | None,
+    ) -> np.ndarray | float:
         if vector is None:
             return np.NaN
         if self.log:
             vector = np.log(vector)
         vector = (vector - self._lower) / (self._upper - self._lower)
         vector = np.minimum(1.0, vector)
-        vector = np.maximum(0.0, vector)
-        return vector
+        return np.maximum(0.0, vector)
 
     def get_neighbors(
         self,

@@ -33,7 +33,6 @@ from typing import Any
 
 import numpy as np
 
-from ConfigSpace.forbidden import AbstractForbiddenComponent
 from ConfigSpace.hyperparameters import Hyperparameter
 
 
@@ -58,12 +57,7 @@ class AbstractForbiddenComponent:
 
         """
         if not isinstance(other, self.__class__):
-            return False
-
-        if self.value is None:
-            self.value = self.values
-        if other.value is None:
-            other.value = other.values
+            return NotImplemented
 
         return self.value == other.value and self.hyperparameter.name == other.hyperparameter.name
 
@@ -110,8 +104,8 @@ class SingleValueForbiddenClause(AbstractForbiddenClause):
         if not self.hyperparameter.is_legal(value):
             raise ValueError(
                 "Forbidden clause must be instantiated with a "
-                "legal hyperparameter value for '{}', but got "
-                "'{}'".format(self.hyperparameter, str(value)),
+                f"legal hyperparameter value for '{self.hyperparameter}', but got "
+                f"'{value!s}'",
             )
         self.value = value
         self.vector_value = self.hyperparameter._inverse_transform(self.value)
@@ -167,8 +161,8 @@ class MultipleValueForbiddenClause(AbstractForbiddenClause):
             if not self.hyperparameter.is_legal(value):
                 raise ValueError(
                     "Forbidden clause must be instantiated with a "
-                    "legal hyperparameter value for '{}', but got "
-                    "'{}'".format(self.hyperparameter, str(value)),
+                    f"legal hyperparameter value for '{self.hyperparameter}', but got "
+                    f"'{value!s}'",
                 )
         self.values = values
         self.vector_values = [
@@ -181,6 +175,15 @@ class MultipleValueForbiddenClause(AbstractForbiddenClause):
             values=copy.deepcopy(self.values),
         )
 
+    def __eq__(self, other: Any) -> bool:
+        if not isinstance(other, self.__class__):
+            return NotImplemented
+
+        return (
+            self.hyperparameter == other.hyperparameter
+            and self.values == other.values
+        )
+
     def is_forbidden(self, instantiated_hyperparameters, strict) -> bool:
         value = instantiated_hyperparameters.get(self.hyperparameter.name)
         if value is None:
@@ -191,8 +194,7 @@ class MultipleValueForbiddenClause(AbstractForbiddenClause):
                     "forbidden clause; you are missing "
                     "'%s'." % self.hyperparameter.name,
                 )
-            else:
-                return False
+            return False
 
         return self._is_forbidden(value)
 
@@ -323,9 +325,7 @@ class AbstractForbiddenConjunction(AbstractForbiddenComponent):
         return self.__class__([copy(comp) for comp in self.components])
 
     def __eq__(self, other: Any) -> bool:
-        """
-        This method implements a comparison between self and another
-        object.
+        """Comparison between self and another object.
 
         Additionally, it defines the __ne__() as stated in the
         documentation from python:
@@ -335,7 +335,7 @@ class AbstractForbiddenConjunction(AbstractForbiddenComponent):
             unless it is NotImplemented.
         """
         if not isinstance(other, self.__class__):
-            return False
+            return NotImplemented
 
         if self.n_components != other.n_components:
             return False

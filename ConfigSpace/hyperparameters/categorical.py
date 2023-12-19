@@ -1,24 +1,25 @@
-from collections import Counter
+from __future__ import annotations
+
 import copy
 import io
-from typing import Any, Dict, List, Optional, Sequence, Tuple, Union
+from collections import Counter
+from typing import Any, Sequence
 
 import numpy as np
 
-from ConfigSpace.hyperparameters.hyperparameter import Hyperparameter
+from ConfigSpace.hyperparameters.hyperparameter import Comparison, Hyperparameter
 
 
 class CategoricalHyperparameter(Hyperparameter):
-
     # TODO add more magic for automated type recognition
     # TODO move from list to tuple for choices argument
     def __init__(
         self,
         name: str,
-        choices: Union[List[Union[str, float, int]], Tuple[Union[float, int, str]]],
-        default_value: Union[int, float, str, None] = None,
-        meta: Optional[Dict] = None,
-        weights: Optional[Sequence[Union[int, float]]] = None,
+        choices: list[str | float | int] | tuple[float | int | str],
+        default_value: int | float | str | None = None,
+        meta: dict | None = None,
+        weights: Sequence[int | float] | None = None,
     ) -> None:
         """
         A categorical hyperparameter.
@@ -49,8 +50,7 @@ class CategoricalHyperparameter(Hyperparameter):
             List of weights for the choices to be used (after normalization) as
             probabilities during sampling, no negative values allowed
         """
-
-        super(CategoricalHyperparameter, self).__init__(name, meta)
+        super().__init__(name, meta)
         # TODO check that there is no bullshit in the choices!
         counter = Counter(choices)
         for choice in choices:
@@ -63,11 +63,15 @@ class CategoricalHyperparameter(Hyperparameter):
             if choice is None:
                 raise TypeError("Choice 'None' is not supported")
         if isinstance(choices, set):
-            raise TypeError("Using a set of choices is prohibited as it can result in "
-                            "non-deterministic behavior. Please use a list or a tuple.")
+            raise TypeError(
+                "Using a set of choices is prohibited as it can result in "
+                "non-deterministic behavior. Please use a list or a tuple.",
+            )
         if isinstance(weights, set):
-            raise TypeError("Using a set of weights is prohibited as it can result in "
-                            "non-deterministic behavior. Please use a list or a tuple.")
+            raise TypeError(
+                "Using a set of weights is prohibited as it can result in "
+                "non-deterministic behavior. Please use a list or a tuple.",
+            )
         self.choices = tuple(choices)
         if weights is not None:
             self.weights = tuple(weights)
@@ -122,8 +126,8 @@ class CategoricalHyperparameter(Hyperparameter):
             ordered_probabilities_other = {
                 choice: (
                     other.probabilities[other.choices.index(choice)]
-                    if choice in other.choices else
-                    None
+                    if choice in other.choices
+                    else None
                 )
                 for choice in self.choices
             }
@@ -131,21 +135,21 @@ class CategoricalHyperparameter(Hyperparameter):
             ordered_probabilities_other = None
 
         return (
-            self.name == other.name and
-            set(self.choices) == set(other.choices) and
-            self.default_value == other.default_value and
-            (
-                (ordered_probabilities_self is None and ordered_probabilities_other is None) or
-                ordered_probabilities_self == ordered_probabilities_other or
-                (
+            self.name == other.name
+            and set(self.choices) == set(other.choices)
+            and self.default_value == other.default_value
+            and (
+                (ordered_probabilities_self is None and ordered_probabilities_other is None)
+                or ordered_probabilities_self == ordered_probabilities_other
+                or (
                     ordered_probabilities_self is None
                     and len(np.unique(list(ordered_probabilities_other.values()))) == 1
-                ) or
-                (
+                )
+                or (
                     ordered_probabilities_other is None
                     and len(np.unique(list(ordered_probabilities_self.values()))) == 1
                 )
-             )
+            )
         )
 
     def __hash__(self):
@@ -160,14 +164,14 @@ class CategoricalHyperparameter(Hyperparameter):
             meta=self.meta,
         )
 
-    def to_uniform(self) -> "CategoricalHyperparameter":
+    def to_uniform(self) -> CategoricalHyperparameter:
         """
         Creates a categorical parameter with equal weights for all choices
         This is used for the uniform configspace when sampling configurations in the local search
-        in PiBO: https://openreview.net/forum?id=MMAeCXIa89
+        in PiBO: https://openreview.net/forum?id=MMAeCXIa89.
 
         Returns
-        ----------
+        -------
         CategoricalHyperparameter
             An identical parameter as the original, except that all weights are uniform.
         """
@@ -178,35 +182,36 @@ class CategoricalHyperparameter(Hyperparameter):
             meta=self.meta,
         )
 
-    def compare(self, value: Union[int, float, str], value2: Union[int, float, str]) -> int:
+    def compare(self, value: int | float | str, value2: int | float | str) -> Comparison:
         if value == value2:
-            return 0
-        else:
-            return 1
+            return Comparison.EQUAL
 
-    def compare_vector(self, DTYPE_t value, DTYPE_t value2) -> int:
+        return Comparison.NOT_EQUAL
+
+    def compare_vector(self, value: float, value2: float) -> Comparison:
         if value == value2:
-            return 0
-        else:
-            return 1
+            return Comparison.EQUAL
 
-    def is_legal(self, value: Union[None, str, float, int]) -> bool:
-        if value in self.choices:
-            return True
-        else:
-            return False
+        return Comparison.NOT_EQUAL
 
-    def is_legal_vector(self, DTYPE_t value) -> int:
+    def is_legal(self, value: None | str | float | int) -> bool:
+        return value in self.choices
+
+    def is_legal_vector(self, value) -> int:
         return value in self._choices_set
 
-    def _get_probabilities(self, choices: Tuple[Union[None, str, float, int]],
-                           weights: Union[None, List[float]]) -> Union[None, List[float]]:
+    def _get_probabilities(
+        self,
+        choices: tuple[None | str | float | int],
+        weights: None | list[float],
+    ) -> None | list[float]:
         if weights is None:
             return tuple(np.ones(len(choices)) / len(choices))
 
         if len(weights) != len(choices):
             raise ValueError(
-                "The list of weights and the list of choices are required to be of same length.")
+                "The list of weights and the list of choices are required to be of same length.",
+            )
 
         weights = np.array(weights)
 
@@ -218,8 +223,10 @@ class CategoricalHyperparameter(Hyperparameter):
 
         return tuple(weights / np.sum(weights))
 
-    def check_default(self, default_value: Union[None, str, float, int],
-                      ) -> Union[str, float, int]:
+    def check_default(
+        self,
+        default_value: None | str | float | int,
+    ) -> str | float | int:
         if default_value is None:
             return self.choices[np.argmax(self.weights) if self.weights is not None else 0]
         elif self.is_legal(default_value):
@@ -227,34 +234,43 @@ class CategoricalHyperparameter(Hyperparameter):
         else:
             raise ValueError("Illegal default value %s" % str(default_value))
 
-    def _sample(self, rs: np.random.RandomState, size: Optional[int] = None,
-                ) -> Union[int, np.ndarray]:
+    def _sample(
+        self,
+        rs: np.random.RandomState,
+        size: int | None = None,
+    ) -> int | np.ndarray:
         return rs.choice(a=self.num_choices, size=size, replace=True, p=self.probabilities)
 
-    def _transform_vector(self, vector: np.ndarray ) -> np.ndarray:
+    def _transform_vector(self, vector: np.ndarray) -> np.ndarray:
         if np.isnan(vector).any():
-            raise ValueError("Vector %s contains NaN\'s" % vector)
+            raise ValueError("Vector %s contains NaN's" % vector)
 
         if np.equal(np.mod(vector, 1), 0):
             return self.choices[vector.astype(int)]
 
-        raise ValueError("Can only index the choices of the ordinal "
-                         "hyperparameter %s with an integer, but provided "
-                         "the following float: %f" % (self, vector))
+        raise ValueError(
+            "Can only index the choices of the ordinal "
+            f"hyperparameter {self} with an integer, but provided "
+            f"the following float: {vector:f}",
+        )
 
-    def _transform_scalar(self, scalar: Union[float, int]) -> Union[float, int, str]:
+    def _transform_scalar(self, scalar: float | int) -> float | int | str:
         if scalar != scalar:
             raise ValueError("Number %s is NaN" % scalar)
 
         if scalar % 1 == 0:
             return self.choices[int(scalar)]
 
-        raise ValueError("Can only index the choices of the ordinal "
-                         "hyperparameter %s with an integer, but provided "
-                         "the following float: %f" % (self, scalar))
+        raise ValueError(
+            "Can only index the choices of the ordinal "
+            f"hyperparameter {self} with an integer, but provided "
+            f"the following float: {scalar:f}",
+        )
 
-    def _transform(self, vector: Union[np.ndarray, float, int, str],
-                   ) -> Optional[Union[np.ndarray, float, int]]:
+    def _transform(
+        self,
+        vector: np.ndarray | float | int | str,
+    ) -> np.ndarray | float | int | None:
         try:
             if isinstance(vector, np.ndarray):
                 return self._transform_vector(vector)
@@ -262,7 +278,7 @@ class CategoricalHyperparameter(Hyperparameter):
         except ValueError:
             return None
 
-    def _inverse_transform(self, vector: Union[None, str, float, int]) -> Union[int, float]:
+    def _inverse_transform(self, vector: None | str | float | int) -> int | float:
         if vector is None:
             return np.NaN
         return self.choices.index(vector)
@@ -270,12 +286,16 @@ class CategoricalHyperparameter(Hyperparameter):
     def has_neighbors(self) -> bool:
         return len(self.choices) > 1
 
-    def get_num_neighbors(self, value = None) -> int:
+    def get_num_neighbors(self, value=None) -> int:
         return len(self.choices) - 1
 
-    def get_neighbors(self, value: int, rs: np.random.RandomState,
-                      number: Union[int, float] = np.inf, transform: bool = False,
-                      ) -> List[Union[float, int, str]]:
+    def get_neighbors(
+        self,
+        value: int,
+        rs: np.random.RandomState,
+        number: int | float = np.inf,
+        transform: bool = False,
+    ) -> list[float | int | str]:
         neighbors = []  # type: List[Union[float, int, str]]
         if number < len(self.choices):
             while len(neighbors) < number:
@@ -286,17 +306,14 @@ class CategoricalHyperparameter(Hyperparameter):
                     if neighbor_idx != index:
                         rejected = False
 
-                if transform:
-                    candidate = self._transform(neighbor_idx)
-                else:
-                    candidate = float(neighbor_idx)
+                candidate = self._transform(neighbor_idx) if transform else float(neighbor_idx)
 
                 if candidate in neighbors:
                     continue
                 else:
                     neighbors.append(candidate)
         else:
-            for candidate_idx, candidate_value in enumerate(self.choices):
+            for candidate_idx, _candidate_value in enumerate(self.choices):
                 if int(value) == candidate_idx:
                     continue
                 else:
@@ -310,11 +327,13 @@ class CategoricalHyperparameter(Hyperparameter):
         return neighbors
 
     def allow_greater_less_comparison(self) -> bool:
-        raise ValueError("Parent hyperparameter in a > or < "
-                         "condition must be a subclass of "
-                         "NumericalHyperparameter or "
-                         "OrdinalHyperparameter, but is "
-                         "<cdef class 'ConfigSpace.hyperparameters.CategoricalHyperparameter'>")
+        raise ValueError(
+            "Parent hyperparameter in a > or < "
+            "condition must be a subclass of "
+            "NumericalHyperparameter or "
+            "OrdinalHyperparameter, but is "
+            "<cdef class 'ConfigSpace.hyperparameters.CategoricalHyperparameter'>",
+        )
 
     def pdf(self, vector: np.ndarray) -> np.ndarray:
         """
@@ -332,7 +351,7 @@ class CategoricalHyperparameter(Hyperparameter):
             function is to be computed.
 
         Returns
-        ----------
+        -------
         np.ndarray(N, )
             Probability density values of the input vector
         """
@@ -360,7 +379,7 @@ class CategoricalHyperparameter(Hyperparameter):
             function is to be computed.
 
         Returns
-        ----------
+        -------
         np.ndarray(N, )
             Probability density values of the input vector
         """

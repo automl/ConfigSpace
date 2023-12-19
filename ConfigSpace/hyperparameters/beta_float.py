@@ -1,14 +1,15 @@
 from __future__ import annotations
 
 import io
-import warnings
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 from scipy.stats import beta as spbeta
 
-from ConfigSpace.hyperparameters.beta_integer import BetaIntegerHyperparameter
 from ConfigSpace.hyperparameters.uniform_float import UniformFloatHyperparameter
+
+if TYPE_CHECKING:
+    from ConfigSpace.hyperparameters.beta_integer import BetaIntegerHyperparameter
 
 
 class BetaFloatHyperparameter(UniformFloatHyperparameter):
@@ -68,18 +69,24 @@ class BetaFloatHyperparameter(UniformFloatHyperparameter):
         # then actually call check_default once we have alpha and beta, and are not inside
         # UniformFloatHP.
         super().__init__(
-            name, lower, upper, (upper + lower) / 2, q, log, meta,
+            name=name,
+            lower=lower,
+            upper=upper,
+            default_value=(upper + lower) / 2,
+            q=q,
+            log=log,
+            meta=meta,
         )
         self.alpha = float(alpha)
         self.beta = float(beta)
         if (alpha < 1) or (beta < 1):
             raise ValueError(
-                "Please provide values of alpha and beta larger than or equal to\
-             1 so that the probability density is finite.",
+                "Please provide values of alpha and beta larger than or equal to"
+                " 1 so that the probability density is finite.",
             )
 
-        if (self.q is not None) and (self.log is not None) and (default_value is None):
-            warnings.warn(
+        if (self.q is not None) and self.log and (default_value is None):
+            raise ValueError(
                 "Logscale and quantization together results in incorrect default values. "
                 "We recommend specifying a default value manually for this specific case.",
             )
@@ -189,6 +196,8 @@ class BetaFloatHyperparameter(UniformFloatHyperparameter):
         lower = int(np.ceil(self.lower))
         upper = int(np.floor(self.upper))
         default_value = int(np.rint(self.default_value))
+        from ConfigSpace.hyperparameters.beta_integer import BetaIntegerHyperparameter
+
         return BetaIntegerHyperparameter(
             self.name,
             lower=lower,

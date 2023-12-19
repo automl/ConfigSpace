@@ -8,10 +8,10 @@ import numpy as np
 from ConfigSpace import c_util
 from ConfigSpace.exceptions import HyperparameterNotFoundError, IllegalValueError
 from ConfigSpace.hyperparameters import FloatHyperparameter
+from ConfigSpace.hyperparameters.hyperparameter import NotSet
 
 if TYPE_CHECKING:
     from ConfigSpace.configuration_space import ConfigurationSpace
-
 
 class Configuration(Mapping[str, Any]):
     def __init__(
@@ -78,18 +78,19 @@ class Configuration(Mapping[str, Any]):
             # the configuration are sorted in the same way as they are sorted in
             # the configuration space
             self._values = {}
-            self._vector = np.ndarray(shape=len(configuration_space), dtype=float)
+            self._vector = np.empty(shape=len(configuration_space), dtype=float)
 
             for i, (key, hp) in enumerate(configuration_space.items()):
-                value = values.get(key)
-                if value is None:
-                    self._vector[i] = np.nan  # By default, represent None values as NaN
+                value = values.get(key, NotSet)
+                if value is NotSet:
+                    self._vector[i] = np.nan
                     continue
 
                 if not hp.is_legal(value):
                     raise IllegalValueError(hp, value)
 
                 # Truncate the float to be of constant length for a python version
+                # TODO: Optimize this
                 if isinstance(hp, FloatHyperparameter):
                     value = float(repr(value))
 
@@ -229,7 +230,7 @@ class Configuration(Mapping[str, Any]):
     def __repr__(self) -> str:
         values = dict(self)
         header = "Configuration(values={"
-        lines = [f"  '{key}': {repr(values[key])}," for key in sorted(values.keys())]
+        lines = [f"  '{key}': {values[key]!r}," for key in sorted(values.keys())]
         end = "})"
         return "\n".join([header, *lines, end])
 

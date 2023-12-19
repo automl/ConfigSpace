@@ -7,8 +7,8 @@ import numpy as np
 from scipy.stats import beta as spbeta
 
 from ConfigSpace.functional import arange_chunked
-from ConfigSpace.hyperparameters import UniformIntegerHyperparameter
 from ConfigSpace.hyperparameters.beta_float import BetaFloatHyperparameter
+from ConfigSpace.hyperparameters.uniform_integer import UniformIntegerHyperparameter
 
 # OPTIM: Some operations generate an arange which could blowup memory if
 # done over the entire space of integers (int32/64).
@@ -73,14 +73,20 @@ class BetaIntegerHyperparameter(UniformIntegerHyperparameter):
 
         """
         super().__init__(
-            name, lower, upper, np.round((upper + lower) / 2), q, log, meta,
+            name,
+            lower,
+            upper,
+            np.round((upper + lower) / 2),
+            q,
+            log,
+            meta,
         )
         self.alpha = float(alpha)
         self.beta = float(beta)
         if (alpha < 1) or (beta < 1):
             raise ValueError(
-                "Please provide values of alpha and beta larger than or equal to\
-             1 so that the probability density is finite.",
+                "Please provide values of alpha and beta larger than or equal to"
+                "1 so that the probability density is finite.",
             )
         q = 1 if self.q is None else self.q
         self.bfhp = BetaFloatHyperparameter(
@@ -185,7 +191,9 @@ class BetaIntegerHyperparameter(UniformIntegerHyperparameter):
         raise ValueError(f"Illegal default value {default_value}")
 
     def _sample(
-        self, rs: np.random.RandomState, size: int | None = None,
+        self,
+        rs: np.random.RandomState,
+        size: int | None = None,
     ) -> np.ndarray | float:
         value = self.bfhp._sample(rs, size=size)
         # Map all floats which belong to the same integer value to the same

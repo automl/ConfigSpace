@@ -28,7 +28,6 @@
 from __future__ import annotations
 
 import json
-import unittest
 from collections import OrderedDict
 from itertools import product
 
@@ -83,10 +82,8 @@ def test_add_hyperparameter():
 
 def test_add_non_hyperparameter():
     cs = ConfigurationSpace()
-    non_hp = unittest.TestSuite()
-
     with pytest.raises(TypeError):
-        cs.add_hyperparameter(non_hp)
+        cs.add_hyperparameter(object())  # type: ignore
 
 
 def test_add_hyperparameters_with_equal_names():
@@ -123,9 +120,8 @@ def test_meta_data_stored():
 
 def test_add_non_condition():
     cs = ConfigurationSpace()
-    non_cond = unittest.TestSuite()
     with pytest.raises(TypeError):
-        cs.add_condition(non_cond)
+        cs.add_condition(object())  # type: ignore
 
 
 def test_hyperparameters_with_valid_condition():
@@ -684,7 +680,7 @@ def test_repr():
     cs1.add_condition(cond1)
     retval = cs1.__str__()
     assert (
-        f"Configuration space object:\n  Hyperparameters:\n    {hp2!s}\n    {hp1!s}\n  Conditions:\n    {cond2!s}\n"
+        f"Configuration space object:\n  Hyperparameters:\n    {hp2}\n    {hp1}\n  Conditions:\n    {cond1}\n"
         == retval
     )
 
@@ -879,25 +875,27 @@ def test_remove_hyperparameter_priors():
     beta = BetaFloatHyperparameter("beta", alpha=8, beta=2, lower=-1, upper=11)
     norm = NormalIntegerHyperparameter("norm", mu=5, sigma=4, lower=1, upper=15)
     cs.add_hyperparameters([integer, cat, beta, norm])
+
     cat_default = cat.default_value
     norm_default = norm.default_value
     beta_default = beta.default_value
 
     # add some conditions, to test that remove_parameter_priors keeps the forbiddensdef test_remove_hyp
-    cond_1 = EqualsCondition(norm, cat, 2)
     cond_2 = OrConjunction(EqualsCondition(beta, cat, 0), EqualsCondition(beta, cat, 1))
     cond_3 = OrConjunction(
+        EqualsCondition(norm, cat, 2),
         EqualsCondition(norm, integer, 1),
         EqualsCondition(norm, integer, 3),
         EqualsCondition(norm, integer, 5),
     )
-    cs.add_conditions([cond_1, cond_2, cond_3])
+    cs.add_conditions([cond_2, cond_3])
 
     # add some forbidden clauses too, to test that remove_parameter_priors keeps the forbiddens
     forbidden_clause_a = ForbiddenEqualsClause(cat, 0)
     forbidden_clause_c = ForbiddenEqualsClause(integer, 3)
     forbidden_clause_d = ForbiddenAndConjunction(forbidden_clause_a, forbidden_clause_c)
     cs.add_forbidden_clauses([forbidden_clause_c, forbidden_clause_d])
+
     uniform_cs = cs.remove_hyperparameter_priors()
 
     expected_cs = ConfigurationSpace()
@@ -919,17 +917,17 @@ def test_remove_hyperparameter_priors():
     expected_cs.add_hyperparameters([unif_integer, unif_cat, unif_beta, unif_norm])
 
     # add some conditions, to test that remove_parameter_priors keeps the forbiddens
-    cond_1 = EqualsCondition(unif_norm, unif_cat, 2)
     cond_2 = OrConjunction(
         EqualsCondition(unif_beta, unif_cat, 0),
         EqualsCondition(unif_beta, unif_cat, 1),
     )
     cond_3 = OrConjunction(
+        EqualsCondition(unif_norm, unif_cat, 2),
         EqualsCondition(unif_norm, unif_integer, 1),
         EqualsCondition(unif_norm, unif_integer, 3),
         EqualsCondition(unif_norm, unif_integer, 5),
     )
-    expected_cs.add_conditions([cond_1, cond_2, cond_3])
+    expected_cs.add_conditions([cond_2, cond_3])
 
     # add some forbidden clauses too, to test that remove_parameter_priors keeps the forbiddens
     forbidden_clause_a = ForbiddenEqualsClause(unif_cat, 0)
@@ -1114,7 +1112,7 @@ def test_uniformfloat_transform():
         assert values_dict == saved_value
 
 
-def test_setitem(self):
+def test_setitem():
     """Checks overriding a sampled configuration."""
     pcs = ConfigurationSpace()
     pcs.add_hyperparameter(UniformIntegerHyperparameter("x0", 1, 5, default_value=1))
@@ -1133,15 +1131,15 @@ def test_setitem(self):
     conf = pcs.get_default_configuration()
 
     # failed because it's a invalid configuration
-    with self.assertRaises(IllegalValueError):
+    with pytest.raises(IllegalValueError):
         conf["x0"] = 0
 
     # failed because the variable didn't exists
-    with self.assertRaises(HyperparameterNotFoundError):
+    with pytest.raises(HyperparameterNotFoundError):
         conf["x_0"] = 1
 
     # failed because forbidden clause is violated
-    with self.assertRaises(ForbiddenValueError):
+    with pytest.raises(ForbiddenValueError):
         conf["x3"] = 2
 
     assert conf["x3"] == 1
@@ -1167,15 +1165,15 @@ def test_setitem(self):
     assert x1_old != x1_new
     pcs._check_configuration_rigorous(conf)
 
-    with self.assertRaises(KeyError):
+    with pytest.raises(KeyError):
         conf["x2"]
 
 
-def test_setting_illegal_value(self):
+def test_setting_illegal_value():
     cs = ConfigurationSpace()
     cs.add_hyperparameter(UniformFloatHyperparameter("x", 0, 1))
     configuration = {"x": 2}
-    with self.assertRaises(ValueError):
+    with pytest.raises(ValueError):
         Configuration(cs, values=configuration)
 
 
