@@ -104,6 +104,7 @@ cpdef int check_configuration(
         if not allow_inactive_with_values and not active[hp_idx] and not np.isnan(vector[hp_idx]):
             # Only look up the value (in the line above) if the hyperparameter is inactive!
             hp_name = self._idx_to_hyperparameter[hp_idx]
+            hyperparameter = self._hyperparameters[hp_name]
             hp_value = vector[hp_idx]
             free(active)
             raise InactiveHyperparameterSetError(hyperparameter, hp_value)
