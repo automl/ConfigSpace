@@ -18,7 +18,7 @@ def Float(
     *,
     distribution: Uniform | None = ...,
     default: float | None = ...,
-    q: int | None = ...,
+    q: int | float | None = ...,
     log: bool = ...,
     meta: dict | None = ...,
 ) -> UniformFloatHyperparameter:
@@ -33,7 +33,7 @@ def Float(
     *,
     distribution: Normal,
     default: float | None = ...,
-    q: int | None = ...,
+    q: int | float | None = ...,
     log: bool = ...,
     meta: dict | None = ...,
 ) -> NormalFloatHyperparameter:
@@ -113,7 +113,7 @@ def Float(
     default : float | None = None
         The default value to give to the hyperparameter.
 
-    q : float | None = None
+    q : float | int | None = None
         The quantization factor, must evenly divide the boundaries.
 
         Note
