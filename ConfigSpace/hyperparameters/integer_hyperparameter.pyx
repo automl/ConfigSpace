@@ -6,7 +6,7 @@ np.import_array()
 
 
 cdef class IntegerHyperparameter(NumericalHyperparameter):
-    def __init__(self, name: str, default_value: int, meta: Optional[Dict] = None) -> None:
+    def __init__(self, name: str, default_value: Union[int, None], meta: Optional[Dict] = None) -> None:
         super(IntegerHyperparameter, self).__init__(name, default_value, meta)
 
     def is_legal(self, value: int) -> bool:

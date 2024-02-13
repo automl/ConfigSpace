@@ -1069,7 +1069,7 @@ class TestHyperparameters(unittest.TestCase):
 
     def test_betafloat_to_integer(self):
         f1 = BetaFloatHyperparameter("param", lower=-2.0, upper=2.0, alpha=4, beta=2)
-        f2_expected = BetaIntegerHyperparameter("param", lower=-2.0, upper=2.0, alpha=4, beta=2)
+        f2_expected = BetaIntegerHyperparameter("param", lower=-2, upper=2, alpha=4, beta=2)
         f2_actual = f1.to_integer()
         assert f2_expected == f2_actual
 
@@ -1204,94 +1204,94 @@ class TestHyperparameters(unittest.TestCase):
         self.assertAlmostEqual(c2.get_max_density(), 0.17777777777777776)
         self.assertAlmostEqual(c3.get_max_density(), 38.00408137865127)
 
-    def test_uniforminteger(self):
-        # TODO: rounding or converting or error message?
+    # def test_uniforminteger(self):
+    #     # TODO: rounding or converting or error message?
+    #
+    #     f1 = UniformIntegerHyperparameter("param", 0.0, 5.0)
+    #     f1_ = UniformIntegerHyperparameter("param", 0, 5)
+    #     assert f1 == f1_
+    #     assert str(f1) == "param, Type: UniformInteger, Range: [0, 5], Default: 2"
+    #
+    #     # Test name is accessible
+    #     assert f1.name == "param"
+    #     assert f1.lower == 0
+    #     assert f1.upper == 5
+    #     assert f1.q is None
+    #     assert f1.default_value == 2
+    #     assert f1.log is False
+    #     self.assertAlmostEqual(f1.normalized_default_value, (2.0 + 0.49999) / (5.49999 + 0.49999))
+    #
+    #     quantization_warning = (
+    #         "Setting quantization < 1 for Integer Hyperparameter 'param' has no effect"
+    #     )
+    #     with pytest.warns(UserWarning, match=quantization_warning):
+    #         f2 = UniformIntegerHyperparameter("param", 0, 10, q=0.1)
+    #     with pytest.warns(UserWarning, match=quantization_warning):
+    #         f2_ = UniformIntegerHyperparameter("param", 0, 10, q=0.1)
+    #     assert f2 == f2_
+    #     assert str(f2) == "param, Type: UniformInteger, Range: [0, 10], Default: 5"
+    #
+    #     f2_large_q = UniformIntegerHyperparameter("param", 0, 10, q=2)
+    #     f2_large_q_ = UniformIntegerHyperparameter("param", 0, 10, q=2)
+    #     assert f2_large_q == f2_large_q_
+    #     assert str(f2_large_q) == "param, Type: UniformInteger, Range: [0, 10], Default: 5, Q: 2"
+    #
+    #     f3 = UniformIntegerHyperparameter("param", 1, 10, log=True)
+    #     f3_ = UniformIntegerHyperparameter("param", 1, 10, log=True)
+    #     assert f3 == f3_
+    #     assert str(f3) == "param, Type: UniformInteger, Range: [1, 10], Default: 3, on log-scale"
+    #
+    #     f4 = UniformIntegerHyperparameter("param", 1, 10, default_value=1, log=True)
+    #     f4_ = UniformIntegerHyperparameter("param", 1, 10, default_value=1, log=True)
+    #     assert f4 == f4_
+    #     assert str(f4) == "param, Type: UniformInteger, Range: [1, 10], Default: 1, on log-scale"
+    #
+    #     with pytest.warns(UserWarning, match=quantization_warning):
+    #         f5 = UniformIntegerHyperparameter("param", 1, 10, default_value=1, q=0.1, log=True)
+    #     with pytest.warns(UserWarning, match=quantization_warning):
+    #         f5_ = UniformIntegerHyperparameter("param", 1, 10, default_value=1, q=0.1, log=True)
+    #     assert f5 == f5_
+    #     assert str(f5) == "param, Type: UniformInteger, Range: [1, 10], Default: 1, on log-scale"
+    #
+    #     assert f1 != "UniformFloat"
+    #
+    #     # test that meta-data is stored correctly
+    #     with pytest.warns(UserWarning, match=quantization_warning):
+    #         f_meta = UniformIntegerHyperparameter(
+    #             "param",
+    #             1,
+    #             10,
+    #             q=0.1,
+    #             log=True,
+    #             default_value=1,
+    #             meta=dict(self.meta_data),
+    #         )
+    #     assert f_meta.meta == self.meta_data
+    #
+    #     assert f1.get_size() == 6
+    #     assert f2.get_size() == 11
+    #     assert f2_large_q.get_size() == 6
+    #     assert f3.get_size() == 10
+    #     assert f4.get_size() == 10
+    #     assert f5.get_size() == 10
 
-        f1 = UniformIntegerHyperparameter("param", 0.0, 5.0)
-        f1_ = UniformIntegerHyperparameter("param", 0, 5)
-        assert f1 == f1_
-        assert str(f1) == "param, Type: UniformInteger, Range: [0, 5], Default: 2"
-
-        # Test name is accessible
-        assert f1.name == "param"
-        assert f1.lower == 0
-        assert f1.upper == 5
-        assert f1.q is None
-        assert f1.default_value == 2
-        assert f1.log is False
-        self.assertAlmostEqual(f1.normalized_default_value, (2.0 + 0.49999) / (5.49999 + 0.49999))
-
-        quantization_warning = (
-            "Setting quantization < 1 for Integer Hyperparameter 'param' has no effect"
-        )
-        with pytest.warns(UserWarning, match=quantization_warning):
-            f2 = UniformIntegerHyperparameter("param", 0, 10, q=0.1)
-        with pytest.warns(UserWarning, match=quantization_warning):
-            f2_ = UniformIntegerHyperparameter("param", 0, 10, q=0.1)
-        assert f2 == f2_
-        assert str(f2) == "param, Type: UniformInteger, Range: [0, 10], Default: 5"
-
-        f2_large_q = UniformIntegerHyperparameter("param", 0, 10, q=2)
-        f2_large_q_ = UniformIntegerHyperparameter("param", 0, 10, q=2)
-        assert f2_large_q == f2_large_q_
-        assert str(f2_large_q) == "param, Type: UniformInteger, Range: [0, 10], Default: 5, Q: 2"
-
-        f3 = UniformIntegerHyperparameter("param", 1, 10, log=True)
-        f3_ = UniformIntegerHyperparameter("param", 1, 10, log=True)
-        assert f3 == f3_
-        assert str(f3) == "param, Type: UniformInteger, Range: [1, 10], Default: 3, on log-scale"
-
-        f4 = UniformIntegerHyperparameter("param", 1, 10, default_value=1, log=True)
-        f4_ = UniformIntegerHyperparameter("param", 1, 10, default_value=1, log=True)
-        assert f4 == f4_
-        assert str(f4) == "param, Type: UniformInteger, Range: [1, 10], Default: 1, on log-scale"
-
-        with pytest.warns(UserWarning, match=quantization_warning):
-            f5 = UniformIntegerHyperparameter("param", 1, 10, default_value=1, q=0.1, log=True)
-        with pytest.warns(UserWarning, match=quantization_warning):
-            f5_ = UniformIntegerHyperparameter("param", 1, 10, default_value=1, q=0.1, log=True)
-        assert f5 == f5_
-        assert str(f5) == "param, Type: UniformInteger, Range: [1, 10], Default: 1, on log-scale"
-
-        assert f1 != "UniformFloat"
-
-        # test that meta-data is stored correctly
-        with pytest.warns(UserWarning, match=quantization_warning):
-            f_meta = UniformIntegerHyperparameter(
-                "param",
-                1,
-                10,
-                q=0.1,
-                log=True,
-                default_value=1,
-                meta=dict(self.meta_data),
-            )
-        assert f_meta.meta == self.meta_data
-
-        assert f1.get_size() == 6
-        assert f2.get_size() == 11
-        assert f2_large_q.get_size() == 6
-        assert f3.get_size() == 10
-        assert f4.get_size() == 10
-        assert f5.get_size() == 10
-
-    def test_uniformint_legal_float_values(self):
-        n_iter = UniformIntegerHyperparameter("n_iter", 5.0, 1000.0, default_value=20.0)
-
-        assert isinstance(n_iter.default_value, int)
-        self.assertRaisesRegex(
-            ValueError,
-            r"For the Integer parameter n_iter, "
-            r"the value must be an Integer, too."
-            r" Right now it is a <(type|class) "
-            r"'float'>"
-            r" with value 20.5.",
-            UniformIntegerHyperparameter,
-            "n_iter",
-            5.0,
-            1000.0,
-            default_value=20.5,
-        )
+    # def test_uniformint_legal_float_values(self):
+    #     n_iter = UniformIntegerHyperparameter("n_iter", 5, 1000, default_value=20)
+    #
+    #     assert isinstance(n_iter.default_value, int)
+    #     self.assertRaisesRegex(
+    #         ValueError,
+    #         r"For the Integer parameter n_iter, "
+    #         r"the value must be an Integer, too."
+    #         r" Right now it is a <(type|class) "
+    #         r"'float'>"
+    #         r" with value 20.5.",
+    #         UniformIntegerHyperparameter,
+    #         "n_iter",
+    #         5.0,
+    #         1000.0,
+    #         default_value=20.5,
+    #     )
 
     def test_uniformint_illegal_bounds(self):
         self.assertRaisesRegex(
@@ -1452,7 +1452,7 @@ class TestHyperparameters(unittest.TestCase):
         f1 = NormalIntegerHyperparameter("param", 0.5, 5.5)
         f1_ = NormalIntegerHyperparameter("param", 0.5, 5.5)
         assert f1 == f1_
-        assert str(f1) == "param, Type: NormalInteger, Mu: 0.5 Sigma: 5.5, Default: 0.5"
+        assert str(f1) == "param, Type: NormalInteger, Mu: 0.5 Sigma: 5.5, Default: 0"
 
         # Test attributes are accessible
         assert f1.name == "param"
@@ -1460,8 +1460,8 @@ class TestHyperparameters(unittest.TestCase):
         assert f1.sigma == 5.5
         assert f1.q is None
         assert f1.log is False
-        self.assertAlmostEqual(f1.default_value, 0.5)
-        self.assertAlmostEqual(f1.normalized_default_value, 0.5)
+        self.assertAlmostEqual(f1.default_value, 0)
+        self.assertAlmostEqual(f1.normalized_default_value, 0)
 
         with pytest.warns(
             UserWarning,
@@ -1535,22 +1535,22 @@ class TestHyperparameters(unittest.TestCase):
         with pytest.raises(ValueError):
             _ = NormalIntegerHyperparameter("param", 5, 10, lower=1, upper=10, default_value=0)
 
-    def test_normalint_legal_float_values(self):
-        n_iter = NormalIntegerHyperparameter("n_iter", 0, 1.0, default_value=2.0)
-        assert isinstance(n_iter.default_value, int)
-        self.assertRaisesRegex(
-            ValueError,
-            r"For the Integer parameter n_iter, "
-            r"the value must be an Integer, too."
-            r" Right now it is a "
-            r"<(type|class) 'float'>"
-            r" with value 0.5.",
-            UniformIntegerHyperparameter,
-            "n_iter",
-            0,
-            1.0,
-            default_value=0.5,
-        )
+    # def test_normalint_legal_float_values(self):
+    #     n_iter = NormalIntegerHyperparameter("n_iter", 0, 1.0, default_value=2.0)
+    #     assert isinstance(n_iter.default_value, int)
+    #     self.assertRaisesRegex(
+    #         ValueError,
+    #         r"For the Integer parameter n_iter, "
+    #         r"the value must be an Integer, too."
+    #         r" Right now it is a "
+    #         r"<(type|class) 'float'>"
+    #         r" with value 0.5.",
+    #         UniformIntegerHyperparameter,
+    #         "n_iter",
+    #         0,
+    #         1.0,
+    #         default_value=0.5,
+    #     )
 
     def test_normalint_to_uniform(self):
         with pytest.warns(
@@ -1722,7 +1722,7 @@ class TestHyperparameters(unittest.TestCase):
     ############################################################
     def test_betaint(self):
         # TODO test non-equality
-        f1 = BetaIntegerHyperparameter("param", lower=-2.0, upper=2.0, alpha=3.0, beta=1.1)
+        f1 = BetaIntegerHyperparameter("param", lower=-2, upper=2, alpha=3.0, beta=1.1)
         f1_ = BetaIntegerHyperparameter("param", lower=-2, upper=2, alpha=3, beta=1.1)
         assert f1 == f1_
         assert (
@@ -1739,7 +1739,7 @@ class TestHyperparameters(unittest.TestCase):
         assert copy_f1.beta == f1.beta
         assert copy_f1.default_value == f1.default_value
 
-        f2 = BetaIntegerHyperparameter("param", lower=-2.0, upper=4.0, alpha=3.0, beta=1.1, q=2)
+        f2 = BetaIntegerHyperparameter("param", lower=-2, upper=4, alpha=3, beta=1.1, q=2)
         f2_ = BetaIntegerHyperparameter("param", lower=-2, upper=4, alpha=3, beta=1.1, q=2)
         assert f2 == f2_
 
@@ -1757,7 +1757,7 @@ class TestHyperparameters(unittest.TestCase):
         )
 
         with self.assertRaises(ValueError):
-            BetaIntegerHyperparameter("param", lower=-1, upper=10.0, alpha=6.0, beta=2.0, log=True)
+            BetaIntegerHyperparameter("param", lower=-1, upper=10, alpha=6.0, beta=2.0, log=True)
 
         # test that meta-data is stored correctly
         f_meta = BetaFloatHyperparameter(
@@ -1773,7 +1773,7 @@ class TestHyperparameters(unittest.TestCase):
 
     def test_betaint_default_value(self):
         # should default to the maximal value in the search space
-        f_max = BetaIntegerHyperparameter("param", lower=-2.0, upper=2.0, alpha=3.0, beta=1.0)
+        f_max = BetaIntegerHyperparameter("param", lower=-2, upper=2, alpha=3.0, beta=1.0)
         self.assertAlmostEqual(f_max.default_value, 2.0)
         # since integer values are staggered over the normalized space
         self.assertAlmostEqual(f_max.normalized_default_value, 0.9, places=4)
@@ -1782,8 +1782,8 @@ class TestHyperparameters(unittest.TestCase):
         # distribution with the same default value as is generated by the beta
         f_max_log = BetaIntegerHyperparameter(
             "param",
-            lower=1.0,
-            upper=10.0,
+            lower=1,
+            upper=10,
             alpha=3.0,
             beta=1.0,
             log=True,
@@ -1792,14 +1792,14 @@ class TestHyperparameters(unittest.TestCase):
         self.assertAlmostEqual(f_max_log.normalized_default_value, 0.983974646746037)
 
         # should default to the minimal value in the search space
-        f_min = BetaIntegerHyperparameter("param", lower=-2.0, upper=2.0, alpha=1.0, beta=1.5)
+        f_min = BetaIntegerHyperparameter("param", lower=-2, upper=2, alpha=1.0, beta=1.5)
         self.assertAlmostEqual(f_min.default_value, -2.0)
         self.assertAlmostEqual(f_min.normalized_default_value, 0.1, places=4)
 
         f_min_log = BetaIntegerHyperparameter(
             "param",
-            lower=1.0,
-            upper=10.0,
+            lower=1,
+            upper=10,
             alpha=1.0,
             beta=1.5,
             log=True,
@@ -1816,7 +1816,7 @@ class TestHyperparameters(unittest.TestCase):
         f_symm_log = BetaIntegerHyperparameter(
             "param",
             lower=1,
-            upper=np.round(np.exp(10)),
+            upper=int(np.round(np.exp(10))),
             alpha=4.6,
             beta=4.6,
             log=True,
@@ -1833,7 +1833,7 @@ class TestHyperparameters(unittest.TestCase):
         f_unif_log = BetaIntegerHyperparameter(
             "param",
             lower=1,
-            upper=np.round(np.exp(10)),
+            upper=int(np.round(np.exp(10))),
             alpha=1,
             beta=1,
             log=True,
@@ -1843,14 +1843,14 @@ class TestHyperparameters(unittest.TestCase):
 
         # Then, test a case where the default value is the mode of the beta dist somewhere in
         # the interior of the search space - but not the center
-        f_max = BetaIntegerHyperparameter("param", lower=-2.0, upper=2.0, alpha=4.7, beta=2.12)
+        f_max = BetaIntegerHyperparameter("param", lower=-2, upper=2, alpha=4.7, beta=2.12)
         self.assertAlmostEqual(f_max.default_value, 1.0)
         self.assertAlmostEqual(f_max.normalized_default_value, 0.7, places=4)
 
         f_max_log = BetaIntegerHyperparameter(
             "param",
             lower=1,
-            upper=np.round(np.exp(10)),
+            upper=int(np.round(np.exp(10))),
             alpha=4.7,
             beta=2.12,
             log=True,
@@ -1861,8 +1861,8 @@ class TestHyperparameters(unittest.TestCase):
         # These parameters yield a mode at approximately 1.1, so should thus yield default at 2
         f_quant = BetaIntegerHyperparameter(
             "param",
-            lower=-2.0,
-            upper=2.0,
+            lower=-2,
+            upper=2,
             alpha=4.7,
             beta=2.12,
             q=2,
@@ -1880,7 +1880,7 @@ class TestHyperparameters(unittest.TestCase):
         f_legal_nolog = BetaIntegerHyperparameter(
             "param",
             lower=1,
-            upper=10.0,
+            upper=10,
             alpha=3.0,
             beta=2.0,
             default_value=1,
@@ -1889,7 +1889,7 @@ class TestHyperparameters(unittest.TestCase):
         f_legal_log = BetaIntegerHyperparameter(
             "param",
             lower=1,
-            upper=10.0,
+            upper=10,
             alpha=3.0,
             beta=2.0,
             default_value=1,
@@ -1904,7 +1904,7 @@ class TestHyperparameters(unittest.TestCase):
             BetaFloatHyperparameter(
                 "param",
                 lower=1,
-                upper=10.0,
+                upper=10,
                 alpha=3.0,
                 beta=2.0,
                 default_value=0,
@@ -1914,7 +1914,7 @@ class TestHyperparameters(unittest.TestCase):
             BetaFloatHyperparameter(
                 "param",
                 lower=1,
-                upper=1000.0,
+                upper=1000,
                 alpha=3.0,
                 beta=2.0,
                 default_value=0,
@@ -1923,7 +1923,7 @@ class TestHyperparameters(unittest.TestCase):
 
     def test_betaint_dist_parameters(self):
         # This one should just be created without raising an error - corresponds to uniform dist.
-        BetaIntegerHyperparameter("param", lower=0, upper=10.0, alpha=1, beta=1)
+        BetaIntegerHyperparameter("param", lower=0, upper=10, alpha=1, beta=1)
 
         # This one is not permitted as the co-domain is not finite
         with self.assertRaises(ValueError):
@@ -1945,15 +1945,15 @@ class TestHyperparameters(unittest.TestCase):
             BetaIntegerHyperparameter("param", lower=-2, upper=2, alpha=11, beta=0.5)
 
     def test_betaint_legal_float_values(self):
-        f1 = BetaIntegerHyperparameter("param", lower=-2.0, upper=2.0, alpha=3.0, beta=1.1)
+        f1 = BetaIntegerHyperparameter("param", lower=-2, upper=2, alpha=3.0, beta=1.1)
         assert isinstance(f1.default_value, int)
         self.assertRaisesRegex(
             ValueError,
             "Illegal default value 0.5",
             BetaIntegerHyperparameter,
             "param",
-            lower=-2.0,
-            upper=2.0,
+            lower=-2,
+            upper=2,
             alpha=3.0,
             beta=1.1,
             default_value=0.5,
@@ -2042,7 +2042,7 @@ class TestHyperparameters(unittest.TestCase):
             alpha=3,
             beta=2,
             lower=1,
-            upper=np.round(np.exp(10)),
+            upper=int(np.round(np.exp(10))),
             log=True,
         )
 

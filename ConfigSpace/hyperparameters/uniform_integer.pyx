@@ -83,7 +83,7 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
                                                self.lower - 0.49999,
                                                self.upper + 0.49999,
                                                log=self.log,
-                                               default_value=self.default_value)
+                                               default_value=float(self.default_value))
 
         self.normalized_default_value = self._inverse_transform(self.default_value)
 
@@ -130,7 +130,7 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
                            ) -> Union[np.ndarray, float, int]:
         return self.ufhp._inverse_transform(vector)
 
-    def is_legal(self, value: int) -> bool:
+    def is_legal(self, value: Union[int, None]) -> bool:
         if not (isinstance(value, (int, np.int32, np.int64))):
             return False
         elif self.upper >= value >= self.lower:

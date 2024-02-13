@@ -25,7 +25,7 @@ ARANGE_CHUNKSIZE = 10_000_000
 
 cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
 
-    def __init__(self, name: str, mu: int, sigma: Union[int, float],
+    def __init__(self, name: str, mu: Union[int, float], sigma: Union[int, float],
                  default_value: Union[int, None] = None, q: Union[None, int] = None,
                  log: bool = False,
                  lower: Optional[int] = None,
@@ -46,7 +46,7 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
         ----------
         name : str
             Name of the hyperparameter with which it can be accessed
-        mu : int
+        mu : int, float
             Mean of the distribution, from which hyperparameter is sampled
         sigma : int, float
             Standard deviation of the distribution, from which
@@ -189,12 +189,12 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
             ub = self.upper
 
         return UniformIntegerHyperparameter(self.name,
-                                            lb,
-                                            ub,
+                                            int(lb),
+                                            int(ub),
                                             default_value=self.default_value,
                                             q=self.q, log=self.log, meta=self.meta)
 
-    def is_legal(self, value: int) -> bool:
+    def is_legal(self, value: Any) -> bool:
         return (isinstance(value, (int, np.integer))) and \
                (self.lower is None or value >= self.lower) and \
                (self.upper is None or value <= self.upper)
@@ -202,12 +202,12 @@ cdef class NormalIntegerHyperparameter(IntegerHyperparameter):
     cpdef bint is_legal_vector(self, DTYPE_t value):
         return isinstance(value, float) or isinstance(value, int)
 
-    def check_default(self, default_value: int) -> int:
+    def check_default(self, default_value: Union[int, None]) -> int:
         if default_value is None:
             if self.log:
                 return self._transform_scalar(self.mu)
             else:
-                return self.mu
+                return int(self.mu)
 
         elif self.is_legal(default_value):
             return default_value
