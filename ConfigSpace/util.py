@@ -54,7 +54,7 @@ def impute_inactive_values(
     """Impute inactive parameters.
 
     Iterate through the hyperparameters of a ``Configuration`` and set the
-    values of the inactive hyperparamters to their default values if the choosen
+    values of the inactive hyperparameters to their default values if the choosen
     ``strategy`` is 'default'. Otherwise ``strategy`` contains a float number.
     Set the hyperparameters' value to this number.
 
@@ -341,7 +341,7 @@ def deactivate_inactive_hyperparameters(
     ----------
     configuration : dict
         a configuration as a dictionary. Key: name of the hyperparameter.
-        Value: value of this hyperparamter
+        Value: value of this hyperparameter
         configuration from which inactive hyperparameters will be removed
     configuration_space : :class:`~ConfigSpace.configuration_space.ConfigurationSpace`
         The defined configuration space. It is necessary to find the inactive
@@ -427,7 +427,7 @@ def fix_types(
     ----------
     configuration : dict
         a configuration as a dictionary. Key: name of the hyperparameter.
-        Value: value of this hyperparamter
+        Value: value of this hyperparameter
     configuration_space : :class:`~ConfigSpace.configuration_space.ConfigurationSpace`
         Configuration space which knows the types for all parameter values
 

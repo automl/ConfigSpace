@@ -76,7 +76,7 @@ And that's it!
 Advanced Usage
 --------------
 Lets create a more complex example where we have two models, model ``A`` and model ``B``.
-Model ``B`` is some kernel based algorithm and ``A`` just needs a simple float hyperparamter.
+Model ``B`` is some kernel based algorithm and ``A`` just needs a simple float hyperparameter.
 
 
 We're going to create a config space that will let us correctly build a randomly selected model.

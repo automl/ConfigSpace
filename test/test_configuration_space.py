@@ -30,6 +30,7 @@ from __future__ import annotations
 import json
 import unittest
 from collections import OrderedDict
+from dataclasses import dataclass
 from itertools import product
 
 import numpy as np
@@ -68,6 +69,7 @@ from ConfigSpace.hyperparameters import (
     OrdinalHyperparameter,
     UniformFloatHyperparameter,
 )
+from configuration_space import TOutput, TypedConfigurationSpace, TypedConfigurationSpaceFromConstructor
 
 
 def byteify(input):
@@ -1015,6 +1017,32 @@ class TestConfigurationSpace(unittest.TestCase):
         assert cs.estimate_size() == 18
         cs.add_hyperparameter(UniformFloatHyperparameter("float", 0, 1))
         assert np.isinf(cs.estimate_size())
+
+
+class TestTypedConfigurationSpace(unittest.TestCase):
+    def test_custom_type_returned(self):
+        @dataclass
+        class CustomOutput:
+            foo: int
+            bar: str
+
+        class CustomConfigSpace(TypedConfigurationSpace[CustomOutput]):
+            def _instantiate_type_from_config(self, config: Configuration) -> TOutput:
+                config_dict = dict(config)
+                config_dict["bar"] = config_dict["baz"]
+                return CustomOutput(**config_dict)
+        
+        space = {"foo": (1, 5), "baz": ["a", "b"]}
+        typed_cs_from_custom_class = CustomConfigSpace(space=space)
+        typed_cs_from_passing_constructor = TypedConfigurationSpaceFromConstructor(
+            CustomOutput, space=space
+        )
+        for typed_cs in (typed_cs_from_passing_constructor, typed_cs_from_custom_class):
+            assert isinstance(typed_cs.sample_type(), CustomOutput)
+            assert isinstance(typed_cs.sample_type(size=1), list)
+            assert isinstance(typed_cs.sample_type(size=1)[0], CustomOutput)
+            assert isinstance(typed_cs.sample_type(size=2), list)
+
 
 
 class ConfigurationTest(unittest.TestCase):

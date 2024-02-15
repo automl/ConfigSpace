@@ -5,7 +5,7 @@ Hyperparameters
 ConfigSpace contains
 :func:`~ConfigSpace.api.types.float.Float`,
 :func:`~ConfigSpace.api.types.integer.Integer`
-and :func:`~ConfigSpace.api.types.categorical.Categorical` hyperparamters, each with their own customizability.
+and :func:`~ConfigSpace.api.types.categorical.Categorical` hyperparameters, each with their own customizability.
 
 For :func:`~ConfigSpace.api.types.float.Float` and :func:`~ConfigSpace.api.types.integer.Integer`, you will find their
 interface much the same, being able to take the same :ref:`distributions <Distributions>` and parameters.

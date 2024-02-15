@@ -119,7 +119,7 @@ def Categorical(
         :py:class:`CategoricalHyperparameter`.
 
     meta: dict | None = None
-        Any additional meta information you would like to store along with the hyperparamter.
+        Any additional meta information you would like to store along with the hyperparameter.
     """
     if ordered and weights is not None:
         raise ValueError("Can't apply `weights` to `ordered` Categorical")

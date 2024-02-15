@@ -31,9 +31,10 @@ import contextlib
 import copy
 import io
 import warnings
+from abc import ABC, abstractmethod
 from collections import OrderedDict, defaultdict, deque
 from itertools import chain
-from typing import Any, Iterable, Iterator, KeysView, Mapping, cast, overload
+from typing import Any, Callable, Generic, Iterable, Iterator, KeysView, Mapping, TypeVar, cast, overload
 from typing_extensions import Final
 
 import numpy as np
@@ -144,7 +145,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         seed: int | None = None,
         meta: dict | None = None,
         *,
-        space: None
+        space: None | ConfigurationSpace
         | (
             dict[
                 str,
@@ -164,7 +165,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         meta : dict, optional
             Field for holding meta data provided by the user.
             Not used by the configuration space.
-        space:
+        space: dict | ConfigurationSpace, optional
             A simple configuration space to use:
 
             .. code:: python
@@ -182,13 +183,17 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         """
         # If first arg is a dict, we assume this to be `space`
         if isinstance(name, dict):
+            if space is not None:
+                raise ValueError(
+                    f"If name (or the first arg) is a dict, space must be None, got: {space}",
+                )
             space = name
             name = None
 
         self.name = name
         self.meta = meta
 
-        # NOTE: The idx of a hyperparamter is tied to its order in _hyperparamters
+        # NOTE: The idx of a hyperparameter is tied to its order in _hyperparameters
         # Having three variables to keep track of this seems excessive
         self._hyperparameters: OrderedDict[str, Hyperparameter] = OrderedDict()
         self._hyperparameter_idx: dict[str, int] = {}
@@ -795,7 +800,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
     def sample_configuration(self, size: None = None) -> Configuration:
         ...
 
-    # Technically this is wrong given the current behaviour but it's
+    # Technically, this is wrong given the current behaviour but it's
     # sufficient for most cases. Once deprecation warning is up,
     # we can just have `1` always return a list of configurations
     # because an `int` was specified, `None` for single config.
@@ -1582,3 +1587,134 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         return list(self._hyperparameters.keys())
 
     # ---------------------------------------------------
+
+
+TOutput = TypeVar("TOutput")
+
+
+class TypedConfigurationSpace(ConfigurationSpace, Generic[TOutput], ABC):
+    """
+    An extension of ConfigurationSpace that allows to sample instances of a given type.
+    In this version, the construction of the chosen type has to be implemented explicitly
+    by implementing the abstract method `_instantiate_type_from_config`, and each
+    implementation of this class is bound to the type it returns via generics.
+
+    A common case is when the user already has implemented a function for
+    instantiating the desired type from kwargs (e.g., the type's standard constructor)
+    and does not wish to create a separate class for handling the sampling.
+    In that case, one can use :class:`TypedConfigurationSpaceFromConstructor`
+    instead.
+
+    Examples
+    --------
+
+    A typical example would be
+    >>> @dataclass
+    ... class MyOutputClass:
+    ...     a: int
+
+    For spaces that contain an integer under the key "a", one can then implement
+    >>> class MyOutputConfigurationSpace(TypedConfigurationSpace[MyOutputClass]):
+    ...     def _instantiate_type_from_config(self, config: Configuration):
+    ...         return MyOutputClass(**dict(config))
+    ...
+
+    Then, one can create a config space of instances of `MyOutputClass` from the configuration space as
+    >>> space = {"a": (1, 5)}
+    >>> my_config_space = MyOutputConfigurationSpace(space=space)
+    """
+
+    @abstractmethod
+    def _instantiate_type_from_config(self, config: Configuration) -> TOutput:
+        pass
+
+    @overload
+    def sample_type(self, size: None = None) -> TOutput:
+        ...
+
+    @overload
+    def sample_type(self, size: int) -> list[TOutput]:
+        ...
+
+    def sample_type(self, size: int | None = None) -> TOutput | list[TOutput]:
+        """Sample a configuration from the configuration space object.
+
+        Parameters
+        ----------
+        size : int, optional
+            Number of configurations to sample.
+
+        Returns
+        -------
+        TOut | list[TOut]
+            Sampled instances of the output type. If `size=None`, a single instance is
+            returned. Otherwise, a list of instances is returned.
+        """
+        configs = super().sample_configuration(size)
+        if size in (None, 1):
+            configs = [configs]
+
+        configs = cast(list[Configuration], configs)
+        usr_type_instances = [self._instantiate_type_from_config(conf) for conf in configs]
+        if size is None:
+            return usr_type_instances[0]
+        return usr_type_instances
+
+
+class TypedConfigurationSpaceFromConstructor(TypedConfigurationSpace[TOutput]):
+    """
+    An specialization of TypedConfigurationSpaceFromConstructor for the common special
+    case is when the type can be instantiated directly from kwargs and the user
+    does not desire to have a separate class for handling the sampling of the type.
+
+    Examples
+    --------
+
+    A typical example would be
+    >>> @dataclass
+    ... class MyOutputClass:
+    ...     a: int
+
+    Contrary to the base `TypedConfigurationSpace`, one does not need to implement
+    a new class to reach the desired functionality and instead only needs to pass
+    the type constructor, which in this case is just the type itself
+    >>> space = {"a": (1, 5)}
+    >>> my_config_space = TypedConfigurationSpaceFromConstructor(MyOutputClass, space=space)
+
+
+    """
+    def __init__(
+        self,
+        output_constructor: Callable[[...], TOutput],
+        name: str | dict | None = None,
+        seed: int | None = None,
+        meta: dict | None = None,
+        *,
+        space: None
+        | (
+            dict[
+                str,
+                tuple[int, int] | tuple[float, float] | list[Any] | int | float | str,
+            ]
+        ) = None,
+    ) -> None:
+        """
+
+        Parameters
+        ----------
+        output_constructor : Callable[[...], TOutput]
+            Takes the unpacked samples of the config space as kwargs
+            and returns an instance of the desired type. A typical example
+            is the default constructor of a dataclass.
+
+        """
+        self.output_constructor = output_constructor
+        super().__init__(
+            name=name,
+            seed=seed,
+            meta=meta,
+            space=space,
+        )
+
+    def _instantiate_type_from_config(self, config: Configuration) -> TOutput:
+        return self.output_constructor(**dict(config))
