@@ -1,17 +1,26 @@
-from typing import Dict, Optional, Union
+from __future__ import annotations
+
+from enum import Enum, auto
 
 import numpy as np
-cimport numpy as np
-np.import_array()
 
 
-cdef class Hyperparameter(object):
+class Comparison(Enum):
+    """Enumeration of possible comparison results."""
 
-    def __init__(self, name: str, meta: Optional[Dict]) -> None:
+    LESS_THAN = auto()
+    EQUAL = auto()
+    GREATER_THAN = auto()
+    NOT_EQUAL = auto()
+
+
+class Hyperparameter:
+    def __init__(self, name: str, meta: dict | None) -> None:
         if not isinstance(name, str):
             raise TypeError(
                 "The name of a hyperparameter must be an instance of"
-                " %s, but is %s." % (str(str), type(name)))
+                f" {str!s}, but is {type(name)}.",
+            )
         self.name: str = name
         self.meta = meta
 
@@ -21,7 +30,7 @@ cdef class Hyperparameter(object):
     def is_legal(self, value):
         raise NotImplementedError()
 
-    cpdef bint is_legal_vector(self, DTYPE_t value):
+    def is_legal_vector(self, value) -> int:
         """
         Check whether the given value is a legal value for the vector
         representation of this hyperparameter.
@@ -45,9 +54,9 @@ cdef class Hyperparameter(object):
 
     def rvs(
         self,
-        size: Optional[int] = None,
-        random_state: Optional[Union[int, np.random, np.random.RandomState]] = None
-    ) -> Union[float, np.ndarray]:
+        size: int | None = None,
+        random_state: int | np.random.RandomState | None = None,
+    ) -> float | np.ndarray:
         """
         scipy compatibility wrapper for ``_sample``,
         allowing the hyperparameter to be used in sklearn API
@@ -79,14 +88,15 @@ cdef class Hyperparameter(object):
                     return seed
             except AttributeError:
                 pass
-            raise ValueError("%r cannot be used to seed a numpy.random.RandomState"
-                             " instance" % seed)
+            raise ValueError(
+                "%r cannot be used to seed a numpy.random.RandomState" " instance" % seed,
+            )
 
         # if size=None, return a value, but if size=1, return a 1-element array
 
         vector = self._sample(
             rs=check_random_state(random_state),
-            size=size if size is not None else 1
+            size=size if size is not None else 1,
         )
         if size is None:
             vector = vector[0]
@@ -98,8 +108,8 @@ cdef class Hyperparameter(object):
 
     def _transform(
         self,
-        vector: Union[np.ndarray, float, int]
-    ) -> Optional[Union[np.ndarray, float, int]]:
+        vector: np.ndarray | float | int,
+    ) -> np.ndarray | float | int | None:
         raise NotImplementedError()
 
     def _inverse_transform(self, vector):
@@ -108,13 +118,13 @@ cdef class Hyperparameter(object):
     def has_neighbors(self):
         raise NotImplementedError()
 
-    def get_neighbors(self, value, rs, number, transform = False):
+    def get_neighbors(self, value, rs, number, transform=False):
         raise NotImplementedError()
 
     def get_num_neighbors(self, value):
         raise NotImplementedError()
 
-    cpdef int compare_vector(self, DTYPE_t value, DTYPE_t value2):
+    def compare_vector(self, value: float, value2: float) -> Comparison:
         raise NotImplementedError()
 
     def pdf(self, vector: np.ndarray) -> np.ndarray:
@@ -133,7 +143,7 @@ cdef class Hyperparameter(object):
             function is to be computed.
 
         Returns
-        ----------
+        -------
         np.ndarray(N, )
             Probability density values of the input vector
         """
@@ -154,7 +164,7 @@ cdef class Hyperparameter(object):
             function is to be computed.
 
         Returns
-        ----------
+        -------
         np.ndarray(N, )
             Probability density values of the input vector
         """

@@ -153,7 +153,7 @@ def build_condition(condition: ConditionComponent) -> str:
     if not isinstance(condition, ConditionComponent):
         raise TypeError(
             "build_condition must be called with an instance of "
-            "'{}', got '{}'".format(ConditionComponent, type(condition)),
+            f"'{ConditionComponent}', got '{type(condition)}'",
         )
 
     # Check if SMAC can handle the condition
@@ -184,7 +184,7 @@ def build_forbidden(clause: AbstractForbiddenComponent) -> str:
     if not isinstance(clause, AbstractForbiddenComponent):
         raise TypeError(
             "build_forbidden must be called with an instance of "
-            "'{}', got '{}'".format(AbstractForbiddenComponent, type(clause)),
+            f"'{AbstractForbiddenComponent}', got '{type(clause)}'",
         )
 
     if not isinstance(clause, (ForbiddenEqualsClause, ForbiddenAndConjunction)):

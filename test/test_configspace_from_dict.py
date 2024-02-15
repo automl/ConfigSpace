@@ -81,12 +81,6 @@ from ConfigSpace.hyperparameters import (
     ],
 )
 def test_individual_hyperparameters(value: Any, expected: Hyperparameter) -> None:
-    """
-    Expects
-    -------
-    * Creating a constant with the dictionary easy api will insert a Constant
-      into it's hyperparameters.
-    """
     cs = ConfigurationSpace({"hp": value})
     assert cs["hp"] == expected
 

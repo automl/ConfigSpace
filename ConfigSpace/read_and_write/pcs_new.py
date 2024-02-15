@@ -699,8 +699,8 @@ def write(configuration_space: ConfigurationSpace) -> str:
     """
     if not isinstance(configuration_space, ConfigurationSpace):
         raise TypeError(
-            "pcs_parser.write expects an instance of {}, "
-            "you provided '{}'".format(ConfigurationSpace, type(configuration_space)),
+            f"pcs_parser.write expects an instance of {ConfigurationSpace}, "
+            f"you provided '{type(configuration_space)}'",
         )
 
     param_lines = StringIO()

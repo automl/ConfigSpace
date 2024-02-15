@@ -347,8 +347,8 @@ def write(configuration_space: ConfigurationSpace, indent: int = 2) -> str:
     """
     if not isinstance(configuration_space, ConfigurationSpace):
         raise TypeError(
-            "pcs_parser.write expects an instance of {}, "
-            "you provided '{}'".format(ConfigurationSpace, type(configuration_space)),
+            f"pcs_parser.write expects an instance of {ConfigurationSpace}, "
+            f"you provided '{type(configuration_space)}'",
         )
 
     hyperparameters = []
@@ -378,10 +378,7 @@ def write(configuration_space: ConfigurationSpace, indent: int = 2) -> str:
             hyperparameters.append(_build_ordinal(hyperparameter))
         else:
             raise TypeError(
-                "Unknown type: {} ({})".format(
-                    type(hyperparameter),
-                    hyperparameter,
-                ),
+                f"Unknown type: {type(hyperparameter)} ({hyperparameter})",
             )
 
     for condition in configuration_space.get_conditions():

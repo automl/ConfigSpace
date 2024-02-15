@@ -9,6 +9,7 @@ docs/examples/*
 # C extensions
 *.so
 *.c
+*.jukit
 
 # Packages
 *.egg

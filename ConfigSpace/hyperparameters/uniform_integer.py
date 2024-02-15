@@ -1,19 +1,25 @@
+from __future__ import annotations
+
 import io
-from typing import Dict, List, Optional, Union
-import warnings
 
 import numpy as np
-cimport numpy as np
-np.import_array()
 
 from ConfigSpace.functional import center_range
-from ConfigSpace.hyperparameters.uniform_float cimport UniformFloatHyperparameter
+from ConfigSpace.hyperparameters.integer_hyperparameter import IntegerHyperparameter
+from ConfigSpace.hyperparameters.uniform_float import UniformFloatHyperparameter
 
 
-cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
-    def __init__(self, name: str, lower: int, upper: int, default_value: Union[int, None] = None,
-                 q: Union[int, None] = None, log: bool = False,
-                 meta: Optional[Dict] = None) -> None:
+class UniformIntegerHyperparameter(IntegerHyperparameter):
+    def __init__(
+        self,
+        name: str,
+        lower: int | float,
+        upper: int | float,
+        default_value: int | None = None,
+        q: int | None = None,
+        log: bool = False,
+        meta: dict | None = None,
+    ) -> None:
         """
         A uniformly distributed integer hyperparameter.
 
@@ -44,72 +50,82 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
             Field for holding meta data provided by the user.
             Not used by the configuration space.
         """
-
-        super(UniformIntegerHyperparameter, self).__init__(name, default_value, meta)
+        self.log = bool(log)
         self.lower = self.check_int(lower, "lower")
         self.upper = self.check_int(upper, "upper")
-        if default_value is not None:
-            default_value = self.check_int(default_value, name)
 
+        self.q = None
         if q is not None:
             if q < 1:
-                warnings.warn("Setting quantization < 1 for Integer "
-                              "Hyperparameter '%s' has no effect." %
-                              name)
-                self.q = None
-            else:
-                self.q = self.check_int(q, "q")
-                if (self.upper - self.lower) % self.q != 0:
-                    raise ValueError(
-                        "Upper bound (%d) - lower bound (%d) must be a multiple of q (%d)"
-                        % (self.upper, self.lower, self.q)
-                    )
-        else:
-            self.q = None
-        self.log = bool(log)
+                raise ValueError(
+                    "Setting quantization < 1 for Integer "
+                    f"Hyperparameter {name} has no effect.",
+                )
+
+            self.q = self.check_int(q, "q")
+            if (self.upper - self.lower) % self.q != 0:
+                raise ValueError(
+                    "Upper bound (%d) - lower bound (%d) must be a multiple of q (%d)"
+                    % (self.upper, self.lower, self.q),
+                )
 
         if self.lower >= self.upper:
-            raise ValueError("Upper bound %d must be larger than lower bound "
-                             "%d for hyperparameter %s" %
-                             (self.lower, self.upper, name))
-        elif log and self.lower <= 0:
-            raise ValueError("Negative lower bound (%d) for log-scale "
-                             "hyperparameter %s is forbidden." %
-                             (self.lower, name))
+            raise ValueError(
+                "Upper bound %d must be larger than lower bound "
+                "%d for hyperparameter %s" % (self.lower, self.upper, name),
+            )
+        if log and self.lower <= 0:
+            raise ValueError(
+                "Negative lower bound (%d) for log-scale "
+                "hyperparameter %s is forbidden." % (self.lower, name),
+            )
 
-        self.default_value = self.check_default(default_value)
+        # Requires `log` to be set first
+        if default_value is not None:
+            default_value = self.check_int(default_value, name)
+        else:
+            default_value = self.check_default(default_value)
 
-        self.ufhp = UniformFloatHyperparameter(self.name,
-                                               self.lower - 0.49999,
-                                               self.upper + 0.49999,
-                                               log=self.log,
-                                               default_value=self.default_value)
+        # NOTE: Placed after the default value check to ensure it's set and not None
+        super().__init__(name, default_value, meta)
+
+        self.ufhp = UniformFloatHyperparameter(
+            self.name,
+            self.lower - 0.49999,
+            self.upper + 0.49999,
+            log=self.log,
+            default_value=self.default_value,
+        )
 
         self.normalized_default_value = self._inverse_transform(self.default_value)
 
     def __repr__(self) -> str:
         repr_str = io.StringIO()
-        repr_str.write("%s, Type: UniformInteger, Range: [%s, %s], Default: %s"
-                       % (self.name, repr(self.lower),
-                          repr(self.upper), repr(self.default_value)))
+        repr_str.write(
+            f"{self.name}, Type: UniformInteger,"
+            f" Range: [{self.lower!r}, {self.upper!r}],"
+            f" Default: {self.default_value!r}",
+        )
         if self.log:
             repr_str.write(", on log-scale")
         if self.q is not None:
-            repr_str.write(", Q: %s" % repr(self.q))
+            repr_str.write(f", Q: {self.q}")
         repr_str.seek(0)
         return repr_str.getvalue()
 
-    def _sample(self, rs: np.random.RandomState, size: Optional[int] = None
-                ) -> Union[np.ndarray, float]:
+    def _sample(
+        self,
+        rs: np.random.RandomState,
+        size: int | None = None,
+    ) -> np.ndarray | float:
         value = self.ufhp._sample(rs, size=size)
         # Map all floats which belong to the same integer value to the same
         # float value by first transforming it to an integer and then
         # transforming it back to a float between zero and one
         value = self._transform(value)
-        value = self._inverse_transform(value)
-        return value
+        return self._inverse_transform(value)
 
-    cpdef np.ndarray _transform_vector(self, np.ndarray vector):
+    def _transform_vector(self, vector: np.ndarray) -> np.ndarray:
         vector = self.ufhp._transform_vector(vector)
         if self.q is not None:
             vector = np.rint((vector - self.lower) / self.q) * self.q + self.lower
@@ -118,7 +134,7 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
 
         return np.rint(vector)
 
-    cpdef long long _transform_scalar(self, double scalar):
+    def _transform_scalar(self, scalar: float) -> float:
         scalar = self.ufhp._transform_scalar(scalar)
         if self.q is not None:
             scalar = np.round((scalar - self.lower) / self.q) * self.q + self.lower
@@ -126,36 +142,33 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
             scalar = max(scalar, self.lower)
         return int(np.round(scalar))
 
-    def _inverse_transform(self, vector: Union[np.ndarray, float, int]
-                           ) -> Union[np.ndarray, float, int]:
+    def _inverse_transform(
+        self,
+        vector: np.ndarray | float | int,
+    ) -> np.ndarray | float | int:
         return self.ufhp._inverse_transform(vector)
 
     def is_legal(self, value: int) -> bool:
         if not (isinstance(value, (int, np.int32, np.int64))):
             return False
-        elif self.upper >= value >= self.lower:
-            return True
-        else:
-            return False
+        return self.upper >= value >= self.lower
 
-    cpdef bint is_legal_vector(self, DTYPE_t value):
-        if 1.0 >= value >= 0.0:
-            return True
-        else:
-            return False
+    def is_legal_vector(self, value) -> int:
+        return 1.0 >= value >= 0.0
 
-    def check_default(self, default_value: Union[int, float]) -> int:
+    def check_default(self, default_value: int | float | None) -> int:
+        # Doesn't seem to quantize with q?
         if default_value is None:
             if self.log:
-                default_value = np.exp((np.log(self.lower) + np.log(self.upper)) / 2.)
+                default_value = np.exp((np.log(self.lower) + np.log(self.upper)) / 2.0)
             else:
-                default_value = (self.lower + self.upper) / 2.
+                default_value = (self.lower + self.upper) / 2.0
         default_value = int(np.round(default_value, 0))
 
         if self.is_legal(default_value):
             return default_value
-        else:
-            raise ValueError("Illegal default value %s" % str(default_value))
+
+        raise ValueError("Illegal default value %s" % str(default_value))
 
     def has_neighbors(self) -> bool:
         if self.log:
@@ -166,18 +179,15 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
             lower = self.ufhp._lower
 
         # If there is only one active value, this is not enough
-        if upper - lower >= 1:
-            return True
-        else:
-            return False
+        return upper - lower >= 1
 
-    def get_num_neighbors(self, value = None) -> int:
+    def get_num_neighbors(self, value: int | None = None) -> int:
         # If there is a value in the range, then that value is not a neighbor of itself
         # so we need to remove one
         if value is not None and self.lower <= value <= self.upper:
             return self.upper - self.lower - 1
-        else:
-            return self.upper - self.lower
+
+        return self.upper - self.lower
 
     def get_neighbors(
         self,
@@ -186,8 +196,8 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
         number: int = 4,
         transform: bool = False,
         std: float = 0.2,
-    ) -> List[int]:
-        """Get the neighbors of a value
+    ) -> list[int]:
+        """Get the neighbors of a value.
 
         NOTE
         ----
@@ -223,22 +233,19 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
             " if assumed to be in the unit-hypercube [0, 1]. If this was not"
             " the behaviour assumed, please raise a ticket on github."
         )
-        assert number < 1000000, (
-            "Can only generate less than 1 million neighbors."
-        )
+        assert number < 1000000, "Can only generate less than 1 million neighbors."
         # Convert python values to cython ones
-        cdef long long center = self._transform(value)
-        cdef long long lower = self.lower
-        cdef long long upper = self.upper
-        cdef unsigned int n_requested = number
-        cdef unsigned long long n_neighbors = upper - lower - 1
-        cdef long long stepsize = self.q if self.q is not None else 1
+        center = self._transform(value)
+        lower = self.lower
+        upper = self.upper
+        n_requested = number
+        n_neighbors = upper - lower - 1
+        stepsize = self.q if self.q is not None else 1
 
         neighbors = []
 
-        cdef long long v  # A value that's possible to return
+        v: int  # A value that's possible to return
         if n_neighbors < n_requested:
-
             for v in range(lower, center):
                 neighbors.append(v)
 
@@ -247,36 +254,31 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
 
             if transform:
                 return neighbors
-            else:
-                return self._inverse_transform(np.asarray(neighbors)).tolist()
+
+            return self._inverse_transform(np.asarray(neighbors)).tolist()
 
         # A truncated normal between 0 and 1, centered on the value with a scale of std.
         # This will be sampled from and converted to the corresponding int value
         # However, this is too slow - we use the "poor man's truncnorm below"
         # cdef np.ndarray float_indices = truncnorm.rvs(
-        #     a=(0 - value) / std,
-        #     b=(1 - value) / std,
-        #     loc=value,
-        #     scale=std,
-        #     size=number,
-        #     random_state=rs
-        # )
         # We sample five times as many values as needed and weed them out below
         # (perform rejection sampling and make sure we don't sample any neighbor twice)
         # This increases our chances of not having to fill the neighbors list by calling
         # `center_range`
         # Five is an arbitrary number and can probably be tuned to reduce overhead
-        cdef np.ndarray float_indices = rs.normal(value, std, size=number * 5)
-        cdef np.ndarray mask = (float_indices >= 0) & (float_indices <= 1)
+        float_indices: np.ndarray = rs.normal(value, std, size=number * 5)
+        mask: np.ndarray = (float_indices >= 0) & (float_indices <= 1)
         float_indices = float_indices[mask]
 
-        cdef np.ndarray possible_neighbors_as_array = self._transform_vector(float_indices).astype(np.longlong)
-        cdef long long [:] possible_neighbors = possible_neighbors_as_array
+        possible_neighbors_as_array: np.ndarray = self._transform_vector(float_indices).astype(
+            np.longlong,
+        )
+        possible_neighbors: np.ndarray = possible_neighbors_as_array
 
-        cdef unsigned int n_neighbors_generated = 0
-        cdef unsigned int n_candidates = len(float_indices)
-        cdef unsigned int candidate_index = 0
-        cdef set seen = {center}
+        n_neighbors_generated: int = 0
+        n_candidates: int = len(float_indices)
+        candidate_index: int = 0
+        seen: set[int] = {center}
         while n_neighbors_generated < n_requested and candidate_index < n_candidates:
             v = possible_neighbors[candidate_index]
             if v not in seen:
@@ -297,8 +299,8 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
         neighbors = list(seen)
         if transform:
             return neighbors
-        else:
-            return self._inverse_transform(np.array(neighbors)).tolist()
+
+        return self._inverse_transform(np.array(neighbors)).tolist()
 
     def _pdf(self, vector: np.ndarray) -> np.ndarray:
         """
@@ -308,7 +310,7 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
         distributions, only normal distributions (as the inverse_transform
         in the pdf method handles these). Optimally, an IntegerHyperparameter
         should have a corresponding float, which can be utlized for the calls
-        to the probability density function (see e.g. NormalIntegerHyperparameter)
+        to the probability density function (see e.g. NormalIntegerHyperparameter).
 
         Parameters
         ----------
@@ -317,7 +319,7 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
             function is to be computed.
 
         Returns
-        ----------
+        -------
         np.ndarray(N, )
             Probability density values of the input vector
         """
@@ -329,8 +331,5 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
         return 1 / (ub - lb + 1)
 
     def get_size(self) -> float:
-        if self.q is None:
-            q = 1
-        else:
-            q = self.q
+        q = 1 if self.q is None else self.q
         return np.rint((self.upper - self.lower) / q) + 1

@@ -1,33 +1,36 @@
-from typing import Dict, Optional, Union
+from __future__ import annotations
 
 import numpy as np
-cimport numpy as np
-np.import_array()
+
+from ConfigSpace.hyperparameters.numerical import NumericalHyperparameter
 
 
-cdef class IntegerHyperparameter(NumericalHyperparameter):
-    def __init__(self, name: str, default_value: int, meta: Optional[Dict] = None) -> None:
-        super(IntegerHyperparameter, self).__init__(name, default_value, meta)
+class IntegerHyperparameter(NumericalHyperparameter):
+    def __init__(self, name: str, default_value: int, meta: dict | None = None) -> None:
+        super().__init__(name, default_value, meta)
 
     def is_legal(self, value: int) -> bool:
-        raise NotImplemented
+        raise NotImplementedError
 
-    cpdef bint is_legal_vector(self, DTYPE_t value):
-        raise NotImplemented
+    def is_legal_vector(self, value) -> int:
+        raise NotImplementedError
 
     def check_default(self, default_value) -> int:
-        raise NotImplemented
+        raise NotImplementedError
 
     def check_int(self, parameter: int, name: str) -> int:
-        if abs(int(parameter) - parameter) > 0.00000001 and \
-                        type(parameter) is not int:
-            raise ValueError("For the Integer parameter %s, the value must be "
-                             "an Integer, too. Right now it is a %s with value"
-                             " %s." % (name, type(parameter), str(parameter)))
+        if abs(int(parameter) - parameter) > 0.00000001 and type(parameter) is not int:
+            raise ValueError(
+                f"For the Integer parameter {name}, the value must be "
+                f"an Integer, too. Right now it is a {type(parameter)} with value"
+                f" {parameter!s}.",
+            )
         return int(parameter)
 
-    def _transform(self, vector: Union[np.ndarray, float, int]
-                   ) -> Optional[Union[np.ndarray, float, int]]:
+    def _transform(
+        self,
+        vector: np.ndarray | float | int,
+    ) -> np.ndarray | float | int | None:
         try:
             if isinstance(vector, np.ndarray):
                 return self._transform_vector(vector)
@@ -35,10 +38,10 @@ cdef class IntegerHyperparameter(NumericalHyperparameter):
         except ValueError:
             return None
 
-    cpdef long long _transform_scalar(self, double scalar):
+    def _transform_scalar(self, scalar: float) -> float:
         raise NotImplementedError()
 
-    cpdef np.ndarray _transform_vector(self, np.ndarray vector):
+    def _transform_vector(self, vector: np.ndarray) -> np.ndarray:
         raise NotImplementedError()
 
     def pdf(self, vector: np.ndarray) -> np.ndarray:
@@ -57,7 +60,7 @@ cdef class IntegerHyperparameter(NumericalHyperparameter):
             function is to be computed.
 
         Returns
-        ----------
+        -------
         np.ndarray(N, )
             Probability density values of the input vector
         """
@@ -75,7 +78,7 @@ cdef class IntegerHyperparameter(NumericalHyperparameter):
         distributions, only normal distributions (as the inverse_transform
         in the pdf method handles these). Optimally, an IntegerHyperparameter
         should have a corresponding float, which can be utlized for the calls
-        to the probability density function (see e.g. NormalIntegerHyperparameter)
+        to the probability density function (see e.g. NormalIntegerHyperparameter).
 
         Parameters
         ----------
@@ -84,7 +87,7 @@ cdef class IntegerHyperparameter(NumericalHyperparameter):
             function is to be computed.
 
         Returns
-        ----------
+        -------
         np.ndarray(N, )
             Probability density values of the input vector
         """
