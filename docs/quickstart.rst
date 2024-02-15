@@ -75,8 +75,8 @@ And that's it!
 
 Advanced Usage
 --------------
-Lets create a more complex example where we have two models, model ``A`` and model ``B``.
-Model ``B`` is some kernel based algorithm and ``A`` just needs a simple float hyperparamter.
+Let's create a more complex example where we have two models, model ``A`` and model ``B``.
+Model ``B`` is some kernel based algorithm and ``A`` just needs a simple float hyperparameter.
 
 
 We're going to create a config space that will let us correctly build a randomly selected model.
@@ -109,7 +109,7 @@ We're going to create a config space that will let us correctly build a randomly
            ...
 
 
-First, lets start with building the two individual subspaces where for ``A``, we want to sample alpha from a normal distribution and for ``B`` we have the conditioned parameter and we slightly weight one kernel over another.
+First, let's start with building the two individual subspaces where for ``A``, we want to sample alpha from a normal distribution and for ``B`` we have the conditioned parameter and we slightly weight one kernel over another.
 
 .. code:: python
 
@@ -146,7 +146,7 @@ First, lets start with building the two individual subspaces where for ``A``, we
             return cs
 
 
-Finally, we need add these two a parent space where we condition each subspace to only be active depending on a **parent**.
+Finally, we need to add these two a parent space where we condition each subspace to only be active depending on a **parent**.
 We'll have the default configuration be ``A`` but we put more emphasis when sampling on ``B``
 
 .. code:: python
@@ -176,7 +176,7 @@ We'll have the default configuration be ``A`` but we put more emphasis when samp
 
 And that's it!
 
-However for completness, lets examine how this works by first sampling from our config space.
+However, for completeness, let's examine how this works by first sampling from our config space.
 
 .. code:: python
 
