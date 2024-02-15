@@ -31,7 +31,7 @@ import numpy as np
 import io
 from ConfigSpace.hyperparameters import Hyperparameter
 from ConfigSpace.hyperparameters.hyperparameter cimport Hyperparameter
-from typing import Dict, Any, Union
+from typing import Dict, Any, Union, List
 
 from ConfigSpace.forbidden cimport AbstractForbiddenComponent
 
@@ -71,6 +71,9 @@ cdef class AbstractForbiddenComponent(object):
         return (self.value == other.value and
                 self.hyperparameter.name == other.hyperparameter.name)
 
+    def get_referenced_hyperparameters(self) -> List[Hyperparameter]:
+        pass
+
     def __hash__(self) -> int:
         """Override the default hash behavior (that returns the id or the object)"""
         return hash(tuple(sorted(self.__dict__.items())))
@@ -103,6 +106,9 @@ cdef class AbstractForbiddenClause(AbstractForbiddenComponent):
         self.hyperparameter = hyperparameter
         self.vector_id = -1
 
+    def get_referenced_hyperparameters(self) -> List[Hyperparameter]:
+        return [self.hyperparameter]
+    
     cpdef get_descendant_literal_clauses(self):
         return (self, )
 
@@ -315,6 +321,9 @@ cdef class AbstractForbiddenConjunction(AbstractForbiddenComponent):
         self.n_components = len(self.components)
         self.dlcs = self.get_descendant_literal_clauses()
 
+    def get_referenced_hyperparameters(self) -> List[Hyperparameter]:
+        return sum([forb.get_referenced_hyperparameters() for forb in self.components], [])
+    
     def __repr__(self):
         pass
 
@@ -496,6 +505,9 @@ cdef class ForbiddenRelation(AbstractForbiddenComponent):
         self.left = left
         self.right = right
         self.vector_ids = (-1, -1)
+
+    def get_referenced_hyperparameters(self) -> List[Hyperparameter]:
+        return [self.left, self.right]
 
     def __eq__(self, other: Any) -> bool:
         if not isinstance(other, self.__class__):

@@ -58,6 +58,7 @@ from ConfigSpace.util import (
     get_one_exchange_neighbourhood,
     get_random_neighbor,
     impute_inactive_values,
+    remove_hyperparameter,
 )
 
 
@@ -625,3 +626,52 @@ class UtilTest(unittest.TestCase):
         assert dict(generated_grid[1]) == {"cat1": "F", "ord1": "2"}
         assert dict(generated_grid[2]) == {"cat1": "T", "ord1": "1", "int1": 0}
         assert dict(generated_grid[-1]) == {"cat1": "T", "ord1": "3", "int1": 1000}
+
+    def test_remove_hyperparameter(self):
+        """Test removing hyperparameter."""
+        cs = ConfigurationSpace(seed=1234)
+
+        list_hps = ["cat1", "const1", "float1", "int1", "ord1"]
+        cat1 = CategoricalHyperparameter(name="cat1", choices=["T", "F"])
+        const1 = Constant(name="const1", value=4)
+        float1 = UniformFloatHyperparameter(name="float1", lower=-1, upper=1, log=False)
+        int1 = UniformIntegerHyperparameter(name="int1", lower=10, upper=100, log=True)
+        ord1 = OrdinalHyperparameter(name="ord1", sequence=["1", "2", "3"])
+
+        cs.add_hyperparameters([float1, int1, cat1, ord1, const1])
+
+        # test exception if hyperparamter is not in the configuration space
+        with self.assertRaises(ValueError):
+            remove_hyperparameter(name="cat", configuration_space=cs)
+
+        for hp_to_remove in list_hps:
+            cs1 = remove_hyperparameter(name=hp_to_remove, configuration_space=cs)
+
+            # verify that the hyperparameter is not in the configuration space anymore
+            assert hp_to_remove not in cs1._hyperparameters
+
+            # the other hyperparameters remain in the configuration space
+            remaining_hps = [hp for hp in list_hps if hp != hp_to_remove]
+            for hp_name in remaining_hps:
+                assert hp_name in cs1._hyperparameters
+
+        cs = ConfigurationSpace(seed=1234)
+        cs.add_hyperparameters([float1, int1, cat1, ord1, const1])
+        cs.add_condition(EqualsCondition(int1, cat1, "T"))  # int1 only active if cat1 == T
+        cs.add_forbidden_clause(
+            ForbiddenAndConjunction(  # Forbid ord1 == 3 if cat1 == F
+                ForbiddenEqualsClause(cat1, "F"),
+                ForbiddenEqualsClause(ord1, "3"),
+            ),
+        )
+        assert len(cs.get_conditions()) == 1
+        assert len(cs.get_forbiddens()) == 1
+
+        # check that children hyperparameters are also removed
+        cs1 = remove_hyperparameter(name="cat1", configuration_space=cs)
+        assert "cat1" not in cs1._hyperparameters
+        assert "int1" not in cs1._hyperparameters
+
+        # check that referenced conditions and clauses are also removed
+        assert len(cs1.get_conditions()) == 0
+        assert len(cs1.get_forbiddens()) == 0
