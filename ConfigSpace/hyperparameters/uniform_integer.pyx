@@ -144,7 +144,7 @@ cdef class UniformIntegerHyperparameter(IntegerHyperparameter):
         else:
             return False
 
-    def check_default(self, default_value: Union[int, float]) -> int:
+    def check_default(self, default_value: Union[int]) -> int:
         if default_value is None:
             if self.log:
                 default_value = np.exp((np.log(self.lower) + np.log(self.upper)) / 2.)
