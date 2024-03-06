@@ -93,7 +93,7 @@ def Integer(
         # Add meta info to the param
         Integer("a", (1, 10), meta={"use": "For counting chickens"})
 
-    Note
+    Note:
     ----
     `Integer` is actually a function, please use the corresponding return types if
     doing an `isinstance(param, type)` check and not `Integer`.
@@ -126,7 +126,7 @@ def Integer(
 
         All samples here will then be in {1, 4, 7, 10}
 
-        Note
+    Note:
         ----
         Quantization points act are not equal and require experimentation
         to be certain about
@@ -139,7 +139,7 @@ def Integer(
     meta : dict | None = None
         Any meta information you want to associate with this parameter
 
-    Returns
+    Returns:
     -------
     UniformIntegerHyperparameter | NormalIntegerHyperparameter | BetaIntegerHyperparameter
         Returns the corresponding hyperparameter type

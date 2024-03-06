@@ -12,8 +12,8 @@
 #       notice, this list of conditions and the following disclaimer in the
 #       documentation and/or other materials provided with the distribution.
 #     * Neither the name of the <organization> nor the
-#       names of itConfigurationSpaces contributors may be used to endorse or promote products
-#       derived from this software without specific prior written permission.
+#       names of itConfigurationSpaces contributors may be used to endorse or promote
+#       products derived from this software without specific prior written permission.
 #
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 # ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -44,22 +44,13 @@ class AbstractForbiddenComponent:
         pass
 
     def __eq__(self, other: Any) -> bool:
-        """
-        This method implements a comparison between self and another
-        object.
-
-        Additionally, it defines the __ne__() as stated in the
-        documentation from python:
-            By default, object implements __eq__() by using is, returning NotImplemented
-            in the case of a false comparison: True if x is y else NotImplemented.
-            For __ne__(), by default it delegates to __eq__() and inverts the result
-            unless it is NotImplemented.
-
-        """
         if not isinstance(other, self.__class__):
             return NotImplemented
 
-        return self.value == other.value and self.hyperparameter.name == other.hyperparameter.name
+        return (
+            self.value == other.value
+            and self.hyperparameter.name == other.hyperparameter.name
+        )
 
     def __hash__(self) -> int:
         """Override the default hash behavior (that returns the id or the object)."""
@@ -80,14 +71,20 @@ class AbstractForbiddenComponent:
     def is_forbidden_vector(self, instantiated_hyperparameters, strict):
         return bool(self.c_is_forbidden_vector(instantiated_hyperparameters, strict))
 
-    def c_is_forbidden_vector(self, instantiated_hyperparameters: np.ndarray, strict: int) -> int:
+    def c_is_forbidden_vector(
+        self,
+        instantiated_hyperparameters: np.ndarray,
+        strict: int,
+    ) -> int:
         pass
 
 
 class AbstractForbiddenClause(AbstractForbiddenComponent):
     def __init__(self, hyperparameter: Hyperparameter):
         if not isinstance(hyperparameter, Hyperparameter):
-            raise TypeError("Argument 'hyperparameter' is not of type %s." % Hyperparameter)
+            raise TypeError(
+                "Argument 'hyperparameter' is not of type %s." % Hyperparameter,
+            )
         self.hyperparameter = hyperparameter
         self.vector_id = -1
 
@@ -101,14 +98,14 @@ class AbstractForbiddenClause(AbstractForbiddenComponent):
 class SingleValueForbiddenClause(AbstractForbiddenClause):
     def __init__(self, hyperparameter: Hyperparameter, value: Any) -> None:
         super().__init__(hyperparameter)
-        if not self.hyperparameter.is_legal(value):
+        if not self.hyperparameter.legal_value(value):
             raise ValueError(
                 "Forbidden clause must be instantiated with a "
                 f"legal hyperparameter value for '{self.hyperparameter}', but got "
                 f"'{value!s}'",
             )
         self.value = value
-        self.vector_value = self.hyperparameter._inverse_transform(self.value)
+        self.vector_value = self.hyperparameter.to_vector(self.value)
 
     def __copy__(self):
         return self.__class__(
@@ -126,14 +123,17 @@ class SingleValueForbiddenClause(AbstractForbiddenClause):
                     "forbidden clause; you are missing "
                     "'%s'" % self.hyperparameter.name,
                 )
-            else:
-                return False
+            return False
 
         return self._is_forbidden(value)
 
-    def c_is_forbidden_vector(self, instantiated_vector: np.ndarray, strict: int) -> int:
+    def c_is_forbidden_vector(
+        self,
+        instantiated_vector: np.ndarray,
+        strict: int,
+    ) -> int:
         value = instantiated_vector[self.vector_id]
-        if value != value:
+        if value != value:  # noqa: PLR0124
             if strict:
                 raise ValueError(
                     "Is_forbidden must be called with the "
@@ -141,8 +141,7 @@ class SingleValueForbiddenClause(AbstractForbiddenClause):
                     "forbidden clause; you are missing "
                     "'%s'" % self.vector_id,
                 )
-            else:
-                return False
+            return False
 
         return self._is_forbidden_vector(value)
 
@@ -158,7 +157,7 @@ class MultipleValueForbiddenClause(AbstractForbiddenClause):
         super().__init__(hyperparameter)
 
         for value in values:
-            if not self.hyperparameter.is_legal(value):
+            if not self.hyperparameter.legal_value(value):
                 raise ValueError(
                     "Forbidden clause must be instantiated with a "
                     f"legal hyperparameter value for '{self.hyperparameter}', but got "
@@ -166,7 +165,7 @@ class MultipleValueForbiddenClause(AbstractForbiddenClause):
                 )
         self.values = values
         self.vector_values = [
-            self.hyperparameter._inverse_transform(value) for value in self.values
+            self.hyperparameter.to_vector(value) for value in self.values
         ]
 
     def __copy__(self):
@@ -180,8 +179,7 @@ class MultipleValueForbiddenClause(AbstractForbiddenClause):
             return NotImplemented
 
         return (
-            self.hyperparameter == other.hyperparameter
-            and self.values == other.values
+            self.hyperparameter == other.hyperparameter and self.values == other.values
         )
 
     def is_forbidden(self, instantiated_hyperparameters, strict) -> bool:
@@ -198,7 +196,11 @@ class MultipleValueForbiddenClause(AbstractForbiddenClause):
 
         return self._is_forbidden(value)
 
-    def c_is_forbidden_vector(self, instantiated_vector: np.ndarray, strict: int) -> int:
+    def c_is_forbidden_vector(
+        self,
+        instantiated_vector: np.ndarray,
+        strict: int,
+    ) -> int:
         value = instantiated_vector[self.vector_id]
 
         if value != value:
@@ -274,7 +276,7 @@ class ForbiddenInClause(MultipleValueForbiddenClause):
         >>> cs.add_forbidden_clause(forbidden_clause_a)
         Forbidden: a in {2, 3}
 
-        Note
+        Note:
         ----
         The forbidden values have to be a subset of the hyperparameter's values.
 
@@ -340,7 +342,9 @@ class AbstractForbiddenConjunction(AbstractForbiddenComponent):
         if self.n_components != other.n_components:
             return False
 
-        return all(self.components[i] == other.components[i] for i in range(self.n_components))
+        return all(
+            self.components[i] == other.components[i] for i in range(self.n_components)
+        )
 
     def set_vector_idx(self, hyperparameter_to_idx) -> None:
         for component in self.components:
@@ -368,8 +372,7 @@ class AbstractForbiddenConjunction(AbstractForbiddenComponent):
                         "you are (at least) missing "
                         "'%s'" % dlc.hyperparameter.name,
                     )
-                else:
-                    return False
+                return False
 
         values = np.empty(self.n_components, dtype=np.int32)
 
@@ -383,7 +386,11 @@ class AbstractForbiddenConjunction(AbstractForbiddenComponent):
 
         return self._is_forbidden(self.n_components, values)
 
-    def c_is_forbidden_vector(self, instantiated_vector: np.ndarray, strict: int) -> int:
+    def c_is_forbidden_vector(
+        self,
+        instantiated_vector: np.ndarray,
+        strict: int,
+    ) -> int:
         e: int = 0
         values = np.empty(self.n_components, dtype=np.int32)
 
@@ -430,7 +437,7 @@ class ForbiddenAndConjunction(AbstractForbiddenConjunction):
     ----------
     *args : list(:ref:`Forbidden clauses`)
         forbidden clauses, which should be combined
-    """
+    """  # noqa: E501
 
     def __repr__(self) -> str:
         retval = io.StringIO()
@@ -450,7 +457,11 @@ class ForbiddenAndConjunction(AbstractForbiddenConjunction):
                 return 0
         return 1
 
-    def c_is_forbidden_vector(self, instantiated_vector: np.ndarray, strict: int) -> int:
+    def c_is_forbidden_vector(
+        self,
+        instantiated_vector: np.ndarray,
+        strict: int,
+    ) -> int:
         # Copy from above to have early stopping of the evaluation of clauses -
         # gave only very modest improvements of ~5%; should probably be reworked
         # if adding more conjunctions in order to use better software design to
@@ -513,8 +524,7 @@ class ForbiddenRelation(AbstractForbiddenComponent):
                     "forbidden clause; you are missing "
                     "'%s'" % self.left.name,
                 )
-            else:
-                return False
+            return False
         if right is None:
             if strict:
                 raise ValueError(
@@ -523,15 +533,18 @@ class ForbiddenRelation(AbstractForbiddenComponent):
                     "forbidden clause; you are missing "
                     "'%s'" % self.right.name,
                 )
-            else:
-                return False
+            return False
 
         return self._is_forbidden(left, right)
 
     def _is_forbidden(self, left, right) -> int:
         pass
 
-    def c_is_forbidden_vector(self, instantiated_vector: np.ndarray, strict: int) -> int:
+    def c_is_forbidden_vector(
+        self,
+        instantiated_vector: np.ndarray,
+        strict: int,
+    ) -> int:
         left = instantiated_vector[self.vector_ids[0]]
         right = instantiated_vector[self.vector_ids[1]]
 
@@ -543,8 +556,7 @@ class ForbiddenRelation(AbstractForbiddenComponent):
                     "forbidden clause; you are missing "
                     "'%s'" % self.vector_ids[0],
                 )
-            else:
-                return False
+            return False
 
         if right != right:
             if strict:
@@ -554,11 +566,14 @@ class ForbiddenRelation(AbstractForbiddenComponent):
                     "forbidden clause; you are missing "
                     "'%s'" % self.vector_ids[1],
                 )
-            else:
-                return False
+            return False
 
-        # Relation is always evaluated against actual value and not vector representation
-        return self._is_forbidden(self.left._transform(left), self.right._transform(right))
+        # Relation is always evaluated against actual value and not vector
+        # representation
+        return self._is_forbidden(
+            self.left.to_value(left),
+            self.right.to_value(right),
+        )
 
     def _is_forbidden_vector(self, left, right) -> int:
         pass
@@ -577,7 +592,7 @@ class ForbiddenLessThanRelation(ForbiddenRelation):
     >>> cs.add_forbidden_clause(forbidden_clause)
     Forbidden: a < b
 
-    Note
+    Note:
     ----
     If the values of the both hyperparameters are not comparible
     (e.g. comparing int and str), a TypeError is raised. For OrdinalHyperparameters
@@ -615,7 +630,7 @@ class ForbiddenEqualsRelation(ForbiddenRelation):
     >>> cs.add_forbidden_clause(forbidden_clause)
     Forbidden: a == b
 
-    Note
+    Note:
     ----
     If the values of the both hyperparameters are not comparible
     (e.g. comparing int and str), a TypeError is raised. For OrdinalHyperparameters
@@ -652,7 +667,7 @@ class ForbiddenGreaterThanRelation(ForbiddenRelation):
     >>> cs.add_forbidden_clause(forbidden_clause)
     Forbidden: a > b
 
-    Note
+    Note:
     ----
     If the values of the both hyperparameters are not comparible
     (e.g. comparing int and str), a TypeError is raised. For OrdinalHyperparameters

@@ -68,7 +68,6 @@ def _build_uniform_float(param: UniformFloatHyperparameter) -> dict:
         "lower": param.lower,
         "upper": param.upper,
         "default": param.default_value,
-        "q": param.q,
     }
 
 
@@ -82,7 +81,6 @@ def _build_normal_float(param: NormalFloatHyperparameter) -> dict:
         "default": param.default_value,
         "lower": param.lower,
         "upper": param.upper,
-        "q": param.q,
     }
 
 
@@ -96,7 +94,6 @@ def _build_beta_float(param: BetaFloatHyperparameter) -> dict:
         "lower": param.lower,
         "upper": param.upper,
         "default": param.default_value,
-        "q": param.q,
     }
 
 
@@ -108,7 +105,6 @@ def _build_uniform_int(param: UniformIntegerHyperparameter) -> dict:
         "lower": param.lower,
         "upper": param.upper,
         "default": param.default_value,
-        "q": param.q,
     }
 
 
@@ -122,7 +118,6 @@ def _build_normal_int(param: NormalIntegerHyperparameter) -> dict:
         "lower": param.lower,
         "upper": param.upper,
         "default": param.default_value,
-        "q": param.q,
     }
 
 
@@ -136,7 +131,6 @@ def _build_beta_int(param: BetaIntegerHyperparameter) -> dict:
         "lower": param.lower,
         "upper": param.upper,
         "default": param.default_value,
-        "q": param.q,
     }
 
 
@@ -317,8 +311,7 @@ def _build_forbidden_relation(clause: ForbiddenRelation) -> dict:
 
 ################################################################################
 def write(configuration_space: ConfigurationSpace, indent: int = 2) -> str:
-    """
-    Create a string representation of a
+    """Create a string representation of a
     :class:`~ConfigSpace.configuration_space.ConfigurationSpace` in json format.
     This string can be written to file.
 
@@ -339,7 +332,7 @@ def write(configuration_space: ConfigurationSpace, indent: int = 2) -> str:
     indent : int
         number of whitespaces to use as indent
 
-    Returns
+    Returns:
     -------
     str
         String representation of the configuration space,
@@ -401,8 +394,7 @@ def write(configuration_space: ConfigurationSpace, indent: int = 2) -> str:
 
 ################################################################################
 def read(jason_string: str) -> ConfigurationSpace:
-    """
-    Create a configuration space definition from a json string.
+    """Create a configuration space definition from a json string.
 
     .. code:: python
 
@@ -425,7 +417,7 @@ def read(jason_string: str) -> ConfigurationSpace:
     jason_string : str
         A json string representing a configuration space definition
 
-    Returns
+    Returns:
     -------
     :class:`~ConfigSpace.configuration_space.ConfigurationSpace`
         The deserialized ConfigurationSpace object
@@ -484,9 +476,6 @@ def _construct_hyperparameter(hyperparameter: dict) -> Hyperparameter:  # noqa: 
             lower=hyperparameter["lower"],
             upper=hyperparameter["upper"],
             default_value=hyperparameter["default"],
-            # Backwards compatibily issue
-            # https://github.com/automl/ConfigSpace/issues/325
-            q=hyperparameter.get("q", None),
         )
 
     if hp_type == "normal_float":
@@ -498,9 +487,6 @@ def _construct_hyperparameter(hyperparameter: dict) -> Hyperparameter:  # noqa: 
             lower=hyperparameter["lower"],
             upper=hyperparameter["upper"],
             default_value=hyperparameter["default"],
-            # Backwards compatibily issue
-            # https://github.com/automl/ConfigSpace/issues/325
-            q=hyperparameter.get("q", None),
         )
 
     if hp_type == "beta_float":
@@ -511,9 +497,6 @@ def _construct_hyperparameter(hyperparameter: dict) -> Hyperparameter:  # noqa: 
             lower=hyperparameter["lower"],
             upper=hyperparameter["upper"],
             log=hyperparameter["log"],
-            # Backwards compatibily issue
-            # https://github.com/automl/ConfigSpace/issues/325
-            q=hyperparameter.get("q", None),
             default_value=hyperparameter["default"],
         )
 
@@ -524,9 +507,6 @@ def _construct_hyperparameter(hyperparameter: dict) -> Hyperparameter:  # noqa: 
             lower=hyperparameter["lower"],
             upper=hyperparameter["upper"],
             default_value=hyperparameter["default"],
-            # Backwards compatibily issue
-            # https://github.com/automl/ConfigSpace/issues/325
-            q=hyperparameter.get("q", None),
         )
 
     if hp_type == "normal_int":
@@ -538,9 +518,6 @@ def _construct_hyperparameter(hyperparameter: dict) -> Hyperparameter:  # noqa: 
             lower=hyperparameter["lower"],
             upper=hyperparameter["upper"],
             default_value=hyperparameter["default"],
-            # Backwards compatibily issue
-            # https://github.com/automl/ConfigSpace/issues/325
-            q=hyperparameter.get("q", None),
         )
 
     if hp_type == "beta_int":
@@ -551,9 +528,6 @@ def _construct_hyperparameter(hyperparameter: dict) -> Hyperparameter:  # noqa: 
             lower=hyperparameter["lower"],
             upper=hyperparameter["upper"],
             log=hyperparameter["log"],
-            # Backwards compatibily issue
-            # https://github.com/automl/ConfigSpace/issues/325
-            q=hyperparameter.get("q", None),
             default_value=hyperparameter["default"],
         )
 
@@ -681,7 +655,10 @@ def _construct_forbidden_equals(
     clause: dict,
     cs: ConfigurationSpace,
 ) -> ForbiddenEqualsClause:
-    return ForbiddenEqualsClause(hyperparameter=cs[clause["name"]], value=clause["value"])
+    return ForbiddenEqualsClause(
+        hyperparameter=cs[clause["name"]],
+        value=clause["value"],
+    )
 
 
 def _construct_forbidden_in(

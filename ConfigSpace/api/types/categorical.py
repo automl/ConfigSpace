@@ -1,16 +1,16 @@
 from __future__ import annotations
 
+from collections.abc import Sequence
 from typing import (
-    Sequence,
-    Union,
+    Literal,
+    TypeAlias,
     overload,
 )
-from typing_extensions import Literal, TypeAlias
 
 from ConfigSpace.hyperparameters import CategoricalHyperparameter, OrdinalHyperparameter
 
 # We only accept these types in `items`
-T: TypeAlias = Union[str, int, float]
+T: TypeAlias = str | int | float
 
 
 # ordered False -> CategoricalHyperparameter
@@ -88,7 +88,7 @@ def Categorical(
         # Add some meta information for your own tracking
         c = Categorical("animals", ["cat", "dog", "mouse"], meta={"use": "Favourite Animal"})
 
-    Note
+    Note:
     ----
     ``Categorical`` is actually a function, please use the corresponding return types if
     doing an `isinstance(param, type)` check with either

@@ -1,20 +1,22 @@
 #!/usr/bin/env python
-"""
-The old PCS format is part of the `Algorithm Configuration Library <http://aclib.net/#>`_.
+"""The old PCS format is part of the `Algorithm Configuration Library <http://aclib.net/#>`_.
 
 A detailed explanation of the **old** PCS format can be found
 `here. <http://aclib.net/cssc2014/pcs-format.pdf>`_
 """
+
 from __future__ import annotations
+
+from ConfigSpace.hyperparameters.hyperparameter import HyperparameterWithPrior
 
 __authors__ = ["Katharina Eggensperger", "Matthias Feurer"]
 __contact__ = "automl.org"
 
 import sys
 from collections import OrderedDict
+from collections.abc import Iterable
 from io import StringIO
 from itertools import product
-from typing import Iterable
 
 import pyparsing
 
@@ -68,7 +70,9 @@ pp_param_name = pyparsing.Word(
 )
 pp_digits = "0123456789"
 pp_plusorminus = pyparsing.Literal("+") | pyparsing.Literal("-")
-pp_int = pyparsing.Combine(pyparsing.Optional(pp_plusorminus) + pyparsing.Word(pp_digits))
+pp_int = pyparsing.Combine(
+    pyparsing.Optional(pp_plusorminus) + pyparsing.Word(pp_digits),
+)
 pp_float = pyparsing.Combine(
     pyparsing.Optional(pp_plusorminus) + pyparsing.Optional(pp_int) + "." + pp_int,
 )
@@ -78,7 +82,9 @@ pp_e_notation = pyparsing.Combine(pp_floatorint + pp_eorE + pp_int)
 pp_number = pp_e_notation | pp_float | pp_int
 pp_numberorname = pp_number | pp_param_name
 pp_il = pyparsing.Word("il")
-pp_choices = pp_param_name + pyparsing.Optional(pyparsing.OneOrMore("," + pp_param_name))
+pp_choices = pp_param_name + pyparsing.Optional(
+    pyparsing.OneOrMore("," + pp_param_name),
+)
 
 pp_cont_param = (
     pp_param_name
@@ -99,7 +105,9 @@ pp_forbidden_clause = (
     + pp_param_name
     + "="
     + pp_numberorname
-    + pyparsing.Optional(pyparsing.OneOrMore("," + pp_param_name + "=" + pp_numberorname))
+    + pyparsing.Optional(
+        pyparsing.OneOrMore("," + pp_param_name + "=" + pp_numberorname),
+    )
     + "}"
 )
 
@@ -123,8 +131,10 @@ def build_constant(param: Constant) -> str:
     return constant_template % (param.name, param.value, param.value)
 
 
-def build_continuous(param: NormalIntegerHyperparameter | NormalFloatHyperparameter) -> str:
-    if type(param) in (NormalIntegerHyperparameter, NormalFloatHyperparameter):
+def build_continuous(
+    param: NormalIntegerHyperparameter | NormalFloatHyperparameter,
+) -> str:
+    if isinstance(param, HyperparameterWithPrior):
         param = param.to_uniform()
 
     float_template = "%s%s [%s, %s] [%s]"
@@ -133,12 +143,18 @@ def build_continuous(param: NormalIntegerHyperparameter | NormalFloatHyperparame
         float_template += "l"
         int_template += "l"
 
-    q_prefix = "Q%d_" % (int(param.q),) if param.q is not None else ""
+    q_prefix = ""
     default_value = param.default_value
 
     if isinstance(param, IntegerHyperparameter):
         default_value = int(default_value)
-        return int_template % (q_prefix, param.name, param.lower, param.upper, default_value)
+        return int_template % (
+            q_prefix,
+            param.name,
+            param.lower,
+            param.upper,
+            default_value,
+        )
 
     return float_template % (
         q_prefix,
@@ -175,7 +191,11 @@ def build_condition(condition: ConditionComponent) -> str:
         )
 
     if isinstance(condition, EqualsCondition):
-        return condition_template % (condition.child.name, condition.parent.name, condition.value)
+        return condition_template % (
+            condition.child.name,
+            condition.parent.name,
+            condition.value,
+        )
 
     raise NotImplementedError(condition)
 
@@ -187,7 +207,7 @@ def build_forbidden(clause: AbstractForbiddenComponent) -> str:
             f"'{AbstractForbiddenComponent}', got '{type(clause)}'",
         )
 
-    if not isinstance(clause, (ForbiddenEqualsClause, ForbiddenAndConjunction)):
+    if not isinstance(clause, ForbiddenEqualsClause | ForbiddenAndConjunction):
         raise NotImplementedError(
             "SMAC cannot handle '{}' of type {}".format(*str(clause)),
             (type(clause)),
@@ -208,8 +228,7 @@ def build_forbidden(clause: AbstractForbiddenComponent) -> str:
 
 
 def read(pcs_string: Iterable[str]) -> ConfigurationSpace:
-    """
-    Read in a :py:class:`~ConfigSpace.configuration_space.ConfigurationSpace`
+    """Read in a :py:class:`~ConfigSpace.configuration_space.ConfigurationSpace`
     definition from a pcs file.
 
 
@@ -230,7 +249,7 @@ def read(pcs_string: Iterable[str]) -> ConfigurationSpace:
     pcs_string : Iterable[str]
         ConfigSpace definition in pcs format as an iterable of strings
 
-    Returns
+    Returns:
     -------
     :py:class:`~ConfigSpace.configuration_space.ConfigurationSpace`
         The deserialized ConfigurationSpace object
@@ -315,7 +334,11 @@ def read(pcs_string: Iterable[str]) -> ConfigurationSpace:
             name = param_list[0]
             choices = list(param_list[2:-4:2])
             default_value = param_list[-2]
-            param = create["categorical"](name=name, choices=choices, default_value=default_value)
+            param = create["categorical"](
+                name=name,
+                choices=choices,
+                default_value=default_value,
+            )
             cat_ct += 1
         except pyparsing.ParseException:
             pass
@@ -341,7 +364,10 @@ def read(pcs_string: Iterable[str]) -> ConfigurationSpace:
                     # TODO maybe add a check if the hyperparameter is
                     # actually in the configuration space
                     clause_list.append(
-                        ForbiddenEqualsClause(configuration_space[tmp_list[0]], tmp_list[2]),
+                        ForbiddenEqualsClause(
+                            configuration_space[tmp_list[0]],
+                            tmp_list[2],
+                        ),
                     )
                 else:
                     raise NotImplementedError()
@@ -386,8 +412,7 @@ def read(pcs_string: Iterable[str]) -> ConfigurationSpace:
 
 
 def write(configuration_space: ConfigurationSpace) -> str:
-    """
-    Create a string representation of a
+    """Create a string representation of a
     :class:`~ConfigSpace.configuration_space.ConfigurationSpace` in pcs format.
     This string can be written to file.
 
@@ -403,10 +428,10 @@ def write(configuration_space: ConfigurationSpace) -> str:
 
     Parameters
     ----------
-    configuration_space : :py:class:`~ConfigSpace.configuration_space.ConfigurationSpace`
+    configuration_space:
         a configuration space
 
-    Returns
+    Returns:
     -------
     str
         The string representation of the configuration space
@@ -456,9 +481,14 @@ def write(configuration_space: ConfigurationSpace) -> str:
         for dlc in dlcs:
             if isinstance(dlc, MultipleValueForbiddenClause):
                 if not isinstance(dlc, ForbiddenInClause):
-                    raise ValueError("SMAC cannot handle this forbidden " "clause: %s" % dlc)
+                    raise ValueError(
+                        "SMAC cannot handle this forbidden " "clause: %s" % dlc,
+                    )
                 in_statements.append(
-                    [ForbiddenEqualsClause(dlc.hyperparameter, value) for value in dlc.values],
+                    [
+                        ForbiddenEqualsClause(dlc.hyperparameter, value)
+                        for value in dlc.values
+                    ],
                 )
             else:
                 other_statements.append(dlc)

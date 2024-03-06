@@ -89,7 +89,8 @@ class AbstractCondition(ConditionComponent):
     def __init__(self, child: Hyperparameter, parent: Hyperparameter) -> None:
         if child == parent:
             raise ValueError(
-                "The child and parent hyperparameter must be different " "hyperparameters.",
+                "The child and parent hyperparameter must be different "
+                "hyperparameters.",
             )
         self.child = child
         self.parent = parent
@@ -97,8 +98,7 @@ class AbstractCondition(ConditionComponent):
         self.parent_vector_id = -1
 
     def __eq__(self, other: Any) -> bool:
-        """
-        Defines the __ne__() as stated in the
+        """Defines the __ne__() as stated in the
         documentation from python:
             By default, object implements __eq__() by using is, returning NotImplemented
             in the case of a false comparison: True if x is y else NotImplemented.
@@ -138,13 +138,15 @@ class AbstractCondition(ConditionComponent):
         instantiated_parent_hyperparameter: dict[str, int | float | str],
     ) -> bool:
         value = instantiated_parent_hyperparameter[self.parent.name]
-        if isinstance(value, (float, int, np.number)) and np.isnan(value):
+        if isinstance(value, float | int | np.number) and np.isnan(value):
             return False
         return self._evaluate(value)
 
     def _evaluate_vector(self, instantiated_vector: np.ndarray) -> bool:
         if self.parent_vector_id is None:
-            raise ValueError("Parent vector id should not be None when calling evaluate vector")
+            raise ValueError(
+                "Parent vector id should not be None when calling evaluate vector",
+            )
 
         return self._inner_evaluate_vector(instantiated_vector[self.parent_vector_id])
 
@@ -190,14 +192,14 @@ class EqualsCondition(AbstractCondition):
             Value, which the parent is compared to
         """
         super().__init__(child, parent)
-        if not parent.is_legal(value):
+        if not parent.legal_value(value):
             raise ValueError(
                 f"Hyperparameter '{child.name}' is "
                 f"conditional on the illegal value '{value}' of "
                 f"its parent hyperparameter '{parent.name}'",
             )
         self.value = value
-        self.vector_value = self.parent._inverse_transform(self.value)
+        self.vector_value = self.parent.to_vector(self.value)
 
     def __repr__(self) -> str:
         return f"{self.child.name} | {self.parent.name} == {self.value!r}"
@@ -212,7 +214,7 @@ class EqualsCondition(AbstractCondition):
     def _evaluate(self, value: str | float | int) -> bool:
         # No need to check if the value to compare is a legal value; either it
         # is equal (and thus legal), or it would evaluate to False anyway
-        return self.parent.compare(value, self.value) is Comparison.EQUAL
+        return self.parent.compare_value(value, self.value) is Comparison.EQUAL
 
     def _inner_evaluate_vector(self, value) -> bool:
         # No need to check if the value to compare is a legal value; either it
@@ -254,14 +256,14 @@ class NotEqualsCondition(AbstractCondition):
             Value, which the parent is compared to
         """
         super().__init__(child, parent)
-        if not parent.is_legal(value):
+        if not parent.legal_value(value):
             raise ValueError(
                 f"Hyperparameter '{child.name}' is "
                 f"conditional on the illegal value '{value}' of "
                 f"its parent hyperparameter '{parent.name}'",
             )
         self.value = value
-        self.vector_value = self.parent._inverse_transform(self.value)
+        self.vector_value = self.parent.to_vector(self.value)
 
     def __repr__(self) -> str:
         return f"{self.child.name} | {self.parent.name} != {self.value!r}"
@@ -274,15 +276,17 @@ class NotEqualsCondition(AbstractCondition):
         )
 
     def _evaluate(self, value: str | float | int) -> bool:
-        if not self.parent.is_legal(value):
+        if not self.parent.legal_value(value):
             return False
 
-        return self.parent.compare(value, self.value) is not Comparison.EQUAL
+        return self.parent.compare_value(value, self.value) is not Comparison.EQUAL
 
     def _inner_evaluate_vector(self, value) -> bool:
-        if not self.parent.is_legal_vector(value):
+        if not self.parent.legal_vector(value):
             return False
-        return self.parent.compare_vector(value, self.vector_value) is not Comparison.EQUAL
+        return (
+            self.parent.compare_vector(value, self.vector_value) is not Comparison.EQUAL
+        )
 
 
 class LessThanCondition(AbstractCondition):
@@ -292,8 +296,7 @@ class LessThanCondition(AbstractCondition):
         parent: Hyperparameter,
         value: str | float | int,
     ) -> None:
-        """
-        Hyperparameter ``child`` is conditional on the ``parent`` hyperparameter
+        """Hyperparameter ``child`` is conditional on the ``parent`` hyperparameter
         being *less than* ``value``.
 
         Make *b* an active hyperparameter if *a* is less than 5
@@ -319,15 +322,14 @@ class LessThanCondition(AbstractCondition):
             Value, which the parent is compared to
         """
         super().__init__(child, parent)
-        self.parent.allow_greater_less_comparison()
-        if not parent.is_legal(value):
+        if not parent.legal_value(value):
             raise ValueError(
                 f"Hyperparameter '{child.name}' is "
                 f"conditional on the illegal value '{value}' of "
                 f"its parent hyperparameter '{parent.name}'",
             )
         self.value = value
-        self.vector_value = self.parent._inverse_transform(self.value)
+        self.vector_value = self.parent.to_vector(self.value)
 
     def __repr__(self) -> str:
         return f"{self.child.name} | {self.parent.name} < {self.value!r}"
@@ -340,16 +342,18 @@ class LessThanCondition(AbstractCondition):
         )
 
     def _evaluate(self, value: str | float | int) -> bool:
-        if not self.parent.is_legal(value):
+        if not self.parent.legal_value(value):
             return False
 
-        return self.parent.compare(value, self.value) is Comparison.LESS_THAN
+        return self.parent.compare_value(value, self.value) is Comparison.LESS_THAN
 
     def _inner_evaluate_vector(self, value) -> bool:
-        if not self.parent.is_legal_vector(value):
+        if not self.parent.legal_vector(value):
             return False
 
-        return self.parent.compare_vector(value, self.vector_value) is Comparison.LESS_THAN
+        return (
+            self.parent.compare_vector(value, self.vector_value) is Comparison.LESS_THAN
+        )
 
 
 class GreaterThanCondition(AbstractCondition):
@@ -359,8 +363,7 @@ class GreaterThanCondition(AbstractCondition):
         parent: Hyperparameter,
         value: str | float | int,
     ) -> None:
-        """
-        Hyperparameter ``child`` is conditional on the ``parent`` hyperparameter
+        """Hyperparameter ``child`` is conditional on the ``parent`` hyperparameter
         being *greater than* ``value``.
 
         Make *b* an active hyperparameter if *a* is greater than 5
@@ -387,15 +390,19 @@ class GreaterThanCondition(AbstractCondition):
         """
         super().__init__(child, parent)
 
-        self.parent.allow_greater_less_comparison()
-        if not parent.is_legal(value):
+        if not self.parent.orderable:
+            raise ValueError(
+                f"The parent hyperparameter {self.parent} must be orderable to use "
+                "GreaterThanCondition",
+            )
+        if not parent.legal_value(value):
             raise ValueError(
                 f"Hyperparameter '{child.name}' is "
                 f"conditional on the illegal value '{value}' of "
                 f"its parent hyperparameter '{parent.name}'",
             )
         self.value = value
-        self.vector_value = self.parent._inverse_transform(self.value)
+        self.vector_value = self.parent.to_vector(self.value)
 
     def __repr__(self) -> str:
         return f"{self.child.name} | {self.parent.name} > {self.value!r}"
@@ -408,16 +415,19 @@ class GreaterThanCondition(AbstractCondition):
         )
 
     def _evaluate(self, value: None | str | float | int) -> bool:
-        if not self.parent.is_legal(value):
+        if not self.parent.legal_value(value):
             return False
 
-        return self.parent.compare(value, self.value) is Comparison.GREATER_THAN
+        return self.parent.compare_value(value, self.value) is Comparison.GREATER_THAN
 
     def _inner_evaluate_vector(self, value) -> int:
-        if not self.parent.is_legal_vector(value):
+        if not self.parent.legal_vector(value):
             return False
 
-        return self.parent.compare_vector(value, self.vector_value) is Comparison.GREATER_THAN
+        return (
+            self.parent.compare_vector(value, self.vector_value)
+            is Comparison.GREATER_THAN
+        )
 
 
 class InCondition(AbstractCondition):
@@ -427,8 +437,7 @@ class InCondition(AbstractCondition):
         parent: Hyperparameter,
         values: list[str | float | int],
     ) -> None:
-        """
-        Hyperparameter ``child`` is conditional on the ``parent`` hyperparameter
+        """Hyperparameter ``child`` is conditional on the ``parent`` hyperparameter
         being *in* a set of ``values``.
 
         make *b* an active hyperparameter if *a* is in the set [1, 2, 3, 4]
@@ -456,7 +465,7 @@ class InCondition(AbstractCondition):
         """
         super().__init__(child, parent)
         for value in values:
-            if not parent.is_legal(value):
+            if not parent.legal_value(value):
                 raise ValueError(
                     f"Hyperparameter '{child.name}' is "
                     f"conditional on the illegal value '{value}' of "
@@ -464,7 +473,7 @@ class InCondition(AbstractCondition):
                 )
         self.values = values
         self.value = values
-        self.vector_values = [self.parent._inverse_transform(value) for value in self.values]
+        self.vector_values = [self.parent.to_vector(value) for value in self.values]
 
     def __repr__(self) -> str:
         return "{} | {} in {{{}}}".format(
@@ -499,11 +508,12 @@ class AbstractConjunction(ConditionComponent):
         children = self.get_children()
         for c1, c2 in combinations(children, 2):
             if c1 != c2:
-                raise ValueError("All Conjunctions and Conditions must have " "the same child.")
+                raise ValueError(
+                    "All Conjunctions and Conditions must have " "the same child.",
+                )
 
     def __eq__(self, other: Any) -> bool:
-        """
-        This method implements a comparison between self and another
+        """Implements a comparison between self and another
         object.
 
         Additionally, it defines the __ne__() as stated in the
@@ -520,7 +530,7 @@ class AbstractConjunction(ConditionComponent):
         if len(self.components) != len(other.components):
             return False
 
-        for component, other_component in zip(self.components, other.components):
+        for component, other_component in zip(self.components, other.components, strict=False):
             if component != other_component:
                 return False
 
@@ -530,7 +540,7 @@ class AbstractConjunction(ConditionComponent):
         return self.__class__(*[copy.copy(comp) for comp in self.components])
 
     def get_descendant_literal_conditions(self) -> tuple[AbstractCondition]:
-        children = []  # type: List[AbstractCondition]
+        children = []
         for component in self.components:
             if isinstance(component, AbstractConjunction):
                 children.extend(component.get_descendant_literal_conditions())
@@ -555,13 +565,13 @@ class AbstractConjunction(ConditionComponent):
         return parents_vector
 
     def get_children(self) -> list[ConditionComponent]:
-        children = []  # type: List[ConditionComponent]
+        children = []
         for component in self.components:
             children.extend(component.get_children())
         return children
 
     def get_parents(self) -> list[ConditionComponent]:
-        parents = []  # type: List[ConditionComponent]
+        parents = []
         for component in self.components:
             parents.extend(component.get_parents())
         return parents
@@ -661,8 +671,7 @@ class AndConjunction(AbstractConjunction):
 
 class OrConjunction(AbstractConjunction):
     def __init__(self, *args: AbstractCondition) -> None:
-        """
-        Similar to the *AndConjunction*, constraints can be combined by
+        """Similar to the *AndConjunction*, constraints can be combined by
         using the *OrConjunction*.
 
         >>> from ConfigSpace import (

@@ -29,7 +29,8 @@ from __future__ import annotations
 
 import copy
 from collections import deque
-from typing import Any, Iterator, cast
+from collections.abc import Iterator, Sequence
+from typing import Any, cast
 
 import numpy as np
 
@@ -69,7 +70,7 @@ def impute_inactive_values(
         If float, replace inactive parameters by the given float value,
         which should be able to be splitted apart by a tree-based model.
 
-    Returns
+    Returns:
     -------
     :class:`~ConfigSpace.configuration_space.Configuration`
         A new configuration with the imputed values.
@@ -105,8 +106,7 @@ def get_one_exchange_neighbourhood(
     num_neighbors: int = 4,
     stdev: float = 0.2,
 ) -> Iterator[Configuration]:
-    """
-    Return all configurations in a one-exchange neighborhood.
+    """Return all configurations in a one-exchange neighborhood.
 
     The method is implemented as defined by:
     Frank Hutter, Holger H. Hoos and Kevin Leyton-Brown
@@ -128,7 +128,7 @@ def get_one_exchange_neighbourhood(
         :class:`~ConfigSpace.hyperparameters.UniformFloatHyperparameter` and
         :class:`~ConfigSpace.hyperparameters.UniformIntegerHyperparameter`.
 
-    Returns
+    Returns:
     -------
     Iterator
          It contains configurations, with values being situated around
@@ -188,7 +188,9 @@ def get_one_exchange_neighbourhood(
                     if number_of_sampled_neighbors >= 1:
                         break
                     if isinstance(hp, UniformFloatHyperparameter):
-                        neighbor = hp.get_neighbors(value, random, number=1, std=stdev)[0]
+                        neighbor = hp.get_neighbors(value, random, number=1, std=stdev)[
+                            0
+                        ]
                     else:
                         neighbor = hp.get_neighbors(value, random, number=1)[0]
                 else:
@@ -256,8 +258,7 @@ def get_one_exchange_neighbourhood(
 
 
 def get_random_neighbor(configuration: Configuration, seed: int) -> Configuration:
-    """
-    Draw a random neighbor by changing one parameter of a configuration.
+    """Draw a random neighbor by changing one parameter of a configuration.
 
     - If the parameter is categorical, it changes it to another value.
     - If the parameter is ordinal, it changes it to the next higher or
@@ -276,7 +277,7 @@ def get_random_neighbor(configuration: Configuration, seed: int) -> Configuratio
     seed : int
         Used to generate a random state.
 
-    Returns
+    Returns:
     -------
     :class:`~ConfigSpace.configuration_space.Configuration`
         The new neighbor
@@ -295,7 +296,9 @@ def get_random_neighbor(configuration: Configuration, seed: int) -> Configuratio
         value = None
         while not active:
             iteration += 1
-            rand_idx = random.randint(0, len(configuration)) if len(configuration) > 1 else 0
+            rand_idx = (
+                random.randint(0, len(configuration)) if len(configuration) > 1 else 0
+            )
 
             value = configuration.get_array()[rand_idx]
             if np.isfinite(value):
@@ -315,7 +318,7 @@ def get_random_neighbor(configuration: Configuration, seed: int) -> Configuratio
         assert value is not None
 
         # Get a neighboor and adapt the rest of the configuration if necessary
-        neighbor = hp.get_neighbors(value, random, number=1, transform=True)[0]
+        neighbor = hp.to_value(hp.get_neighbors(value, rs=random, number=1))[0]
         previous_value = values[hp.name]
         values[hp.name] = neighbor
 
@@ -334,8 +337,7 @@ def deactivate_inactive_hyperparameters(
     configuration_space: ConfigurationSpace,
     vector: None | np.ndarray = None,
 ) -> Configuration:
-    """
-    Remove inactive hyperparameters from a given configuration.
+    """Remove inactive hyperparameters from a given configuration.
 
     Parameters
     ----------
@@ -352,7 +354,7 @@ def deactivate_inactive_hyperparameters(
         ``vector`` must be specified. If both are specified only
         ``configuration`` will be used.
 
-    Returns
+    Returns:
     -------
     :class:`~ConfigSpace.configuration_space.Configuration`
         A configuration that is equivalent to the given configuration, except
@@ -369,7 +371,9 @@ def deactivate_inactive_hyperparameters(
 
     hps: deque[Hyperparameter] = deque()
 
-    unconditional_hyperparameters = configuration_space.get_all_unconditional_hyperparameters()
+    unconditional_hyperparameters = (
+        configuration_space.get_all_unconditional_hyperparameters()
+    )
     hyperparameters_with_children = []
     for uhp in unconditional_hyperparameters:
         children = configuration_space._children_of[uhp]
@@ -419,8 +423,7 @@ def fix_types(
     configuration: dict[str, Any],
     configuration_space: ConfigurationSpace,
 ) -> dict[str, Any]:
-    """
-    Iterate over all hyperparameters in the ConfigSpace
+    """Iterate over all hyperparameters in the ConfigSpace
     and fix the types of the parameter values in configuration.
 
     Parameters
@@ -431,18 +434,18 @@ def fix_types(
     configuration_space : :class:`~ConfigSpace.configuration_space.ConfigurationSpace`
         Configuration space which knows the types for all parameter values
 
-    Returns
+    Returns:
     -------
     dict
         configuration with fixed types of parameter values
     """
 
-    def fix_type_from_candidates(value: Any, candidates: list[Any]) -> Any:
+    def fix_type_from_candidates(value: Any, candidates: Sequence[Any]) -> Any:
         result = [c for c in candidates if str(value) == str(c)]
         if len(result) != 1:
             raise ValueError(
-                f"Parameter value {value!s} cannot be matched to candidates {candidates}. "
-                "Either none or too many matching candidates.",
+                f"Parameter value {value} cannot be matched to candidates {candidates}."
+                " Either none or too many matching candidates.",
             )
         return result[0]
 
@@ -477,41 +480,40 @@ def generate_grid(
     configuration_space: ConfigurationSpace,
     num_steps_dict: dict[str, int] | None = None,
 ) -> list[Configuration]:
-    """
-    Generates a grid of Configurations for a given ConfigurationSpace.
+    """Generates a grid of Configurations for a given ConfigurationSpace.
     Can be used, for example, for grid search.
 
     Parameters
     ----------
     configuration_space: :class:`~ConfigSpace.configuration_space.ConfigurationSpace`
-        The Configuration space over which to create a grid of HyperParameter Configuration values.
-        It knows the types for all parameter values.
+        The Configuration space over which to create a grid of HyperParameter
+        Configuration values. It knows the types for all parameter values.
 
     num_steps_dict: dict
-        A dict containing the number of points to divide the grid side formed by Hyperparameters
-        which are either of type UniformFloatHyperparameter or type UniformIntegerHyperparameter.
-        The keys in the dict should be the names of the corresponding Hyperparameters and the values
-        should be the number of points to divide the grid side formed by the corresponding
-        Hyperparameter in to.
+        A dict containing the number of points to divide the grid side formed by
+        Hyperparameters which are either of type UniformFloatHyperparameter or
+        type UniformIntegerHyperparameter. The keys in the dict should be the names
+        of the corresponding Hyperparameters and the values should be the number of
+        points to divide the grid side formed by the corresponding Hyperparameter in to.
 
-    Returns
+    Returns:
     -------
     list
         List containing Configurations. It is a cartesian product of tuples of
         HyperParameter values.
         Each tuple lists the possible values taken by the corresponding HyperParameter.
-        Within the cartesian product, in each element, the ordering of HyperParameters is the same
-        for the OrderedDict within the ConfigurationSpace.
+        Within the cartesian product, in each element, the ordering of HyperParameters
+        is the same for the OrderedDict within the ConfigurationSpace.
     """
 
     def get_value_set(num_steps_dict: dict[str, int] | None, hp_name: str) -> tuple:
-        """
-        Gets values along the grid for a particular hyperparameter.
+        """Gets values along the grid for a particular hyperparameter.
 
-        Uses the num_steps_dict to determine number of grid values for UniformFloatHyperparameter
-        and UniformIntegerHyperparameter. If these values are not present in num_steps_dict, the
-        quantization factor, q, of these classes will be used to divide the grid. NOTE: When q
-        is used if it is None, a ValueError is raised.
+        Uses the num_steps_dict to determine number of grid values for
+        UniformFloatHyperparameter and UniformIntegerHyperparameter. If these values
+        are not present in num_steps_dict, the quantization factor, q, of these
+        classes will be used to divide the grid. NOTE: When q is used if it
+        is None, a ValueError is raised.
 
         Parameters
         ----------
@@ -521,7 +523,7 @@ def generate_grid(
         hp_name: str
             Hyperparameter name
 
-        Returns
+        Returns:
         -------
         tuple
             Holds grid values for the given hyperparameter
@@ -546,10 +548,6 @@ def generate_grid(
             if num_steps_dict is not None and param.name in num_steps_dict:
                 num_steps = num_steps_dict[param.name]
                 grid_points = np.linspace(lower, upper, num_steps)
-
-            # check for log and for rounding issues
-            elif param.q is not None:
-                grid_points = np.arange(lower, upper + param.q, param.q)
             else:
                 raise ValueError(
                     "num_steps_dict is None or doesn't contain the number of points"
@@ -577,10 +575,6 @@ def generate_grid(
             if num_steps_dict is not None and param.name in num_steps_dict:
                 num_steps = num_steps_dict[param.name]
                 grid_points = np.linspace(lower, upper, num_steps)
-
-            # check for log and for rounding issues
-            elif param.q is not None:
-                grid_points = np.arange(lower, upper + param.q, param.q)
             else:
                 raise ValueError(
                     "num_steps_dict is None or doesn't contain the number of points "
@@ -602,15 +596,18 @@ def generate_grid(
 
         raise TypeError(f"Unknown hyperparameter type {type(param)}")
 
-    def get_cartesian_product(value_sets: list[tuple], hp_names: list[str]) -> list[dict[str, Any]]:
-        """
-        Returns a grid for a subspace of the configuration with given hyperparameters
+    def get_cartesian_product(
+        value_sets: list[tuple],
+        hp_names: list[str],
+    ) -> list[dict[str, Any]]:
+        """Returns a grid for a subspace of the configuration with given hyperparameters
         and their grid values.
 
         Takes a list of tuples of grid values of the hyperparameters and list of
-        hyperparameter names. The outer list iterates over the hyperparameters corresponding
-        to the order in the list of hyperparameter names.
-        The inner tuples contain grid values of the hyperparameters for each hyperparameter.
+        hyperparameter names. The outer list iterates over the hyperparameters
+        corresponding to the order in the list of hyperparameter names.
+        The inner tuples contain grid values of the hyperparameters for each
+        hyperparameter.
 
         Parameters
         ----------
@@ -620,7 +617,7 @@ def generate_grid(
         hp_names: list of strs
             List of hyperparameter names
 
-        Returns
+        Returns:
         -------
         list of dicts
             List of configuration dicts
@@ -633,12 +630,12 @@ def generate_grid(
 
         grid = []
         for element in itertools.product(*value_sets):
-            config_dict = dict(zip(hp_names, element))
+            config_dict = dict(zip(hp_names, element, strict=False))
             grid.append(config_dict)
 
         return grid
 
-    # list of tuples: each tuple within is the grid values to be taken on by a Hyperparameter
+    # Each tuple within is the grid values to be taken on by a Hyperparameter
     value_sets = []
     hp_names = []
 
@@ -649,16 +646,19 @@ def generate_grid(
         hp_names.append(hp_name)
 
     # Create a Cartesian product of above allowed values for the HPs. Hold them in an
-    # "unchecked" deque because some of the conditionally dependent HPs may become active
-    # for some of the elements of the Cartesian product and in these cases creating a
-    # Configuration would throw an Error (see below).
+    # "unchecked" deque because some of the conditionally dependent HPs may become
+    # active for some of the elements of the Cartesian product and in these cases
+    # creating a Configuration would throw an Error (see below).
     # Creates a deque of Configuration dicts
     unchecked_grid_pts = deque(get_cartesian_product(value_sets, hp_names))
     checked_grid_pts = []
 
     while len(unchecked_grid_pts) > 0:
         try:
-            grid_point = Configuration(configuration_space, values=unchecked_grid_pts[0])
+            grid_point = Configuration(
+                configuration_space,
+                values=unchecked_grid_pts[0],
+            )
             checked_grid_pts.append(grid_point)
 
         # When creating a configuration that violates a forbidden clause, simply skip it
@@ -683,7 +683,9 @@ def generate_grid(
                         and new_hp_name not in unchecked_grid_pts[0]
                     ):
                         all_cond_ = True
-                        for cond in configuration_space._parent_conditions_of[new_hp_name]:
+                        for cond in configuration_space._parent_conditions_of[
+                            new_hp_name
+                        ]:
                             if not cond.evaluate(unchecked_grid_pts[0]):
                                 all_cond_ = False
                         if all_cond_:
@@ -697,9 +699,10 @@ def generate_grid(
             # active HP when in this except block?
             if len(new_active_hp_names) <= 0:
                 raise RuntimeError(
-                    "Unexpected error: There should have been a newly activated hyperparameter"
-                    f" for the current configuration values: {unchecked_grid_pts[0]!s}. "
-                    "Please contact the developers with the code you ran and the stack trace.",
+                    "Unexpected error: There should have been a newly activated"
+                    " hyperparameter for the current configuration values:"
+                    f" {unchecked_grid_pts[0]!s}. Please contact the developers with"
+                    " the code you ran and the stack trace.",
                 ) from None
 
             new_conditonal_grid = get_cartesian_product(value_sets, hp_names)

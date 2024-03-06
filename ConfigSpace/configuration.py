@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 import warnings
-from typing import TYPE_CHECKING, Any, Iterator, KeysView, Mapping, Sequence
+from collections.abc import Iterator, KeysView, Mapping, Sequence
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 
@@ -19,7 +20,7 @@ class Configuration(Mapping[str, Any]):
     def __init__(
         self,
         configuration_space: ConfigurationSpace,
-        values: Mapping[str, str | float | int | None] | None = None,
+        values: Mapping[str, Any] | None = None,
         vector: Sequence[float] | np.ndarray | None = None,
         allow_inactive_with_values: bool = False,
         origin: Any | None = None,
@@ -37,27 +38,35 @@ class Configuration(Mapping[str, Any]):
         accessed and modified similar to python dictionaries
         (c.f. :ref:`Guide<1st_Example>`).
 
-        Parameters
-        ----------
-        configuration_space : :class:`~ConfigSpace.configuration_space.ConfigurationSpace`
-        values : dict, optional
-            A dictionary with pairs (hyperparameter_name, value), where value is
-            a legal value of the hyperparameter in the above configuration_space
-        vector : np.ndarray, optional
-            A numpy array for efficient representation. Either values or vector
-            has to be given
-        allow_inactive_with_values : bool, optional
-            Whether an Exception will be raised if a value for an inactive
-            hyperparameter is given. Default is to raise an Exception.
-            Default to False
-        origin : Any, optional
-            Store information about the origin of this configuration. Defaults to None
-        config_id : int, optional
-            Integer configuration ID which can be used by a program using the ConfigSpace
-            package.
+        Args:
+            configuration_space:
+                The space this configuration is in
+            values:
+                A dictionary with pairs (hyperparameter_name, value), where value is
+                a legal value of the hyperparameter in the above configuration_space
+            vector:
+                A numpy array for efficient representation. Either values or vector
+                has to be given
+            allow_inactive_with_values:
+                Whether an Exception will be raised if a value for an inactive
+                hyperparameter is given. Default is to raise an Exception.
+                Default to False
+            origin:
+                Store information about the origin of this configuration.
+                Defaults to None.
+            config_id:
+                Integer configuration ID which can be used by a program using the
+                ConfigSpace package.
         """
-        if values is not None and vector is not None or values is None and vector is None:
-            raise ValueError("Specify Configuration as either a dictionary or a vector.")
+        if (
+            values is not None
+            and vector is not None
+            or values is None
+            and vector is None
+        ):
+            raise ValueError(
+                "Specify Configuration as either a dictionary or a vector.",
+            )
 
         self.config_space = configuration_space
         self.allow_inactive_with_values = allow_inactive_with_values
@@ -76,8 +85,8 @@ class Configuration(Mapping[str, Any]):
             if any(unknown_keys):
                 raise ValueError(f"Unknown hyperparameter(s) {unknown_keys}")
 
-            # Using cs._hyperparameters to iterate makes sure that the hyperparameters in
-            # the configuration are sorted in the same way as they are sorted in
+            # Using cs._hyperparameters to iterate makes sure that the hyperparameters
+            # in the configuration are sorted in the same way as they are sorted in
             # the configuration space
             self._values = {}
             self._vector = np.empty(shape=len(configuration_space), dtype=float)
@@ -88,7 +97,7 @@ class Configuration(Mapping[str, Any]):
                     self._vector[i] = np.nan
                     continue
 
-                if not hp.is_legal(value):
+                if not hp.legal_value(value):
                     raise IllegalValueError(hp, value)
 
                 # Truncate the float to be of constant length for a python version
@@ -97,7 +106,7 @@ class Configuration(Mapping[str, Any]):
                     value = float(repr(value))
 
                 self._values[key] = value
-                self._vector[i] = hp._inverse_transform(value)
+                self._vector[i] = hp.to_vector(value)  # type: ignore
 
             self.is_valid_configuration()
 
@@ -125,7 +134,7 @@ class Configuration(Mapping[str, Any]):
     def is_valid_configuration(self) -> None:
         """Check if the object is a valid.
 
-        Raises
+        Raises:
         ------
         ValueError: If configuration is not valid.
         """
@@ -140,7 +149,7 @@ class Configuration(Mapping[str, Any]):
 
         All continuous values are scaled between zero and one.
 
-        Returns
+        Returns:
         -------
         numpy.ndarray
             The vector representation of the configuration
@@ -155,13 +164,13 @@ class Configuration(Mapping[str, Any]):
 
     def __setitem__(self, key: str, value: Any) -> None:
         param = self.config_space[key]
-        if not param.is_legal(value):
+        if not param.legal_value(value):
             raise IllegalValueError(param, value)
 
         idx = self.config_space._hyperparameter_idx[key]
 
         # Recalculate the vector with respect to this new value
-        vector_value = param._inverse_transform(value)
+        vector_value = param.to_vector(value)
         new_array = c_util.change_hp_value(
             self.config_space,
             self.get_array().copy(),
@@ -184,8 +193,8 @@ class Configuration(Mapping[str, Any]):
 
         item_idx = self.config_space._hyperparameter_idx[key]
 
-        raw_value = self._vector[item_idx]
-        if not np.isfinite(raw_value):
+        vector = self._vector[item_idx]
+        if not np.isfinite(vector):
             # NOTE: Techinically we could raise an `InactiveHyperparameterError` here
             # but that causes the `.get()` method from being a mapping to fail.
             # Normally `config.get(key)`, if it fails, will return None. Apparently,
@@ -194,7 +203,7 @@ class Configuration(Mapping[str, Any]):
             raise KeyError(key)
 
         hyperparameter = self.config_space._hyperparameters[key]
-        value = hyperparameter._transform(raw_value)
+        value = hyperparameter.to_value(vector)
 
         # Truncate float to be of constant length for a python version
         if isinstance(hyperparameter, FloatHyperparameter):
@@ -209,7 +218,7 @@ class Configuration(Mapping[str, Any]):
     def keys(self) -> KeysView[str]:
         """Return the keys of the configuration.
 
-        Returns
+        Returns:
         -------
         KeysView[str]
             The keys of the configuration
@@ -247,12 +256,10 @@ class Configuration(Mapping[str, Any]):
     # make some other breaking changes
     # * Search `Marked Deprecated` to find others
     def get_dictionary(self) -> dict[str, Any]:
-        """A representation of the :class:`~ConfigSpace.configuration_space.Configuration`
+        """A representation of the `ConfigSpace.configuration_space.Configuration`
         in dictionary form.
 
-        Returns
-        -------
-        dict
+        Retuns:
             Configuration as dictionary
         """
         warnings.warn(

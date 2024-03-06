@@ -93,7 +93,7 @@ def Float(
         # Add meta info to the param
         Float("a", (1.0, 10), meta={"use": "For counting chickens"})
 
-    Note
+    Note:
     ----
     `Float` is actually a function, please use the corresponding return types if
     doing an `isinstance(param, type)` check and not `Float`.
@@ -116,7 +116,7 @@ def Float(
     q : float | None = None
         The quantization factor, must evenly divide the boundaries.
 
-        Note
+    Note:
         ----
         Quantization points act are not equal and require experimentation
         to be certain about
@@ -129,7 +129,7 @@ def Float(
     meta : dict | None = None
         Any meta information you want to associate with this parameter
 
-    Returns
+    Returns:
     -------
     UniformFloatHyperparameter | NormalFloatHyperparameter | BetaFloatHyperparameter
         Returns the corresponding hyperparameter type

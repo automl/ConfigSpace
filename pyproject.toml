@@ -66,22 +66,11 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = [
-  "mypy",
-  "pre-commit",
-  "build",
-  "ruff",
-  "black",
-]
+dev = ["mypy", "pre-commit", "build", "ruff"]
 
-test = [
-  "pytest>=4.6",
-  "pytest-cov",
-]
+test = ["pytest>=4.6", "pytest-cov"]
 
-docs = [
-  "automl_sphinx_theme>=0.1.11",
-]
+docs = ["automl_sphinx_theme>=0.1.11"]
 
 [build-system]
 requires = ["setuptools", "wheel", "oldest-supported-numpy", "Cython==0.29.36"]
@@ -112,19 +101,17 @@ exclude_lines = [
   "if TYPE_CHECKING",
 ]
 
-[tool.black]
-target-version = ['py38']
-line-length = 100
-
 # https://github.com/charliermarsh/ruff
 [tool.ruff]
-target-version = "py38"
-line-length = 100
-show-source = true
+target-version = "py310"
+line-length = 88
+output-format = "full"
 src = ["ConfigSpace", "test"]
 
+[tool.ruff.lint]
 # Allow unused variables when underscore-prefixed.
 dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+extend-safe-fixes = ["ALL"]
 
 select = [
   "A",
@@ -195,8 +182,8 @@ ignore = [
   "PLR0912", # Too many branches
   "PLR0913", # Too many arguments to function call
   "PLR2004", # Magic constants
-  "N999", # Invalid Module name
-  "N802", # Function name should be lowercase
+  "N999",    # Invalid Module name
+  "N802",    # Function name should be lowercase
   # These tend to be lighweight and confuse pyright
 ]
 
@@ -222,11 +209,11 @@ exclude = [
   "venv",
   "docs",
   # This is vendored, ignore it
-  "ConfigSpace/nx/**"
+  "ConfigSpace/nx/**",
 ]
 
 # Exclude a variety of commonly ignored directories.
-[tool.ruff.per-file-ignores]
+[tool.ruff.lint.per-file-ignores]
 "test/*.py" = [
   "S101",
   "D102",
@@ -247,22 +234,12 @@ exclude = [
   "PLR0915",
   "BLE001",
 ]
-"setup.py" = ["D102"]
 "__init__.py" = ["I002"]
-"ConfigSpace/read_and_write/pcs_new.py" = [
-  "N816",
-  "D103",
-  "PLW2901",
-]
-"ConfigSpace/read_and_write/pcs.py" = [
-  "N816",
-  "D103",
-  "PLW2901",
-  "T201",
-]
+"ConfigSpace/read_and_write/pcs_new.py" = ["N816", "D103", "PLW2901"]
+"ConfigSpace/read_and_write/pcs.py" = ["N816", "D103", "PLW2901", "T201"]
 
 
-[tool.ruff.isort]
+[tool.ruff.lint.isort]
 known-first-party = ["ConfigSpace"]
 no-lines-before = ["future"]
 required-imports = ["from __future__ import annotations"]
@@ -271,11 +248,13 @@ extra-standard-library = ["typing_extensions"]
 force-wrap-aliases = true
 
 [tool.ruff.pydocstyle]
-convention = "numpy"
+convention = "google"
 
+[tool.ruff.lint.pylint]
+max-args = 10 # Changed from default of 5
 
 [tool.mypy]
-python_version = "3.8"
+python_version = "3.10"
 packages = ["ConfigSpace", "test"]
 
 show_error_codes = true
@@ -285,8 +264,8 @@ warn_unused_configs = true # warn about unused [tool.mypy] lines
 follow_imports = "normal"      # Type check top level api code we use from imports
 ignore_missing_imports = false # prefer explicit ignores
 
-disallow_untyped_defs = true       # All functions must have types
-disallow_incomplete_defs = true    # ...all types
+disallow_untyped_defs = true        # All functions must have types
+disallow_incomplete_defs = true     # ...all types
 disallow_untyped_decorators = false # ... but not decorators
 
 no_implicit_optional = true
@@ -310,5 +289,5 @@ disallow_untyped_decorators = false # Test decorators are not properly typed
 disallow_incomplete_defs = false    # Sometimes we just want to ignore verbose types
 
 [[tool.mypy.overrides]]
-module = ["ConfigSpace.nx.*"]  # This is vendored, we ignore it
+module = ["ConfigSpace.nx.*"] # This is vendored, we ignore it
 ignore_errors = true

@@ -1,23 +1,23 @@
 #!/usr/bin/env python
-"""
-PCS (parameter configuration space) is a simple, human-readable file format for the
+"""PCS (parameter configuration space) is a simple, human-readable file format for the
 description of an algorithm's configurable parameters, their possible values, as well
 as any parameter dependencies. There exist an old and a new version.
 
 The new PCS format is part of the
 `Algorithm Configuration Library 2.0 <https://bitbucket.org/mlindauer/aclib2/src/master/>`_.
 A detailed description of the **new** format can be found in the
-`ACLIB 2.0 docs <https://bitbucket.org/mlindauer/aclib2/src/aclib2/AClib_Format.md>`_, in the
-`SMACv2 docs <https://www.cs.ubc.ca/labs/beta/Projects/SMAC/v2.10.03/manual.pdf>`_
+`ACLIB 2.0 docs <https://bitbucket.org/mlindauer/aclib2/src/aclib2/AClib_Format.md>`_,
+in the `SMACv2 docs <https://www.cs.ubc.ca/labs/beta/Projects/SMAC/v2.10.03/manual.pdf>`_
 and further examples are provided in the
 `pysmac docs <https://pysmac.readthedocs.io/en/latest/pcs.html>`_
 
 .. note::
 
     The PCS format definition has changed in the year 2016 and is supported by
-    AClib 2.0, as well as SMAC (v2 and v3). To write or to read the **old** version of pcs,
-    please use the :class:`~ConfigSpace.read_and_write.pcs` module.
+    AClib 2.0, as well as SMAC (v2 and v3). To write or to read the **old** version of
+    pcs, please use the :class:`~ConfigSpace.read_and_write.pcs` module.
 """
+
 from __future__ import annotations
 
 __authors__ = [
@@ -28,9 +28,9 @@ __authors__ = [
 __contact__ = "automl.org"
 
 from collections import OrderedDict
+from collections.abc import Iterable
 from io import StringIO
 from itertools import product
-from typing import Iterable
 
 import pyparsing
 
@@ -90,9 +90,13 @@ pp_param_name = pyparsing.Word(
 )
 pp_param_operation = pyparsing.Word("in" + "!=" + "==" + ">" + "<")
 pp_digits = "0123456789"
-pp_param_val = pp_param_name + pyparsing.Optional(pyparsing.OneOrMore("," + pp_param_name))
+pp_param_val = pp_param_name + pyparsing.Optional(
+    pyparsing.OneOrMore("," + pp_param_name),
+)
 pp_plusorminus = pyparsing.Literal("+") | pyparsing.Literal("-")
-pp_int = pyparsing.Combine(pyparsing.Optional(pp_plusorminus) + pyparsing.Word(pp_digits))
+pp_int = pyparsing.Combine(
+    pyparsing.Optional(pp_plusorminus) + pyparsing.Word(pp_digits),
+)
 pp_float = pyparsing.Combine(
     pyparsing.Optional(pp_plusorminus) + pyparsing.Optional(pp_int) + "." + pp_int,
 )
@@ -112,9 +116,15 @@ pp_log = pyparsing.Literal("log")
 # https://pythonhosted.org/pyparsing/pyparsing.Word-class.html
 pp_connectiveOR = pyparsing.Literal("||")
 pp_connectiveAND = pyparsing.Literal("&&")
-pp_choices = pp_param_name + pyparsing.Optional(pyparsing.OneOrMore("," + pp_param_name))
-pp_sequence = pp_param_name + pyparsing.Optional(pyparsing.OneOrMore("," + pp_param_name))
-pp_ord_param = pp_param_name + pp_param_type + "{" + pp_sequence + "}" + "[" + pp_param_name + "]"
+pp_choices = pp_param_name + pyparsing.Optional(
+    pyparsing.OneOrMore("," + pp_param_name),
+)
+pp_sequence = pp_param_name + pyparsing.Optional(
+    pyparsing.OneOrMore("," + pp_param_name),
+)
+pp_ord_param = (
+    pp_param_name + pp_param_type + "{" + pp_sequence + "}" + "[" + pp_param_name + "]"
+)
 pp_cont_param = (
     pp_param_name
     + pp_param_type
@@ -128,7 +138,9 @@ pp_cont_param = (
     + "]"
     + pyparsing.Optional(pp_log)
 )
-pp_cat_param = pp_param_name + pp_param_type + "{" + pp_choices + "}" + "[" + pp_param_name + "]"
+pp_cat_param = (
+    pp_param_name + pp_param_type + "{" + pp_choices + "}" + "[" + pp_param_name + "]"
+)
 pp_condition = (
     pp_param_name
     + "|"
@@ -153,7 +165,9 @@ pp_forbidden_clause = (
     + pp_param_name
     + "="
     + pp_numberorname
-    + pyparsing.Optional(pyparsing.OneOrMore("," + pp_param_name + "=" + pp_numberorname))
+    + pyparsing.Optional(
+        pyparsing.OneOrMore("," + pp_param_name + "=" + pp_numberorname),
+    )
     + "}"
 )
 
@@ -186,7 +200,9 @@ def build_constant(param: Constant) -> str:
     return const_template % (param.name, param.value, param.value)
 
 
-def build_continuous(param: NormalFloatHyperparameter | NormalIntegerHyperparameter) -> str:
+def build_continuous(
+    param: NormalFloatHyperparameter | NormalIntegerHyperparameter,
+) -> str:
     if type(param) in (NormalIntegerHyperparameter, NormalFloatHyperparameter):
         param = param.to_uniform()
 
@@ -376,13 +392,11 @@ def condition_specification(
 
 
 def read(pcs_string: Iterable[str]) -> ConfigurationSpace:
-    """
-    Read in a :py:class:`~ConfigSpace.configuration_space.ConfigurationSpace`
+    """Read in a :py:class:`~ConfigSpace.configuration_space.ConfigurationSpace`
     definition from a pcs file.
 
-    Example
+    Example:
     -------
-
     .. testsetup:: pcs_new_test
 
         from ConfigSpace import ConfigurationSpace
@@ -404,7 +418,7 @@ def read(pcs_string: Iterable[str]) -> ConfigurationSpace:
     pcs_string : Iterable[str]
         ConfigSpace definition in pcs format
 
-    Returns
+    Returns:
     -------
     :py:class:`~ConfigSpace.configuration_space.ConfigurationSpace`
         The deserialized ConfigurationSpace object
@@ -551,9 +565,14 @@ def read(pcs_string: Iterable[str]) -> ConfigurationSpace:
                                 f" but its value is {forbidden_value}",
                             )
 
-                    elif isinstance(hp, (CategoricalHyperparameter, OrdinalHyperparameter)):
+                    elif isinstance(
+                        hp,
+                        CategoricalHyperparameter | OrdinalHyperparameter,
+                    ):
                         hp_values = (
-                            hp.choices if isinstance(hp, CategoricalHyperparameter) else hp.sequence
+                            hp.choices
+                            if isinstance(hp, CategoricalHyperparameter)
+                            else hp.sequence
                         )
                         forbidden_value_in_hp_values = tmp_list[2] in hp_values
 
@@ -569,7 +588,10 @@ def read(pcs_string: Iterable[str]) -> ConfigurationSpace:
                         raise ValueError("Unsupported Hyperparamter sorts")
 
                     clause_list.append(
-                        ForbiddenEqualsClause(configuration_space[tmp_list[0]], forbidden_value),
+                        ForbiddenEqualsClause(
+                            configuration_space[tmp_list[0]],
+                            forbidden_value,
+                        ),
                     )
                 else:
                     raise NotImplementedError()
@@ -610,7 +632,9 @@ def read(pcs_string: Iterable[str]) -> ConfigurationSpace:
                             ands = []
                             for and_part in condition:
                                 element_list = [
-                                    element for _ in condition for element in and_part.split()
+                                    element
+                                    for _ in condition
+                                    for element in and_part.split()
                                 ]
                                 ands.append(
                                     condition_specification(
@@ -665,12 +689,11 @@ def read(pcs_string: Iterable[str]) -> ConfigurationSpace:
 
 
 def write(configuration_space: ConfigurationSpace) -> str:
-    """
-    Create a string representation of a
+    """Create a string representation of a
     :class:`~ConfigSpace.configuration_space.ConfigurationSpace`
     in pcs_new format. This string can be written to file.
 
-    Example
+    Example:
     -------
     .. doctest::
 
@@ -688,10 +711,10 @@ def write(configuration_space: ConfigurationSpace) -> str:
 
     Parameters
     ----------
-    configuration_space : :py:class:`~ConfigSpace.configuration_space.ConfigurationSpace`
-        a configuration space
+    configuration_space:
+        A configuration space
 
-    Returns
+    Returns:
     -------
     str
         The string representation of the configuration space
@@ -732,7 +755,7 @@ def write(configuration_space: ConfigurationSpace) -> str:
     for condition in configuration_space.get_conditions():
         if condition_lines.tell() > 0:
             condition_lines.write("\n")
-        if isinstance(condition, (AndConjunction, OrConjunction)):
+        if isinstance(condition, AndConjunction | OrConjunction):
             condition_lines.write(build_conjunction(condition))
         else:
             condition_lines.write(build_condition(condition))
@@ -746,9 +769,14 @@ def write(configuration_space: ConfigurationSpace) -> str:
         for dlc in dlcs:
             if isinstance(dlc, MultipleValueForbiddenClause):
                 if not isinstance(dlc, ForbiddenInClause):
-                    raise ValueError("SMAC cannot handle this forbidden " "clause: %s" % dlc)
+                    raise ValueError(
+                        "SMAC cannot handle this forbidden " "clause: %s" % dlc,
+                    )
                 in_statements.append(
-                    [ForbiddenEqualsClause(dlc.hyperparameter, value) for value in dlc.values],
+                    [
+                        ForbiddenEqualsClause(dlc.hyperparameter, value)
+                        for value in dlc.values
+                    ],
                 )
             else:
                 other_statements.append(dlc)

@@ -26,7 +26,9 @@ def check_forbidden(forbidden_clauses: list, vector: np.ndarray) -> int:
     for i in range(Iforbidden):
         clause = forbidden_clauses[i]
         if clause.c_is_forbidden_vector(vector, strict=False):
-            raise ForbiddenValueError("Given vector violates forbidden clause %s" % (str(clause)))
+            raise ForbiddenValueError(
+                "Given vector violates forbidden clause %s" % (str(clause)),
+            )
 
 
 def check_configuration(
@@ -64,7 +66,7 @@ def check_configuration(
         hyperparameter = self._hyperparameters[hp_name]
         hp_value = vector[hp_idx]
 
-        if not np.isnan(hp_value) and not hyperparameter.is_legal_vector(hp_value):
+        if not np.isnan(hp_value) and not hyperparameter.legal_vector(hp_value):
             raise IllegalValueError(hyperparameter, hp_value)
 
         children = self._children_of[hp_name]
@@ -79,14 +81,18 @@ def check_configuration(
                         break
                 if add:
                     hyperparameter_idx = self._hyperparameter_idx[child.name]
-                    active[hyperparameter_idx] =  True
+                    active[hyperparameter_idx] = True
                     to_visit.appendleft(child.name)
 
         if active[hp_idx] is True and np.isnan(hp_value):
             raise ActiveHyperparameterNotSetError(hyperparameter)
 
     for hp_idx in self._idx_to_hyperparameter:
-        if not allow_inactive_with_values and not active[hp_idx] and not np.isnan(vector[hp_idx]):
+        if (
+            not allow_inactive_with_values
+            and not active[hp_idx]
+            and not np.isnan(vector[hp_idx])
+        ):
             # Only look up the value (in the line above) if the hyperparameter is inactive!
             hp_name = self._idx_to_hyperparameter[hp_idx]
             hp_value = vector[hp_idx]
@@ -110,7 +116,7 @@ def correct_sampled_array(
     clause: AbstractForbiddenComponent
     condition: ConditionComponent
     hyperparameter_idx: int
-    NaN: float = np.NaN
+    NaN: float = np.nan
     visited: set
     inactive: set
     child: Hyperparameter
@@ -171,9 +177,8 @@ def correct_sampled_array(
                         conditions = parent_conditions_of[child_name]
                         if isinstance(conditions[0], OrConjunction):
                             pass
-                        else:  # AndCondition
-                            if parents_visited != len(parents):
-                                continue
+                        elif parents_visited != len(parents):
+                            continue
 
                         add = True
                         for j in range(len(conditions)):
@@ -229,7 +234,7 @@ def change_hp_value(
 
     index : int
 
-    Returns
+    Returns:
     -------
     np.ndarray
     """
@@ -248,7 +253,7 @@ def change_hp_value(
     ch: Hyperparameter
     child: str
     to_disable: set
-    NaN: float = np.NaN
+    NaN: float = np.nan
     children_of: dict = configuration_space._children_of
 
     configuration_array[index] = hp_value

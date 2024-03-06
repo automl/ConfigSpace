@@ -1,118 +1,130 @@
 from __future__ import annotations
 
-import copy
-import io
 from collections import Counter
-from typing import Any, Sequence
+from collections.abc import Hashable, Mapping, Sequence
+from dataclasses import dataclass, field
+from typing import Any, ClassVar
 
 import numpy as np
+import numpy.typing as npt
+from scipy.stats import rv_discrete
 
-from ConfigSpace.hyperparameters.hyperparameter import Comparison, Hyperparameter
+from ConfigSpace.hyperparameters._distributions import ScipyDiscreteDistribution
+from ConfigSpace.hyperparameters._hp_components import (
+    NeighborhoodCat,
+    TransformerSeq,
+)
+from ConfigSpace.hyperparameters.hyperparameter import Hyperparameter
 
 
-class CategoricalHyperparameter(Hyperparameter):
-    # TODO add more magic for automated type recognition
-    # TODO move from list to tuple for choices argument
+@dataclass(init=False)
+class CategoricalHyperparameter(Hyperparameter[Any, np.int64]):
+    orderable: ClassVar[bool] = False
+    choices: Sequence[Any]
+    weights: Sequence[int | float] | None
+    probabilities: npt.NDArray[np.float64] = field(repr=False, init=False)
+
     def __init__(
         self,
         name: str,
-        choices: list[str | float | int] | tuple[float | int | str],
-        default_value: int | float | str | None = None,
-        meta: dict | None = None,
+        choices: Sequence[Any],
         weights: Sequence[int | float] | None = None,
+        default_value: Any | None = None,
+        meta: Mapping[Hashable, Any] | None = None,
     ) -> None:
-        """
-        A categorical hyperparameter.
-
-        Its values are sampled from a set of ``values``.
-
-        ``None`` is a forbidden value, please use a string constant instead and parse
-        it in your own code, see `here <https://github.com/automl/ConfigSpace/issues/159>_`
-        for further details.
-
-        >>> from ConfigSpace import CategoricalHyperparameter
-        >>>
-        >>> CategoricalHyperparameter('c', choices=['red', 'green', 'blue'])
-        c, Type: Categorical, Choices: {red, green, blue}, Default: red
-
-        Parameters
-        ----------
-        name : str
-            Name of the hyperparameter, with which it can be accessed
-        choices : list or tuple with str, float, int
-            Collection of values to sample hyperparameter from
-        default_value : int, float, str, optional
-            Sets the default value of the hyperparameter to a given value
-        meta : Dict, optional
-            Field for holding meta data provided by the user.
-            Not used by the configuration space.
-        weights: Sequence[int | float] | None = None
-            List of weights for the choices to be used (after normalization) as
-            probabilities during sampling, no negative values allowed
-        """
-        super().__init__(name, meta)
         # TODO check that there is no bullshit in the choices!
+        choices = list(choices)
         counter = Counter(choices)
-        for choice in choices:
-            if counter[choice] > 1:
+        for choice, count in counter.items():
+            if count > 1:
                 raise ValueError(
-                    "Choices for categorical hyperparameters %s contain choice '%s' %d "
-                    "times, while only a single oocurence is allowed."
-                    % (name, choice, counter[choice]),
+                    f"Choices for categorical hyperparameters {name} contain choice"
+                    f" `{choice:!r}` {count} times, while only a single oocurence is"
+                    " allowed.",
                 )
-            if choice is None:
-                raise TypeError("Choice 'None' is not supported")
-        if isinstance(choices, set):
-            raise TypeError(
-                "Using a set of choices is prohibited as it can result in "
-                "non-deterministic behavior. Please use a list or a tuple.",
-            )
-        if isinstance(weights, set):
-            raise TypeError(
-                "Using a set of weights is prohibited as it can result in "
-                "non-deterministic behavior. Please use a list or a tuple.",
-            )
-        self.choices = tuple(choices)
-        if weights is not None:
-            self.weights = tuple(weights)
-        else:
-            self.weights = None
-        self.probabilities = self._get_probabilities(choices=self.choices, weights=weights)
-        self.num_choices = len(choices)
-        self.choices_vector = list(range(self.num_choices))
-        self._choices_set = set(self.choices_vector)
-        self.default_value = self.check_default(default_value)
-        self.normalized_default_value = self._inverse_transform(self.default_value)
 
-    def __repr__(self) -> str:
-        repr_str = io.StringIO()
-        repr_str.write("%s, Type: Categorical, Choices: {" % (self.name))
-        for idx, choice in enumerate(self.choices):
-            repr_str.write(str(choice))
-            if idx < len(self.choices) - 1:
-                repr_str.write(", ")
-        repr_str.write("}")
-        repr_str.write(", Default: ")
-        repr_str.write(str(self.default_value))
-        # if the probability distribution is not uniform, write out the probabilities
-        if not np.all(self.probabilities == self.probabilities[0]):
-            repr_str.write(", Probabilities: %s" % str(self.probabilities))
-        repr_str.seek(0)
-        return repr_str.getvalue()
+        match weights:
+            case set():
+                raise TypeError(
+                    "Using a set of weights is prohibited as it can result in "
+                    "non-deterministic behavior. Please use a list or a tuple.",
+                )
+            case Sequence():
+                if len(weights) != len(choices):
+                    raise ValueError(
+                        "The list of weights and the list of choices are required to be"
+                        f" of same length. Gave {len(weights)} weights and"
+                        f" {len(choices)} choices.",
+                    )
+                if any(weight < 0 for weight in weights):
+                    raise ValueError(
+                        f"Negative weights are not allowed. Got {weights}.",
+                    )
+                if all(weight == 0 for weight in weights):
+                    raise ValueError(
+                        "All weights are zero, at least one weight has to be strictly"
+                        " positive.",
+                    )
+
+        if default_value is not None and default_value not in choices:
+            raise ValueError(
+                "The default value has to be one of the choices. "
+                f"Got {default_value!r} which is not in {choices}.",
+            )
+
+        if weights is None:
+            _weights = np.ones(len(choices), dtype=np.float64)
+        else:
+            _weights = np.asarray(weights, dtype=np.float64)
+
+        probabilities = _weights / np.sum(_weights)
+
+        self.choices = choices
+        self.probabilities = probabilities
+
+        match default_value, weights:
+            case None, None:
+                default_value = choices[0]
+            case None, _:
+                default_value = choices[np.argmax(np.asarray(weights))]
+            case _ if default_value in choices:
+                default_value = default_value  # noqa: PLW0127
+            case _:
+                raise ValueError(f"Illegal default value {default_value}")
+
+        size = len(choices)
+        custom_discrete = rv_discrete(
+            values=(np.arange(size), probabilities),
+            a=0,
+            b=size,
+        ).freeze()
+        vect_dist = ScipyDiscreteDistribution(
+            rv=custom_discrete,  # type: ignore
+            max_density_value=1 / size,
+            dtype=np.int64,
+        )
+
+        super().__init__(
+            name=name,
+            size=size,
+            default_value=default_value,
+            meta=meta,
+            transformer=TransformerSeq(seq=choices),
+            neighborhood=NeighborhoodCat(n=len(choices)),
+            vector_dist=vect_dist,
+            neighborhood_size=self._neighborhood_size,
+        )
+
+    def to_uniform(self) -> CategoricalHyperparameter:
+        return CategoricalHyperparameter(
+            name=self.name,
+            choices=self.choices,
+            weights=None,
+            default_value=self.default_value,
+            meta=self.meta,
+        )
 
     def __eq__(self, other: Any) -> bool:
-        """
-        This method implements a comparison between self and another
-        object.
-
-        Additionally, it defines the __ne__() as stated in the
-        documentation from python:
-            By default, object implements __eq__() by using is, returning NotImplemented
-            in the case of a false comparison: True if x is y else NotImplemented.
-            For __ne__(), by default it delegates to __eq__() and inverts the result
-            unless it is NotImplemented.
-
-        """
         if not isinstance(other, self.__class__):
             return False
 
@@ -122,6 +134,7 @@ class CategoricalHyperparameter(Hyperparameter):
             }
         else:
             ordered_probabilities_self = None
+
         if other.probabilities is not None:
             ordered_probabilities_other = {
                 choice: (
@@ -134,269 +147,9 @@ class CategoricalHyperparameter(Hyperparameter):
         else:
             ordered_probabilities_other = None
 
-        return (
-            self.name == other.name
-            and set(self.choices) == set(other.choices)
-            and self.default_value == other.default_value
-            and (
-                (ordered_probabilities_self is None and ordered_probabilities_other is None)
-                or ordered_probabilities_self == ordered_probabilities_other
-                or (
-                    ordered_probabilities_self is None
-                    and len(np.unique(list(ordered_probabilities_other.values()))) == 1
-                )
-                or (
-                    ordered_probabilities_other is None
-                    and len(np.unique(list(ordered_probabilities_self.values()))) == 1
-                )
-            )
-        )
+        return ordered_probabilities_self == ordered_probabilities_other
 
-    def __hash__(self):
-        return hash((self.name, self.choices))
-
-    def __copy__(self):
-        return CategoricalHyperparameter(
-            name=self.name,
-            choices=copy.deepcopy(self.choices),
-            default_value=self.default_value,
-            weights=copy.deepcopy(self.weights),
-            meta=self.meta,
-        )
-
-    def to_uniform(self) -> CategoricalHyperparameter:
-        """
-        Creates a categorical parameter with equal weights for all choices
-        This is used for the uniform configspace when sampling configurations in the local search
-        in PiBO: https://openreview.net/forum?id=MMAeCXIa89.
-
-        Returns
-        -------
-        CategoricalHyperparameter
-            An identical parameter as the original, except that all weights are uniform.
-        """
-        return CategoricalHyperparameter(
-            name=self.name,
-            choices=copy.deepcopy(self.choices),
-            default_value=self.default_value,
-            meta=self.meta,
-        )
-
-    def compare(self, value: int | float | str, value2: int | float | str) -> Comparison:
-        if value == value2:
-            return Comparison.EQUAL
-
-        return Comparison.NOT_EQUAL
-
-    def compare_vector(self, value: float, value2: float) -> Comparison:
-        if value == value2:
-            return Comparison.EQUAL
-
-        return Comparison.NOT_EQUAL
-
-    def is_legal(self, value: None | str | float | int) -> bool:
-        return value in self.choices
-
-    def is_legal_vector(self, value) -> int:
-        return value in self._choices_set
-
-    def _get_probabilities(
-        self,
-        choices: tuple[None | str | float | int],
-        weights: None | list[float],
-    ) -> None | list[float]:
-        if weights is None:
-            return tuple(np.ones(len(choices)) / len(choices))
-
-        if len(weights) != len(choices):
-            raise ValueError(
-                "The list of weights and the list of choices are required to be of same length.",
-            )
-
-        weights = np.array(weights)
-
-        if np.all(weights == 0):
-            raise ValueError("At least one weight has to be strictly positive.")
-
-        if np.any(weights < 0):
-            raise ValueError("Negative weights are not allowed.")
-
-        return tuple(weights / np.sum(weights))
-
-    def check_default(
-        self,
-        default_value: None | str | float | int,
-    ) -> str | float | int:
-        if default_value is None:
-            return self.choices[np.argmax(self.weights) if self.weights is not None else 0]
-        elif self.is_legal(default_value):
-            return default_value
-        else:
-            raise ValueError("Illegal default value %s" % str(default_value))
-
-    def _sample(
-        self,
-        rs: np.random.RandomState,
-        size: int | None = None,
-    ) -> int | np.ndarray:
-        return rs.choice(a=self.num_choices, size=size, replace=True, p=self.probabilities)
-
-    def _transform_vector(self, vector: np.ndarray) -> np.ndarray:
-        if np.isnan(vector).any():
-            raise ValueError("Vector %s contains NaN's" % vector)
-
-        if np.equal(np.mod(vector, 1), 0):
-            return self.choices[vector.astype(int)]
-
-        raise ValueError(
-            "Can only index the choices of the ordinal "
-            f"hyperparameter {self} with an integer, but provided "
-            f"the following float: {vector:f}",
-        )
-
-    def _transform_scalar(self, scalar: float | int) -> float | int | str:
-        if scalar != scalar:
-            raise ValueError("Number %s is NaN" % scalar)
-
-        if scalar % 1 == 0:
-            return self.choices[int(scalar)]
-
-        raise ValueError(
-            "Can only index the choices of the ordinal "
-            f"hyperparameter {self} with an integer, but provided "
-            f"the following float: {scalar:f}",
-        )
-
-    def _transform(
-        self,
-        vector: np.ndarray | float | int | str,
-    ) -> np.ndarray | float | int | None:
-        try:
-            if isinstance(vector, np.ndarray):
-                return self._transform_vector(vector)
-            return self._transform_scalar(vector)
-        except ValueError:
-            return None
-
-    def _inverse_transform(self, vector: None | str | float | int) -> int | float:
-        if vector is None:
-            return np.NaN
-        return self.choices.index(vector)
-
-    def has_neighbors(self) -> bool:
-        return len(self.choices) > 1
-
-    def get_num_neighbors(self, value=None) -> int:
-        return len(self.choices) - 1
-
-    def get_neighbors(
-        self,
-        value: int,
-        rs: np.random.RandomState,
-        number: int | float = np.inf,
-        transform: bool = False,
-    ) -> list[float | int | str]:
-        neighbors = []  # type: List[Union[float, int, str]]
-        if number < len(self.choices):
-            while len(neighbors) < number:
-                rejected = True
-                index = int(value)
-                while rejected:
-                    neighbor_idx = rs.randint(0, self.num_choices)
-                    if neighbor_idx != index:
-                        rejected = False
-
-                candidate = self._transform(neighbor_idx) if transform else float(neighbor_idx)
-
-                if candidate in neighbors:
-                    continue
-                else:
-                    neighbors.append(candidate)
-        else:
-            for candidate_idx, _candidate_value in enumerate(self.choices):
-                if int(value) == candidate_idx:
-                    continue
-                else:
-                    if transform:
-                        candidate = self._transform(candidate_idx)
-                    else:
-                        candidate = float(candidate_idx)
-
-                    neighbors.append(candidate)
-
-        return neighbors
-
-    def allow_greater_less_comparison(self) -> bool:
-        raise ValueError(
-            "Parent hyperparameter in a > or < "
-            "condition must be a subclass of "
-            "NumericalHyperparameter or "
-            "OrdinalHyperparameter, but is "
-            "<cdef class 'ConfigSpace.hyperparameters.CategoricalHyperparameter'>",
-        )
-
-    def pdf(self, vector: np.ndarray) -> np.ndarray:
-        """
-        Computes the probability density function of the parameter in
-        the original parameter space (the one specified by the user).
-        For each parameter type, there is also a method _pdf which
-        operates on the transformed (and possibly normalized) parameter
-        space. Only legal values return a positive probability density,
-        otherwise zero.
-
-        Parameters
-        ----------
-        vector: np.ndarray
-            the (N, ) vector of inputs for which the probability density
-            function is to be computed.
-
-        Returns
-        -------
-        np.ndarray(N, )
-            Probability density values of the input vector
-        """
-        # this check is to ensure shape is right (and np.shape does not work in cython)
-        if vector.ndim != 1:
-            raise ValueError("Method pdf expects a one-dimensional numpy array")
-        vector = np.array(self._inverse_transform(vector))
-        return self._pdf(vector)
-
-    def _pdf(self, vector: np.ndarray) -> np.ndarray:
-        """
-        Computes the probability density function of the parameter in
-        the transformed (and possibly normalized, depends on the parameter
-        type) space. As such, one never has to worry about log-normal
-        distributions, only normal distributions (as the inverse_transform
-        in the pdf method handles these). For categoricals, each vector gets
-        transformed to its corresponding index (but in float form). To be
-        able to retrieve the element corresponding to the index, the float
-        must be cast to int.
-
-        Parameters
-        ----------
-        vector: np.ndarray
-            the (N, ) vector of inputs for which the probability density
-            function is to be computed.
-
-        Returns
-        -------
-        np.ndarray(N, )
-            Probability density values of the input vector
-        """
-        probs = np.array(self.probabilities)
-        nan = np.isnan(vector)
-        if np.any(nan):
-            # Temporarily pick any valid index to use `vector` as an index for `probs`
-            vector[nan] = 0
-        res = np.array(probs[vector.astype(int)])
-        if np.any(nan):
-            res[nan] = 0
-        if res.ndim == 0:
-            return res.reshape(-1)
-        return res
-
-    def get_max_density(self) -> float:
-        return np.max(self.probabilities)
-
-    def get_size(self) -> float:
-        return len(self.choices)
+    def _neighborhood_size(self, value: Any | None) -> int:
+        if value is None or value not in self.choices:
+            return int(self.size)
+        return int(self.size) - 1
