@@ -27,12 +27,14 @@ T_contra = TypeVar("T_contra", contravariant=True)
 
 
 class _Transformer(Protocol[DType, VDType]):
-    def to_value(self, vector: npt.NDArray[VDType]) -> npt.NDArray[DType]: ...
+    def to_value(self, vector: npt.NDArray[VDType]) -> npt.NDArray[DType]:
+        ...
 
     def to_vector(
         self,
         value: Sequence[DType] | npt.NDArray[DType],
-    ) -> npt.NDArray[VDType]: ...
+    ) -> npt.NDArray[VDType]:
+        ...
 
 
 class _Neighborhood(Protocol[VDType]):
@@ -43,7 +45,8 @@ class _Neighborhood(Protocol[VDType]):
         *,
         std: float | None = None,
         seed: RandomState | None = None,
-    ) -> npt.NDArray[VDType]: ...
+    ) -> npt.NDArray[VDType]:
+        ...
 
 
 @dataclass
@@ -167,7 +170,7 @@ class TransformerConstant(_Transformer[DType, np.integer]):
         value: DType | npt.NDArray[DType],
     ) -> np.integer | npt.NDArray[np.integer]:
         if isinstance(value, np.ndarray | Sequence):
-            return np.full_like(value, CONSTANT_VECTOR_VALUE, dtype=np.integer)
+            return np.full_like(value, CONSTANT_VECTOR_VALUE, dtype=np.int64)
 
         return CONSTANT_VECTOR_VALUE
 
