@@ -98,14 +98,6 @@ class AbstractCondition(ConditionComponent):
         self.parent_vector_id = -1
 
     def __eq__(self, other: Any) -> bool:
-        """Defines the __ne__() as stated in the
-        documentation from python:
-            By default, object implements __eq__() by using is, returning NotImplemented
-            in the case of a false comparison: True if x is y else NotImplemented.
-            For __ne__(), by default it delegates to __eq__() and inverts the result
-            unless it is NotImplemented.
-
-        """
         if not isinstance(other, self.__class__):
             return NotImplemented
 
@@ -322,6 +314,11 @@ class LessThanCondition(AbstractCondition):
             Value, which the parent is compared to
         """
         super().__init__(child, parent)
+        if not self.parent.orderable:
+            raise ValueError(
+                f"The parent hyperparameter must be orderable to use "
+                f"GreaterThanCondition, however {self.parent} is not.",
+            )
         if not parent.legal_value(value):
             raise ValueError(
                 f"Hyperparameter '{child.name}' is "
@@ -392,8 +389,8 @@ class GreaterThanCondition(AbstractCondition):
 
         if not self.parent.orderable:
             raise ValueError(
-                f"The parent hyperparameter {self.parent} must be orderable to use "
-                "GreaterThanCondition",
+                f"The parent hyperparameter must be orderable to use "
+                f"GreaterThanCondition, however {self.parent} is not.",
             )
         if not parent.legal_value(value):
             raise ValueError(
@@ -513,24 +510,17 @@ class AbstractConjunction(ConditionComponent):
                 )
 
     def __eq__(self, other: Any) -> bool:
-        """Implements a comparison between self and another
-        object.
-
-        Additionally, it defines the __ne__() as stated in the
-        documentation from python:
-            By default, object implements __eq__() by using is, returning NotImplemented
-            in the case of a false comparison: True if x is y else NotImplemented.
-            For __ne__(), by default it delegates to __eq__() and inverts the result
-            unless it is NotImplemented.
-
-        """
         if not isinstance(other, self.__class__):
             return False
 
         if len(self.components) != len(other.components):
             return False
 
-        for component, other_component in zip(self.components, other.components, strict=False):
+        for component, other_component in zip(
+            self.components,
+            other.components,
+            strict=True,
+        ):
             if component != other_component:
                 return False
 

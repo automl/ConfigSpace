@@ -9,18 +9,17 @@ from typing import (
 )
 
 import numpy as np
-from scipy.stats import (
-    uniform,
-)
+from scipy.stats import uniform
 
 from ConfigSpace.hyperparameters._distributions import ScipyContinuousDistribution
 from ConfigSpace.hyperparameters._hp_components import ROUND_PLACES, UnitScaler
-from ConfigSpace.hyperparameters.float_hyperparameter import FloatHyperparameter
+from ConfigSpace.hyperparameters.hyperparameter import FloatHyperparameter
 from ConfigSpace.hyperparameters.uniform_integer import UniformIntegerHyperparameter
 
 
 @dataclass(init=False)
 class UniformFloatHyperparameter(FloatHyperparameter):
+    serializable_type_name: ClassVar[str] = "uniform_float"
     orderable: ClassVar[bool] = True
 
     def __init__(
@@ -37,24 +36,30 @@ class UniformFloatHyperparameter(FloatHyperparameter):
         self.log = log
 
         try:
-            scaler = UnitScaler(self.lower, self.upper, log=log)
+            scaler = UnitScaler(self.lower, self.upper, log=log, dtype=np.float64)
         except ValueError as e:
             raise ValueError(f"Hyperparameter '{name}' has illegal settings") from e
 
-        if default_value is None:
-            _default_value = np.float64(scaler.to_value(np.array([0.5]))[0])
-        else:
-            _default_value = np.float64(round(default_value, ROUND_PLACES))
-
+        range_size = self.upper - self.lower
         vect_dist = ScipyContinuousDistribution(
-            rv=uniform(a=0, b=1),  # type: ignore
-            max_density_value=float(1 / (self.upper - self.lower)),
+            rv=uniform,  # type: ignore
             dtype=np.float64,
+            lower_vectorized=np.float64(0.0),
+            upper_vectorized=np.float64(1.0),
+            _max_density=float(1 / range_size),  # type: ignore
+            _pdf_norm=float(self.upper - self.lower),
         )
         super().__init__(
             name=name,
             size=np.inf,
-            default_value=_default_value,
+            default_value=np.float64(
+                np.round(
+                    default_value
+                    if default_value is not None
+                    else scaler.to_value(np.array([0.5]))[0],
+                    ROUND_PLACES,
+                ),
+            ),
             meta=meta,
             transformer=scaler,
             neighborhood=vect_dist.neighborhood,
@@ -71,3 +76,25 @@ class UniformFloatHyperparameter(FloatHyperparameter):
             log=self.log,
             meta=None,
         )
+
+    def __str__(self) -> str:
+        parts = [
+            self.name,
+            f"Type: {str(self.__class__.__name__).replace('Hyperparameter', '')}",
+            f"Range: [{self.lower}, {self.upper}]",
+            f"Default: {self.default_value}",
+        ]
+        if self.log:
+            parts.append("on log-scale")
+
+        return ", ".join(parts)
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "name": self.name,
+            "type": self.serializable_type_name,
+            "log": self.log,
+            "lower": float(self.lower),
+            "upper": float(self.upper),
+            "default_value": float(self.default_value),
+        }

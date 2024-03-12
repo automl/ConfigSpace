@@ -21,7 +21,22 @@ class IllegalValueError(ValueError):
     def __str__(self) -> str:
         return (
             f"Value {self.value}: ({type(self.value)}) is not allowed for"
-            f" hyperparameter {self.hyperparameter}"
+            f" hyperparameter with name '{self.hyperparameter.name}'"
+            f"\n{self.hyperparameter}"
+        )
+
+
+class IllegalVectorizedValueError(ValueError):
+    def __init__(self, hyperparameter: Hyperparameter, vector: Any):
+        super().__init__()
+        self.hyperparameter = hyperparameter
+        self.vector = vector
+
+    def __str__(self) -> str:
+        return (
+            f"Vectorized value {self.vector}: ({type(self.vector)}) is not allowed for"
+            f" hyperparameter with name '{self.hyperparameter.name}'"
+            f"\n{self.hyperparameter}"
         )
 
 
@@ -56,12 +71,18 @@ class HyperparameterNotFoundError(ValueError):
     ):
         super().__init__(hyperparameter, space, preamble)
         self.preamble = preamble
-        self.hp_name = hyperparameter if isinstance(hyperparameter, str) else hyperparameter.name
+        self.hp_name = (
+            hyperparameter if isinstance(hyperparameter, str) else hyperparameter.name
+        )
         self.space = space
 
     def __str__(self) -> str:
         pre = f"{self.preamble}\n" if self.preamble is not None else ""
-        return f"{pre}" f"Hyperparameter {self.hp_name} not found in space." f"\n{self.space}"
+        return (
+            f"{pre}"
+            f"Hyperparameter {self.hp_name} not found in space."
+            f"\n{self.space}"
+        )
 
 
 class ChildNotFoundError(HyperparameterNotFoundError):
@@ -82,7 +103,8 @@ class HyperparameterIndexError(KeyError):
 
     def __str__(self) -> str:
         raise KeyError(
-            f"Hyperparameter #'{self.idx}' does not exist in this space." f"\n{self.space}",
+            f"Hyperparameter #'{self.idx}' does not exist in this space."
+            f"\n{self.space}",
         )
 
 
@@ -129,3 +151,7 @@ class CyclicDependancyError(ValueError):
 
     def __str__(self) -> str:
         return f"Hyperparameter configuration contains a cycle {self.cycles}"
+
+
+class NoPossibleNeighborsError(ValueError):
+    pass

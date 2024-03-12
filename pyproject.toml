@@ -37,7 +37,6 @@ keywords = [
   "box",
 ]
 classifiers = [
-  "Programming Language :: Python :: 3.7",
   "Programming Language :: Python :: 3.8",
   "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
@@ -103,7 +102,7 @@ exclude_lines = [
 
 # https://github.com/charliermarsh/ruff
 [tool.ruff]
-target-version = "py310"
+target-version = "py38"
 line-length = 88
 output-format = "full"
 src = ["ConfigSpace", "test"]
@@ -163,6 +162,7 @@ select = [
 ]
 
 ignore = [
+  "T201",    # TODO: Remove
   "D100",
   "D101",    # Missing docstring in public class
   "D102",    # Missing docstring in public method   (Should be active but it's too much for right now)
@@ -254,7 +254,7 @@ convention = "google"
 max-args = 10 # Changed from default of 5
 
 [tool.mypy]
-python_version = "3.10"
+python_version = "3.8"
 packages = ["ConfigSpace", "test"]
 
 show_error_codes = true

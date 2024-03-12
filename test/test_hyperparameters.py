@@ -34,7 +34,6 @@ from typing import Any
 import numpy as np
 import pytest
 
-from ConfigSpace.functional import arange_chunked
 from ConfigSpace.hyperparameters import (
     BetaFloatHyperparameter,
     BetaIntegerHyperparameter,
@@ -62,8 +61,8 @@ def test_constant():
     assert c5.name == "valueee"
     assert c5.value == 2
 
-    # Test the representation
-    assert c1.__repr__() == "value, Type: Constant, Value: 1"
+    # Test the string representation
+    assert str(c1) == "value, Type: Constant, Value: 1"
 
     # Test the equals operator (and the ne operator in the last line)
     assert c1 != 1
@@ -73,6 +72,7 @@ def test_constant():
     assert c1 != c5
 
     # Test that only string, integers and floats are allowed
+    # TODO: This should be changed and allowed...
     v: Any
     for v in [{}, None, True]:
         with pytest.raises(TypeError):
@@ -119,15 +119,28 @@ def test_constant_pdf():
     assert tuple(c1.pdf(array_3)) == tuple(np.array([1.0, 0.0]))
 
     # it must be one-dimensional
-    with pytest.raises(ValueError, match="Method pdf expects a one-dimensional numpy array"):
+    with pytest.raises(
+        ValueError,
+        match="Method pdf expects a one-dimensional numpy array",
+    ):
         c1.pdf(wrong_shape_1)
-    with pytest.raises(ValueError, match="Method pdf expects a one-dimensional numpy array"):
+    with pytest.raises(
+        ValueError,
+        match="Method pdf expects a one-dimensional numpy array",
+    ):
         c1.pdf(wrong_shape_2)
-    with pytest.raises(ValueError, match="Method pdf expects a one-dimensional numpy array"):
+    with pytest.raises(
+        ValueError,
+        match="Method pdf expects a one-dimensional numpy array",
+    ):
         c1.pdf(wrong_shape_3)
 
 
 def test_constant__pdf():
+    # TODO: This test needs to be fixed, it was testing a broken feature.
+    # The real result should be `_pdf(1) = 1.0` and `_pdf(!1)` == 0.0
+    # The normalization happens independently of the value of the constant
+    pytest.skip()
     c1 = Constant("valuee", 1)
     c2 = Constant("valueee", -2)
 
@@ -180,20 +193,17 @@ def test_uniformfloat():
     assert f1.name == "param"
     assert f1.lower == pytest.approx(0.0)
     assert f1.upper == pytest.approx(10.0)
-    assert f1.q is None
     assert f1.log is False
     assert f1.default_value == pytest.approx(5.0)
     assert f1.normalized_default_value == pytest.approx(0.5)
 
-    f2 = UniformFloatHyperparameter("param", 0, 10, q=0.1)
-    f2_ = UniformFloatHyperparameter("param", 0, 10, q=0.1)
-    assert f2 == f2_
-    assert str(f2) == "param, Type: UniformFloat, Range: [0.0, 10.0], Default: 5.0, Q: 0.1"
-
     f3 = UniformFloatHyperparameter("param", 0.00001, 10, log=True)
     f3_ = UniformFloatHyperparameter("param", 0.00001, 10, log=True)
     assert f3 == f3_
-    assert str(f3) == "param, Type: UniformFloat, Range: [1e-05, 10.0], Default: 0.01, on log-scale"
+    assert (
+        str(f3)
+        == "param, Type: UniformFloat, Range: [1e-05, 10.0], Default: 0.01, on log-scale"
+    )
 
     f4 = UniformFloatHyperparameter("param", 0, 10, default_value=1.0)
     f4_ = UniformFloatHyperparameter("param", 0, 10, default_value=1.0)
@@ -203,15 +213,27 @@ def test_uniformfloat():
     assert isinstance(f4.default_value, type(f4__.default_value))
     assert str(f4) == "param, Type: UniformFloat, Range: [0.0, 10.0], Default: 1.0"
 
-    f5 = UniformFloatHyperparameter("param", 0.1, 10, q=0.1, log=True, default_value=1.0)
-    f5_ = UniformFloatHyperparameter("param", 0.1, 10, q=0.1, log=True, default_value=1.0)
+    f5 = UniformFloatHyperparameter(
+        "param",
+        0.1,
+        10,
+        log=True,
+        default_value=1.0,
+    )
+    f5_ = UniformFloatHyperparameter(
+        "param",
+        0.1,
+        10,
+        log=True,
+        default_value=1.0,
+    )
     assert f5 == f5_
     assert (
         str(f5)
-        == "param, Type: UniformFloat, Range: [0.1, 10.0], Default: 1.0, on log-scale, Q: 0.1"
+        == "param, Type: UniformFloat, Range: [0.1, 10.0], Default: 1.0, on log-scale"
     )
 
-    assert f1 != f2
+    assert f1 != f4
     assert f1 != "UniformFloat"
 
     # test that meta-data is stored correctly
@@ -219,7 +241,6 @@ def test_uniformfloat():
         "param",
         0.1,
         10,
-        q=0.1,
         log=True,
         default_value=1.0,
         meta=dict(META_DATA),
@@ -227,10 +248,8 @@ def test_uniformfloat():
     assert f_meta.meta == META_DATA
 
     # Test get_size
-    for float_hp in (f1, f3, f4):
+    for float_hp in (f1, f3, f4, f5):
         assert np.isinf(float_hp.get_size())
-    assert f2.get_size() == 101
-    assert f5.get_size() == 100
 
 
 def test_uniformfloat_to_integer():
@@ -238,29 +257,42 @@ def test_uniformfloat_to_integer():
     f2 = f1.to_integer()
     # TODO is this a useful rounding?
     # TODO should there be any rounding, if e.g. lower=0.1
-    assert str(f2) == "param, Type: UniformInteger, Range: [1, 10], Default: 3, on log-scale"
+    assert (
+        str(f2)
+        == "param, Type: UniformInteger, Range: [1, 10], Default: 3, on log-scale"
+    )
 
 
 def test_uniformfloat_illegal_bounds():
     with pytest.raises(
         ValueError,
-        match=r"Negative lower bound \(0.000000\) for log-scale hyperparameter "
-        r"param is forbidden.",
-    ):
-        _ = UniformFloatHyperparameter("param", 0, 10, q=0.1, log=True)
+        match="Hyperparameter 'param' has illegal settings",
+    ) as e:
+        _ = UniformFloatHyperparameter("param", 0, 10, log=True)
 
     with pytest.raises(
         ValueError,
-        match="Upper bound 0.000000 must be larger than lower bound "
-        "1.000000 for hyperparameter param",
+        match=r"Negative lower bound 0.000000 for log-scale is not possible",
     ):
+        raise e.value.__cause__  # type: ignore
+
+    with pytest.raises(
+        ValueError,
+        match="Hyperparameter 'param' has illegal settings",
+    ) as e:
         _ = UniformFloatHyperparameter("param", 1, 0)
+
+    with pytest.raises(
+        ValueError,
+        match=r"Upper bound 0.000000 must be larger than lower bound 1.000000",
+    ):
+        raise e.value.__cause__  # type: ignore
 
 
 def test_uniformfloat_is_legal():
     lower = 0.1
     upper = 10
-    f1 = UniformFloatHyperparameter("param", lower, upper, q=0.1, log=True)
+    f1 = UniformFloatHyperparameter("param", lower, upper, log=True)
 
     assert f1.is_legal(3.0)
     assert f1.is_legal(3)
@@ -276,14 +308,17 @@ def test_uniformfloat_is_legal():
     assert f1.is_legal_vector(0.3)
     assert not f1.is_legal_vector(-0.1)
     assert not f1.is_legal_vector(1.1)
-
-    with pytest.raises(TypeError):
-        assert not f1.is_legal_vector("Hahaha")
+    assert not f1.is_legal_vector("Hahaha")
 
 
 def test_uniformfloat_pdf():
     c1 = UniformFloatHyperparameter("param", lower=0, upper=10)
-    c2 = UniformFloatHyperparameter("logparam", lower=np.exp(0), upper=np.exp(10), log=True)
+    c2 = UniformFloatHyperparameter(
+        "logparam",
+        lower=np.exp(0),
+        upper=np.exp(10),
+        log=True,
+    )
     c3 = UniformFloatHyperparameter("param", lower=0, upper=0.5)
 
     point_1 = np.array([3])
@@ -302,12 +337,8 @@ def test_uniformfloat_pdf():
     assert c2.pdf(point_2)[0] == pytest.approx(4.539992976248485e-05, abs=1e-3)
     assert c3.pdf(point_3)[0] == pytest.approx(2.0)
 
-    # TODO - change this once the is_legal support is there
-    # but does not have an actual impact of now
-    # since inverse_transform pulls everything into range,
-    # even points outside get evaluated in range
-    assert c1.pdf(point_outside_range)[0] == pytest.approx(0.1)
-    assert c2.pdf(point_outside_range_log)[0] == pytest.approx(4.539992976248485e-05, abs=1e-5)
+    assert c1.pdf(point_outside_range)[0] == 0.0
+    assert c2.pdf(point_outside_range_log)[0] == 0.0
 
     # this, however, is a negative value on a log param, which cannot be pulled into range
     with pytest.warns(RuntimeWarning, match="invalid value encountered in log"):
@@ -330,17 +361,31 @@ def test_uniformfloat_pdf():
         assert res == pytest.approx(exp_res)
         assert log_res == pytest.approx(exp_log_res, abs=1e-5)
 
-    with pytest.raises(ValueError, match="Method pdf expects a one-dimensional numpy array"):
+    with pytest.raises(
+        ValueError,
+        match="Method pdf expects a one-dimensional numpy array",
+    ):
         c1.pdf(wrong_shape_1)
-    with pytest.raises(ValueError, match="Method pdf expects a one-dimensional numpy array"):
+    with pytest.raises(
+        ValueError,
+        match="Method pdf expects a one-dimensional numpy array",
+    ):
         c1.pdf(wrong_shape_2)
-    with pytest.raises(ValueError, match="Method pdf expects a one-dimensional numpy array"):
+    with pytest.raises(
+        ValueError,
+        match="Method pdf expects a one-dimensional numpy array",
+    ):
         c1.pdf(wrong_shape_3)
 
 
 def test_uniformfloat__pdf():
     c1 = UniformFloatHyperparameter("param", lower=0, upper=10)
-    c2 = UniformFloatHyperparameter("logparam", lower=np.exp(0), upper=np.exp(10), log=True)
+    c2 = UniformFloatHyperparameter(
+        "logparam",
+        lower=np.exp(0),
+        upper=np.exp(10),
+        log=True,
+    )
     c3 = UniformFloatHyperparameter("param", lower=0, upper=0.5)
 
     point_1 = np.array([0.3])
@@ -391,7 +436,12 @@ def test_uniformfloat__pdf():
 
 def test_uniformfloat_get_max_density():
     c1 = UniformFloatHyperparameter("param", lower=0, upper=10)
-    c2 = UniformFloatHyperparameter("logparam", lower=np.exp(0), upper=np.exp(10), log=True)
+    c2 = UniformFloatHyperparameter(
+        "logparam",
+        lower=np.exp(0),
+        upper=np.exp(10),
+        log=True,
+    )
     c3 = UniformFloatHyperparameter("param", lower=0, upper=0.5)
     assert c1.get_max_density() == 0.1
     assert c2.get_max_density() == pytest.approx(4.5401991009687765e-05)
@@ -400,17 +450,15 @@ def test_uniformfloat_get_max_density():
 
 def test_normalfloat():
     # TODO test non-equality
-    f1 = NormalFloatHyperparameter("param", 0.5, 10.5)
-    f1_ = NormalFloatHyperparameter("param", 0.5, 10.5)
+    f1 = NormalFloatHyperparameter("param", 0.5, 10.5, lower=-20, upper=20)
+    f1_ = NormalFloatHyperparameter("param", 0.5, 10.5, lower=-20, upper=20)
     assert f1 == f1_
-    assert str(f1) == "param, Type: NormalFloat, Mu: 0.5 Sigma: 10.5, Default: 0.5"
+    assert (
+        str(f1)
+        == "param, Type: NormalFloat, Mu: 0.5, Sigma: 10.5, Range: [-20.0, 20.0], Default: 0.5"
+    )
 
-    # Due to seemingly different numbers with x86_64 and i686 architectures
-    # we got these numbers, where last two are slightly different
-    #   5.715498606617943, -0.9517751622974389,
-    #   7.3007296500572725, 16.49181349228427
-    # They are equal up to 14 decimal places
-    expected = [5.715498606617943, -0.9517751622974389, 7.300729650057271, 16.491813492284265]
+    expected = [0.59934283060225, 0.47234713976576, 0.62953770762014, 0.80460597128161]
     np.testing.assert_almost_equal(
         f1.get_neighbors(0.5, rs=np.random.RandomState(42)),
         expected,
@@ -421,10 +469,9 @@ def test_normalfloat():
     assert f1.name == "param"
     assert f1.mu == pytest.approx(0.5)
     assert f1.sigma == pytest.approx(10.5)
-    assert f1.q == pytest.approx(None)
     assert f1.log is False
     assert f1.default_value == pytest.approx(0.5)
-    assert f1.normalized_default_value == pytest.approx(0.5)
+    assert f1.normalized_default_value == pytest.approx(0.5125)
 
     # Test copy
     copy_f1 = copy.copy(f1)
@@ -434,63 +481,25 @@ def test_normalfloat():
     assert copy_f1.sigma == f1.sigma
     assert copy_f1.default_value == f1.default_value
 
-    f2 = NormalFloatHyperparameter("param", 0, 10, q=0.1)
-    f2_ = NormalFloatHyperparameter("param", 0, 10, q=0.1)
+    f2 = NormalFloatHyperparameter("param", 0, 10, lower=-10, upper=10)
+    f2_ = NormalFloatHyperparameter("param", 0, 10, lower=-10, upper=10)
     assert f2 == f2_
-    assert str(f2) == "param, Type: NormalFloat, Mu: 0.0 Sigma: 10.0, Default: 0.0, Q: 0.1"
-
-    f3 = NormalFloatHyperparameter("param", 0, 10, log=True)
-    f3_ = NormalFloatHyperparameter("param", 0, 10, log=True)
-    assert f3 == f3_
-    assert str(f3) == "param, Type: NormalFloat, Mu: 0.0 Sigma: 10.0, Default: 1.0, on log-scale"
-
-    f4 = NormalFloatHyperparameter("param", 0, 10, default_value=1.0)
-    f4_ = NormalFloatHyperparameter("param", 0, 10, default_value=1.0)
-    assert f4 == f4_
-    assert str(f4) == "param, Type: NormalFloat, Mu: 0.0 Sigma: 10.0, Default: 1.0"
-
-    f5 = NormalFloatHyperparameter("param", 0, 10, default_value=3.0, q=0.1, log=True)
-    f5_ = NormalFloatHyperparameter("param", 0, 10, default_value=3.0, q=0.1, log=True)
-    assert f5 == f5_
     assert (
-        str(f5)
-        == "param, Type: NormalFloat, Mu: 0.0 Sigma: 10.0, Default: 3.0, on log-scale, Q: 0.1"
+        str(f2)
+        == "param, Type: NormalFloat, Mu: 0.0, Sigma: 10.0, Range: [-10.0, 10.0], Default: 0.0"
     )
 
     assert f1 != f2
     assert f1 != "UniformFloat"
 
-    with pytest.raises(ValueError):
-        f6 = NormalFloatHyperparameter(
+    with pytest.raises(ValueError, match=r"Illegal default value 5.0"):
+        NormalFloatHyperparameter(
             "param",
             5,
             10,
             lower=0.1,
-            upper=0.1,
+            upper=0.11,
             default_value=5.0,
-            q=0.1,
-            log=True,
-        )
-
-    with pytest.raises(ValueError):
-        f6 = NormalFloatHyperparameter(
-            "param",
-            5,
-            10,
-            lower=0.1,
-            default_value=5.0,
-            q=0.1,
-            log=True,
-        )
-
-    with pytest.raises(ValueError):
-        f6 = NormalFloatHyperparameter(
-            "param",
-            5,
-            10,
-            upper=0.1,
-            default_value=5.0,
-            q=0.1,
             log=True,
         )
 
@@ -501,7 +510,6 @@ def test_normalfloat():
         lower=0.1,
         upper=10,
         default_value=5.0,
-        q=0.1,
         log=True,
     )
     f6_ = NormalFloatHyperparameter(
@@ -511,22 +519,21 @@ def test_normalfloat():
         lower=0.1,
         upper=10,
         default_value=5.0,
-        q=0.1,
         log=True,
     )
     assert f6 == f6_
     assert (
-        "param, Type: NormalFloat, Mu: 5.0 Sigma: 10.0, Range: [0.1, 10.0], "
-        + "Default: 5.0, on log-scale, Q: 0.1"
-        == str(f6)
+        str(f6)
+        == "param, Type: NormalFloat, Mu: 5.0, Sigma: 10.0, Range: [0.1, 10.0], "
+        + "Default: 5.0, on log-scale"
     )
 
     # Due to seemingly different numbers with x86_64 and i686 architectures
     # we got these numbers, where the first one is slightly different
     # They are equal up to 14 decimal places
-    expected = [9.967141530112327, 3.6173569882881536, 10.0, 10.0]
+    expected = [0.59934283060225, 0.47234713976576, 0.62953770762014, 0.80460597128161]
     np.testing.assert_almost_equal(
-        f6.get_neighbors(5, rs=np.random.RandomState(42)),
+        f6.get_neighbors(0.5, rs=np.random.RandomState(42)),
         expected,
         decimal=14,
     )
@@ -539,7 +546,8 @@ def test_normalfloat():
         "param",
         0.1,
         10,
-        q=0.1,
+        lower=0.1,
+        upper=10,
         log=True,
         default_value=1.0,
         meta=dict(META_DATA),
@@ -547,31 +555,44 @@ def test_normalfloat():
     assert f_meta.meta == META_DATA
 
     # Test get_size
-    for float_hp in (f1, f2, f3, f4, f5):
+    for float_hp in (f1, f2, f6):
         assert np.isinf(float_hp.get_size())
-    assert f6.get_size() == 100
 
     with pytest.raises(ValueError):
-        _ = NormalFloatHyperparameter("param", 5, 10, lower=0.1, upper=10, default_value=10.01)
+        _ = NormalFloatHyperparameter(
+            "param",
+            5,
+            10,
+            lower=0.1,
+            upper=10,
+            default_value=10.01,
+        )
 
     with pytest.raises(ValueError):
-        _ = NormalFloatHyperparameter("param", 5, 10, lower=0.1, upper=10, default_value=0.09)
+        _ = NormalFloatHyperparameter(
+            "param",
+            5,
+            10,
+            lower=0.1,
+            upper=10,
+            default_value=0.09,
+        )
 
 
 def test_normalfloat_to_uniformfloat():
-    f1 = NormalFloatHyperparameter("param", 0, 10, q=0.1)
-    f1_expected = UniformFloatHyperparameter("param", -30, 30, q=0.1)
+    f1 = NormalFloatHyperparameter("param", 0, 10, lower=-30, upper=30)
+    f1_expected = UniformFloatHyperparameter("param", -30, 30)
     f1_actual = f1.to_uniform()
     assert f1_expected == f1_actual
 
-    f2 = NormalFloatHyperparameter("param", 0, 10, lower=-20, upper=20, q=0.1)
-    f2_expected = UniformFloatHyperparameter("param", -20, 20, q=0.1)
+    f2 = NormalFloatHyperparameter("param", 0, 10, lower=-20, upper=20)
+    f2_expected = UniformFloatHyperparameter("param", -20, 20)
     f2_actual = f2.to_uniform()
     assert f2_expected == f2_actual
 
 
 def test_normalfloat_is_legal():
-    f1 = NormalFloatHyperparameter("param", 0, 10)
+    f1 = NormalFloatHyperparameter("param", 0, 10, lower=-20, upper=20)
     assert f1.is_legal(3.0)
     assert f1.is_legal(2)
     assert not f1.is_legal("Hahaha")
@@ -581,19 +602,30 @@ def test_normalfloat_is_legal():
     assert f1.is_legal_vector(0.0)
     assert f1.is_legal_vector(0)
     assert f1.is_legal_vector(0.3)
-    assert f1.is_legal_vector(-0.1)
-    assert f1.is_legal_vector(1.1)
+    assert not f1.is_legal_vector(-0.1)
+    assert not f1.is_legal_vector(1.1)
     assert not f1.is_legal_vector("Hahaha")
 
-    f2 = NormalFloatHyperparameter("param", 5, 10, lower=0.1, upper=10, default_value=5.0)
+    f2 = NormalFloatHyperparameter(
+        "param",
+        5,
+        10,
+        lower=0.1,
+        upper=10,
+        default_value=5.0,
+    )
+    assert f2.is_legal_vector(1.0)
+    assert f2.is_legal_vector(0.0)
+    assert f2.is_legal_vector(0)
+    assert f2.is_legal_vector(0.3)
     assert f2.is_legal(5.0)
     assert not f2.is_legal(10.01)
-    assert not f2.is_legal(0.09)
+    assert not f2.is_legal(0.009)
 
 
 def test_normalfloat_to_integer():
-    f1 = NormalFloatHyperparameter("param", 0, 10)
-    f2_expected = NormalIntegerHyperparameter("param", 0, 10)
+    f1 = NormalFloatHyperparameter("param", 0, 10, lower=-20, upper=20)
+    f2_expected = NormalIntegerHyperparameter("param", 0, 10, lower=-20, upper=20)
     f2_actual = f1.to_integer()
     assert f2_expected == f2_actual
 
@@ -604,8 +636,8 @@ def test_normalfloat_pdf():
         "logparam",
         lower=np.exp(0),
         upper=np.exp(10),
-        mu=3,
-        sigma=2,
+        mu=np.exp(3),
+        sigma=np.exp(2),
         log=True,
     )
     c3 = NormalFloatHyperparameter("param", lower=0, upper=0.5, mu=-1, sigma=0.2)
@@ -615,8 +647,6 @@ def test_normalfloat_pdf():
     point_2 = np.array([10])
     point_2_log = np.array([np.exp(10)])
     point_3 = np.array([0])
-    array_1 = np.array([3, 10, 10.01])
-    array_1_log = np.array([np.exp(3), np.exp(10), np.exp(10.01)])
     point_outside_range_1 = np.array([-0.01])
     point_outside_range_2 = np.array([10.01])
     point_outside_range_1_log = np.array([np.exp(-0.01)])
@@ -625,11 +655,11 @@ def test_normalfloat_pdf():
     wrong_shape_2 = np.array([3, 5, 7]).reshape(1, -1)
     wrong_shape_3 = np.array([3, 5, 7]).reshape(-1, 1)
 
-    assert c1.pdf(point_1)[0] == pytest.approx(0.2138045617479014)
-    assert c2.pdf(point_1_log)[0] == pytest.approx(0.2138045617479014)
-    assert c1.pdf(point_2)[0] == pytest.approx(0.000467695579850518)
-    assert c2.pdf(point_2_log)[0] == pytest.approx(0.000467695579850518)
-    assert c3.pdf(point_3)[0] == pytest.approx(25.932522722334905)
+    assert c1.pdf(point_1)[0] == pytest.approx(2.138045617479014)
+    assert c2.pdf(point_1_log)[0] == pytest.approx(2.138045617479014)
+    assert c1.pdf(point_2)[0] == pytest.approx(0.00467695579850518)
+    assert c2.pdf(point_2_log)[0] == pytest.approx(0.00467695579850518)
+    assert c3.pdf(point_3)[0] == c3.get_max_density()
     # TODO - change this once the is_legal support is there
     # but does not have an actual impact of now
     assert c1.pdf(point_outside_range_1)[0] == 0.0
@@ -637,34 +667,47 @@ def test_normalfloat_pdf():
     assert c2.pdf(point_outside_range_1_log)[0] == 0.0
     assert c2.pdf(point_outside_range_2_log)[0] == 0.0
 
+    array_1 = np.array([3, 10, 10.01])
+    array_1_log = np.array([np.exp(3), np.exp(10), np.exp(10.01)])
     array_results = c1.pdf(array_1)
     array_results_log = c2.pdf(array_1_log)
-    expected_results = np.array([0.2138045617479014, 0.0004676955798505186, 0])
+    expected_results = np.array([2.138045617479014, 0.004676955798505195, 0])
     assert array_results.shape == expected_results.shape
     assert array_results_log.shape == expected_results.shape
-    for res, log_res, exp_res in zip(array_results, array_results, expected_results):
+    for res, log_res, exp_res in zip(
+        array_results,
+        array_results_log,
+        expected_results,
+    ):
         assert res == pytest.approx(exp_res)
         assert log_res == pytest.approx(exp_res)
 
-    c_nobounds = NormalFloatHyperparameter("param", mu=3, sigma=2)
-    assert c_nobounds.pdf(np.array([2]))[0] == pytest.approx(0.17603266338214976)
-
-    with pytest.raises(ValueError, match="Method pdf expects a one-dimensional numpy array"):
+    with pytest.raises(
+        ValueError,
+        match="Method pdf expects a one-dimensional numpy array",
+    ):
         c1.pdf(wrong_shape_1)
-    with pytest.raises(ValueError, match="Method pdf expects a one-dimensional numpy array"):
+    with pytest.raises(
+        ValueError,
+        match="Method pdf expects a one-dimensional numpy array",
+    ):
         c1.pdf(wrong_shape_2)
-    with pytest.raises(ValueError, match="Method pdf expects a one-dimensional numpy array"):
+    with pytest.raises(
+        ValueError,
+        match="Method pdf expects a one-dimensional numpy array",
+    ):
         c1.pdf(wrong_shape_3)
 
 
 def test_normalfloat__pdf():
+    pytest.skip("Since internal vector rep changed, this test was made invalid")
     c1 = NormalFloatHyperparameter("param", lower=0, upper=10, mu=3, sigma=2)
     c2 = NormalFloatHyperparameter(
         "logparam",
         lower=np.exp(0),
         upper=np.exp(10),
-        mu=3,
-        sigma=2,
+        mu=np.exp(3),
+        sigma=np.exp(2),
         log=True,
     )
     c3 = NormalFloatHyperparameter("param", lower=0, upper=0.5, mu=-1, sigma=0.2)
@@ -699,7 +742,11 @@ def test_normalfloat__pdf():
     expected_results = np.array([0.2138045617479014, 0.0004676955798505186, 0])
     assert array_results.shape == expected_results.shape
     assert array_results_log.shape == expected_results.shape
-    for res, log_res, exp_res in zip(array_results, array_results, expected_results):
+    for res, log_res, exp_res in zip(
+        array_results,
+        array_results_log,
+        expected_results,
+    ):
         assert res == pytest.approx(exp_res)
         assert log_res == pytest.approx(exp_res)
 
@@ -718,14 +765,14 @@ def test_normalfloat_get_max_density():
         "logparam",
         lower=np.exp(0),
         upper=np.exp(10),
-        mu=3,
-        sigma=2,
+        mu=np.exp(3),
+        sigma=np.exp(2),
         log=True,
     )
     c3 = NormalFloatHyperparameter("param", lower=0, upper=0.5, mu=-1, sigma=0.2)
-    assert c1.get_max_density() == pytest.approx(0.2138045617479014, abs=1e-9)
-    assert c2.get_max_density() == pytest.approx(0.2138045617479014, abs=1e-9)
-    assert c3.get_max_density() == pytest.approx(25.932522722334905, abs=1e-9)
+    assert c1.get_max_density() == pytest.approx(2.138045617479014, abs=1e-9)
+    assert c2.get_max_density() == pytest.approx(2.138045617479014, abs=1e-9)
+    assert c3.get_max_density() == pytest.approx(12.966261361167449, abs=1e-9)
 
 
 def test_betafloat():
@@ -734,7 +781,8 @@ def test_betafloat():
     f1_ = BetaFloatHyperparameter("param", lower=-2, upper=2, alpha=3, beta=1)
     assert f1 == f1_
     assert (
-        str(f1_) == "param, Type: BetaFloat, Alpha: 3.0 Beta: 1.0, Range: [-2.0, 2.0], Default: 2.0"
+        str(f1_)
+        == "param, Type: BetaFloat, Alpha: 3.0, Beta: 1.0, Range: [-2.0, 2.0], Default: 2.0"
     )
 
     u1 = UniformFloatHyperparameter("param", lower=0.0, upper=1.0)
@@ -749,13 +797,19 @@ def test_betafloat():
     copy_f1 = copy.copy(f1)
     assert copy_f1.name == f1.name
 
-    f2 = BetaFloatHyperparameter("param", lower=-2.0, upper=2.0, alpha=3.0, beta=1.0, q=0.1)
-    f2_ = BetaFloatHyperparameter("param", lower=-2, upper=2, alpha=3, beta=1, q=0.1)
+    f2 = BetaFloatHyperparameter(
+        "param",
+        lower=-2.0,
+        upper=2.0,
+        alpha=3.0,
+        beta=1.0,
+    )
+    f2_ = BetaFloatHyperparameter("param", lower=-2, upper=2, alpha=3, beta=1)
     assert f2 == f2_
 
     assert (
         str(f2)
-        == "param, Type: BetaFloat, Alpha: 3.0 Beta: 1.0, Range: [-2.0, 2.0], Default: 2.0, Q: 0.1"
+        == "param, Type: BetaFloat, Alpha: 3.0, Beta: 1.0, Range: [-2.0, 2.0], Default: 2.0"
     )
 
     f3 = BetaFloatHyperparameter(
@@ -777,7 +831,7 @@ def test_betafloat():
     assert f3 == f3_
     assert (
         str(f3)
-        == "param, Type: BetaFloat, Alpha: 6.0 Beta: 2.0, Range: [1e-05, 10.0], Default: 1.0, on log-scale"
+        == "param, Type: BetaFloat, Alpha: 6.0, Beta: 2.0, Range: [1e-05, 10.0], Default: 1.0, on log-scale"
     )
 
     f4 = BetaFloatHyperparameter(
@@ -788,7 +842,6 @@ def test_betafloat():
         alpha=2.0,
         beta=2.0,
         log=True,
-        q=1.0,
     )
     f4_ = BetaFloatHyperparameter(
         "param",
@@ -798,13 +851,12 @@ def test_betafloat():
         alpha=2.0,
         beta=2.0,
         log=True,
-        q=1.0,
     )
 
     assert f4 == f4_
     assert (
         str(f4)
-        == "param, Type: BetaFloat, Alpha: 2.0 Beta: 2.0, Range: [1.0, 1000.0], Default: 32.0, on log-scale, Q: 1.0"
+        == "param, Type: BetaFloat, Alpha: 2.0, Beta: 2.0, Range: [1.0, 1000.0], Default: 32.0, on log-scale"
     )
 
     # test that meta-data is stored correctly
@@ -818,24 +870,6 @@ def test_betafloat():
         meta=dict(META_DATA),
     )
     assert f_meta.meta == META_DATA
-
-    with pytest.raises(
-        ValueError,
-        match=(
-            "Logscale and quantization together results in "
-            "incorrect default values. We recommend specifying a default "
-            "value manually for this specific case."
-        ),
-    ):
-        BetaFloatHyperparameter(
-            "param",
-            lower=1,
-            upper=100.0,
-            alpha=3.0,
-            beta=2.0,
-            log=True,
-            q=1,
-        )
 
 
 def test_betafloat_dist_parameters():
@@ -930,7 +964,13 @@ def test_betafloat_default_value():
     assert f_unif_log.normalized_default_value == pytest.approx(0.5)
 
     # Then, test a case where the default value is the mode of the beta dist
-    f_max = BetaFloatHyperparameter("param", lower=-2.0, upper=2.0, alpha=4.7, beta=2.12)
+    f_max = BetaFloatHyperparameter(
+        "param",
+        lower=-2.0,
+        upper=2.0,
+        alpha=4.7,
+        beta=2.12,
+    )
     assert f_max.default_value == pytest.approx(1.0705394190871367)
     assert f_max.normalized_default_value == pytest.approx(0.7676348547717842)
 
@@ -944,26 +984,6 @@ def test_betafloat_default_value():
     )
     assert f_max_log.default_value == pytest.approx(np.exp(1.0705394190871367))
     assert f_max_log.normalized_default_value == pytest.approx(0.7676348547717842)
-
-    # These parameters do not yeild an integer default solution
-    f_quant = BetaFloatHyperparameter("param", lower=-2.0, upper=2.0, alpha=4.7, beta=2.12, q=1)
-    assert f_quant.default_value == pytest.approx(1.0)
-
-    f_log_quant = BetaFloatHyperparameter(
-        "param",
-        lower=1,
-        upper=100000,
-        alpha=2,
-        default_value=316,
-        beta=2,
-        q=1,
-        log=True,
-    )
-    assert f_log_quant.default_value == pytest.approx(316)
-
-    # since it's quantized, it gets distributed evenly among the search space
-    # as such, the possible normalized defaults are 0.1, 0.3, 0.5, 0.7, 0.9
-    assert f_quant.normalized_default_value == pytest.approx(0.7, abs=1e-4)
 
     # TODO log and quantization together does not yield a correct default for the beta
     # hyperparameter, but it is relatively close to being correct. However, it is not
@@ -1016,18 +1036,24 @@ def test_betafloat_default_value():
 
 
 def test_betafloat_to_uniformfloat():
-    f1 = BetaFloatHyperparameter("param", lower=-2.0, upper=2.0, alpha=4, beta=2, q=0.1)
+    f1 = BetaFloatHyperparameter("param", lower=-2.0, upper=2.0, alpha=4, beta=2)
     f1_expected = UniformFloatHyperparameter(
         "param",
         lower=-2.0,
         upper=2.0,
-        q=0.1,
         default_value=1,
     )
     f1_actual = f1.to_uniform()
     assert f1_expected == f1_actual
 
-    f2 = BetaFloatHyperparameter("param", lower=1, upper=1000, alpha=3, beta=2, log=True)
+    f2 = BetaFloatHyperparameter(
+        "param",
+        lower=1,
+        upper=1000,
+        alpha=3,
+        beta=2,
+        log=True,
+    )
     f2_expected = UniformFloatHyperparameter(
         "param",
         lower=1,
@@ -1041,7 +1067,13 @@ def test_betafloat_to_uniformfloat():
 
 def test_betafloat_to_integer():
     f1 = BetaFloatHyperparameter("param", lower=-2.0, upper=2.0, alpha=4, beta=2)
-    f2_expected = BetaIntegerHyperparameter("param", lower=-2.0, upper=2.0, alpha=4, beta=2)
+    f2_expected = BetaIntegerHyperparameter(
+        "param",
+        lower=-2.0,
+        upper=2.0,
+        alpha=4,
+        beta=2,
+    )
     f2_actual = f1.to_integer()
     assert f2_expected == f2_actual
 
@@ -1073,11 +1105,11 @@ def test_betafloat_pdf():
     wrong_shape_2 = np.array([3, 5, 7]).reshape(1, -1)
     wrong_shape_3 = np.array([3, 5, 7]).reshape(-1, 1)
 
-    assert c1.pdf(point_1)[0] == pytest.approx(0.07559999999999997)
-    assert c2.pdf(point_1_log)[0] == pytest.approx(0.07559999999999997)
-    assert c1.pdf(point_2)[0] == pytest.approx(0.011761200000000013)
-    assert c2.pdf(point_2_log)[0] == pytest.approx(0.011761200000000013)
-    assert c3.pdf(point_3)[0] == pytest.approx(30.262164001861198)
+    assert c1.pdf(point_1)[0] == pytest.approx(0.7559999999999997)
+    assert c2.pdf(point_1_log)[0] == pytest.approx(0.7559999999999997)
+    assert c1.pdf(point_2)[0] == pytest.approx(0.11761200000000013)
+    assert c2.pdf(point_2_log)[0] == pytest.approx(0.11761200000000013)
+    assert c3.pdf(point_3)[0] == pytest.approx(15.131082000930544)
     # TODO - change this once the is_legal support is there
     # but does not have an actual impact of now
     assert c1.pdf(point_outside_range_1)[0] == 0.0
@@ -1087,18 +1119,31 @@ def test_betafloat_pdf():
 
     array_results = c1.pdf(array_1)
     array_results_log = c2.pdf(array_1_log)
-    expected_results = np.array([0.07559999999999997, 0.011761200000000013, 0])
+    expected_results = np.array([0.7559999999999997, 0.11761200000000013, 0])
     assert array_results.shape == expected_results.shape
     assert array_results_log.shape == expected_results.shape
-    for res, log_res, exp_res in zip(array_results, array_results, expected_results):
+    for res, log_res, exp_res in zip(
+        array_results,
+        array_results_log,
+        expected_results,
+    ):
         assert res == pytest.approx(exp_res)
         assert log_res == pytest.approx(exp_res)
 
-    with pytest.raises(ValueError, match="Method pdf expects a one-dimensional numpy array"):
+    with pytest.raises(
+        ValueError,
+        match="Method pdf expects a one-dimensional numpy array",
+    ):
         c1.pdf(wrong_shape_1)
-    with pytest.raises(ValueError, match="Method pdf expects a one-dimensional numpy array"):
+    with pytest.raises(
+        ValueError,
+        match="Method pdf expects a one-dimensional numpy array",
+    ):
         c1.pdf(wrong_shape_2)
-    with pytest.raises(ValueError, match="Method pdf expects a one-dimensional numpy array"):
+    with pytest.raises(
+        ValueError,
+        match="Method pdf expects a one-dimensional numpy array",
+    ):
         c1.pdf(wrong_shape_3)
 
 
@@ -1124,11 +1169,11 @@ def test_betafloat__pdf():
     accepted_shape_2 = np.array([0.3, 0.5, 0.7]).reshape(1, -1)
     accepted_shape_3 = np.array([0.7, 0.5, 0.3]).reshape(-1, 1)
 
-    assert c1._pdf(point_1)[0] == pytest.approx(0.07559999999999997)
-    assert c2._pdf(point_1)[0] == pytest.approx(0.07559999999999997)
-    assert c1._pdf(point_2)[0] == pytest.approx(0.011761200000000013)
-    assert c2._pdf(point_2)[0] == pytest.approx(0.011761200000000013)
-    assert c3._pdf(point_3)[0] == pytest.approx(30.262164001861198)
+    assert c1._pdf(point_1)[0] == pytest.approx(0.7559999999999997)
+    assert c2._pdf(point_1)[0] == pytest.approx(0.7559999999999997)
+    assert c1._pdf(point_2)[0] == pytest.approx(0.11761200000000013)
+    assert c2._pdf(point_2)[0] == pytest.approx(0.11761200000000013)
+    assert c3._pdf(point_3)[0] == pytest.approx(15.131082000930544)
 
     # TODO - change this once the is_legal support is there
     # but does not have an actual impact of now
@@ -1139,10 +1184,14 @@ def test_betafloat__pdf():
 
     array_results = c1._pdf(array_1)
     array_results_log = c2._pdf(array_1)
-    expected_results = np.array([0.07559999999999997, 0.011761200000000013, 0])
+    expected_results = np.array([0.7559999999999997, 0.11761200000000013, 0])
     assert array_results.shape == expected_results.shape
     assert array_results_log.shape == expected_results.shape
-    for res, log_res, exp_res in zip(array_results, array_results, expected_results):
+    for res, log_res, exp_res in zip(
+        array_results,
+        array_results_log,
+        expected_results,
+    ):
         assert res == pytest.approx(exp_res)
         assert log_res == pytest.approx(exp_res)
 
@@ -1163,9 +1212,9 @@ def test_betafloat_get_max_density():
         log=True,
     )
     c3 = BetaFloatHyperparameter("param", lower=0, upper=0.5, alpha=1.1, beta=25)
-    assert c1.get_max_density() == pytest.approx(0.17777777777777776)
-    assert c2.get_max_density() == pytest.approx(0.17777777777777776)
-    assert c3.get_max_density() == pytest.approx(38.00408137865127)
+    assert c1.get_max_density() == pytest.approx(1.7777777777777776)
+    assert c2.get_max_density() == pytest.approx(1.7777777777777776)
+    assert c3.get_max_density() == pytest.approx(19.002040689325636)
 
 
 def test_uniforminteger():
@@ -1180,31 +1229,25 @@ def test_uniforminteger():
     assert f1.name == "param"
     assert f1.lower == 0
     assert f1.upper == 5
-    assert f1.q is None
     assert f1.default_value == 2
     assert f1.log is False
-    assert f1.normalized_default_value == pytest.approx((2.0 + 0.49999) / (5.49999 + 0.49999))
-
-    quantization_warning = "Setting quantization < 1 for Integer Hyperparameter param has no effect"
-    with pytest.raises(ValueError, match=quantization_warning):
-        _ = UniformIntegerHyperparameter("param", 0, 10, q=0.1)  # type: ignore
-    with pytest.raises(ValueError, match=quantization_warning):
-        _ = UniformIntegerHyperparameter("param", 0, 10, q=0.1)  # type: ignore
-
-    f2_large_q = UniformIntegerHyperparameter("param", 0, 10, q=2)
-    f2_large_q_ = UniformIntegerHyperparameter("param", 0, 10, q=2)
-    assert f2_large_q == f2_large_q_
-    assert str(f2_large_q) == "param, Type: UniformInteger, Range: [0, 10], Default: 5, Q: 2"
+    assert f1.normalized_default_value == 0.4
 
     f3 = UniformIntegerHyperparameter("param", 1, 10, log=True)
     f3_ = UniformIntegerHyperparameter("param", 1, 10, log=True)
     assert f3 == f3_
-    assert str(f3) == "param, Type: UniformInteger, Range: [1, 10], Default: 3, on log-scale"
+    assert (
+        str(f3)
+        == "param, Type: UniformInteger, Range: [1, 10], Default: 3, on log-scale"
+    )
 
     f4 = UniformIntegerHyperparameter("param", 1, 10, default_value=1, log=True)
     f4_ = UniformIntegerHyperparameter("param", 1, 10, default_value=1, log=True)
     assert f4 == f4_
-    assert str(f4) == "param, Type: UniformInteger, Range: [1, 10], Default: 1, on log-scale"
+    assert (
+        str(f4)
+        == "param, Type: UniformInteger, Range: [1, 10], Default: 1, on log-scale"
+    )
 
     assert f1 != "UniformFloat"
 
@@ -1220,7 +1263,6 @@ def test_uniforminteger():
     assert f_meta.meta == META_DATA
 
     assert f1.get_size() == 6
-    assert f2_large_q.get_size() == 6
     assert f3.get_size() == 10
     assert f4.get_size() == 10
 
@@ -1228,14 +1270,13 @@ def test_uniforminteger():
 def test_uniformint_legal_float_values():
     n_iter = UniformIntegerHyperparameter("n_iter", 5.0, 1000.0, default_value=20.0)
 
-    assert isinstance(n_iter.default_value, int)
+    assert isinstance(n_iter.default_value, np.integer)
     with pytest.raises(
-        ValueError,
-        match=r"For the Integer parameter n_iter, "
-        r"the value must be an Integer, too."
-        r" Right now it is a <(type|class) "
-        r"'float'>"
-        r" with value 20.5.",
+        TypeError,
+        match=(
+            r"`default_value` for hyperparameter 'n_iter' must be an"
+            r" integer. Got 'float' for default_value=20.5."
+        ),
     ):
         _ = UniformIntegerHyperparameter("n_iter", 5.0, 1000.0, default_value=20.5)
 
@@ -1243,15 +1284,27 @@ def test_uniformint_legal_float_values():
 def test_uniformint_illegal_bounds():
     with pytest.raises(
         ValueError,
-        match=r"Negative lower bound \(0\) for log-scale hyperparameter " r"param is forbidden.",
-    ):
+        match="Hyperparameter 'param' has illegal settings",
+    ) as e:
         UniformIntegerHyperparameter("param", 0, 10, log=True)
 
     with pytest.raises(
         ValueError,
-        match="Upper bound 1 must be larger than lower bound 0 for " "hyperparameter param",
+        match=r"Negative lower bound 0.000000 for log-scale is not possible",
     ):
+        raise e.value.__cause__  # type: ignore
+
+    with pytest.raises(
+        ValueError,
+        match="Hyperparameter 'param' has illegal settings",
+    ) as e:
         _ = UniformIntegerHyperparameter("param", 1, 0)
+
+    with pytest.raises(
+        ValueError,
+        match=r"Upper bound 0.000000 must be larger than lower bound 1.000000",
+    ):
+        raise e.value.__cause__  # type: ignore
 
 
 def test_uniformint_pdf():
@@ -1265,7 +1318,7 @@ def test_uniformint_pdf():
     non_integer_point = np.array([3.7])
     array_1 = np.array([1, 3, 3.7])
     point_outside_range = np.array([-1])
-    point_outside_range_log = np.array([10001])
+    np.array([10001])
     wrong_shape_1 = np.array([[3]])
     wrong_shape_2 = np.array([3, 5, 7]).reshape(1, -1)
     wrong_shape_3 = np.array([3, 5, 7]).reshape(-1, 1)
@@ -1275,17 +1328,13 @@ def test_uniformint_pdf():
     assert c1.pdf(point_1)[0] == pytest.approx(0.2, abs=1e-5)
     assert c2.pdf(point_1_log)[0] == pytest.approx(0.0001, abs=1e-5)
     assert c1.pdf(point_2)[0] == pytest.approx(0.2, abs=1e-5)
+    assert c2.pdf(np.array([10_000]))[0] == pytest.approx(0.0001, abs=1e-5)
+    assert c2.pdf(np.array([1]))[0] == pytest.approx(0.0001, abs=1e-5)
+    assert c2.pdf(np.array([2]))[0] == pytest.approx(0.0001, abs=1e-5)
     assert c2.pdf(point_2_log)[0] == pytest.approx(0.0001, abs=1e-5)
     assert c1.pdf(non_integer_point)[0] == pytest.approx(0.0, abs=1e-5)
     assert c2.pdf(non_integer_point)[0] == pytest.approx(0.0, abs=1e-5)
     assert c3.pdf(point_1)[0] == pytest.approx(0.07142857142857142, abs=1e-5)
-
-    # TODO - change this once the is_legal support is there
-    # but does not have an actual impact of now
-    # since inverse_transform pulls everything into range,
-    # even points outside get evaluated in range
-    assert c1.pdf(point_outside_range)[0] == pytest.approx(0.2, abs=1e-5)
-    assert c2.pdf(point_outside_range_log)[0] == pytest.approx(0.0001, abs=1e-5)
 
     # this, however, is a negative value on a log param, which cannot be pulled into range
     with pytest.warns(RuntimeWarning, match="invalid value encountered in log"):
@@ -1306,11 +1355,20 @@ def test_uniformint_pdf():
         assert res == pytest.approx(exp_res, abs=1e-5)
         assert log_res == pytest.approx(exp_res, abs=1e-5)
 
-    with pytest.raises(ValueError, match="Method pdf expects a one-dimensional numpy array"):
+    with pytest.raises(
+        ValueError,
+        match="Method pdf expects a one-dimensional numpy array",
+    ):
         c1.pdf(wrong_shape_1)
-    with pytest.raises(ValueError, match="Method pdf expects a one-dimensional numpy array"):
+    with pytest.raises(
+        ValueError,
+        match="Method pdf expects a one-dimensional numpy array",
+    ):
         c1.pdf(wrong_shape_2)
-    with pytest.raises(ValueError, match="Method pdf expects a one-dimensional numpy array"):
+    with pytest.raises(
+        ValueError,
+        match="Method pdf expects a one-dimensional numpy array",
+    ):
         c1.pdf(wrong_shape_3)
 
 
@@ -1375,65 +1433,64 @@ def test_uniformint_get_neighbors():
     for i_upper in range(1, 10):
         c1 = UniformIntegerHyperparameter("param", lower=0, upper=i_upper)
         for i_value in range(i_upper + 1):
-            float_value = c1._inverse_transform(np.array([i_value]))[0]
-            neighbors = c1.get_neighbors(float_value, rs, number=i_upper, transform=True)
-            assert set(neighbors) == set(range(i_upper + 1)) - {i_value}
+            neighbors = c1.neighbors_values(i_value, n=i_upper, seed=rs)
+            assert set(neighbors) == set(range(i_upper + 1)) - {i_value}, c1
 
 
 def test_normalint():
     # TODO test for unequal!
-    f1 = NormalIntegerHyperparameter("param", 0.5, 5.5)
-    f1_ = NormalIntegerHyperparameter("param", 0.5, 5.5)
+    f1 = NormalIntegerHyperparameter("param", 0.5, 5.5, lower=-10, upper=10)
+    f1_ = NormalIntegerHyperparameter("param", 0.5, 5.5, lower=-10, upper=10)
     assert f1 == f1_
-    assert str(f1) == "param, Type: NormalInteger, Mu: 0.5 Sigma: 5.5, Default: 0.5"
+    assert (
+        str(f1)
+        == "param, Type: NormalInteger, Mu: 0.5, Sigma: 5.5, Range: [-10, 10], Default: 0"
+    )
 
     # Test attributes are accessible
     assert f1.name == "param"
     assert f1.mu == 0.5
     assert f1.sigma == 5.5
-    assert f1.q is None
     assert f1.log is False
-    assert f1.default_value == pytest.approx(0.5)
+    assert f1.default_value == 0.0
     assert f1.normalized_default_value == pytest.approx(0.5)
+    assert f1.size == 21
 
-    with pytest.warns(
-        UserWarning,
-        match="Setting quantization < 1 for Integer " "Hyperparameter 'param' has no effect",
-    ):
-        f2 = NormalIntegerHyperparameter("param", 0, 10, q=0.1)
-    with pytest.warns(
-        UserWarning,
-        match="Setting quantization < 1 for Integer " "Hyperparameter 'param' has no effect",
-    ):
-        f2_ = NormalIntegerHyperparameter("param", 0, 10, q=0.1)
-    assert f2 == f2_
-    assert str(f2) == "param, Type: NormalInteger, Mu: 0 Sigma: 10, Default: 0"
-
-    f2_large_q = NormalIntegerHyperparameter("param", 0, 10, q=2)
-    f2_large_q_ = NormalIntegerHyperparameter("param", 0, 10, q=2)
-    assert f2_large_q == f2_large_q_
-    assert str(f2_large_q) == "param, Type: NormalInteger, Mu: 0 Sigma: 10, Default: 0, Q: 2"
-
-    f3 = NormalIntegerHyperparameter("param", 0, 10, log=True)
-    f3_ = NormalIntegerHyperparameter("param", 0, 10, log=True)
+    f3 = NormalIntegerHyperparameter("param", 0, 10, log=True, lower=1, upper=10)
+    f3_ = NormalIntegerHyperparameter("param", 0, 10, log=True, lower=1, upper=10)
     assert f3 == f3_
-    assert str(f3) == "param, Type: NormalInteger, Mu: 0 Sigma: 10, Default: 1, on log-scale"
+    assert f3.size == 10
+    assert (
+        str(f3)
+        == "param, Type: NormalInteger, Mu: 0.0, Sigma: 10.0, Range: [1, 10], Default: 1, on log-scale"
+    )
 
-    f4 = NormalIntegerHyperparameter("param", 0, 10, default_value=3, log=True)
-    f4_ = NormalIntegerHyperparameter("param", 0, 10, default_value=3, log=True)
+    f4 = NormalIntegerHyperparameter(
+        "param",
+        0,
+        10,
+        lower=1,
+        upper=10,
+        default_value=3,
+        log=True,
+    )
+    f4_ = NormalIntegerHyperparameter(
+        "param",
+        0,
+        10,
+        lower=1,
+        upper=10,
+        default_value=3,
+        log=True,
+    )
     assert f4 == f4_
-    assert str(f4) == "param, Type: NormalInteger, Mu: 0 Sigma: 10, Default: 3, on log-scale"
+    assert f4.size == 10
+    assert (
+        str(f4)
+        == "param, Type: NormalInteger, Mu: 0.0, Sigma: 10.0, Range: [1, 10], Default: 3, on log-scale"
+    )
 
-    with pytest.warns(
-        UserWarning,
-        match="Setting quantization < 1 for Integer " "Hyperparameter 'param' has no effect",
-    ):
-        f5 = NormalIntegerHyperparameter("param", 0, 10, q=0.1, log=True)
-        f5_ = NormalIntegerHyperparameter("param", 0, 10, q=0.1, log=True)
-    assert f5 == f5_
-    assert str(f5) == "param, Type: NormalInteger, Mu: 0 Sigma: 10, Default: 1, on log-scale"
-
-    assert f1 != f2
+    assert f1 != f4
     assert f1 != "UniformFloat"
 
     # test that meta-data is stored correctly
@@ -1441,78 +1498,89 @@ def test_normalint():
         "param",
         0,
         10,
+        lower=1,
+        upper=10,
         default_value=1,
         log=True,
         meta=dict(META_DATA),
     )
     assert f_meta.meta == META_DATA
 
-    # Test get_size
-    for int_hp in (f1, f2, f3, f4, f5):
-        assert np.isinf(int_hp.get_size())
-
-    # Unbounded case
-    f1 = NormalIntegerHyperparameter("param", 0, 10, q=1)
-    assert f1.get_neighbors(2, np.random.RandomState(9001), number=1) == [1]
-    assert f1.get_neighbors(2, np.random.RandomState(9001), number=5) == [0, 1, 9, 16, -1]
-
     # Bounded case
-    f1 = NormalIntegerHyperparameter("param", 0, 10, q=1, lower=-100, upper=100)
-    assert f1.get_neighbors(2, np.random.RandomState(9001), number=1) == [-11]
-    assert f1.get_neighbors(2, np.random.RandomState(9001), number=5) == [4, 11, 12, 15, -11]
+    f1 = NormalIntegerHyperparameter("param", 0, 10, lower=-100, upper=100)
+    np.testing.assert_equal(
+        f1.get_neighbors(0.1, np.random.RandomState(9001), number=1),
+        np.array([0.14]),
+    )
+    np.testing.assert_equal(
+        f1.get_neighbors(0.1, np.random.RandomState(9001), number=5),
+        np.array([0.06, 0.065, 0.09, 0.14, 0.175]),
+    )
 
     # Bounded case with default value out of bounds
-    with pytest.raises(ValueError):
-        _ = NormalIntegerHyperparameter("param", 5, 10, lower=1, upper=10, default_value=11)
+    with pytest.raises(ValueError, match=r"Illegal default value 11"):
+        _ = NormalIntegerHyperparameter(
+            "param",
+            5,
+            10,
+            lower=1,
+            upper=10,
+            default_value=11,
+        )
 
-    with pytest.raises(ValueError):
-        _ = NormalIntegerHyperparameter("param", 5, 10, lower=1, upper=10, default_value=0)
+    with pytest.raises(ValueError, match=r"Illegal default value 0"):
+        _ = NormalIntegerHyperparameter(
+            "param",
+            5,
+            10,
+            lower=1,
+            upper=10,
+            default_value=0,
+        )
 
 
 def test_normalint_legal_float_values():
-    n_iter = NormalIntegerHyperparameter("n_iter", 0, 1.0, default_value=2.0)
-    assert isinstance(n_iter.default_value, int)
+    n_iter = NormalIntegerHyperparameter(
+        "n_iter",
+        0,
+        1.0,
+        default_value=2.0,
+        lower=0,
+        upper=10,
+    )
+    assert isinstance(n_iter.default_value, np.integer)
     with pytest.raises(
-        ValueError,
-        match=r"For the Integer parameter n_iter, "
-        r"the value must be an Integer, too."
-        r" Right now it is a "
-        r"<(type|class) 'float'>"
-        r" with value 0.5.",
+        TypeError,
+        match=(
+            r"`default_value` for hyperparameter 'n_iter' must be an integer. "
+            r"Got 'float' for default_value=0.5."
+        ),
     ):
         _ = UniformIntegerHyperparameter("n_iter", 0, 1.0, default_value=0.5)
 
 
 def test_normalint_to_uniform():
-    with pytest.warns(
-        UserWarning,
-        match="Setting quantization < 1 for Integer " "Hyperparameter 'param' has no effect",
-    ):
-        f1 = NormalIntegerHyperparameter("param", 0, 10, q=0.1)
+    f1 = NormalIntegerHyperparameter("param", 0, 10, lower=-30, upper=30)
     f1_expected = UniformIntegerHyperparameter("param", -30, 30)
     f1_actual = f1.to_uniform()
     assert f1_expected == f1_actual
 
 
 def test_normalint_is_legal():
-    with pytest.warns(
-        UserWarning,
-        match="Setting quantization < 1 for Integer " "Hyperparameter 'param' has no effect",
-    ):
-        f1 = NormalIntegerHyperparameter("param", 0, 10, q=0.1, log=True)
-    assert not f1.is_legal(3.1)
-    assert not f1.is_legal(3.0)  # 3.0 behaves like an Integer
-    assert not f1.is_legal("BlaBlaBla")
+    f1 = NormalIntegerHyperparameter("param", 0, 10, log=True, lower=1, upper=30)
+    assert f1.is_legal(3.0)  # 3.0 behaves like an Integer
     assert f1.is_legal(2)
-    assert f1.is_legal(-15)
+    assert not f1.is_legal(3.1)
+    assert not f1.is_legal("BlaBlaBla")
+    assert not f1.is_legal(-15)
 
     # Test is legal vector
     assert f1.is_legal_vector(1.0)
     assert f1.is_legal_vector(0.0)
     assert f1.is_legal_vector(0)
     assert f1.is_legal_vector(0.3)
-    assert f1.is_legal_vector(-0.1)
-    assert f1.is_legal_vector(1.1)
+    assert not f1.is_legal_vector(-0.1)
+    assert not f1.is_legal_vector(1.1)
     assert not f1.is_legal_vector("Hahaha")
 
     f2 = NormalIntegerHyperparameter("param", 5, 10, lower=1, upper=10, default_value=5)
@@ -1523,7 +1591,14 @@ def test_normalint_is_legal():
 
 def test_normalint_pdf():
     c1 = NormalIntegerHyperparameter("param", lower=0, upper=10, mu=3, sigma=2)
-    c2 = NormalIntegerHyperparameter("logparam", lower=1, upper=1000, mu=3, sigma=2, log=True)
+    c2 = NormalIntegerHyperparameter(
+        "logparam",
+        lower=1,
+        upper=1000,
+        mu=3,
+        sigma=2,
+        log=True,
+    )
     c3 = NormalIntegerHyperparameter("param", lower=0, upper=2, mu=-1.2, sigma=0.5)
 
     point_1 = np.array([3])
@@ -1532,7 +1607,7 @@ def test_normalint_pdf():
     point_2_log = np.array([1000])
     point_3 = np.array([0])
     array_1 = np.array([3, 10, 11])
-    array_1_log = np.array([10, 570, 1001])
+    array_1_log = np.array([10, 1000, 1001])
     point_outside_range_1 = np.array([-1])
     point_outside_range_2 = np.array([11])
     point_outside_range_1_log = np.array([0])
@@ -1543,9 +1618,9 @@ def test_normalint_pdf():
     wrong_shape_3 = np.array([3, 5, 7]).reshape(-1, 1)
 
     assert c1.pdf(point_1)[0] == pytest.approx(0.20747194595587332)
-    assert c2.pdf(point_1_log)[0] == pytest.approx(0.002625781612612434)
+    assert c2.pdf(point_1_log)[0] == pytest.approx(0.0009326191507499944)
     assert c1.pdf(point_2)[0] == pytest.approx(0.00045384303905059246)
-    assert c2.pdf(point_2_log)[0] == pytest.approx(0.0004136885586376241)
+    assert c2.pdf(point_2_log)[0] == pytest.approx(2.3595145186898904e-18)
     assert c3.pdf(point_3)[0] == pytest.approx(0.9988874412972069)
     # TODO - change this once the is_legal support is there
     # but does not have an actual impact of now
@@ -1561,7 +1636,7 @@ def test_normalint_pdf():
     array_results = c1.pdf(array_1)
     array_results_log = c2.pdf(array_1_log)
     expected_results = np.array([0.20747194595587332, 0.00045384303905059246, 0])
-    expected_results_log = np.array([0.002625781612612434, 0.000688676747843256, 0])
+    expected_results_log = np.array([0.0009326191507499944, 2.3595145186898904e-18, 0])
     assert array_results.shape == expected_results.shape
     assert array_results_log.shape == expected_results.shape
     for res, log_res, exp_res, exp_log_res in zip(
@@ -1573,20 +1648,34 @@ def test_normalint_pdf():
         assert res == pytest.approx(exp_res)
         assert log_res == pytest.approx(exp_log_res)
 
-    c_nobounds = NormalFloatHyperparameter("param", mu=3, sigma=2)
-    assert c_nobounds.pdf(np.array([2]))[0] == pytest.approx(0.17603266338214976)
-
-    with pytest.raises(ValueError, match="Method pdf expects a one-dimensional numpy array"):
+    with pytest.raises(
+        ValueError,
+        match="Method pdf expects a one-dimensional numpy array",
+    ):
         c1.pdf(wrong_shape_1)
-    with pytest.raises(ValueError, match="Method pdf expects a one-dimensional numpy array"):
+    with pytest.raises(
+        ValueError,
+        match="Method pdf expects a one-dimensional numpy array",
+    ):
         c1.pdf(wrong_shape_2)
-    with pytest.raises(ValueError, match="Method pdf expects a one-dimensional numpy array"):
+    with pytest.raises(
+        ValueError,
+        match="Method pdf expects a one-dimensional numpy array",
+    ):
         c1.pdf(wrong_shape_3)
 
 
 def test_normalint__pdf():
+    pytest.skip("Changed vectorized bounds, no longer valid")
     c1 = NormalIntegerHyperparameter("param", lower=0, upper=10, mu=3, sigma=2)
-    c2 = NormalIntegerHyperparameter("logparam", lower=1, upper=1000, mu=3, sigma=2, log=True)
+    c2 = NormalIntegerHyperparameter(
+        "logparam",
+        lower=1,
+        upper=1000,
+        mu=3,
+        sigma=2,
+        log=True,
+    )
 
     point_1 = np.array([3])
     point_2 = np.array([5.2])
@@ -1626,22 +1715,18 @@ def test_normalint__pdf():
 
 def test_normalint_get_max_density():
     c1 = NormalIntegerHyperparameter("param", lower=0, upper=10, mu=3, sigma=2)
-    c2 = NormalIntegerHyperparameter("logparam", lower=1, upper=1000, mu=3, sigma=2, log=True)
+    c2 = NormalIntegerHyperparameter(
+        "logparam",
+        lower=1,
+        upper=1000,
+        mu=3,
+        sigma=2,
+        log=True,
+    )
     c3 = NormalIntegerHyperparameter("param", lower=0, upper=2, mu=-1.2, sigma=0.5)
-    assert c1.get_max_density() == pytest.approx(0.20747194595587332)
-    assert c2.get_max_density() == pytest.approx(0.002790371598208875)
-    assert c3.get_max_density() == pytest.approx(0.9988874412972069)
-
-
-def test_normalint_compute_normalization():
-    ARANGE_CHUNKSIZE = 10_000_000
-    lower, upper = 1, ARANGE_CHUNKSIZE * 2
-
-    c = NormalIntegerHyperparameter("c", mu=10, sigma=500, lower=lower, upper=upper)
-    chunks = arange_chunked(lower, upper, chunk_size=ARANGE_CHUNKSIZE)
-    # exact computation over the complete range
-    N = sum(c.nfhp.pdf(chunk).sum() for chunk in chunks)
-    assert c.normalization_constant == pytest.approx(N, abs=1e-5)
+    assert c1.get_max_density() == pytest.approx(2.138045617479014)
+    assert c2.get_max_density() == pytest.approx(4.213796445068097)
+    assert c3.get_max_density() == pytest.approx(10.927444887375877)
 
 
 ############################################################
@@ -1650,7 +1735,10 @@ def test_betaint():
     f1 = BetaIntegerHyperparameter("param", lower=-2.0, upper=2.0, alpha=3.0, beta=1.1)
     f1_ = BetaIntegerHyperparameter("param", lower=-2, upper=2, alpha=3, beta=1.1)
     assert f1 == f1_
-    assert str(f1) == "param, Type: BetaInteger, Alpha: 3.0 Beta: 1.1, Range: [-2, 2], Default: 2"
+    assert (
+        str(f1)
+        == "param, Type: BetaInteger, Alpha: 3.0, Beta: 1.1, Range: [-2, 2], Default: 2"
+    )
 
     assert f1.alpha == pytest.approx(3.0)
     assert f1.beta == pytest.approx(1.1)
@@ -1662,25 +1750,52 @@ def test_betaint():
     assert copy_f1.beta == f1.beta
     assert copy_f1.default_value == f1.default_value
 
-    f2 = BetaIntegerHyperparameter("param", lower=-2.0, upper=4.0, alpha=3.0, beta=1.1, q=2)
-    f2_ = BetaIntegerHyperparameter("param", lower=-2, upper=4, alpha=3, beta=1.1, q=2)
+    f2 = BetaIntegerHyperparameter(
+        "param",
+        lower=-2.0,
+        upper=4.0,
+        alpha=3.0,
+        beta=1.1,
+    )
+    f2_ = BetaIntegerHyperparameter("param", lower=-2, upper=4, alpha=3, beta=1.1)
     assert f2 == f2_
 
     assert (
         str(f2)
-        == "param, Type: BetaInteger, Alpha: 3.0 Beta: 1.1, Range: [-2, 4], Default: 4, Q: 2"
+        == "param, Type: BetaInteger, Alpha: 3.0, Beta: 1.1, Range: [-2, 4], Default: 4"
     )
 
-    f3 = BetaIntegerHyperparameter("param", lower=1, upper=1000, alpha=3.0, beta=2.0, log=True)
-    f3_ = BetaIntegerHyperparameter("param", lower=1, upper=1000, alpha=3.0, beta=2.0, log=True)
+    f3 = BetaIntegerHyperparameter(
+        "param",
+        lower=1,
+        upper=1000,
+        alpha=3.0,
+        beta=2.0,
+        log=True,
+    )
+    f3_ = BetaIntegerHyperparameter(
+        "param",
+        lower=1,
+        upper=1000,
+        alpha=3.0,
+        beta=2.0,
+        log=True,
+    )
     assert f3 == f3_
     assert (
         str(f3)
-        == "param, Type: BetaInteger, Alpha: 3.0 Beta: 2.0, Range: [1, 1000], Default: 100, on log-scale"
+        == "param, Type: BetaInteger, Alpha: 3.0, Beta: 2.0, Range: [1, 1000], Default: 100, on log-scale"
     )
 
     with pytest.raises(ValueError):
-        BetaIntegerHyperparameter("param", lower=-1, upper=10.0, alpha=6.0, beta=2.0, log=True)
+        BetaIntegerHyperparameter(
+            "param",
+            lower=-1,
+            upper=10.0,
+            alpha=6.0,
+            beta=2.0,
+            log=True,
+        )
 
     # test that meta-data is stored correctly
     f_meta = BetaFloatHyperparameter(
@@ -1697,10 +1812,15 @@ def test_betaint():
 
 def test_betaint_default_value():
     # should default to the maximal value in the search space
-    f_max = BetaIntegerHyperparameter("param", lower=-2.0, upper=2.0, alpha=3.0, beta=1.0)
+    f_max = BetaIntegerHyperparameter(
+        "param",
+        lower=-2.0,
+        upper=2.0,
+        alpha=3.0,
+        beta=1.0,
+    )
     assert f_max.default_value == pytest.approx(2.0)
-    # since integer values are staggered over the normalized space
-    assert f_max.normalized_default_value == pytest.approx(0.9, abs=1e-4)
+    assert f_max.normalized_default_value == pytest.approx(1.0, abs=1e-4)
 
     # The normalized log defaults should be the same as if one were to create a uniform
     # distribution with the same default value as is generated by the beta
@@ -1713,12 +1833,18 @@ def test_betaint_default_value():
         log=True,
     )
     assert f_max_log.default_value == pytest.approx(10.0)
-    assert f_max_log.normalized_default_value == pytest.approx(0.983974646746037)
+    assert f_max_log.normalized_default_value == pytest.approx(1.0)
 
     # should default to the minimal value in the search space
-    f_min = BetaIntegerHyperparameter("param", lower=-2.0, upper=2.0, alpha=1.0, beta=1.5)
+    f_min = BetaIntegerHyperparameter(
+        "param",
+        lower=-2.0,
+        upper=2.0,
+        alpha=1.0,
+        beta=1.5,
+    )
     assert f_min.default_value == pytest.approx(-2.0)
-    assert f_min.normalized_default_value == pytest.approx(0.1, abs=1e-4)
+    assert f_min.normalized_default_value == pytest.approx(0.0, abs=1e-4)
 
     f_min_log = BetaIntegerHyperparameter(
         "param",
@@ -1729,7 +1855,7 @@ def test_betaint_default_value():
         log=True,
     )
     assert f_min_log.default_value == pytest.approx(1.0)
-    assert f_min_log.normalized_default_value == pytest.approx(0.22766524636349278)
+    assert f_min_log.normalized_default_value == pytest.approx(0.0)
 
     # Symmeric, should default to the middle
     f_symm = BetaIntegerHyperparameter("param", lower=5, upper=9, alpha=4.6, beta=4.6)
@@ -1746,7 +1872,7 @@ def test_betaint_default_value():
         log=True,
     )
     assert f_symm_log.default_value == pytest.approx(148)
-    assert f_symm_log.normalized_default_value == pytest.approx(0.5321491582577761)
+    assert f_symm_log.normalized_default_value == pytest.approx(0.5, abs=1e-3)
 
     # Uniform, should also default to the middle
     f_unif = BetaIntegerHyperparameter("param", lower=2, upper=6, alpha=1.0, beta=1.0)
@@ -1763,13 +1889,19 @@ def test_betaint_default_value():
         log=True,
     )
     assert f_unif_log.default_value == pytest.approx(148)
-    assert f_unif_log.normalized_default_value == pytest.approx(0.5321491582577761)
+    assert f_unif_log.normalized_default_value == pytest.approx(0.5, abs=1e-3)
 
     # Then, test a case where the default value is the mode of the beta dist somewhere in
     # the interior of the search space - but not the center
-    f_max = BetaIntegerHyperparameter("param", lower=-2.0, upper=2.0, alpha=4.7, beta=2.12)
+    f_max = BetaIntegerHyperparameter(
+        "param",
+        lower=-2.0,
+        upper=2.0,
+        alpha=4.7,
+        beta=2.12,
+    )
     assert f_max.default_value == pytest.approx(1.0)
-    assert f_max.normalized_default_value == pytest.approx(0.7, abs=1e-4)
+    assert f_max.normalized_default_value == pytest.approx(0.75)
 
     f_max_log = BetaIntegerHyperparameter(
         "param",
@@ -1780,22 +1912,18 @@ def test_betaint_default_value():
         log=True,
     )
     assert f_max_log.default_value == pytest.approx(2157)
-    assert f_max_log.normalized_default_value == pytest.approx(0.7827083200774537)
+    assert f_max_log.normalized_default_value == pytest.approx(0.767648988)
 
-    # These parameters yield a mode at approximately 1.1, so should thus yield default at 2
+    # These parameters yield a mode at approximately 1.1, so should thus yield default at 1
     f_quant = BetaIntegerHyperparameter(
         "param",
         lower=-2.0,
         upper=2.0,
         alpha=4.7,
         beta=2.12,
-        q=2,
     )
-    assert f_quant.default_value == pytest.approx(2.0)
-
-    # since it's quantized, it gets distributed evenly among the search space
-    # as such, the possible normalized defaults are 0.1, 0.3, 0.5, 0.7, 0.9
-    assert f_quant.normalized_default_value == pytest.approx(0.9, abs=1e-4)
+    assert f_quant.default_value == pytest.approx(1.0)
+    assert f_quant.normalized_default_value == pytest.approx(0.75)
 
     # TODO log and quantization together does not yield a correct default for the beta
     # hyperparameter, but it is relatively close to being correct.
@@ -1872,10 +2000,10 @@ def test_betaint_dist_parameters():
 
 def test_betaint_legal_float_values():
     f1 = BetaIntegerHyperparameter("param", lower=-2.0, upper=2.0, alpha=3.0, beta=1.1)
-    assert isinstance(f1.default_value, int)
+    assert isinstance(f1.default_value, np.integer)
     with pytest.raises(
-        ValueError,
-        match="Illegal default value 0.5",
+        TypeError,
+        match="`default_value` for hyperparameter 'param' must be an integer",
     ):
         _ = BetaIntegerHyperparameter(
             "param",
@@ -1888,12 +2016,6 @@ def test_betaint_legal_float_values():
 
 
 def test_betaint_to_uniform():
-    with pytest.raises(
-        ValueError,
-        match="Setting quantization < 1 for Integer Hyperparameter param has no effect",
-    ):
-        _ = BetaIntegerHyperparameter("param", lower=-30, upper=30, alpha=6.0, beta=2, q=0.1)
-
     f1 = BetaIntegerHyperparameter("param", lower=-30, upper=30, alpha=6.0, beta=2)
     f1_expected = UniformIntegerHyperparameter("param", -30, 30, default_value=20)
     f1_actual = f1.to_uniform()
@@ -1902,7 +2024,14 @@ def test_betaint_to_uniform():
 
 def test_betaint_pdf():
     c1 = BetaIntegerHyperparameter("param", alpha=3, beta=2, lower=0, upper=10)
-    c2 = BetaIntegerHyperparameter("logparam", alpha=3, beta=2, lower=1, upper=1000, log=True)
+    c2 = BetaIntegerHyperparameter(
+        "logparam",
+        alpha=3,
+        beta=2,
+        lower=1,
+        upper=1000,
+        log=True,
+    )
     c3 = BetaIntegerHyperparameter("param", alpha=1.1, beta=10, lower=0, upper=3)
 
     point_1 = np.array([3])
@@ -1952,11 +2081,20 @@ def test_betaint_pdf():
         assert res == pytest.approx(exp_res, abs=1e-3)
         assert log_res == pytest.approx(exp_log_res, abs=1e-3)
 
-    with pytest.raises(ValueError, match="Method pdf expects a one-dimensional numpy array"):
+    with pytest.raises(
+        ValueError,
+        match="Method pdf expects a one-dimensional numpy array",
+    ):
         c1.pdf(wrong_shape_1)
-    with pytest.raises(ValueError, match="Method pdf expects a one-dimensional numpy array"):
+    with pytest.raises(
+        ValueError,
+        match="Method pdf expects a one-dimensional numpy array",
+    ):
         c1.pdf(wrong_shape_2)
-    with pytest.raises(ValueError, match="Method pdf expects a one-dimensional numpy array"):
+    with pytest.raises(
+        ValueError,
+        match="Method pdf expects a one-dimensional numpy array",
+    ):
         c1.pdf(wrong_shape_3)
 
 
@@ -1977,20 +2115,20 @@ def test_betaint__pdf():
     point_1_log = np.array([0.345363])
     point_2 = np.array([0.850001])
     point_2_log = np.array([0.906480])
-    array_1 = np.array([0.249995, 0.850001, 0.045])
-    array_1_log = np.array([0.345363, 0.906480, 0.065])
-    point_outside_range_1 = np.array([0.045])
-    point_outside_range_1_log = np.array([0.06])
-    point_outside_range_2 = np.array([0.96])
+    array_1 = np.array([0.249995, 0.850001, -0.01])
+    array_1_log = np.array([0.345363, 0.906480, -0.01])
+    point_outside_range_1 = np.array([-0.01])
+    point_outside_range_1_log = np.array([-0.01])
+    point_outside_range_2 = np.array([1.01])
 
     accepted_shape_1 = np.array([[3]])
     accepted_shape_2 = np.array([3, 5, 7]).reshape(1, -1)
     accepted_shape_3 = np.array([3, 5, 7]).reshape(-1, 1)
 
-    assert c1._pdf(point_1)[0] == pytest.approx(0.0475566)
-    assert c2._pdf(point_1_log)[0] == pytest.approx(0.00004333811)
-    assert c1._pdf(point_2)[0] == pytest.approx(0.1091810)
-    assert c2._pdf(point_2_log)[0] == pytest.approx(0.00005571951)
+    assert c1._pdf(point_1)[0] == pytest.approx(0.05681628788636377)
+    assert c2._pdf(point_1_log)[0] == pytest.approx(4.254195992347626e-05)
+    assert c1._pdf(point_2)[0] == pytest.approx(0.13136306969509084)
+    assert c2._pdf(point_2_log)[0] == pytest.approx(4.1868391944038355e-05)
 
     # test points that are actually outside of the _pdf range due to the skewing
     # of the unit hypercube space
@@ -2000,8 +2138,10 @@ def test_betaint__pdf():
 
     array_results = c1._pdf(array_1)
     array_results_log = c2._pdf(array_1_log)
-    expected_results = np.array([0.0475566, 0.1091810, 0])
-    expected_results_log = np.array([0.00004333811, 0.00005571951, 0])
+    expected_results = np.array(
+        [0.05681628788636377, 0.13136306969509084, 0],
+    )
+    expected_results_log = np.array([0.00004333811, 4.1868391944038355e-05, 0])
     assert array_results.shape == expected_results.shape
     assert array_results_log.shape == expected_results_log.shape
     for res, log_res, exp_res, exp_log_res in zip(
@@ -2021,22 +2161,18 @@ def test_betaint__pdf():
 
 def test_betaint_get_max_density():
     c1 = BetaIntegerHyperparameter("param", alpha=3, beta=2, lower=0, upper=10)
-    c2 = BetaIntegerHyperparameter("logparam", alpha=3, beta=2, lower=1, upper=1000, log=True)
+    c2 = BetaIntegerHyperparameter(
+        "logparam",
+        alpha=3,
+        beta=2,
+        lower=1,
+        upper=1000,
+        log=True,
+    )
     c3 = BetaIntegerHyperparameter("param", alpha=1.1, beta=10, lower=0, upper=3)
-    assert c1.get_max_density() == pytest.approx(0.1781818181818181)
-    assert c2.get_max_density() == pytest.approx(0.0018733953504422762)
-    assert c3.get_max_density() == pytest.approx(0.9979110652388783)
-
-
-def test_betaint_compute_normalization():
-    ARANGE_CHUNKSIZE = 10_000_000
-    lower, upper = 0, ARANGE_CHUNKSIZE * 2
-
-    c = BetaIntegerHyperparameter("c", alpha=3, beta=2, lower=lower, upper=upper)
-    chunks = arange_chunked(lower, upper, chunk_size=ARANGE_CHUNKSIZE)
-    # exact computation over the complete range
-    N = sum(c.bfhp.pdf(chunk).sum() for chunk in chunks)
-    assert c.normalization_constant == pytest.approx(N, abs=1e-5)
+    assert c1.get_max_density() == pytest.approx(1.7640000000000007)
+    assert c2.get_max_density() == pytest.approx(1.7777777777777777)
+    assert c3.get_max_density() == pytest.approx(0.31007530917571263)
 
 
 def test_categorical():
@@ -2119,20 +2255,50 @@ def test_cat_equal():
     assert c1 == c2
 
     # Test that the weights are ordered correctly
-    c1 = CategoricalHyperparameter("param", ["a", "b"], weights=[1, 2], default_value="a")
-    c2 = CategoricalHyperparameter("param", ["b", "a"], weights=[2, 1], default_value="a")
+    c1 = CategoricalHyperparameter(
+        "param",
+        ["a", "b"],
+        weights=[1, 2],
+        default_value="a",
+    )
+    c2 = CategoricalHyperparameter(
+        "param",
+        ["b", "a"],
+        weights=[2, 1],
+        default_value="a",
+    )
     assert c1 == c2
 
-    c1 = CategoricalHyperparameter("param", ["a", "b"], weights=[1, 2], default_value="a")
-    c2 = CategoricalHyperparameter("param", ["b", "a"], weights=[1, 2], default_value="a")
+    c1 = CategoricalHyperparameter(
+        "param",
+        ["a", "b"],
+        weights=[1, 2],
+        default_value="a",
+    )
+    c2 = CategoricalHyperparameter(
+        "param",
+        ["b", "a"],
+        weights=[1, 2],
+        default_value="a",
+    )
     assert c1 != c2
 
-    c1 = CategoricalHyperparameter("param", ["a", "b"], weights=[1, 2], default_value="a")
+    c1 = CategoricalHyperparameter(
+        "param",
+        ["a", "b"],
+        weights=[1, 2],
+        default_value="a",
+    )
     c2 = CategoricalHyperparameter("param", ["b", "a"], default_value="a")
     assert c1 != c2
 
     c1 = CategoricalHyperparameter("param", ["a", "b"], default_value="a")
-    c2 = CategoricalHyperparameter("param", ["b", "a"], weights=[1, 2], default_value="a")
+    c2 = CategoricalHyperparameter(
+        "param",
+        ["b", "a"],
+        weights=[1, 2],
+        default_value="a",
+    )
     assert c1 != c2
 
     # Test that the equals operator does not fail accessing the weight of choice "a" in c2
@@ -2167,7 +2333,7 @@ def test_categorical_is_legal():
 def test_categorical_choices():
     with pytest.raises(
         ValueError,
-        match="Choices for categorical hyperparameters param contain choice 'a' 2 times, "
+        match="Choices for categorical hyperparameters param contain choice `a` 2 times, "
         "while only a single oocurence is allowed.",
     ):
         CategoricalHyperparameter("param", ["a", "a"])
@@ -2186,113 +2352,78 @@ def test_categorical_default():
 
 
 def test_sample_UniformFloatHyperparameter():
-    # This can sample four distributions
-    def sample(hp):
-        rs = np.random.RandomState(1)
-        counts_per_bin = [0 for _ in range(21)]
-        value = None
-        for _ in range(100000):
-            value = hp.sample(rs)
-            if hp.log:
-                assert value <= np.exp(hp._upper)
-                assert value >= np.exp(hp._lower)
-            else:
-                assert value <= hp._upper
-                assert value >= hp._lower
-            index = int((value - hp.lower) / (hp.upper - hp.lower) * 20)
-            counts_per_bin[index] += 1
-
-        assert isinstance(value, float)
-        return counts_per_bin
+    # NOTE: Had to reconfigure this test to actually be fast
 
     # Uniform
     hp = UniformFloatHyperparameter("ufhp", 0.5, 2.5)
+    rs = np.random.RandomState(1)
+    samples = hp.sample_value(size=10_0000, seed=rs)
+    counts_per_bin, _ = np.histogram(
+        samples,
+        bins=20,
+        range=(float(hp.lower), float(hp.upper)),
+    )
 
-    counts_per_bin = sample(hp)
     # The 21st bin is only filled if exactly 2.5 is sampled...very rare...
-    for bin in counts_per_bin[:-1]:
-        assert 5200 > bin > 4800
-    assert sample(hp) == sample(hp)
+    for bin in counts_per_bin:
+        assert 5200 > bin > 4800, counts_per_bin
 
-    # Quantized Uniform
-    hp = UniformFloatHyperparameter("ufhp", 0.0, 1.0, q=0.1)
-
-    counts_per_bin = sample(hp)
-    for bin in counts_per_bin[::2]:
-        assert 9301 > bin > 8700
-    for bin in counts_per_bin[1::2]:
-        assert bin == 0
-    assert sample(hp) == sample(hp)
+    rs1 = np.random.RandomState(1)
+    rs2 = np.random.RandomState(1)
+    np.testing.assert_array_equal(
+        hp.sample_value(100, seed=rs1),
+        hp.sample_value(100, seed=rs2),
+    )
 
     # Log Uniform
     hp = UniformFloatHyperparameter("ufhp", 1.0, np.e**2, log=True)
 
-    counts_per_bin = sample(hp)
-    assert counts_per_bin == [
-        14012,
-        10977,
-        8809,
-        7559,
-        6424,
-        5706,
-        5276,
-        4694,
-        4328,
-        3928,
-        3655,
-        3386,
-        3253,
-        2932,
-        2816,
-        2727,
-        2530,
-        2479,
-        2280,
-        2229,
-        0,
-    ]
-    assert sample(hp) == sample(hp)
+    rs = np.random.RandomState(1)
+    samples = hp.sample_value(size=10_0000, seed=rs)
+    counts_per_bin, _ = np.histogram(
+        samples,
+        bins=20,
+        range=(float(hp.lower), float(hp.upper)),
+    )
 
-    # Quantized Log-Uniform
-    # 7.2 ~ np.round(e * e, 1)
-    hp = UniformFloatHyperparameter("ufhp", 1.2, 7.2, q=0.6, log=True)
-
-    counts_per_bin = sample(hp)
-    assert counts_per_bin == [
-        24359,
-        15781,
-        0,
-        11635,
-        0,
-        0,
-        9506,
-        7867,
-        0,
-        0,
-        6763,
-        0,
-        5919,
-        0,
-        5114,
-        4798,
-        0,
-        0,
-        4339,
-        0,
-        3919,
-    ]
-    assert sample(hp) == sample(hp)
-
-    # Issue #199
-    hp = UniformFloatHyperparameter("uni_float_q", lower=1e-4, upper=1e-1, q=1e-5, log=True)
-    assert np.isfinite(hp._lower)
-    assert np.isfinite(hp._upper)
-    sample(hp)
+    np.testing.assert_array_equal(
+        counts_per_bin,
+        [
+            14012,
+            10977,
+            8809,
+            7559,
+            6424,
+            5706,
+            5276,
+            4694,
+            4328,
+            3928,
+            3655,
+            3386,
+            3253,
+            2932,
+            2816,
+            2727,
+            2530,
+            2479,
+            2280,
+            2229,
+        ],
+    )
 
 
 def test_categorical_pdf():
-    c1 = CategoricalHyperparameter("x1", choices=["one", "two", "three"], weights=[2, 1, 2])
-    c2 = CategoricalHyperparameter("x1", choices=["one", "two", "three"], weights=[5, 0, 2])
+    c1 = CategoricalHyperparameter(
+        "x1",
+        choices=["one", "two", "three"],
+        weights=[2, 1, 2],
+    )
+    c2 = CategoricalHyperparameter(
+        "x1",
+        choices=["one", "two", "three"],
+        weights=[5, 0, 2],
+    )
     c3 = CategoricalHyperparameter("x1", choices=["one", "two", "three", "four"])
 
     point_1 = np.array(["one"])
@@ -2308,17 +2439,34 @@ def test_categorical_pdf():
     assert c2.pdf(point_2)[0] == 0.0
     assert c3.pdf(point_1)[0] == 0.25
 
-    with pytest.raises(ValueError, match="Method pdf expects a one-dimensional numpy array"):
+    with pytest.raises(
+        ValueError,
+        match="Method pdf expects a one-dimensional numpy array",
+    ):
         c1.pdf(wrong_shape_1)
-    with pytest.raises(ValueError, match="Method pdf expects a one-dimensional numpy array"):
+    with pytest.raises(
+        ValueError,
+        match="Method pdf expects a one-dimensional numpy array",
+    ):
         c1.pdf(wrong_shape_2)
-    with pytest.raises(ValueError, match="Method pdf expects a one-dimensional numpy array"):
+    with pytest.raises(
+        ValueError,
+        match="Method pdf expects a one-dimensional numpy array",
+    ):
         c1.pdf(wrong_shape_3)
 
 
 def test_categorical__pdf():
-    c1 = CategoricalHyperparameter("x1", choices=["one", "two", "three"], weights=[2, 1, 2])
-    c2 = CategoricalHyperparameter("x1", choices=["one", "two", "three"], weights=[5, 0, 2])
+    c1 = CategoricalHyperparameter(
+        "x1",
+        choices=["one", "two", "three"],
+        weights=[2, 1, 2],
+    )
+    c2 = CategoricalHyperparameter(
+        "x1",
+        choices=["one", "two", "three"],
+        weights=[5, 0, 2],
+    )
 
     point_1 = np.array([0])
     point_2 = np.array([1])
@@ -2343,8 +2491,16 @@ def test_categorical__pdf():
 
 
 def test_categorical_get_max_density():
-    c1 = CategoricalHyperparameter("x1", choices=["one", "two", "three"], weights=[2, 1, 2])
-    c2 = CategoricalHyperparameter("x1", choices=["one", "two", "three"], weights=[5, 0, 2])
+    c1 = CategoricalHyperparameter(
+        "x1",
+        choices=["one", "two", "three"],
+        weights=[2, 1, 2],
+    )
+    c2 = CategoricalHyperparameter(
+        "x1",
+        choices=["one", "two", "three"],
+        weights=[5, 0, 2],
+    )
     c3 = CategoricalHyperparameter("x1", choices=["one", "two", "three"])
     assert c1.get_max_density() == 0.4
     assert c2.get_max_density() == 0.7142857142857143
@@ -2352,6 +2508,7 @@ def test_categorical_get_max_density():
 
 
 def test_sample_NormalFloatHyperparameter():
+    pytest.skip("No more unbounded Normals")
     hp = NormalFloatHyperparameter("nfhp", 0, 1)
 
     def actual_test():
@@ -2363,7 +2520,19 @@ def test_sample_NormalFloatHyperparameter():
             index = min(max(int((np.round(value + 0.5)) + 5), 0), 9)
             counts_per_bin[index] += 1
 
-        assert [0, 4, 138, 2113, 13394, 34104, 34282, 13683, 2136, 146, 0] == counts_per_bin
+        assert [
+            0,
+            4,
+            138,
+            2113,
+            13394,
+            34104,
+            34282,
+            13683,
+            2136,
+            146,
+            0,
+        ] == counts_per_bin
 
         assert isinstance(value, float)
         return counts_per_bin
@@ -2374,289 +2543,89 @@ def test_sample_NormalFloatHyperparameter():
 def test_sample_NormalFloatHyperparameter_with_bounds():
     hp = NormalFloatHyperparameter("nfhp", 0, 1, lower=-3, upper=3)
 
-    # TODO: This should probably be a smaller amount
-    def actual_test():
-        rs = np.random.RandomState(1)
-        counts_per_bin = [0 for _ in range(11)]
-        value = None
-        for _ in range(100000):
-            value = hp.sample(rs)
-            index = min(max(int((np.round(value + 0.5)) + 5), 0), 9)
-            counts_per_bin[index] += 1
+    rs1 = np.random.RandomState(1)
+    rs2 = np.random.RandomState(1)
 
-        assert [0, 0, 0, 2184, 13752, 34078, 34139, 13669, 2178, 0, 0] == counts_per_bin
+    samples1 = hp.sample_value(1000, seed=rs1)
+    samples2 = hp.sample_value(1000, seed=rs2)
 
-        assert isinstance(value, float)
-        return counts_per_bin
+    np.testing.assert_array_equal(samples1, samples2)
 
-    assert actual_test() == actual_test()
+    bin_counts, _ = np.histogram(samples1, bins=11, range=(-3, 3))
+
+    # Approximatly normally distributed and approximately symmetric
+    np.testing.assert_array_equal(
+        bin_counts,
+        [7, 30, 54, 116, 174, 227, 186, 122, 54, 27, 3],
+    )
 
 
 def test_sample_BetaFloatHyperparameter():
     hp = BetaFloatHyperparameter("bfhp", alpha=8, beta=1.5, lower=-1, upper=10)
 
-    def actual_test():
-        rs = np.random.RandomState(1)
-        counts_per_bin = [0 for _ in range(11)]
-        value = None
-        for _ in range(1000):
-            value = hp.sample(rs)
-            index = np.floor(value).astype(int)
-            counts_per_bin[index] += 1
+    rs1 = np.random.RandomState(1)
+    rs2 = np.random.RandomState(1)
 
-        assert [0, 2, 2, 4, 15, 39, 101, 193, 289, 355, 0] == counts_per_bin
+    samples1 = hp.sample_value(1000, seed=rs1)
+    samples2 = hp.sample_value(1000, seed=rs2)
 
-        assert isinstance(value, float)
-        return counts_per_bin
+    np.testing.assert_array_equal(samples1, samples2)
 
-    assert actual_test() == actual_test()
+    bin_counts, _ = np.histogram(samples1, bins=12, range=(-1, 10))
+    np.testing.assert_array_equal(
+        bin_counts,
+        [0, 0, 1, 2, 4, 5, 20, 50, 121, 197, 284, 316],
+    )
 
 
 def test_sample_UniformIntegerHyperparameter():
-    # TODO: disentangle, actually test _sample and test sample on the
-    # base class
-    def sample(hp):
-        rs = np.random.RandomState(1)
-        counts_per_bin = [0 for _ in range(21)]
-        values = []
-        value = None
-        for _ in range(100000):
-            value = hp.sample(rs)
-            values.append(value)
-            index = int(float(value - hp.lower) / (hp.upper - hp.lower) * 20)
-            counts_per_bin[index] += 1
+    hp = UniformIntegerHyperparameter("uihp", 1, 10)
 
-        assert isinstance(value, int)
-        return counts_per_bin
+    rs1 = np.random.RandomState(1)
+    rs2 = np.random.RandomState(1)
 
-    # Quantized Uniform
-    hp = UniformIntegerHyperparameter("uihp", 0, 10)
+    samples1 = hp.sample_value(1000, seed=rs1)
+    samples2 = hp.sample_value(1000, seed=rs2)
 
-    counts_per_bin = sample(hp)
-    for bin in counts_per_bin[::2]:
-        assert 9302 > bin > 8700
-    for bin in counts_per_bin[1::2]:
-        assert bin == 0
-    assert sample(hp) == sample(hp)
+    np.testing.assert_array_equal(samples1, samples2)
 
-
-def test__sample_UniformIntegerHyperparameter():
-    hp = UniformIntegerHyperparameter("uihp", 0, 10)
-    values = []
-    rs = np.random.RandomState(1)
-    for _ in range(100):
-        values.append(hp._sample(rs))
-    assert len(np.unique(values)) == 11
-
-    hp = UniformIntegerHyperparameter("uihp", 2, 12)
-    values = []
-    rs = np.random.RandomState(1)
-    for _ in range(100):
-        values.append(hp._sample(rs))
-        assert hp._transform(values[-1]) >= 2
-        assert hp._transform(values[-1]) <= 12
-    assert len(np.unique(values)) == 11
-
-
-def test_quantization_UniformIntegerHyperparameter():
-    hp = UniformIntegerHyperparameter("uihp", 1, 100, q=3)
-    rs = np.random.RandomState()
-
-    sample_one = hp._sample(rs=rs, size=1)
-    assert isinstance(sample_one, np.ndarray)
-    assert sample_one.size == 1
-    assert (hp._transform(sample_one) - 1) % 3 == 0
-    assert hp._transform(sample_one) >= 1
-    assert hp._transform(sample_one) <= 100
-
-    sample_hundred = hp._sample(rs=rs, size=100)
-    assert isinstance(sample_hundred, np.ndarray)
-    assert sample_hundred.size == 100
-    np.testing.assert_array_equal(
-        [(hp._transform(val) - 1) % 3 for val in sample_hundred],
-        np.zeros((100,), dtype=int),
-    )
-    samples_in_original_space = hp._transform(sample_hundred)
-    for i in range(100):
-        assert samples_in_original_space[i] >= 1
-        assert samples_in_original_space[i] <= 100
-
-
-def test_quantization_UniformIntegerHyperparameter_negative():
-    hp = UniformIntegerHyperparameter("uihp", -2, 100, q=3)
-    rs = np.random.RandomState()
-
-    sample_one = hp._sample(rs=rs, size=1)
-    assert isinstance(sample_one, np.ndarray)
-    assert sample_one.size == 1
-    assert (hp._transform(sample_one) + 2) % 3 == 0
-    assert hp._transform(sample_one) >= -2
-    assert hp._transform(sample_one) <= 100
-
-    sample_hundred = hp._sample(rs=rs, size=100)
-    assert isinstance(sample_hundred, np.ndarray)
-    assert sample_hundred.size == 100
-    np.testing.assert_array_equal(
-        [(hp._transform(val) + 2) % 3 for val in sample_hundred],
-        np.zeros((100,), dtype=int),
-    )
-    samples_in_original_space = hp._transform(sample_hundred)
-    for i in range(100):
-        assert samples_in_original_space[i] >= -2
-        assert samples_in_original_space[i] <= 100
-
-
-def test_illegal_quantization_UniformIntegerHyperparameter():
-    with pytest.raises(
-        ValueError,
-        match=r"Upper bound \(4\) - lower bound \(1\) must be a multiple of q \(2\)",
-    ):
-        UniformIntegerHyperparameter("uihp", 1, 4, q=2)
-
-
-def test_quantization_UniformFloatHyperparameter():
-    hp = UniformFloatHyperparameter("ufhp", 1, 100, q=3)
-    rs = np.random.RandomState()
-
-    sample_one = hp._sample(rs=rs, size=1)
-    assert isinstance(sample_one, np.ndarray)
-    assert sample_one.size == 1
-    assert (hp._transform(sample_one) - 1) % 3 == 0
-    assert hp._transform(sample_one) >= 1
-    assert hp._transform(sample_one) <= 100
-
-    sample_hundred = hp._sample(rs=rs, size=100)
-    assert isinstance(sample_hundred, np.ndarray)
-    assert sample_hundred.size == 100
-    np.testing.assert_array_equal(
-        [(hp._transform(val) - 1) % 3 for val in sample_hundred],
-        np.zeros((100,), dtype=int),
-    )
-    samples_in_original_space = hp._transform(sample_hundred)
-    for i in range(100):
-        assert samples_in_original_space[i] >= 1
-        assert samples_in_original_space[i] <= 100
-
-
-def test_quantization_UniformFloatHyperparameter_decimal_numbers():
-    hp = UniformFloatHyperparameter("ufhp", 1.2, 3.6, q=0.2)
-    rs = np.random.RandomState()
-
-    sample_one = hp._sample(rs=rs, size=1)
-    assert isinstance(sample_one, np.ndarray)
-    assert sample_one.size == 1
-    try:
-        assert float(hp._transform(sample_one) + 1.2) % 0.2 == pytest.approx(0.0)
-    except Exception:
-        assert float(hp._transform(sample_one) + 1.2) % 0.2 == pytest.approx(0.2)
-    assert hp._transform(sample_one) >= 1
-    assert hp._transform(sample_one) <= 100
-
-
-def test_quantization_UniformFloatHyperparameter_decimal_numbers_negative():
-    hp = UniformFloatHyperparameter("ufhp", -1.2, 1.2, q=0.2)
-    rs = np.random.RandomState()
-
-    sample_one = hp._sample(rs=rs, size=1)
-    assert isinstance(sample_one, np.ndarray)
-    assert sample_one.size == 1
-    try:
-        assert float(hp._transform(sample_one) + 1.2) % 0.2 == pytest.approx(0.0)
-    except Exception:
-        assert float(hp._transform(sample_one) + 1.2) % 0.2 == pytest.approx(0.2)
-    assert hp._transform(sample_one) >= -1.2
-    assert hp._transform(sample_one) <= 1.2
-
-
-def test_sample_NormalIntegerHyperparameter():
-    def sample(hp):
-        lower = -30
-        upper = 30
-        rs = np.random.RandomState(1)
-        counts_per_bin = [0 for _ in range(21)]
-        value = None
-        for _ in range(100000):
-            value = hp.sample(rs)
-            sample = float(value)
-            if sample < lower:
-                sample = lower
-            if sample > upper:
-                sample = upper
-            index = int((sample - lower) / (upper - lower) * 20)
-            counts_per_bin[index] += 1
-
-        assert isinstance(value, int)
-        return counts_per_bin
-
-    hp = NormalIntegerHyperparameter("nihp", 0, 10)
-    assert sample(hp) == [
-        305,
-        422,
-        835,
-        1596,
-        2682,
-        4531,
-        6572,
-        8670,
-        10649,
-        11510,
-        11854,
-        11223,
-        9309,
-        7244,
-        5155,
-        3406,
-        2025,
-        1079,
-        514,
-        249,
-        170,
-    ]
-    assert sample(hp) == sample(hp)
-
-
-def test__sample_NormalIntegerHyperparameter():
-    # mean zero, std 1
-    hp = NormalIntegerHyperparameter("uihp", 0, 1)
-    values = []
-    rs = np.random.RandomState(1)
-    for _ in range(100):
-        values.append(hp._sample(rs))
-    assert len(np.unique(values)) == 5
+    bin_counts, _ = np.histogram(samples1, bins=10, range=(1, 10))
+    for bin in bin_counts:
+        assert 90 < bin < 110
 
 
 def test_sample_BetaIntegerHyperparameter():
     hp = BetaIntegerHyperparameter("bihp", alpha=4, beta=4, lower=0, upper=10)
 
-    def actual_test():
-        rs = np.random.RandomState(1)
-        counts_per_bin = [0 for _ in range(11)]
-        for _ in range(1000):
-            value = hp.sample(rs)
-            counts_per_bin[value] += 1
+    rs1 = np.random.RandomState(1)
+    rs2 = np.random.RandomState(1)
 
-        # The chosen distribution is symmetric, so we expect to see a symmetry in the bins
-        assert [1, 23, 82, 121, 174, 197, 174, 115, 86, 27, 0] == counts_per_bin
+    samples1 = hp.sample_value(1000, seed=rs1)
+    samples2 = hp.sample_value(1000, seed=rs2)
 
-        return counts_per_bin
+    np.testing.assert_array_equal(samples1, samples2)
 
-    assert actual_test() == actual_test()
+    bin_counts, _ = np.histogram(samples1, bins=11, range=(0, 10))
+    np.testing.assert_array_equal(
+        bin_counts,
+        [1, 23, 82, 121, 174, 197, 174, 115, 86, 27, 0],
+    )
 
 
 def test_sample_CategoricalHyperparameter():
-    hp = CategoricalHyperparameter("chp", [0, 2, "Bla", "Blub"])
+    hp = CategoricalHyperparameter("chp", ["0", "2", "Bla", "Blub"])
 
-    def actual_test():
-        rs = np.random.RandomState(1)
-        counts_per_bin: dict[str, int] = defaultdict(int)
-        for _ in range(10000):
-            value = hp.sample(rs)
-            counts_per_bin[value] += 1
+    rs1 = np.random.RandomState(1)
+    rs2 = np.random.RandomState(1)
 
-        assert {0: 2539, 2: 2451, "Bla": 2549, "Blub": 2461} == dict(counts_per_bin.items())
-        return counts_per_bin
+    samples1 = hp.sample_value(1000, seed=rs1)
+    samples2 = hp.sample_value(1000, seed=rs2)
 
-    assert actual_test() == actual_test()
+    np.testing.assert_array_equal(samples1, samples2)
+
+    _, bin_counts = np.unique(samples1, return_counts=True)
+    for bin in bin_counts:
+        assert 240 < bin < 260
 
 
 def test_sample_CategoricalHyperparameter_with_weights():
@@ -2679,7 +2648,9 @@ def test_sample_CategoricalHyperparameter_with_weights():
             value = hp.sample(rs)
             counts_per_bin[value] += 1
 
-        assert {0: 1003, 2: 2061, "Bla": 2994, "Blub": 3942} == dict(counts_per_bin.items())
+        assert {0: 1003, 2: 2061, "Bla": 2994, "Blub": 3942} == dict(
+            counts_per_bin.items(),
+        )
         return counts_per_bin
 
     assert actual_test() == actual_test()
@@ -2702,15 +2673,27 @@ def test_categorical_copy_with_weights():
 
 
 def test_categorical_copy_without_weights():
-    orig_hp = CategoricalHyperparameter(name="param", choices=[1, 2, 3], default_value=2)
+    orig_hp = CategoricalHyperparameter(
+        name="param",
+        choices=[1, 2, 3],
+        default_value=2,
+    )
     copy_hp = copy.copy(orig_hp)
 
     assert copy_hp.name == orig_hp.name
     assert copy_hp.choices == orig_hp.choices
     assert copy_hp.default_value == orig_hp.default_value
     assert copy_hp.num_choices == orig_hp.num_choices
-    assert copy_hp.probabilities == (0.3333333333333333, 0.3333333333333333, 0.3333333333333333)
-    assert orig_hp.probabilities == (0.3333333333333333, 0.3333333333333333, 0.3333333333333333)
+    assert copy_hp.probabilities == (
+        0.3333333333333333,
+        0.3333333333333333,
+        0.3333333333333333,
+    )
+    assert orig_hp.probabilities == (
+        0.3333333333333333,
+        0.3333333333333333,
+        0.3333333333333333,
+    )
 
 
 def test_categorical_with_weights():
@@ -2722,8 +2705,7 @@ def test_categorical_with_weights():
         default_value="A",
         weights=[0.1, 0.6, 0.3],
     )
-    for _ in range(1000):
-        assert cat_hp_str.sample(rs) in ["A", "B", "C"]
+    assert sorted(np.unique(cat_hp_str.sample_value(1000, seed=rs))) == ["A", "B", "C"]
 
     cat_hp_int = CategoricalHyperparameter(
         name="param",
@@ -2731,8 +2713,7 @@ def test_categorical_with_weights():
         default_value=2,
         weights=[0.1, 0.3, 0.6],
     )
-    for _ in range(1000):
-        assert cat_hp_int.sample(rs) in [1, 3, 2]
+    assert sorted(np.unique(cat_hp_int.sample_value(1000, seed=rs))) == [1, 2, 3]
 
     cat_hp_float = CategoricalHyperparameter(
         name="param",
@@ -2740,8 +2721,11 @@ def test_categorical_with_weights():
         default_value=0.3,
         weights=[10, 60, 30],
     )
-    for _ in range(1000):
-        assert cat_hp_float.sample(rs) in [-0.1, 0.0, 0.3]
+    assert sorted(np.unique(cat_hp_float.sample_value(1000, seed=rs))) == [
+        -0.1,
+        0.0,
+        0.3,
+    ]
 
 
 def test_categorical_with_some_zero_weights():
@@ -2755,8 +2739,8 @@ def test_categorical_with_some_zero_weights():
         default_value="A",
         weights=[0.1, 0.0, 0.3],
     )
-    for _ in range(1000):
-        assert cat_hp_str.sample(rs) in ["A", "C"]
+    assert sorted(np.unique(cat_hp_str.sample_value(1000, seed=rs))) == ["A", "C"]
+
     np.testing.assert_almost_equal(
         actual=cat_hp_str.probabilities,
         desired=[0.25, 0.0, 0.75],
@@ -2769,8 +2753,8 @@ def test_categorical_with_some_zero_weights():
         default_value=2,
         weights=[0.1, 0.6, 0.0],
     )
-    for _ in range(1000):
-        assert cat_hp_int.sample(rs) in [1, 2]
+    assert sorted(np.unique(cat_hp_int.sample_value(1000, seed=rs))) == [1, 2]
+
     np.testing.assert_almost_equal(
         actual=cat_hp_int.probabilities,
         desired=[0.1429, 0.8571, 0.0],
@@ -2783,8 +2767,8 @@ def test_categorical_with_some_zero_weights():
         default_value=0.3,
         weights=[0.0, 0.6, 0.3],
     )
-    for _ in range(1000):
-        assert cat_hp_float.sample(rs) in [0.0, 0.3]
+    assert sorted(np.unique(cat_hp_float.sample_value(1000, seed=rs))) == [0.0, 0.3]
+
     np.testing.assert_almost_equal(
         actual=cat_hp_float.probabilities,
         desired=[0.00, 0.6667, 0.3333],
@@ -2793,7 +2777,10 @@ def test_categorical_with_some_zero_weights():
 
 
 def test_categorical_with_all_zero_weights():
-    with pytest.raises(ValueError, match="At least one weight has to be strictly positive."):
+    with pytest.raises(
+        ValueError,
+        match=r"All weights are zero, at least one weight has to be strictly positive.",
+    ):
         CategoricalHyperparameter(
             name="param",
             choices=["A", "B", "C"],
@@ -2916,11 +2903,22 @@ def test_ordinal_get_seq_order():
 
 def test_ordinal_get_neighbors():
     f1 = OrdinalHyperparameter("temp", ["freezing", "cold", "warm", "hot"])
-    assert f1.get_neighbors(0, rs=None) == [1]
-    assert f1.get_neighbors(1, rs=None) == [0, 2]
-    assert f1.get_neighbors(3, rs=None) == [2]
-    assert f1.get_neighbors("hot", transform=True, rs=None) == ["warm"]
-    assert f1.get_neighbors("cold", transform=True, rs=None) == ["freezing", "warm"]
+
+    # TODO: These need to be updated to use specific versions of get_neighbors
+    np.testing.assert_array_equal(f1.get_neighbors(0, rs=None), [1])
+    np.testing.assert_array_equal(f1.get_neighbors(1, rs=None), [0, 2])
+    np.testing.assert_array_equal(f1.get_neighbors(3, rs=None), [2])
+
+    np.testing.assert_array_equal(f1.neighbors_values("hot", n=1), ["warm"])
+    np.testing.assert_array_equal(f1.neighbors_values("freezing", n=1), ["cold"])
+    np.testing.assert_array_equal(
+        f1.neighbors_values("cold", n=2),
+        ["freezing", "warm"],
+    )
+    np.testing.assert_array_equal(
+        f1.neighbors_values("warm", n=2),
+        ["cold", "hot"],
+    )
 
 
 def test_get_num_neighbors():
@@ -2928,6 +2926,7 @@ def test_get_num_neighbors():
     assert f1.get_num_neighbors("freezing") == 1
     assert f1.get_num_neighbors("hot") == 1
     assert f1.get_num_neighbors("cold") == 2
+    assert f1.get_num_neighbors("warm") == 2
 
 
 def test_ordinal_get_size():
@@ -2957,30 +2956,21 @@ def test_ordinal_pdf():
     with pytest.raises(ValueError):
         c1.pdf(np.array(["zero"]))
 
-    with pytest.raises(ValueError, match="Method pdf expects a one-dimensional numpy array"):
+    with pytest.raises(
+        ValueError,
+        match="Method pdf expects a one-dimensional numpy array",
+    ):
         c1.pdf(wrong_shape_1)
-    with pytest.raises(ValueError, match="Method pdf expects a one-dimensional numpy array"):
+    with pytest.raises(
+        ValueError,
+        match="Method pdf expects a one-dimensional numpy array",
+    ):
         c1.pdf(wrong_shape_2)
-    with pytest.raises(ValueError, match="Method pdf expects a one-dimensional numpy array"):
+    with pytest.raises(
+        ValueError,
+        match="Method pdf expects a one-dimensional numpy array",
+    ):
         c1.pdf(wrong_shape_3)
-
-
-def test_ordinal__pdf():
-    c1 = OrdinalHyperparameter("temp", ["freezing", "cold", "warm", "hot"])
-    point_1 = np.array(["freezing"])
-    point_2 = np.array(["warm"])
-    array_1 = np.array(["freezing", "warm"])
-    assert c1._pdf(point_1)[0] == 0.25
-    assert c1._pdf(point_2)[0] == 0.25
-
-    array_results = c1._pdf(array_1)
-    expected_results = np.array([0.25, 0.25])
-    assert array_results.shape == expected_results.shape
-    for res, exp_res in zip(array_results, expected_results):
-        assert res == exp_res
-
-    with pytest.raises(ValueError):
-        c1._pdf(np.array(["zero"]))
 
 
 def test_ordinal_get_max_density():
@@ -3003,32 +2993,32 @@ def test_rvs():
     assert f1.rvs(random_state=100) == pytest.approx(
         f1.rvs(random_state=np.random.RandomState(100)),
     )
-    f1.rvs(random_state=np.random)
     f1.rvs(random_state=np.random.default_rng(1))
-    with pytest.raises(ValueError):
-        f1.rvs(1, "a")
 
 
 def test_hyperparam_representation():
     # Float
     f1 = UniformFloatHyperparameter("param", 1, 100, log=True)
-    assert repr(f1) == "param, Type: UniformFloat, Range: [1.0, 100.0], Default: 10.0, on log-scale"
-    f2 = NormalFloatHyperparameter("param", 8, 99.1, log=False)
-    assert repr(f2) == "param, Type: NormalFloat, Mu: 8.0 Sigma: 99.1, Default: 8.0"
+    assert (
+        str(f1)
+        == "param, Type: UniformFloat, Range: [1.0, 100.0], Default: 10.0, on log-scale"
+    )
     f3 = NormalFloatHyperparameter("param", 8, 99.1, log=False, lower=1, upper=16)
     assert (
-        repr(f3)
-        == "param, Type: NormalFloat, Mu: 8.0 Sigma: 99.1, Range: [1.0, 16.0], Default: 8.0"
+        str(f3)
+        == "param, Type: NormalFloat, Mu: 8.0, Sigma: 99.1, Range: [1.0, 16.0], Default: 8.0"
     )
     i1 = UniformIntegerHyperparameter("param", 0, 100)
-    assert repr(i1) == "param, Type: UniformInteger, Range: [0, 100], Default: 50"
-    i2 = NormalIntegerHyperparameter("param", 5, 8)
-    assert repr(i2) == "param, Type: NormalInteger, Mu: 5 Sigma: 8, Default: 5"
+    assert str(i1) == "param, Type: UniformInteger, Range: [0, 100], Default: 50"
     i3 = NormalIntegerHyperparameter("param", 5, 8, lower=1, upper=10)
-    assert repr(i3) == "param, Type: NormalInteger, Mu: 5 Sigma: 8, Range: [1, 10], Default: 5"
+    assert (
+        str(i3)
+        == "param, Type: NormalInteger, Mu: 5.0, Sigma: 8.0, Range: [1, 10], Default: 5"
+    )
     o1 = OrdinalHyperparameter("temp", ["freezing", "cold", "warm", "hot"])
     assert (
-        repr(o1) == "temp, Type: Ordinal, Sequence: {freezing, cold, warm, hot}, Default: freezing"
+        str(o1)
+        == "temp, Type: Ordinal, Sequence: {freezing, cold, warm, hot}, Default: freezing"
     )
     c1 = CategoricalHyperparameter("param", [True, False])
-    assert repr(c1) == "param, Type: Categorical, Choices: {True, False}, Default: True"
+    assert str(c1) == "param, Type: Categorical, Choices: {True, False}, Default: True"

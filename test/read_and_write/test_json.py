@@ -35,7 +35,9 @@ def test_serialize_forbidden_relation():
 
 def test_configspace_with_probabilities():
     cs = ConfigurationSpace()
-    cs.add_hyperparameter(CategoricalHyperparameter("a", [0, 1, 2], weights=[0.2, 0.2, 0.6]))
+    cs.add_hyperparameter(
+        CategoricalHyperparameter("a", [0, 1, 2], weights=[0.2, 0.2, 0.6]),
+    )
     string = write(cs)
     new_cs = read(string)
     assert new_cs["a"].probabilities == (0.2, 0.2, 0.6)
@@ -71,7 +73,7 @@ def test_beta_hyperparameter_serialization():
     # Test for BetaFloatHyperparameter
     cs = ConfigurationSpace(
         space={
-            "p": Float("p", bounds=(0.0, 2.0), q=2, distribution=Beta(1.0, 2.0)),
+            "p": Float("p", bounds=(0.0, 2.0), distribution=Beta(1.0, 2.0)),
         },
     )
     json_string = write(cs)
@@ -81,7 +83,7 @@ def test_beta_hyperparameter_serialization():
     # Test for BetaIntegerHyperparameter
     cs = ConfigurationSpace(
         space={
-            "p": Integer("p", bounds=(0, 2), q=2, distribution=Beta(1.0, 2.0)),
+            "p": Integer("p", bounds=(0, 2), distribution=Beta(1.0, 2.0)),
         },
     )
     json_string = write(cs)
@@ -95,7 +97,6 @@ def test_float_hyperparameter_json_serialization():
         "p",
         bounds=(1.0, 9.0),
         default=05.0,
-        q=2,
         log=True,
         distribution=Normal(1.0, 0.6),
     )
@@ -104,7 +105,13 @@ def test_float_hyperparameter_json_serialization():
     assert cs1 == cs2
 
     # Test for UniformFloatHyperparameter
-    p = Float("p", bounds=(1.0, 9.0), default=2.0, q=2, log=True, distribution=Uniform())
+    p = Float(
+        "p",
+        bounds=(1.0, 9.0),
+        default=2.0,
+        log=True,
+        distribution=Uniform(),
+    )
     cs1 = ConfigurationSpace(space={"p": p})
     cs2 = read(write(cs1))
     assert cs1 == cs2
@@ -112,13 +119,19 @@ def test_float_hyperparameter_json_serialization():
 
 def test_integer_hyperparameter_json_serialization():
     # Test for NormalIntegerHyperparameter
-    p = Integer("p", bounds=(1, 17), default=2, q=2, log=True, distribution=Normal(1.0, 0.6))
+    p = Integer(
+        "p",
+        bounds=(1, 17),
+        default=2,
+        log=True,
+        distribution=Normal(1.0, 0.6),
+    )
     cs1 = ConfigurationSpace(space={"p": p})
     cs2 = read(write(cs1))
     assert cs1 == cs2
 
     # Test for UniformIntegerHyperparameter
-    p = Integer("p", bounds=(1, 17), default=2, q=2, log=True, distribution=Uniform())
+    p = Integer("p", bounds=(1, 17), default=2, log=True, distribution=Uniform())
     cs1 = ConfigurationSpace(space={"p": p})
     cs2 = read(write(cs1))
     assert cs1 == cs2

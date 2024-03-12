@@ -212,7 +212,7 @@ def build_continuous(
         float_template += "log"
         int_template += "log"
 
-    q_prefix = "Q%d_" % (int(param.q),) if param.q is not None else ""
+    q_prefix = ""
     default_value = param.default_value
 
     if isinstance(param, IntegerHyperparameter):
@@ -425,6 +425,9 @@ def read(pcs_string: Iterable[str]) -> ConfigurationSpace:
 
     """
     configuration_space = ConfigurationSpace()
+    forbidden_to_add = []
+    conditions_to_add = []
+
     conditions = []
     forbidden = []
 
@@ -496,7 +499,6 @@ def read(pcs_string: Iterable[str]) -> ConfigurationSpace:
                     name=name,
                     lower=lower,
                     upper=upper,
-                    q=None,
                     log=log_on,
                     default_value=default_value,
                 )
@@ -596,7 +598,9 @@ def read(pcs_string: Iterable[str]) -> ConfigurationSpace:
                 else:
                     raise NotImplementedError()
                 tmp_list = []
-        configuration_space.add_forbidden_clause(ForbiddenAndConjunction(*clause_list))
+        forbidden_to_add.append(ForbiddenAndConjunction(*clause_list))
+
+    configuration_space.add_forbidden_clauses(forbidden_to_add)
 
     conditions_per_child: dict = OrderedDict()
 
@@ -645,7 +649,7 @@ def read(pcs_string: Iterable[str]) -> ConfigurationSpace:
                                 )
                             ors_combis.append(AndConjunction(*ands))
                     mixed_conjunction = OrConjunction(*ors_combis)
-                    configuration_space.add_condition(mixed_conjunction)
+                    conditions_to_add.append(mixed_conjunction)
                 else:
                     # 2nd case: we only have ors
                     for cond_parts in str(condition).split("||"):
@@ -658,7 +662,7 @@ def read(pcs_string: Iterable[str]) -> ConfigurationSpace:
                             ),
                         )
                     or_conjunction = OrConjunction(*ors)
-                    configuration_space.add_condition(or_conjunction)
+                    conditions_to_add.append(or_conjunction)
 
             # 3rd case: we only have ands
             elif "&&" in str(condition):
@@ -673,7 +677,7 @@ def read(pcs_string: Iterable[str]) -> ConfigurationSpace:
                         ),
                     )
                 and_conjunction = AndConjunction(*ands)
-                configuration_space.add_condition(and_conjunction)
+                conditions_to_add.append(and_conjunction)
 
             # 4th case: we have a normal condition
             else:
@@ -683,7 +687,9 @@ def read(pcs_string: Iterable[str]) -> ConfigurationSpace:
                     element_list,
                     configuration_space,
                 )
-                configuration_space.add_condition(normal_condition)
+                conditions_to_add.append(normal_condition)
+
+    configuration_space.add_conditions(conditions_to_add)
 
     return configuration_space
 

@@ -1,11 +1,13 @@
 from __future__ import annotations
 
+import warnings
 from collections.abc import Hashable, Mapping, Sequence
 from dataclasses import dataclass, field
 from functools import partial
 from typing import Any, ClassVar
 
 import numpy as np
+import numpy.typing as npt
 from scipy.stats import randint
 
 from ConfigSpace.hyperparameters._distributions import ScipyDiscreteDistribution
@@ -18,8 +20,9 @@ from ConfigSpace.hyperparameters.hyperparameter import Hyperparameter
 
 @dataclass(init=False)
 class OrdinalHyperparameter(Hyperparameter[Any, np.int64]):
+    serializable_type_name: ClassVar[str] = "ordinal"
     orderable: ClassVar[bool] = True
-    sequence: Sequence[Any] = field(hash=True)
+    sequence: tuple[Any, ...] = field(hash=True)
 
     def __init__(
         self,
@@ -28,7 +31,17 @@ class OrdinalHyperparameter(Hyperparameter[Any, np.int64]):
         default_value: Any | None = None,
         meta: Mapping[Hashable, Any] | None = None,
     ) -> None:
-        self.sequence = sequence
+        self.sequence = tuple(sequence)
+
+        # TODO: Maybe give some way to not check this, i.e. for large sequences
+        # of int...
+        if any(i != sequence.index(x) for i, x in enumerate(sequence)):
+            raise ValueError(
+                "The sequence has to be a list of unique elements as defined"
+                " by object equality."
+                f"Got {sequence} which does not fulfill this requirement.",
+            )
+
         size = len(sequence)
         if default_value is None:
             default_value = self.sequence[0]
@@ -46,8 +59,10 @@ class OrdinalHyperparameter(Hyperparameter[Any, np.int64]):
             transformer=TransformerSeq(seq=sequence),
             neighborhood=partial(ordinal_neighborhood, size=int(size)),
             vector_dist=ScipyDiscreteDistribution(
-                rv=randint(a=0, b=size),  # type: ignore
-                max_density_value=1 / size,
+                rv=randint(0, size),  # type: ignore
+                _max_density=1 / size,
+                lower_vectorized=np.int64(0),
+                upper_vectorized=np.int64(size - 1),
                 dtype=np.int64,
             ),
             neighborhood_size=self._neighborhood_size,
@@ -71,3 +86,42 @@ class OrdinalHyperparameter(Hyperparameter[Any, np.int64]):
 
         # We have at least 3 elements and the value is not at the ends
         return 2
+
+    def check_order(self, value: Any, other: Any) -> bool:
+        return self.sequence.index(value) < self.sequence.index(other)
+
+    def get_order(self, value: Any) -> int:
+        return self.sequence.index(value)
+
+    def get_value(self, i: int | np.int64) -> Any:
+        return self.sequence[int(i)]
+
+    def get_seq_order(self) -> npt.NDArray[np.int64]:
+        return np.arange(len(self.sequence))
+
+    def __str__(self) -> str:
+        parts = [
+            self.name,
+            f"Type: {str(self.__class__.__name__).replace('Hyperparameter', '')}",
+            "Sequence: {" + ", ".join(map(str, self.sequence)) + "}",
+            f"Default: {self.default_value}",
+        ]
+        return ", ".join(parts)
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "name": self.name,
+            "type": self.serializable_type_name,
+            "sequence": self.sequence,
+            "default_value": self.default_value,
+        }
+
+    @property
+    def num_elements(self) -> int:
+        warnings.warn(
+            "The property 'num_elements' is deprecated and will be removed in a future"
+            " release. Please use either `len(hp.sequence)` or 'hp.size' instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return len(self.sequence)

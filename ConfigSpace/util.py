@@ -36,7 +36,11 @@ import numpy as np
 
 import ConfigSpace.c_util
 from ConfigSpace import Configuration, ConfigurationSpace
-from ConfigSpace.exceptions import ActiveHyperparameterNotSetError, ForbiddenValueError
+from ConfigSpace.exceptions import (
+    ActiveHyperparameterNotSetError,
+    ForbiddenValueError,
+    NoPossibleNeighborsError,
+)
 from ConfigSpace.hyperparameters import (
     CategoricalHyperparameter,
     Constant,
@@ -157,7 +161,7 @@ def get_one_exchange_neighbourhood(
         for hp in configuration.config_space.values()
     }
 
-    finite_neighbors_stack: dict[str, list[Hyperparameter]] = {}
+    finite_neighbors_stack: dict[str, list[np.number]] = {}
     configuration_space = configuration.config_space
 
     while len(hyperparameters_used) < number_of_usable_hyperparameters:
@@ -169,11 +173,11 @@ def get_one_exchange_neighbourhood(
         else:
             neighbourhood = []
             number_of_sampled_neighbors = 0
-            array = configuration.get_array()  # type: np.ndarray
-            value = array[index]  # type: float
+            array = configuration.get_array()
+            vector: np.float64 = array[index]  # type: float
 
             # Inactive value
-            if isinstance(value, float) and np.isnan(value):
+            if np.isnan(vector):
                 continue
 
             iteration = 0
@@ -188,29 +192,42 @@ def get_one_exchange_neighbourhood(
                     if number_of_sampled_neighbors >= 1:
                         break
                     if isinstance(hp, UniformFloatHyperparameter):
-                        neighbor = hp.get_neighbors(value, random, number=1, std=stdev)[
-                            0
-                        ]
+                        neighbor = hp.neighbors_vectorized(
+                            vector,
+                            n=1,
+                            seed=random,
+                            std=stdev,
+                        )[0]
                     else:
-                        neighbor = hp.get_neighbors(value, random, number=1)[0]
+                        neighbor = hp.neighbors_vectorized(vector, n=1, seed=random)[0]
                 else:
                     if iteration > 0:
                         break
+
                     if hp_name not in finite_neighbors_stack:
+                        # TODO: Why only uniform int?
                         if isinstance(hp, UniformIntegerHyperparameter):
-                            neighbors = hp.get_neighbors(
-                                value,
-                                random,
-                                number=n_neighbors_per_hp[hp_name],
+                            neighbors = hp.neighbors_vectorized(
+                                vector,
+                                n=int(n_neighbors_per_hp[hp_name]),
+                                seed=random,
                                 std=stdev,
                             )
                         else:
-                            neighbors = hp.get_neighbors(value, random)
+                            neighbors = hp.neighbors_vectorized(
+                                vector,
+                                n=4,
+                                seed=random,
+                            )
+
+                        neighbors = list(neighbors)
                         random.shuffle(neighbors)
                         finite_neighbors_stack[hp_name] = neighbors
                     else:
                         neighbors = finite_neighbors_stack[hp_name]
                     neighbor = neighbors.pop()
+                    if len(neighbors) == 0:
+                        finite_neighbors_stack.pop(hp_name)
 
                 # Check all newly obtained neigbors
                 new_array = array.copy()
@@ -288,11 +305,18 @@ def get_random_neighbor(configuration: Configuration, seed: int) -> Configuratio
     values = copy.deepcopy(dict(configuration))
     new_configuration = None
 
+    if configuration.config_space.estimate_size() <= 1:
+        raise NoPossibleNeighborsError(
+            "Cannot generate a random neighbor for a configuration space with"
+            " only one configuration."
+            f"\n{configuration.config_space}",
+        )
+
     while rejected:
         # First, choose an active hyperparameter
         active = False
         iteration = 0
-        hp = None
+        hp: Hyperparameter | None = None
         value = None
         while not active:
             iteration += 1
@@ -318,7 +342,9 @@ def get_random_neighbor(configuration: Configuration, seed: int) -> Configuratio
         assert value is not None
 
         # Get a neighboor and adapt the rest of the configuration if necessary
-        neighbor = hp.to_value(hp.get_neighbors(value, rs=random, number=1))[0]
+        neighbor = hp.to_value(vector=hp.neighbors_vectorized(value, n=1, seed=random))[
+            0
+        ]
         previous_value = values[hp.name]
         values[hp.name] = neighbor
 

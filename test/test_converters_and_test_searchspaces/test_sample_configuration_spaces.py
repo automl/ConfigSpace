@@ -38,8 +38,10 @@ import ConfigSpace.util
 
 this_file = Path(__file__).absolute().resolve()
 this_directory = this_file.parent
-configuration_space_path = (this_directory.parent / "test_searchspaces").absolute().resolve()
-pcs_files = Path(configuration_space_path).glob("*.pcs")
+configuration_space_path = (
+    (this_directory.parent / "test_searchspaces").absolute().resolve()
+)
+pcs_files = list(Path(configuration_space_path).glob("*.pcs"))
 
 
 @pytest.mark.parametrize("pcs_file", pcs_files)

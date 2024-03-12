@@ -1,10 +1,14 @@
 from __future__ import annotations
 
 from collections.abc import Iterator
+from typing import TypeVar
+from typing_extensions import overload
 
 import numpy as np
 import numpy.typing as npt
-from more_itertools import roundrobin
+from more_itertools import pairwise, roundrobin
+
+Number = TypeVar("Number", bound=np.number)
 
 
 def center_range(
@@ -75,6 +79,7 @@ def arange_chunked(
     assert step > 0
     assert chunk_size > 0
     assert start < stop
+
     n_items = int(np.ceil((stop - start) / step))
     n_chunks = int(np.ceil(n_items / chunk_size))
 
@@ -82,6 +87,30 @@ def arange_chunked(
         chunk_start = start + (chunk * chunk_size)
         chunk_stop = min(chunk_start + chunk_size, stop)
         yield np.arange(chunk_start, chunk_stop, step)
+
+
+def linspace_chunked(
+    start: float,
+    stop: float,
+    num: int,
+    *,
+    chunk_size: int,
+) -> Iterator[np.ndarray]:
+    assert num > 0
+    assert chunk_size > 0
+    assert start < stop
+
+    if num <= chunk_size:
+        yield np.linspace(start, stop, int(num), endpoint=True)
+        return
+
+    n_intervals = int(np.ceil(num / chunk_size))
+    intervals = np.linspace(start, stop, n_intervals + 1, endpoint=True)
+    steps_per_chunk = int(min(num, chunk_size))
+
+    for i, (_start, _stop) in enumerate(pairwise(intervals), start=1):
+        is_last = i == n_intervals
+        yield np.linspace(_start, _stop, steps_per_chunk, endpoint=is_last)
 
 
 def split_arange(
@@ -106,76 +135,44 @@ def split_arange(
     )
 
 
-def repr_maker(cls, **kwargs) -> str:
-    """Create a repr string for a class.
-
-    >>> class A:
-    ...     def __init__(self, a, b):
-    ...         self.a = a
-    ...         self.b = b
-    ...
-    ...     def __repr__(self):
-    ...         return repr(self, a=self.a, b=self.b)
-    ...
-    >>> A(1, 2)
-    A(a=1, b=2)
-
-    Parameters
-    ----------
-    cls: type
-        The class to create a repr for
-
-    kwargs: dict
-        The kwargs to include in the repr
-
-    Returns:
-    -------
-    str
-    """
-    return f"{cls.__name__}({', '.join(f'{k}={v!r}' for k, v in kwargs.items())})"
-
-
-def in_bounds(
-    v: int | float | np.number,
-    bounds: tuple[int | float | np.number, int | float | np.number],
+def quantize_log(
+    x: npt.NDArray[np.number],
     *,
-    integer: bool = False,
-) -> bool:
-    """Check if a value is in bounds (inclusive).
+    bounds: tuple[int | float | np.number, int | float | np.number],
+    scale_slice: tuple[int | float | np.number, int | float | np.number] | None = None,
+    bins: int,
+) -> npt.NDArray[np.float64]:
+    if scale_slice is None:
+        scale_slice = bounds
 
-    >>> in_bounds(5, 0, 10)
-    True
-    >>> in_bounds(5, 6, 10)
-    False
+    log_bounds = (np.log(scale_slice[0]), np.log(scale_slice[1]))
 
-    Parameters
-    ----------
-    v: int | float
-        The value to check
+    # Lift to the log scale
+    x_log = rescale(x, frm=bounds, to=log_bounds)
 
-    low: int | float
-        The low end of the range
+    # Lift to original scale
+    x_orig = np.exp(x_log)
 
-    high: int | float
-        The high end of the range
+    # Quantize on the scale
+    qx_orig = quantize(
+        x_orig,
+        bounds=scale_slice,
+        bins=bins,
+    )
 
-    Returns:
-    -------
-    bool
-    """
-    low, high = bounds
-    if integer:
-        return bool(low <= v <= high) and int(v) == v
+    # Now back to log
+    qx_log = np.log(qx_orig)
 
-    return bool(low <= v <= high)
+    # And norm back to original scale
+    return rescale(qx_log, frm=log_bounds, to=bounds)
 
 
-def discretize(
-    x: npt.NDArray[np.float64],
+def quantize(
+    x: npt.NDArray[np.number],
     *,
     bounds: tuple[int | float | np.number, int | float | np.number],
     bins: int,
-) -> npt.NDArray[np.int64]:
+) -> npt.NDArray[np.float64]:
     """Discretize an array of values to their closest bin.
 
     Similar to `np.digitize` but does not require the bins to be specified or loaded
@@ -183,8 +180,8 @@ def discretize(
     Similar to `np.histogram` but returns the same length as the input array, where each
     element is assigned to their integer bin.
 
-    >>> discretize(np.array([0.0, 0.1, 0.3, 0.5, 1]), bounds=(0, 1), bins=3)
-    array([0, 0, 1, 1, 2])
+    >>> quantize(np.array([0.0, 0.32, 0.33, 0.34, 0.65, 0.66, 0.67, 0.99, 1.0]), bounds=(0, 1), bins=3)
+    array([0, 0, 0, 0.5, 0.5, 0.5, 1, 1, 1])
 
     Args:
         x: np.NDArray[np.float64]
@@ -196,14 +193,69 @@ def discretize(
         bins: int
             The number of bins
 
-        scale_back: bool = False
-            If `True` the discretized values will be scaled back to the original range
-
     Returns:
     -------
         np.NDArray[np.int64]
-    """
-    lower, upper = bounds
+    """  # noqa: E501
+    # Shortcut out if we have unit norm already
+    unitnorm = x if bounds == (0, 1) else normalize(x, bounds=bounds)
+    int_bounds = (0, bins - 1)
 
-    norm = (x - lower) / (upper - lower)
-    return np.floor(norm * bins).clip(0, bins - 1)
+    quantization_levels = np.floor(unitnorm * bins).clip(*int_bounds)
+    return rescale(quantization_levels, frm=int_bounds, to=bounds)
+
+
+def scale(
+    unit_xs: npt.NDArray,
+    to: tuple[int | float | np.number, int | float | np.number],
+) -> npt.NDArray:
+    return unit_xs * (to[1] - to[0]) + to[0]  # type: ignore
+
+
+def normalize(
+    x: npt.NDArray,
+    *,
+    bounds: tuple[int | float | np.number, int | float | np.number],
+) -> npt.NDArray:
+    if bounds == (0, 1):
+        return x
+    return (x - bounds[0]) / (bounds[1] - bounds[0])  # type: ignore
+
+
+def rescale(
+    x: npt.NDArray,
+    frm: tuple[int | float | np.number, int | float | np.number],
+    to: tuple[int | float | np.number, int | float | np.number],
+) -> npt.NDArray:
+    if frm == to:
+        return x
+
+    normed = normalize(x, bounds=frm)
+    return scale(unit_xs=normed, to=to)
+
+
+@overload
+def is_close_to_integer(value: int | float | np.number, atol: float = ...) -> bool: ...
+
+
+@overload
+def is_close_to_integer(
+    value: np.ndarray,
+    atol: float = ...,
+) -> npt.NDArray[np.bool_]: ...
+
+
+def is_close_to_integer(
+    value: int | float | np.number | np.ndarray,
+    atol: float = 1e-15,  # NOTE: More strict than np.isclose default
+) -> bool | npt.NDArray[np.bool_]:
+    return np.isclose(value, np.rint(value), atol=atol)  # type: ignore
+
+
+def walk_subclasses(cls: type, seen: set[type] | None = None) -> Iterator[type]:
+    seen = set() if seen is None else seen
+    for subclass in cls.__subclasses__():
+        if subclass not in seen:
+            seen.add(subclass)
+            yield subclass
+            yield from walk_subclasses(subclass)

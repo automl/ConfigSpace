@@ -50,6 +50,7 @@ from ConfigSpace import (
     UniformFloatHyperparameter,
     UniformIntegerHyperparameter,
 )
+from ConfigSpace.exceptions import NoPossibleNeighborsError
 from ConfigSpace.read_and_write.pcs import read
 from ConfigSpace.util import (
     deactivate_inactive_hyperparameters,
@@ -71,7 +72,7 @@ def _test_random_neigbor(hp):
     config = cs.sample_configuration()
     for i in range(100):
         new_config = get_random_neighbor(config, i)
-        assert config != new_config
+        assert config != new_config, cs
 
 
 def _test_get_one_exchange_neighbourhood(hp):
@@ -91,7 +92,11 @@ def _test_get_one_exchange_neighbourhood(hp):
     config = cs.get_default_configuration()
     all_neighbors = []
     for i in range(100):
-        neighborhood = get_one_exchange_neighbourhood(config, i, num_neighbors=num_neighbors)
+        neighborhood = get_one_exchange_neighbourhood(
+            config,
+            i,
+            num_neighbors=num_neighbors,
+        )
         for new_config in neighborhood:
             assert config != new_config
             assert dict(config) != dict(new_config)
@@ -130,14 +135,14 @@ def test_random_neighborhood_float():
     hp = UniformFloatHyperparameter("a", 1, 10)
     all_neighbors = _test_get_one_exchange_neighbourhood(hp)
     all_neighbors = [neighbor["a"] for neighbor in all_neighbors]
-    assert pytest.approx(np.mean(all_neighbors), abs=1e-2) == 5.47
-    assert pytest.approx(np.var(all_neighbors), abs=1e-2) == 2.78
+    assert pytest.approx(np.mean(all_neighbors), abs=1e-2) == 5.6
+    assert pytest.approx(np.var(all_neighbors), abs=1e-2) == 2.85
     hp = UniformFloatHyperparameter("a", 1, 10, log=True)
     all_neighbors = _test_get_one_exchange_neighbourhood(hp)
     all_neighbors = [neighbor["a"] for neighbor in all_neighbors]
     # Default value is 3.16
-    assert pytest.approx(np.mean(all_neighbors), abs=1e-2) == 3.43
-    assert pytest.approx(np.var(all_neighbors), abs=1e-2) == 2.17
+    assert pytest.approx(np.mean(all_neighbors), abs=1e-2) == 3.55
+    assert pytest.approx(np.var(all_neighbors), abs=1e-2) == 2.33
 
 
 def test_random_neighbor_int():
@@ -151,22 +156,23 @@ def test_random_neighborhood_int():
     hp = UniformIntegerHyperparameter("a", 1, 10)
     all_neighbors = _test_get_one_exchange_neighbourhood(hp)
     all_neighbors = [neighbor["a"] for neighbor in all_neighbors]
-    assert pytest.approx(np.mean(all_neighbors), abs=1e-2) == 5.8125
-    assert pytest.approx(np.var(all_neighbors), abs=1e-2) == 5.6023
+    assert pytest.approx(np.mean(all_neighbors), abs=1e-2) == 5.28
+    assert pytest.approx(np.var(all_neighbors), abs=1e-2) == 8.39
 
     hp = UniformIntegerHyperparameter("a", 1, 10, log=True)
     all_neighbors = _test_get_one_exchange_neighbourhood(hp)
     all_neighbors = [neighbor["a"] for neighbor in all_neighbors]
-    # Default value is 3.16
-    assert pytest.approx(np.mean(all_neighbors), abs=1e-2) == 3.9375
-    assert pytest.approx(np.var(all_neighbors), abs=1e-2) == 5.8886
+    assert hp.default_value == 3
+
+    assert pytest.approx(np.mean(all_neighbors), abs=1e-2) == 5.39
+    assert pytest.approx(np.var(all_neighbors), abs=1e-2) == 8.8
 
     cs = ConfigurationSpace()
     cs.add_hyperparameter(hp)
     for val in range(1, 11):
         config = Configuration(cs, values={"a": val})
         for _ in range(100):
-            neighborhood = get_one_exchange_neighbourhood(config, 1)
+            neighborhood = get_one_exchange_neighbourhood(config, seed=1)
             neighbors = [neighbor["a"] for neighbor in neighborhood]
             assert len(neighbors) == len(np.unique(neighbors)), neighbors
             assert val not in neighbors, neighbors
@@ -186,11 +192,11 @@ def test_random_neighborhood_cat():
 
 def test_random_neighbor_failing():
     hp = Constant("a", "b")
-    with pytest.raises(ValueError, match="Probably caught in an infinite " "loop."):
+    with pytest.raises(NoPossibleNeighborsError):
         _test_random_neigbor(hp)
 
     hp = CategoricalHyperparameter("a", ["a"])
-    with pytest.raises(ValueError, match="Probably caught in an infinite " "loop."):
+    with pytest.raises(NoPossibleNeighborsError):
         _test_random_neigbor(hp)
 
 
@@ -237,7 +243,10 @@ def test_deactivate_inactive_hyperparameters():
     diamond.add_condition(EqualsCondition(left, head, 0))
     diamond.add_condition(EqualsCondition(right, head, 0))
     diamond.add_condition(
-        AndConjunction(EqualsCondition(bottom, left, 0), EqualsCondition(bottom, right, 0)),
+        AndConjunction(
+            EqualsCondition(bottom, left, 0),
+            EqualsCondition(bottom, right, 0),
+        ),
     )
 
     c = deactivate_inactive_hyperparameters(
@@ -267,7 +276,10 @@ def test_deactivate_inactive_hyperparameters():
     diamond.add_condition(EqualsCondition(left, head, 0))
     diamond.add_condition(EqualsCondition(right, head, 0))
     diamond.add_condition(
-        OrConjunction(EqualsCondition(bottom, left, 0), EqualsCondition(bottom, right, 0)),
+        OrConjunction(
+            EqualsCondition(bottom, left, 0),
+            EqualsCondition(bottom, right, 0),
+        ),
     )
 
     c = deactivate_inactive_hyperparameters(
@@ -306,7 +318,10 @@ def test_check_neighbouring_config_diamond():
     diamond.add_condition(EqualsCondition(left, head, 0))
     diamond.add_condition(EqualsCondition(right, head, 0))
     diamond.add_condition(
-        AndConjunction(EqualsCondition(bottom, left, 1), EqualsCondition(bottom, right, 1)),
+        AndConjunction(
+            EqualsCondition(bottom, left, 1),
+            EqualsCondition(bottom, right, 1),
+        ),
     )
 
     config = Configuration(diamond, {"bottom": 0, "head": 0, "left": 1, "right": 1})
@@ -530,15 +545,18 @@ def test_generate_grid():
     assert len(generated_grid) == 0
 
     # Sub-test 3
-    # Tests for quantization and conditional spaces. num_steps_dict supports specifying steps
-    # for only some of the int and float HPs. The rest are taken from the 'q' member variables
-    # of these HPs. The conditional space tested has 2 levels of conditions.
+    # The conditional space tested has 2 levels of conditions.
     cs2 = ConfigurationSpace(seed=123)
     float1 = UniformFloatHyperparameter(name="float1", lower=-1, upper=1, log=False)
-    int1 = UniformIntegerHyperparameter(name="int1", lower=0, upper=1000, log=False, q=500)
+    int1 = UniformIntegerHyperparameter(name="int1", lower=0, upper=1000, log=False)
     cs2.add_hyperparameters([float1, int1])
 
-    int2_cond = UniformIntegerHyperparameter(name="int2_cond", lower=10, upper=100, log=True)
+    int2_cond = UniformIntegerHyperparameter(
+        name="int2_cond",
+        lower=10,
+        upper=100,
+        log=True,
+    )
     cs2.add_hyperparameters([int2_cond])
     cond_1 = AndConjunction(
         LessThanCondition(int2_cond, float1, -0.5),
@@ -564,7 +582,7 @@ def test_generate_grid():
     cs2.add_hyperparameters([float2_cond])
     cond_3 = GreaterThanCondition(float2_cond, int2_cond, 50)
     cs2.add_conditions([cond_3])
-    num_steps_dict1 = {"float1": 4, "int2_cond": 3, "float2_cond": 3}
+    num_steps_dict1 = {"float1": 4, "int2_cond": 3, "float2_cond": 3, "int1": 3}
     generated_grid = generate_grid(cs2, num_steps_dict1)
     assert len(generated_grid) == 18
 
@@ -593,7 +611,10 @@ def test_generate_grid():
     # correspond to the ones I checked.
     assert generated_grid[3]["int1"] == 1000
     assert generated_grid[12]["cat1_cond"] == "orange"
-    assert generated_grid[-2]["float2_cond"] == pytest.approx(31.622776601683803, abs=1e-3)
+    assert generated_grid[-2]["float2_cond"] == pytest.approx(
+        31.622776601683803,
+        abs=1e-3,
+    )
 
     # Sub-test 4
     # Test: only a single hyperparameter and num_steps_dict is None

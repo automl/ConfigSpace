@@ -7,25 +7,25 @@ import numpy as np
 import numpy.typing as npt
 
 from ConfigSpace.hyperparameters._distributions import ConstantVectorDistribution
-from ConfigSpace.hyperparameters._hp_components import (
-    CONSTANT_VECTOR_VALUE,
-    DType,
-    TransformerConstant,
-)
+from ConfigSpace.hyperparameters._hp_components import TransformerConstant
 from ConfigSpace.hyperparameters.hyperparameter import Hyperparameter
 
+CONSTANT_VECTOR_VALUE_YES = np.int64(1)
+CONSTANT_VECTOR_VALUE_NO = np.int64(0)
 
-def _empty_neighborhood(*_: Any, **__: Any) -> npt.NDArray[np.integer]:
-    return np.ndarray([], dtype=np.integer)
+
+def _empty_neighborhood(*_: Any, **__: Any) -> npt.NDArray[np.int64]:
+    return np.ndarray([], dtype=np.int64)
 
 
-class Constant(Hyperparameter[DType, np.integer]):
+class Constant(Hyperparameter[Any, np.int64]):
+    serializable_type_name: ClassVar[str] = "constant"
     orderable: ClassVar[bool] = False
 
     def __init__(
         self,
         name: str,
-        value: DType,
+        value: Any,
         meta: Mapping[Hashable, Any] | None = None,
     ) -> None:
         """Representing a constant hyperparameter in the configuration space.
@@ -42,6 +42,13 @@ class Constant(Hyperparameter[DType, np.integer]):
                 Field for holding meta data provided by the user.
                 Not used by the configuration space.
         """
+        # TODO: This should be changed and allowed...
+        if not isinstance(value, (int, float, str)) or isinstance(value, bool):
+            raise TypeError(
+                f"Constant hyperparameter '{name}' must be of type int, float or str, "
+                f"but got {type(value).__name__}.",
+            )
+
         self.value = value
 
         super().__init__(
@@ -49,12 +56,33 @@ class Constant(Hyperparameter[DType, np.integer]):
             default_value=value,
             size=1,
             meta=meta,
-            transformer=TransformerConstant(value=value),
-            vector_dist=ConstantVectorDistribution(value=CONSTANT_VECTOR_VALUE),
+            transformer=TransformerConstant(
+                value=value,
+                vector_value_yes=CONSTANT_VECTOR_VALUE_YES,
+                vector_value_no=CONSTANT_VECTOR_VALUE_NO,
+            ),
+            vector_dist=ConstantVectorDistribution(
+                vector_value=CONSTANT_VECTOR_VALUE_YES,
+            ),
             neighborhood=_empty_neighborhood,
             neighborhood_size=0,
         )
 
+    def __str__(self) -> str:
+        parts = [
+            self.name,
+            f"Type: {str(self.__class__.__name__).replace('Hyperparameter', '')}",
+            f"Value: {self.value}",
+        ]
 
-class UnParametrizedHyperparameter(Constant):
-    pass
+        return ", ".join(parts)
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "name": self.name,
+            "type": self.serializable_type_name,
+            "value": self.value,
+        }
+
+
+UnParametrizedHyperparameter = Constant

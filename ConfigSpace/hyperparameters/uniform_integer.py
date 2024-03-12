@@ -8,23 +8,19 @@ from typing import (
 )
 
 import numpy as np
-from scipy.stats import (
-    uniform,
-)
+from scipy.stats import uniform
 
+from ConfigSpace.functional import is_close_to_integer
 from ConfigSpace.hyperparameters._distributions import (
     DiscretizedContinuousScipyDistribution,
 )
-from ConfigSpace.hyperparameters._hp_components import (
-    VECTORIZED_NUMERIC_LOWER,
-    VECTORIZED_NUMERIC_UPPER,
-    UnitScaler,
-)
+from ConfigSpace.hyperparameters._hp_components import ABS_ROUND_CLOSENESS, UnitScaler
 from ConfigSpace.hyperparameters.integer_hyperparameter import IntegerHyperparameter
 
 
 @dataclass(init=False)
 class UniformIntegerHyperparameter(IntegerHyperparameter):
+    serializable_type_name: ClassVar[str] = "uniform_int"
     orderable: ClassVar[bool] = True
 
     def __init__(
@@ -40,28 +36,41 @@ class UniformIntegerHyperparameter(IntegerHyperparameter):
         self.upper = np.int64(np.rint(upper))
         self.log = bool(log)
 
+        if default_value is not None and not is_close_to_integer(
+            default_value,
+            atol=ABS_ROUND_CLOSENESS,
+        ):
+            raise TypeError(
+                f"`default_value` for hyperparameter '{name}' must be an integer."
+                f" Got '{type(default_value).__name__}' for {default_value=}.",
+            )
+
         try:
-            scaler = UnitScaler(lower, upper, log=log)
+            scaler = UnitScaler(self.lower, self.upper, log=log, dtype=np.int64)
         except ValueError as e:
             raise ValueError(f"Hyperparameter '{name}' has illegal settings") from e
 
-        if default_value is None:
-            _default_value = np.int64(scaler.to_value(np.array([0.5]))[0])
-        else:
-            _default_value = np.int64(round(default_value))
-
-        self.log = log
         size = self.upper - self.lower + 1
         vector_dist = DiscretizedContinuousScipyDistribution(
-            dist=uniform(VECTORIZED_NUMERIC_LOWER, VECTORIZED_NUMERIC_UPPER),  # type: ignore
-            steps=size,
-            max_density_value=float(1 / size),
-            normalization_constant_value=1,
+            rv=uniform(),  # type: ignore
+            steps=int(size),
+            _max_density=float(1 / size),
+            _pdf_norm=float(size),
+            lower_vectorized=np.float64(0.0),
+            upper_vectorized=np.float64(1.0),
+            log_scale=log,
+            transformer=scaler,
         )
         super().__init__(
             name=name,
             size=int(size),
-            default_value=_default_value,
+            default_value=(
+                np.int64(
+                    default_value
+                    if default_value is not None
+                    else np.rint(scaler.to_value(np.array([0.5]))[0]),
+                )
+            ),
             meta=meta,
             transformer=scaler,
             vector_dist=vector_dist,
@@ -69,7 +78,24 @@ class UniformIntegerHyperparameter(IntegerHyperparameter):
             neighborhood_size=self._neighborhood_size,
         )
 
-    def neighborhood_size(self, value: np.int64 | None) -> int | float:
-        if value is None or self.lower <= value <= self.upper:
-            return self.size
-        return self.size - 1
+    def __str__(self) -> str:
+        parts = [
+            self.name,
+            f"Type: {str(self.__class__.__name__).replace('Hyperparameter', '')}",
+            f"Range: [{self.lower}, {self.upper}]",
+            f"Default: {self.default_value}",
+        ]
+        if self.log:
+            parts.append("on log-scale")
+
+        return ", ".join(parts)
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "name": self.name,
+            "type": self.serializable_type_name,
+            "log": self.log,
+            "lower": int(self.lower),
+            "upper": int(self.upper),
+            "default_value": int(self.default_value),
+        }

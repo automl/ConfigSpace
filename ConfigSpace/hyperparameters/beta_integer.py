@@ -6,10 +6,11 @@ from typing import Any, ClassVar
 import numpy as np
 from scipy.stats import beta as spbeta
 
+from ConfigSpace.functional import is_close_to_integer
 from ConfigSpace.hyperparameters._distributions import (
     DiscretizedContinuousScipyDistribution,
 )
-from ConfigSpace.hyperparameters._hp_components import UnitScaler
+from ConfigSpace.hyperparameters._hp_components import ABS_ROUND_CLOSENESS, UnitScaler
 from ConfigSpace.hyperparameters.hyperparameter import (
     HyperparameterWithPrior,
 )
@@ -21,6 +22,7 @@ class BetaIntegerHyperparameter(
     IntegerHyperparameter,
     HyperparameterWithPrior[UniformIntegerHyperparameter],
 ):
+    serializable_type_name: ClassVar[str] = "beta_int"
     orderable: ClassVar[bool] = True
 
     def __init__(
@@ -83,40 +85,41 @@ class BetaIntegerHyperparameter(
         self.log = bool(log)
 
         try:
-            scaler = UnitScaler(self.lower, self.upper, log=log)
+            scaler = UnitScaler(self.lower, self.upper, log=log, dtype=np.int64)
         except ValueError as e:
             raise ValueError(f"Hyperparameter '{name}' has illegal settings") from e
 
-        beta_rv = spbeta(self.alpha, self.beta)
+        spbeta(self.alpha, self.beta)
         if (self.alpha > 1) or (self.beta > 1):
-            normalized_mode = (self.alpha - 1) / (self.alpha + self.beta - 2)
+            vectorized_mode = (self.alpha - 1) / (self.alpha + self.beta - 2)
         else:
             # If both alpha and beta are 1, we have a uniform distribution.
-            normalized_mode = 0.5
-
-        max_density_value = float(beta_rv.pdf(normalized_mode))  # type: ignore
+            vectorized_mode = 0.5
 
         if default_value is None:
             _default_value = np.rint(
-                scaler.to_value(np.array([normalized_mode]))[0],
+                scaler.to_value(np.array([vectorized_mode]))[0],
             ).astype(np.int64)
         else:
+            if not is_close_to_integer(default_value, atol=ABS_ROUND_CLOSENESS):
+                raise TypeError(
+                    f"`default_value` for hyperparameter '{name}' must be an integer."
+                    f" Got '{type(default_value).__name__}' for {default_value=}.",
+                )
+
             _default_value = np.rint(default_value).astype(np.int64)
 
-        size = self.upper - self.lower + 1
+        size = int(self.upper - self.lower + 1)
         vector_dist = DiscretizedContinuousScipyDistribution(
             rv=spbeta(self.alpha, self.beta),  # type: ignore
-            max_density_value=max_density_value,
             steps=size,
+            lower_vectorized=np.float64(0.0),
+            upper_vectorized=np.float64(1.0),
         )
-
-        # Compute the normalization constant ahead of time
-        constant = vector_dist._normalization_constant()
-        vector_dist.normalization_constant_value = constant
 
         super().__init__(
             name=name,
-            size=int(size),
+            size=size,
             default_value=_default_value,
             meta=meta,
             transformer=scaler,
@@ -134,3 +137,29 @@ class BetaIntegerHyperparameter(
             log=self.log,
             meta=None,
         )
+
+    def __str__(self) -> str:
+        parts = [
+            self.name,
+            f"Type: {str(self.__class__.__name__).replace('Hyperparameter', '')}",
+            f"Alpha: {self.alpha}",
+            f"Beta: {self.beta}",
+            f"Range: [{self.lower}, {self.upper}]",
+            f"Default: {self.default_value}",
+        ]
+        if self.log:
+            parts.append("on log-scale")
+
+        return ", ".join(parts)
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "name": self.name,
+            "type": self.serializable_type_name,
+            "log": self.log,
+            "alpha": float(self.alpha),
+            "beta": float(self.beta),
+            "lower": int(self.lower),
+            "upper": int(self.upper),
+            "default_value": int(self.default_value),
+        }

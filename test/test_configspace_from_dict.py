@@ -6,6 +6,7 @@ Configspace({
     "categorical": ["a", "b"],
 }).
 """
+
 from __future__ import annotations
 
 from typing import Any
@@ -72,8 +73,8 @@ from ConfigSpace.hyperparameters import (
         ),
         # Something that is already a hyperparameter will stay a hyperparameter
         (
-            NormalFloatHyperparameter("hp", mu=1, sigma=10),
-            NormalFloatHyperparameter("hp", mu=1, sigma=10),
+            NormalFloatHyperparameter("hp", mu=1, sigma=10, lower=-10, upper=10),
+            NormalFloatHyperparameter("hp", mu=1, sigma=10, lower=-10, upper=10),
         ),
         # We can't use {} for categoricals as it becomes undeterministic
         # Hence we give Categorical the tuple() syntax and not support
@@ -87,8 +88,7 @@ def test_individual_hyperparameters(value: Any, expected: Hyperparameter) -> Non
 
 @pytest.mark.parametrize("value", [(1, 10, 999), (10,), (1.0, 10.0, 999.0), (1.0,), ()])
 def test_bad_tuple_in_dict(value: tuple[int, ...]) -> None:
-    """
-    Expects
+    """Expects.
     -------
     * Using a tuple that doesn't have 2 values will raise an error.
     """
@@ -98,8 +98,7 @@ def test_bad_tuple_in_dict(value: tuple[int, ...]) -> None:
 
 @pytest.mark.parametrize("value", [[]])
 def test_bad_categorical(value: list) -> None:
-    """
-    Expects
+    """Expects.
     -------
     * Using an empty list will raise an error.
     """

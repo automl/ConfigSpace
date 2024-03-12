@@ -1,12 +1,12 @@
 from __future__ import annotations
 
+import warnings
 from collections import Counter
 from collections.abc import Hashable, Mapping, Sequence
 from dataclasses import dataclass, field
-from typing import Any, ClassVar
+from typing import Any, ClassVar, Set
 
 import numpy as np
-import numpy.typing as npt
 from scipy.stats import rv_discrete
 
 from ConfigSpace.hyperparameters._distributions import ScipyDiscreteDistribution
@@ -19,52 +19,71 @@ from ConfigSpace.hyperparameters.hyperparameter import Hyperparameter
 
 @dataclass(init=False)
 class CategoricalHyperparameter(Hyperparameter[Any, np.int64]):
+    serializable_type_name: ClassVar[str] = "categorical"
     orderable: ClassVar[bool] = False
-    choices: Sequence[Any]
-    weights: Sequence[int | float] | None
-    probabilities: npt.NDArray[np.float64] = field(repr=False, init=False)
+
+    choices: tuple[Any, ...]
+    weights: tuple[float, ...] | None
+    probabilities: tuple[float, ...] = field(repr=False, init=False)
 
     def __init__(
         self,
         name: str,
         choices: Sequence[Any],
-        weights: Sequence[int | float] | None = None,
         default_value: Any | None = None,
+        weights: Sequence[int | float] | None = None,
         meta: Mapping[Hashable, Any] | None = None,
     ) -> None:
-        # TODO check that there is no bullshit in the choices!
-        choices = list(choices)
+        # TODO: We can allow for None but we need to be sure it doesn't break anything
+        # elsewhere.
+        if any(choice is None for choice in choices):
+            raise TypeError("Choice 'None' is not supported")
+
+        if isinstance(choices, Set):
+            raise TypeError(
+                "Using a set of choices is prohibited as it can result in "
+                "non-deterministic behavior. Please use a list or a tuple.",
+            )
+
+        # TODO:For now we assume hashable for choices to make the below check with
+        # Counter work. We can probably relax this assumption
+        choices = tuple(choices)
         counter = Counter(choices)
         for choice, count in counter.items():
             if count > 1:
                 raise ValueError(
                     f"Choices for categorical hyperparameters {name} contain choice"
-                    f" `{choice:!r}` {count} times, while only a single oocurence is"
+                    f" `{choice}` {count} times, while only a single oocurence is"
                     " allowed.",
                 )
 
-        match weights:
-            case set():
-                raise TypeError(
-                    "Using a set of weights is prohibited as it can result in "
-                    "non-deterministic behavior. Please use a list or a tuple.",
+        if isinstance(weights, set):
+            raise TypeError(
+                "Using a set of weights is prohibited as it can result in "
+                "non-deterministic behavior. Please use a list or a tuple.",
+            )
+
+        if isinstance(weights, Sequence):
+            if len(weights) != len(choices):
+                raise ValueError(
+                    "The list of weights and the list of choices are required to be"
+                    f" of same length. Gave {len(weights)} weights and"
+                    f" {len(choices)} choices.",
                 )
-            case Sequence():
-                if len(weights) != len(choices):
-                    raise ValueError(
-                        "The list of weights and the list of choices are required to be"
-                        f" of same length. Gave {len(weights)} weights and"
-                        f" {len(choices)} choices.",
-                    )
-                if any(weight < 0 for weight in weights):
-                    raise ValueError(
-                        f"Negative weights are not allowed. Got {weights}.",
-                    )
-                if all(weight == 0 for weight in weights):
-                    raise ValueError(
-                        "All weights are zero, at least one weight has to be strictly"
-                        " positive.",
-                    )
+            if any(weight < 0 for weight in weights):
+                raise ValueError(
+                    f"Negative weights are not allowed. Got {weights}.",
+                )
+            if all(weight == 0 for weight in weights):
+                raise ValueError(
+                    "All weights are zero, at least one weight has to be strictly"
+                    " positive.",
+                )
+            weights = tuple(weights)
+        elif weights is not None:
+            raise TypeError(
+                f"The weights have to be a list, tuple or None. Got {weights!r}.",
+            )
 
         if default_value is not None and default_value not in choices:
             raise ValueError(
@@ -80,28 +99,26 @@ class CategoricalHyperparameter(Hyperparameter[Any, np.int64]):
         probabilities = _weights / np.sum(_weights)
 
         self.choices = choices
-        self.probabilities = probabilities
+        self.weights = weights
+        self.probabilities = tuple(probabilities)
 
-        match default_value, weights:
-            case None, None:
-                default_value = choices[0]
-            case None, _:
-                default_value = choices[np.argmax(np.asarray(weights))]
-            case _ if default_value in choices:
-                default_value = default_value  # noqa: PLW0127
-            case _:
-                raise ValueError(f"Illegal default value {default_value}")
+        if default_value is None and weights is None:
+            default_value = choices[0]
+        elif default_value is None:
+            default_value = choices[np.argmax(np.asarray(weights))]
+        elif default_value in choices:
+            default_value = default_value  # noqa: PLW0127
+        else:
+            raise ValueError(f"Illegal default value {default_value}")
 
         size = len(choices)
-        custom_discrete = rv_discrete(
-            values=(np.arange(size), probabilities),
-            a=0,
-            b=size,
-        ).freeze()
+        custom_discrete = rv_discrete(values=(np.arange(size), probabilities)).freeze()
         vect_dist = ScipyDiscreteDistribution(
             rv=custom_discrete,  # type: ignore
-            max_density_value=1 / size,
+            _max_density=float(np.max(probabilities)),
             dtype=np.int64,
+            lower_vectorized=np.int64(0),
+            upper_vectorized=np.int64(size - 1),
         )
 
         super().__init__(
@@ -128,28 +145,65 @@ class CategoricalHyperparameter(Hyperparameter[Any, np.int64]):
         if not isinstance(other, self.__class__):
             return False
 
-        if self.probabilities is not None:
-            ordered_probabilities_self = {
-                choice: self.probabilities[i] for i, choice in enumerate(self.choices)
-            }
-        else:
-            ordered_probabilities_self = None
+        # Quick checks first
+        if len(self.choices) != len(other.choices):
+            return False
 
-        if other.probabilities is not None:
-            ordered_probabilities_other = {
-                choice: (
-                    other.probabilities[other.choices.index(choice)]
-                    if choice in other.choices
-                    else None
-                )
-                for choice in self.choices
-            }
-        else:
-            ordered_probabilities_other = None
+        if self.default_value != other.default_value:
+            return False
 
-        return ordered_probabilities_self == ordered_probabilities_other
+        if self.name != other.name:
+            return False
+
+        # Longer check
+        for this_choice, this_prob in zip(
+            self.choices,
+            self.probabilities,
+            strict=True,
+        ):
+            if this_choice not in other.choices:
+                return False
+
+            index_of_choice_in_other = other.choices.index(this_choice)
+            other_prob = other.probabilities[index_of_choice_in_other]
+            if this_prob != other_prob:
+                return False
+
+        return True
 
     def _neighborhood_size(self, value: Any | None) -> int:
         if value is None or value not in self.choices:
             return int(self.size)
         return int(self.size) - 1
+
+    @property
+    def num_choices(self) -> int:
+        warnings.warn(
+            "The property 'num_choices' is deprecated and will be removed in a future"
+            " release. Please use either `len(hp.choices)` or 'hp.size' instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return len(self.choices)
+
+    def __str__(self) -> str:
+        parts = [
+            self.name,
+            f"Type: {str(self.__class__.__name__).replace('Hyperparameter', '')}",
+            "Choices: {" + ", ".join(map(str, self.choices)) + "}",
+            f"Default: {self.default_value}",
+        ]
+        if not np.all(self.probabilities == self.probabilities[0]):
+            parts.append(f"Probabilities: {self.probabilities}")
+
+        return ", ".join(parts)
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "name": self.name,
+            "type": self.serializable_type_name,
+            "choices": list(self.choices),
+            "default_value": self.default_value,
+            "weights": self.weights,
+            "meta": self.meta,
+        }

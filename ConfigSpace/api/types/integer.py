@@ -14,57 +14,54 @@ from ConfigSpace.hyperparameters import (
 @overload
 def Integer(
     name: str,
-    bounds: tuple[int, int] | None = ...,
+    bounds: tuple[int, int],
     *,
     distribution: Uniform | None = ...,
     default: int | None = ...,
-    q: int | None = ...,
     log: bool = ...,
     meta: dict | None = ...,
-) -> UniformIntegerHyperparameter:
-    ...
+) -> UniformIntegerHyperparameter: ...
 
 
 # Normal -> NormalIntegerHyperparameter
 @overload
 def Integer(
     name: str,
-    bounds: tuple[int, int] | None = ...,
+    bounds: tuple[int, int],
     *,
     distribution: Normal,
     default: int | None = ...,
-    q: int | None = ...,
     log: bool = ...,
     meta: dict | None = ...,
-) -> NormalIntegerHyperparameter:
-    ...
+) -> NormalIntegerHyperparameter: ...
 
 
 # Beta -> BetaIntegerHyperparameter
 @overload
 def Integer(
     name: str,
-    bounds: tuple[int, int] | None = ...,
+    bounds: tuple[int, int],
     *,
     distribution: Beta,
     default: int | None = ...,
-    q: int | None = ...,
     log: bool = ...,
     meta: dict | None = ...,
-) -> BetaIntegerHyperparameter:
-    ...
+) -> BetaIntegerHyperparameter: ...
 
 
 def Integer(
     name: str,
-    bounds: tuple[int, int] | None = None,
+    bounds: tuple[int, int],
     *,
     distribution: Distribution | None = None,
     default: int | None = None,
-    q: int | None = None,
     log: bool = False,
     meta: dict | None = None,
-) -> UniformIntegerHyperparameter | NormalIntegerHyperparameter | BetaIntegerHyperparameter:
+) -> (
+    UniformIntegerHyperparameter
+    | NormalIntegerHyperparameter
+    | BetaIntegerHyperparameter
+):
     """Create an IntegerHyperparameter.
 
     .. code:: python
@@ -74,11 +71,9 @@ def Integer(
         Integer("a", (1, 10), distribution=Uniform())
 
         # Normally distributed at 2 with std 3
-        Integer("b", distribution=Normal(2, 3))
         Integer("b", (0, 5), distribution=Normal(2, 3))  # ... bounded
 
         # Beta distributed with alpha 1 and beta 2
-        Integer("c", distribution=Beta(1, 2))
         Integer("c", (0, 3), distribution=Beta(1, 2))  # ... bounded
 
         # Give it a default value
@@ -86,9 +81,6 @@ def Integer(
 
         # Sample on a log scale
         Integer("a", (1, 100), log=True)
-
-        # Quantized into three brackets
-        Integer("a", (1, 10), q=3)
 
         # Add meta info to the param
         Integer("a", (1, 10), meta={"use": "For counting chickens"})
@@ -103,35 +95,14 @@ def Integer(
     name : str
         The name to give to this hyperparameter
 
-    bounds : tuple[int, int] | None = None
-        The bounds to give to the integer. Note that by default, this is required
-        for Uniform distribution, which is the default distribution
+    bounds : tuple[int, int]
+        The bounds to give to the integer.
 
     distribution : Uniform | Normal | Beta, = Uniform
         The distribution to use for the hyperparameter. See above
 
     default : int | None = None
         The default value to give to the hyperparameter.
-
-    q : int | None = None
-        The quantization factor, must evenly divide the boundaries.
-        Sampled values will be
-
-        .. code::
-
-                full range
-            1    4    7    10
-            |--------------|
-            |    |    |    |  q = 3
-
-        All samples here will then be in {1, 4, 7, 10}
-
-    Note:
-        ----
-        Quantization points act are not equal and require experimentation
-        to be certain about
-
-        * https://github.com/automl/ConfigSpace/issues/264
 
     log : bool = False
         Whether to this parameter lives on a log scale
@@ -160,7 +131,6 @@ def Integer(
             name=name,
             lower=lower,
             upper=upper,
-            q=q,
             log=log,
             default_value=default,
             meta=meta,
@@ -171,7 +141,6 @@ def Integer(
             name=name,
             lower=lower,
             upper=upper,
-            q=q,
             log=log,
             default_value=default,
             meta=meta,
@@ -184,7 +153,6 @@ def Integer(
             name=name,
             lower=lower,
             upper=upper,
-            q=q,
             log=log,
             default_value=default,
             meta=meta,

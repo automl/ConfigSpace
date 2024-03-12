@@ -258,6 +258,10 @@ def read(pcs_string: Iterable[str]) -> ConfigurationSpace:
         pcs_string = pcs_string.split("\n")
 
     configuration_space = ConfigurationSpace()
+    hp_params_to_add = []
+    conditions_to_add = []
+    forbiddens_to_add = []
+
     conditions = []
     forbidden = []
 
@@ -321,7 +325,6 @@ def read(pcs_string: Iterable[str]) -> ConfigurationSpace:
                 name=name,
                 lower=lower,
                 upper=upper,
-                q=None,
                 log=log,
                 default_value=default_value,
             )
@@ -372,7 +375,8 @@ def read(pcs_string: Iterable[str]) -> ConfigurationSpace:
                 else:
                     raise NotImplementedError()
                 tmp_list = []
-        configuration_space.add_forbidden_clause(ForbiddenAndConjunction(*clause_list))
+
+        forbiddens_to_add.append(ForbiddenAndConjunction(*clause_list))
 
     # Now handle conditions
     # If there are two conditions for one child, these two conditions are an
@@ -404,9 +408,13 @@ def read(pcs_string: Iterable[str]) -> ConfigurationSpace:
 
         if len(condition_objects) > 1:
             and_conjunction = AndConjunction(*condition_objects)
-            configuration_space.add_condition(and_conjunction)
+            conditions_to_add.append(and_conjunction)
         else:
-            configuration_space.add_condition(condition_objects[0])
+            conditions_to_add.append(condition_objects[0])
+
+    configuration_space.add_hyperparameters(hp_params_to_add)
+    configuration_space.add_conditions(conditions_to_add)
+    configuration_space.add_forbidden_clauses(forbiddens_to_add)
 
     return configuration_space
 

@@ -167,10 +167,10 @@ def test_greater_and_less_condition():
         assert not lt.evaluate_vector(np.array([np.NaN, np.NaN]))
 
     hp4 = CategoricalHyperparameter("cat", list(range(6)))
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match=r"The parent hyperparameter must be orderable"):
         GreaterThanCondition(child, hp4, 1)
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match=r"The parent hyperparameter must be orderable"):
         LessThanCondition(child, hp4, 1)
 
     hp5 = OrdinalHyperparameter("ord", ["cold", "luke warm", "warm", "hot"])

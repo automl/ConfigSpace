@@ -9,7 +9,7 @@ from ConfigSpace.conditions import ConditionComponent, OrConjunction
 from ConfigSpace.exceptions import (
     ActiveHyperparameterNotSetError,
     ForbiddenValueError,
-    IllegalValueError,
+    IllegalVectorizedValueError,
     InactiveHyperparameterSetError,
 )
 from ConfigSpace.hyperparameters import Hyperparameter
@@ -67,7 +67,7 @@ def check_configuration(
         hp_value = vector[hp_idx]
 
         if not np.isnan(hp_value) and not hyperparameter.legal_vector(hp_value):
-            raise IllegalValueError(hyperparameter, hp_value)
+            raise IllegalVectorizedValueError(hyperparameter, hp_value)
 
         children = self._children_of[hp_name]
         for child in children:

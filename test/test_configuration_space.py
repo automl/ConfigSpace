@@ -564,7 +564,9 @@ def test_check_configuration():
         # The hyperparameters aren't sorted, but the test assumes them to
         #  be sorted.
         hyperparameters = sorted(cs.values(), key=lambda t: t.name)
-        instantiations = {hyperparameters[jdx + 1].name: values[jdx] for jdx in range(len(values))}
+        instantiations = {
+            hyperparameters[jdx + 1].name: values[jdx] for jdx in range(len(values))
+        }
 
         evaluation = conj3.evaluate(instantiations)
         assert expected_outcomes[idx] == evaluation
@@ -601,10 +603,17 @@ def test_check_configuration2():
     # that evaluating forbidden clauses does not choke on missing
     # hyperparameters
     cs = ConfigurationSpace()
-    classifier = CategoricalHyperparameter("classifier", ["k_nearest_neighbors", "extra_trees"])
+    classifier = CategoricalHyperparameter(
+        "classifier",
+        ["k_nearest_neighbors", "extra_trees"],
+    )
     metric = CategoricalHyperparameter("metric", ["minkowski", "other"])
     p = CategoricalHyperparameter("k_nearest_neighbors:p", [1, 2])
-    metric_depends_on_classifier = EqualsCondition(metric, classifier, "k_nearest_neighbors")
+    metric_depends_on_classifier = EqualsCondition(
+        metric,
+        classifier,
+        "k_nearest_neighbors",
+    )
     p_depends_on_metric = EqualsCondition(p, metric, "minkowski")
     cs.add_hyperparameter(metric)
     cs.add_hyperparameter(p)
@@ -672,7 +681,9 @@ def test_repr():
     hp1 = CategoricalHyperparameter("parent", [0, 1])
     cs1.add_hyperparameter(hp1)
     retval = cs1.__str__()
-    assert "Configuration space object:\n  Hyperparameters:\n    %s\n" % str(hp1) == retval
+    assert (
+        "Configuration space object:\n  Hyperparameters:\n    %s\n" % str(hp1) == retval
+    )
 
     hp2 = UniformIntegerHyperparameter("child", 0, 10)
     cond1 = EqualsCondition(hp2, hp1, 0)
@@ -761,11 +772,11 @@ def test_sample_configuration_with_or_conjunction():
     for cfg, fixture in zip(
         cs.sample_configuration(10),
         [
-            [1, np.NaN, 2],
-            [2, np.NaN, np.NaN],
-            [0, 0, np.NaN],
-            [0, 2, np.NaN],
-            [0, 0, np.NaN],
+            [1, np.nan, 2],
+            [2, np.nan, np.nan],
+            [0, 0, np.nan],
+            [0, 2, np.nan],
+            [0, 0, np.nan],
         ],
     ):
         np.testing.assert_array_almost_equal(cfg.get_array(), fixture)
@@ -804,7 +815,11 @@ def test_subspace_switches():
 
     # create sub-configuration space for algorithm 2
     algo2_cs = ConfigurationSpace()
-    hp2 = CategoricalHyperparameter(name="algo2_param1", choices=["X", "Y"], default_value="Y")
+    hp2 = CategoricalHyperparameter(
+        name="algo2_param1",
+        choices=["X", "Y"],
+        default_value="Y",
+    )
     algo2_cs.add_hyperparameter(hp2)
 
     # create a configuration space and populate it with both the switch
@@ -839,8 +854,7 @@ def test_subspace_switches():
 
 
 def test_acts_as_mapping_2():
-    """
-    Test that ConfigurationSpace can act as a mapping with iteration,
+    """Test that ConfigurationSpace can act as a mapping with iteration,
     indexing and items, values, keys.
     """
     cs = ConfigurationSpace()
@@ -958,7 +972,10 @@ def test_substitute_hyperparameters_in_conditions():
     sub_hp3 = NormalIntegerHyperparameter("child1", lower=0, upper=10, mu=5, sigma=2)
     sub_hp4 = BetaIntegerHyperparameter("child2", lower=0, upper=10, alpha=3, beta=5)
     cs2.add_hyperparameters([sub_hp1, sub_hp2, sub_hp3, sub_hp4])
-    new_conditions = cs1.substitute_hyperparameters_in_conditions(cs1.get_conditions(), cs2)
+    new_conditions = cs1.substitute_hyperparameters_in_conditions(
+        cs1.get_conditions(),
+        cs2,
+    )
 
     test_cond1 = EqualsCondition(sub_hp2, sub_hp3, 0)
     test_cond2 = EqualsCondition(sub_hp1, sub_hp3, 5)
@@ -984,7 +1001,10 @@ def test_substitute_hyperparameters_in_inconditions():
     sub_a = UniformIntegerHyperparameter("a", lower=0, upper=10)
     sub_b = UniformFloatHyperparameter("b", lower=1.0, upper=8.0, log=False)
     cs2.add_hyperparameters([sub_a, sub_b])
-    new_conditions = cs1.substitute_hyperparameters_in_conditions(cs1.get_conditions(), cs2)
+    new_conditions = cs1.substitute_hyperparameters_in_conditions(
+        cs1.get_conditions(),
+        cs2,
+    )
 
     test_cond = InCondition(b, a, [1, 2, 3, 4])
     cs2.add_conditions([test_cond])
@@ -1020,7 +1040,10 @@ def test_substitute_hyperparameters_in_forbiddens():
     sub_hp3 = NormalIntegerHyperparameter("input3", lower=0, upper=10, mu=5, sigma=2)
     sub_hp4 = BetaIntegerHyperparameter("input4", lower=0, upper=10, alpha=3, beta=5)
     cs2.add_hyperparameters([sub_hp1, sub_hp2, sub_hp3, sub_hp4])
-    new_forbiddens = cs1.substitute_hyperparameters_in_forbiddens(cs1.get_forbiddens(), cs2)
+    new_forbiddens = cs1.substitute_hyperparameters_in_forbiddens(
+        cs1.get_forbiddens(),
+        cs2,
+    )
 
     test_forb_1 = ForbiddenEqualsClause(sub_hp1, 0)
     test_forb_2 = ForbiddenEqualsClause(sub_hp2, 1)
@@ -1063,6 +1086,8 @@ def test_wrong_init(simple_cs: ConfigurationSpace):
 
 def test_init_with_values(simple_cs: ConfigurationSpace):
     c1 = Configuration(simple_cs, values={"parent": 1, "child": 2, "friend": 3})
+    for i in range(5 + 1):
+        Configuration(simple_cs, values={"parent": 1, "child": 2, "friend": i})
     # Pay attention that the vector does not necessarily has an intuitive
     #  sorting!
     # Values are a little bit higher than one would expect because,
@@ -1089,7 +1114,9 @@ def test_uniformfloat_transform():
     """
     cs = ConfigurationSpace()
     a = cs.add_hyperparameter(UniformFloatHyperparameter("a", -5, 10))
-    b = cs.add_hyperparameter(NormalFloatHyperparameter("b", 1, 2, log=True))
+    b = cs.add_hyperparameter(
+        NormalFloatHyperparameter("b", 1, 2, log=True, lower=0.1, upper=5),
+    )
     for _i in range(100):
         config = cs.sample_configuration()
         value = OrderedDict(sorted(config.items()))
@@ -1203,8 +1230,7 @@ def test_keys():
 
 
 def test_acts_as_mapping(simple_cs: ConfigurationSpace):
-    """
-    This tests checks that a Configuration can be used as a a dictionary by
+    """This tests checks that a Configuration can be used as a a dictionary by
     checking indexing[], iteration ..., items, keys.
     """
     names = ["parent", "child", "friend"]
@@ -1231,26 +1257,15 @@ def test_acts_as_mapping(simple_cs: ConfigurationSpace):
     assert d == values_dict
 
 
-def test_order_of_hyperparameters_is_same_as_config_space(simple_cs: ConfigurationSpace):
-    """
-    Test the keys respect the contract that they follow the same order that
+def test_order_of_hyperparameters_is_same_as_config_space(
+    simple_cs: ConfigurationSpace,
+):
+    """Test the keys respect the contract that they follow the same order that
     is present in the ConfigurationSpace.
     """
     # Deliberatily different values
     config = Configuration(simple_cs, values={"child": 2, "parent": 1, "friend": 3})
     assert config.keys() == simple_cs.keys()
-
-
-def test_multi_sample_quantized_uihp():
-    # This unit test covers a problem with sampling multiple entries at a time from a
-    # configuration space with at least one UniformIntegerHyperparameter which is quantized.
-    cs = ConfigurationSpace()
-    cs.add_hyperparameter(
-        UniformIntegerHyperparameter("uihp", lower=1, upper=101, q=2, log=False),
-    )
-
-    assert cs.sample_configuration() is not None
-    assert len(cs.sample_configuration(size=10)) == 10
 
 
 def test_meta_field():
@@ -1259,13 +1274,27 @@ def test_meta_field():
         UniformIntegerHyperparameter("uihp", lower=1, upper=10, meta={"uihp": True}),
     )
     cs.add_hyperparameter(
-        NormalIntegerHyperparameter("nihp", mu=0, sigma=1, meta={"nihp": True}),
+        NormalIntegerHyperparameter(
+            "nihp",
+            mu=5,
+            sigma=1,
+            meta={"nihp": True},
+            lower=1,
+            upper=10,
+        ),
     )
     cs.add_hyperparameter(
         UniformFloatHyperparameter("ufhp", lower=1, upper=10, meta={"ufhp": True}),
     )
     cs.add_hyperparameter(
-        NormalFloatHyperparameter("nfhp", mu=0, sigma=1, meta={"nfhp": True}),
+        NormalFloatHyperparameter(
+            "nfhp",
+            mu=5,
+            sigma=1,
+            meta={"nfhp": True},
+            lower=1,
+            upper=10,
+        ),
     )
     cs.add_hyperparameter(
         CategoricalHyperparameter("chp", choices=["1", "2", "3"], meta={"chp": True}),
@@ -1288,9 +1317,13 @@ def test_meta_field():
 def test_repr_roundtrip():
     cs = ConfigurationSpace()
     cs.add_hyperparameter(UniformIntegerHyperparameter("uihp", lower=1, upper=10))
-    cs.add_hyperparameter(NormalIntegerHyperparameter("nihp", mu=0, sigma=1))
+    cs.add_hyperparameter(
+        NormalIntegerHyperparameter("nihp", mu=1, sigma=1, lower=0.1, upper=1),
+    )
     cs.add_hyperparameter(UniformFloatHyperparameter("ufhp", lower=1, upper=10))
-    cs.add_hyperparameter(NormalFloatHyperparameter("nfhp", mu=0, sigma=1))
+    cs.add_hyperparameter(
+        NormalFloatHyperparameter("nfhp", mu=1, sigma=1, lower=0.1, upper=1),
+    )
     cs.add_hyperparameter(CategoricalHyperparameter("chp", choices=["1", "2", "3"]))
     cs.add_hyperparameter(OrdinalHyperparameter("ohp", sequence=["1", "2", "3"]))
     cs.add_hyperparameter(Constant("const", value=1))

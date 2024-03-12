@@ -193,22 +193,6 @@ def test_write_log_int():
     assert expected == value
 
 
-def test_write_q_int():
-    expected = "Q16_int_a [16, 1024] [520]i"
-    cs = ConfigurationSpace()
-    cs.add_hyperparameter(UniformIntegerHyperparameter("int_a", 16, 1024, q=16))
-    value = pcs.write(cs)
-    assert expected == value
-
-
-def test_write_q_float():
-    expected = "Q16_float_a [16.0, 1024.0] [520.0]"
-    cs = ConfigurationSpace()
-    cs.add_hyperparameter(UniformFloatHyperparameter("float_a", 16, 1024, q=16))
-    value = pcs.write(cs)
-    assert expected == value
-
-
 def test_write_log10():
     expected = "a [10.0, 1000.0] [100.0]l"
     cs = ConfigurationSpace()
@@ -320,22 +304,6 @@ def test_write_new_log_int():
     expected = "int_log_a integer [1, 6] [2]log"
     cs = ConfigurationSpace()
     cs.add_hyperparameter(int_log_a)
-    value = pcs_new.write(cs)
-    assert expected == value
-
-
-def test_write_new_q_int():
-    expected = "Q16_int_a integer [16, 1024] [520]"
-    cs = ConfigurationSpace()
-    cs.add_hyperparameter(UniformIntegerHyperparameter("int_a", 16, 1024, q=16))
-    value = pcs_new.write(cs)
-    assert expected == value
-
-
-def test_write_new_q_float():
-    expected = "Q16_float_a real [16.0, 1024.0] [520.0]"
-    cs = ConfigurationSpace()
-    cs.add_hyperparameter(UniformFloatHyperparameter("float_a", 16, 1024, q=16))
     value = pcs_new.write(cs)
     assert expected == value
 

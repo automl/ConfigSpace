@@ -25,6 +25,7 @@ from ConfigSpace.forbidden import (
     ForbiddenLessThanRelation,
     ForbiddenRelation,
 )
+from ConfigSpace.functional import walk_subclasses
 from ConfigSpace.hyperparameters import (
     BetaFloatHyperparameter,
     BetaIntegerHyperparameter,
@@ -344,35 +345,20 @@ def write(configuration_space: ConfigurationSpace, indent: int = 2) -> str:
             f"you provided '{type(configuration_space)}'",
         )
 
-    hyperparameters = []
     conditions = []
     forbiddens = []
 
+    # Sanity check to make debugging easier
     for hyperparameter in configuration_space.values():
-        if isinstance(hyperparameter, Constant):
-            hyperparameters.append(_build_constant(hyperparameter))
-        elif isinstance(hyperparameter, UnParametrizedHyperparameter):
-            hyperparameters.append(_build_unparametrized_hyperparameter(hyperparameter))
-        elif isinstance(hyperparameter, BetaFloatHyperparameter):
-            hyperparameters.append(_build_beta_float(hyperparameter))
-        elif isinstance(hyperparameter, UniformFloatHyperparameter):
-            hyperparameters.append(_build_uniform_float(hyperparameter))
-        elif isinstance(hyperparameter, NormalFloatHyperparameter):
-            hyperparameters.append(_build_normal_float(hyperparameter))
-        elif isinstance(hyperparameter, BetaIntegerHyperparameter):
-            hyperparameters.append(_build_beta_int(hyperparameter))
-        elif isinstance(hyperparameter, UniformIntegerHyperparameter):
-            hyperparameters.append(_build_uniform_int(hyperparameter))
-        elif isinstance(hyperparameter, NormalIntegerHyperparameter):
-            hyperparameters.append(_build_normal_int(hyperparameter))
-        elif isinstance(hyperparameter, CategoricalHyperparameter):
-            hyperparameters.append(_build_categorical(hyperparameter))
-        elif isinstance(hyperparameter, OrdinalHyperparameter):
-            hyperparameters.append(_build_ordinal(hyperparameter))
-        else:
+        try:
+            json.dumps(hyperparameter.to_dict())
+        except TypeError as e:
             raise TypeError(
-                f"Unknown type: {type(hyperparameter)} ({hyperparameter})",
-            )
+                f"Hyperparameter {hyperparameter.name} is not serializable to json",
+                f" with the dictionary {hyperparameter.to_dict()}.",
+            ) from e
+
+    hyperparameters = [hp.to_dict() for hp in configuration_space.values()]
 
     for condition in configuration_space.get_conditions():
         conditions.append(_build_condition(condition))
@@ -428,125 +414,42 @@ def read(jason_string: str) -> ConfigurationSpace:
     else:
         configuration_space = ConfigurationSpace()
 
+    hyperparameters: list[Hyperparameter] = []
+
+    hp_classes = {
+        serializable_type_name: hp
+        for hp in walk_subclasses(Hyperparameter)
+        if (serializable_type_name := getattr(hp, "serializable_type_name", None))
+        is not None
+    }
     for hyperparameter in jason["hyperparameters"]:
-        configuration_space.add_hyperparameter(
-            _construct_hyperparameter(
-                hyperparameter,
-            ),
-        )
+        hp_type = hyperparameter["type"]
+        hp_class = hp_classes.get(hp_type)
+        if hp_class is None:
+            raise ValueError(
+                f"Unknown hyperparameter type '{hp_type}'. Registered hyperparameters"
+                f" are {hp_classes.keys()}",
+            )
 
+        hp = hp_class.from_dict(hyperparameter)
+        hyperparameters.append(hp)
+
+    configuration_space.add_hyperparameters(hyperparameters)
+
+    # TODO: Can add multiple at a time?
+    conditionals = []
     for condition in jason["conditions"]:
-        configuration_space.add_condition(
-            _construct_condition(
-                condition,
-                configuration_space,
-            ),
-        )
+        conditionals.append(_construct_condition(condition, configuration_space))
 
+    configuration_space.add_conditions(conditionals)
+
+    forbiddens = []
     for forbidden in jason["forbiddens"]:
-        configuration_space.add_forbidden_clause(
-            _construct_forbidden(
-                forbidden,
-                configuration_space,
-            ),
-        )
+        forbiddens.append(_construct_forbidden(forbidden, configuration_space))
+
+    configuration_space.add_forbidden_clauses(forbiddens)
 
     return configuration_space
-
-
-def _construct_hyperparameter(hyperparameter: dict) -> Hyperparameter:  # noqa: PLR0911
-    hp_type = hyperparameter["type"]
-    name = hyperparameter["name"]
-    if hp_type == "constant":
-        return Constant(
-            name=name,
-            value=hyperparameter["value"],
-        )
-
-    if hp_type == "unparametrized":
-        return UnParametrizedHyperparameter(
-            name=name,
-            value=hyperparameter["value"],
-        )
-
-    if hp_type == "uniform_float":
-        return UniformFloatHyperparameter(
-            name=name,
-            log=hyperparameter["log"],
-            lower=hyperparameter["lower"],
-            upper=hyperparameter["upper"],
-            default_value=hyperparameter["default"],
-        )
-
-    if hp_type == "normal_float":
-        return NormalFloatHyperparameter(
-            name=name,
-            log=hyperparameter["log"],
-            mu=hyperparameter["mu"],
-            sigma=hyperparameter["sigma"],
-            lower=hyperparameter["lower"],
-            upper=hyperparameter["upper"],
-            default_value=hyperparameter["default"],
-        )
-
-    if hp_type == "beta_float":
-        return BetaFloatHyperparameter(
-            name=name,
-            alpha=hyperparameter["alpha"],
-            beta=hyperparameter["beta"],
-            lower=hyperparameter["lower"],
-            upper=hyperparameter["upper"],
-            log=hyperparameter["log"],
-            default_value=hyperparameter["default"],
-        )
-
-    if hp_type == "uniform_int":
-        return UniformIntegerHyperparameter(
-            name=name,
-            log=hyperparameter["log"],
-            lower=hyperparameter["lower"],
-            upper=hyperparameter["upper"],
-            default_value=hyperparameter["default"],
-        )
-
-    if hp_type == "normal_int":
-        return NormalIntegerHyperparameter(
-            name=name,
-            mu=hyperparameter["mu"],
-            sigma=hyperparameter["sigma"],
-            log=hyperparameter["log"],
-            lower=hyperparameter["lower"],
-            upper=hyperparameter["upper"],
-            default_value=hyperparameter["default"],
-        )
-
-    if hp_type == "beta_int":
-        return BetaIntegerHyperparameter(
-            name=name,
-            alpha=hyperparameter["alpha"],
-            beta=hyperparameter["beta"],
-            lower=hyperparameter["lower"],
-            upper=hyperparameter["upper"],
-            log=hyperparameter["log"],
-            default_value=hyperparameter["default"],
-        )
-
-    if hp_type == "categorical":
-        return CategoricalHyperparameter(
-            name=name,
-            choices=hyperparameter["choices"],
-            default_value=hyperparameter["default"],
-            weights=hyperparameter.get("weights"),
-        )
-
-    if hp_type == "ordinal":
-        return OrdinalHyperparameter(
-            name=name,
-            sequence=hyperparameter["sequence"],
-            default_value=hyperparameter["default"],
-        )
-
-    raise ValueError(hp_type)
 
 
 def _construct_condition(

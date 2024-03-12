@@ -3,20 +3,17 @@
 # e.g. can't have a discrete distribution over [0.0, 1.0] with 10 bins.
 from __future__ import annotations
 
-from collections.abc import Callable
-from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Protocol
+from dataclasses import dataclass
+from typing import TYPE_CHECKING, Generic, Iterator, Protocol
 
 import numpy as np
 import numpy.typing as npt
-from scipy.stats import randint
-from scipy.stats._discrete_distns import randint_gen
 
-from ConfigSpace.functional import arange_chunked, split_arange
+from ConfigSpace.functional import linspace_chunked, quantize, quantize_log
 from ConfigSpace.hyperparameters._hp_components import (
-    DEFAULT_VECTORIZED_NUMERIC_STD,
-    ROUND_PLACES,
+    DType,
     VDType,
+    _Transformer,
 )
 
 if TYPE_CHECKING:
@@ -35,143 +32,189 @@ if TYPE_CHECKING:
 ARANGE_CHUNKSIZE = 10_000_000
 
 CONFIDENCE_FOR_NORMALIZATION_OF_DISCRETE = 0.999999
+DEFAULT_VECTORIZED_NUMERIC_STD = 0.2
 NEIGHBOR_GENERATOR_N_RETRIES = 5
-NEIGHBOR_GENERATOR_SAMPLE_MULTIPLIER = 2
+NEIGHBOR_GENERATOR_SAMPLE_MULTIPLIER = 4
 RandomState = np.random.RandomState
 
 
-class VectorDistribution(Protocol[VDType]):
-    lower: VDType
-    upper: VDType
+class Distribution(Protocol[VDType]):
+    lower_vectorized: VDType
+    upper_vectorized: VDType
 
     def max_density(self) -> float: ...
 
-    def sample(
+    def sample_vector(
         self,
         n: int,
         *,
         seed: RandomState | None = None,
     ) -> npt.NDArray[VDType]: ...
 
-    def in_support(self, vector: VDType) -> bool: ...
-
-    def pdf(self, vector: npt.NDArray[VDType]) -> npt.NDArray[np.float64]: ...
+    def pdf_vector(self, vector: npt.NDArray[VDType]) -> npt.NDArray[np.float64]: ...
 
 
 @dataclass
-class DiscretizedContinuousScipyDistribution(VectorDistribution[np.float64]):
-    steps: int | np.int64
-    dist: rv_continuous_frozen
-    max_density_value: float | None = None
-    normalization_constant_value: float | None = None
-    int_dist: randint_gen = field(init=False)
+class DiscretizedContinuousScipyDistribution(
+    Distribution[np.float64],
+    Generic[DType],
+):
+    steps: int
 
-    def __post_init__(self):
-        int_gen = randint(0, self.steps)
-        assert isinstance(int_gen, randint_gen)
-        self.int_dist = int_gen
+    rv: rv_continuous_frozen
+    lower_vectorized: np.float64
+    upper_vectorized: np.float64
 
-    @property
-    def lower(self) -> np.float64:
-        return self.dist.a
+    log_scale: bool = False
+    # NOTE: Only required if you require log scaled quantization
+    transformer: _Transformer[DType, np.float64] | None = None
 
-    @property
-    def upper(self) -> np.float64:
-        return self.dist.b
+    _max_density: float | None = None
+    _pdf_norm: float | None = None
+
+    original_value_scale: tuple[DType, DType] | None = None
+
+    def __post_init__(self) -> None:
+        if self.steps < 1:
+            raise ValueError("The number of steps must be at least 1.")
+
+        if self.log_scale:
+            if self.transformer is None:
+                raise ValueError(
+                    "A transformer is required for log-scaled distributions.",
+                )
+
+            # TODO: Not a hard requirement but simplifies a lot
+            if (
+                self.lower_vectorized != self.transformer.lower_vectorized
+                or self.upper_vectorized != self.transformer.upper_vectorized
+            ):
+                raise ValueError("Vectorized scales of transformers must match.")
+
+            orig = self.transformer.to_value(
+                np.array(
+                    [
+                        self.transformer.lower_vectorized,
+                        self.transformer.upper_vectorized,
+                    ],
+                ),
+            )
+            self.original_value_scale = tuple(orig)
 
     def max_density(self) -> float:
-        if self.max_density_value is not None:
-            return self.max_density_value
+        if self._max_density is not None:
+            return self._max_density
 
-        # Otherwise, we generate all possible integers and find the maximum
-        lower, upper = self._bounds_with_confidence()
-        lower_int, upper_int = self._as_integers(np.array([lower, upper]))
-        chunks = arange_chunked(lower_int, upper_int, chunk_size=ARANGE_CHUNKSIZE)
-        max_density = max(
-            self.pdf(self._rescale_integers(chunk)).max() for chunk in chunks
-        )
-        self.max_density_value = max_density
-        return max_density
+        _max, _sum = self._max_density_and_normalization_constant()
+        self._max_density = _max
+        self._pdf_norm = _sum
+        return _max
 
-    def _rescale_integers(
-        self,
-        integers: npt.NDArray[np.int64],
-    ) -> npt.NDArray[np.float64]:
-        # the steps - 1 is because the range above is exclusive w.r.t. the upper bound
-        # e.g.
-        # Suppose setps = 5
-        # then possible integers = [0, 1, 2, 3, 4]
-        # then possible values = [0, 0.25, 0.5, 0.75, 1]
-        # ... which span the 0, 1 range as intended
-        unit_normed = integers / (self.steps - 1)
-        return np.clip(
-            self.lower + unit_normed * (self.upper - self.lower),
-            self.lower,
-            self.upper,
-        )
+    def _pdf_normalization_constant(self) -> float:
+        if self._pdf_norm is not None:
+            return self._pdf_norm
 
-    def _as_integers(self, vector: npt.NDArray[np.float64]) -> npt.NDArray[np.int64]:
-        unit_normed = (vector - self.lower) / (self.upper - self.lower)
-        return np.rint(unit_normed * (self.steps - 1)).astype(int)
+        _max, _sum = self._max_density_and_normalization_constant()
+        self._max_density = _max
+        self._pdf_norm = _sum
+        return _sum
 
-    def _bounds_with_confidence(
+    def _max_density_and_normalization_constant(self) -> tuple[float, float]:
+        # NOTE: It's likely when either one is needed, so will the other.
+        # We just compute both at the same time as it's likely more cache friendly.
+        _sum = 0.0
+        _max = 0.0
+        for chunk in self._meaningful_pdf_values():
+            pdf = self.rv.pdf(chunk)
+            _sum += pdf.sum()
+            _max = max(_max, pdf.max())
+
+        return _max, _sum
+
+    def _meaningful_pdf_values(
         self,
         confidence: float = CONFIDENCE_FOR_NORMALIZATION_OF_DISCRETE,
-    ) -> tuple[np.float64, np.float64]:
-        lower, upper = (
-            self.dist.ppf((1 - confidence) / 2),
-            self.dist.ppf((1 + confidence) / 2),
+    ) -> Iterator[npt.NDArray[np.float64]]:
+        if self.steps > ARANGE_CHUNKSIZE:
+            lower, upper = (
+                self.rv.ppf((1 - confidence) / 2),
+                self.rv.ppf((1 + confidence) / 2),
+            )
+            lower = max(lower, self.lower_vectorized)
+            upper = min(upper, self.upper_vectorized)
+        else:
+            lower, upper = self.lower_vectorized, self.upper_vectorized
+
+        qlow, qhigh = self._quantize(x=np.array([lower, upper]))
+
+        # If we're not on a log-scale, we do simple uniform distance steps
+        if not self.log_scale:
+            stepsize = (upper - lower) / (self.steps - 1)
+            steps_intermediate = (qhigh - qlow) / stepsize + 1
+            return linspace_chunked(
+                qlow,
+                qhigh,
+                steps_intermediate,
+                chunk_size=ARANGE_CHUNKSIZE,
+            )
+
+        # Problem is when we're on a log scale and the steps between qlow and qhigh
+        # are not uniform. We have no idea how many points lie between qhigh and qlow
+        # based on their values alone. For this we are forced to transform back to
+        # the original scale and use the information there to determine the number of
+        # steps.
+        assert self.transformer is not None
+        assert self.original_value_scale is not None
+        orig_low, orig_high = self.original_value_scale
+        qlow_orig, qhigh_orig = self.transformer.to_value(np.array([qlow, qhigh]))
+
+        # Now we can calculate the stepsize between the original values
+        # and hence see where qhigh and qlow lie in the original space to
+        # calculate how many intermediate steps we need.
+        stepsize = (orig_high - orig_low) / (self.steps - 1)
+        steps_intermediate = (qhigh_orig - qlow_orig) / stepsize + 1
+
+        return iter(
+            self.transformer.to_vector(chunk)
+            for chunk in linspace_chunked(
+                qlow_orig,
+                qhigh_orig,
+                steps_intermediate,
+                chunk_size=ARANGE_CHUNKSIZE,
+            )
         )
-        return max(lower, self.lower), min(upper, self.upper)
 
-    def _normalization_constant(self) -> float:
-        if self.normalization_constant_value is not None:
-            return self.normalization_constant_value
-
-        lower_int, upper_int = self._as_integers(np.array([self.lower, self.upper]))
-        # If there's a lot of possible values, we want to find
-        # the support for where the distribution is above some
-        # minimal pdf value, and only compute the normalization constant
-        # w.r.t. to those values. It is an approximation
-        if upper_int - lower_int > ARANGE_CHUNKSIZE:
-            l_bound, u_bound = self._bounds_with_confidence()
-            lower_int, upper_int = self._as_integers(np.array([l_bound, u_bound]))
-
-        chunks = arange_chunked(lower_int, upper_int, chunk_size=ARANGE_CHUNKSIZE)
-        normalization_constant = sum(
-            self.dist.pdf(self._rescale_integers(chunk)).sum() for chunk in chunks
-        )
-        self.normalization_constant_value = normalization_constant
-        return self.normalization_constant_value
-
-    def sample(
+    def sample_vector(
         self,
         n: int,
         *,
         seed: RandomState | None = None,
     ) -> npt.NDArray[np.float64]:
-        integers = self.int_dist.rvs(size=n, random_state=seed)
-        assert isinstance(integers, np.ndarray)
-        return self._rescale_integers(integers)
+        return self._quantize(x=self.rv.rvs(size=n, random_state=seed))
 
-    def in_support(self, vector: np.float64) -> bool:
-        return self.pdf(np.array([vector]))[0] != 0
+    def _quantize(self, x: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
+        vectorized_bounds = (self.lower_vectorized, self.upper_vectorized)
+        if not self.log_scale:
+            return quantize(x, bounds=vectorized_bounds, bins=self.steps)
 
-    def pdf(self, vector: npt.NDArray[VDType]) -> npt.NDArray[np.float64]:
-        unit_normed = (vector - self.lower) / (self.upper - self.lower)
-        int_scaled = unit_normed * (self.steps - 1)
-        close_to_int = np.round(int_scaled, ROUND_PLACES)
-        rounded_as_int = np.rint(int_scaled)
-
-        valid_entries = np.where(
-            (close_to_int == rounded_as_int)
-            & (vector >= self.lower)
-            & (vector <= self.upper),
-            rounded_as_int,
-            np.nan,
+        assert self.original_value_scale
+        return quantize_log(
+            x,
+            bounds=vectorized_bounds,
+            scale_slice=(self.original_value_scale),
+            bins=self.steps,
         )
 
-        return self.dist.pdf(valid_entries) / self._normalization_constant()
+    def pdf_vector(self, vector: npt.NDArray[VDType]) -> npt.NDArray[np.float64]:
+        valid_entries = np.where(
+            (vector >= self.lower_vectorized) & (vector <= self.upper_vectorized),
+            vector,
+            np.nan,
+        )
+        pdf = self.rv.pdf(valid_entries) / self._pdf_normalization_constant()
+
+        # By definition, we don't allow NaNs in the pdf
+        return np.nan_to_num(pdf, nan=0)
 
     def neighborhood(
         self,
@@ -188,15 +231,60 @@ class DiscretizedContinuousScipyDistribution(VectorDistribution[np.float64]):
 
         assert n < 1000000, "Can only generate less than 1 million neighbors."
         seed = np.random.RandomState() if seed is None else seed
+        lower, upper = self.lower_vectorized, self.upper_vectorized
+        steps = self.steps
 
-        center_int = self._as_integers(np.array([vector]))[0]
+        qvector = self._quantize(np.array([vector]))[0]
 
         # In the easiest case, the amount of neighbors we need is more than the amount
         # possible, in this case, we can skip our sampling and just generate all
         # neighbors, excluding the current value
-        if n >= self.steps - 1:
-            values = split_arange((0, center_int), (center_int, self.steps))
-            return self._rescale_integers(values)
+        if n >= steps - 1:
+            if self.log_scale:
+                assert self.transformer is not None
+                assert self.original_value_scale is not None
+                orig_low, orig_high = self.original_value_scale
+                qvector_orig: DType = self.transformer.to_value(np.array([qvector]))[0]
+
+                # Now we can calculate the stepsize between the original values
+                # and hence see where qhigh and qlow lie in the original space to
+                # calculate how many intermediate steps we need.
+                stepsize = (orig_high - orig_low) / (self.steps - 1)
+
+                # Edge case for when qcenter is the lower bound
+                steps_to_take = int((qvector_orig - orig_low) / stepsize) + 1
+                if steps_to_take == 1:
+                    bottom = np.array([])
+                else:
+                    bottom = self.transformer.to_vector(
+                        np.linspace(
+                            orig_low,  # type: ignore
+                            qvector_orig,  # type: ignore
+                            steps_to_take,
+                            endpoint=False,
+                        ),
+                    )
+
+                top = self.transformer.to_vector(
+                    np.linspace(
+                        qvector_orig + stepsize,
+                        orig_high,  # type: ignore
+                        steps - steps_to_take,
+                    ),
+                )
+            else:
+                stepsize = (upper - lower) / (self.steps - 1)
+
+                # Edge case for when qcenter is the lower bound
+                steps_to_take = int((qvector - lower) / stepsize) + 1
+                if steps_to_take == 1:
+                    bottom = np.array([])
+                else:
+                    bottom = np.linspace(lower, qvector, steps_to_take, endpoint=False)
+
+                top = np.linspace(qvector + stepsize, upper, steps - steps_to_take)
+
+            return np.concatenate((bottom, top))
 
         # Otherwise, we use a repeated sampling strategy where we slowly increase the
         # std of a normal, centered on `center`, slowly expanding `std` such that
@@ -204,128 +292,97 @@ class DiscretizedContinuousScipyDistribution(VectorDistribution[np.float64]):
 
         # We set up a buffer that can hold the number of neighbors we need, plus some
         # extra excess from sampling, preventing us from having to reallocate memory.
+        # We also include the initial value in the buffer, as we will remove it later.
         SAMPLE_SIZE = n * sample_multiplier
         BUFFER_SIZE = n * (sample_multiplier + 1)
-        neighbors = np.empty(BUFFER_SIZE, dtype=np.int64)
-        offset = 0  # Indexes into current progress of filling buffer
+        neighbors = np.empty(BUFFER_SIZE + 1, dtype=np.float64)
+        neighbors[0] = qvector
+        offset = 1  # Indexes into current progress of filling buffer
 
         # We extend the range of stds to try to find neighbors
         stds = np.linspace(std, 1.0, n_retries + 1, endpoint=True)
 
-        # The span over which we want std to cover
-        range_size = self.upper - self.lower
-
+        range_size = upper - lower
         for _std in stds:
             # Generate candidates in vectorized space
             candidates = seed.normal(vector, _std * range_size, size=SAMPLE_SIZE)
-            valid_candidates = candidates[
-                (candidates >= self.lower) & (candidates <= self.upper)
-            ]
+            valid_candidates = candidates[(candidates >= lower) & (candidates <= upper)]
 
-            # Transform to integers and get uniques
-            candidates_int = self._as_integers(valid_candidates)
+            # Transform to quantized space
+            candidates_quantized = self._quantize(valid_candidates)
 
-            if offset == 0:
-                uniq = np.unique(candidates_int)
+            uniq = np.unique(candidates_quantized)
+            new_uniq = np.setdiff1d(uniq, neighbors[:offset], assume_unique=True)
 
-                n_candidates = len(uniq)
-                neighbors[:n_candidates] = uniq
-                offset += n_candidates
-            else:
-                uniq = np.unique(candidates_int)
-                new_uniq = np.setdiff1d(uniq, neighbors[:offset], assume_unique=True)
+            n_new_unique = len(new_uniq)
+            neighbors[offset : offset + n_new_unique] = new_uniq
+            offset += n_new_unique
 
-                n_new_unique = len(new_uniq)
-                neighbors[offset : offset + n_new_unique] = new_uniq
-                offset += n_new_unique
-
-            # We have enough neighbors, we can stop and return the vectorized values
-            if offset >= n:
-                return self._rescale_integers(neighbors[:n])
+            # We have enough neighbors, we can stop
+            if offset >= n + 1:
+                # Ensure we don't include the initial value point
+                return neighbors[1 : n + 1]
 
         raise ValueError(
             f"Failed to find enough neighbors with {n_retries} retries."
-            f"Given {n} neighbors, we only found {offset}.",
-            f"The normal's for sampling neighbors were Normal({vector}, {list(stds)})"
-            f" which were meant to find neighbors of {vector}. in the range",
-            f" ({self.lower}, {self.upper}).",
+            f" Given {n} neighbors, we only found {offset}."
+            f" The normal's for sampling neighbors were Normal({vector}, {list(stds)})"
+            f" which were meant to find neighbors of {vector}. in the range"
+            f" ({self.lower_vectorized}, {self.upper_vectorized}).",
         )
 
 
 @dataclass
-class ScipyDiscreteDistribution(VectorDistribution[VDType]):
+class ScipyDiscreteDistribution(Distribution[VDType]):
     rv: rv_discrete_frozen
-    max_density_value: float | Callable[[], float]
+    lower_vectorized: VDType
+    upper_vectorized: VDType
     dtype: type[VDType]
+    _max_density: float
 
-    @property
-    def lower(self) -> VDType:
-        return self.rv.a
-
-    @property
-    def upper(self) -> VDType:
-        return self.rv.b
-
-    def sample(
+    def sample_vector(
         self,
-        size: int | None = None,
+        n: int | None = None,
         *,
         seed: RandomState | None = None,
     ) -> npt.NDArray[VDType]:
-        return self.rv.rvs(size=size, random_state=seed).astype(self.dtype)
-
-    def in_support(self, vector: VDType) -> bool:
-        return self.rv.a <= vector <= self.rv.b
+        return self.rv.rvs(size=n, random_state=seed).astype(self.dtype)
 
     def max_density(self) -> float:
-        match self.max_density_value:
-            case float() | int():
-                return self.max_density_value
-            case _:
-                max_density = self.max_density_value()
-                self.max_density_value = max_density
-                return max_density
+        return float(self._max_density)
 
-    def pdf(self, vector: npt.NDArray[VDType]) -> npt.NDArray[np.float64]:
-        return self.rv.pmf(vector)
+    def pdf_vector(self, vector: npt.NDArray[VDType]) -> npt.NDArray[np.float64]:
+        # By definition, we don't allow NaNs in the pdf
+        pdf = self.rv.pmf(vector)
+        return np.nan_to_num(pdf, nan=0)
 
 
 @dataclass
-class ScipyContinuousDistribution(VectorDistribution[VDType]):
+class ScipyContinuousDistribution(Distribution[VDType]):
     rv: rv_continuous_frozen
-    max_density_value: float | Callable[[], float]
+    lower_vectorized: VDType
+    upper_vectorized: VDType
     dtype: type[VDType]
 
-    @property
-    def lower(self) -> VDType:
-        return self.rv.a
+    _max_density: float
+    _pdf_norm: float = 1
 
-    @property
-    def upper(self) -> VDType:
-        return self.rv.b
-
-    def sample(
+    def sample_vector(
         self,
-        size: int | None = None,
+        n: int | None = None,
         *,
         seed: RandomState | None = None,
     ) -> npt.NDArray[VDType]:
-        return self.rv.rvs(size=size, random_state=seed).astype(self.dtype)
-
-    def in_support(self, vector: VDType) -> bool:
-        return self.rv.a <= vector <= self.rv.b
+        return self.rv.rvs(size=n, random_state=seed).astype(self.dtype)
 
     def max_density(self) -> float:
-        match self.max_density_value:
-            case float() | int():
-                return self.max_density_value
-            case _:
-                max_density = self.max_density_value()
-                self.max_density_value = max_density
-                return max_density
+        return float(self._max_density)
 
-    def pdf(self, vector: npt.NDArray[VDType]) -> npt.NDArray[np.float64]:
-        return self.rv.pdf(vector)
+    def pdf_vector(self, vector: npt.NDArray[VDType]) -> npt.NDArray[np.float64]:
+        pdf = self.rv.pdf(vector) / self._pdf_norm
+
+        # By definition, we don't allow NaNs in the pdf
+        return np.nan_to_num(pdf, nan=0)
 
     def neighborhood(
         self,
@@ -353,15 +410,17 @@ class ScipyContinuousDistribution(VectorDistribution[VDType]):
         # Generate batches of n * BUFFER_MULTIPLIER candidates, filling the above
         # buffer until we have enough valid candidates.
         # We should not overflow as the buffer
-        range_size = self.upper - self.lower
+        range_size = self.upper_vectorized - self.lower_vectorized
+
         for _std in stds:
             candidates = seed.normal(vector, _std * range_size, size=(SAMPLE_SIZE,))
             valid_candidates = candidates[
-                (candidates >= self.lower) & (candidates <= self.upper)
+                (candidates >= self.lower_vectorized)
+                & (candidates <= self.upper_vectorized)
             ]
 
             n_candidates = len(valid_candidates)
-            neighbors[offset:n_candidates] = valid_candidates
+            neighbors[offset : offset + n_candidates] = valid_candidates
             offset += n_candidates
 
             # We have enough neighbors, we can stop and return the vectorized values
@@ -370,41 +429,40 @@ class ScipyContinuousDistribution(VectorDistribution[VDType]):
 
         raise ValueError(
             f"Failed to find enough neighbors with {n_retries} retries."
-            f"Given {n} neighbors, we only found {offset}.",
-            f"The normal's for sampling neighbors were Normal({vector}, {list(stds)})"
-            f" which were meant to find neighbors of {vector}. in the range",
-            f" ({self.lower}, {self.upper}).",
+            f" Given {n} neighbors, we only found {offset}."
+            f" The `Normals` for sampling neighbors were"
+            f" Normal(mu={vector}, sigma={list(stds)})"
+            f" which were meant to find vectorized neighbors of the vector {vector},"
+            " which was expected to be in the range"
+            f" ({self.lower_vectorized}, {self.upper_vectorized}).",
         )
 
 
 @dataclass
-class ConstantVectorDistribution(VectorDistribution[np.integer]):
-    value: np.integer
+class ConstantVectorDistribution(Distribution[np.int64]):
+    vector_value: np.int64
 
     @property
-    def lower(self) -> np.integer:
-        return self.value
+    def lower_vectorized(self) -> np.int64:
+        return self.vector_value
 
     @property
-    def upper(self) -> np.integer:
-        return self.value
+    def upper_vectorized(self) -> np.int64:
+        return self.vector_value
 
     def max_density(self) -> float:
         return 1.0
 
-    def sample(
+    def sample_vector(
         self,
         n: int | None = None,
         *,
         seed: RandomState | None = None,
-    ) -> np.integer | npt.NDArray[np.integer]:
+    ) -> np.int64 | npt.NDArray[np.int64]:
         if n is None:
-            return self.value
+            return self.vector_value
 
-        return np.full((n,), self.value, dtype=np.integer)
+        return np.full((n,), self.vector_value, dtype=np.int64)
 
-    def in_support(self, vector: np.integer) -> bool:
-        return vector == self.value
-
-    def pdf(self, vector: npt.NDArray[np.integer]) -> npt.NDArray[np.float64]:
-        return (vector == self.value).astype(float)
+    def pdf_vector(self, vector: npt.NDArray[np.int64]) -> npt.NDArray[np.float64]:
+        return (vector == self.vector_value).astype(float)

@@ -5,6 +5,7 @@ from collections.abc import Iterator, KeysView, Mapping, Sequence
 from typing import TYPE_CHECKING, Any
 
 import numpy as np
+import numpy.typing as npt
 
 from ConfigSpace import c_util
 from ConfigSpace.exceptions import HyperparameterNotFoundError, IllegalValueError
@@ -89,7 +90,7 @@ class Configuration(Mapping[str, Any]):
             # in the configuration are sorted in the same way as they are sorted in
             # the configuration space
             self._values = {}
-            self._vector = np.empty(shape=len(configuration_space), dtype=float)
+            self._vector = np.empty(shape=len(configuration_space), dtype=np.float64)
 
             for i, (key, hp) in enumerate(configuration_space.items()):
                 value = values.get(key, NotSet)
@@ -103,7 +104,7 @@ class Configuration(Mapping[str, Any]):
                 # Truncate the float to be of constant length for a python version
                 # TODO: Optimize this
                 if isinstance(hp, FloatHyperparameter):
-                    value = float(repr(value))
+                    value = float(np.round(value, 16))  # type: ignore
 
                 self._values[key] = value
                 self._vector[i] = hp.to_vector(value)  # type: ignore
@@ -144,7 +145,7 @@ class Configuration(Mapping[str, Any]):
             allow_inactive_with_values=self.allow_inactive_with_values,
         )
 
-    def get_array(self) -> np.ndarray:
+    def get_array(self) -> npt.NDArray[np.float64]:
         """The internal vector representation of this config.
 
         All continuous values are scaled between zero and one.
@@ -192,7 +193,6 @@ class Configuration(Mapping[str, Any]):
             raise HyperparameterNotFoundError(key, space=self.config_space)
 
         item_idx = self.config_space._hyperparameter_idx[key]
-
         vector = self._vector[item_idx]
         if not np.isfinite(vector):
             # NOTE: Techinically we could raise an `InactiveHyperparameterError` here

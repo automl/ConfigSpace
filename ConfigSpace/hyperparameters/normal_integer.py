@@ -7,16 +7,15 @@ from typing import Any, ClassVar
 import numpy as np
 from scipy.stats import truncnorm
 
+from ConfigSpace.functional import is_close_to_integer
 from ConfigSpace.hyperparameters._distributions import (
     DiscretizedContinuousScipyDistribution,
 )
-from ConfigSpace.hyperparameters._hp_components import (
-    VECTORIZED_NUMERIC_LOWER,
-    VECTORIZED_NUMERIC_UPPER,
-    UnitScaler,
+from ConfigSpace.hyperparameters._hp_components import ABS_ROUND_CLOSENESS, UnitScaler
+from ConfigSpace.hyperparameters.hyperparameter import (
+    HyperparameterWithPrior,
+    IntegerHyperparameter,
 )
-from ConfigSpace.hyperparameters.hyperparameter import HyperparameterWithPrior
-from ConfigSpace.hyperparameters.integer_hyperparameter import IntegerHyperparameter
 from ConfigSpace.hyperparameters.uniform_integer import UniformIntegerHyperparameter
 
 
@@ -25,6 +24,7 @@ class NormalIntegerHyperparameter(
     IntegerHyperparameter,
     HyperparameterWithPrior[UniformIntegerHyperparameter],
 ):
+    serializable_type_name: ClassVar[str] = "normal_int"
     orderable: ClassVar[bool] = True
     mu: float
     sigma: float
@@ -43,47 +43,45 @@ class NormalIntegerHyperparameter(
         self.mu = float(mu)
         self.sigma = float(sigma)
         self.log = bool(log)
-        self.lower = np.int64(lower)
-        self.upper = np.int64(upper)
+        self.lower = np.int64(np.rint(lower))
+        self.upper = np.int64(np.rint(upper))
 
         try:
-            scaler = UnitScaler(self.lower, self.upper, log=self.log)
+            scaler = UnitScaler(self.lower, self.upper, log=self.log, dtype=np.int64)
         except ValueError as e:
             raise ValueError(f"Hyperparameter '{name}' has illegal settings") from e
 
         if default_value is None:
-            _default_value = np.rint(
-                scaler.to_value(np.array([self.mu]))[0],
-            ).astype(np.int64)
+            _default_value = np.rint(np.clip(self.mu, self.lower, self.upper)).astype(
+                np.int64,
+            )
         else:
+            if not is_close_to_integer(default_value, atol=ABS_ROUND_CLOSENESS):
+                raise TypeError(
+                    f"`default_value` for hyperparameter '{name}' must be an integer."
+                    f" Got '{type(default_value).__name__}' for {default_value=}.",
+                )
+
             _default_value = np.rint(default_value).astype(np.int64)
 
         size = self.upper - self.lower + 1
 
-        truncnorm_dist = truncnorm(  # type: ignore
-            a=(self.lower - self.mu) / self.sigma,
-            b=(self.upper - self.mu) / self.sigma,
-            loc=self.mu,
-            scale=self.sigma,
+        vectorized_mu = scaler.to_vector(np.array([self.mu]))[0]
+        vectorized_sigma = scaler.vectorize_size(self.sigma)
+
+        vec_truncnorm_dist = truncnorm(  # type: ignore
+            a=(0.0 - vectorized_mu) / vectorized_sigma,
+            b=(1.0 - vectorized_mu) / vectorized_sigma,
+            loc=vectorized_mu,
+            scale=vectorized_sigma,
         )
-        max_density_point = np.clip(
-            scaler.to_vector(np.array([self.mu]))[0],
-            a_min=VECTORIZED_NUMERIC_LOWER,
-            a_max=VECTORIZED_NUMERIC_UPPER,
-        )
-        max_density_value: float = truncnorm_dist.pdf(max_density_point)  # type: ignore
-        assert isinstance(max_density_value, float)
+
         vector_dist = DiscretizedContinuousScipyDistribution(
-            dist=truncnorm_dist,  # type: ignore
-            steps=size,
-            max_density_value=max_density_value,
-            normalization_constant_value=None,  # Will compute on demand
+            rv=vec_truncnorm_dist,  # type: ignore
+            steps=int(size),
+            lower_vectorized=np.float64(0.0),
+            upper_vectorized=np.float64(1.0),
         )
-
-        # Compute the normalization constant ahead of time
-        constant = vector_dist._normalization_constant()
-        vector_dist.normalization_constant_value = constant
-
         super().__init__(
             name=name,
             size=int(size),
@@ -104,3 +102,29 @@ class NormalIntegerHyperparameter(
             log=self.log,
             meta=self.meta,
         )
+
+    def __str__(self) -> str:
+        parts = [
+            self.name,
+            f"Type: {str(self.__class__.__name__).replace('Hyperparameter', '')}",
+            f"Mu: {self.mu}",
+            f"Sigma: {self.sigma}",
+            f"Range: [{self.lower}, {self.upper}]",
+            f"Default: {self.default_value}",
+        ]
+        if self.log:
+            parts.append("on log-scale")
+
+        return ", ".join(parts)
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "name": self.name,
+            "type": self.serializable_type_name,
+            "log": self.log,
+            "mu": float(self.mu),
+            "sigma": float(self.sigma),
+            "lower": int(self.lower),
+            "upper": int(self.upper),
+            "default_value": int(self.default_value),
+        }

@@ -14,54 +14,47 @@ from ConfigSpace.hyperparameters import (
 @overload
 def Float(
     name: str,
-    bounds: tuple[float, float] | None = ...,
+    bounds: tuple[float, float],
     *,
     distribution: Uniform | None = ...,
     default: float | None = ...,
-    q: int | None = ...,
     log: bool = ...,
     meta: dict | None = ...,
-) -> UniformFloatHyperparameter:
-    ...
+) -> UniformFloatHyperparameter: ...
 
 
 # Normal -> NormalFloatHyperparameter
 @overload
 def Float(
     name: str,
-    bounds: tuple[float, float] | None = ...,
+    bounds: tuple[float, float],
     *,
     distribution: Normal,
     default: float | None = ...,
-    q: int | None = ...,
     log: bool = ...,
     meta: dict | None = ...,
-) -> NormalFloatHyperparameter:
-    ...
+) -> NormalFloatHyperparameter: ...
 
 
 # Beta -> BetaFloatHyperparameter
 @overload
 def Float(
     name: str,
-    bounds: tuple[float, float] | None = ...,
+    bounds: tuple[float, float],
     *,
     distribution: Beta,
     default: float | None = ...,
-    q: int | None = ...,
     log: bool = ...,
     meta: dict | None = ...,
-) -> BetaFloatHyperparameter:
-    ...
+) -> BetaFloatHyperparameter: ...
 
 
 def Float(
     name: str,
-    bounds: tuple[float, float] | None = None,
+    bounds: tuple[float, float],
     *,
     distribution: Distribution | None = None,
     default: float | None = None,
-    q: int | None = None,
     log: bool = False,
     meta: dict | None = None,
 ) -> UniformFloatHyperparameter | NormalFloatHyperparameter | BetaFloatHyperparameter:
@@ -74,11 +67,9 @@ def Float(
         Float("a", (1, 10), distribution=Uniform())
 
         # Normally distributed at 2 with std 3
-        Float("b", distribution=Normal(2, 3))
         Float("b", (0, 5), distribution=Normal(2, 3))  # ... bounded
 
         # Beta distributed with alpha 1 and beta 2
-        Float("c", distribution=Beta(1, 2))
         Float("c", (0, 3), distribution=Beta(1, 2))  # ... bounded
 
         # Give it a default value
@@ -86,9 +77,6 @@ def Float(
 
         # Sample on a log scale
         Float("a", (1, 100), log=True)
-
-        # Quantized into three brackets
-        Float("a", (1, 10), q=3)
 
         # Add meta info to the param
         Float("a", (1.0, 10), meta={"use": "For counting chickens"})
@@ -103,25 +91,14 @@ def Float(
     name : str
         The name to give to this hyperparameter
 
-    bounds : tuple[float, float] | None = None
-        The bounds to give to the float. Note that by default, this is required
-        for Uniform distribution, which is the default distribution
+    bounds : tuple[float, float]
+        The bounds to give to the float.
 
     distribution : Uniform | Normal | Beta, = Uniform
         The distribution to use for the hyperparameter. See above
 
     default : float | None = None
         The default value to give to the hyperparameter.
-
-    q : float | None = None
-        The quantization factor, must evenly divide the boundaries.
-
-    Note:
-        ----
-        Quantization points act are not equal and require experimentation
-        to be certain about
-
-        * https://github.com/automl/ConfigSpace/issues/264
 
     log : bool = False
         Whether to this parameter lives on a log scale
@@ -137,13 +114,7 @@ def Float(
     if distribution is None:
         distribution = Uniform()
 
-    if bounds is None and isinstance(distribution, Uniform):
-        raise ValueError("`bounds` must be specifed for Uniform distribution")
-
-    if bounds is None:
-        lower, upper = (None, None)
-    else:
-        lower, upper = bounds
+    lower, upper = bounds
 
     if isinstance(distribution, Uniform):
         return UniformFloatHyperparameter(
@@ -151,7 +122,6 @@ def Float(
             lower=lower,
             upper=upper,
             default_value=default,
-            q=q,
             log=log,
             meta=meta,
         )
@@ -164,7 +134,6 @@ def Float(
             default_value=default,
             mu=distribution.mu,
             sigma=distribution.sigma,
-            q=q,
             log=log,
             meta=meta,
         )
@@ -177,7 +146,6 @@ def Float(
             alpha=distribution.alpha,
             beta=distribution.beta,
             default_value=default,
-            q=q,
             log=log,
             meta=meta,
         )
