@@ -23,6 +23,7 @@ def run_test(configuration_space_path):
     with open(configuration_space_path) as fh:
         cs = pcs_parser.read(fh)
 
+    print(cs)
     print("###")
     print(configuration_space_path, flush=True)
 
@@ -54,7 +55,9 @@ def run_test(configuration_space_path):
                     v_end_time = time.time()
                     validation_time.append(v_end_time - v_start_time)
                 end_time = time.time()
-                neighborhood_time.append(end_time - start_time - np.sum(validation_time))
+                neighborhood_time.append(
+                    end_time - start_time - np.sum(validation_time),
+                )
                 validation_times.extend(validation_time)
 
     print("Average time sampling %d configurations" % n_configs, np.mean(sampling_time))
@@ -64,7 +67,12 @@ def run_test(configuration_space_path):
 
 this_file = os.path.abspath(__file__)
 this_directory = os.path.dirname(this_file)
-configuration_space_path = os.path.join(this_directory, "..", "test", "test_searchspaces")
+configuration_space_path = os.path.join(
+    this_directory,
+    "..",
+    "test",
+    "test_searchspaces",
+)
 configuration_space_path = os.path.abspath(configuration_space_path)
 pcs_files = os.listdir(configuration_space_path)
 
@@ -72,3 +80,18 @@ for pcs_file in pcs_files:
     if ".pcs" in pcs_file:
         full_path = os.path.join(configuration_space_path, pcs_file)
         run_test(full_path)
+
+# ------------
+# Average time sampling 100 configurations 0.0115247011185
+# Average time retrieving a nearest neighbor 0.00251974105835
+# Average time checking one configuration 0.000194481347553
+
+# is_close_integer
+# Average time sampling 100 configurations 0.1998179078102112
+# Average time retrieving a nearest neighbor 0.023387917677561442
+# Average time checking one configuration 0.0012463332840478253
+
+# /home/skantify/code/ConfigSpace/test/test_searchspaces/auto-sklearn_2017_11_17.pcs
+# Average time sampling 100 configurations 0.05419049263000488
+# Average time retrieving a nearest neighbor 0.01149404075410631
+# Average time checking one configuration 0.0006455589667150331

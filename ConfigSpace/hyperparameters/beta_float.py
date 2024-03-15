@@ -106,7 +106,6 @@ class BetaFloatHyperparameter(
             lower_vectorized=np.float64(0.0),
             upper_vectorized=np.float64(1.0),
             _max_density=beta_rv.pdf(normalized_mode),  # type: ignore
-            dtype=np.float64,
         )
 
         super().__init__(

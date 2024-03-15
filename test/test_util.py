@@ -121,7 +121,7 @@ def test_impute_inactive_values():
     assert len(new_configuration) == 11
     for key in new_configuration:
         assert new_configuration[key] is not None
-    assert new_configuration["random_forest:max_features"] == 9
+    assert new_configuration["random_forest:max_features"] == 10
 
 
 def test_random_neighbor_float():
@@ -156,8 +156,8 @@ def test_random_neighborhood_int():
     hp = UniformIntegerHyperparameter("a", 1, 10)
     all_neighbors = _test_get_one_exchange_neighbourhood(hp)
     all_neighbors = [neighbor["a"] for neighbor in all_neighbors]
-    assert pytest.approx(np.mean(all_neighbors), abs=1e-2) == 5.28
-    assert pytest.approx(np.var(all_neighbors), abs=1e-2) == 8.39
+    assert pytest.approx(np.mean(all_neighbors), abs=1e-2) == 5.44
+    assert pytest.approx(np.var(all_neighbors), abs=1e-2) == 9.14
 
     hp = UniformIntegerHyperparameter("a", 1, 10, log=True)
     all_neighbors = _test_get_one_exchange_neighbourhood(hp)

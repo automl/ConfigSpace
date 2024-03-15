@@ -175,7 +175,7 @@ def test_rescale(
     ],
 )
 def test_is_close_to_integer(x: float, expected: bool) -> None:
-    is_close = is_close_to_integer(x)
+    is_close = is_close_to_integer(x, decimals=15)
     np.testing.assert_equal(is_close, expected)
 
 

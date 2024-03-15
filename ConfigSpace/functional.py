@@ -235,21 +235,21 @@ def rescale(
 
 
 @overload
-def is_close_to_integer(value: int | float | np.number, atol: float = ...) -> bool: ...
+def is_close_to_integer(value: int | float | np.number, decimals: int) -> bool: ...
 
 
 @overload
 def is_close_to_integer(
     value: np.ndarray,
-    atol: float = ...,
+    decimals: int,
 ) -> npt.NDArray[np.bool_]: ...
 
 
 def is_close_to_integer(
     value: int | float | np.number | np.ndarray,
-    atol: float = 1e-15,  # NOTE: More strict than np.isclose default
+    decimals: int,
 ) -> bool | npt.NDArray[np.bool_]:
-    return np.isclose(value, np.rint(value), atol=atol)  # type: ignore
+    return np.round(value, decimals) == np.rint(value)  # type: ignore
 
 
 def walk_subclasses(cls: type, seen: set[type] | None = None) -> Iterator[type]:

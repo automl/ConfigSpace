@@ -64,4 +64,4 @@ assert c2.pdf(point_2_log)[0] == pytest.approx(0.2138045617479014)
 * Can add multiple conditions at once...
 * pcs (old) doesn't correctly read forbiddens with numericals:
     * They instead read as strings when it should be numbers
-
+* Unify the neighbors generation for uniform and continuous scipy

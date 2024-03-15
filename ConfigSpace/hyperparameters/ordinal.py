@@ -8,9 +8,8 @@ from typing import Any, ClassVar
 
 import numpy as np
 import numpy.typing as npt
-from scipy.stats import randint
 
-from ConfigSpace.hyperparameters._distributions import ScipyDiscreteDistribution
+from ConfigSpace.hyperparameters._distributions import UniformIntegerDistribution
 from ConfigSpace.hyperparameters._hp_components import (
     TransformerSeq,
     ordinal_neighborhood,
@@ -58,13 +57,7 @@ class OrdinalHyperparameter(Hyperparameter[Any, np.int64]):
             meta=meta,
             transformer=TransformerSeq(seq=sequence),
             neighborhood=partial(ordinal_neighborhood, size=int(size)),
-            vector_dist=ScipyDiscreteDistribution(
-                rv=randint(0, size),  # type: ignore
-                _max_density=1 / size,
-                lower_vectorized=np.int64(0),
-                upper_vectorized=np.int64(size - 1),
-                dtype=np.int64,
-            ),
+            vector_dist=UniformIntegerDistribution(size=size),
             neighborhood_size=self._neighborhood_size,
         )
 

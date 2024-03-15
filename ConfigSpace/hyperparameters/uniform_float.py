@@ -9,9 +9,8 @@ from typing import (
 )
 
 import numpy as np
-from scipy.stats import uniform
 
-from ConfigSpace.hyperparameters._distributions import ScipyContinuousDistribution
+from ConfigSpace.hyperparameters._distributions import UnitUniformContinuousDistribution
 from ConfigSpace.hyperparameters._hp_components import ROUND_PLACES, UnitScaler
 from ConfigSpace.hyperparameters.hyperparameter import FloatHyperparameter
 from ConfigSpace.hyperparameters.uniform_integer import UniformIntegerHyperparameter
@@ -40,14 +39,8 @@ class UniformFloatHyperparameter(FloatHyperparameter):
         except ValueError as e:
             raise ValueError(f"Hyperparameter '{name}' has illegal settings") from e
 
-        range_size = self.upper - self.lower
-        vect_dist = ScipyContinuousDistribution(
-            rv=uniform,  # type: ignore
-            dtype=np.float64,
-            lower_vectorized=np.float64(0.0),
-            upper_vectorized=np.float64(1.0),
-            _max_density=float(1 / range_size),  # type: ignore
-            _pdf_norm=float(self.upper - self.lower),
+        vect_dist = UnitUniformContinuousDistribution(
+            pdf_max_density=1 / float(self.upper - self.lower),
         )
         super().__init__(
             name=name,

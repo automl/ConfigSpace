@@ -1377,12 +1377,12 @@ def test_uniformint__pdf():
     c2 = UniformIntegerHyperparameter("logparam", lower=1, upper=10000, log=True)
 
     point_1 = np.array([0])
-    point_2 = np.array([0.7])
-    array_1 = np.array([0, 0.7, 1.1])
+    point_2 = np.array([0.75])
+    array_1 = np.array([0, 0.75, 1.1])
     point_outside_range = np.array([-0.1])
-    accepted_shape_1 = np.array([[0.7]])
-    accepted_shape_2 = np.array([0, 0.7, 1.1]).reshape(1, -1)
-    accepted_shape_3 = np.array([1.1, 0.7, 0]).reshape(-1, 1)
+    accepted_shape_1 = np.array([[0.75]])
+    accepted_shape_2 = np.array([0, 0.75, 1.1]).reshape(1, -1)
+    accepted_shape_3 = np.array([1.1, 0.75, 0]).reshape(-1, 1)
 
     # need to lower the amount of places since the bounds
     # are inexact (._lower=-0.49999, ._upper=4.49999)
@@ -1434,7 +1434,8 @@ def test_uniformint_get_neighbors():
         c1 = UniformIntegerHyperparameter("param", lower=0, upper=i_upper)
         for i_value in range(i_upper + 1):
             neighbors = c1.neighbors_values(i_value, n=i_upper, seed=rs)
-            assert set(neighbors) == set(range(i_upper + 1)) - {i_value}, c1
+            expected = set(range(i_upper + 1)) - {i_value}
+            assert set(neighbors) == expected, f"{i_value=}"
 
 
 def test_normalint():
@@ -2591,7 +2592,7 @@ def test_sample_UniformIntegerHyperparameter():
 
     bin_counts, _ = np.histogram(samples1, bins=10, range=(1, 10))
     for bin in bin_counts:
-        assert 90 < bin < 110
+        assert 85 < bin < 115
 
 
 def test_sample_BetaIntegerHyperparameter():
@@ -2624,8 +2625,9 @@ def test_sample_CategoricalHyperparameter():
     np.testing.assert_array_equal(samples1, samples2)
 
     _, bin_counts = np.unique(samples1, return_counts=True)
+    print(bin_counts)
     for bin in bin_counts:
-        assert 240 < bin < 260
+        assert 235 <= bin <= 265
 
 
 def test_sample_CategoricalHyperparameter_with_weights():

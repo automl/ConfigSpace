@@ -13,8 +13,9 @@ from scipy.stats import uniform
 from ConfigSpace.functional import is_close_to_integer
 from ConfigSpace.hyperparameters._distributions import (
     DiscretizedContinuousScipyDistribution,
+    UniformIntegerNormalizedDistribution,
 )
-from ConfigSpace.hyperparameters._hp_components import ABS_ROUND_CLOSENESS, UnitScaler
+from ConfigSpace.hyperparameters._hp_components import ROUND_PLACES, UnitScaler
 from ConfigSpace.hyperparameters.integer_hyperparameter import IntegerHyperparameter
 
 
@@ -38,7 +39,7 @@ class UniformIntegerHyperparameter(IntegerHyperparameter):
 
         if default_value is not None and not is_close_to_integer(
             default_value,
-            atol=ABS_ROUND_CLOSENESS,
+            decimals=ROUND_PLACES,
         ):
             raise TypeError(
                 f"`default_value` for hyperparameter '{name}' must be an integer."
@@ -51,16 +52,20 @@ class UniformIntegerHyperparameter(IntegerHyperparameter):
             raise ValueError(f"Hyperparameter '{name}' has illegal settings") from e
 
         size = self.upper - self.lower + 1
-        vector_dist = DiscretizedContinuousScipyDistribution(
-            rv=uniform(),  # type: ignore
-            steps=int(size),
-            _max_density=float(1 / size),
-            _pdf_norm=float(size),
-            lower_vectorized=np.float64(0.0),
-            upper_vectorized=np.float64(1.0),
-            log_scale=log,
-            transformer=scaler,
-        )
+        if not self.log:
+            vector_dist = UniformIntegerNormalizedDistribution(size=int(size))
+        else:
+            vector_dist = DiscretizedContinuousScipyDistribution(
+                rv=uniform(),  # type: ignore
+                steps=int(size),
+                _max_density=float(1 / size),
+                _pdf_norm=float(size),
+                lower_vectorized=np.float64(0.0),
+                upper_vectorized=np.float64(1.0),
+                log_scale=log,
+                transformer=scaler,
+            )
+
         super().__init__(
             name=name,
             size=int(size),

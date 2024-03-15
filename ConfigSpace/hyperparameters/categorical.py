@@ -7,14 +7,40 @@ from dataclasses import dataclass, field
 from typing import Any, ClassVar, Set
 
 import numpy as np
-from scipy.stats import rv_discrete
+import numpy.typing as npt
 
-from ConfigSpace.hyperparameters._distributions import ScipyDiscreteDistribution
+from ConfigSpace.functional import split_arange
+from ConfigSpace.hyperparameters._distributions import (
+    UniformIntegerDistribution,
+    WeightedIntegerDiscreteDistribution,
+)
 from ConfigSpace.hyperparameters._hp_components import (
-    NeighborhoodCat,
     TransformerSeq,
+    _Neighborhood,
 )
 from ConfigSpace.hyperparameters.hyperparameter import Hyperparameter
+
+
+@dataclass
+class NeighborhoodCat(_Neighborhood[np.int64]):
+    size: int
+
+    def __call__(
+        self,
+        vector: np.int64,
+        n: int,
+        *,
+        std: float | None = None,
+        seed: np.random.RandomState | None = None,
+    ) -> npt.NDArray[np.int64]:
+        seed = np.random.RandomState() if seed is None else seed
+        choices = split_arange((0, vector), (vector + 1, self.size))
+
+        if n >= len(choices):
+            seed.shuffle(choices)
+            return choices
+
+        return seed.choice(choices, n, replace=False)
 
 
 @dataclass(init=False)
@@ -101,6 +127,7 @@ class CategoricalHyperparameter(Hyperparameter[Any, np.int64]):
         self.choices = choices
         self.weights = weights
         self.probabilities = tuple(probabilities)
+        size = len(choices)
 
         if default_value is None and weights is None:
             default_value = choices[0]
@@ -111,15 +138,14 @@ class CategoricalHyperparameter(Hyperparameter[Any, np.int64]):
         else:
             raise ValueError(f"Illegal default value {default_value}")
 
-        size = len(choices)
-        custom_discrete = rv_discrete(values=(np.arange(size), probabilities)).freeze()
-        vect_dist = ScipyDiscreteDistribution(
-            rv=custom_discrete,  # type: ignore
-            _max_density=float(np.max(probabilities)),
-            dtype=np.int64,
-            lower_vectorized=np.int64(0),
-            upper_vectorized=np.int64(size - 1),
-        )
+        # We only need to pass probabilties is they are non-uniform...
+        if self.weights is not None:
+            vect_dist = WeightedIntegerDiscreteDistribution(
+                size=size,
+                probabilities=np.asarray(self.probabilities),
+            )
+        else:
+            vect_dist = UniformIntegerDistribution(size=size)
 
         super().__init__(
             name=name,
@@ -127,7 +153,7 @@ class CategoricalHyperparameter(Hyperparameter[Any, np.int64]):
             default_value=default_value,
             meta=meta,
             transformer=TransformerSeq(seq=choices),
-            neighborhood=NeighborhoodCat(n=len(choices)),
+            neighborhood=NeighborhoodCat(size=len(choices)),
             vector_dist=vect_dist,
             neighborhood_size=self._neighborhood_size,
         )

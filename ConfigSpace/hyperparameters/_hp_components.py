@@ -11,7 +11,6 @@ from ConfigSpace.functional import (
     is_close_to_integer,
     normalize,
     scale,
-    split_arange,
 )
 
 RandomState = np.random.RandomState
@@ -85,7 +84,7 @@ class TransformerSeq(_Transformer[Any, np.int64]):
             (vector >= 0)
             & (vector < len(self.seq))
             & ~np.isnan(vector)
-            & is_close_to_integer(vector, atol=ABS_ROUND_CLOSENESS),
+            & is_close_to_integer(vector, decimals=ROUND_PLACES),
             True,
             False,
         )
@@ -181,9 +180,7 @@ class UnitScaler(_Transformer[DType, np.float64]):
         notnan = ~np.isnan(value)
         if np.issubdtype(self.dtype, np.integer):
             return np.where(
-                inbounds
-                & notnan
-                & is_close_to_integer(value, atol=ABS_ROUND_CLOSENESS),
+                inbounds & notnan & is_close_to_integer(value, decimals=ROUND_PLACES),
                 True,
                 False,
             )
@@ -206,28 +203,6 @@ class UnitScaler(_Transformer[DType, np.float64]):
             return self.legal_value(values) & notnan & in_bounds
 
         return notnan & in_bounds
-
-
-@dataclass
-class NeighborhoodCat(_Neighborhood[np.int64]):
-    n: int
-
-    def __call__(
-        self,
-        vector: np.int64,
-        n: int,
-        *,
-        std: float | None = None,  # noqa: ARG002
-        seed: RandomState | None = None,
-    ) -> npt.NDArray[np.int64]:
-        seed = np.random.RandomState() if seed is None else seed
-        choices = split_arange((0, vector), (vector + 1, self.n))
-
-        if n >= len(choices):
-            seed.shuffle(choices)
-            return choices
-
-        return seed.choice(choices, n, replace=False)
 
 
 def ordinal_neighborhood(

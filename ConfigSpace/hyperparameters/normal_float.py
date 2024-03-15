@@ -75,7 +75,6 @@ class NormalFloatHyperparameter(
 
         vect_dist = ScipyContinuousDistribution(
             rv=vec_truncnorm_dist,
-            dtype=np.float64,
             lower_vectorized=np.float64(0.0),
             upper_vectorized=np.float64(1.0),
             _max_density=vec_truncnorm_dist.pdf(max_density_point),
