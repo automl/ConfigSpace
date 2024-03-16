@@ -39,6 +39,7 @@ from ConfigSpace.conditions import (
     NotEqualsCondition,
     OrConjunction,
 )
+from ConfigSpace.exceptions import IllegalValueError
 from ConfigSpace.hyperparameters import (
     CategoricalHyperparameter,
     Constant,
@@ -74,7 +75,13 @@ def test_equals_condition():
 
 
 def test_equals_condition_illegal_value():
-    epsilon = UniformFloatHyperparameter("epsilon", 1e-5, 1e-1, default_value=1e-4, log=True)
+    epsilon = UniformFloatHyperparameter(
+        "epsilon",
+        1e-5,
+        1e-1,
+        default_value=1e-4,
+        log=True,
+    )
     loss = CategoricalHyperparameter(
         "loss",
         ["hinge", "log", "modified_huber", "squared_hinge", "perceptron"],
@@ -104,7 +111,13 @@ def test_not_equals_condition():
 
 
 def test_not_equals_condition_illegal_value():
-    epsilon = UniformFloatHyperparameter("epsilon", 1e-5, 1e-1, default_value=1e-4, log=True)
+    epsilon = UniformFloatHyperparameter(
+        "epsilon",
+        1e-5,
+        1e-1,
+        default_value=1e-4,
+        log=True,
+    )
     loss = CategoricalHyperparameter(
         "loss",
         ["hinge", "log", "modified_huber", "squared_hinge", "perceptron"],
@@ -144,33 +157,43 @@ def test_greater_and_less_condition():
 
         gt = GreaterThanCondition(child, hp, 1)
         gt.set_vector_idx(hyperparameter_idx)
-        assert not gt.evaluate({hp.name: 0})
-        assert gt.evaluate({hp.name: 2})
-        assert not gt.evaluate({hp.name: None})
+        assert not gt.satisfied_by_value({hp.name: 0})
+        assert gt.satisfied_by_value({hp.name: 2})
+        with pytest.raises(IllegalValueError):
+            gt.satisfied_by_value({hp.name: None})
 
         # Evaluate vector
         test_value = hp._inverse_transform(2)
-        assert not gt.evaluate_vector(np.array([np.NaN, 0]))
-        assert gt.evaluate_vector(np.array([np.NaN, test_value]))
-        assert not gt.evaluate_vector(np.array([np.NaN, np.NaN]))
+
+        assert not gt.satisfied_by_vector(np.array([np.nan, 0]))
+        assert gt.satisfied_by_vector(np.array([np.nan, test_value]))
+        assert not gt.satisfied_by_vector(np.array([np.nan, np.nan]))
 
         lt = LessThanCondition(child, hp, 1)
         lt.set_vector_idx(hyperparameter_idx)
-        assert lt.evaluate({hp.name: 0})
-        assert not lt.evaluate({hp.name: 2})
-        assert not lt.evaluate({hp.name: None})
+        assert lt.satisfied_by_value({hp.name: 0})
+        assert not lt.satisfied_by_value({hp.name: 2})
+
+        with pytest.raises(IllegalValueError):
+            lt.satisfied_by_value({hp.name: None})
 
         # Evaluate vector
         test_value = hp._inverse_transform(2)
-        assert lt.evaluate_vector(np.array([np.NaN, 0, 0, 0]))
-        assert not lt.evaluate_vector(np.array([np.NaN, test_value]))
-        assert not lt.evaluate_vector(np.array([np.NaN, np.NaN]))
+        assert lt.satisfied_by_vector(np.array([np.nan, 0, 0, 0]))
+        assert not lt.satisfied_by_vector(np.array([np.nan, test_value]))
+        assert not lt.satisfied_by_vector(np.array([np.nan, np.nan]))
 
     hp4 = CategoricalHyperparameter("cat", list(range(6)))
-    with pytest.raises(ValueError, match=r"The parent hyperparameter must be orderable"):
+    with pytest.raises(
+        ValueError,
+        match=r"The parent hyperparameter must be orderable",
+    ):
         GreaterThanCondition(child, hp4, 1)
 
-    with pytest.raises(ValueError, match=r"The parent hyperparameter must be orderable"):
+    with pytest.raises(
+        ValueError,
+        match=r"The parent hyperparameter must be orderable",
+    ):
         LessThanCondition(child, hp4, 1)
 
     hp5 = OrdinalHyperparameter("ord", ["cold", "luke warm", "warm", "hot"])
@@ -178,23 +201,29 @@ def test_greater_and_less_condition():
     hyperparameter_idx = {child.name: 0, hp5.name: 1}
     gt = GreaterThanCondition(child, hp5, "warm")
     gt.set_vector_idx(hyperparameter_idx)
-    assert gt.evaluate({hp5.name: "hot"})
-    assert not gt.evaluate({hp5.name: "cold"})
+    assert gt.satisfied_by_value({hp5.name: "hot"})
+    assert not gt.satisfied_by_value({hp5.name: "cold"})
 
-    assert gt.evaluate_vector(np.array([np.NaN, 3]))
-    assert not gt.evaluate_vector(np.array([np.NaN, 0]))
+    assert gt.satisfied_by_vector(np.array([np.nan, 3]))
+    assert not gt.satisfied_by_vector(np.array([np.nan, 0]))
 
     lt = LessThanCondition(child, hp5, "warm")
     lt.set_vector_idx(hyperparameter_idx)
-    assert lt.evaluate({hp5.name: "luke warm"})
-    assert not lt.evaluate({hp5.name: "warm"})
+    assert lt.satisfied_by_value({hp5.name: "luke warm"})
+    assert not lt.satisfied_by_value({hp5.name: "warm"})
 
-    assert lt.evaluate_vector(np.array([np.NaN, 1]))
-    assert not lt.evaluate_vector(np.array([np.NaN, 2]))
+    assert lt.satisfied_by_vector(np.array([np.nan, 1]))
+    assert not lt.satisfied_by_vector(np.array([np.nan, 2]))
 
 
 def test_in_condition_illegal_value():
-    epsilon = UniformFloatHyperparameter("epsilon", 1e-5, 1e-1, default_value=1e-4, log=True)
+    epsilon = UniformFloatHyperparameter(
+        "epsilon",
+        1e-5,
+        1e-1,
+        default_value=1e-4,
+        log=True,
+    )
     loss = CategoricalHyperparameter(
         "loss",
         ["hinge", "log", "modified_huber", "squared_hinge", "perceptron"],
@@ -235,7 +264,9 @@ def test_and_conjunction():
     assert andconj1 != andconj2
 
     andconj3 = AndConjunction(cond1, cond2, cond3)
-    assert str(andconj3) == "(And | input1 == 1 && And | input2 == 1 && And | input3 == 1)"
+    assert (
+        str(andconj3) == "(And | input1 == 1 && And | input2 == 1 && And | input3 == 1)"
+    )
 
     # Test __eq__
     assert andconj1 != andconj3
@@ -325,25 +356,5 @@ def test_condition_from_cryptominisat():
     parent = CategoricalHyperparameter("blkrest", ["0", "1"], default_value="1")
     child = UniformIntegerHyperparameter("blkrestlen", 2000, 10000, log=True)
     condition = EqualsCondition(child, parent, "1")
-    assert not condition.evaluate({"blkrest": "0"})
-    assert condition.evaluate({"blkrest": "1"})
-
-
-def test_get_parents():
-    # Necessary because we couldn't call cs.get_parents for
-    # clasp-sat-params-nat.pcs
-    counter = UniformIntegerHyperparameter("bump", 10, 4096, log=True)
-    _1_S_countercond = CategoricalHyperparameter("cony", ["yes", "no"])
-    _1_0_restarts = CategoricalHyperparameter(
-        "restarts",
-        ["F", "L", "D", "x", "+", "no"],
-        default_value="x",
-    )
-
-    condition = EqualsCondition(counter, _1_S_countercond, "yes")
-    # All conditions inherit get_parents from abstractcondition
-    assert [_1_S_countercond] == condition.get_parents()
-    condition2 = InCondition(counter, _1_0_restarts, ["F", "D", "L", "x", "+"])
-    # All conjunctions inherit get_parents from abstractconjunction
-    conjunction = AndConjunction(condition, condition2)
-    assert [_1_S_countercond, _1_0_restarts] == conjunction.get_parents()
+    assert not condition.satisfied_by_value({"blkrest": "0"})
+    assert condition.satisfied_by_value({"blkrest": "1"})

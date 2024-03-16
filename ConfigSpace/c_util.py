@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from ConfigSpace.conditions import ConditionComponent, OrConjunction
+from ConfigSpace.conditions import Condition, OrConjunction
 from ConfigSpace.exceptions import (
     ActiveHyperparameterNotSetError,
     ForbiddenValueError,
@@ -41,7 +41,7 @@ def check_configuration(
     hyperparameter_idx: int
     hp_value: float | int
     add: int
-    condition: ConditionComponent
+    condition: Condition
     child: Hyperparameter
     conditions: list
     children: list
@@ -75,7 +75,7 @@ def check_configuration(
                 conditions = self._parent_conditions_of[child.name]
                 add = True
                 for condition in conditions:
-                    if condition._evaluate_vector(vector) is False:
+                    if condition.satisfied_by_vector(vector) is False:
                         add = False
                         inactive.add(child.name)
                         break
@@ -114,7 +114,7 @@ def correct_sampled_array(
     children_of: dict,
 ) -> np.ndarray:
     clause: AbstractForbiddenComponent
-    condition: ConditionComponent
+    condition: Condition
     hyperparameter_idx: int
     NaN: float = np.nan
     visited: set
@@ -159,7 +159,7 @@ def correct_sampled_array(
                     add = True
                     for j in range(len(conditions)):
                         condition = conditions[j]
-                        if condition._evaluate_vector(vector) is False:
+                        if condition.satisfied_by_vector(vector) is False:
                             add = False
                             vector[hyperparameter_idx] = NaN
                             inactive.add(child_name)
@@ -183,7 +183,7 @@ def correct_sampled_array(
                         add = True
                         for j in range(len(conditions)):
                             condition = conditions[j]
-                            if condition._evaluate_vector(vector) is False:
+                            if not condition.satisfied_by_vector(vector):
                                 add = False
                                 vector[hyperparameter_idx] = NaN
                                 inactive.add(child_name)
@@ -244,7 +244,7 @@ def change_hp_value(
     hps_to_be_activate: set
     visited: set
     active: int
-    condition: ConditionComponent
+    condition: Condition
     current_idx: int
     current_value: float
     default_value: float
@@ -290,7 +290,7 @@ def change_hp_value(
 
             active = True
             for condition in conditions:
-                if condition._evaluate_vector(configuration_array) is False:
+                if condition.satisfied_by_vector(configuration_array) is False:
                     active = False
                     break
 

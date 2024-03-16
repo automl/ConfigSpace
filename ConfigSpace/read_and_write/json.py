@@ -5,7 +5,7 @@ import json
 
 from ConfigSpace import __version__
 from ConfigSpace.conditions import (
-    AbstractCondition,
+    Condition,
     AndConjunction,
     EqualsCondition,
     GreaterThanCondition,
@@ -156,7 +156,7 @@ def _build_ordinal(param: OrdinalHyperparameter) -> dict:
 
 ################################################################################
 # Builder for Conditions
-def _build_condition(condition: AbstractCondition) -> dict:
+def _build_condition(condition: Condition) -> dict:
     methods = {
         AndConjunction: _build_and_conjunction,
         OrConjunction: _build_or_conjunction,
@@ -455,7 +455,7 @@ def read(jason_string: str) -> ConfigurationSpace:
 def _construct_condition(
     condition: dict,
     cs: ConfigurationSpace,
-) -> AbstractCondition:
+) -> Condition:
     condition_type = condition["type"]
     methods = {
         "AND": _construct_and_condition,

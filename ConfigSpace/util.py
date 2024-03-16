@@ -415,7 +415,7 @@ def deactivate_inactive_hyperparameters(
         for child in children:
             conditions = configuration_space._parent_conditions_of[child.name]
             for condition in conditions:
-                if not condition.evaluate_vector(config.get_array()):
+                if not condition.satisfied_by_vector(config.get_array()):
                     dic = dict(config)
                     try:
                         del dic[child.name]
@@ -712,7 +712,7 @@ def generate_grid(
                         for cond in configuration_space._parent_conditions_of[
                             new_hp_name
                         ]:
-                            if not cond.evaluate(unchecked_grid_pts[0]):
+                            if not cond.satisfied_by_value(unchecked_grid_pts[0]):
                                 all_cond_ = False
                         if all_cond_:
                             new_active_hp_names.append(new_hp_name)

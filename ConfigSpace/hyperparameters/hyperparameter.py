@@ -4,7 +4,6 @@ import warnings
 from abc import ABC, abstractmethod
 from collections.abc import Callable, Hashable, Mapping, Sequence
 from dataclasses import dataclass, field, replace
-from enum import Enum
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -30,13 +29,6 @@ from ConfigSpace.hyperparameters._hp_components import (
 
 if TYPE_CHECKING:
     from ConfigSpace.hyperparameters._distributions import Distribution
-
-
-class Comparison(str, Enum):
-    LESS_THAN = "less"
-    GREATER_THAN = "greater"
-    EQUAL = "equal"
-    UNEQUAL = "unequal"
 
 
 @dataclass(init=False)
@@ -362,33 +354,6 @@ class Hyperparameter(ABC, Generic[DType, VDType]):
 
     def copy(self, **kwargs: Any) -> Self:
         return replace(self, **kwargs)
-
-    def compare_value(
-        self,
-        value: DType,
-        other_value: DType,
-    ) -> Comparison:
-        if not self.orderable:
-            return Comparison.EQUAL if value == other_value else Comparison.UNEQUAL
-
-        vector = self.to_vector(value)
-        other_vector = self.to_vector(other_value)
-        return self.compare_vector(vector, other_vector)
-
-    def compare_vector(
-        self,
-        vector: VDType,
-        other_vector: VDType,
-    ) -> Comparison:
-        if vector == other_vector:
-            return Comparison.EQUAL
-
-        if not self.orderable:
-            return Comparison.UNEQUAL
-
-        if vector < other_vector:
-            return Comparison.LESS_THAN
-        return Comparison.GREATER_THAN
 
     def get_num_neighbors(self, value: DType | None = None) -> int | float:
         return (

@@ -568,7 +568,7 @@ def test_check_configuration():
             hyperparameters[jdx + 1].name: values[jdx] for jdx in range(len(values))
         }
 
-        evaluation = conj3.evaluate(instantiations)
+        evaluation = conj3.satisfied_by_value(instantiations)
         assert expected_outcomes[idx] == evaluation
 
         if not evaluation:
@@ -1012,14 +1012,19 @@ def test_substitute_hyperparameters_in_inconditions():
     cs2.add_conditions([test_cond])
     test_conditions = cs2.get_conditions()
 
-    assert new_conditions[0] == test_conditions[0]
-    assert new_conditions[0] is not test_conditions[0]
+    new_c = new_conditions[0]
+    test_c = test_conditions[0]
 
-    assert new_conditions[0].get_parents() == test_conditions[0].get_parents()
-    assert new_conditions[0].get_parents() is not test_conditions[0].get_parents()
+    assert isinstance(new_c, InCondition)
+    assert isinstance(test_c, InCondition)
+    assert new_c == test_c
+    assert new_c is not test_c
 
-    assert new_conditions[0].get_children() == test_conditions[0].get_children()
-    assert new_conditions[0].get_children() is not test_conditions[0].get_children()
+    assert new_c.parent == test_c.parent
+    assert new_c.parent is not test_c.parent
+
+    assert new_c.child == test_c.child
+    assert new_c.child is not test_c.child
 
 
 def test_substitute_hyperparameters_in_forbiddens():

@@ -41,9 +41,8 @@ import numpy as np
 import ConfigSpace.c_util
 from ConfigSpace import nx
 from ConfigSpace.conditions import (
-    AbstractCondition,
-    AbstractConjunction,
-    ConditionComponent,
+    Condition,
+    Conjunction,
     EqualsCondition,
 )
 from ConfigSpace.configuration import Configuration, NotSet
@@ -200,10 +199,16 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         # spaces when _children of one instance contained  all possible
         # hyperparameters as keys and empty dictionaries as values while the
         # other instance not containing these.
-        self._children: OrderedDict[str, OrderedDict[str, None | AbstractCondition]]
+        self._children: OrderedDict[
+            str,
+            OrderedDict[str, None | Condition | Conjunction],
+        ]
         self._children = OrderedDict()
 
-        self._parents: OrderedDict[str, OrderedDict[str, None | AbstractCondition]]
+        self._parents: OrderedDict[
+            str,
+            OrderedDict[str, None | Condition | Conjunction],
+        ]
         self._parents = OrderedDict()
 
         # Changing this to a normal dict will break sampling because there is
@@ -214,8 +219,8 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
 
         self._children[_ROOT] = OrderedDict()
 
-        self._parent_conditions_of: dict[str, list[AbstractCondition]] = {}
-        self._child_conditions_of: dict[str, list[AbstractCondition]] = {}
+        self._parent_conditions_of: dict[str, list[Condition]] = {}
+        self._child_conditions_of: dict[str, list[Condition]] = {}
         self._parents_of: dict[str, list[Hyperparameter]] = {}
         self._children_of: dict[str, list[Hyperparameter]] = {}
 
@@ -273,7 +278,10 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         self._sort_hyperparameters()
         return hyperparameters
 
-    def add_condition(self, condition: ConditionComponent) -> ConditionComponent:
+    def add_condition(
+        self,
+        condition: Condition | Conjunction,
+    ) -> Condition | Conjunction:
         """Add a condition to the configuration space.
 
         Check if adding the condition is legal:
@@ -295,15 +303,12 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         :ref:`Conditions`
             Same condition as input
         """
-        _assert_type(condition, ConditionComponent, method="add_condition")
-
-        if isinstance(condition, AbstractCondition):
+        if isinstance(condition, Condition):
             self._check_edges([(condition.parent, condition.child)], [condition.value])
             self._check_condition(condition.child, condition)
             self._add_edge(condition.parent, condition.child, condition=condition)
-
         # Loop over the Conjunctions to find out the conditions we must add!
-        elif isinstance(condition, AbstractConjunction):
+        elif isinstance(condition, Conjunction):
             dlcs = condition.get_descendant_literal_conditions()
             edges = [(dlc.parent, dlc.child) for dlc in dlcs]
             values = [dlc.value for dlc in dlcs]
@@ -314,7 +319,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
                 self._add_edge(dlc.parent, dlc.child, condition=condition)
 
         else:
-            raise Exception("This should never happen!")
+            raise TypeError(f"Unknown condition type {type(condition)}")
 
         self._sort_hyperparameters()
         self._update_cache()
@@ -322,8 +327,8 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
 
     def add_conditions(
         self,
-        conditions: list[ConditionComponent],
-    ) -> list[ConditionComponent]:
+        conditions: list[Condition | Conjunction],
+    ) -> list[Condition | Conjunction]:
         """Add a list of conditions to the configuration space.
 
         They must be legal. Take a look at
@@ -339,21 +344,18 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         list(:ref:`Conditions`)
             Same as input conditions
         """
-        for condition in conditions:
-            _assert_type(condition, ConditionComponent, method="add_conditions")
-
         edges = []
         values = []
         conditions_to_add = []
         for condition in conditions:
             # TODO: Need to check that we can't add a condition twice!
 
-            if isinstance(condition, AbstractCondition):
+            if isinstance(condition, Condition):
                 edges.append((condition.parent, condition.child))
                 values.append(condition.value)
                 conditions_to_add.append(condition)
 
-            elif isinstance(condition, AbstractConjunction):
+            elif isinstance(condition, Conjunction):
                 dlcs = condition.get_descendant_literal_conditions()
                 edges.extend([(dlc.parent, dlc.child) for dlc in dlcs])
                 values.extend([dlc.value for dlc in dlcs])
@@ -476,7 +478,12 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         conditions_to_add = []
         for condition in configuration_space.get_conditions():
             new_condition = copy.copy(condition)
-            for dlc in new_condition.get_descendant_literal_conditions():
+            dlcs = (
+                new_condition.get_descendant_literal_conditions()
+                if isinstance(new_condition, Conjunction)
+                else [new_condition]
+            )
+            for dlc in dlcs:
                 # Rename children
                 dlc.child.name = _new_name(dlc.child)
                 dlc.parent.name = _new_name(dlc.parent)
@@ -554,7 +561,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
 
         return idx
 
-    def get_conditions(self) -> list[AbstractCondition]:
+    def get_conditions(self) -> list[Condition]:
         """All conditions from the configuration space.
 
         Returns:
@@ -602,10 +609,14 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
             Children of the hyperparameter
         """
         conditions = self.get_child_conditions_of(name)
-        parents: list[Hyperparameter] = []
+        children: list[Hyperparameter] = []
         for condition in conditions:
-            parents.extend(condition.get_children())
-        return parents
+            if isinstance(condition, Conjunction):
+                children.extend(condition.get_children())
+            else:
+                children.append(condition.child)
+
+        return children
 
     def generate_all_continuous_from_bounds(
         self,
@@ -631,7 +642,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
     def get_child_conditions_of(
         self,
         name: str | Hyperparameter,
-    ) -> list[AbstractCondition]:
+    ) -> list[Condition]:
         """Return a list with conditions of all children of a given
         hyperparameter referenced by its ``name``.
 
@@ -668,13 +679,16 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         conditions = self.get_parent_conditions_of(name)
         parents: list[Hyperparameter] = []
         for condition in conditions:
-            parents.extend(condition.get_parents())
+            if isinstance(condition, Conjunction):
+                parents.extend(condition.get_parents())
+            else:
+                parents.append(condition.parent)
         return parents
 
     def get_parent_conditions_of(
         self,
         name: str | Hyperparameter,
-    ) -> list[AbstractCondition]:
+    ) -> list[Condition | Conjunction]:
         """The conditions of all parents of a given hyperparameter.
 
         Parameters
@@ -777,7 +791,10 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
 
             active = True
             for condition in conditions:
-                parent_vector_idx = condition.get_parents_vector()
+                if isinstance(condition, Conjunction):
+                    parent_vector_idx = condition.get_parents_vector()
+                else:
+                    parent_vector_idx = [condition.parent_vector_id]
 
                 # if one of the parents is None, the hyperparameter cannot be
                 # active! Else we have to check this
@@ -787,7 +804,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
                     active = False
                     break
 
-                if not condition.evaluate_vector(vector):
+                if not condition.satisfied_by_vector(vector):
                     active = False
                     break
 
@@ -982,9 +999,9 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
 
     @staticmethod
     def substitute_hyperparameters_in_conditions(
-        conditions: Iterable[ConditionComponent],
+        conditions: Iterable[Condition | Conjunction],
         new_configspace: ConfigurationSpace,
-    ) -> list[ConditionComponent]:
+    ) -> list[Condition | Conjunction]:
         """Takes a set of conditions and generates a new set of conditions with the same
         structure, where each hyperparameter is replaced with its namesake in
         new_configspace. As such, the set of conditions remain unchanged, but the
@@ -999,12 +1016,12 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
 
         Returns:
         -------
-        list[ConditionComponent]:
+        list[Condition | Conjunction]:
             The list of conditions, adjusted to fit the new ConfigurationSpace
         """
         new_conditions = []
         for condition in conditions:
-            if isinstance(condition, AbstractConjunction):
+            if isinstance(condition, Conjunction):
                 conjunction_type = type(condition)
                 children = condition.get_descendant_literal_conditions()
                 substituted_children = (
@@ -1016,13 +1033,14 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
                 substituted_conjunction = conjunction_type(*substituted_children)
                 new_conditions.append(substituted_conjunction)
 
-            elif isinstance(condition, AbstractCondition):
+            elif isinstance(condition, Condition):
                 condition_type = type(condition)
-                child_name = condition.get_children()[0].name
-                parent_name = condition.get_parents()[0].name
+                child_name = condition.child.name
+                parent_name = condition.parent.name
                 new_child = new_configspace[child_name]
                 new_parent = new_configspace[parent_name]
 
+                # TODO: Fix this up
                 if hasattr(condition, "values"):
                     condition_arg = condition.values
                     substituted_condition = condition_type(
@@ -1318,7 +1336,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
     def _check_condition(
         self,
         child_node: Hyperparameter,
-        condition: ConditionComponent,
+        condition: Condition | Conjunction,
     ) -> None:
         for present_condition in self._get_parent_conditions_of(child_node.name):
             if present_condition != condition:
@@ -1328,7 +1346,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         self,
         parent_node: Hyperparameter,
         child_node: Hyperparameter,
-        condition: ConditionComponent,
+        condition: Condition | Conjunction,
     ) -> None:
         self._children[_ROOT].pop(child_node.name, None)
         self._parents[child_node.name].pop(_ROOT, None)
@@ -1457,7 +1475,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
             parents.extend(condition.get_children())
         return parents
 
-    def _get_child_conditions_of(self, name: str) -> list[AbstractCondition]:
+    def _get_child_conditions_of(self, name: str) -> list[Condition]:
         children = self._children[name]
         return [children[child_name] for child_name in children if child_name != _ROOT]
 
@@ -1487,16 +1505,21 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
             active: bool = True
 
             for condition in conditions:
-                parent_names = (
-                    c.parent.name for c in condition.get_descendant_literal_conditions()
-                )
+                if isinstance(condition, Conjunction):
+                    parent_names = (
+                        c.parent.name
+                        for c in condition.get_descendant_literal_conditions()
+                    )
+                else:
+                    parent_names = [condition.parent.name]
+
                 parents = {
                     parent_name: instantiated_hyperparameters[parent_name]
                     for parent_name in parent_names
                 }
 
                 # OPTIM: Can speed up things here by just breaking early?
-                if condition.evaluate(parents) is False:
+                if not condition.satisfied_by_value(parents):
                     active = False
 
             if not active:
@@ -1514,7 +1537,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         # configuration is forbidden!
         return Configuration(self, values=instantiated_hyperparameters)
 
-    def _get_parent_conditions_of(self, name: str) -> list[AbstractCondition]:
+    def _get_parent_conditions_of(self, name: str) -> list[Condition | Conjunction]:
         parents = self._parents[name]
         return [parents[parent_name] for parent_name in parents if parent_name != _ROOT]
 

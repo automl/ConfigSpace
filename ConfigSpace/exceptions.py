@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from ConfigSpace.conditions import ConditionComponent
+    from ConfigSpace.conditions import Condition
     from ConfigSpace.configuration_space import ConfigurationSpace
     from ConfigSpace.hyperparameters import Hyperparameter
 
@@ -109,7 +109,7 @@ class HyperparameterIndexError(KeyError):
 
 
 class AmbiguousConditionError(ValueError):
-    def __init__(self, present: ConditionComponent, new_condition: ConditionComponent):
+    def __init__(self, present: Condition, new_condition: Condition):
         super().__init__(present, new_condition)
         self.present = present
         self.new_condition = new_condition

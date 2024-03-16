@@ -8,13 +8,12 @@ import numpy as np
 import numpy.typing as npt
 
 from ConfigSpace import c_util
+from ConfigSpace.conditions import NotSet
 from ConfigSpace.exceptions import HyperparameterNotFoundError, IllegalValueError
 from ConfigSpace.hyperparameters import FloatHyperparameter
 
 if TYPE_CHECKING:
     from ConfigSpace.configuration_space import ConfigurationSpace
-
-NotSet = object()  # Sentinal value for unset values
 
 
 class Configuration(Mapping[str, Any]):

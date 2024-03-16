@@ -35,9 +35,9 @@ from itertools import product
 import pyparsing
 
 from ConfigSpace.conditions import (
-    AbstractConjunction,
     AndConjunction,
-    ConditionComponent,
+    Condition,
+    Conjunction,
     EqualsCondition,
     GreaterThanCondition,
     InCondition,
@@ -234,11 +234,11 @@ def build_continuous(
     )
 
 
-def build_condition(condition: ConditionComponent) -> str:
-    if not isinstance(condition, ConditionComponent):
+def build_condition(condition: Condition) -> str:
+    if not isinstance(condition, Condition):
         raise TypeError(
             "build_condition must be called with an instance"
-            f" of '{ConditionComponent}', got '{type(condition)}'",
+            f" of '{Condition}', got '{type(condition)}'",
         )
 
     # Now handle the conditions SMAC can handle
@@ -249,7 +249,7 @@ def build_condition(condition: ConditionComponent) -> str:
     equal_template = "%s | %s == %s"
 
     if isinstance(condition, InCondition):
-        cond_values = ", ".join([str(value) for value in condition.value])
+        cond_values = ", ".join([str(value) for value in condition.values])
     else:
         cond_values = str(condition.value)
 
@@ -289,13 +289,13 @@ def build_condition(condition: ConditionComponent) -> str:
     raise TypeError(f"Didn't find a matching template for type {condition}")
 
 
-def build_conjunction(conjunction: AbstractConjunction) -> str:
+def build_conjunction(conjunction: Conjunction) -> str:
     line: str
     line = conjunction.get_children()[0].name + " | "
 
     cond_list = []
     for component in conjunction.components:
-        tmp = build_condition(component.get_descendant_literal_conditions()[0])
+        tmp = build_condition(component)
 
         # This is somehow hacky, but should work for now
         tmp = tmp.split("|")[1].strip()
@@ -340,7 +340,7 @@ def condition_specification(
     child_name: str,
     condition: list[str],
     configuration_space: ConfigurationSpace,
-) -> ConditionComponent:
+) -> Condition:
     # specifies the condition type
     child = configuration_space[child_name]
     parent_name = condition[0]

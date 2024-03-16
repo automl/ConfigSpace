@@ -22,7 +22,8 @@ import pyparsing
 
 from ConfigSpace.conditions import (
     AndConjunction,
-    ConditionComponent,
+    Condition,
+    Conjunction,
     EqualsCondition,
     InCondition,
     NotEqualsCondition,
@@ -165,11 +166,11 @@ def build_continuous(
     )
 
 
-def build_condition(condition: ConditionComponent) -> str:
-    if not isinstance(condition, ConditionComponent):
+def build_condition(condition: Condition | Conjunction) -> str:
+    if not isinstance(condition, (Condition, Conjunction)):
         raise TypeError(
             "build_condition must be called with an instance of "
-            f"'{ConditionComponent}', got '{type(condition)}'",
+            f"'{Condition}' or '{Conjunction}', got '{type(condition)}'",
         )
 
     # Check if SMAC can handle the condition

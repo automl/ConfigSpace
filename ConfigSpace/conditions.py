@@ -25,68 +25,72 @@
 # ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+# TODO: Apparently there's sort of 'value' expected on the subclasses.
+# * `evaluate()` relies on subclass `evaluate()`.
+# * Remove legality checks from runtime functions ..., conditions shouldn't
+#  be validating this so much, expensive...
+# * `InCondition` is weird due to it's use of `values` and not `value`.
+# * Using iterators where possible instead of lists might save a lot of time...
+# * children and parent iteration can be pre-computed ...
+# * Can we lift the vector indices out of the conditionals?
+# * Just pass the raw value to the conditionals themselves.
+# * See if we can pass in other conjunctions to conjunctions?
+# * Fixup the old usage of AbstractX
 from __future__ import annotations
 
 import copy
 import io
-from abc import ABC, abstractmethod
+import operator
+from abc import abstractmethod
+from collections.abc import Sequence
 from itertools import combinations
-from typing import TYPE_CHECKING, Any
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Callable,
+    ClassVar,
+    Generic,
+    Iterator,
+    TypeVar,
+)
+from typing_extensions import Self
 
 import numpy as np
+import numpy.typing as npt
 
-from ConfigSpace.hyperparameters.hyperparameter import Comparison
+from ConfigSpace.exceptions import IllegalValueError, IllegalVectorizedValueError
 
 if TYPE_CHECKING:
     from ConfigSpace.hyperparameters.hyperparameter import Hyperparameter
 
 
-class ConditionComponent(ABC):
-    @abstractmethod
-    def set_vector_idx(self, hyperparameter_to_idx) -> None:
-        pass
+class _NotSet:
+    def __repr__(self):
+        return "ValueNotSetObject"
 
-    @abstractmethod
-    def get_children_vector(self) -> list[int]:
-        pass
 
-    @abstractmethod
-    def get_parents_vector(self) -> list[int]:
-        pass
+NotSet = _NotSet()  # Sentinal value for unset values
 
-    @abstractmethod
-    def get_children(self) -> list[ConditionComponent]:
-        pass
 
-    @abstractmethod
-    def get_parents(self) -> list[ConditionComponent]:
-        pass
+DP = TypeVar("DP", bound=np.number)
+DC = TypeVar("DC", bound=np.number)
+"""Type variable user data type for the parent and child."""
 
-    @abstractmethod
-    def get_descendant_literal_conditions(self) -> list[AbstractCondition]:
-        pass
+VP = TypeVar("VP", bound=np.number)
+VC = TypeVar("VC", bound=np.number)
+"""Type variable vectorized data type for the parent and child."""
 
-    @abstractmethod
-    def evaluate(
+
+# TODO: Used to signify joint operations between condition conjuctions and
+# but also singlure conditionals
+# Might be able to just unify into one but keep serpeate for now
+class Condition(Generic[DC, VC, DP, VP]):
+    def __init__(
         self,
-        instantiated_parent_hyperparameter: dict[str, None | int | float | str],
-    ) -> bool:
-        pass
-
-    def evaluate_vector(self, instantiated_vector):
-        return bool(self._evaluate_vector(instantiated_vector))
-
-    @abstractmethod
-    def _evaluate_vector(self, value: np.ndarray) -> bool:
-        pass
-
-    def __hash__(self) -> int:
-        """Override the default hash behavior (that returns the id or the object)."""
-        return hash(tuple(sorted(self.__dict__.items())))
-
-
-class AbstractCondition(ConditionComponent):
-    def __init__(self, child: Hyperparameter, parent: Hyperparameter) -> None:
+        child: Hyperparameter[DC, VC],
+        parent: Hyperparameter[DP, VP],
+        value: Any,
+    ) -> None:
         if child == parent:
             raise ValueError(
                 "The child and parent hyperparameter must be different "
@@ -94,8 +98,20 @@ class AbstractCondition(ConditionComponent):
             )
         self.child = child
         self.parent = parent
-        self.child_vector_id = -1
-        self.parent_vector_id = -1
+
+        self.child_vector_id: int | None = None
+        self.parent_vector_id: int | None = None
+
+        self.value = value
+
+    def set_vector_idx(self, hyperparameter_to_idx: dict):
+        """Sets the index of the hyperparameter for the vectorized form.
+
+        This is sort of a second-stage init that is called when a condition is
+        added to the search space.
+        """
+        self.child_vector_id = hyperparameter_to_idx[self.child.name]
+        self.parent_vector_id = hyperparameter_to_idx[self.parent.name]
 
     def __eq__(self, other: Any) -> bool:
         if not isinstance(other, self.__class__):
@@ -106,361 +122,259 @@ class AbstractCondition(ConditionComponent):
 
         return self.value == other.value
 
-    def set_vector_idx(self, hyperparameter_to_idx: dict):
-        self.child_vector_id = hyperparameter_to_idx[self.child.name]
-        self.parent_vector_id = hyperparameter_to_idx[self.parent.name]
-
-    def get_children_vector(self) -> list[int]:
-        return [self.child_vector_id]
-
-    def get_parents_vector(self) -> list[int]:
-        return [self.parent_vector_id]
-
-    def get_children(self) -> list[Hyperparameter]:
-        return [self.child]
-
-    def get_parents(self) -> list[Hyperparameter]:
-        return [self.parent]
-
-    def get_descendant_literal_conditions(self) -> list[AbstractCondition]:
-        return [self]
-
-    def evaluate(
+    @abstractmethod
+    def satisfied_by_value(
         self,
-        instantiated_parent_hyperparameter: dict[str, int | float | str],
+        instantiated_parent_hyperparameter: dict[str, Any],
+    ) -> bool:
+        pass
+
+    @abstractmethod
+    def satisfied_by_vector(
+        self,
+        instantiated_parent_hyperparameter: (
+            Sequence[np.number] | npt.NDArray[np.number]
+        ),
+    ) -> bool:
+        pass
+
+
+class _BinaryOpCondition(Condition[DC, VC, DP, VP]):
+    _op_str: ClassVar[str]
+    _requires_orderable_parent: ClassVar[bool]
+    _op: Callable[[Any, Any], bool]
+
+    def __init__(
+        self,
+        child: Hyperparameter[DC, VC],
+        parent: Hyperparameter[DP, VP],
+        value: Any,  # HACK: Typing here is to allow in conditional
+        *,
+        check_condition_legality: bool = True,
+    ) -> None:
+        super().__init__(child, parent, value)
+
+        if self._requires_orderable_parent and not parent.orderable:
+            _clsname = self.__class__.__name__
+            raise ValueError(
+                f"The parent hyperparameter must be orderable to use "
+                f"{_clsname}, however {self.parent} is not.",
+            )
+        if check_condition_legality and not parent.legal_value(value):
+            raise ValueError(
+                f"Hyperparameter '{child.name}' is "
+                f"conditional on the illegal value '{value}' of "
+                f"its parent hyperparameter '{parent.name}'",
+            )
+
+        # TODO: If we can change this to just vector
+        self.vector_value = self.parent.to_vector(value)
+
+    def __repr__(self) -> str:
+        return f"{self.child.name} | {self.parent.name} {self._op_str} {self.value!r}"
+
+    # TODO: Dataclassing would make this obsolete.
+    def __copy__(self) -> Self:
+        return self.__class__(
+            child=copy.copy(self.child),
+            parent=copy.copy(self.parent),
+            value=copy.copy(self.value),
+        )
+
+    def satisfied_by_vector(
+        self,
+        instantiated_parent_hyperparameter: (
+            Sequence[np.number] | npt.NDArray[np.number]
+        ),
+    ) -> bool:
+        vector = instantiated_parent_hyperparameter[self.parent_vector_id]
+        if np.isnan(vector):
+            return False
+
+        if not self.parent.legal_vector(vector):
+            raise IllegalVectorizedValueError(self.parent, vector)
+
+        return bool(self._op(vector, self.vector_value))
+
+    def satisfied_by_value(
+        self,
+        instantiated_parent_hyperparameter: dict[str, Any],
     ) -> bool:
         value = instantiated_parent_hyperparameter[self.parent.name]
-        if isinstance(value, float | int | np.number) and np.isnan(value):
+        if value is NotSet:
             return False
-        return self._evaluate(value)
 
-    def _evaluate_vector(self, instantiated_vector: np.ndarray) -> bool:
-        if self.parent_vector_id is None:
-            raise ValueError(
-                "Parent vector id should not be None when calling evaluate vector",
-            )
-
-        return self._inner_evaluate_vector(instantiated_vector[self.parent_vector_id])
-
-    @abstractmethod
-    def _evaluate(self, instantiated_parent_hyperparameter: str | int | float) -> bool:
-        pass
-
-    @abstractmethod
-    def _inner_evaluate_vector(self, value) -> bool:
-        pass
-
-
-class EqualsCondition(AbstractCondition):
-    def __init__(
-        self,
-        child: Hyperparameter,
-        parent: Hyperparameter,
-        value: str | float | int,
-    ) -> None:
-        """Hyperparameter ``child`` is conditional on the ``parent`` hyperparameter
-        being *equal* to ``value``.
-
-        Make *b* an active hyperparameter if *a* has the value 1
-
-        >>> from ConfigSpace import ConfigurationSpace, EqualsCondition
-        >>>
-        >>> cs = ConfigurationSpace({
-        ...     "a": [1, 2, 3],
-        ...     "b": (1.0, 8.0)
-        ... })
-        >>> cond = EqualsCondition(cs['b'], cs['a'], 1)
-        >>> cs.add_condition(cond)
-        b | a == 1
-
-        Parameters
-        ----------
-        child : :ref:`Hyperparameters`
-            This hyperparameter will be sampled in the configspace
-            if the *equal condition* is satisfied
-        parent : :ref:`Hyperparameters`
-            The hyperparameter, which has to satisfy the *equal condition*
-        value : str, float, int
-            Value, which the parent is compared to
-        """
-        super().__init__(child, parent)
-        if not parent.legal_value(value):
-            raise ValueError(
-                f"Hyperparameter '{child.name}' is "
-                f"conditional on the illegal value '{value}' of "
-                f"its parent hyperparameter '{parent.name}'",
-            )
-        self.value = value
-        self.vector_value = self.parent.to_vector(self.value)
-
-    def __repr__(self) -> str:
-        return f"{self.child.name} | {self.parent.name} == {self.value!r}"
-
-    def __copy__(self):
-        return self.__class__(
-            child=copy.copy(self.child),
-            parent=copy.copy(self.parent),
-            value=copy.copy(self.value),
-        )
-
-    def _evaluate(self, value: str | float | int) -> bool:
-        # No need to check if the value to compare is a legal value; either it
-        # is equal (and thus legal), or it would evaluate to False anyway
-        return self.parent.compare_value(value, self.value) is Comparison.EQUAL
-
-    def _inner_evaluate_vector(self, value) -> bool:
-        # No need to check if the value to compare is a legal value; either it
-        # is equal (and thus legal), or it would evaluate to False anyway
-        return self.parent.compare_vector(value, self.vector_value) is Comparison.EQUAL
-
-
-class NotEqualsCondition(AbstractCondition):
-    def __init__(
-        self,
-        child: Hyperparameter,
-        parent: Hyperparameter,
-        value: str | float | int,
-    ) -> None:
-        """Hyperparameter ``child`` is conditional on the ``parent`` hyperparameter
-        being *not equal* to ``value``.
-
-        Make *b* an active hyperparameter if *a* has **not** the value 1
-
-        >>> from ConfigSpace import ConfigurationSpace, NotEqualsCondition
-        >>>
-        >>> cs = ConfigurationSpace({
-        ...     "a": [1, 2, 3],
-        ...     "b": (1.0, 8.0)
-        ... })
-        >>> cond = NotEqualsCondition(cs['b'], cs['a'], 1)
-        >>> cs.add_condition(cond)
-        b | a != 1
-
-        Parameters
-        ----------
-        child : :ref:`Hyperparameters`
-            This hyperparameter will be sampled in the configspace
-            if the not-equals condition is satisfied
-        parent : :ref:`Hyperparameters`
-            The hyperparameter, which has to satisfy the
-            *not equal condition*
-        value : str, float, int
-            Value, which the parent is compared to
-        """
-        super().__init__(child, parent)
-        if not parent.legal_value(value):
-            raise ValueError(
-                f"Hyperparameter '{child.name}' is "
-                f"conditional on the illegal value '{value}' of "
-                f"its parent hyperparameter '{parent.name}'",
-            )
-        self.value = value
-        self.vector_value = self.parent.to_vector(self.value)
-
-    def __repr__(self) -> str:
-        return f"{self.child.name} | {self.parent.name} != {self.value!r}"
-
-    def __copy__(self):
-        return self.__class__(
-            child=copy.copy(self.child),
-            parent=copy.copy(self.parent),
-            value=copy.copy(self.value),
-        )
-
-    def _evaluate(self, value: str | float | int) -> bool:
+        # TODO: Maybe remove these legal checks...
         if not self.parent.legal_value(value):
-            return False
+            raise IllegalValueError(self.parent, value)
 
-        return self.parent.compare_value(value, self.value) is not Comparison.EQUAL
-
-    def _inner_evaluate_vector(self, value) -> bool:
-        if not self.parent.legal_vector(value):
-            return False
-        return (
-            self.parent.compare_vector(value, self.vector_value) is not Comparison.EQUAL
-        )
+        vector = self.parent.to_vector(value)
+        return bool(self._op(vector, self.vector_value))
 
 
-class LessThanCondition(AbstractCondition):
+class EqualsCondition(_BinaryOpCondition[DC, VC, DP, VP]):
+    """Hyperparameter ``child`` is conditional on the ``parent`` hyperparameter
+    being *equal* to ``value``.
+
+    Make *b* an active hyperparameter if *a* has the value 1
+
+    >>> from ConfigSpace import ConfigurationSpace, EqualsCondition
+    >>>
+    >>> cs = ConfigurationSpace({
+    ...     "a": [1, 2, 3],
+    ...     "b": (1.0, 8.0)
+    ... })
+    >>> cond = EqualsCondition(cs['b'], cs['a'], 1)
+    >>> cs.add_condition(cond)
+    b | a == 1
+
+    Parameters
+    ----------
+    child : :ref:`Hyperparameters`
+        This hyperparameter will be sampled in the configspace
+        if the *equal condition* is satisfied
+    parent : :ref:`Hyperparameters`
+        The hyperparameter, which has to satisfy the *equal condition*
+    value : str, float, int
+        Value, which the parent is compared to
+    """
+
+    _op_str = "=="
+    _requires_orderable_parent = False
+    _op = operator.eq
+
+
+class NotEqualsCondition(_BinaryOpCondition[DC, VC, DP, VP]):
+    """Hyperparameter ``child`` is conditional on the ``parent`` hyperparameter
+    being *not equal* to ``value``.
+
+    Make *b* an active hyperparameter if *a* has **not** the value 1
+
+    >>> from ConfigSpace import ConfigurationSpace, NotEqualsCondition
+    >>>
+    >>> cs = ConfigurationSpace({
+    ...     "a": [1, 2, 3],
+    ...     "b": (1.0, 8.0)
+    ... })
+    >>> cond = NotEqualsCondition(cs['b'], cs['a'], 1)
+    >>> cs.add_condition(cond)
+    b | a != 1
+
+    Parameters
+    ----------
+    child : :ref:`Hyperparameters`
+        This hyperparameter will be sampled in the configspace
+        if the not-equals condition is satisfied
+    parent : :ref:`Hyperparameters`
+        The hyperparameter, which has to satisfy the
+        *not equal condition*
+    value : str, float, int
+        Value, which the parent is compared to
+    """
+
+    _op_str = "!="
+    _requires_orderable_parent = False
+    _op = operator.ne
+
+
+class LessThanCondition(_BinaryOpCondition[DC, VC, DP, VP]):
+    """Hyperparameter ``child`` is conditional on the ``parent`` hyperparameter
+    being *less than* ``value``.
+
+    Make *b* an active hyperparameter if *a* is less than 5
+
+    >>> from ConfigSpace import ConfigurationSpace, LessThanCondition
+    >>>
+    >>> cs = ConfigurationSpace({
+    ...    "a": (0, 10),
+    ...    "b": (1.0, 8.0)
+    ... })
+    >>> cond = LessThanCondition(cs['b'], cs['a'], 5)
+    >>> cs.add_condition(cond)
+    b | a < 5
+
+    Parameters
+    ----------
+    child : :ref:`Hyperparameters`
+        This hyperparameter will be sampled in the configspace,
+        if the *LessThanCondition* is satisfied
+    parent : :ref:`Hyperparameters`
+        The hyperparameter, which has to satisfy the *LessThanCondition*
+    value : str, float, int
+        Value, which the parent is compared to
+    """
+
+    _op_str = "<"
+    _requires_orderable_parent = True
+    _op = operator.lt
+
+
+class GreaterThanCondition(_BinaryOpCondition[DC, VC, DP, VP]):
+    """Hyperparameter ``child`` is conditional on the ``parent`` hyperparameter
+    being *greater than* ``value``.
+
+    Make *b* an active hyperparameter if *a* is greater than 5
+
+    >>> from ConfigSpace import ConfigurationSpace, GreaterThanCondition
+    >>>
+    >>> cs = ConfigurationSpace({
+    ...     "a": (0, 10),
+    ...     "b": (1.0, 8.0)
+    ... })
+    >>> cond = GreaterThanCondition(cs['b'], cs['a'], 5)
+    >>> cs.add_condition(cond)
+    b | a > 5
+
+    Parameters
+    ----------
+    child : :ref:`Hyperparameters`
+        This hyperparameter will be sampled in the configspace,
+        if the *GreaterThanCondition* is satisfied
+    parent : :ref:`Hyperparameters`
+        The hyperparameter, which has to satisfy the *GreaterThanCondition*
+    value : str, float, int
+        Value, which the parent is compared to
+    """
+
+    _op_str = ">"
+    _requires_orderable_parent = True
+    _op = operator.gt
+
+
+class InCondition(Condition[DC, VC, DP, VP]):
+    """Hyperparameter ``child`` is conditional on the ``parent`` hyperparameter
+    being *in* a set of ``values``.
+
+    make *b* an active hyperparameter if *a* is in the set [1, 2, 3, 4]
+
+    >>> from ConfigSpace import ConfigurationSpace, InCondition
+    >>>
+    >>> cs = ConfigurationSpace({
+    ...     "a": (0, 10),
+    ...     "b": (1.0, 8.0)
+    ... })
+    >>> cond = InCondition(cs['b'], cs['a'], [1, 2, 3, 4])
+    >>> cs.add_condition(cond)
+    b | a in {1, 2, 3, 4}
+
+    Parameters
+    ----------
+    child : :ref:`Hyperparameters`
+        This hyperparameter will be sampled in the configspace,
+        if the *InCondition* is satisfied
+    parent : :ref:`Hyperparameters`
+        The hyperparameter, which has to satisfy the *InCondition*
+    values : list(str, float, int)
+        Collection of values, which the parent is compared to
+    """
+
     def __init__(
         self,
-        child: Hyperparameter,
-        parent: Hyperparameter,
-        value: str | float | int,
+        child: Hyperparameter[DC, VC],
+        parent: Hyperparameter[DP, VP],
+        values: list[DP],
     ) -> None:
-        """Hyperparameter ``child`` is conditional on the ``parent`` hyperparameter
-        being *less than* ``value``.
-
-        Make *b* an active hyperparameter if *a* is less than 5
-
-        >>> from ConfigSpace import ConfigurationSpace, LessThanCondition
-        >>>
-        >>> cs = ConfigurationSpace({
-        ...    "a": (0, 10),
-        ...    "b": (1.0, 8.0)
-        ... })
-        >>> cond = LessThanCondition(cs['b'], cs['a'], 5)
-        >>> cs.add_condition(cond)
-        b | a < 5
-
-        Parameters
-        ----------
-        child : :ref:`Hyperparameters`
-            This hyperparameter will be sampled in the configspace,
-            if the *LessThanCondition* is satisfied
-        parent : :ref:`Hyperparameters`
-            The hyperparameter, which has to satisfy the *LessThanCondition*
-        value : str, float, int
-            Value, which the parent is compared to
-        """
-        super().__init__(child, parent)
-        if not self.parent.orderable:
-            raise ValueError(
-                f"The parent hyperparameter must be orderable to use "
-                f"GreaterThanCondition, however {self.parent} is not.",
-            )
-        if not parent.legal_value(value):
-            raise ValueError(
-                f"Hyperparameter '{child.name}' is "
-                f"conditional on the illegal value '{value}' of "
-                f"its parent hyperparameter '{parent.name}'",
-            )
-        self.value = value
-        self.vector_value = self.parent.to_vector(self.value)
-
-    def __repr__(self) -> str:
-        return f"{self.child.name} | {self.parent.name} < {self.value!r}"
-
-    def __copy__(self):
-        return self.__class__(
-            child=copy.copy(self.child),
-            parent=copy.copy(self.parent),
-            value=copy.copy(self.value),
-        )
-
-    def _evaluate(self, value: str | float | int) -> bool:
-        if not self.parent.legal_value(value):
-            return False
-
-        return self.parent.compare_value(value, self.value) is Comparison.LESS_THAN
-
-    def _inner_evaluate_vector(self, value) -> bool:
-        if not self.parent.legal_vector(value):
-            return False
-
-        return (
-            self.parent.compare_vector(value, self.vector_value) is Comparison.LESS_THAN
-        )
-
-
-class GreaterThanCondition(AbstractCondition):
-    def __init__(
-        self,
-        child: Hyperparameter,
-        parent: Hyperparameter,
-        value: str | float | int,
-    ) -> None:
-        """Hyperparameter ``child`` is conditional on the ``parent`` hyperparameter
-        being *greater than* ``value``.
-
-        Make *b* an active hyperparameter if *a* is greater than 5
-
-        >>> from ConfigSpace import ConfigurationSpace, GreaterThanCondition
-        >>>
-        >>> cs = ConfigurationSpace({
-        ...     "a": (0, 10),
-        ...     "b": (1.0, 8.0)
-        ... })
-        >>> cond = GreaterThanCondition(cs['b'], cs['a'], 5)
-        >>> cs.add_condition(cond)
-        b | a > 5
-
-        Parameters
-        ----------
-        child : :ref:`Hyperparameters`
-            This hyperparameter will be sampled in the configspace,
-            if the *GreaterThanCondition* is satisfied
-        parent : :ref:`Hyperparameters`
-            The hyperparameter, which has to satisfy the *GreaterThanCondition*
-        value : str, float, int
-            Value, which the parent is compared to
-        """
-        super().__init__(child, parent)
-
-        if not self.parent.orderable:
-            raise ValueError(
-                f"The parent hyperparameter must be orderable to use "
-                f"GreaterThanCondition, however {self.parent} is not.",
-            )
-        if not parent.legal_value(value):
-            raise ValueError(
-                f"Hyperparameter '{child.name}' is "
-                f"conditional on the illegal value '{value}' of "
-                f"its parent hyperparameter '{parent.name}'",
-            )
-        self.value = value
-        self.vector_value = self.parent.to_vector(self.value)
-
-    def __repr__(self) -> str:
-        return f"{self.child.name} | {self.parent.name} > {self.value!r}"
-
-    def __copy__(self):
-        return self.__class__(
-            child=copy.copy(self.child),
-            parent=copy.copy(self.parent),
-            value=copy.copy(self.value),
-        )
-
-    def _evaluate(self, value: None | str | float | int) -> bool:
-        if not self.parent.legal_value(value):
-            return False
-
-        return self.parent.compare_value(value, self.value) is Comparison.GREATER_THAN
-
-    def _inner_evaluate_vector(self, value) -> int:
-        if not self.parent.legal_vector(value):
-            return False
-
-        return (
-            self.parent.compare_vector(value, self.vector_value)
-            is Comparison.GREATER_THAN
-        )
-
-
-class InCondition(AbstractCondition):
-    def __init__(
-        self,
-        child: Hyperparameter,
-        parent: Hyperparameter,
-        values: list[str | float | int],
-    ) -> None:
-        """Hyperparameter ``child`` is conditional on the ``parent`` hyperparameter
-        being *in* a set of ``values``.
-
-        make *b* an active hyperparameter if *a* is in the set [1, 2, 3, 4]
-
-        >>> from ConfigSpace import ConfigurationSpace, InCondition
-        >>>
-        >>> cs = ConfigurationSpace({
-        ...     "a": (0, 10),
-        ...     "b": (1.0, 8.0)
-        ... })
-        >>> cond = InCondition(cs['b'], cs['a'], [1, 2, 3, 4])
-        >>> cs.add_condition(cond)
-        b | a in {1, 2, 3, 4}
-
-        Parameters
-        ----------
-        child : :ref:`Hyperparameters`
-            This hyperparameter will be sampled in the configspace,
-            if the *InCondition* is satisfied
-        parent : :ref:`Hyperparameters`
-            The hyperparameter, which has to satisfy the *InCondition*
-        values : list(str, float, int)
-            Collection of values, which the parent is compared to
-
-        """
-        super().__init__(child, parent)
+        super().__init__(child, parent, values)
         for value in values:
             if not parent.legal_value(value):
                 raise ValueError(
@@ -468,8 +382,8 @@ class InCondition(AbstractCondition):
                     f"conditional on the illegal value '{value}' of "
                     f"its parent hyperparameter '{parent.name}'",
                 )
+
         self.values = values
-        self.value = values
         self.vector_values = [self.parent.to_vector(value) for value in self.values]
 
     def __repr__(self) -> str:
@@ -479,26 +393,50 @@ class InCondition(AbstractCondition):
             ", ".join([repr(value) for value in self.values]),
         )
 
-    def _evaluate(self, value: str | float | int) -> bool:
-        return value in self.values
+    def __copy__(self) -> Self:
+        return self.__class__(
+            child=copy.copy(self.child),
+            parent=copy.copy(self.parent),
+            values=copy.copy(self.values),
+        )
 
-    def _inner_evaluate_vector(self, value) -> bool:
-        return value in self.vector_values
+    def satisfied_by_vector(
+        self,
+        instantiated_parent_hyperparameter: (
+            Sequence[np.number] | npt.NDArray[np.number]
+        ),
+    ) -> bool:
+        vector = instantiated_parent_hyperparameter[self.parent_vector_id]
+        if np.isnan(vector):
+            return False
+
+        if not self.parent.legal_vector(vector):
+            raise IllegalVectorizedValueError(self.parent, vector)
+
+        return bool(vector in self.vector_values)
+
+    def satisfied_by_value(
+        self,
+        instantiated_parent_hyperparameter: dict[str, Any],
+    ) -> bool:
+        value = instantiated_parent_hyperparameter[self.parent.name]
+        if value is NotSet:
+            return False
+        return bool(value in self.values)
 
 
-class AbstractConjunction(ConditionComponent):
-    def __init__(self, *args: AbstractCondition) -> None:
-        super().__init__()
+class Conjunction:
+    def __init__(self, *args: Condition | Conjunction) -> None:
         self.components = args
         self.n_components = len(self.components)
         self.dlcs = self.get_descendant_literal_conditions()
 
         # Test the classes
         for idx, component in enumerate(self.components):
-            if not isinstance(component, ConditionComponent):
+            if not isinstance(component, Condition | Conjunction):
                 raise TypeError(
-                    "Argument #%d is not an instance of %s, "
-                    "but %s" % (idx, ConditionComponent, type(component)),
+                    "Argument #%d is not an instance of Condition or Conjunction, "
+                    "but %s" % (idx, type(component)),
                 )
 
         # Test that all conjunctions and conditions have the same child!
@@ -506,7 +444,7 @@ class AbstractConjunction(ConditionComponent):
         for c1, c2 in combinations(children, 2):
             if c1 != c2:
                 raise ValueError(
-                    "All Conjunctions and Conditions must have " "the same child.",
+                    "All Conjunctions and Conditions must have the same child.",
                 )
 
     def __eq__(self, other: Any) -> bool:
@@ -529,88 +467,50 @@ class AbstractConjunction(ConditionComponent):
     def __copy__(self):
         return self.__class__(*[copy.copy(comp) for comp in self.components])
 
-    def get_descendant_literal_conditions(self) -> tuple[AbstractCondition]:
+    def get_descendant_literal_conditions(self) -> tuple[Condition, ...]:
         children = []
         for component in self.components:
-            if isinstance(component, AbstractConjunction):
+            if isinstance(component, Conjunction):
                 children.extend(component.get_descendant_literal_conditions())
             else:
                 children.append(component)
         return tuple(children)
+
+    def iter(self) -> Iterator[Condition | Conjunction]:
+        for component in self.components:
+            yield component
+            if isinstance(component, Conjunction):
+                yield from component.iter()
 
     def set_vector_idx(self, hyperparameter_to_idx: dict):
         for component in self.components:
             component.set_vector_idx(hyperparameter_to_idx)
 
     def get_children_vector(self) -> list[int]:
-        children_vector = []
-        for component in self.components:
-            children_vector.extend(component.get_children_vector())
-        return children_vector
+        return [c.child_vector_id for c in self.get_descendant_literal_conditions()]
 
     def get_parents_vector(self) -> list[int]:
-        parents_vector = []
-        for component in self.components:
-            parents_vector.extend(component.get_parents_vector())
-        return parents_vector
+        return [c.parent_vector_id for c in self.get_descendant_literal_conditions()]
 
-    def get_children(self) -> list[ConditionComponent]:
-        children = []
-        for component in self.components:
-            children.extend(component.get_children())
-        return children
+    def get_children(self) -> list[Hyperparameter]:
+        return [c.child for c in self.iter() if isinstance(c, Condition)]
 
-    def get_parents(self) -> list[ConditionComponent]:
-        parents = []
-        for component in self.components:
-            parents.extend(component.get_parents())
-        return parents
-
-    def evaluate(
-        self,
-        instantiated_hyperparameters: dict[str, None | int | float | str],
-    ) -> bool:
-        # Then, check if all parents were passed
-        conditions = self.dlcs
-        for condition in conditions:
-            if condition.parent.name not in instantiated_hyperparameters:
-                raise ValueError(
-                    "Evaluate must be called with all "
-                    "instanstatiated parent hyperparameters in "
-                    "the conjunction; you are (at least) missing "
-                    "'%s'" % condition.parent.name,
-                )
-
-        # Finally, call evaluate for all direct descendents and combine the
-        # outcomes
-        values = np.empty(self.n_components, dtype=np.int32)
-        for i, component in enumerate(self.components):
-            e = component.evaluate(instantiated_hyperparameters)
-            values[i] = e
-
-        return self._evaluate(values)
-
-    def _evaluate_vector(self, instantiated_vector: np.ndarray) -> bool:
-        values = np.empty(self.n_components, dtype=np.int32)
-
-        # Finally, call evaluate for all direct descendents and combine the
-        # outcomes
-        for i in range(self.n_components):
-            component = self.components[i]
-            e = component._evaluate_vector(instantiated_vector)
-            values[i] = e
-
-        return self._evaluate(values)
+    def get_parents(self) -> list[Hyperparameter]:
+        return [c.parent for c in self.iter() if isinstance(c, Condition)]
 
     @abstractmethod
-    def _evaluate(self, evaluations) -> bool:
+    def satisfied_by_value(self, instantiated_hyperparameters: dict[str, Any]) -> bool:
+        pass
+
+    @abstractmethod
+    def satisfied_by_vector(self, instantiated_vector: np.ndarray) -> bool:
         pass
 
 
-class AndConjunction(AbstractConjunction):
+class AndConjunction(Conjunction):
     # TODO: test if an AndConjunction results in an illegal state or a
     #       Tautology! -> SAT solver
-    def __init__(self, *args: AbstractCondition) -> None:
+    def __init__(self, *args: Condition) -> None:
         """By using the *AndConjunction*, constraints can easily be connected.
 
         The following example shows how two constraints with an *AndConjunction*
@@ -652,15 +552,29 @@ class AndConjunction(AbstractConjunction):
         retval.write(")")
         return retval.getvalue()
 
-    def _evaluate_vector(self, instantiated_vector: np.ndarray) -> bool:
-        return all(c._evaluate_vector(instantiated_vector) for c in self.components)
+    def satisfied_by_value(self, instantiated_hyperparameters: dict[str, Any]) -> bool:
+        # Then, check if all parents were passed
+        # TODO: Speed this up
+        conditions = self.dlcs
+        for condition in conditions:
+            if condition.parent.name not in instantiated_hyperparameters:
+                raise ValueError(
+                    "Evaluate must be called with all "
+                    "instanstatiated parent hyperparameters in "
+                    "the conjunction; you are (at least) missing "
+                    "'%s'" % condition.parent.name,
+                )
 
-    def _evaluate(self, evaluations: np.ndarray) -> bool:
-        return bool(evaluations.all())
+        return all(
+            c.satisfied_by_value(instantiated_hyperparameters) for c in self.components
+        )
+
+    def satisfied_by_vector(self, instantiated_vector: np.ndarray) -> bool:
+        return all(c.satisfied_by_vector(instantiated_vector) for c in self.components)
 
 
-class OrConjunction(AbstractConjunction):
-    def __init__(self, *args: AbstractCondition) -> None:
+class OrConjunction(Conjunction):
+    def __init__(self, *args: Condition) -> None:
         """Similar to the *AndConjunction*, constraints can be combined by
         using the *OrConjunction*.
 
@@ -700,8 +614,27 @@ class OrConjunction(AbstractConjunction):
         retval.write(")")
         return retval.getvalue()
 
-    def _evaluate(self, evaluations) -> bool:
-        return any(evaluations)
+    def satisfied_by_value(self, instantiated_hyperparameters: dict[str, Any]) -> bool:
+        # Then, check if all parents were passed
+        # TODO: Speed this up
+        conditions = self.dlcs
+        for condition in conditions:
+            if condition.parent.name not in instantiated_hyperparameters:
+                raise ValueError(
+                    "Evaluate must be called with all "
+                    "instanstatiated parent hyperparameters in "
+                    "the conjunction; you are (at least) missing "
+                    "'%s'" % condition.parent.name,
+                )
 
-    def _evaluate_vector(self, instantiated_vector: np.ndarray) -> bool:
-        return any(c._evaluate_vector(instantiated_vector) for c in self.components)
+        return any(
+            c.satisfied_by_value(instantiated_hyperparameters) for c in self.components
+        )
+
+    def satisfied_by_vector(self, instantiated_vector: np.ndarray) -> bool:
+        return any(c.satisfied_by_vector(instantiated_vector) for c in self.components)
+
+
+# Backwards compatibility
+AbstractCondition = Condition
+AbstractConjunction = Conjunction
