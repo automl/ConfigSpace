@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections import deque
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING
 
 import numpy as np
 
@@ -14,7 +14,7 @@ from ConfigSpace.exceptions import (
 from ConfigSpace.hyperparameters import Hyperparameter
 
 if TYPE_CHECKING:
-    from ConfigSpace.conditions import Condition, Conjunction
+    from ConfigSpace.conditions import Condition
     from ConfigSpace.configuration_space import ConfigurationSpace
     from ConfigSpace.forbidden import ForbiddenLike
     from ConfigSpace.hyperparameters.hyperparameter import Hyperparameter
@@ -122,35 +122,6 @@ def check_configuration(
             raise InactiveHyperparameterSetError(hp, hp_vector_val)
 
     space._check_forbidden(vector)
-
-
-def correct_sampled_array(
-    vector: np.ndarray,
-    forbidden_clauses_unconditionals: list[ForbiddenLike],
-    forbidden_clauses_conditionals: list[ForbiddenLike],
-    condition_graph: dict[str, list[Condition | Conjunction]],
-    hyperparameter_to_idx: dict[str, int],
-) -> np.ndarray | Literal[False]:
-    for clause in forbidden_clauses_unconditionals:
-        if clause.is_forbidden_vector(vector):
-            return False
-
-    # Could be sped up if required as we don't require a fully topological sorted
-    # structure, however it's better than naive attempts
-    for hp, conditions in condition_graph.items():
-        # OPTIM: using `all()` is cleaner but given this is in an extreme hot-loopm
-        # using a plain old for loop is faster (no generator required)
-        for condition in conditions:
-            if not condition.satisfied_by_vector(vector):
-                idx = hyperparameter_to_idx[hp]
-                vector[idx] = np.nan
-                break
-
-    for clause in forbidden_clauses_conditionals:
-        if clause.is_forbidden_vector(vector):
-            return False
-
-    return vector
 
 
 def change_hp_value(

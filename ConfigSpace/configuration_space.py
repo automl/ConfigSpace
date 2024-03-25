@@ -115,7 +115,7 @@ def _parse_hyperparameters_from_dict(items: dict[str, Any]) -> Iterator[Hyperpar
 
 def _assert_type(
     item: Any,
-    expected: type | tuple[type],
+    expected: type | tuple[type, ...],
     method: str | None = None,
 ) -> None:
     if not isinstance(item, expected):
@@ -502,7 +502,12 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         forbiddens_to_add = []
         for forbidden_clause in configuration_space.forbidden_clauses:
             new_forbidden = forbidden_clause
-            for dlc in new_forbidden.get_descendant_literal_clauses():
+            dlcs = (
+                new_forbidden.get_descendant_literal_clauses()
+                if isinstance(new_forbidden, ForbiddenConjunction)
+                else [new_forbidden]
+            )
+            for dlc in dlcs:
                 if isinstance(dlc, ForbiddenRelation):
                     dlc.left.name = _new_name(dlc.left)
                     dlc.right.name = _new_name(dlc.right)
@@ -900,7 +905,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         )
         sample_size = size
         while len(accepted_configurations) < size:
-            sample_size = max(int(MULT * sample_size), 5)
+            sample_size = max(int(MULT**2 * sample_size), 5)
 
             # Sample a vector for each hp, filling out columns
             config_matrix = np.empty(
@@ -908,8 +913,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
                 dtype=np.float64,
             )
             for i, hp in enumerate(self._hyperparameters.values()):
-                sampled_vector = hp.sample_vector(sample_size, seed=self.random)
-                config_matrix[:, i] = sampled_vector
+                config_matrix[:, i] = hp.sample_vector(sample_size, seed=self.random)
 
             # Apply unconditional forbiddens across the columns (hps)
             # We treat this as an OR, i.e. if any of the forbidden clauses are
@@ -919,15 +923,10 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
                 uncond_forbidden |= clause.is_forbidden_vector_array(config_matrix)
 
             valid_config_matrix = config_matrix[~uncond_forbidden]
-            # Now apply conditionals to
-            for hp, conditions in self._conditional_dep_graph.items():
-                hp_col_idx = self._hyperparameter_idx[hp]
-                for condition in conditions:
-                    valid_config_matrix[:, hp_col_idx] = np.where(
-                        condition.satisfied_by_vector_array(valid_config_matrix),
-                        valid_config_matrix[:, hp_col_idx],
-                        np.nan,
-                    )
+
+            for condition, effected_mask in self.minimum_condition_span:
+                satisfied = condition.satisfied_by_vector_array(valid_config_matrix)
+                valid_config_matrix[np.ix_(~satisfied, effected_mask)] = np.nan
 
             # Now we apply the forbiddens that depend on conditionals
             cond_forbidden = np.zeros(len(valid_config_matrix), dtype=np.bool_)
@@ -1438,19 +1437,58 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
             for name in ConfigSpace.c_util.topological_sort(self._parents_of)
         }
 
+        # A lot of hyperparameters often depend on what is essentially they same
+        # condition on its parent, i.e. some choice of algorithm dictating if the
+        # hyperparameter is active.
+        # We can speed up sampling by only computing conditionals that perform some
+        # unique operation i.e. whatever they check on their parent.
+        # This could be improed by considering transitivity
+        # [ (condition, mask_of_hps_effected), ...]
+        minimum_condition_span: list[tuple[Condition | Conjunction, list[int]]] = []
+        for hp_name, parent_conditions in self._conditional_dep_graph.items():
+            # If it's unconditional, skip
+            if len(parent_conditions) == 0:
+                continue
+
+            hp_idx = self._hyperparameter_idx[hp_name]
+
+            # Otherwise, for each of the conditions effecting this hp
+            for condition_effecting_hp in parent_conditions:
+                # If there's nothing yet, insert it as a minimum span condition
+                if len(minimum_condition_span) == 0:
+                    minimum_condition_span.append((condition_effecting_hp, [hp_idx]))
+                else:
+                    # Otherwise, iterate through the existing conditions and append
+                    # it as a hyperparameter that is effected by the same condition
+                    for min_span_cond, effected_hps in minimum_condition_span:
+                        if condition_effecting_hp.conditionally_equal(min_span_cond):
+                            effected_hps.append(hp_idx)
+                            break
+                    else:
+                        minimum_condition_span.append(
+                            (condition_effecting_hp, [hp_idx]),
+                        )
+
+        self.minimum_condition_span = [
+            (c, np.asarray(effected_hps, dtype=np.int64))
+            for c, effected_hps in minimum_condition_span
+        ]
+
     def _check_forbidden_component(self, clause: ForbiddenLike) -> None:
         _assert_type(
             clause,
-            (ForbiddenClause, ForbiddenConjunction, ForbiddenInClause),
+            (ForbiddenClause, ForbiddenConjunction, ForbiddenRelation),
             "_check_forbidden_component",
         )
 
-        to_check = []
-        relation_to_check = []
-        if isinstance(clause, (ForbiddenClause, ForbiddenRelation)):
+        to_check: list[ForbiddenClause] = []
+        relation_to_check: list[ForbiddenRelation] = []
+        if isinstance(clause, ForbiddenClause):
             to_check.append(clause)
         elif isinstance(clause, ForbiddenConjunction):
             to_check.extend(clause.get_descendant_literal_clauses())
+        elif isinstance(clause, ForbiddenRelation):
+            relation_to_check.append(clause)
         else:
             raise NotImplementedError(type(clause))
 
@@ -1473,10 +1511,14 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
 
     def _get_children_of(self, name: str) -> list[Hyperparameter]:
         conditions = self._get_child_conditions_of(name)
-        parents: list[Hyperparameter] = []
+        children: list[Hyperparameter] = []
         for condition in conditions:
-            parents.extend(condition.get_children())
-        return parents
+            if isinstance(condition, Conjunction):
+                children.extend(condition.get_children())
+            else:
+                children.append(condition.child)
+
+        return children
 
     def _get_child_conditions_of(self, name: str) -> list[Condition]:
         children = self._children[name]
@@ -1497,7 +1539,10 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         conditions = self._get_parent_conditions_of(name)
         parents: list[Hyperparameter] = []
         for condition in conditions:
-            parents.extend(condition.get_parents())
+            if isinstance(condition, Conjunction):
+                parents.extend(condition.get_parents())
+            else:
+                parents.append(condition.parent)
         return parents
 
     def _check_default_configuration(self) -> Configuration:
@@ -1641,13 +1686,3 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         return list(self._hyperparameters.keys())
 
     # ---------------------------------------------------
-
-
-def _temporary_custom_sample_configuration(
-    cs: ConfigurationSpace,
-    size: int,
-    seed: np.random.RandomState,
-) -> list[Configuration]:
-    vector = np.empty((size, len(cs)), dtype=np.float64)
-    for i, hp in enumerate(cs._hyperparameters.values()):
-        vector[:, i] = hp.sample_vector(size, seed=seed)

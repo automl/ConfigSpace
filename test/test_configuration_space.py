@@ -1047,6 +1047,7 @@ def test_substitute_hyperparameters_in_forbiddens():
     sub_hp3 = NormalIntegerHyperparameter("input3", lower=0, upper=10, mu=5, sigma=2)
     sub_hp4 = BetaIntegerHyperparameter("input4", lower=0, upper=10, alpha=3, beta=5)
     cs2.add_hyperparameters([sub_hp1, sub_hp2, sub_hp3, sub_hp4])
+
     new_forbiddens = cs1.substitute_hyperparameters_in_forbiddens(
         cs1.get_forbiddens(),
         cs2,

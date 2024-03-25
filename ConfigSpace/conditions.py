@@ -120,6 +120,12 @@ class Condition(Generic[DC, VC, DP, VP]):
 
         return self.value == other.value
 
+    def conditionally_equal(self, other: Any) -> bool:
+        if not isinstance(other, self.__class__):
+            return False
+
+        return self.parent == other.parent and self.value == other.value
+
     @abstractmethod
     def satisfied_by_value(
         self,
@@ -474,6 +480,21 @@ class Conjunction:
                 return False
 
         return True
+
+    def conditionally_equal(self, other: Any) -> bool:
+        if not isinstance(other, self.__class__):
+            return False
+
+        this_dlcs = self.get_descendant_literal_conditions()
+        other_dlcs = other.get_descendant_literal_conditions()
+
+        if len(this_dlcs) != len(other_dlcs):
+            return False
+
+        return all(
+            c.conditionally_equal(oc)
+            for c, oc in zip(this_dlcs, other_dlcs, strict=True)
+        )
 
     def __copy__(self):
         return self.__class__(*[copy.copy(comp) for comp in self.components])

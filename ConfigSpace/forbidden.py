@@ -31,7 +31,7 @@ import io
 from abc import ABC, abstractmethod
 from copy import copy
 from typing import Any, Iterable, Union
-from typing_extensions import Self, TypeAlias
+from typing_extensions import Self
 
 import numpy as np
 import numpy.typing as npt
@@ -48,6 +48,10 @@ class ForbiddenClause(ABC):
     # TODO: Remove
     def set_vector_idx(self, hyperparameter_to_idx):
         self.vector_id = hyperparameter_to_idx[self.hyperparameter.name]
+
+    @abstractmethod
+    def __eq__(self, other: Any) -> bool:
+        pass
 
     @abstractmethod
     def is_forbidden_vector(self, vector: np.ndarray) -> bool:
@@ -134,6 +138,8 @@ class ForbiddenConjunction(ABC):
         if self.n_components != other.n_components:
             return False
 
+        # TODO: This will fail if they are not in the same order which shouldn't make
+        # a difference for equivalence
         return all(
             self.components[i] == other.components[i] for i in range(self.n_components)
         )
@@ -202,6 +208,12 @@ class ForbiddenEqualsClause(ForbiddenClause):
         # np.float64, we pre-convert the value here to make the comparison check faster
         self.vector_value = np.float64(self.hyperparameter.to_vector(self.value))
 
+    def __eq__(self, other: Any) -> bool:
+        if not isinstance(other, self.__class__):
+            return False
+
+        return self.hyperparameter == other.hyperparameter and self.value == other.value
+
     def __repr__(self):
         return f"Forbidden: {self.hyperparameter.name} == {self.value!r}"
 
@@ -212,7 +224,7 @@ class ForbiddenEqualsClause(ForbiddenClause):
         return vector[self.vector_id] == self.vector_value
 
     def is_forbidden_vector_array(self, arr: np.ndarray) -> npt.NDArray[np.bool_]:
-        return arr[:, self.vector_id] == self.vector_value
+        return np.equal(arr[:, self.vector_id], self.vector_value, dtype=np.bool_)
 
 
 class ForbiddenInClause(ForbiddenClause):
@@ -259,6 +271,14 @@ class ForbiddenInClause(ForbiddenClause):
         return "Forbidden: {} in {}".format(
             self.hyperparameter.name,
             "{" + ", ".join(repr(value) for value in self.values) + "}",
+        )
+
+    def __eq__(self, other: Any) -> bool:
+        if not isinstance(other, self.__class__):
+            return False
+
+        return (
+            self.hyperparameter == other.hyperparameter and self.values == other.values
         )
 
     def __copy__(self):
@@ -320,7 +340,7 @@ class ForbiddenAndConjunction(ForbiddenConjunction):
         return True
 
     def is_forbidden_vector_array(self, arr: np.ndarray) -> npt.NDArray[np.bool_]:
-        forbidden_mask = np.ones(shape=(arr.shape[0],), dtype=np.bool_)
+        forbidden_mask = np.ones(shape=arr.shape[0], dtype=np.bool_)
         for forbidden in self.components:
             forbidden_mask &= forbidden.is_forbidden_vector_array(arr)
 
@@ -457,7 +477,7 @@ class ForbiddenGreaterThanRelation(ForbiddenRelation):
         return self.left.to_value(left) > self.right.to_value(right)
 
 
-ForbiddenLike: TypeAlias = Union[
+ForbiddenLike = Union[
     ForbiddenClause,
     ForbiddenConjunction,
     ForbiddenRelation,

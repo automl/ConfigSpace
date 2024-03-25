@@ -215,19 +215,6 @@ class Configuration(Mapping[str, Any]):
         self._values[key] = value
         return value
 
-    def keys(self) -> Iterator[str]:
-        """Return the keys of the configuration.
-
-        Returns:
-        -------
-        KeysView[str]
-            The keys of the configuration
-        """
-        for key in self.config_space:
-            idx = self.config_space._hyperparameter_idx[key]
-            if not np.isnan(self._vector[idx]):
-                yield key
-
     def __eq__(self, other: Any) -> bool:
         if isinstance(other, self.__class__):
             return dict(self) == dict(other) and self.config_space == other.config_space
@@ -244,7 +231,10 @@ class Configuration(Mapping[str, Any]):
         return "\n".join([header, *lines, end])
 
     def __iter__(self) -> Iterator[str]:
-        return iter(self.keys())
+        for key in self.config_space:
+            idx = self.config_space._hyperparameter_idx[key]
+            if not np.isnan(self._vector[idx]):
+                yield key
 
     def __len__(self) -> int:
         return len(self.config_space)

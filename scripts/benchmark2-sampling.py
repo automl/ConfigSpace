@@ -30,11 +30,9 @@ def run_test(configuration_space_path):
     for i in range(20):
         cs.seed(i)
         start_time = time.time()
-        configs = cs.sample_configuration(size=n_configs)
+        cs.sample_configuration(size=n_configs)
         end_time = time.time()
         sampling_time.append(end_time - start_time)
-        for config in configs:
-            config.is_valid_configuration()
 
     print("Average time sampling %d configurations" % n_configs, np.mean(sampling_time))
 
