@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import warnings
-from collections.abc import Iterator, KeysView, Mapping, Sequence
+from collections.abc import Iterator, Mapping, Sequence
 from typing import TYPE_CHECKING, Any
 
 import numpy as np
@@ -91,7 +91,9 @@ class Configuration(Mapping[str, Any]):
             self._values = {}
             self._vector = np.empty(shape=len(configuration_space), dtype=np.float64)
 
-            for i, (key, hp) in enumerate(configuration_space.items()):
+            for key, hp in configuration_space.items():
+                i = configuration_space._hyperparameter_idx[key]
+
                 value = values.get(key, NotSet)
                 if value is NotSet:
                     self._vector[i] = np.nan
@@ -101,7 +103,6 @@ class Configuration(Mapping[str, Any]):
                     raise IllegalValueError(hp, value)
 
                 # Truncate the float to be of constant length for a python version
-                # TODO: Optimize this
                 if isinstance(hp, FloatHyperparameter):
                     value = float(np.round(value, 16))  # type: ignore
 
@@ -111,7 +112,7 @@ class Configuration(Mapping[str, Any]):
             self.is_valid_configuration()
 
         elif vector is not None:
-            _vector = np.asarray(vector, dtype=float)
+            _vector = np.asarray(vector, dtype=np.float64)
 
             # If we have a 2d array with shape (n, 1), flatten it
             if len(_vector.shape) == 2 and _vector.shape[1] == 1:
@@ -124,7 +125,7 @@ class Configuration(Mapping[str, Any]):
                 )
 
             n_hyperparameters = len(self.config_space)
-            if len(_vector) != len(self.config_space):
+            if len(_vector) != n_hyperparameters:
                 raise ValueError(
                     f"Expected array of length {n_hyperparameters}, got {len(_vector)}",
                 )
@@ -193,7 +194,7 @@ class Configuration(Mapping[str, Any]):
 
         item_idx = self.config_space._hyperparameter_idx[key]
         vector = self._vector[item_idx]
-        if not np.isfinite(vector):
+        if np.isnan(vector):
             # NOTE: Techinically we could raise an `InactiveHyperparameterError` here
             # but that causes the `.get()` method from being a mapping to fail.
             # Normally `config.get(key)`, if it fails, will return None. Apparently,
@@ -206,7 +207,7 @@ class Configuration(Mapping[str, Any]):
 
         # Truncate float to be of constant length for a python version
         if isinstance(hyperparameter, FloatHyperparameter):
-            value = float(repr(value))
+            value = float(np.round(value, 16))  # type: ignore
 
         if self._values is None:
             self._values = {}
@@ -214,7 +215,7 @@ class Configuration(Mapping[str, Any]):
         self._values[key] = value
         return value
 
-    def keys(self) -> KeysView[str]:
+    def keys(self) -> Iterator[str]:
         """Return the keys of the configuration.
 
         Returns:
@@ -222,12 +223,10 @@ class Configuration(Mapping[str, Any]):
         KeysView[str]
             The keys of the configuration
         """
-        d = {
-            key: self._vector[idx]
-            for idx, key in enumerate(self.config_space.keys())
-            if np.isfinite(self._vector[idx])
-        }
-        return d.keys()
+        for key in self.config_space:
+            idx = self.config_space._hyperparameter_idx[key]
+            if not np.isnan(self._vector[idx]):
+                yield key
 
     def __eq__(self, other: Any) -> bool:
         if isinstance(other, self.__class__):

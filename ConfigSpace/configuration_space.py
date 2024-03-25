@@ -37,6 +37,7 @@ from itertools import chain
 from typing import Any, Final, cast, overload
 
 import numpy as np
+from more_itertools import unique_everseen
 
 import ConfigSpace.c_util
 from ConfigSpace import nx
@@ -51,7 +52,6 @@ from ConfigSpace.exceptions import (
     AmbiguousConditionError,
     ChildNotFoundError,
     CyclicDependancyError,
-    ForbiddenValueError,
     HyperparameterAlreadyExistsError,
     HyperparameterIndexError,
     HyperparameterNotFoundError,
@@ -60,9 +60,11 @@ from ConfigSpace.exceptions import (
     ParentNotFoundError,
 )
 from ConfigSpace.forbidden import (
-    AbstractForbiddenClause,
-    AbstractForbiddenComponent,
-    AbstractForbiddenConjunction,
+    ForbiddenClause,
+    ForbiddenConjunction,
+    ForbiddenEqualsClause,
+    ForbiddenInClause,
+    ForbiddenLike,
     ForbiddenRelation,
 )
 from ConfigSpace.hyperparameters import (
@@ -111,7 +113,11 @@ def _parse_hyperparameters_from_dict(items: dict[str, Any]) -> Iterator[Hyperpar
             raise ValueError(f"Unknown value '{hp}' for '{name}'")
 
 
-def _assert_type(item: Any, expected: type, method: str | None = None) -> None:
+def _assert_type(
+    item: Any,
+    expected: type | tuple[type],
+    method: str | None = None,
+) -> None:
     if not isinstance(item, expected):
         msg = f"Expected {expected}, got {type(item)}"
         if method:
@@ -214,15 +220,18 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         # Changing this to a normal dict will break sampling because there is
         # no guarantee that the parent of a condition was evaluated before
         self._conditionals: set[str] = set()
-        self.forbidden_clauses: list[AbstractForbiddenComponent] = []
+        self.forbidden_clauses: list[
+            ForbiddenConjunction | ForbiddenRelation | ForbiddenClause
+        ] = []
         self.random = np.random.RandomState(seed)
 
         self._children[_ROOT] = OrderedDict()
 
-        self._parent_conditions_of: dict[str, list[Condition]] = {}
-        self._child_conditions_of: dict[str, list[Condition]] = {}
+        self._parent_conditions_of: dict[str, list[Condition | Conjunction]] = {}
+        self._child_conditions_of: dict[str, list[Condition | Conjunction]] = {}
         self._parents_of: dict[str, list[Hyperparameter]] = {}
         self._children_of: dict[str, list[Hyperparameter]] = {}
+        self._conditional_dep_graph: dict[str, list[Condition | Conjunction]] = {}
 
         if space is not None:
             hyperparameters = list(_parse_hyperparameters_from_dict(space))
@@ -245,8 +254,8 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
 
         self._add_hyperparameter(hyperparameter)
         self._update_cache()
-        self._check_default_configuration()
         self._sort_hyperparameters()
+        self._check_default_configuration()
 
         return hyperparameter
 
@@ -274,8 +283,8 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
             self._add_hyperparameter(hyperparameter)
 
         self._update_cache()
-        self._check_default_configuration()
         self._sort_hyperparameters()
+        self._check_default_configuration()
         return hyperparameters
 
     def add_condition(
@@ -375,10 +384,8 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         self._update_cache()
         return conditions
 
-    def add_forbidden_clause(
-        self,
-        clause: AbstractForbiddenComponent,
-    ) -> AbstractForbiddenComponent:
+    # TODO: Typing could be improved here, as it gives back out what you put in
+    def add_forbidden_clause(self, clause: ForbiddenLike) -> ForbiddenLike:
         """Add a forbidden clause to the configuration space.
 
         Parameters
@@ -399,8 +406,8 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
 
     def add_forbidden_clauses(
         self,
-        clauses: list[AbstractForbiddenComponent],
-    ) -> list[AbstractForbiddenComponent]:
+        clauses: list[ForbiddenLike],
+    ) -> list[ForbiddenLike]:
         """Add a list of forbidden clauses to the configuration space.
 
         Parameters
@@ -585,7 +592,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
 
         return conditions
 
-    def get_forbiddens(self) -> list[AbstractForbiddenComponent]:
+    def get_forbiddens(self) -> list[ForbiddenLike]:
         """All forbidden clauses from the configuration space.
 
         Returns:
@@ -608,15 +615,13 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         list(:ref:`Hyperparameters`)
             Children of the hyperparameter
         """
-        conditions = self.get_child_conditions_of(name)
-        children: list[Hyperparameter] = []
-        for condition in conditions:
-            if isinstance(condition, Conjunction):
-                children.extend(condition.get_children())
-            else:
-                children.append(condition.child)
-
-        return children
+        # Get all possible children of the hyperparameter based on conditionals
+        children = chain.from_iterable(
+            cond.get_children() if isinstance(cond, Conjunction) else [cond.child]
+            for cond in self.get_child_conditions_of(name)
+        )
+        # Get the unique ones
+        return list(unique_everseen(children, key=id))
 
     def generate_all_continuous_from_bounds(
         self,
@@ -676,14 +681,13 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         list[:ref:`Conditions`]
             List with all parent hyperparameters
         """
-        conditions = self.get_parent_conditions_of(name)
-        parents: list[Hyperparameter] = []
-        for condition in conditions:
-            if isinstance(condition, Conjunction):
-                parents.extend(condition.get_parents())
-            else:
-                parents.append(condition.parent)
-        return parents
+        # Get all possible parents of the hyperparameter based on conditionals
+        parents = chain.from_iterable(
+            cond.get_parents() if isinstance(cond, Conjunction) else [cond.parent]
+            for cond in self.get_parent_conditions_of(name)
+        )
+        # Get the unique ones
+        return list(unique_everseen(parents, key=id))
 
     def get_parent_conditions_of(
         self,
@@ -714,7 +718,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
 
         Returns:
         -------
-        list[:ref:`Hyperparameters`]
+        list[str]
             List with all parent hyperparameters, which are not part of a condition
         """
         return list(self._children[_ROOT])
@@ -857,19 +861,23 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         if size < 1:
             return []
 
-        iteration = 0
-        missing = size
         accepted_configurations: list[Configuration] = []
         num_hyperparameters = len(self._hyperparameters)
 
         unconditional_hyperparameters = self.get_all_unconditional_hyperparameters()
-        hyperparameters_with_children = []
 
-        _forbidden_clauses_unconditionals = []
-        _forbidden_clauses_conditionals = []
-        for clause in self.get_forbiddens():
+        # Filter forbiddens into those that have conditionals and those that do not
+        _forbidden_clauses_unconditionals: list[ForbiddenLike] = []
+        _forbidden_clauses_conditionals: list[ForbiddenLike] = []
+        for clause in self.forbidden_clauses:
             based_on_conditionals = False
-            for subclause in clause.get_descendant_literal_clauses():
+
+            dlcs = (
+                [clause]
+                if not isinstance(clause, ForbiddenConjunction)
+                else clause.dlcs
+            )
+            for subclause in dlcs:
                 if isinstance(subclause, ForbiddenRelation):
                     if (
                         subclause.left.name not in unconditional_hyperparameters
@@ -880,54 +888,59 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
                 elif subclause.hyperparameter.name not in unconditional_hyperparameters:
                     based_on_conditionals = True
                     break
+
             if based_on_conditionals:
                 _forbidden_clauses_conditionals.append(clause)
             else:
                 _forbidden_clauses_unconditionals.append(clause)
 
-        for uhp in unconditional_hyperparameters:
-            children = self._children_of[uhp]
-            if len(children) > 0:
-                hyperparameters_with_children.append(uhp)
-
+        # Main sampling loop
+        MULT = (len(self.forbidden_clauses) + len(self._conditionals)) / len(
+            self._hyperparameters,
+        )
+        sample_size = size
         while len(accepted_configurations) < size:
-            if missing != size:
-                missing = int(1.1 * missing)
-            vector: np.ndarray = np.ndarray((missing, num_hyperparameters), dtype=float)
+            sample_size = max(int(MULT * sample_size), 5)
 
-            for i, hp_name in enumerate(self._hyperparameters):
-                hyperparameter = self._hyperparameters[hp_name]
-                vector[:, i] = hyperparameter.sample_vector(
-                    size=missing,
-                    seed=self.random,
-                )
+            # Sample a vector for each hp, filling out columns
+            config_matrix = np.empty(
+                (sample_size, num_hyperparameters),
+                dtype=np.float64,
+            )
+            for i, hp in enumerate(self._hyperparameters.values()):
+                sampled_vector = hp.sample_vector(sample_size, seed=self.random)
+                config_matrix[:, i] = sampled_vector
 
-            for i in range(missing):
-                try:
-                    configuration = Configuration(
-                        self,
-                        vector=ConfigSpace.c_util.correct_sampled_array(
-                            vector[i].copy(),
-                            _forbidden_clauses_unconditionals,
-                            _forbidden_clauses_conditionals,
-                            hyperparameters_with_children,
-                            num_hyperparameters,
-                            unconditional_hyperparameters,
-                            self._hyperparameter_idx,
-                            self._parent_conditions_of,
-                            self._parents_of,
-                            self._children_of,
-                        ),
+            # Apply unconditional forbiddens across the columns (hps)
+            # We treat this as an OR, i.e. if any of the forbidden clauses are
+            # forbidden, the entire configuration (row) is forbidden
+            uncond_forbidden = np.zeros(sample_size, dtype=np.bool_)
+            for clause in _forbidden_clauses_unconditionals:
+                uncond_forbidden |= clause.is_forbidden_vector_array(config_matrix)
+
+            valid_config_matrix = config_matrix[~uncond_forbidden]
+            # Now apply conditionals to
+            for hp, conditions in self._conditional_dep_graph.items():
+                hp_col_idx = self._hyperparameter_idx[hp]
+                for condition in conditions:
+                    valid_config_matrix[:, hp_col_idx] = np.where(
+                        condition.satisfied_by_vector_array(valid_config_matrix),
+                        valid_config_matrix[:, hp_col_idx],
+                        np.nan,
                     )
-                    accepted_configurations.append(configuration)
-                except ForbiddenValueError:
-                    iteration += 1
 
-                    if iteration == size * 100:
-                        msg = (f"Cannot sample valid configuration for {self}",)
-                        raise ForbiddenValueError(msg) from None
+            # Now we apply the forbiddens that depend on conditionals
+            cond_forbidden = np.zeros(len(valid_config_matrix), dtype=np.bool_)
+            for clause in _forbidden_clauses_conditionals:
+                cond_forbidden |= clause.is_forbidden_vector_array(valid_config_matrix)
 
-            missing = size - len(accepted_configurations)
+            valid_config_matrix = valid_config_matrix[~cond_forbidden]
+
+            # And now we have a matrix of valid configurations
+            accepted_configurations.extend(
+                [Configuration(self, vector=vec) for vec in valid_config_matrix],
+            )
+            sample_size = size - len(accepted_configurations)
 
         if size <= 1:
             return accepted_configurations[0]
@@ -1071,9 +1084,9 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
 
     @staticmethod
     def substitute_hyperparameters_in_forbiddens(
-        forbiddens: Iterable[AbstractForbiddenComponent],
+        forbiddens: Iterable[ForbiddenLike],
         new_configspace: ConfigurationSpace,
-    ) -> list[AbstractForbiddenComponent]:
+    ) -> list[ForbiddenLike]:
         """Takes a set of forbidden clauses and generates a new set of forbidden clauses
         with the same structure, where each hyperparameter is replaced with its
         namesake in new_configspace.
@@ -1082,7 +1095,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
 
         Parameters
         ----------
-        forbiddens: Iterable[AbstractForbiddenComponent]
+        forbiddens: Iterable[ForbiddenLike]
             An iterable of forbiddens
         new_configspace: ConfigurationSpace
             A ConfigurationSpace containing hyperparameters with the same names as those
@@ -1090,57 +1103,44 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
 
         Returns:
         -------
-        list[AbstractForbiddenComponent]:
+        list[ForbiddenLike]:
             The list of forbidden clauses, adjusted to fit the new ConfigurationSpace
         """
         new_forbiddens = []
         for forbidden in forbiddens:
-            if isinstance(forbidden, AbstractForbiddenConjunction):
-                conjunction_type = type(forbidden)
-                children = forbidden.get_descendant_literal_clauses()
+            if isinstance(forbidden, ForbiddenConjunction):
                 substituted_children = (
                     ConfigurationSpace.substitute_hyperparameters_in_forbiddens(
-                        children,
+                        forbidden.components,
                         new_configspace,
                     )
                 )
-                substituted_conjunction = conjunction_type(*substituted_children)
+                substituted_conjunction = forbidden.__class__(*substituted_children)
                 new_forbiddens.append(substituted_conjunction)
 
-            elif isinstance(forbidden, AbstractForbiddenClause):
-                forbidden_type = type(forbidden)
-                hyperparameter_name = forbidden.hyperparameter.name
-                new_hyperparameter = new_configspace[hyperparameter_name]
-
-                if hasattr(forbidden, "values"):
-                    forbidden_arg = forbidden.values
-                    substituted_forbidden = forbidden_type(
+            elif isinstance(forbidden, ForbiddenClause):
+                new_hyperparameter = new_configspace[forbidden.hyperparameter.name]
+                if isinstance(forbidden, ForbiddenInClause):
+                    substituted_forbidden = forbidden.__class__(
                         hyperparameter=new_hyperparameter,
-                        values=forbidden_arg,
+                        values=forbidden.values,
                     )
-                elif hasattr(forbidden, "value"):
-                    forbidden_arg = forbidden.value
-                    substituted_forbidden = forbidden_type(
+                    new_forbiddens.append(substituted_forbidden)
+                elif isinstance(forbidden, ForbiddenEqualsClause):
+                    substituted_forbidden = forbidden.__class__(
                         hyperparameter=new_hyperparameter,
-                        value=forbidden_arg,
+                        value=forbidden.value,
                     )
+                    new_forbiddens.append(substituted_forbidden)
                 else:
-                    raise AttributeError(
-                        f"Did not find the expected attribute in forbidden"
-                        f" {type(forbidden)}.",
+                    raise TypeError(
+                        f"Forbidden of type '{type(forbidden)}' not recognized.",
                     )
 
-                new_forbiddens.append(substituted_forbidden)
             elif isinstance(forbidden, ForbiddenRelation):
-                forbidden_type = type(forbidden)
-                left_name = forbidden.left.name
-                left_hyperparameter = new_configspace[left_name]
-                right_name = forbidden.right.name
-                right_hyperparameter = new_configspace[right_name]
-
-                substituted_forbidden = forbidden_type(
-                    left=left_hyperparameter,
-                    right=right_hyperparameter,
+                substituted_forbidden = forbidden.__class__(
+                    left=new_configspace[forbidden.left.name],
+                    right=new_configspace[forbidden.right.name],
                 )
                 new_forbiddens.append(substituted_forbidden)
             else:
@@ -1433,25 +1433,28 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         self._children_of = {
             name: self.get_children_of(name) for name in self._hyperparameters
         }
+        self._conditional_dep_graph = {
+            name: self._parent_conditions_of[name]
+            for name in ConfigSpace.c_util.topological_sort(self._parents_of)
+        }
 
-    def _check_forbidden_component(self, clause: AbstractForbiddenComponent) -> None:
-        _assert_type(clause, AbstractForbiddenComponent, "_check_forbidden_component")
+    def _check_forbidden_component(self, clause: ForbiddenLike) -> None:
+        _assert_type(
+            clause,
+            (ForbiddenClause, ForbiddenConjunction, ForbiddenInClause),
+            "_check_forbidden_component",
+        )
 
         to_check = []
         relation_to_check = []
-        if isinstance(clause, AbstractForbiddenClause):
+        if isinstance(clause, (ForbiddenClause, ForbiddenRelation)):
             to_check.append(clause)
-        elif isinstance(clause, AbstractForbiddenConjunction):
+        elif isinstance(clause, ForbiddenConjunction):
             to_check.extend(clause.get_descendant_literal_clauses())
-        elif isinstance(clause, ForbiddenRelation):
-            relation_to_check.extend(clause.get_descendant_literal_clauses())
         else:
             raise NotImplementedError(type(clause))
 
-        def _check_hp(
-            tmp_clause: AbstractForbiddenComponent,
-            hp: Hyperparameter,
-        ) -> None:
+        def _check_hp(tmp_clause: ForbiddenLike, hp: Hyperparameter) -> None:
             if hp.name not in self._hyperparameters:
                 raise HyperparameterNotFoundError(
                     hp,
@@ -1638,3 +1641,13 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         return list(self._hyperparameters.keys())
 
     # ---------------------------------------------------
+
+
+def _temporary_custom_sample_configuration(
+    cs: ConfigurationSpace,
+    size: int,
+    seed: np.random.RandomState,
+) -> list[Configuration]:
+    vector = np.empty((size, len(cs)), dtype=np.float64)
+    for i, hp in enumerate(cs._hyperparameters.values()):
+        vector[:, i] = hp.sample_vector(size, seed=seed)

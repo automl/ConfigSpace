@@ -47,12 +47,13 @@ from ConfigSpace.conditions import (
 )
 from ConfigSpace.configuration_space import ConfigurationSpace
 from ConfigSpace.forbidden import (
-    AbstractForbiddenComponent,
     ForbiddenAndConjunction,
+    ForbiddenClause,
+    ForbiddenConjunction,
     ForbiddenEqualsClause,
     ForbiddenInClause,
+    ForbiddenLike,
     ForbiddenRelation,
-    MultipleValueForbiddenClause,
 )
 from ConfigSpace.hyperparameters import (
     CategoricalHyperparameter,
@@ -309,27 +310,32 @@ def build_conjunction(conjunction: Conjunction) -> str:
     return line
 
 
-def build_forbidden(clause: AbstractForbiddenComponent) -> str:
-    if not isinstance(clause, AbstractForbiddenComponent):
+def build_forbidden(clause: ForbiddenLike) -> str:
+    accepted = (ForbiddenRelation, ForbiddenClause, ForbiddenConjunction)
+    if not isinstance(clause, accepted):
         raise TypeError(
             "build_forbidden must be called with an instance of "
-            f"'{AbstractForbiddenComponent}', got '{type(clause)}'",
+            f"'{accepted}', got '{type(clause)}'",
         )
 
+    # TODO: Why ...?
     if isinstance(clause, ForbiddenRelation):
         raise TypeError(
             "build_forbidden must not be called with an instance of "
-            f"'{AbstractForbiddenComponent}', got '{type(clause)}'",
+            f"'{ForbiddenRelation}', got '{type(clause)}'",
         )
 
     retval = StringIO()
     retval.write("{")
     # Really simple because everything is an AND-conjunction of equals
     # conditions
-    dlcs = clause.get_descendant_literal_clauses()
+    dlcs = [clause] if not isinstance(clause, ForbiddenConjunction) else clause.dlcs
     for dlc in dlcs:
         if retval.tell() > 1:
             retval.write(", ")
+        # TODO: Fixup
+        assert hasattr(dlc, "value")
+        assert hasattr(dlc, "hyperparameter")
         retval.write(f"{dlc.hyperparameter.name}={dlc.value}")
     retval.write("}")
     retval.seek(0)

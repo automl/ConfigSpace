@@ -2,11 +2,12 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Callable
 
 from ConfigSpace import __version__
 from ConfigSpace.conditions import (
-    Condition,
     AndConjunction,
+    Condition,
     EqualsCondition,
     GreaterThanCondition,
     InCondition,
@@ -16,13 +17,13 @@ from ConfigSpace.conditions import (
 )
 from ConfigSpace.configuration_space import ConfigurationSpace
 from ConfigSpace.forbidden import (
-    AbstractForbiddenComponent,
     ForbiddenAndConjunction,
     ForbiddenEqualsClause,
     ForbiddenEqualsRelation,
     ForbiddenGreaterThanRelation,
     ForbiddenInClause,
     ForbiddenLessThanRelation,
+    ForbiddenLike,
     ForbiddenRelation,
 )
 from ConfigSpace.functional import walk_subclasses
@@ -255,8 +256,8 @@ def _build_less_than_condition(condition: LessThanCondition) -> dict:
 
 ################################################################################
 # Builder for forbidden
-def _build_forbidden(clause: AbstractForbiddenComponent) -> dict:
-    methods = {
+def _build_forbidden(clause: ForbiddenLike) -> dict:
+    methods: dict[type, Callable] = {
         ForbiddenEqualsClause: _build_forbidden_equals_clause,
         ForbiddenInClause: _build_forbidden_in_clause,
         ForbiddenAndConjunction: _build_forbidden_and_conjunction,
@@ -264,7 +265,10 @@ def _build_forbidden(clause: AbstractForbiddenComponent) -> dict:
         ForbiddenLessThanRelation: _build_forbidden_relation,
         ForbiddenGreaterThanRelation: _build_forbidden_relation,
     }
-    return methods[type(clause)](clause)
+    method = methods.get(type(clause), None)
+    if method is None:
+        raise NotImplementedError(f"No serialization for '{type(clause)}'")
+    return method(clause)
 
 
 def _build_forbidden_equals_clause(clause: ForbiddenEqualsClause) -> dict:
@@ -543,7 +547,7 @@ def _construct_lt_condition(
 def _construct_forbidden(
     clause: dict,
     cs: ConfigurationSpace,
-) -> AbstractForbiddenComponent:
+) -> ForbiddenLike:
     forbidden_type = clause["type"]
     methods = {
         "EQUALS": _construct_forbidden_equals,

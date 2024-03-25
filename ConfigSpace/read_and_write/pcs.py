@@ -31,11 +31,13 @@ from ConfigSpace.conditions import (
 )
 from ConfigSpace.configuration_space import ConfigurationSpace
 from ConfigSpace.forbidden import (
-    AbstractForbiddenComponent,
     ForbiddenAndConjunction,
+    ForbiddenClause,
+    ForbiddenConjunction,
     ForbiddenEqualsClause,
     ForbiddenInClause,
-    MultipleValueForbiddenClause,
+    ForbiddenLike,
+    ForbiddenRelation,
 )
 from ConfigSpace.hyperparameters import (
     CategoricalHyperparameter,
@@ -201,11 +203,12 @@ def build_condition(condition: Condition | Conjunction) -> str:
     raise NotImplementedError(condition)
 
 
-def build_forbidden(clause: AbstractForbiddenComponent) -> str:
-    if not isinstance(clause, AbstractForbiddenComponent):
+def build_forbidden(clause: ForbiddenLike) -> str:
+    accepted = (ForbiddenRelation, ForbiddenClause, ForbiddenConjunction)
+    if not isinstance(clause, accepted):
         raise TypeError(
             "build_forbidden must be called with an instance of "
-            f"'{AbstractForbiddenComponent}', got '{type(clause)}'",
+            f"'{accepted}', got '{type(clause)}'",
         )
 
     if not isinstance(clause, ForbiddenEqualsClause | ForbiddenAndConjunction):
@@ -218,10 +221,13 @@ def build_forbidden(clause: AbstractForbiddenComponent) -> str:
     retval.write("{")
     # Really simple because everything is an AND-conjunction of equals
     # conditions
-    dlcs = clause.get_descendant_literal_clauses()
+    dlcs = [clause] if not isinstance(clause, ForbiddenConjunction) else clause.dlcs
     for dlc in dlcs:
         if retval.tell() > 1:
             retval.write(", ")
+        # TODO: Fixup
+        assert hasattr(dlc, "value")
+        assert hasattr(dlc, "hyperparameter")
         retval.write(f"{dlc.hyperparameter.name}={dlc.value}")
     retval.write("}")
     retval.seek(0)
@@ -350,7 +356,9 @@ def read(pcs_string: Iterable[str]) -> ConfigurationSpace:
         if param is None:
             raise NotImplementedError("Could not parse: %s" % line)
 
-        configuration_space.add_hyperparameter(param)
+        hp_params_to_add.append(param)
+
+    configuration_space.add_hyperparameters(hp_params_to_add)
 
     for clause in forbidden:
         # TODO test this properly!
@@ -413,7 +421,6 @@ def read(pcs_string: Iterable[str]) -> ConfigurationSpace:
         else:
             conditions_to_add.append(condition_objects[0])
 
-    configuration_space.add_hyperparameters(hp_params_to_add)
     configuration_space.add_conditions(conditions_to_add)
     configuration_space.add_forbidden_clauses(forbiddens_to_add)
 
@@ -483,16 +490,16 @@ def write(configuration_space: ConfigurationSpace) -> str:
 
     for forbidden_clause in configuration_space.get_forbiddens():
         # Convert in-statement into two or more equals statements
-        dlcs = forbidden_clause.get_descendant_literal_clauses()
+        dlcs = (
+            [forbidden_clause]
+            if not isinstance(forbidden_clause, ForbiddenConjunction)
+            else forbidden_clause.dlcs
+        )
         # First, get all in statements and convert them to equal statements
         in_statements = []
         other_statements = []
         for dlc in dlcs:
-            if isinstance(dlc, MultipleValueForbiddenClause):
-                if not isinstance(dlc, ForbiddenInClause):
-                    raise ValueError(
-                        "SMAC cannot handle this forbidden " "clause: %s" % dlc,
-                    )
+            if isinstance(dlc, ForbiddenInClause):
                 in_statements.append(
                     [
                         ForbiddenEqualsClause(dlc.hyperparameter, value)

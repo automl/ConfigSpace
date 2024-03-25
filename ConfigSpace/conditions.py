@@ -58,8 +58,6 @@ from typing_extensions import Self
 import numpy as np
 import numpy.typing as npt
 
-from ConfigSpace.exceptions import IllegalValueError, IllegalVectorizedValueError
-
 if TYPE_CHECKING:
     from ConfigSpace.hyperparameters.hyperparameter import Hyperparameter
 
@@ -99,8 +97,8 @@ class Condition(Generic[DC, VC, DP, VP]):
         self.child = child
         self.parent = parent
 
-        self.child_vector_id: int | None = None
-        self.parent_vector_id: int | None = None
+        self.child_vector_id: np.int64 | None = None
+        self.parent_vector_id: np.int64 | None = None
 
         self.value = value
 
@@ -110,8 +108,8 @@ class Condition(Generic[DC, VC, DP, VP]):
         This is sort of a second-stage init that is called when a condition is
         added to the search space.
         """
-        self.child_vector_id = hyperparameter_to_idx[self.child.name]
-        self.parent_vector_id = hyperparameter_to_idx[self.parent.name]
+        self.child_vector_id = np.int64(hyperparameter_to_idx[self.child.name])
+        self.parent_vector_id = np.int64(hyperparameter_to_idx[self.parent.name])
 
     def __eq__(self, other: Any) -> bool:
         if not isinstance(other, self.__class__):
@@ -138,11 +136,19 @@ class Condition(Generic[DC, VC, DP, VP]):
     ) -> bool:
         pass
 
+    @abstractmethod
+    def satisfied_by_vector_array(
+        self,
+        arr: npt.NDArray[np.number],
+    ) -> npt.NDArray[np.bool_]:
+        pass
+
 
 class _BinaryOpCondition(Condition[DC, VC, DP, VP]):
     _op_str: ClassVar[str]
     _requires_orderable_parent: ClassVar[bool]
     _op: Callable[[Any, Any], bool]
+    _vector_op: Callable[[npt.NDArray[np.number], np.float64], npt.NDArray[np.bool_]]
 
     def __init__(
         self,
@@ -168,7 +174,7 @@ class _BinaryOpCondition(Condition[DC, VC, DP, VP]):
             )
 
         # TODO: If we can change this to just vector
-        self.vector_value = self.parent.to_vector(value)
+        self.vector_value = np.float64(self.parent.to_vector(value))
 
     def __repr__(self) -> str:
         return f"{self.child.name} | {self.parent.name} {self._op_str} {self.value!r}"
@@ -188,13 +194,15 @@ class _BinaryOpCondition(Condition[DC, VC, DP, VP]):
         ),
     ) -> bool:
         vector = instantiated_parent_hyperparameter[self.parent_vector_id]
-        if np.isnan(vector):
-            return False
+        val = self._op(vector, self.vector_value)
+        return bool(val)
 
-        if not self.parent.legal_vector(vector):
-            raise IllegalVectorizedValueError(self.parent, vector)
-
-        return bool(self._op(vector, self.vector_value))
+    def satisfied_by_vector_array(
+        self,
+        arr: npt.NDArray[np.number],
+    ) -> npt.NDArray[np.bool_]:
+        vector = arr[:, self.parent_vector_id]
+        return self._vector_op(vector, self.vector_value)
 
     def satisfied_by_value(
         self,
@@ -204,10 +212,8 @@ class _BinaryOpCondition(Condition[DC, VC, DP, VP]):
         if value is NotSet:
             return False
 
-        # TODO: Maybe remove these legal checks...
-        if not self.parent.legal_value(value):
-            raise IllegalValueError(self.parent, value)
-
+        # TODO: This can be sped up by using the value in some cases but it's
+        # likely only a marginal gain.
         vector = self.parent.to_vector(value)
         return bool(self._op(vector, self.vector_value))
 
@@ -242,6 +248,7 @@ class EqualsCondition(_BinaryOpCondition[DC, VC, DP, VP]):
     _op_str = "=="
     _requires_orderable_parent = False
     _op = operator.eq
+    _vector_op = np.equal
 
 
 class NotEqualsCondition(_BinaryOpCondition[DC, VC, DP, VP]):
@@ -275,6 +282,7 @@ class NotEqualsCondition(_BinaryOpCondition[DC, VC, DP, VP]):
     _op_str = "!="
     _requires_orderable_parent = False
     _op = operator.ne
+    _vector_op = np.not_equal
 
 
 class LessThanCondition(_BinaryOpCondition[DC, VC, DP, VP]):
@@ -307,6 +315,7 @@ class LessThanCondition(_BinaryOpCondition[DC, VC, DP, VP]):
     _op_str = "<"
     _requires_orderable_parent = True
     _op = operator.lt
+    _vector_op = np.less
 
 
 class GreaterThanCondition(_BinaryOpCondition[DC, VC, DP, VP]):
@@ -339,6 +348,7 @@ class GreaterThanCondition(_BinaryOpCondition[DC, VC, DP, VP]):
     _op_str = ">"
     _requires_orderable_parent = True
     _op = operator.gt
+    _vector_op = np.greater
 
 
 class InCondition(Condition[DC, VC, DP, VP]):
@@ -407,13 +417,14 @@ class InCondition(Condition[DC, VC, DP, VP]):
         ),
     ) -> bool:
         vector = instantiated_parent_hyperparameter[self.parent_vector_id]
-        if np.isnan(vector):
-            return False
-
-        if not self.parent.legal_vector(vector):
-            raise IllegalVectorizedValueError(self.parent, vector)
-
         return bool(vector in self.vector_values)
+
+    def satisfied_by_vector_array(
+        self,
+        arr: npt.NDArray[np.number],
+    ) -> npt.NDArray[np.bool_]:
+        vector = arr[:, self.parent_vector_id]
+        return np.isin(vector, self.vector_values)
 
     def satisfied_by_value(
         self,
@@ -506,11 +517,18 @@ class Conjunction:
     def satisfied_by_vector(self, instantiated_vector: np.ndarray) -> bool:
         pass
 
+    @abstractmethod
+    def satisfied_by_vector_array(
+        self,
+        arr: npt.NDArray[np.number],
+    ) -> npt.NDArray[np.bool_]:
+        pass
+
 
 class AndConjunction(Conjunction):
     # TODO: test if an AndConjunction results in an illegal state or a
     #       Tautology! -> SAT solver
-    def __init__(self, *args: Condition) -> None:
+    def __init__(self, *args: Condition | Conjunction) -> None:
         """By using the *AndConjunction*, constraints can easily be connected.
 
         The following example shows how two constraints with an *AndConjunction*
@@ -565,16 +583,32 @@ class AndConjunction(Conjunction):
                     "'%s'" % condition.parent.name,
                 )
 
-        return all(
-            c.satisfied_by_value(instantiated_hyperparameters) for c in self.components
-        )
+        for c in self.components:
+            if not c.satisfied_by_value(instantiated_hyperparameters):
+                return False
+
+        return True
 
     def satisfied_by_vector(self, instantiated_vector: np.ndarray) -> bool:
-        return all(c.satisfied_by_vector(instantiated_vector) for c in self.components)
+        for c in self.components:  # noqa: SIM110
+            if not c.satisfied_by_vector(instantiated_vector):
+                return False
+
+        return True
+
+    def satisfied_by_vector_array(
+        self,
+        arr: npt.NDArray[np.number],
+    ) -> npt.NDArray[np.bool_]:
+        satisfied = np.ones(arr.shape[0], dtype=np.bool_)
+        for c in self.components:
+            satisfied &= c.satisfied_by_vector_array(arr)
+
+        return satisfied
 
 
 class OrConjunction(Conjunction):
-    def __init__(self, *args: Condition) -> None:
+    def __init__(self, *args: Condition | Conjunction) -> None:
         """Similar to the *AndConjunction*, constraints can be combined by
         using the *OrConjunction*.
 
@@ -627,12 +661,28 @@ class OrConjunction(Conjunction):
                     "'%s'" % condition.parent.name,
                 )
 
-        return any(
-            c.satisfied_by_value(instantiated_hyperparameters) for c in self.components
-        )
+        for c in self.components:
+            if c.satisfied_by_value(instantiated_hyperparameters):
+                return True
+
+        return False
 
     def satisfied_by_vector(self, instantiated_vector: np.ndarray) -> bool:
-        return any(c.satisfied_by_vector(instantiated_vector) for c in self.components)
+        for c in self.components:  # noqa: SIM110
+            if c.satisfied_by_vector(instantiated_vector):
+                return True
+
+        return False
+
+    def satisfied_by_vector_array(
+        self,
+        arr: npt.NDArray[np.number],
+    ) -> npt.NDArray[np.bool_]:
+        satisfied = np.ones(arr.shape[0], dtype=np.bool_)
+        for c in self.components:
+            satisfied |= c.satisfied_by_vector_array(arr)
+
+        return satisfied
 
 
 # Backwards compatibility

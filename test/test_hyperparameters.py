@@ -2625,7 +2625,6 @@ def test_sample_CategoricalHyperparameter():
     np.testing.assert_array_equal(samples1, samples2)
 
     _, bin_counts = np.unique(samples1, return_counts=True)
-    print(bin_counts)
     for bin in bin_counts:
         assert 235 <= bin <= 265
 

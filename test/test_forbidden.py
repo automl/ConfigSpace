@@ -33,8 +33,6 @@ import numpy as np
 import pytest
 
 from ConfigSpace import OrdinalHyperparameter
-
-#     ForbiddenInClause, ForbiddenAndConjunction
 from ConfigSpace.forbidden import (
     ForbiddenAndConjunction,
     ForbiddenEqualsClause,
@@ -84,9 +82,9 @@ def test_forbidden_equals_clause():
     # Test forbidden on vector values
     hyperparameter_idx = {hp1.name: 0, hp2.name: 1}
     forb1.set_vector_idx(hyperparameter_idx)
-    assert not forb1.is_forbidden_vector(np.array([np.NaN, np.NaN]), strict=False)
-    assert not forb1.is_forbidden_vector(np.array([0.0, np.NaN]), strict=False)
-    assert forb1.is_forbidden_vector(np.array([1.0, np.NaN]), strict=False)
+    assert not forb1.is_forbidden_vector(np.array([np.nan, np.nan]), strict=False)
+    assert not forb1.is_forbidden_vector(np.array([0.0, np.nan]), strict=False)
+    assert forb1.is_forbidden_vector(np.array([1.0, np.nan]), strict=False)
 
 
 def test_in_condition():
@@ -130,10 +128,13 @@ def test_in_condition():
     # Test forbidden on vector values
     hyperparameter_idx = {hp1.name: 0, hp2.name: 1}
     forb1.set_vector_idx(hyperparameter_idx)
-    assert not forb1.is_forbidden_vector(np.array([np.NaN, np.NaN]), strict=False)
-    assert not forb1.is_forbidden_vector(np.array([np.NaN, 0]), strict=False)
+    assert not forb1.is_forbidden_vector(np.array([np.nan, np.nan]), strict=False)
+    assert not forb1.is_forbidden_vector(np.array([np.nan, 0]), strict=False)
     correct_vector_value = hp2._inverse_transform(6)
-    assert forb1.is_forbidden_vector(np.array([np.NaN, correct_vector_value]), strict=False)
+    assert forb1.is_forbidden_vector(
+        np.array([np.nan, correct_vector_value]),
+        strict=False,
+    )
 
 
 def test_and_conjunction():
@@ -216,7 +217,12 @@ def test_and_conjunction():
 
     for i, values in enumerate(product(range(2), range(3), range(3), range(3))):
         is_forbidden = total_and.is_forbidden(
-            {"parent": values[0], "child": values[1], "child2": values[2], "child3": values[3]},
+            {
+                "parent": values[0],
+                "child": values[1],
+                "child2": values[2],
+                "child3": values[3],
+            },
             True,
         )
 
@@ -279,11 +285,20 @@ def test_relation():
     assert forb1 == forb2
     assert forb2 != forb3
 
-    hp1 = OrdinalHyperparameter("water_temperature", ["cold", "luke-warm", "hot", "boiling"])
-    hp2 = OrdinalHyperparameter("water_temperature2", ["cold", "luke-warm", "hot", "boiling"])
+    hp1 = OrdinalHyperparameter(
+        "water_temperature",
+        ["cold", "luke-warm", "hot", "boiling"],
+    )
+    hp2 = OrdinalHyperparameter(
+        "water_temperature2",
+        ["cold", "luke-warm", "hot", "boiling"],
+    )
     forb = ForbiddenGreaterThanRelation(hp1, hp2)
     assert not forb.is_forbidden(
         {"water_temperature": "boiling", "water_temperature2": "cold"},
         True,
     )
-    assert forb.is_forbidden({"water_temperature": "hot", "water_temperature2": "cold"}, True)
+    assert forb.is_forbidden(
+        {"water_temperature": "hot", "water_temperature2": "cold"},
+        True,
+    )

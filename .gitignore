@@ -73,3 +73,4 @@ prof/
 
 # Running pre-commit seems to generate these
 .mypy_cache
+*.speedscope

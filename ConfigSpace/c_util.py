@@ -1,11 +1,10 @@
 from __future__ import annotations
 
 from collections import deque
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal
 
 import numpy as np
 
-from ConfigSpace.conditions import Condition, OrConjunction
 from ConfigSpace.exceptions import (
     ActiveHyperparameterNotSetError,
     ForbiddenValueError,
@@ -15,196 +14,141 @@ from ConfigSpace.exceptions import (
 from ConfigSpace.hyperparameters import Hyperparameter
 
 if TYPE_CHECKING:
-    from ConfigSpace.forbidden import AbstractForbiddenComponent
+    from ConfigSpace.conditions import Condition, Conjunction
+    from ConfigSpace.configuration_space import ConfigurationSpace
+    from ConfigSpace.forbidden import ForbiddenLike
     from ConfigSpace.hyperparameters.hyperparameter import Hyperparameter
 
 
-def check_forbidden(forbidden_clauses: list, vector: np.ndarray) -> int:
-    Iforbidden: int = len(forbidden_clauses)
-    clause: AbstractForbiddenComponent
+def topological_sort(dependancy_graph: dict[str, list[Hyperparameter]]) -> deque[str]:
+    # https://en.wikipedia.org/wiki/Topological_sorting#Depth-first_search
+    # Assumptions:
+    # key (node): value (things node depends on)
+    # * All nodes are given as a key, even if they have no dependancies (empty value)
+    # * All nodes are unique
+    # * No cycles
+    # ----
+    # An example case to think about it
+    # - D: [B, C]
+    # - A: []
+    # - B: [A]
+    # - C: [A]
+    marked: set[str] = set()
+    L: deque[str] = deque()
 
-    for i in range(Iforbidden):
-        clause = forbidden_clauses[i]
-        if clause.c_is_forbidden_vector(vector, strict=False):
+    def visit(node: str) -> None:
+        if node in marked:
+            return
+        marked.add(node)
+        for successor in dependancy_graph[node]:
+            visit(successor.name)
+        L.append(node)
+
+    for node in dependancy_graph:
+        visit(node)
+
+    return L
+
+
+def check_forbidden(forbidden_clauses: list[ForbiddenLike], vector: np.ndarray) -> None:
+    for clause in forbidden_clauses:
+        if clause.is_forbidden_vector(vector):
             raise ForbiddenValueError(
                 "Given vector violates forbidden clause %s" % (str(clause)),
             )
 
 
 def check_configuration(
-    self,
+    space: ConfigurationSpace,
     vector: np.ndarray,
     allow_inactive_with_values: bool,
 ) -> None:
-    hp_name: str
-    hyperparameter: Hyperparameter
-    hyperparameter_idx: int
-    hp_value: float | int
-    add: int
-    condition: Condition
-    child: Hyperparameter
-    conditions: list
-    children: list
-    inactive: set
-    visited: set
-
     active: list[bool] = [False] * len(vector)
 
-    unconditional_hyperparameters = self.get_all_unconditional_hyperparameters()
-    to_visit = deque()
-    visited = set()
-    to_visit.extendleft(unconditional_hyperparameters)
-    inactive = set()
+    unconditional_hyperparameters = space.get_all_unconditional_hyperparameters()
+    visited: set[str] = set()
+    inactive: set[str] = set()
 
+    to_visit: deque[str] = deque()
+    to_visit.extendleft(unconditional_hyperparameters)
     for ch in unconditional_hyperparameters:
-        active[self._hyperparameter_idx[ch]] = True
+        active[space._hyperparameter_idx[ch]] = True
 
     while len(to_visit) > 0:
         hp_name = to_visit.pop()
         visited.add(hp_name)
-        hp_idx = self._hyperparameter_idx[hp_name]
-        hyperparameter = self._hyperparameters[hp_name]
-        hp_value = vector[hp_idx]
 
-        if not np.isnan(hp_value) and not hyperparameter.legal_vector(hp_value):
-            raise IllegalVectorizedValueError(hyperparameter, hp_value)
+        hp_idx = space._hyperparameter_idx[hp_name]
+        hyperparameter = space._hyperparameters[hp_name]
+        hp_vector_val = vector[hp_idx]
 
-        children = self._children_of[hp_name]
+        if not np.isnan(hp_vector_val) and not hyperparameter.legal_vector(
+            hp_vector_val,
+        ):
+            raise IllegalVectorizedValueError(hyperparameter, hp_vector_val)
+
+        children = space._children_of[hp_name]
         for child in children:
             if child.name not in inactive:
-                conditions = self._parent_conditions_of[child.name]
+                conditions = space._parent_conditions_of[child.name]
                 add = True
                 for condition in conditions:
-                    if condition.satisfied_by_vector(vector) is False:
+                    if not condition.satisfied_by_vector(vector):
                         add = False
                         inactive.add(child.name)
                         break
+
                 if add:
-                    hyperparameter_idx = self._hyperparameter_idx[child.name]
+                    hyperparameter_idx = space._hyperparameter_idx[child.name]
                     active[hyperparameter_idx] = True
                     to_visit.appendleft(child.name)
 
-        if active[hp_idx] is True and np.isnan(hp_value):
+        if active[hp_idx] is True and np.isnan(hp_vector_val):
             raise ActiveHyperparameterNotSetError(hyperparameter)
 
-    for hp_idx in self._idx_to_hyperparameter:
+    inverted = {v: k for k, v in space._hyperparameter_idx.items()}
+    assert inverted == space._idx_to_hyperparameter
+
+    for hp_idx in space._idx_to_hyperparameter:
         if (
             not allow_inactive_with_values
             and not active[hp_idx]
             and not np.isnan(vector[hp_idx])
         ):
             # Only look up the value (in the line above) if the hyperparameter is inactive!
-            hp_name = self._idx_to_hyperparameter[hp_idx]
-            hp_value = vector[hp_idx]
-            raise InactiveHyperparameterSetError(hyperparameter, hp_value)
+            hp_name = space._idx_to_hyperparameter[hp_idx]
+            hp_vector_val = vector[hp_idx]
+            hp = space._hyperparameters[hp_name]
+            raise InactiveHyperparameterSetError(hp, hp_vector_val)
 
-    self._check_forbidden(vector)
+    space._check_forbidden(vector)
 
 
 def correct_sampled_array(
     vector: np.ndarray,
-    forbidden_clauses_unconditionals: list,
-    forbidden_clauses_conditionals: list,
-    hyperparameters_with_children: list,
-    num_hyperparameters: int,
-    unconditional_hyperparameters: list,
-    hyperparameter_to_idx: dict,
-    parent_conditions_of: dict,
-    parents_of: dict,
-    children_of: dict,
-) -> np.ndarray:
-    clause: AbstractForbiddenComponent
-    condition: Condition
-    hyperparameter_idx: int
-    NaN: float = np.nan
-    visited: set
-    inactive: set
-    child: Hyperparameter
-    children: list
-    child_name: str
-    parents: list
-    parent: Hyperparameter
-    parents_visited: int
-    conditions: list
-    add: int
+    forbidden_clauses_unconditionals: list[ForbiddenLike],
+    forbidden_clauses_conditionals: list[ForbiddenLike],
+    condition_graph: dict[str, list[Condition | Conjunction]],
+    hyperparameter_to_idx: dict[str, int],
+) -> np.ndarray | Literal[False]:
+    for clause in forbidden_clauses_unconditionals:
+        if clause.is_forbidden_vector(vector):
+            return False
 
-    active: np.ndarray = np.zeros(len(vector), dtype=int)
+    # Could be sped up if required as we don't require a fully topological sorted
+    # structure, however it's better than naive attempts
+    for hp, conditions in condition_graph.items():
+        # OPTIM: using `all()` is cleaner but given this is in an extreme hot-loopm
+        # using a plain old for loop is faster (no generator required)
+        for condition in conditions:
+            if not condition.satisfied_by_vector(vector):
+                idx = hyperparameter_to_idx[hp]
+                vector[idx] = np.nan
+                break
 
-    for j in range(len(forbidden_clauses_unconditionals)):
-        clause = forbidden_clauses_unconditionals[j]
-        if clause.c_is_forbidden_vector(vector, strict=False):
-            msg = "Given vector violates forbidden clause %s" % str(clause)
-            raise ForbiddenValueError(msg)
-
-    hps = deque()
-    visited = set()
-    hps.extendleft(hyperparameters_with_children)
-
-    for ch in unconditional_hyperparameters:
-        active[hyperparameter_to_idx[ch]] = 1
-
-    inactive = set()
-
-    while len(hps) > 0:
-        hp = hps.pop()
-        visited.add(hp)
-        children = children_of[hp]
-        for child in children:
-            child_name = child.name
-            if child_name not in inactive:
-                parents = parents_of[child_name]
-                hyperparameter_idx = hyperparameter_to_idx[child_name]
-                if len(parents) == 1:
-                    conditions = parent_conditions_of[child_name]
-                    add = True
-                    for j in range(len(conditions)):
-                        condition = conditions[j]
-                        if condition.satisfied_by_vector(vector) is False:
-                            add = False
-                            vector[hyperparameter_idx] = NaN
-                            inactive.add(child_name)
-                            break
-                    if add is True:
-                        active[hyperparameter_idx] = 1
-                        hps.appendleft(child_name)
-
-                else:
-                    parents_visited = 0
-                    for parent in parents:
-                        if parent.name in visited:
-                            parents_visited += 1
-                    if parents_visited > 0:  # make sure at least one parent was visited
-                        conditions = parent_conditions_of[child_name]
-                        if isinstance(conditions[0], OrConjunction):
-                            pass
-                        elif parents_visited != len(parents):
-                            continue
-
-                        add = True
-                        for j in range(len(conditions)):
-                            condition = conditions[j]
-                            if not condition.satisfied_by_vector(vector):
-                                add = False
-                                vector[hyperparameter_idx] = NaN
-                                inactive.add(child_name)
-                                break
-
-                        if add is True:
-                            active[hyperparameter_idx] = 1
-                            hps.appendleft(child_name)
-
-                    else:
-                        continue
-
-    for j in range(len(vector)):
-        if not active[j]:
-            vector[j] = NaN
-
-    for j in range(len(forbidden_clauses_conditionals)):
-        clause = forbidden_clauses_conditionals[j]
-        if clause.c_is_forbidden_vector(vector, strict=False):
-            msg = "Given vector violates forbidden clause %s" % str(clause)
-            raise ForbiddenValueError(msg)
+    for clause in forbidden_clauses_conditionals:
+        if clause.is_forbidden_vector(vector):
+            return False
 
     return vector
 

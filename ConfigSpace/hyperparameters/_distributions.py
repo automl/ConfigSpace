@@ -511,7 +511,10 @@ class UniformIntegerNormalizedDistribution(Distribution[np.float64]):
         seed: RandomState | None = None,
     ) -> npt.NDArray[np.float64]:
         seed = np.random.RandomState() if seed is None else seed
-        return seed.randint(low=0, high=self.size, size=n) / (self.size - 1)
+        return np.true_divide(
+            seed.randint(low=0, high=self.size, size=n),
+            (self.size - 1),
+        )
 
     def max_density(self) -> float:
         return 1 / self.size
