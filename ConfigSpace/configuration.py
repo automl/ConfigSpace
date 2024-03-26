@@ -139,11 +139,7 @@ class Configuration(Mapping[str, Any]):
         ------
         ValueError: If configuration is not valid.
         """
-        c_util.check_configuration(
-            self.config_space,
-            self._vector,
-            allow_inactive_with_values=self.allow_inactive_with_values,
-        )
+        c_util.check_configuration(self.config_space, self._vector)
 
     def get_array(self) -> npt.NDArray[np.float64]:
         """The internal vector representation of this config.

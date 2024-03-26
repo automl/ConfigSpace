@@ -4,7 +4,6 @@ from collections import deque
 from typing import TYPE_CHECKING
 
 import numpy as np
-import numpy.typing as npt
 
 from ConfigSpace.exceptions import (
     ActiveHyperparameterNotSetError,
@@ -17,7 +16,6 @@ from ConfigSpace.hyperparameters import Hyperparameter
 if TYPE_CHECKING:
     from ConfigSpace.conditions import Condition
     from ConfigSpace.configuration_space import ConfigurationSpace
-    from ConfigSpace.forbidden import ForbiddenLike
     from ConfigSpace.hyperparameters.hyperparameter import Hyperparameter
 
 
@@ -51,122 +49,40 @@ def topological_sort(dependancy_graph: dict[str, list[Hyperparameter]]) -> deque
     return L
 
 
-def check_forbidden(forbidden_clauses: list[ForbiddenLike], vector: np.ndarray) -> None:
-    for clause in forbidden_clauses:
-        if clause.is_forbidden_vector(vector):
-            raise ForbiddenValueError(
-                "Given vector violates forbidden clause %s" % (str(clause)),
-            )
-
-
-def find_illegal_configurations(
-    space: ConfigurationSpace,
-    config_matrix: npt.NDArray[np.float64],
-) -> npt.NDArray[np.bool_]:
-    forbidden = np.zeros(config_matrix.shape[1], dtype=np.bool_)
-    for clause in space.forbidden_clauses:
-        forbidden |= clause.is_forbidden_vector_array(config_matrix)
-
-    satisfied = np.ones(config_matrix.shape[1], dtype=np.bool_)
-    for condition, _ in space._minimum_condition_span:
-        satisfied &= condition.satisfied_by_vector_array(config_matrix)
-
-    return forbidden | ~satisfied
-
-
-def check_configuration2(space: ConfigurationSpace, vector: np.ndarray) -> None:
-    # Assues: `np.nan` (inactive) will not trigger forbiddens to be True
-    for clause in space.forbidden_clauses:
-        if clause.is_forbidden_vector(vector):
-            raise ForbiddenValueError(
-                "Given vector violates forbidden clause %s" % (str(clause)),
-            )
-
-    active = ~np.isnan(vector)
-    for hp_name, idx in space._hyperparameter_idx.items():
-        if not active[idx]:
-            continue
-
-        if not space._hyperparameters[hp_name].legal_vector(vector[idx]):
-            raise IllegalVectorizedValueError(
-                space._hyperparameters[hp_name],
-                vector[idx],
-            )
-
-        for condition in space._parent_conditions_of[hp_name]:
-            if not condition.satisfied_by_vector(vector):
-                vector_value = vector[idx]
-                value = space._hyperparameters[hp_name].to_value(vector_value)
-                raise InactiveHyperparameterSetError(
-                    space._hyperparameters[hp_name],
-                    value,
-                )
-
-
 def check_configuration(
     space: ConfigurationSpace,
     vector: np.ndarray,
-    allow_inactive_with_values: bool,
+    allow_inactive_with_values: bool = False,
 ) -> None:
-    active: list[bool] = [False] * len(vector)
-
-    unconditional_hyperparameters = space.get_all_unconditional_hyperparameters()
-    visited: set[str] = set()
-    inactive: set[str] = set()
-
-    to_visit: deque[str] = deque()
-    to_visit.extendleft(unconditional_hyperparameters)
-    for ch in unconditional_hyperparameters:
-        active[space._hyperparameter_idx[ch]] = True
-
-    while len(to_visit) > 0:
-        hp_name = to_visit.pop()
-        visited.add(hp_name)
-
+    for hp_name, conditions_effecting_hp in space._conditional_dep_graph.items():
+        print(hp_name, conditions_effecting_hp)
+        print(space._parents_of[hp_name])
         hp_idx = space._hyperparameter_idx[hp_name]
-        hyperparameter = space._hyperparameters[hp_name]
+        hp = space._hyperparameters[hp_name]
         hp_vector_val = vector[hp_idx]
+        is_active = ~np.isnan(hp_vector_val)
 
-        if not np.isnan(hp_vector_val) and not hyperparameter.legal_vector(
-            hp_vector_val,
-        ):
-            raise IllegalVectorizedValueError(hyperparameter, hp_vector_val)
+        if is_active and not hp.legal_vector(hp_vector_val):
+            raise IllegalVectorizedValueError(hp, hp_vector_val)
 
-        children = space._children_of[hp_name]
-        for child in children:
-            if child.name not in inactive:
-                conditions = space._parent_conditions_of[child.name]
-                add = True
-                for condition in conditions:
-                    if not condition.satisfied_by_vector(vector):
-                        add = False
-                        inactive.add(child.name)
-                        break
+        # If all conditions pass, then the hyperparameter should remain active
+        should_be_active = True
+        for condition in conditions_effecting_hp:
+            if not condition.satisfied_by_vector(vector):
+                if not allow_inactive_with_values:
+                    raise InactiveHyperparameterSetError(hp, hp_vector_val)
+                should_be_active = False
 
-                if add:
-                    hyperparameter_idx = space._hyperparameter_idx[child.name]
-                    active[hyperparameter_idx] = True
-                    to_visit.appendleft(child.name)
+        # If all condition checks above are satisfied, then the hyperparameter
+        # should be active
+        if should_be_active and not is_active:
+            raise ActiveHyperparameterNotSetError(hp)
 
-        if active[hp_idx] is True and np.isnan(hp_vector_val):
-            raise ActiveHyperparameterNotSetError(hyperparameter)
-
-    inverted = {v: k for k, v in space._hyperparameter_idx.items()}
-    assert inverted == space._idx_to_hyperparameter
-
-    for hp_idx in space._idx_to_hyperparameter:
-        if (
-            not allow_inactive_with_values
-            and not active[hp_idx]
-            and not np.isnan(vector[hp_idx])
-        ):
-            # Only look up the value (in the line above) if the hyperparameter is inactive!
-            hp_name = space._idx_to_hyperparameter[hp_idx]
-            hp_vector_val = vector[hp_idx]
-            hp = space._hyperparameters[hp_name]
-            raise InactiveHyperparameterSetError(hp, hp_vector_val)
-
-    space._check_forbidden(vector)
+    for clause in space.forbidden_clauses:
+        if clause.is_forbidden_vector(vector):
+            raise ForbiddenValueError(
+                f"Given vector violates forbidden clause {clause}",
+            )
 
 
 def change_hp_value(

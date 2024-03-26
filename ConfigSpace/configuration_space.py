@@ -42,6 +42,7 @@ from more_itertools import unique_everseen
 
 import ConfigSpace.c_util
 from ConfigSpace import nx
+from ConfigSpace._condition_tree import TTree
 from ConfigSpace.conditions import (
     Condition,
     Conjunction,
@@ -200,6 +201,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         self._hyperparameter_idx: dict[str, int] = {}
         self._idx_to_hyperparameter: dict[int, str] = {}
 
+        self.ttree = TTree()
         # Use dictionaries to make sure that we don't accidently add
         # additional keys to these mappings (which happened with defaultdict()).
         # This once broke auto-sklearn's equal comparison of configuration
@@ -1225,6 +1227,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         self._hyperparameter_idx.update(
             {hp: i for i, hp in enumerate(self._hyperparameters)},
         )
+        self.tree.add(hyperparameter)
 
     def _sort_hyperparameters(self) -> None:
         levels: OrderedDict[str, int] = OrderedDict()
