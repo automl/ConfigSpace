@@ -4,6 +4,7 @@ from collections import deque
 from typing import TYPE_CHECKING
 
 import numpy as np
+import numpy.typing as npt
 
 from ConfigSpace.exceptions import (
     ActiveHyperparameterNotSetError,
@@ -56,6 +57,50 @@ def check_forbidden(forbidden_clauses: list[ForbiddenLike], vector: np.ndarray) 
             raise ForbiddenValueError(
                 "Given vector violates forbidden clause %s" % (str(clause)),
             )
+
+
+def find_illegal_configurations(
+    space: ConfigurationSpace,
+    config_matrix: npt.NDArray[np.float64],
+) -> npt.NDArray[np.bool_]:
+    forbidden = np.zeros(config_matrix.shape[1], dtype=np.bool_)
+    for clause in space.forbidden_clauses:
+        forbidden |= clause.is_forbidden_vector_array(config_matrix)
+
+    satisfied = np.ones(config_matrix.shape[1], dtype=np.bool_)
+    for condition, _ in space._minimum_condition_span:
+        satisfied &= condition.satisfied_by_vector_array(config_matrix)
+
+    return forbidden | ~satisfied
+
+
+def check_configuration2(space: ConfigurationSpace, vector: np.ndarray) -> None:
+    # Assues: `np.nan` (inactive) will not trigger forbiddens to be True
+    for clause in space.forbidden_clauses:
+        if clause.is_forbidden_vector(vector):
+            raise ForbiddenValueError(
+                "Given vector violates forbidden clause %s" % (str(clause)),
+            )
+
+    active = ~np.isnan(vector)
+    for hp_name, idx in space._hyperparameter_idx.items():
+        if not active[idx]:
+            continue
+
+        if not space._hyperparameters[hp_name].legal_vector(vector[idx]):
+            raise IllegalVectorizedValueError(
+                space._hyperparameters[hp_name],
+                vector[idx],
+            )
+
+        for condition in space._parent_conditions_of[hp_name]:
+            if not condition.satisfied_by_vector(vector):
+                vector_value = vector[idx]
+                value = space._hyperparameters[hp_name].to_value(vector_value)
+                raise InactiveHyperparameterSetError(
+                    space._hyperparameters[hp_name],
+                    value,
+                )
 
 
 def check_configuration(

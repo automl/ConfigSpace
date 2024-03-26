@@ -18,7 +18,7 @@ from ConfigSpace.hyperparameters.hyperparameter import Hyperparameter
 
 
 @dataclass(init=False)
-class OrdinalHyperparameter(Hyperparameter[Any, np.int64]):
+class OrdinalHyperparameter(Hyperparameter[Any]):
     serializable_type_name: ClassVar[str] = "ordinal"
     orderable: ClassVar[bool] = True
     sequence: tuple[Any, ...] = field(hash=True)

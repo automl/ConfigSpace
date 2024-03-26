@@ -20,6 +20,8 @@ and further examples are provided in the
 
 from __future__ import annotations
 
+from ConfigSpace.hyperparameters.hyperparameter import HyperparameterWithPrior
+
 __authors__ = [
     "Katharina Eggensperger",
     "Matthias Feurer",
@@ -204,33 +206,32 @@ def build_constant(param: Constant) -> str:
 def build_continuous(
     param: NormalFloatHyperparameter | NormalIntegerHyperparameter,
 ) -> str:
-    if type(param) in (NormalIntegerHyperparameter, NormalFloatHyperparameter):
-        param = param.to_uniform()
+    _param = param.to_uniform() if isinstance(param, HyperparameterWithPrior) else param
 
     float_template = "%s%s real [%s, %s] [%s]"
     int_template = "%s%s integer [%d, %d] [%d]"
-    if param.log:
+    if _param.log:
         float_template += "log"
         int_template += "log"
 
     q_prefix = ""
-    default_value = param.default_value
+    default_value = _param.default_value
 
-    if isinstance(param, IntegerHyperparameter):
+    if isinstance(_param, IntegerHyperparameter):
         default_value = int(default_value)
         return int_template % (
             q_prefix,
-            param.name,
-            param.lower,
-            param.upper,
+            _param.name,
+            _param.lower,
+            _param.upper,
             default_value,
         )
 
     return float_template % (
         q_prefix,
-        param.name,
-        str(param.lower),
-        str(param.upper),
+        _param.name,
+        str(_param.lower),
+        str(_param.upper),
         str(default_value),
     )
 
@@ -774,16 +775,16 @@ def write(configuration_space: ConfigurationSpace) -> str:
 
     for forbidden_clause in configuration_space.get_forbiddens():
         # Convert in-statement into two or more equals statements
-        dlcs = forbidden_clause.get_descendant_literal_clauses()
+        dlcs = (
+            forbidden_clause.get_descendant_literal_clauses()
+            if isinstance(forbidden_clause, ForbiddenConjunction)
+            else [forbidden_clause]
+        )
         # First, get all in statements and convert them to equal statements
         in_statements = []
         other_statements = []
         for dlc in dlcs:
-            if isinstance(dlc, MultipleValueForbiddenClause):
-                if not isinstance(dlc, ForbiddenInClause):
-                    raise ValueError(
-                        "SMAC cannot handle this forbidden " "clause: %s" % dlc,
-                    )
+            if isinstance(dlc, ForbiddenInClause):
                 in_statements.append(
                     [
                         ForbiddenEqualsClause(dlc.hyperparameter, value)

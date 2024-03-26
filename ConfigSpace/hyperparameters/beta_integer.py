@@ -36,9 +36,10 @@ class BetaIntegerHyperparameter(
         log: bool = False,
         meta: Mapping[Hashable, Any] | None = None,
     ) -> None:
-        r"""A beta distributed integer hyperparameter. The 'lower' and 'upper' parameters
-        move the distribution from the [0, 1]-range and scale it appropriately, but the
-        shape of the distribution is preserved as if it were in [0, 1]-range.
+        r"""A beta distributed integer hyperparameter. The 'lower' and 'upper'
+        parameters move the distribution from the [0, 1]-range and scale it
+        appropriately, but the shape of the distribution is preserved as if it were in
+        [0, 1]-range.
 
         Its values are sampled from a beta distribution
         :math:`Beta(\alpha, \beta)`.

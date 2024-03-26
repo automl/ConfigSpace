@@ -74,19 +74,15 @@ DP = TypeVar("DP", bound=np.number)
 DC = TypeVar("DC", bound=np.number)
 """Type variable user data type for the parent and child."""
 
-VP = TypeVar("VP", bound=np.number)
-VC = TypeVar("VC", bound=np.number)
-"""Type variable vectorized data type for the parent and child."""
-
 
 # TODO: Used to signify joint operations between condition conjuctions and
 # but also singlure conditionals
 # Might be able to just unify into one but keep serpeate for now
-class Condition(Generic[DC, VC, DP, VP]):
+class Condition(Generic[DC, DP]):
     def __init__(
         self,
-        child: Hyperparameter[DC, VC],
-        parent: Hyperparameter[DP, VP],
+        child: Hyperparameter[DC],
+        parent: Hyperparameter[DP],
         value: Any,
     ) -> None:
         if child == parent:
@@ -150,7 +146,7 @@ class Condition(Generic[DC, VC, DP, VP]):
         pass
 
 
-class _BinaryOpCondition(Condition[DC, VC, DP, VP]):
+class _BinaryOpCondition(Condition[DC, DP]):
     _op_str: ClassVar[str]
     _requires_orderable_parent: ClassVar[bool]
     _op: Callable[[Any, Any], bool]
@@ -158,8 +154,8 @@ class _BinaryOpCondition(Condition[DC, VC, DP, VP]):
 
     def __init__(
         self,
-        child: Hyperparameter[DC, VC],
-        parent: Hyperparameter[DP, VP],
+        child: Hyperparameter[DC],
+        parent: Hyperparameter[DP],
         value: Any,  # HACK: Typing here is to allow in conditional
         *,
         check_condition_legality: bool = True,
@@ -224,7 +220,7 @@ class _BinaryOpCondition(Condition[DC, VC, DP, VP]):
         return bool(self._op(vector, self.vector_value))
 
 
-class EqualsCondition(_BinaryOpCondition[DC, VC, DP, VP]):
+class EqualsCondition(_BinaryOpCondition[DC, DP]):
     """Hyperparameter ``child`` is conditional on the ``parent`` hyperparameter
     being *equal* to ``value``.
 
@@ -257,7 +253,7 @@ class EqualsCondition(_BinaryOpCondition[DC, VC, DP, VP]):
     _vector_op = np.equal
 
 
-class NotEqualsCondition(_BinaryOpCondition[DC, VC, DP, VP]):
+class NotEqualsCondition(_BinaryOpCondition[DC, DP]):
     """Hyperparameter ``child`` is conditional on the ``parent`` hyperparameter
     being *not equal* to ``value``.
 
@@ -291,7 +287,7 @@ class NotEqualsCondition(_BinaryOpCondition[DC, VC, DP, VP]):
     _vector_op = np.not_equal
 
 
-class LessThanCondition(_BinaryOpCondition[DC, VC, DP, VP]):
+class LessThanCondition(_BinaryOpCondition[DC, DP]):
     """Hyperparameter ``child`` is conditional on the ``parent`` hyperparameter
     being *less than* ``value``.
 
@@ -324,7 +320,7 @@ class LessThanCondition(_BinaryOpCondition[DC, VC, DP, VP]):
     _vector_op = np.less
 
 
-class GreaterThanCondition(_BinaryOpCondition[DC, VC, DP, VP]):
+class GreaterThanCondition(_BinaryOpCondition[DC, DP]):
     """Hyperparameter ``child`` is conditional on the ``parent`` hyperparameter
     being *greater than* ``value``.
 
@@ -357,7 +353,7 @@ class GreaterThanCondition(_BinaryOpCondition[DC, VC, DP, VP]):
     _vector_op = np.greater
 
 
-class InCondition(Condition[DC, VC, DP, VP]):
+class InCondition(Condition[DC, DP]):
     """Hyperparameter ``child`` is conditional on the ``parent`` hyperparameter
     being *in* a set of ``values``.
 
@@ -386,8 +382,8 @@ class InCondition(Condition[DC, VC, DP, VP]):
 
     def __init__(
         self,
-        child: Hyperparameter[DC, VC],
-        parent: Hyperparameter[DP, VP],
+        child: Hyperparameter[DC],
+        parent: Hyperparameter[DP],
         values: list[DP],
     ) -> None:
         super().__init__(child, parent, values)
@@ -422,7 +418,7 @@ class InCondition(Condition[DC, VC, DP, VP]):
             Sequence[np.number] | npt.NDArray[np.number]
         ),
     ) -> bool:
-        vector = instantiated_parent_hyperparameter[self.parent_vector_id]
+        vector = instantiated_parent_hyperparameter[self.parent_vector_id]  # type: ignore
         return bool(vector in self.vector_values)
 
     def satisfied_by_vector_array(
@@ -519,10 +515,14 @@ class Conjunction:
             component.set_vector_idx(hyperparameter_to_idx)
 
     def get_children_vector(self) -> list[int]:
-        return [c.child_vector_id for c in self.get_descendant_literal_conditions()]
+        return [
+            int(c.child_vector_id) for c in self.get_descendant_literal_conditions()
+        ]
 
     def get_parents_vector(self) -> list[int]:
-        return [c.parent_vector_id for c in self.get_descendant_literal_conditions()]
+        return [
+            int(c.parent_vector_id) for c in self.get_descendant_literal_conditions()
+        ]
 
     def get_children(self) -> list[Hyperparameter]:
         return [c.child for c in self.iter() if isinstance(c, Condition)]
@@ -699,7 +699,7 @@ class OrConjunction(Conjunction):
         self,
         arr: npt.NDArray[np.number],
     ) -> npt.NDArray[np.bool_]:
-        satisfied = np.ones(arr.shape[1], dtype=np.bool_)
+        satisfied = np.zeros(arr.shape[1], dtype=np.bool_)
         for c in self.components:
             satisfied |= c.satisfied_by_vector_array(arr)
 

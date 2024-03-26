@@ -772,13 +772,13 @@ def test_sample_configuration_with_or_conjunction():
     for cfg, fixture in zip(
         cs.sample_configuration(6),
         [
-            [1, np.nan, 1],
-            [0, 1, 2],
+            [1, np.nan, 0],
             [0, 0, np.nan],
-            [1, np.nan, 2],
-            [1, np.nan, 1],
-            [0, 2, np.nan],
             [0, 1, 1],
+            [1, np.nan, 2],
+            [1, np.nan, 0],
+            [2, np.nan, np.nan],
+            [1, np.nan, 1],
         ],
     ):
         np.testing.assert_array_almost_equal(cfg.get_array(), fixture)

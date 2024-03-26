@@ -203,7 +203,8 @@ def test_write_log10():
 
 def test_build_forbidden():
     expected = (
-        "a {a, b, c} [a]\nb {a, b, c} [c]\n\n" "{a=a, b=a}\n{a=a, b=b}\n{a=b, b=a}\n{a=b, b=b}"
+        "a {a, b, c} [a]\nb {a, b, c} [c]\n\n"
+        "{a=a, b=a}\n{a=a, b=b}\n{a=b, b=a}\n{a=b, b=b}"
     )
     cs = ConfigurationSpace()
     a = CategoricalHyperparameter("a", ["a", "b", "c"], "a")
@@ -400,12 +401,24 @@ def test_read_new_configuration_space_forbidden():
 
     float_hp_forbidden_1 = ForbiddenEqualsClause(float_hp, 1.0)
     float_hp_forbidden_2 = ForbiddenEqualsClause(float_hp, 2.0)
-    float_hp_forbidden = ForbiddenAndConjunction(float_hp_forbidden_1, float_hp_forbidden_2)
+    float_hp_forbidden = ForbiddenAndConjunction(
+        float_hp_forbidden_1,
+        float_hp_forbidden_2,
+    )
 
-    cat_hp_str_forbidden = ForbiddenAndConjunction(ForbiddenEqualsClause(cat_hp_str, "a"))
-    ord_hp_float_forbidden = ForbiddenAndConjunction(ForbiddenEqualsClause(ord_hp_str, "a"))
+    cat_hp_str_forbidden = ForbiddenAndConjunction(
+        ForbiddenEqualsClause(cat_hp_str, "a"),
+    )
+    ord_hp_float_forbidden = ForbiddenAndConjunction(
+        ForbiddenEqualsClause(ord_hp_str, "a"),
+    )
     cs_with_forbidden.add_forbidden_clauses(
-        [int_hp_forbidden, float_hp_forbidden, cat_hp_str_forbidden, ord_hp_float_forbidden],
+        [
+            int_hp_forbidden,
+            float_hp_forbidden,
+            cat_hp_str_forbidden,
+            ord_hp_float_forbidden,
+        ],
     )
 
     complex_cs = []
@@ -419,6 +432,8 @@ def test_read_new_configuration_space_forbidden():
     complex_cs.append("{cat_hp_str=a}")
     complex_cs.append("{ord_hp_str=a}")
     cs_new = pcs_new.read(complex_cs)
+    print(cs_new._unconditional_forbiddens)
+    print(cs_with_forbidden._unconditional_forbiddens)
 
     assert cs_new == cs_with_forbidden
 
@@ -561,7 +576,10 @@ def test_read_write():
     this_directory = os.path.dirname(this_file)
     configuration_space_path = os.path.join(this_directory, "..", "test_searchspaces")
     configuration_space_path = os.path.abspath(configuration_space_path)
-    configuration_space_path = os.path.join(configuration_space_path, "spear-params-mixed.pcs")
+    configuration_space_path = os.path.join(
+        configuration_space_path,
+        "spear-params-mixed.pcs",
+    )
     with open(configuration_space_path) as fh:
         cs = pcs.read(fh)
 
@@ -588,10 +606,23 @@ def test_write_categorical_with_weights():
 def test_write_numerical_cond_and_forb():
     cs = ConfigurationSpace(seed=12345)
 
-    hc1 = CategoricalHyperparameter(name="hc1", choices=[True, False], default_value=True)
-    hc2 = CategoricalHyperparameter(name="hc2", choices=[True, False], default_value=True)
+    hc1 = CategoricalHyperparameter(
+        name="hc1",
+        choices=[True, False],
+        default_value=True,
+    )
+    hc2 = CategoricalHyperparameter(
+        name="hc2",
+        choices=[True, False],
+        default_value=True,
+    )
 
-    hf1 = UniformFloatHyperparameter(name="hf1", lower=1.0, upper=10.0, default_value=5.0)
+    hf1 = UniformFloatHyperparameter(
+        name="hf1",
+        lower=1.0,
+        upper=10.0,
+        default_value=5.0,
+    )
     hi1 = UniformIntegerHyperparameter(name="hi1", lower=1, upper=10, default_value=5)
     cs.add_hyperparameters([hc1, hc2, hf1, hi1])
     c1 = InCondition(child=hc1, parent=hc2, values=[True])

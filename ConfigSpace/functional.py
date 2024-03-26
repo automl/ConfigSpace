@@ -113,9 +113,13 @@ def linspace_chunked(
         yield np.linspace(_start, _stop, steps_per_chunk, endpoint=is_last)
 
 
+NPDType = TypeVar("NPDType", bound=np.generic)
+
+
 def split_arange(
     *bounds: tuple[int | np.int64, int | np.int64],
-) -> npt.NDArray[np.int64]:
+    dtype: type[NPDType] = np.int64,
+) -> npt.NDArray[NPDType]:
     """Split an arange into multiple ranges.
 
     >>> split_arange((0, 2), (3, 5), (6, 10))
@@ -130,8 +134,8 @@ def split_arange(
         The concatenated ranges
     """
     return np.concatenate(
-        [np.arange(start, stop, dtype=int) for start, stop in bounds],
-        dtype=np.int64,
+        [np.arange(start, stop, dtype=dtype) for start, stop in bounds],
+        dtype=dtype,
     )
 
 

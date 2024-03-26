@@ -139,139 +139,158 @@ def get_one_exchange_neighbourhood_fast(
          the given configuration.
 
     """
-    random = np.random.RandomState(seed)
-    hyperparameters_list = list(configuration.config_space._hyperparameters.keys())
-    hyperparameters_list_length = len(hyperparameters_list)
-    hyperparameters_used = [
-        hp.name
-        for hp in configuration.config_space.values()
-        if (
-            hp.get_num_neighbors(configuration.get(hp.name)) == 0
-            and configuration.get(hp.name) is not None
-        )
-    ]
-    number_of_usable_hyperparameters = sum(np.isfinite(configuration.get_array()))
-    n_neighbors_per_hp = {
-        hp.name: num_neighbors
-        if (
-            isinstance(hp, NumericalHyperparameter)
-            and hp.get_num_neighbors(configuration.get(hp.name)) > num_neighbors
-        )
-        else hp.get_num_neighbors(configuration.get(hp.name))
-        for hp in configuration.config_space.values()
-    }
+    # TODO: If this needs to get faster, hyperparameters should have a
+    # `_get_num_neighbors_vector`, preventing the need to convert to value
+    space = configuration.config_space
+    config_vector = configuration._vector
+
+    hyperparameters_list = list(space._hyperparameters.keys())
+    n_hps = len(hyperparameters_list)
+    hyperparameters_used = []
+
+    # For all in_use hyperparameters with a size of 1, these have no neighbors
+    # and are automatically in use.
+    for hp in space.values():
+        hp_idx = space._hyperparameter_idx[hp.name]
+        in_use = not np.isnan(config_vector[hp_idx])
+        if in_use and hp.size == 1:
+            hyperparameters_used.append(hp.name)
+
+    neighbor_count: dict[str, int | float] = {}
+    for hp in space.values():
+        # TODO: Not sure why numericals have their num_neighbors restricted
+        if isinstance(hp, NumericalHyperparameter):
+            if hp.size > num_neighbors:
+                neighbor_count[hp.name] = num_neighbors
+            else:
+                neighbor_count[hp.name] = hp.get_num_neighbors(
+                    value=configuration.get(hp.name),
+                )
+        else:
+            value = configuration.get(hp.name)
+            neighbor_count[hp.name] = hp.get_num_neighbors(value)
 
     finite_neighbors_stack: dict[str, list[np.number]] = {}
-    configuration_space = configuration.config_space
+    number_of_usable_hyperparameters = sum(np.isfinite(configuration._vector))
+
+    # TODO: Better idea of what to set to than 200
+    # Seems to loop around 600 times...
+    # Is there some way to calculate how many neighbors we can possibly sample?
+    random = np.random.RandomState(seed)
+    randints = iter(random.randint(n_hps, size=num_neighbors * 200))
 
     while len(hyperparameters_used) < number_of_usable_hyperparameters:
-        index = int(random.randint(hyperparameters_list_length))
+        index = next(randints, None)
+        if index is None:
+            randints = iter(random.randint(n_hps, size=num_neighbors * 10))
+            index = next(randints)
+
         hp_name = hyperparameters_list[index]
-        if n_neighbors_per_hp[hp_name] == 0:
+        if neighbor_count[hp_name] == 0:
             continue
 
-        else:
-            neighbourhood = []
-            number_of_sampled_neighbors = 0
-            array = configuration.get_array()
-            vector: np.float64 = array[index]  # type: float
+        neighbourhood = []
+        number_of_sampled_neighbors = 0
+        array = configuration.get_array()
+        vector: np.float64 = array[index]  # type: float
 
-            # Inactive value
-            if np.isnan(vector):
-                continue
+        # Inactive value
+        if np.isnan(vector):
+            continue
 
-            iteration = 0
-            hp = configuration_space[hp_name]
-            num_neighbors_for_hp = hp.get_num_neighbors(configuration.get(hp_name))
-            while True:
-                # Obtain neigbors differently for different possible numbers of
-                # neighbors
-                if num_neighbors_for_hp == 0 or iteration > 100:
+        iteration = 0
+        hp = space[hp_name]
+        num_neighbors_for_hp = hp.get_num_neighbors(configuration.get(hp_name))
+        while True:
+            # Obtain neigbors differently for different possible numbers of
+            # neighbors
+            if num_neighbors_for_hp == 0 or iteration > 100:
+                break
+
+            if np.isinf(num_neighbors_for_hp):
+                if number_of_sampled_neighbors >= 1:
                     break
-                elif np.isinf(num_neighbors_for_hp):
-                    if number_of_sampled_neighbors >= 1:
-                        break
-                    if isinstance(hp, UniformFloatHyperparameter):
-                        neighbor = hp.neighbors_vectorized(
+
+                if isinstance(hp, UniformFloatHyperparameter):
+                    neighbor = hp.neighbors_vectorized(
+                        vector,
+                        n=1,
+                        seed=random,
+                        std=stdev,
+                    )[0]
+                else:
+                    neighbor = hp.neighbors_vectorized(vector, n=1, seed=random)[0]
+
+            else:
+                if iteration > 0:
+                    break
+
+                if hp_name not in finite_neighbors_stack:
+                    # TODO: Why only uniform int?
+                    if isinstance(hp, UniformIntegerHyperparameter):
+                        neighbors = hp.neighbors_vectorized(
                             vector,
-                            n=1,
+                            n=int(neighbor_count[hp_name]),
                             seed=random,
                             std=stdev,
-                        )[0]
+                        )
                     else:
-                        neighbor = hp.neighbors_vectorized(vector, n=1, seed=random)[0]
+                        neighbors = hp.neighbors_vectorized(
+                            vector,
+                            n=4,
+                            seed=random,
+                        )
+
+                    neighbors = list(neighbors)
+                    random.shuffle(neighbors)
+                    finite_neighbors_stack[hp_name] = neighbors
                 else:
-                    if iteration > 0:
-                        break
+                    neighbors = finite_neighbors_stack[hp_name]
 
-                    if hp_name not in finite_neighbors_stack:
-                        # TODO: Why only uniform int?
-                        if isinstance(hp, UniformIntegerHyperparameter):
-                            neighbors = hp.neighbors_vectorized(
-                                vector,
-                                n=int(n_neighbors_per_hp[hp_name]),
-                                seed=random,
-                                std=stdev,
-                            )
-                        else:
-                            neighbors = hp.neighbors_vectorized(
-                                vector,
-                                n=4,
-                                seed=random,
-                            )
+                neighbor = neighbors.pop()
+                if len(neighbors) == 0:
+                    finite_neighbors_stack.pop(hp_name)
 
-                        neighbors = list(neighbors)
-                        random.shuffle(neighbors)
-                        finite_neighbors_stack[hp_name] = neighbors
-                    else:
-                        neighbors = finite_neighbors_stack[hp_name]
-                    neighbor = neighbors.pop()
-                    if len(neighbors) == 0:
-                        finite_neighbors_stack.pop(hp_name)
+            # Check all newly obtained neigbors
+            new_array = array.copy()
+            new_array = ConfigSpace.c_util.change_hp_value(
+                configuration_space=space,
+                configuration_array=new_array,
+                hp_name=hp_name,
+                hp_value=neighbor,
+                index=index,
+            )
+            try:
+                # Populating a configuration from an array does not check
+                #  if it is a legal configuration - check this (slow)
+                new_configuration = Configuration(space, vector=new_array)
+                # Only rigorously check every tenth configuration (
+                # because moving around in the neighborhood should
+                # just work!)
+                if random.random() > 0.95:
+                    new_configuration.is_valid_configuration()
+                else:
+                    space._check_forbidden(new_array)
+                neighbourhood.append(new_configuration)
+            except ForbiddenValueError:
+                pass
 
-                # Check all newly obtained neigbors
-                new_array = array.copy()
-                new_array = ConfigSpace.c_util.change_hp_value(
-                    configuration_space=configuration_space,
-                    configuration_array=new_array,
-                    hp_name=hp_name,
-                    hp_value=neighbor,
-                    index=index,
-                )
-                try:
-                    # Populating a configuration from an array does not check
-                    #  if it is a legal configuration - check this (slow)
-                    new_configuration = Configuration(
-                        configuration_space,
-                        vector=new_array,
-                    )  # type: Configuration
-                    # Only rigorously check every tenth configuration (
-                    # because moving around in the neighborhood should
-                    # just work!)
-                    if random.random() > 0.95:
-                        new_configuration.is_valid_configuration()
-                    else:
-                        configuration_space._check_forbidden(new_array)
-                    neighbourhood.append(new_configuration)
-                except ForbiddenValueError:
-                    pass
+            iteration += 1
+            if len(neighbourhood) > 0:
+                number_of_sampled_neighbors += 1
 
-                iteration += 1
-                if len(neighbourhood) > 0:
-                    number_of_sampled_neighbors += 1
-
-            # Some infinite loop happened and no valid neighbor was found OR
-            # no valid neighbor is available for a categorical
-            if len(neighbourhood) == 0:
+        # Some infinite loop happened and no valid neighbor was found OR
+        # no valid neighbor is available for a categorical
+        if len(neighbourhood) == 0:
+            hyperparameters_used.append(hp_name)
+            neighbor_count[hp_name] = 0
+            hyperparameters_used.append(hp_name)
+        elif hp_name not in hyperparameters_used:
+            n_ = neighbourhood.pop()
+            neighbor_count[hp_name] -= 1
+            if neighbor_count[hp_name] == 0:
                 hyperparameters_used.append(hp_name)
-                n_neighbors_per_hp[hp_name] = 0
-                hyperparameters_used.append(hp_name)
-            elif hp_name not in hyperparameters_used:
-                n_ = neighbourhood.pop()
-                n_neighbors_per_hp[hp_name] -= 1
-                if n_neighbors_per_hp[hp_name] == 0:
-                    hyperparameters_used.append(hp_name)
-                yield n_
+            yield n_
 
 
 def get_one_exchange_neighbourhood(

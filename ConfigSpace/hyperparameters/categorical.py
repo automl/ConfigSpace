@@ -22,19 +22,23 @@ from ConfigSpace.hyperparameters.hyperparameter import Hyperparameter
 
 
 @dataclass
-class NeighborhoodCat(_Neighborhood[np.int64]):
+class NeighborhoodCat(_Neighborhood):
     size: int
 
     def __call__(
         self,
-        vector: np.int64,
+        vector: np.float64,
         n: int,
         *,
         std: float | None = None,
         seed: np.random.RandomState | None = None,
-    ) -> npt.NDArray[np.int64]:
+    ) -> npt.NDArray[np.float64]:
         seed = np.random.RandomState() if seed is None else seed
-        choices = split_arange((0, vector), (vector + 1, self.size))
+        choices = split_arange(
+            (0, int(vector)),
+            (int(vector) + 1, self.size),
+            dtype=np.float64,
+        )
 
         if n >= len(choices):
             seed.shuffle(choices)
@@ -44,7 +48,7 @@ class NeighborhoodCat(_Neighborhood[np.int64]):
 
 
 @dataclass(init=False)
-class CategoricalHyperparameter(Hyperparameter[Any, np.int64]):
+class CategoricalHyperparameter(Hyperparameter[Any]):
     serializable_type_name: ClassVar[str] = "categorical"
     orderable: ClassVar[bool] = False
 

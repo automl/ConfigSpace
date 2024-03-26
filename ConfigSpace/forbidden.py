@@ -39,13 +39,14 @@ from more_itertools import unique_everseen
 
 from ConfigSpace.hyperparameters import Hyperparameter
 
+_SENTINEL = object()
+
 
 class ForbiddenClause(ABC):
     def __init__(self, hyperparameter: Hyperparameter) -> None:
         self.hyperparameter = hyperparameter
         self.vector_id = None
 
-    # TODO: Remove
     def set_vector_idx(self, hyperparameter_to_idx):
         self.vector_id = hyperparameter_to_idx[self.hyperparameter.name]
 
@@ -54,12 +55,18 @@ class ForbiddenClause(ABC):
         pass
 
     @abstractmethod
-    def is_forbidden_vector(self, vector: np.ndarray) -> bool:
+    def is_forbidden_value(self, instantiated_values: dict[str, Any]) -> bool:
         pass
 
     @abstractmethod
-    def is_forbidden_vector_array(self, arr: np.ndarray) -> npt.NDArray[np.bool_]:
-        # NOTE:: Indexes as `arr[:, self.vector_id]`
+    def is_forbidden_vector(self, vector: npt.NDArray[np.float64]) -> bool:
+        pass
+
+    @abstractmethod
+    def is_forbidden_vector_array(
+        self,
+        arr: npt.NDArray[np.float64],
+    ) -> npt.NDArray[np.bool_]:
         pass
 
     @abstractmethod
@@ -101,12 +108,18 @@ class ForbiddenRelation(ABC):
         pass
 
     @abstractmethod
-    def is_forbidden_vector(self, instantiated_vector: np.ndarray) -> bool:
+    def is_forbidden_value(self, instantiated_values: dict[str, Any]) -> bool:
         pass
 
     @abstractmethod
-    def is_forbidden_vector_array(self, arr: np.ndarray) -> npt.NDArray[np.bool_]:
-        # NOTE:: Indexes as `arr[:, self.left]` and `arr[:, self.right]`
+    def is_forbidden_vector(self, instantiated_vector: npt.NDArray[np.float64]) -> bool:
+        pass
+
+    @abstractmethod
+    def is_forbidden_vector_array(
+        self,
+        arr: npt.NDArray[np.float64],
+    ) -> npt.NDArray[np.bool_]:
         pass
 
 
@@ -125,7 +138,6 @@ class ForbiddenConjunction(ABC):
                 )
 
         self.components = args
-        self.n_components = len(self.components)
         self.dlcs = self.get_descendant_literal_clauses()
 
     def __copy__(self):
@@ -135,14 +147,10 @@ class ForbiddenConjunction(ABC):
         if not isinstance(other, self.__class__):
             return NotImplemented
 
-        if self.n_components != other.n_components:
+        if len(self.components) != len(other.components):
             return False
 
-        # TODO: This will fail if they are not in the same order which shouldn't make
-        # a difference for equivalence
-        return all(
-            self.components[i] == other.components[i] for i in range(self.n_components)
-        )
+        return all(c in other.components for c in self.components)
 
     def set_vector_idx(self, hyperparameter_to_idx: dict[str, int]) -> None:
         for component in self.components:
@@ -162,12 +170,18 @@ class ForbiddenConjunction(ABC):
         pass
 
     @abstractmethod
-    def is_forbidden_vector(self, instantiated_vector: np.ndarray) -> bool:
+    def is_forbidden_value(self, instantiated_values: dict[str, Any]) -> bool:
         pass
 
     @abstractmethod
-    def is_forbidden_vector_array(self, arr: np.ndarray) -> npt.NDArray[np.bool_]:
-        # NOTE:: Indexes as `arr[:, self.vector_id]`
+    def is_forbidden_vector(self, instantiated_vector: npt.NDArray[np.float64]) -> bool:
+        pass
+
+    @abstractmethod
+    def is_forbidden_vector_array(
+        self,
+        arr: npt.NDArray[np.float64],
+    ) -> npt.NDArray[np.bool_]:
         pass
 
 
@@ -220,10 +234,18 @@ class ForbiddenEqualsClause(ForbiddenClause):
     def __copy__(self):
         return self.__class__(hyperparameter=self.hyperparameter, value=self.value)
 
-    def is_forbidden_vector(self, vector: np.ndarray) -> bool:
+    def is_forbidden_value(self, instantiated_values: dict[str, Any]) -> bool:
+        return (
+            instantiated_values.get(self.hyperparameter.name, _SENTINEL) == self.value
+        )
+
+    def is_forbidden_vector(self, vector: npt.NDArray[np.float64]) -> bool:
         return vector[self.vector_id] == self.vector_value
 
-    def is_forbidden_vector_array(self, arr: np.ndarray) -> npt.NDArray[np.bool_]:
+    def is_forbidden_vector_array(
+        self,
+        arr: npt.NDArray[np.float64],
+    ) -> npt.NDArray[np.bool_]:
         return np.equal(arr[self.vector_id], self.vector_value, dtype=np.bool_)
 
 
@@ -264,7 +286,7 @@ class ForbiddenInClause(ForbiddenClause):
                     f"'{v!s}'",
                 )
         super().__init__(hyperparameter)
-        self.values = self.values
+        self.values = values
         self.vector_values = tuple(hyperparameter.to_vector(v) for v in values)
 
     def __repr__(self) -> str:
@@ -277,17 +299,29 @@ class ForbiddenInClause(ForbiddenClause):
         if not isinstance(other, self.__class__):
             return False
 
-        return (
-            self.hyperparameter == other.hyperparameter and self.values == other.values
-        )
+        if not self.hyperparameter == other.hyperparameter:
+            return False
+
+        if not len(self.values) == len(other.values):
+            return False
+
+        return all(value in other.values for value in self.values)
 
     def __copy__(self):
         return self.__class__(hyperparameter=self.hyperparameter, values=self.values)
 
-    def is_forbidden_vector(self, value) -> bool:
-        return value in self.vector_values
+    def is_forbidden_value(self, instantiated_values: dict[str, Any]) -> bool:
+        return (
+            instantiated_values.get(self.hyperparameter.name, _SENTINEL) in self.values
+        )
 
-    def is_forbidden_vector_array(self, arr: np.ndarray) -> npt.NDArray[np.bool_]:
+    def is_forbidden_vector(self, instantiated_vector: npt.NDArray[np.float64]) -> bool:
+        return instantiated_vector[self.vector_id] in self.vector_values
+
+    def is_forbidden_vector_array(
+        self,
+        arr: npt.NDArray[np.float64],
+    ) -> npt.NDArray[np.bool_]:
         return np.isin(arr[self.vector_id], self.vector_values)
 
 
@@ -330,7 +364,14 @@ class ForbiddenAndConjunction(ForbiddenConjunction):
         retval.write(")")
         return retval.getvalue()
 
-    def is_forbidden_vector(self, instantiated_vector: np.ndarray) -> bool:
+    def is_forbidden_value(self, instantiated_values: dict[str, Any]) -> bool:
+        for forbidden in self.components:
+            if not forbidden.is_forbidden_value(instantiated_values):
+                return False
+
+        return True
+
+    def is_forbidden_vector(self, instantiated_vector: npt.NDArray[np.float64]) -> bool:
         # OPTIM: Using `any()` would be nice here but plain old for loop is faster
         # and this is used in the sampling hot-loop.
         for forbidden in self.components:
@@ -339,7 +380,10 @@ class ForbiddenAndConjunction(ForbiddenConjunction):
 
         return True
 
-    def is_forbidden_vector_array(self, arr: np.ndarray) -> npt.NDArray[np.bool_]:
+    def is_forbidden_vector_array(
+        self,
+        arr: npt.NDArray[np.float64],
+    ) -> npt.NDArray[np.bool_]:
         forbidden_mask = np.ones(shape=arr.shape[1], dtype=np.bool_)
         for forbidden in self.components:
             forbidden_mask &= forbidden.is_forbidden_vector_array(arr)
@@ -378,14 +422,28 @@ class ForbiddenLessThanRelation(ForbiddenRelation):
     def __repr__(self):
         return f"Forbidden: {self.left.name} < {self.right.name}"
 
-    def is_forbidden_vector(self, instantiated_vector: np.ndarray) -> bool:
+    def is_forbidden_value(self, instantiated_values: dict[str, Any]) -> bool:
         # Relation is always evaluated against actual value and not vector rep
-        left = instantiated_vector[self.vector_ids[0]]
-        right = instantiated_vector[self.vector_ids[1]]
-        # TODO: Could pre-compute this when setting vector idx
+        left = instantiated_values.get(self.left.name, _SENTINEL)
+        if left is _SENTINEL:
+            return False
+
+        right = instantiated_values.get(self.right.name, _SENTINEL)
+        if right is _SENTINEL:
+            return False
+
+        return left < right
+
+    def is_forbidden_vector(self, instantiated_vector: npt.NDArray[np.float64]) -> bool:
+        # Relation is always evaluated against actual value and not vector rep
+        left: np.float64 = instantiated_vector[self.vector_ids[0]]  # type: ignore
+        right: np.float64 = instantiated_vector[self.vector_ids[1]]  # type: ignore
         return self.left.to_value(left) < self.right.to_value(right)
 
-    def is_forbidden_vector_array(self, arr: np.ndarray) -> npt.NDArray[np.bool_]:
+    def is_forbidden_vector_array(
+        self,
+        arr: npt.NDArray[np.float64],
+    ) -> npt.NDArray[np.bool_]:
         left = arr[self.vector_ids[0]]
         right = arr[self.vector_ids[1]]
         return self.left.to_value(left) < self.right.to_value(right)
@@ -421,14 +479,26 @@ class ForbiddenEqualsRelation(ForbiddenRelation):
     def __repr__(self):
         return f"Forbidden: {self.left.name} == {self.right.name}"
 
-    def is_forbidden_vector(self, instantiated_vector: np.ndarray) -> bool:
+    def is_forbidden_value(self, instantiated_values: dict[str, Any]) -> bool:
+        left = instantiated_values.get(self.left.name, _SENTINEL)
+        if left is _SENTINEL:
+            return False
+
+        right = instantiated_values.get(self.right.name, _SENTINEL)
+        if right is _SENTINEL:
+            return False
+        return left == right
+
+    def is_forbidden_vector(self, instantiated_vector: npt.NDArray[np.float64]) -> bool:
         # Relation is always evaluated against actual value and not vector rep
         left = instantiated_vector[self.vector_ids[0]]
         right = instantiated_vector[self.vector_ids[1]]
-        # TODO: Could pre-compute this when setting vector idx
         return self.left.to_value(left) == self.right.to_value(right)
 
-    def is_forbidden_vector_array(self, arr: np.ndarray) -> npt.NDArray[np.bool_]:
+    def is_forbidden_vector_array(
+        self,
+        arr: npt.NDArray[np.float64],
+    ) -> npt.NDArray[np.bool_]:
         left = arr[self.vector_ids[0]]
         right = arr[self.vector_ids[1]]
         return self.left.to_value(left) < self.right.to_value(right)
@@ -464,14 +534,26 @@ class ForbiddenGreaterThanRelation(ForbiddenRelation):
     def __repr__(self):
         return f"Forbidden: {self.left.name} > {self.right.name}"
 
-    def is_forbidden_vector(self, instantiated_vector: np.ndarray) -> bool:
+    def is_forbidden_value(self, instantiated_values: dict[str, Any]) -> bool:
+        left = instantiated_values.get(self.left.name, _SENTINEL)
+        if left is _SENTINEL:
+            return False
+
+        right = instantiated_values.get(self.right.name, _SENTINEL)
+        if right is _SENTINEL:
+            return False
+        return left > right
+
+    def is_forbidden_vector(self, instantiated_vector: npt.NDArray[np.float64]) -> bool:
         # Relation is always evaluated against actual value and not vector rep
-        left = instantiated_vector[self.vector_ids[0]]
-        right = instantiated_vector[self.vector_ids[1]]
-        # TODO: Could pre-compute this when setting vector idx
+        left: np.float64 = instantiated_vector[self.vector_ids[0]]  # type: ignore
+        right: np.float64 = instantiated_vector[self.vector_ids[1]]  # type: ignore
         return self.left.to_value(left) > self.right.to_value(right)
 
-    def is_forbidden_vector_array(self, arr: np.ndarray) -> npt.NDArray[np.bool_]:
+    def is_forbidden_vector_array(
+        self,
+        arr: npt.NDArray[np.float64],
+    ) -> npt.NDArray[np.bool_]:
         left = arr[self.vector_ids[0]]
         right = arr[self.vector_ids[1]]
         return self.left.to_value(left) > self.right.to_value(right)

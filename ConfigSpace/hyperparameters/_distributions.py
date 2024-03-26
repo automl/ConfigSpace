@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, ClassVar, Generic, Iterator, Protocol
+from typing import TYPE_CHECKING, ClassVar, Generic, Iterator
 
 import numpy as np
 import numpy.typing as npt
@@ -16,7 +16,6 @@ from ConfigSpace.functional import (
 from ConfigSpace.hyperparameters._hp_components import (
     ROUND_PLACES,
     DType,
-    VDType,
     _Transformer,
 )
 
@@ -177,9 +176,9 @@ def continuous_neighborhood(
     )
 
 
-class Distribution(Protocol[VDType]):
-    lower_vectorized: VDType
-    upper_vectorized: VDType
+class Distribution:
+    lower_vectorized: np.float64
+    upper_vectorized: np.float64
 
     def max_density(self) -> float: ...
 
@@ -188,16 +187,16 @@ class Distribution(Protocol[VDType]):
         n: int,
         *,
         seed: RandomState | None = None,
-    ) -> npt.NDArray[VDType]: ...
+    ) -> npt.NDArray[np.float64]: ...
 
-    def pdf_vector(self, vector: npt.NDArray[VDType]) -> npt.NDArray[np.float64]: ...
+    def pdf_vector(
+        self,
+        vector: npt.NDArray[np.float64],
+    ) -> npt.NDArray[np.float64]: ...
 
 
 @dataclass
-class DiscretizedContinuousScipyDistribution(
-    Distribution[np.float64],
-    Generic[DType],
-):
+class DiscretizedContinuousScipyDistribution(Distribution, Generic[DType]):
     steps: int
 
     rv: rv_continuous_frozen
@@ -206,7 +205,7 @@ class DiscretizedContinuousScipyDistribution(
 
     log_scale: bool = False
     # NOTE: Only required if you require log scaled quantization
-    transformer: _Transformer[DType, np.float64] | None = None
+    transformer: _Transformer[DType] | None = None
 
     _max_density: float | None = None
     _pdf_norm: float | None = None
@@ -344,7 +343,7 @@ class DiscretizedContinuousScipyDistribution(
             bins=self.steps,
         )
 
-    def pdf_vector(self, vector: npt.NDArray[VDType]) -> npt.NDArray[np.float64]:
+    def pdf_vector(self, vector: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
         valid_entries = np.where(
             (vector >= self.lower_vectorized) & (vector <= self.upper_vectorized),
             vector,
@@ -473,11 +472,10 @@ class DiscretizedContinuousScipyDistribution(
 
 
 @dataclass
-class ScipyDiscreteDistribution(Distribution[VDType]):
+class ScipyDiscreteDistribution(Distribution):
     rv: rv_discrete_frozen
-    lower_vectorized: VDType
-    upper_vectorized: VDType
-    dtype: type[VDType]
+    lower_vectorized: np.float64
+    upper_vectorized: np.float64
     _max_density: float
 
     def sample_vector(
@@ -485,20 +483,20 @@ class ScipyDiscreteDistribution(Distribution[VDType]):
         n: int | None = None,
         *,
         seed: RandomState | None = None,
-    ) -> npt.NDArray[VDType]:
-        return self.rv.rvs(size=n, random_state=seed).astype(self.dtype)
+    ) -> npt.NDArray[np.float64]:
+        return self.rv.rvs(size=n, random_state=seed).astype(np.float64)
 
     def max_density(self) -> float:
         return float(self._max_density)
 
-    def pdf_vector(self, vector: npt.NDArray[VDType]) -> npt.NDArray[np.float64]:
+    def pdf_vector(self, vector: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
         # By definition, we don't allow NaNs in the pdf
         pdf = self.rv.pmf(vector)
         return np.nan_to_num(pdf, nan=0)
 
 
 @dataclass
-class UniformIntegerNormalizedDistribution(Distribution[np.float64]):
+class UniformIntegerNormalizedDistribution(Distribution):
     lower_vectorized: ClassVar[np.float64] = np.float64(0.0)
     upper_vectorized: ClassVar[np.float64] = np.float64(1.0)
 
@@ -511,15 +509,13 @@ class UniformIntegerNormalizedDistribution(Distribution[np.float64]):
         seed: RandomState | None = None,
     ) -> npt.NDArray[np.float64]:
         seed = np.random.RandomState() if seed is None else seed
-        return np.true_divide(
-            seed.randint(low=0, high=self.size, size=n),
-            (self.size - 1),
-        )
+        ints = seed.randint(low=0, high=self.size, size=n, dtype=np.int64)
+        return np.true_divide(ints, (self.size - 1), dtype=np.float64)
 
     def max_density(self) -> float:
         return 1 / self.size
 
-    def pdf_vector(self, vector: npt.NDArray[VDType]) -> npt.NDArray[np.float64]:
+    def pdf_vector(self, vector: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
         valid_mask = (
             (vector >= self.lower_vectorized)
             & (vector <= self.upper_vectorized)
@@ -551,7 +547,7 @@ class UniformIntegerNormalizedDistribution(Distribution[np.float64]):
 
 
 @dataclass
-class UnitUniformContinuousDistribution(Distribution[np.float64]):
+class UnitUniformContinuousDistribution(Distribution):
     lower_vectorized: ClassVar[np.float64] = np.float64(0.0)
     upper_vectorized: ClassVar[np.float64] = np.float64(1.0)
 
@@ -569,7 +565,7 @@ class UnitUniformContinuousDistribution(Distribution[np.float64]):
     def max_density(self) -> float:
         return self.pdf_max_density
 
-    def pdf_vector(self, vector: npt.NDArray[VDType]) -> npt.NDArray[np.float64]:
+    def pdf_vector(self, vector: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
         # By definition, we don't allow NaNs in the pdf
         return np.where(
             (vector >= self.lower_vectorized) & (vector <= self.upper_vectorized),
@@ -600,29 +596,30 @@ class UnitUniformContinuousDistribution(Distribution[np.float64]):
 
 
 @dataclass
-class UniformIntegerDistribution(Distribution[np.int64]):
+class UniformIntegerDistribution(Distribution):
     size: int
 
-    lower_vectorized: np.int64 = field(init=False)
-    upper_vectorized: np.int64 = field(init=False)
+    lower_vectorized: np.float64 = field(init=False)
+    upper_vectorized: np.float64 = field(init=False)
 
     def __post_init__(self) -> None:
-        self.lower_vectorized = np.int64(0)
-        self.upper_vectorized = np.int64(self.size - 1)
+        self.lower_vectorized = np.float64(0)
+        self.upper_vectorized = np.float64(self.size - 1)
 
     def sample_vector(
         self,
         n: int | None = None,
         *,
         seed: RandomState | None = None,
-    ) -> npt.NDArray[np.int64]:
+    ) -> npt.NDArray[np.float64]:
         seed = np.random.RandomState() if seed is None else seed
-        return seed.randint(low=0, high=self.size, size=n)
+        ints = seed.randint(low=0, high=self.size, size=n, dtype=np.int64)
+        return ints.astype(np.float64)
 
     def max_density(self) -> float:
         return 1 / self.size
 
-    def pdf_vector(self, vector: npt.NDArray[VDType]) -> npt.NDArray[np.float64]:
+    def pdf_vector(self, vector: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
         # By definition, we don't allow NaNs in the pdf
         valid_mask = (
             (vector >= self.lower_vectorized)
@@ -633,14 +630,14 @@ class UniformIntegerDistribution(Distribution[np.int64]):
 
     def neighborhood(
         self,
-        vector: np.int64,
+        vector: np.float64,
         n: int,
         *,
         std: float | None = None,
         seed: RandomState | None = None,
         n_retries: int = NEIGHBOR_GENERATOR_N_RETRIES,
         sample_multiplier: int = NEIGHBOR_GENERATOR_SAMPLE_MULTIPLIER,
-    ) -> npt.NDArray[np.int64]:
+    ) -> npt.NDArray[np.float64]:
         # Different than other neighborhoods as it's unnormalized and
         # the quantization is directly integers.
         if std is None:
@@ -659,11 +656,11 @@ class UniformIntegerDistribution(Distribution[np.int64]):
         n_available = steps - 1
         if n >= n_available:
             if qvector == 0:
-                return np.arange(1, steps)
+                return np.arange(1, steps, dtype=np.float64)
             if qvector == steps - 1:
-                return np.arange(0, steps - 1)
+                return np.arange(0, steps - 1, dtype=np.float64)
 
-            return split_arange((0, qvector), (qvector + 1, steps))
+            return split_arange((0, qvector), (qvector + 1, steps), dtype=np.float64)
 
         # Otherwise, we use a repeated sampling strategy where we slowly increase the
         # std of a normal, centered on `center`, slowly expanding `std` such that
@@ -674,7 +671,7 @@ class UniformIntegerDistribution(Distribution[np.int64]):
         # We also include the initial value in the buffer, as we will remove it later.
         SAMPLE_SIZE = n * sample_multiplier
         BUFFER_SIZE = n * (sample_multiplier + 1)
-        neighbors = np.empty(BUFFER_SIZE + 1, dtype=np.int64)
+        neighbors = np.empty(BUFFER_SIZE + 1, dtype=np.float64)
         neighbors[0] = qvector
         offset = 1  # Indexes into current progress of filling buffer
 
@@ -692,7 +689,7 @@ class UniformIntegerDistribution(Distribution[np.int64]):
                 valid_candidates,
                 bounds=(lower, upper),
                 bins=steps,
-            ).astype(np.int64)
+            )
 
             uniq = np.unique(candidates_quantized)
             new_uniq = np.setdiff1d(uniq, neighbors[:offset], assume_unique=True)
@@ -716,32 +713,32 @@ class UniformIntegerDistribution(Distribution[np.int64]):
 
 
 @dataclass
-class WeightedIntegerDiscreteDistribution(Distribution[np.int64]):
+class WeightedIntegerDiscreteDistribution(Distribution):
     size: int
     probabilities: npt.NDArray[np.float64]
 
     _max_density: float = field(init=False)
-    lower_vectorized: np.int64 = field(init=False)
-    upper_vectorized: np.int64 = field(init=False)
+    lower_vectorized: np.float64 = field(init=False)
+    upper_vectorized: np.float64 = field(init=False)
 
     def __post_init__(self) -> None:
         self._max_density = float(self.probabilities.max())
-        self.lower_vectorized = np.int64(0)
-        self.upper_vectorized = np.int64(self.size - 1)
+        self.lower_vectorized = np.float64(0)
+        self.upper_vectorized = np.float64(self.size - 1)
 
     def sample_vector(
         self,
         n: int | None = None,
         *,
         seed: RandomState | None = None,
-    ) -> npt.NDArray[np.int64]:
+    ) -> npt.NDArray[np.float64]:
         seed = np.random.RandomState() if seed is None else seed
         return seed.choice(self.size, size=n, p=self.probabilities)  # type: ignore
 
     def max_density(self) -> float:
         return float(self._max_density)
 
-    def pdf_vector(self, vector: npt.NDArray[VDType]) -> npt.NDArray[np.float64]:
+    def pdf_vector(self, vector: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
         # By definition, we don't allow NaNs in the pdf
         valid_mask = (
             (vector >= self.lower_vectorized)
@@ -758,14 +755,18 @@ class WeightedIntegerDiscreteDistribution(Distribution[np.int64]):
 
     def neighborhood(
         self,
-        vector: np.int64,
+        vector: np.float64,
         n: int,
         *,
         std: float | None = None,
         seed: RandomState | None = None,
-    ) -> npt.NDArray[np.int64]:
+    ) -> npt.NDArray[np.float64]:
         seed = np.random.RandomState() if seed is None else seed
-        choices = split_arange((0, vector), (vector + 1, self.size))
+        choices = split_arange(
+            (0, int(vector)),
+            (int(vector) + 1, self.size),
+            dtype=np.float64,
+        )
 
         if n >= len(choices):
             seed.shuffle(choices)
@@ -775,7 +776,7 @@ class WeightedIntegerDiscreteDistribution(Distribution[np.int64]):
 
 
 @dataclass
-class ScipyContinuousDistribution(Distribution[np.float64]):
+class ScipyContinuousDistribution(Distribution):
     rv: rv_continuous_frozen
     lower_vectorized: np.float64
     upper_vectorized: np.float64
@@ -823,15 +824,15 @@ class ScipyContinuousDistribution(Distribution[np.float64]):
 
 
 @dataclass
-class ConstantVectorDistribution(Distribution[np.int64]):
-    vector_value: np.int64
+class ConstantVectorDistribution(Distribution):
+    vector_value: np.float64
 
     @property
-    def lower_vectorized(self) -> np.int64:
+    def lower_vectorized(self) -> np.float64:
         return self.vector_value
 
     @property
-    def upper_vectorized(self) -> np.int64:
+    def upper_vectorized(self) -> np.float64:
         return self.vector_value
 
     def max_density(self) -> float:
@@ -842,11 +843,11 @@ class ConstantVectorDistribution(Distribution[np.int64]):
         n: int | None = None,
         *,
         seed: RandomState | None = None,
-    ) -> np.int64 | npt.NDArray[np.int64]:
+    ) -> np.float64 | npt.NDArray[np.float64]:
         if n is None:
             return self.vector_value
 
-        return np.full((n,), self.vector_value, dtype=np.int64)
+        return np.full((n,), self.vector_value, dtype=np.float64)
 
-    def pdf_vector(self, vector: npt.NDArray[np.int64]) -> npt.NDArray[np.float64]:
-        return (vector == self.vector_value).astype(float)
+    def pdf_vector(self, vector: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
+        return (vector == self.vector_value).astype(np.float64)

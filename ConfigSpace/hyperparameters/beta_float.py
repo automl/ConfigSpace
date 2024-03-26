@@ -44,7 +44,7 @@ class BetaFloatHyperparameter(
 
         >>> from ConfigSpace import BetaFloatHyperparameter
         >>>
-        >>> BetaFloatHyperparameter('b', alpha=3, beta=2, lower=1, upper=4, log=False)  # type: ignore
+        >>> BetaFloatHyperparameter('b', alpha=3, beta=2, lower=1, upper=4, log=False)
         b, Type: BetaFloat, Alpha: 3.0 Beta: 2.0, Range: [1.0, 4.0], Default: 3.0
 
         Args:

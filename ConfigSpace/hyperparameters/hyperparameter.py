@@ -22,7 +22,6 @@ import numpy.typing as npt
 
 from ConfigSpace.hyperparameters._hp_components import (
     DType,
-    VDType,
     _Neighborhood,
     _Transformer,
 )
@@ -32,7 +31,7 @@ if TYPE_CHECKING:
 
 
 @dataclass(init=False)
-class Hyperparameter(ABC, Generic[DType, VDType]):
+class Hyperparameter(ABC, Generic[DType]):
     serializable_type_name: ClassVar[str]
     orderable: ClassVar[bool] = False
     legal_value_types: ClassVar[tuple[type, ...] | Literal["all"]] = "all"
@@ -43,11 +42,11 @@ class Hyperparameter(ABC, Generic[DType, VDType]):
 
     size: int | float = field(hash=True, repr=False)
 
-    vector_dist: Distribution[VDType] = field(hash=True, compare=False)
-    normalized_default_value: VDType = field(hash=True, init=False, repr=False)
+    vector_dist: Distribution = field(hash=True, compare=False)
+    normalized_default_value: np.float64 = field(hash=True, init=False, repr=False)
 
-    _transformer: _Transformer[DType, VDType] = field(hash=True, compare=False)
-    _neighborhood: _Neighborhood[VDType] = field(hash=True, compare=False)
+    _transformer: _Transformer[DType] = field(hash=True, compare=False)
+    _neighborhood: _Neighborhood = field(hash=True, compare=False)
     _neighborhood_size: Callable[[DType | None], int | float] | float | int = field(
         repr=False,
         compare=False,
@@ -59,9 +58,9 @@ class Hyperparameter(ABC, Generic[DType, VDType]):
         *,
         default_value: DType,
         size: int | float,
-        vector_dist: Distribution[VDType],
-        transformer: _Transformer[DType, VDType],
-        neighborhood: _Neighborhood[VDType],
+        vector_dist: Distribution,
+        transformer: _Transformer[DType],
+        neighborhood: _Neighborhood,
         neighborhood_size: Callable[[DType | None], int] | int | float = np.inf,
         meta: Mapping[Hashable, Any] | None = None,
     ):
@@ -88,11 +87,11 @@ class Hyperparameter(ABC, Generic[DType, VDType]):
         self.normalized_default_value = self.to_vector(default_value)
 
     @property
-    def lower_vectorized(self) -> VDType:
+    def lower_vectorized(self) -> np.float64:
         return self.vector_dist.lower_vectorized
 
     @property
-    def upper_vectorized(self) -> VDType:
+    def upper_vectorized(self) -> np.float64:
         return self.vector_dist.upper_vectorized
 
     @overload
@@ -127,7 +126,7 @@ class Hyperparameter(ABC, Generic[DType, VDType]):
         size: None = None,
         *,
         seed: np.random.RandomState | None = None,
-    ) -> VDType: ...
+    ) -> np.float64: ...
 
     @overload
     def sample_vector(
@@ -135,27 +134,30 @@ class Hyperparameter(ABC, Generic[DType, VDType]):
         size: int,
         *,
         seed: np.random.RandomState | None = None,
-    ) -> npt.NDArray[VDType]: ...
+    ) -> npt.NDArray[np.float64]: ...
 
     def sample_vector(
         self,
         size: int | None = None,
         *,
         seed: np.random.RandomState | None = None,
-    ) -> VDType | npt.NDArray[VDType]:
+    ) -> np.float64 | npt.NDArray[np.float64]:
         if size is None:
             return self.vector_dist.sample_vector(n=1, seed=seed)[0]
         return self.vector_dist.sample_vector(n=size, seed=seed)
 
     @overload
-    def legal_vector(self, vector: VDType) -> bool: ...
+    def legal_vector(self, vector: np.float64) -> bool: ...
 
     @overload
-    def legal_vector(self, vector: npt.NDArray[VDType]) -> npt.NDArray[np.bool_]: ...
+    def legal_vector(
+        self,
+        vector: npt.NDArray[np.float64],
+    ) -> npt.NDArray[np.bool_]: ...
 
     def legal_vector(
         self,
-        vector: VDType | npt.NDArray[VDType],
+        vector: np.float64 | npt.NDArray[np.float64],
     ) -> npt.NDArray[np.bool_] | bool:
         if isinstance(vector, np.ndarray):
             if not np.issubdtype(vector.dtype, np.number):
@@ -223,14 +225,14 @@ class Hyperparameter(ABC, Generic[DType, VDType]):
         return self.to_value(vector)
 
     @overload
-    def to_value(self, vector: VDType) -> DType: ...
+    def to_value(self, vector: np.float64) -> DType: ...
 
     @overload
-    def to_value(self, vector: npt.NDArray[VDType]) -> npt.NDArray[DType]: ...
+    def to_value(self, vector: npt.NDArray[np.float64]) -> npt.NDArray[DType]: ...
 
     def to_value(
         self,
-        vector: VDType | npt.NDArray[VDType],
+        vector: np.float64 | npt.NDArray[np.float64],
     ) -> DType | npt.NDArray[DType]:
         if isinstance(vector, np.ndarray):
             return self._transformer.to_value(vector)
@@ -238,18 +240,18 @@ class Hyperparameter(ABC, Generic[DType, VDType]):
         return self._transformer.to_value(np.array([vector]))[0]
 
     @overload
-    def to_vector(self, value: DType) -> VDType: ...
+    def to_vector(self, value: DType) -> np.float64: ...
 
     @overload
     def to_vector(
         self,
         value: Sequence[DType] | npt.NDArray,
-    ) -> npt.NDArray[VDType]: ...
+    ) -> npt.NDArray[np.float64]: ...
 
     def to_vector(
         self,
         value: DType | Sequence[DType] | npt.NDArray,
-    ) -> VDType | npt.NDArray[VDType]:
+    ) -> np.float64 | npt.NDArray[np.float64]:
         if isinstance(value, np.ndarray):
             return self._transformer.to_vector(value)
 
@@ -260,12 +262,12 @@ class Hyperparameter(ABC, Generic[DType, VDType]):
 
     def neighbors_vectorized(
         self,
-        vector: VDType,
+        vector: np.float64,
         n: int,
         *,
         std: float | None = None,
         seed: np.random.RandomState | None = None,
-    ) -> npt.NDArray[VDType]:
+    ) -> npt.NDArray[np.float64]:
         if std is not None:
             assert 0.0 <= std <= 1.0, f"std must be in [0, 1], got {std}"
 
@@ -295,7 +297,7 @@ class Hyperparameter(ABC, Generic[DType, VDType]):
 
     def get_neighbors(
         self,
-        value: VDType,
+        value: np.float64,
         rs: np.random.RandomState,
         number: int | None = None,
         std: float | None = None,
@@ -332,7 +334,7 @@ class Hyperparameter(ABC, Generic[DType, VDType]):
 
         return self.neighbors_vectorized(value, number, std=std, seed=rs)
 
-    def pdf_vector(self, vector: npt.NDArray[VDType]) -> npt.NDArray[np.float64]:
+    def pdf_vector(self, vector: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
         legal_mask = self.legal_vector(vector).astype(np.float64)
         return self.vector_dist.pdf_vector(vector) * legal_mask
 
@@ -397,7 +399,7 @@ class Hyperparameter(ABC, Generic[DType, VDType]):
     def _inverse_transform(
         self,
         value: DType | npt.NDArray[DType],
-    ) -> VDType | npt.NDArray[VDType]:
+    ) -> np.float64 | npt.NDArray[np.float64]:
         warnings.warn(
             "Please use `to_vector(value)` instead."
             " This will be removed in the future.",
@@ -419,7 +421,7 @@ class Hyperparameter(ABC, Generic[DType, VDType]):
         self,
         rs: np.random.RandomState,
         size: int | None = None,
-    ) -> npt.NDArray[VDType]:
+    ) -> npt.NDArray[np.float64]:
         if size is None:
             warnings.warn(
                 "Private method is deprecated, please use"
@@ -462,7 +464,7 @@ class Hyperparameter(ABC, Generic[DType, VDType]):
 
     def _pdf(
         self,
-        vector: VDType | npt.NDArray[VDType],
+        vector: np.float64 | npt.NDArray[np.float64],
     ) -> np.float64 | npt.NDArray[np.float64]:
         if isinstance(vector, np.ndarray):
             warnings.warn(
@@ -498,7 +500,7 @@ class Hyperparameter(ABC, Generic[DType, VDType]):
         )
         return self.legal_value(value)
 
-    def is_legal_vector(self, value: VDType) -> bool:
+    def is_legal_vector(self, value: np.float64) -> bool:
         # TODO: Can we remove this?
         warnings.warn(
             "Please use `legal_vector(vector)` instead."
@@ -510,7 +512,7 @@ class Hyperparameter(ABC, Generic[DType, VDType]):
 
     def _transform(
         self,
-        vector: VDType | npt.NDArray[VDType],
+        vector: np.float64 | npt.NDArray[np.float64],
     ) -> DType | npt.NDArray[DType]:
         warnings.warn(
             "Private method `_transform(vector)` deprecated."
@@ -522,7 +524,7 @@ class Hyperparameter(ABC, Generic[DType, VDType]):
         return self.to_value(vector)
 
     @property
-    def _upper(self) -> VDType:
+    def _upper(self) -> np.float64:
         warnings.warn(
             "Private property `_upper` was deprecated and had no gaurantee to its"
             " meaning. `upper_vectorized` was made publically available and represents"
@@ -535,7 +537,7 @@ class Hyperparameter(ABC, Generic[DType, VDType]):
         return self.upper_vectorized
 
     @property
-    def _lower(self) -> VDType:
+    def _lower(self) -> np.float64:
         warnings.warn(
             "Private property `_lower` was deprecated and had no gaurantee to its"
             " meaning. `lower_vectorized` was made publically available and represents"
@@ -556,11 +558,11 @@ class HyperparameterWithPrior(Protocol[HPType]):
     def to_uniform(self) -> HPType: ...
 
 
-NumberDType = TypeVar("NumberDType", bound=np.number)
+NumberDType = TypeVar("NumberDType", np.number, int, float)
 
 
 @dataclass(init=False)
-class NumericalHyperparameter(Hyperparameter[NumberDType, VDType]):
+class NumericalHyperparameter(Hyperparameter[NumberDType]):
     legal_value_types: ClassVar[tuple[type, ...]] = (int, float, np.number)
 
     lower: NumberDType = field(hash=True)
@@ -569,7 +571,7 @@ class NumericalHyperparameter(Hyperparameter[NumberDType, VDType]):
 
 
 @dataclass(init=False)
-class IntegerHyperparameter(NumericalHyperparameter[np.int64, np.float64]):
+class IntegerHyperparameter(NumericalHyperparameter[np.int64]):
     def _neighborhood_size(self, value: np.int64 | None) -> int:
         if value is None:
             return int(self.size)
@@ -581,5 +583,5 @@ class IntegerHyperparameter(NumericalHyperparameter[np.int64, np.float64]):
 
 
 @dataclass(init=False)
-class FloatHyperparameter(NumericalHyperparameter[np.float64, np.float64]):
+class FloatHyperparameter(NumericalHyperparameter[np.float64]):
     pass

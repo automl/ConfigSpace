@@ -37,6 +37,7 @@ from itertools import chain
 from typing import Any, Final, cast, overload
 
 import numpy as np
+import numpy.typing as npt
 from more_itertools import unique_everseen
 
 import ConfigSpace.c_util
@@ -220,9 +221,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         # Changing this to a normal dict will break sampling because there is
         # no guarantee that the parent of a condition was evaluated before
         self._conditionals: set[str] = set()
-        self.forbidden_clauses: list[
-            ForbiddenConjunction | ForbiddenRelation | ForbiddenClause
-        ] = []
+        self.forbidden_clauses: list[ForbiddenLike] = []
         self.random = np.random.RandomState(seed)
 
         self._children[_ROOT] = OrderedDict()
@@ -232,6 +231,11 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         self._parents_of: dict[str, list[Hyperparameter]] = {}
         self._children_of: dict[str, list[Hyperparameter]] = {}
         self._conditional_dep_graph: dict[str, list[Condition | Conjunction]] = {}
+        self._minimum_condition_span: list[
+            tuple[Condition | Conjunction, npt.NDArray[np.int64]]
+        ] = []
+        self._unconditional_forbiddens: list[ForbiddenLike] = []
+        self._conditional_forbiddens: list[ForbiddenLike] = []
 
         if space is not None:
             hyperparameters = list(_parse_hyperparameters_from_dict(space))
@@ -401,6 +405,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         self._check_forbidden_component(clause=clause)
         clause.set_vector_idx(self._hyperparameter_idx)
         self.forbidden_clauses.append(clause)
+        self._update_cache()
         self._check_default_configuration()
         return clause
 
@@ -425,6 +430,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
             clause.set_vector_idx(self._hyperparameter_idx)
             self.forbidden_clauses.append(clause)
 
+        self._update_cache()
         self._check_default_configuration()
         return clauses
 
@@ -869,36 +875,6 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         accepted_configurations: list[Configuration] = []
         num_hyperparameters = len(self._hyperparameters)
 
-        unconditional_hyperparameters = self.get_all_unconditional_hyperparameters()
-
-        # Filter forbiddens into those that have conditionals and those that do not
-        _forbidden_clauses_unconditionals: list[ForbiddenLike] = []
-        _forbidden_clauses_conditionals: list[ForbiddenLike] = []
-        for clause in self.forbidden_clauses:
-            based_on_conditionals = False
-
-            dlcs = (
-                [clause]
-                if not isinstance(clause, ForbiddenConjunction)
-                else clause.dlcs
-            )
-            for subclause in dlcs:
-                if isinstance(subclause, ForbiddenRelation):
-                    if (
-                        subclause.left.name not in unconditional_hyperparameters
-                        or subclause.right.name not in unconditional_hyperparameters
-                    ):
-                        based_on_conditionals = True
-                        break
-                elif subclause.hyperparameter.name not in unconditional_hyperparameters:
-                    based_on_conditionals = True
-                    break
-
-            if based_on_conditionals:
-                _forbidden_clauses_conditionals.append(clause)
-            else:
-                _forbidden_clauses_unconditionals.append(clause)
-
         # Main sampling loop
         MULT = (len(self.forbidden_clauses) + len(self._conditionals)) / len(
             self._hyperparameters,
@@ -922,18 +898,18 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
             # We treat this as an OR, i.e. if any of the forbidden clauses are
             # forbidden, the entire configuration (row) is forbidden
             uncond_forbidden = np.zeros(sample_size, dtype=np.bool_)
-            for clause in _forbidden_clauses_unconditionals:
+            for clause in self._unconditional_forbiddens:
                 uncond_forbidden |= clause.is_forbidden_vector_array(config_matrix)
 
             valid_config_matrix = config_matrix[:, ~uncond_forbidden]
 
-            for condition, effected_hp_mask in self.minimum_condition_span:
+            for condition, effected_hp_mask in self._minimum_condition_span:
                 satisfied = condition.satisfied_by_vector_array(valid_config_matrix)
                 valid_config_matrix[np.ix_(effected_hp_mask, ~satisfied)] = np.nan
 
             # Now we apply the forbiddens that depend on conditionals
             cond_forbidden = np.zeros(valid_config_matrix.shape[1], dtype=np.bool_)
-            for clause in _forbidden_clauses_conditionals:
+            for clause in self._conditional_forbiddens:
                 cond_forbidden |= clause.is_forbidden_vector_array(valid_config_matrix)
 
             valid_config_matrix = valid_config_matrix[:, ~cond_forbidden]
@@ -1153,11 +1129,18 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
     def __eq__(self, other: Any) -> bool:
         """Override the default Equals behavior."""
         if isinstance(other, self.__class__):
-            this_dict = self.__dict__.copy()
-            del this_dict["random"]
-            other_dict = other.__dict__.copy()
-            del other_dict["random"]
-            return this_dict == other_dict
+            other_dict = other.__dict__
+
+            # _minimum_condition_span has a np.ndarray which doesn't allow ==
+            # to give a direct bool but is based off the others
+            for k, v in self.__dict__.items():
+                if k in ("_minimum_condition_span", "random"):
+                    continue
+                if v != other_dict.get(k):
+                    return False
+
+            return True
+
         return NotImplemented
 
     def __hash__(self) -> int:
@@ -1439,6 +1422,35 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
             name: self._parent_conditions_of[name]
             for name in ConfigSpace.c_util.topological_sort(self._parents_of)
         }
+        unconditional_hyperparameters = self.get_all_unconditional_hyperparameters()
+
+        # Filter forbiddens into those that have conditionals and those that do not
+        self._unconditional_forbiddens: list[ForbiddenLike] = []
+        self._conditional_forbiddens: list[ForbiddenLike] = []
+        for clause in self.forbidden_clauses:
+            based_on_conditionals = False
+
+            dlcs = (
+                [clause]
+                if not isinstance(clause, ForbiddenConjunction)
+                else clause.dlcs
+            )
+            for subclause in dlcs:
+                if isinstance(subclause, ForbiddenRelation):
+                    if (
+                        subclause.left.name not in unconditional_hyperparameters
+                        or subclause.right.name not in unconditional_hyperparameters
+                    ):
+                        based_on_conditionals = True
+                        break
+                elif subclause.hyperparameter.name not in unconditional_hyperparameters:
+                    based_on_conditionals = True
+                    break
+
+            if based_on_conditionals:
+                self._conditional_forbiddens.append(clause)
+            else:
+                self._unconditional_forbiddens.append(clause)
 
         # A lot of hyperparameters often depend on what is essentially they same
         # condition on its parent, i.e. some choice of algorithm dictating if the
@@ -1472,7 +1484,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
                             (condition_effecting_hp, [hp_idx]),
                         )
 
-        self.minimum_condition_span = [
+        self._minimum_condition_span = [
             (c, np.asarray(effected_hps, dtype=np.int64))
             for c, effected_hps in minimum_condition_span
         ]
@@ -1521,11 +1533,14 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
             else:
                 children.append(condition.child)
 
-        return children
+        return list(unique_everseen(children, key=id))
 
-    def _get_child_conditions_of(self, name: str) -> list[Condition]:
+    def _get_child_conditions_of(self, name: str) -> list[Condition | Conjunction]:
         children = self._children[name]
-        return [children[child_name] for child_name in children if child_name != _ROOT]
+        all_of_them = [
+            children[child_name] for child_name in children if child_name != _ROOT
+        ]
+        return list(unique_everseen([c for c in all_of_them if c is not None], key=id))
 
     def _get_parents_of(self, name: str) -> list[Hyperparameter]:
         """The parents hyperparameters of a given hyperparameter.
@@ -1546,7 +1561,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
                 parents.extend(condition.get_parents())
             else:
                 parents.append(condition.parent)
-        return parents
+        return list(unique_everseen(parents, key=id))
 
     def _check_default_configuration(self) -> Configuration:
         # Check if adding that hyperparameter leads to an illegal default configuration
@@ -1590,7 +1605,10 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
 
     def _get_parent_conditions_of(self, name: str) -> list[Condition | Conjunction]:
         parents = self._parents[name]
-        return [parents[parent_name] for parent_name in parents if parent_name != _ROOT]
+        all_of_them = [
+            parents[parent_name] for parent_name in parents if parent_name != _ROOT
+        ]
+        return list(unique_everseen([p for p in all_of_them if p is not None], key=id))
 
     def _check_configuration_rigorous(
         self,

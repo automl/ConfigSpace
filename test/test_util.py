@@ -114,7 +114,7 @@ def test_impute_inactive_values():
     with open(mini_autosklearn_config_space_path) as fh:
         cs = read(fh)
 
-    cs.seed(1)
+    cs.seed(2)
     configuration = cs.sample_configuration()
     new_configuration = impute_inactive_values(configuration)
     assert id(configuration) != id(new_configuration)

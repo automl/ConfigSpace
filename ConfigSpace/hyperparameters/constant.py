@@ -10,15 +10,15 @@ from ConfigSpace.hyperparameters._distributions import ConstantVectorDistributio
 from ConfigSpace.hyperparameters._hp_components import TransformerConstant
 from ConfigSpace.hyperparameters.hyperparameter import Hyperparameter
 
-CONSTANT_VECTOR_VALUE_YES = np.int64(1)
-CONSTANT_VECTOR_VALUE_NO = np.int64(0)
+CONSTANT_VECTOR_VALUE_YES = np.float64(1)
+CONSTANT_VECTOR_VALUE_NO = np.float64(0)
 
 
-def _empty_neighborhood(*_: Any, **__: Any) -> npt.NDArray[np.int64]:
-    return np.ndarray([], dtype=np.int64)
+def _empty_neighborhood(*_: Any, **__: Any) -> npt.NDArray[np.float64]:
+    return np.ndarray([], dtype=np.float64)
 
 
-class Constant(Hyperparameter[Any, np.int64]):
+class Constant(Hyperparameter[Any]):
     serializable_type_name: ClassVar[str] = "constant"
     orderable: ClassVar[bool] = False
 

@@ -70,21 +70,18 @@ def test_forbidden_equals_clause():
     assert forb1__ != forb1
     assert str(forb1) == "Forbidden: parent == 1"
 
-    with pytest.raises(ValueError):
-        forb1.is_forbidden({"child": 1}, True)
-    assert not forb1.is_forbidden({"child": 1}, strict=False)
-    assert not forb1.is_forbidden({"parent": 0}, True)
-    assert forb1.is_forbidden({"parent": 1}, True)
+    assert not forb1.is_forbidden_value({"child": 1})
+    assert forb1.is_forbidden_value({"parent": 1})
 
-    assert forb3.is_forbidden({"grandchild": "hot"}, True)
-    assert not forb3.is_forbidden({"grandchild": "cold"}, True)
+    assert forb3.is_forbidden_value({"grandchild": "hot"})
+    assert not forb3.is_forbidden_value({"grandchild": "cold"})
 
     # Test forbidden on vector values
     hyperparameter_idx = {hp1.name: 0, hp2.name: 1}
     forb1.set_vector_idx(hyperparameter_idx)
-    assert not forb1.is_forbidden_vector(np.array([np.nan, np.nan]), strict=False)
-    assert not forb1.is_forbidden_vector(np.array([0.0, np.nan]), strict=False)
-    assert forb1.is_forbidden_vector(np.array([1.0, np.nan]), strict=False)
+    assert not forb1.is_forbidden_vector(np.array([np.nan, np.nan]))
+    assert not forb1.is_forbidden_vector(np.array([0.0, np.nan]))
+    assert forb1.is_forbidden_vector(np.array([1.0, np.nan]))
 
 
 def test_in_condition():
@@ -112,29 +109,24 @@ def test_in_condition():
     assert forb1 != forb2
     assert forb1 != forb3
     assert str(forb1) == "Forbidden: child in {5, 6, 7, 8, 9}"
-    with pytest.raises(ValueError):
-        forb1.is_forbidden({"parent": 1}, True)
+    assert not forb1.is_forbidden_value({"parent": 1})
 
-    assert not forb1.is_forbidden({"parent": 1}, strict=False)
     for i in range(5):
-        assert not forb1.is_forbidden({"child": i}, True)
+        assert not forb1.is_forbidden_value({"child": i})
     for i in range(5, 10):
-        assert forb1.is_forbidden({"child": i}, True)
+        assert forb1.is_forbidden_value({"child": i})
 
-    assert forb4.is_forbidden({"grandchild": "hot"}, True)
-    assert forb4.is_forbidden({"grandchild": "cold"}, True)
-    assert not forb4.is_forbidden({"grandchild": "warm"}, True)
+    assert forb4.is_forbidden_value({"grandchild": "hot"})
+    assert forb4.is_forbidden_value({"grandchild": "cold"})
+    assert not forb4.is_forbidden_value({"grandchild": "warm"})
 
     # Test forbidden on vector values
     hyperparameter_idx = {hp1.name: 0, hp2.name: 1}
     forb1.set_vector_idx(hyperparameter_idx)
-    assert not forb1.is_forbidden_vector(np.array([np.nan, np.nan]), strict=False)
-    assert not forb1.is_forbidden_vector(np.array([np.nan, 0]), strict=False)
-    correct_vector_value = hp2._inverse_transform(6)
-    assert forb1.is_forbidden_vector(
-        np.array([np.nan, correct_vector_value]),
-        strict=False,
-    )
+    assert not forb1.is_forbidden_vector(np.array([np.nan, np.nan]))
+    assert not forb1.is_forbidden_vector(np.array([np.nan, 0]))
+    correct_vector_value = hp2.to_vector(np.int64(6))
+    assert forb1.is_forbidden_vector(np.array([np.nan, correct_vector_value]))
 
 
 def test_and_conjunction():
@@ -216,19 +208,18 @@ def test_and_conjunction():
     ]
 
     for i, values in enumerate(product(range(2), range(3), range(3), range(3))):
-        is_forbidden = total_and.is_forbidden(
+        is_forbidden = total_and.is_forbidden_value(
             {
                 "parent": values[0],
                 "child": values[1],
                 "child2": values[2],
                 "child3": values[3],
             },
-            True,
         )
 
         assert results[i] == is_forbidden
 
-        assert not total_and.is_forbidden({}, strict=False)
+        assert not total_and.is_forbidden_value({})
 
 
 def test_relation():
@@ -241,43 +232,43 @@ def test_relation():
     hp7 = CategoricalHyperparameter("str2", ["b", "c"])
 
     forb = ForbiddenEqualsRelation(hp1, hp2)
-    assert forb.is_forbidden({"cat_int": 1, "ord_int": 1}, True)
-    assert not forb.is_forbidden({"cat_int": 0, "ord_int": 1}, True)
+    assert forb.is_forbidden_value({"cat_int": 1, "ord_int": 1})
+    assert not forb.is_forbidden_value({"cat_int": 0, "ord_int": 1})
 
     forb = ForbiddenEqualsRelation(hp1, hp3)
-    assert forb.is_forbidden({"cat_int": 1, "int": 1}, True)
-    assert not forb.is_forbidden({"cat_int": 0, "int": 1}, True)
+    assert forb.is_forbidden_value({"cat_int": 1, "int": 1})
+    assert not forb.is_forbidden_value({"cat_int": 0, "int": 1})
 
     forb = ForbiddenEqualsRelation(hp3, hp4)
-    assert forb.is_forbidden({"int": 1, "int2": 1}, True)
-    assert not forb.is_forbidden({"int": 1, "int2": 0}, True)
+    assert forb.is_forbidden_value({"int": 1, "int2": 1})
+    assert not forb.is_forbidden_value({"int": 1, "int2": 0})
 
     forb = ForbiddenLessThanRelation(hp3, hp4)
-    assert forb.is_forbidden({"int": 0, "int2": 1}, True)
-    assert not forb.is_forbidden({"int": 1, "int2": 1}, True)
-    assert not forb.is_forbidden({"int": 1, "int2": 0}, True)
+    assert forb.is_forbidden_value({"int": 0, "int2": 1})
+    assert not forb.is_forbidden_value({"int": 1, "int2": 1})
+    assert not forb.is_forbidden_value({"int": 1, "int2": 0})
 
     forb = ForbiddenGreaterThanRelation(hp3, hp4)
-    assert forb.is_forbidden({"int": 1, "int2": 0}, True)
-    assert not forb.is_forbidden({"int": 1, "int2": 1}, True)
-    assert not forb.is_forbidden({"int": 0, "int2": 1}, True)
+    assert forb.is_forbidden_value({"int": 1, "int2": 0})
+    assert not forb.is_forbidden_value({"int": 1, "int2": 1})
+    assert not forb.is_forbidden_value({"int": 0, "int2": 1})
 
     forb = ForbiddenGreaterThanRelation(hp4, hp5)
-    assert forb.is_forbidden({"int2": 1, "float": 0}, True)
-    assert not forb.is_forbidden({"int2": 1, "float": 1}, True)
-    assert not forb.is_forbidden({"int2": 0, "float": 1}, True)
+    assert forb.is_forbidden_value({"int2": 1, "float": 0})
+    assert not forb.is_forbidden_value({"int2": 1, "float": 1})
+    assert not forb.is_forbidden_value({"int2": 0, "float": 1})
 
     forb = ForbiddenGreaterThanRelation(hp5, hp6)
     with pytest.raises(TypeError):
-        forb.is_forbidden({"float": 1, "str": "b"}, True)
+        forb.is_forbidden_value({"float": 1, "str": "b"})
 
     forb = ForbiddenGreaterThanRelation(hp5, hp7)
     with pytest.raises(TypeError):
-        forb.is_forbidden({"float": 1, "str2": "b"}, True)
+        forb.is_forbidden_value({"float": 1, "str2": "b"})
 
     forb = ForbiddenGreaterThanRelation(hp6, hp7)
-    assert forb.is_forbidden({"str": "b", "str2": "a"}, True)
-    assert forb.is_forbidden({"str": "c", "str2": "a"}, True)
+    assert forb.is_forbidden_value({"str": "b", "str2": "a"})
+    assert forb.is_forbidden_value({"str": "c", "str2": "a"})
 
     forb1 = ForbiddenEqualsRelation(hp2, hp3)
     forb2 = ForbiddenEqualsRelation(hp2, hp3)
@@ -294,11 +285,9 @@ def test_relation():
         ["cold", "luke-warm", "hot", "boiling"],
     )
     forb = ForbiddenGreaterThanRelation(hp1, hp2)
-    assert not forb.is_forbidden(
+    assert not forb.is_forbidden_value(
         {"water_temperature": "boiling", "water_temperature2": "cold"},
-        True,
     )
-    assert forb.is_forbidden(
+    assert forb.is_forbidden_value(
         {"water_temperature": "hot", "water_temperature2": "cold"},
-        True,
     )

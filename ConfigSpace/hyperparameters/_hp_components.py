@@ -22,41 +22,38 @@ ABS_ROUND_CLOSENESS = 1 / 10**ROUND_PLACES
 DType = TypeVar("DType", bound=np.number)
 """Type variable for the data type of the hyperparameter."""
 
-VDType = TypeVar("VDType", bound=np.number)
-"""Type variable for the data type of the vectorized hyperparameter."""
-
 T_contra = TypeVar("T_contra", contravariant=True)
 
 
-class _Transformer(Protocol[DType, VDType]):
-    lower_vectorized: VDType
-    upper_vectorized: VDType
+class _Transformer(Protocol[DType]):
+    lower_vectorized: np.float64
+    upper_vectorized: np.float64
 
-    def to_value(self, vector: npt.NDArray[VDType]) -> npt.NDArray[DType]: ...
+    def to_value(self, vector: npt.NDArray[np.float64]) -> npt.NDArray[DType]: ...
 
     def to_vector(
         self,
         value: Sequence[DType] | npt.NDArray[DType],
-    ) -> npt.NDArray[VDType]: ...
+    ) -> npt.NDArray[np.float64]: ...
 
     def legal_value(self, value: npt.NDArray[DType]) -> npt.NDArray[np.bool_]: ...
 
     def legal_vector(self, vector: npt.NDArray[np.number]) -> npt.NDArray[np.bool_]: ...
 
 
-class _Neighborhood(Protocol[VDType]):
+class _Neighborhood(Protocol):
     def __call__(
         self,
-        vector: VDType,
+        vector: np.float64,
         n: int,
         *,
         std: float | None = None,
         seed: RandomState | None = None,
-    ) -> npt.NDArray[VDType]: ...
+    ) -> npt.NDArray[np.float64]: ...
 
 
 @dataclass
-class TransformerSeq(_Transformer[Any, np.int64]):
+class TransformerSeq(_Transformer[Any]):
     lower_vectorized: ClassVar[np.int64] = np.int64(0)
     seq: Sequence[Any]
 
@@ -73,7 +70,7 @@ class TransformerSeq(_Transformer[Any, np.int64]):
             )
         return np.array([self.seq[v] for v in vector.astype(int)])
 
-    def to_vector(self, value: npt.NDArray) -> npt.NDArray[np.int64]:
+    def to_vector(self, value: npt.NDArray[np.int64]) -> npt.NDArray[np.int64]:
         return np.array([self.seq.index(v) for v in value], dtype=np.int64)
 
     def legal_value(self, value: npt.NDArray[Any]) -> npt.NDArray[np.bool_]:
@@ -90,7 +87,7 @@ class TransformerSeq(_Transformer[Any, np.int64]):
         )
 
 
-class UnitScaler(_Transformer[DType, np.float64]):
+class UnitScaler(_Transformer[DType]):
     lower_vectorized: ClassVar[np.float64] = np.float64(0.0)
     upper_vectorized: ClassVar[np.float64] = np.float64(1.0)
 
@@ -237,35 +234,35 @@ def ordinal_neighborhood(
 
 
 @dataclass
-class TransformerConstant(_Transformer[DType, VDType]):
+class TransformerConstant(_Transformer[DType]):
     value: DType
-    vector_value_yes: VDType
-    vector_value_no: VDType
+    vector_value_yes: np.float64
+    vector_value_no: np.float64
 
     @property
-    def lower_vectorized(self) -> VDType:
+    def lower_vectorized(self) -> np.float64:
         return self.vector_value_no
 
     @property
-    def upper_vectorized(self) -> VDType:
+    def upper_vectorized(self) -> np.float64:
         return self.vector_value_yes
 
     def to_vector(
         self,
         value: DType | npt.NDArray[DType],
-    ) -> VDType | npt.NDArray[VDType]:
+    ) -> np.float64 | npt.NDArray[np.float64]:
         if isinstance(value, np.ndarray | Sequence):
             return np.where(
                 value == self.value,
                 self.vector_value_yes,
                 self.vector_value_no,
-            ).astype(type(self.vector_value_yes))
+            ).astype(np.float64)
 
         return self.vector_value_yes if value == self.value else self.vector_value_no
 
     def to_value(
         self,
-        vector: VDType | npt.NDArray[VDType],
+        vector: np.float64 | npt.NDArray[np.float64],
     ) -> DType | npt.NDArray[DType]:
         if isinstance(vector, np.ndarray):
             try:
@@ -279,5 +276,5 @@ class TransformerConstant(_Transformer[DType, VDType]):
     def legal_value(self, value: Any) -> bool:
         return value == self.value
 
-    def legal_vector(self, vector: VDType) -> bool:
+    def legal_vector(self, vector: np.float64) -> bool:
         return vector == self.vector_value_yes
