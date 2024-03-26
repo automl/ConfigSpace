@@ -224,7 +224,7 @@ class ForbiddenEqualsClause(ForbiddenClause):
         return vector[self.vector_id] == self.vector_value
 
     def is_forbidden_vector_array(self, arr: np.ndarray) -> npt.NDArray[np.bool_]:
-        return np.equal(arr[:, self.vector_id], self.vector_value, dtype=np.bool_)
+        return np.equal(arr[self.vector_id], self.vector_value, dtype=np.bool_)
 
 
 class ForbiddenInClause(ForbiddenClause):
@@ -288,7 +288,7 @@ class ForbiddenInClause(ForbiddenClause):
         return value in self.vector_values
 
     def is_forbidden_vector_array(self, arr: np.ndarray) -> npt.NDArray[np.bool_]:
-        return np.isin(arr[:, self.vector_id], self.vector_values)
+        return np.isin(arr[self.vector_id], self.vector_values)
 
 
 class ForbiddenAndConjunction(ForbiddenConjunction):
@@ -340,7 +340,7 @@ class ForbiddenAndConjunction(ForbiddenConjunction):
         return True
 
     def is_forbidden_vector_array(self, arr: np.ndarray) -> npt.NDArray[np.bool_]:
-        forbidden_mask = np.ones(shape=arr.shape[0], dtype=np.bool_)
+        forbidden_mask = np.ones(shape=arr.shape[1], dtype=np.bool_)
         for forbidden in self.components:
             forbidden_mask &= forbidden.is_forbidden_vector_array(arr)
 
@@ -386,8 +386,8 @@ class ForbiddenLessThanRelation(ForbiddenRelation):
         return self.left.to_value(left) < self.right.to_value(right)
 
     def is_forbidden_vector_array(self, arr: np.ndarray) -> npt.NDArray[np.bool_]:
-        left = arr[:, self.vector_ids[0]]
-        right = arr[:, self.vector_ids[1]]
+        left = arr[self.vector_ids[0]]
+        right = arr[self.vector_ids[1]]
         return self.left.to_value(left) < self.right.to_value(right)
 
 
@@ -429,8 +429,8 @@ class ForbiddenEqualsRelation(ForbiddenRelation):
         return self.left.to_value(left) == self.right.to_value(right)
 
     def is_forbidden_vector_array(self, arr: np.ndarray) -> npt.NDArray[np.bool_]:
-        left = arr[:, self.vector_ids[0]]
-        right = arr[:, self.vector_ids[1]]
+        left = arr[self.vector_ids[0]]
+        right = arr[self.vector_ids[1]]
         return self.left.to_value(left) < self.right.to_value(right)
 
 
@@ -472,8 +472,8 @@ class ForbiddenGreaterThanRelation(ForbiddenRelation):
         return self.left.to_value(left) > self.right.to_value(right)
 
     def is_forbidden_vector_array(self, arr: np.ndarray) -> npt.NDArray[np.bool_]:
-        left = arr[:, self.vector_ids[0]]
-        right = arr[:, self.vector_ids[1]]
+        left = arr[self.vector_ids[0]]
+        right = arr[self.vector_ids[1]]
         return self.left.to_value(left) > self.right.to_value(right)
 
 

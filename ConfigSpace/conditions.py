@@ -207,7 +207,7 @@ class _BinaryOpCondition(Condition[DC, VC, DP, VP]):
         self,
         arr: npt.NDArray[np.number],
     ) -> npt.NDArray[np.bool_]:
-        vector = arr[:, self.parent_vector_id]
+        vector = arr[self.parent_vector_id]
         return self._vector_op(vector, self.vector_value)
 
     def satisfied_by_value(
@@ -429,7 +429,7 @@ class InCondition(Condition[DC, VC, DP, VP]):
         self,
         arr: npt.NDArray[np.number],
     ) -> npt.NDArray[np.bool_]:
-        vector = arr[:, self.parent_vector_id]
+        vector = arr[self.parent_vector_id]
         return np.isin(vector, self.vector_values)
 
     def satisfied_by_value(
@@ -621,7 +621,7 @@ class AndConjunction(Conjunction):
         self,
         arr: npt.NDArray[np.number],
     ) -> npt.NDArray[np.bool_]:
-        satisfied = np.ones(arr.shape[0], dtype=np.bool_)
+        satisfied = np.ones(arr.shape[1], dtype=np.bool_)
         for c in self.components:
             satisfied &= c.satisfied_by_vector_array(arr)
 
@@ -699,7 +699,7 @@ class OrConjunction(Conjunction):
         self,
         arr: npt.NDArray[np.number],
     ) -> npt.NDArray[np.bool_]:
-        satisfied = np.ones(arr.shape[0], dtype=np.bool_)
+        satisfied = np.ones(arr.shape[1], dtype=np.bool_)
         for c in self.components:
             satisfied |= c.satisfied_by_vector_array(arr)
 

@@ -908,12 +908,15 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
             sample_size = max(int(MULT**2 * sample_size), 5)
 
             # Sample a vector for each hp, filling out columns
+            # OPTIM: We put the hyperparameters as rows as we perform row-wise
+            # operations and the matrices themselves are row-oriented in memory,
+            # helping to improve cache locality.
             config_matrix = np.empty(
-                (sample_size, num_hyperparameters),
+                (num_hyperparameters, sample_size),
                 dtype=np.float64,
             )
             for i, hp in enumerate(self._hyperparameters.values()):
-                config_matrix[:, i] = hp.sample_vector(sample_size, seed=self.random)
+                config_matrix[i] = hp.sample_vector(sample_size, seed=self.random)
 
             # Apply unconditional forbiddens across the columns (hps)
             # We treat this as an OR, i.e. if any of the forbidden clauses are
@@ -922,22 +925,22 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
             for clause in _forbidden_clauses_unconditionals:
                 uncond_forbidden |= clause.is_forbidden_vector_array(config_matrix)
 
-            valid_config_matrix = config_matrix[~uncond_forbidden]
+            valid_config_matrix = config_matrix[:, ~uncond_forbidden]
 
-            for condition, effected_mask in self.minimum_condition_span:
+            for condition, effected_hp_mask in self.minimum_condition_span:
                 satisfied = condition.satisfied_by_vector_array(valid_config_matrix)
-                valid_config_matrix[np.ix_(~satisfied, effected_mask)] = np.nan
+                valid_config_matrix[np.ix_(effected_hp_mask, ~satisfied)] = np.nan
 
             # Now we apply the forbiddens that depend on conditionals
-            cond_forbidden = np.zeros(len(valid_config_matrix), dtype=np.bool_)
+            cond_forbidden = np.zeros(valid_config_matrix.shape[1], dtype=np.bool_)
             for clause in _forbidden_clauses_conditionals:
                 cond_forbidden |= clause.is_forbidden_vector_array(valid_config_matrix)
 
-            valid_config_matrix = valid_config_matrix[~cond_forbidden]
+            valid_config_matrix = valid_config_matrix[:, ~cond_forbidden]
 
             # And now we have a matrix of valid configurations
             accepted_configurations.extend(
-                [Configuration(self, vector=vec) for vec in valid_config_matrix],
+                [Configuration(self, vector=vec) for vec in valid_config_matrix.T],
             )
             sample_size = size - len(accepted_configurations)
 
