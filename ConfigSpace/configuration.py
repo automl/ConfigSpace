@@ -7,7 +7,6 @@ from typing_extensions import deprecated
 import numpy as np
 import numpy.typing as npt
 
-from ConfigSpace import c_util
 from ConfigSpace.conditions import NotSet
 from ConfigSpace.exceptions import IllegalValueError
 from ConfigSpace.hyperparameters import FloatHyperparameter
@@ -139,7 +138,9 @@ class Configuration(Mapping[str, Any]):
         ------
         ValueError: If configuration is not valid.
         """
-        c_util.check_configuration(
+        from ConfigSpace.util import check_configuration
+
+        check_configuration(
             self.config_space,
             self._vector,
             allow_inactive_with_values=self.allow_inactive_with_values,
@@ -172,14 +173,18 @@ class Configuration(Mapping[str, Any]):
 
         # Recalculate the vector with respect to this new value
         vector_value = param.to_vector(value)
-        new_array = c_util.change_hp_value(
+
+        # TODO: These should probably just exist in this file
+        from ConfigSpace.util import change_hp_value, check_configuration
+
+        new_array = change_hp_value(
             self.config_space,
             self.get_array().copy(),
             param.name,
             vector_value,
             idx,
         )
-        c_util.check_configuration(self.config_space, new_array, False)
+        check_configuration(self.config_space, new_array, False)
 
         # Reset cached items
         self._vector = new_array
@@ -223,12 +228,18 @@ class Configuration(Mapping[str, Any]):
     def __hash__(self) -> int:
         return hash(self.__repr__())
 
-    def __repr__(self) -> str:
+    def __str__(self) -> str:
         values = dict(self)
         header = "Configuration(values={"
-        lines = [f"  '{key}': {values[key]!r}," for key in sorted(values.keys())]
+        lines = [
+            f"  '{k}': {values[k]!r},"
+            for k in sorted(values, key=self.config_space.index_of.get)  # type: ignore
+        ]
         end = "})"
         return "\n".join([header, *lines, end])
+
+    def __repr__(self) -> str:
+        return self.__str__()
 
     def __iter__(self) -> Iterator[str]:
         for key in self.config_space:

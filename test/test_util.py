@@ -33,7 +33,6 @@ import numpy as np
 import pytest
 from pytest import approx
 
-import ConfigSpace.c_util
 from ConfigSpace import (
     AndConjunction,
     CategoricalHyperparameter,
@@ -53,6 +52,7 @@ from ConfigSpace import (
 from ConfigSpace.exceptions import NoPossibleNeighborsError
 from ConfigSpace.read_and_write.pcs import read
 from ConfigSpace.util import (
+    change_hp_value,
     deactivate_inactive_hyperparameters,
     fix_types,
     generate_grid,
@@ -329,7 +329,7 @@ def test_check_neighbouring_config_diamond():
     index = diamond.get_idx_by_hyperparameter_name(hp_name)
     neighbor_value = 1
 
-    new_array = ConfigSpace.c_util.change_hp_value(
+    new_array = change_hp_value(
         diamond,
         config.get_array(),
         hp_name,
@@ -363,7 +363,7 @@ def test_check_neighbouring_config_diamond_or_conjunction():
     index = diamond.get_idx_by_hyperparameter_name(hp_name)
     neighbor_value = 1
 
-    new_array = ConfigSpace.c_util.change_hp_value(
+    new_array = change_hp_value(
         diamond,
         config.get_array(),
         hp_name,
@@ -399,7 +399,7 @@ def test_check_neighbouring_config_diamond_str():
     index = diamond.get_idx_by_hyperparameter_name(hp_name)
     neighbor_value = 1
 
-    new_array = ConfigSpace.c_util.change_hp_value(
+    new_array = change_hp_value(
         diamond,
         config.get_array(),
         hp_name,

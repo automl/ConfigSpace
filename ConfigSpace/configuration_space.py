@@ -36,7 +36,7 @@ from typing_extensions import deprecated
 
 import numpy as np
 
-import ConfigSpace.c_util
+import ConfigSpace.util
 from ConfigSpace._condition_tree import DAG
 from ConfigSpace.conditions import (
     Condition,
@@ -264,7 +264,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         for a in args:
             _put_to_list(a)
 
-        with self.dag.transaction():
+        with self.dag.update():
             for hp in hps:
                 self.dag.add(hp)
 
@@ -389,10 +389,8 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
             List containing lists with two elements: lower and upper bound
         """
         self.add(
-            [
-                UniformFloatHyperparameter(name=f"x{i}", lower=lower, upper=upper)
-                for i, (lower, upper) in enumerate(bounds)
-            ],
+            UniformFloatHyperparameter(name=f"x{i}", lower=lower, upper=upper)
+            for i, (lower, upper) in enumerate(bounds)
         )
 
     def get_default_configuration(self) -> Configuration:
@@ -415,7 +413,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         configuration : :class:`~ConfigSpace.configuration_space.Configuration`
             Configuration to check
         """
-        ConfigSpace.c_util.check_configuration(self, configuration.get_array(), False)
+        ConfigSpace.util.check_configuration(self, configuration.get_array(), False)
 
     def check_configuration_vector_representation(self, vector: np.ndarray) -> None:
         """Raise error if configuration in vector representation is not legal.
@@ -425,7 +423,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         vector : np.ndarray
             Configuration in vector representation
         """
-        ConfigSpace.c_util.check_configuration(self, vector, False)
+        ConfigSpace.util.check_configuration(self, vector, False)
 
     def get_active_hyperparameters(
         self,
@@ -845,12 +843,10 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
     # TODO: Move these into a single validate function
     def _check_default_configuration(self) -> Configuration:
         # Check if adding that hyperparameter leads to an illegal default configuration
-        instantiated_hyperparameters: dict[str, int | float | str | None] = {}
+        instantiated_hyperparameters: dict[str, Any] = {}
         for hp_name, hp in self.items():
-            conditions = self.parent_conditions_of[hp_name]
             active: bool = True
-
-            for condition in conditions:
+            for condition in self.parent_conditions_of[hp_name]:
                 if isinstance(condition, Conjunction):
                     parent_names = (
                         c.parent.name
@@ -869,18 +865,12 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
                     active = False
 
             if not active:
-                # the evaluate above will use compares so we need to use None
-                # and replace later....
+                # the evaluate above will use compares so we need
+                # to use NotSet and replace later....
                 instantiated_hyperparameters[hp_name] = NotSet
-            elif isinstance(hp, Constant):
-                instantiated_hyperparameters[hp_name] = hp.value
             else:
                 instantiated_hyperparameters[hp_name] = hp.default_value
 
-                # TODO copy paste from check configuration
-
-        # TODO add an extra Exception type for the case that the default
-        # configuration is forbidden!
         return Configuration(self, values=instantiated_hyperparameters)
 
     def _check_configuration_rigorous(

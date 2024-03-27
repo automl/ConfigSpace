@@ -30,15 +30,16 @@ from __future__ import annotations
 import copy
 from collections import deque
 from collections.abc import Iterator, Sequence
-from typing import Any, cast
+from typing import TYPE_CHECKING, Any, cast
 
 import numpy as np
 
-import ConfigSpace.c_util
-from ConfigSpace import Configuration, ConfigurationSpace
+from ConfigSpace import Configuration
 from ConfigSpace.exceptions import (
     ActiveHyperparameterNotSetError,
     ForbiddenValueError,
+    IllegalVectorizedValueError,
+    InactiveHyperparameterSetError,
     NoPossibleNeighborsError,
 )
 from ConfigSpace.hyperparameters import (
@@ -50,6 +51,9 @@ from ConfigSpace.hyperparameters import (
     UniformFloatHyperparameter,
     UniformIntegerHyperparameter,
 )
+
+if TYPE_CHECKING:
+    from ConfigSpace.configuration_space import ConfigurationSpace
 
 
 def impute_inactive_values(
@@ -144,7 +148,7 @@ def get_one_exchange_neighbourhood_fast(
     space = configuration.config_space
     config_vector = configuration._vector
 
-    hyperparameters_list = list(space._hyperparameters.keys())
+    hyperparameters_list = list(space)
     n_hps = len(hyperparameters_list)
     hyperparameters_used = []
 
@@ -253,7 +257,7 @@ def get_one_exchange_neighbourhood_fast(
 
             # Check all newly obtained neigbors
             new_array = array.copy()
-            new_array = ConfigSpace.c_util.change_hp_value(
+            new_array = change_hp_value(
                 configuration_space=space,
                 configuration_array=new_array,
                 hp_name=hp_name,
@@ -329,14 +333,15 @@ def get_one_exchange_neighbourhood(
 
     """
     random = np.random.RandomState(seed)
-    hyperparameters_list = list(configuration.config_space._hyperparameters.keys())
+    space = configuration.config_space
+    hyperparameters_list = list(space)
     hyperparameters_list_length = len(hyperparameters_list)
     hyperparameters_used = [
-        hp.name
-        for hp in configuration.config_space.values()
+        name
+        for name, hp in space.items()
         if (
-            hp.get_num_neighbors(configuration.get(hp.name)) == 0
-            and configuration.get(hp.name) is not None
+            hp.get_num_neighbors(configuration.get(name)) == 0
+            and configuration.get(name) is not None
         )
     ]
     number_of_usable_hyperparameters = sum(np.isfinite(configuration.get_array()))
@@ -347,11 +352,10 @@ def get_one_exchange_neighbourhood(
             and hp.get_num_neighbors(configuration.get(hp.name)) > num_neighbors
         )
         else hp.get_num_neighbors(configuration.get(hp.name))
-        for hp in configuration.config_space.values()
+        for hp in space.values()
     }
 
     finite_neighbors_stack: dict[str, list[np.number]] = {}
-    configuration_space = configuration.config_space
 
     while len(hyperparameters_used) < number_of_usable_hyperparameters:
         index = int(random.randint(hyperparameters_list_length))
@@ -370,7 +374,7 @@ def get_one_exchange_neighbourhood(
                 continue
 
             iteration = 0
-            hp = configuration_space[hp_name]
+            hp = space[hp_name]
             num_neighbors_for_hp = hp.get_num_neighbors(configuration.get(hp_name))
             while True:
                 # Obtain neigbors differently for different possible numbers of
@@ -420,8 +424,8 @@ def get_one_exchange_neighbourhood(
 
                 # Check all newly obtained neigbors
                 new_array = array.copy()
-                new_array = ConfigSpace.c_util.change_hp_value(
-                    configuration_space=configuration_space,
+                new_array = change_hp_value(
+                    configuration_space=space,
                     configuration_array=new_array,
                     hp_name=hp_name,
                     hp_value=neighbor,
@@ -430,17 +434,14 @@ def get_one_exchange_neighbourhood(
                 try:
                     # Populating a configuration from an array does not check
                     #  if it is a legal configuration - check this (slow)
-                    new_configuration = Configuration(
-                        configuration_space,
-                        vector=new_array,
-                    )  # type: Configuration
+                    new_configuration = Configuration(space, vector=new_array)
                     # Only rigorously check every tenth configuration (
                     # because moving around in the neighborhood should
                     # just work!)
                     if random.random() > 0.95:
                         new_configuration.is_valid_configuration()
                     else:
-                        configuration_space._check_forbidden(new_array)
+                        space._check_forbidden(new_array)
                     neighbourhood.append(new_configuration)
                 except ForbiddenValueError:
                     pass
@@ -517,7 +518,7 @@ def get_random_neighbor(configuration: Configuration, seed: int) -> Configuratio
             if np.isfinite(value):
                 active = True
 
-                hp_name = configuration.config_space.get_hyperparameter_by_idx(rand_idx)
+                hp_name = configuration.config_space.at[rand_idx]
                 hp = configuration.config_space[hp_name]
 
                 # Only choose if there is a possibility of finding a neigboor
@@ -576,7 +577,8 @@ def deactivate_inactive_hyperparameters(
         that inactivate hyperparameters have been removed.
 
     """
-    hyperparameters = configuration_space.values()
+    space = configuration_space
+    hyperparameters = list(space.values())
     config = Configuration(
         configuration_space=configuration_space,
         values=configuration,
@@ -585,38 +587,34 @@ def deactivate_inactive_hyperparameters(
     )
 
     hps: deque[Hyperparameter] = deque()
-
-    unconditional_hyperparameters = (
-        configuration_space.get_all_unconditional_hyperparameters()
+    hps.extendleft(
+        [
+            space[hp]
+            for hp in space.unconditional_hyperparameters
+            if len(space.children_of[hp]) > 0
+        ],
     )
-    hyperparameters_with_children = []
-    for uhp in unconditional_hyperparameters:
-        children = configuration_space.get_children_of(uhp)
-        if len(children) > 0:
-            hyperparameters_with_children.append(uhp)
-    hps.extendleft(hyperparameters_with_children)
 
     inactive = set()
 
     while len(hps) > 0:
         hp = hps.pop()
-        children = configuration_space.get_children_of(hp)
-        for child in children:
-            conditions = configuration_space.get_parent_conditions_of(child.name)
-            for condition in conditions:
+        for child in space.children_of[hp.name]:
+            for condition in space.parent_conditions_of[child.name]:
                 if not condition.satisfied_by_vector(config.get_array()):
                     dic = dict(config)
                     try:
                         del dic[child.name]
                     except KeyError:
                         continue
+
                     config = Configuration(
-                        configuration_space=configuration_space,
+                        configuration_space=space,
                         values=dic,
                         allow_inactive_with_values=True,
                     )
                     inactive.add(child.name)
-                hps.appendleft(child.name)
+                hps.appendleft(child)
 
     for hp in hyperparameters:
         if hp.name in inactive:
@@ -689,6 +687,150 @@ def fix_types(
             else:
                 raise TypeError(f"Unknown hyperparameter type {type(param)}")
     return configuration
+
+
+def check_configuration(
+    space: ConfigurationSpace,
+    vector: np.ndarray,
+    allow_inactive_with_values: bool = False,
+) -> None:
+    for hp_name, hp in space.items():
+        hp_idx = space.index_of[hp_name]
+        hp_vector_val = vector[hp_idx]
+        is_active = ~np.isnan(hp_vector_val)
+        if is_active and not hp.legal_vector(hp_vector_val):
+            raise IllegalVectorizedValueError(hp, hp_vector_val)
+
+        should_be_active = True
+        for _parent_node, condition in space.dag.dependancies(hp_name):
+            # If all conditions pass, then the hyperparameter should remain active
+            if not condition.satisfied_by_vector(vector):
+                should_be_active = False
+                if not allow_inactive_with_values and is_active:
+                    raise InactiveHyperparameterSetError(hp, hp_vector_val)
+
+        # If all condition checks above are satisfied, then the hyperparameter
+        # should be active
+        if should_be_active and not is_active:
+            raise ActiveHyperparameterNotSetError(hp)
+
+        for clause in space.forbidden_clauses:
+            if clause.is_forbidden_vector(vector):
+                raise ForbiddenValueError(
+                    f"Given vector violates forbidden clause {clause}",
+                )
+
+
+def change_hp_value(
+    configuration_space: ConfigurationSpace,
+    configuration_array: np.ndarray,
+    hp_name: str,
+    hp_value: float,
+    index: int,
+) -> np.ndarray:
+    """Change hyperparameter value in configuration array to given value.
+
+    Does not check if the new value is legal. Activates and deactivates other
+    hyperparameters if necessary. Does not check if new hyperparameter value
+    results in the violation of any forbidden clauses.
+
+    Parameters
+    ----------
+    configuration_space : ConfigurationSpace
+
+    configuration_array : np.ndarray
+
+    hp_name : str
+
+    hp_value : float
+
+    index : int
+
+    Returns:
+    -------
+    np.ndarray
+    """
+    configuration_array[index] = hp_value
+
+    # Hyperparameters which are going to be set to inactive
+    disabled = []
+
+    # Hyperparameters which are going to be set activate, we introduce this to resolve
+    # the conflict that might be raised by OrConjunction:
+    # Suppose that we have a parent HP_p whose possible values are A, B, C; a
+    # child HP_d is activate if HP_p is A or B. Then when HP_p switches from A to B,
+    # HP_d needs to remain activate.
+    hps_to_be_activate = set()
+
+    # Activate hyperparameters if their parent node got activated
+    children = configuration_space.children_of[hp_name]
+    if len(children) > 0:
+        to_visit = deque()  # type: deque
+        to_visit.extendleft(children)
+        visited = set()
+
+        while len(to_visit) > 0:
+            current = to_visit.pop()
+            current_name = current.name
+            if current_name in visited:
+                continue
+            visited.add(current_name)
+            if current_name in hps_to_be_activate:
+                continue
+
+            current_idx = configuration_space.index_of[current_name]
+            current_value = configuration_array[current_idx]
+
+            conditions = configuration_space.parent_conditions_of[current_name]
+
+            active = True
+            for condition in conditions:
+                if condition.satisfied_by_vector(configuration_array) is False:
+                    active = False
+                    break
+
+            if active:
+                hps_to_be_activate.add(current_idx)
+                if current_value == current_value:
+                    children_ = configuration_space.children_of[current_name]
+                    if len(children_) > 0:
+                        to_visit.extendleft(children_)
+
+            if current_name in disabled:
+                continue
+
+            if active and current_value != current_value:
+                default_value = current.normalized_default_value
+                configuration_array[current_idx] = default_value
+                children_ = configuration_space.children_of[current_name]
+                if len(children_) > 0:
+                    to_visit.extendleft(children_)
+
+            # If the hyperparameter was made inactive,
+            # all its children need to be deactivade as well
+            if not active and current_value == current_value:
+                configuration_array[current_idx] = np.nan
+
+                children = configuration_space.children_of[current_name]
+
+                if len(children) > 0:
+                    to_disable = set()
+                    for ch in children:
+                        to_disable.add(ch.name)
+                    while len(to_disable) > 0:
+                        child = to_disable.pop()
+                        child_idx = configuration_space.index_of[child]
+                        disabled.append(child_idx)
+                        children = configuration_space.children_of[child]
+
+                        for ch in children:
+                            to_disable.add(ch.name)
+
+    for idx in disabled:
+        if idx not in hps_to_be_activate:
+            configuration_array[idx] = np.nan
+
+    return configuration_array
 
 
 def generate_grid(
@@ -856,7 +998,7 @@ def generate_grid(
 
     # Get HP names and allowed grid values they can take for the HPs at the top
     # level of ConfigSpace tree
-    for hp_name in configuration_space.get_all_unconditional_hyperparameters():
+    for hp_name in configuration_space.unconditional_hyperparameters:
         value_sets.append(get_value_set(num_steps_dict, hp_name))
         hp_names.append(hp_name)
 
@@ -899,9 +1041,9 @@ def generate_grid(
                         and new_hp_name not in unchecked_grid_pts[0]
                     ):
                         all_cond_ = True
-                        for cond in configuration_space.get_parent_conditions_of(
-                            new_hp_name,
-                        ):
+                        for cond in configuration_space.parent_conditions_of[
+                            new_hp_name
+                        ]:
                             if not cond.satisfied_by_value(unchecked_grid_pts[0]):
                                 all_cond_ = False
                         if all_cond_:
