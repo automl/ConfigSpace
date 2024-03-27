@@ -143,7 +143,6 @@ def test_condition_without_added_hyperparameters():
 
     with pytest.raises(ChildNotFoundError):
         cs.add_condition(cond)
-    print(cs.dag._transacting)
 
     cs.add_hyperparameter(hp1)
 
@@ -384,9 +383,6 @@ def test_get_hyperparameters_topological_sort():
     cs.add_condition(cond4)
     hps = list(cs.values())
     # AND is moved to the front because of alphabetical sorting
-    print([h.name for h in hps])
-    print(cs.at)
-    print(cs.index_of)
     for hp, idx in zip(hyperparameters, [1, 2, 3, 4, 6, 0, 5]):
         assert hps.index(hp) == idx
         assert cs._hyperparameter_idx[hp.name] == idx
@@ -745,21 +741,18 @@ def test_sample_configuration():
 def test_sample_configuration_with_or_conjunction():
     cs = ConfigurationSpace(seed=1)
 
-    hyper_params = {}
-    hyper_params["hp5"] = CategoricalHyperparameter("hp5", ["0", "1", "2"])
-    hyper_params["hp7"] = CategoricalHyperparameter("hp7", ["3", "4", "5"])
-    hyper_params["hp8"] = CategoricalHyperparameter("hp8", ["6", "7", "8"])
-    for key in hyper_params:
-        cs.add_hyperparameter(hyper_params[key])
-
-    cs.add_condition(InCondition(hyper_params["hp5"], hyper_params["hp8"], ["6"]))
-
-    cs.add_condition(
-        OrConjunction(
-            InCondition(hyper_params["hp7"], hyper_params["hp8"], ["7"]),
-            InCondition(hyper_params["hp7"], hyper_params["hp5"], ["1"]),
-        ),
+    hp5 = CategoricalHyperparameter("hp5", ["0", "1", "2"])
+    hp7 = CategoricalHyperparameter("hp7", ["0", "1", "2"])
+    hp8 = CategoricalHyperparameter("hp8", ["0", "1", "2"])
+    cond1 = InCondition(hp5, hp8, ["0"])
+    cond2 = OrConjunction(
+        InCondition(hp7, hp8, ["1"]),
+        InCondition(hp7, hp5, ["1"]),
     )
+    cs.add(hp5, hp7, hp8, cond1, cond2)
+
+    # == print(cs.at)
+    # hp8, hp5, hp7
 
     for cfg, fixture in zip(
         cs.sample_configuration(6),

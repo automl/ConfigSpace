@@ -219,9 +219,6 @@ class DAG:
         for condition in self.conditions:
             condition.set_vector_idx(self.index_of)
 
-        # Cache out the minimum condition span used for sampling
-        self.minimum_condition_span = self._generate_minimum_condition_span()
-
         # Create children and parent of dictionaries
         self.children_of = {}
         self.parents_of = {}
@@ -233,6 +230,9 @@ class DAG:
             self.parents_of[n.name] = [parent.hp for parent, _ in n.parents.values()]
             self.child_conditions_of[n.name] = n.child_conditions()
             self.parent_conditions_of[n.name] = n.parent_conditions()
+
+        # Cache out the minimum condition span used for sampling
+        self.minimum_condition_span = self._generate_minimum_condition_span()
 
     @property
     def forbiddens(self) -> list[ForbiddenLike]:
@@ -417,8 +417,7 @@ class DAG:
         # a single choice being to a specific value.
         basis_conditions: list[tuple[ConditionLike, list[str]]] = []
         for node in self.bfs():
-            conditions_effecting_node = self.dependancies(node.name)
-            for _, condition in conditions_effecting_node:
+            for condition in self.parent_conditions_of[node.name]:
                 # If we can match one of the conditions effecting this node to one
                 # of the already found basis conditions, we can add this node to
                 # it, otherwise we have found a new basis condition
