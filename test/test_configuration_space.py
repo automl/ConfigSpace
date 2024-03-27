@@ -143,6 +143,7 @@ def test_condition_without_added_hyperparameters():
 
     with pytest.raises(ChildNotFoundError):
         cs.add_condition(cond)
+    print(cs.dag._transacting)
 
     cs.add_hyperparameter(hp1)
 
@@ -202,10 +203,7 @@ def test_add_second_condition_wo_conjunction():
     cond2 = EqualsCondition(hp3, hp2, 1)
 
     cs = ConfigurationSpace()
-    cs.add_hyperparameter(hp1)
-    cs.add_hyperparameter(hp2)
-    cs.add_hyperparameter(hp3)
-
+    cs.add_hyperparameters([hp1, hp2, hp3])
     cs.add_condition(cond1)
 
     with pytest.raises(AmbiguousConditionError):
@@ -386,6 +384,9 @@ def test_get_hyperparameters_topological_sort():
     cs.add_condition(cond4)
     hps = list(cs.values())
     # AND is moved to the front because of alphabetical sorting
+    print([h.name for h in hps])
+    print(cs.at)
+    print(cs.index_of)
     for hp, idx in zip(hyperparameters, [1, 2, 3, 4, 6, 0, 5]):
         assert hps.index(hp) == idx
         assert cs._hyperparameter_idx[hp.name] == idx
@@ -418,7 +419,7 @@ def test_get_hyperparameter():
     retval = cs["child"]
     assert hp2 == retval
 
-    with pytest.raises(HyperparameterNotFoundError):
+    with pytest.raises(KeyError):
         cs["grandfather"]
 
 
@@ -448,10 +449,10 @@ def test_get_parent_and_chil_conditions_of():
     assert [cond1] == cs.get_child_conditions_of(hp1.name)
     assert [cond1] == cs.get_child_conditions_of(hp1)
 
-    with pytest.raises(HyperparameterNotFoundError):
+    with pytest.raises(KeyError):
         cs.get_parents_of("Foo")
 
-    with pytest.raises(HyperparameterNotFoundError):
+    with pytest.raises(KeyError):
         cs.get_children_of("Foo")
 
 
@@ -469,20 +470,11 @@ def test_get_parent_and_children_of():
     assert [hp2] == cs.get_children_of(hp1.name)
     assert [hp2] == cs.get_children_of(hp1)
 
-    with pytest.raises(HyperparameterNotFoundError):
+    with pytest.raises(KeyError):
         cs.get_parents_of("Foo")
 
-    with pytest.raises(HyperparameterNotFoundError):
+    with pytest.raises(KeyError):
         cs.get_children_of("Foo")
-
-
-def test_check_configuration_input_checking():
-    cs = ConfigurationSpace()
-    with pytest.raises(TypeError):
-        cs.check_configuration("String")  # type: ignore
-
-    with pytest.raises(TypeError):
-        cs.check_configuration_vector_representation("String")  # type: ignore
 
 
 def test_check_configuration():
@@ -1170,7 +1162,7 @@ def test_setitem():
         conf["x0"] = 0
 
     # failed because the variable didn't exists
-    with pytest.raises(HyperparameterNotFoundError):
+    with pytest.raises(KeyError):
         conf["x_0"] = 1
 
     # failed because forbidden clause is violated

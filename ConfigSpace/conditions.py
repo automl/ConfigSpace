@@ -52,6 +52,7 @@ from typing import (
     Generic,
     Iterator,
     TypeVar,
+    Union,
 )
 from typing_extensions import Self
 
@@ -460,6 +461,8 @@ class Conjunction:
                     "All Conjunctions and Conditions must have the same child.",
                 )
 
+        self.child = children[0]
+
     def __eq__(self, other: Any) -> bool:
         if not isinstance(other, self.__class__):
             return False
@@ -709,3 +712,5 @@ class OrConjunction(Conjunction):
 # Backwards compatibility
 AbstractCondition = Condition
 AbstractConjunction = Conjunction
+
+ConditionLike = Union[Condition, Conjunction]

@@ -432,8 +432,6 @@ def test_read_new_configuration_space_forbidden():
     complex_cs.append("{cat_hp_str=a}")
     complex_cs.append("{ord_hp_str=a}")
     cs_new = pcs_new.read(complex_cs)
-    print(cs_new._unconditional_forbiddens)
-    print(cs_with_forbidden._unconditional_forbiddens)
 
     assert cs_new == cs_with_forbidden
 

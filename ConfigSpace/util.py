@@ -591,7 +591,7 @@ def deactivate_inactive_hyperparameters(
     )
     hyperparameters_with_children = []
     for uhp in unconditional_hyperparameters:
-        children = configuration_space._children_of[uhp]
+        children = configuration_space.get_children_of(uhp)
         if len(children) > 0:
             hyperparameters_with_children.append(uhp)
     hps.extendleft(hyperparameters_with_children)
@@ -600,9 +600,9 @@ def deactivate_inactive_hyperparameters(
 
     while len(hps) > 0:
         hp = hps.pop()
-        children = configuration_space._children_of[hp]
+        children = configuration_space.get_children_of(hp)
         for child in children:
-            conditions = configuration_space._parent_conditions_of[child.name]
+            conditions = configuration_space.get_parent_conditions_of(child.name)
             for condition in conditions:
                 if not condition.satisfied_by_vector(config.get_array()):
                     dic = dict(config)
@@ -856,7 +856,7 @@ def generate_grid(
 
     # Get HP names and allowed grid values they can take for the HPs at the top
     # level of ConfigSpace tree
-    for hp_name in configuration_space._children["__HPOlib_configuration_space_root__"]:
+    for hp_name in configuration_space.get_all_unconditional_hyperparameters():
         value_sets.append(get_value_set(num_steps_dict, hp_name))
         hp_names.append(hp_name)
 
@@ -892,15 +892,16 @@ def generate_grid(
                 hp_names.append(hp_name)
                 # Checks if the conditionally dependent children of already active
                 # HPs are now active
-                for new_hp_name in configuration_space._children[hp_name]:
+                # TODO: Shorten this
+                for new_hp_name in configuration_space.dag.nodes[hp_name].children:
                     if (
                         new_hp_name not in new_active_hp_names
                         and new_hp_name not in unchecked_grid_pts[0]
                     ):
                         all_cond_ = True
-                        for cond in configuration_space._parent_conditions_of[
-                            new_hp_name
-                        ]:
+                        for cond in configuration_space.get_parent_conditions_of(
+                            new_hp_name,
+                        ):
                             if not cond.satisfied_by_value(unchecked_grid_pts[0]):
                                 all_cond_ = False
                         if all_cond_:

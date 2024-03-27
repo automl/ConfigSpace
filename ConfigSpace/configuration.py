@@ -1,15 +1,15 @@
 from __future__ import annotations
 
-import warnings
 from collections.abc import Iterator, Mapping, Sequence
 from typing import TYPE_CHECKING, Any
+from typing_extensions import deprecated
 
 import numpy as np
 import numpy.typing as npt
 
 from ConfigSpace import c_util
 from ConfigSpace.conditions import NotSet
-from ConfigSpace.exceptions import HyperparameterNotFoundError, IllegalValueError
+from ConfigSpace.exceptions import IllegalValueError
 from ConfigSpace.hyperparameters import FloatHyperparameter
 
 if TYPE_CHECKING:
@@ -81,7 +81,7 @@ class Configuration(Mapping[str, Any]):
         self._vector: np.ndarray
 
         if values is not None:
-            unknown_keys = values.keys() - self.config_space._hyperparameters.keys()
+            unknown_keys = values.keys() - self.config_space.keys()
             if any(unknown_keys):
                 raise ValueError(f"Unknown hyperparameter(s) {unknown_keys}")
 
@@ -92,7 +92,7 @@ class Configuration(Mapping[str, Any]):
             self._vector = np.empty(shape=len(configuration_space), dtype=np.float64)
 
             for key, hp in configuration_space.items():
-                i = configuration_space._hyperparameter_idx[key]
+                i = configuration_space.index_of[key]
 
                 value = values.get(key, NotSet)
                 if value is NotSet:
@@ -139,7 +139,11 @@ class Configuration(Mapping[str, Any]):
         ------
         ValueError: If configuration is not valid.
         """
-        c_util.check_configuration(self.config_space, self._vector)
+        c_util.check_configuration(
+            self.config_space,
+            self._vector,
+            allow_inactive_with_values=self.allow_inactive_with_values,
+        )
 
     def get_array(self) -> npt.NDArray[np.float64]:
         """The internal vector representation of this config.
@@ -164,7 +168,7 @@ class Configuration(Mapping[str, Any]):
         if not param.legal_value(value):
             raise IllegalValueError(param, value)
 
-        idx = self.config_space._hyperparameter_idx[key]
+        idx = self.config_space.index_of[key]
 
         # Recalculate the vector with respect to this new value
         vector_value = param.to_vector(value)
@@ -186,9 +190,9 @@ class Configuration(Mapping[str, Any]):
             return self._values[key]
 
         if key not in self.config_space:
-            raise HyperparameterNotFoundError(key, space=self.config_space)
+            raise KeyError(key)
 
-        item_idx = self.config_space._hyperparameter_idx[key]
+        item_idx = self.config_space.index_of[key]
         vector = self._vector[item_idx]
         if np.isnan(vector):
             # NOTE: Techinically we could raise an `InactiveHyperparameterError` here
@@ -198,7 +202,7 @@ class Configuration(Mapping[str, Any]):
             # from it.
             raise KeyError(key)
 
-        hyperparameter = self.config_space._hyperparameters[key]
+        hyperparameter = self.config_space[key]
         value = hyperparameter.to_value(vector)
 
         # Truncate float to be of constant length for a python version
@@ -228,7 +232,7 @@ class Configuration(Mapping[str, Any]):
 
     def __iter__(self) -> Iterator[str]:
         for key in self.config_space:
-            idx = self.config_space._hyperparameter_idx[key]
+            idx = self.config_space.index_of[key]
             if not np.isnan(self._vector[idx]):
                 yield key
 
@@ -239,6 +243,10 @@ class Configuration(Mapping[str, Any]):
     # Probably best to only remove these once we actually
     # make some other breaking changes
     # * Search `Marked Deprecated` to find others
+    @deprecated(
+        "Please use `dict(config)` instead of `config.get_dictionary()`"
+        " or use it as a dictionary directly if needed.",
+    )
     def get_dictionary(self) -> dict[str, Any]:
         """A representation of the `ConfigSpace.configuration_space.Configuration`
         in dictionary form.
@@ -246,13 +254,6 @@ class Configuration(Mapping[str, Any]):
         Retuns:
             Configuration as dictionary
         """
-        warnings.warn(
-            "`Configuration` act's like a dictionary."
-            " Please use `dict(config)` instead of `get_dictionary`"
-            " if you explicitly need a `dict`",
-            DeprecationWarning,
-            stacklevel=2,
-        )
         return dict(self)
 
     # ---------------------------------------------------

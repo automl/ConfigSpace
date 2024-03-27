@@ -3,7 +3,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from ConfigSpace.conditions import Condition
     from ConfigSpace.configuration_space import ConfigurationSpace
     from ConfigSpace.hyperparameters import Hyperparameter
 
@@ -63,41 +62,20 @@ class InactiveHyperparameterSetError(ValueError):
 
 
 class HyperparameterNotFoundError(ValueError):
-    def __init__(
-        self,
-        hyperparameter: Hyperparameter | str,
-        space: ConfigurationSpace,
-        preamble: str | None = None,
-    ):
-        super().__init__(hyperparameter, space, preamble)
-        self.preamble = preamble
-        self.hp_name = (
-            hyperparameter if isinstance(hyperparameter, str) else hyperparameter.name
-        )
-        self.space = space
-
-    def __str__(self) -> str:
-        pre = f"{self.preamble}\n" if self.preamble is not None else ""
-        return (
-            f"{pre}"
-            f"Hyperparameter {self.hp_name} not found in space."
-            f"\n{self.space}"
-        )
+    pass
 
 
 class ChildNotFoundError(HyperparameterNotFoundError):
-    def __str__(self) -> str:
-        return "Child " + super().__str__()
+    pass
 
 
 class ParentNotFoundError(HyperparameterNotFoundError):
-    def __str__(self) -> str:
-        return "Parent " + super().__str__()
+    pass
 
 
 class HyperparameterIndexError(KeyError):
-    def __init__(self, idx: int, space: ConfigurationSpace):
-        super().__init__(idx, space)
+    def __init__(self, idx: int, space: ConfigurationSpace, *args: Any):
+        super().__init__(idx, space, *args)
         self.idx = idx
         self.space = space
 
@@ -109,39 +87,11 @@ class HyperparameterIndexError(KeyError):
 
 
 class AmbiguousConditionError(ValueError):
-    def __init__(self, present: Condition, new_condition: Condition):
-        super().__init__(present, new_condition)
-        self.present = present
-        self.new_condition = new_condition
-
-    def __str__(self) -> str:
-        return (
-            "Adding a second condition (different) for a hyperparameter is ambiguous"
-            " and therefore forbidden. Add a conjunction instead!"
-            f"\nAlready inserted: {self.present}"
-            f"\nNew one: {self.new_condition}"
-        )
+    pass
 
 
 class HyperparameterAlreadyExistsError(ValueError):
-    def __init__(
-        self,
-        existing: Hyperparameter,
-        other: Hyperparameter,
-        space: ConfigurationSpace,
-    ):
-        super().__init__(existing, other, space)
-        self.existing = existing
-        self.other = other
-        self.space = space
-
-    def __str__(self) -> str:
-        return (
-            f"Hyperparameter {self.existing.name} already exists in space."
-            f"\nExisting: {self.existing}"
-            f"\nNew one: {self.other}"
-            f"{self.space}"
-        )
+    pass
 
 
 class CyclicDependancyError(ValueError):

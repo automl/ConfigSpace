@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import os
 
+import pytest
+
 from ConfigSpace import (
     Beta,
     CategoricalHyperparameter,
@@ -43,30 +45,32 @@ def test_configspace_with_probabilities():
     assert new_cs["a"].probabilities == (0.2, 0.2, 0.6)
 
 
-def test_round_trip():
-    this_file = os.path.abspath(__file__)
-    this_directory = os.path.dirname(this_file)
-    configuration_space_path = os.path.join(this_directory, "..", "test_searchspaces")
-    configuration_space_path = os.path.abspath(configuration_space_path)
-    pcs_files = os.listdir(configuration_space_path)
+this_file = os.path.abspath(__file__)
+this_directory = os.path.dirname(this_file)
+configuration_space_path = os.path.join(this_directory, "..", "test_searchspaces")
+configuration_space_path = os.path.abspath(configuration_space_path)
+pcs_files = sorted(
+    os.path.join(configuration_space_path, filename)
+    for filename in os.listdir(configuration_space_path)
+    if ".pcs" in filename
+)
 
-    for pcs_file in sorted(pcs_files):
-        if ".pcs" in pcs_file:
-            full_path = os.path.join(configuration_space_path, pcs_file)
 
-            with open(full_path) as fh:
-                cs_string = fh.read().split("\n")
-            try:
-                cs = read_pcs(cs_string)
-            except Exception:
-                cs = read_pcs_new(cs_string)
+@pytest.mark.parametrize("pcs_file", pcs_files)
+def test_round_trip(pcs_file: str):
+    with open(pcs_file) as fh:
+        cs_string = fh.read().split("\n")
+    try:
+        cs = read_pcs(cs_string)
+    except Exception:
+        cs = read_pcs_new(cs_string)
 
-            cs.name = pcs_file
+    cs.name = pcs_file
 
-            json_string = write(cs)
-            new_cs = read(json_string)
+    json_string = write(cs)
+    new_cs = read(json_string)
 
-            assert new_cs == cs
+    assert new_cs == cs
 
 
 def test_beta_hyperparameter_serialization():
