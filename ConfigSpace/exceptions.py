@@ -33,8 +33,8 @@ class IllegalVectorizedValueError(ValueError):
 
     def __str__(self) -> str:
         return (
-            f"Vectorized value {self.vector}: ({type(self.vector)}) is not allowed for"
-            f" hyperparameter with name '{self.hyperparameter.name}'"
+            f"Vectorized value '{self.vector}': ({type(self.vector)}) is not allowed"
+            f" for hyperparameter with name '{self.hyperparameter.name}'"
             f"\n{self.hyperparameter}"
         )
 

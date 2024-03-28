@@ -694,31 +694,45 @@ def check_configuration(
     vector: np.ndarray,
     allow_inactive_with_values: bool = False,
 ) -> None:
-    for hp_name, hp in space.items():
-        hp_idx = space.index_of[hp_name]
-        hp_vector_val = vector[hp_idx]
-        is_active = ~np.isnan(hp_vector_val)
-        if is_active and not hp.legal_vector(hp_vector_val):
-            raise IllegalVectorizedValueError(hp, hp_vector_val)
+    # First ensure all root nodes are active
+    for node in space.dag.roots.values():
+        if np.isnan(vector[node.idx]):
+            raise ActiveHyperparameterNotSetError(node.hp)
 
-        should_be_active = True
-        for _parent_node, condition in space.dag.dependancies(hp_name):
-            # If all conditions pass, then the hyperparameter should remain active
-            if not condition.satisfied_by_vector(vector):
-                should_be_active = False
-                if not allow_inactive_with_values and is_active:
-                    raise InactiveHyperparameterSetError(hp, hp_vector_val)
+    # Then check that all conditional nodes are set correctly
+    for condition, nodes, effected_hp_idxs in space.dag.minimum_condition_span:
+        inactive = np.isnan(vector[effected_hp_idxs])
+        if condition.satisfied_by_vector(vector):
+            # Uh oh, something is inactive when it should be active
+            if inactive.any():
+                # Get the first index of the inactive
+                inactive_idxs = effected_hp_idxs[inactive]
+                hp_name: str = space.at[inactive_idxs[0]]  # type: ignore
+                hp = space[hp_name]
+                raise ActiveHyperparameterNotSetError(hp)
 
-        # If all condition checks above are satisfied, then the hyperparameter
-        # should be active
-        if should_be_active and not is_active:
-            raise ActiveHyperparameterNotSetError(hp)
+            # So now we know that effected hyperparameters are correctly active, now we
+            # need to ensure they have legal values.
+            for node in nodes:
+                hp = node.hp
+                if not hp.is_legal_vector(vector[node.idx]):
+                    raise IllegalVectorizedValueError(hp, vector[node.idx])
 
-        for clause in space.forbidden_clauses:
-            if clause.is_forbidden_vector(vector):
-                raise ForbiddenValueError(
-                    f"Given vector violates forbidden clause {clause}",
-                )
+        # Condition not satisfied, by default, everything should be inactive
+        # If we don't allow it, we check what is active and error it
+        elif not allow_inactive_with_values and not inactive.all():
+            is_active_indices = effected_hp_idxs[~inactive]
+            _idx = is_active_indices[0]
+            hp_name: str = space.at[_idx]  # type: ignore
+            hp = space[hp_name]
+            raise InactiveHyperparameterSetError(hp, hp.to_value(vector[_idx]))
+
+    # Now lastly, ensure no forbiddens are set
+    for forbidden_clause in space.forbidden_clauses:
+        if forbidden_clause.is_forbidden_vector(vector):
+            raise ForbiddenValueError(
+                f"Given vector violates forbidden clause {forbidden_clause}",
+            )
 
 
 def change_hp_value(

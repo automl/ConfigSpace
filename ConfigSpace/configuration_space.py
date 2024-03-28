@@ -548,7 +548,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
 
             valid_config_matrix = config_matrix[:, ~uncond_forbidden]
 
-            for condition, effected_hp_mask in self.dag.minimum_condition_span:
+            for condition, _, effected_hp_mask in self.dag.minimum_condition_span:
                 satisfied = condition.satisfied_by_vector_array(valid_config_matrix)
                 valid_config_matrix[np.ix_(effected_hp_mask, ~satisfied)] = np.nan
 

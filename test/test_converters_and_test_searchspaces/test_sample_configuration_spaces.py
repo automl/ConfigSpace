@@ -64,7 +64,6 @@ def test_autosklearn_space(pcs_file: Path):
             if shuffle == 10:
                 break
 
-    print(cs)
     # Sample a little bit
     for i in range(10):
         cs.seed(i)

@@ -1,13 +1,11 @@
 from __future__ import annotations
 
-from collections import deque
 from contextlib import contextmanager
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Iterator
 from typing_extensions import Self
 
 import numpy as np
-import numpy.typing as npt
 from more_itertools import unique_everseen
 
 from ConfigSpace import nx
@@ -28,6 +26,8 @@ from ConfigSpace.forbidden import (
 )
 
 if TYPE_CHECKING:
+    import numpy.typing as npt
+
     from ConfigSpace.conditions import ConditionLike
     from ConfigSpace.hyperparameters import Hyperparameter
 
@@ -35,8 +35,10 @@ if TYPE_CHECKING:
 @dataclass
 class _Node:
     hp: Hyperparameter
+    idx: int
     maximum_depth: int
     children: dict[str, tuple[_Node, ConditionLike]] = field(default_factory=dict)
+    forbiddens: list[ForbiddenLike] = field(default_factory=list)
 
     # NOTE: We have the restriction that a hyperparameter can only have one parent
     # condition but multiple parent from which these relationshops are dervied
@@ -124,7 +126,9 @@ class DAG:
 
     # Keep track of conditions
     conditions: list[ConditionLike] = field(default_factory=list, compare=False)
-    minimum_condition_span: list[tuple[ConditionLike, npt.NDArray[np.int64]]] = field(
+    minimum_condition_span: list[
+        tuple[ConditionLike, list[_Node], npt.NDArray[np.int64]]
+    ] = field(
         default_factory=list,
         compare=False,
     )
@@ -181,6 +185,7 @@ class DAG:
             else:
                 non_roots[n.name] = n
 
+            n.idx = i
             index_of[n.name] = i
             at.append(n.name)
 
@@ -195,11 +200,33 @@ class DAG:
         # Sort out forbiddens based on whether they are unconditional or conditional
         unconditional_forbiddens = []
         conditional_forbiddens = []
-        for forbidden in self.forbiddens:
+
+        # Sort forbiddens so it's always same order
+        for forbidden in sorted(self.forbiddens, key=str):
             if self._is_unconditional_forbidden(forbidden):
                 unconditional_forbiddens.append(forbidden)
             else:
                 conditional_forbiddens.append(forbidden)
+
+            if isinstance(forbidden, ForbiddenClause):
+                hp_name = forbidden.hyperparameter.name
+                self.nodes[hp_name].forbiddens.append(forbidden)
+            elif isinstance(forbidden, ForbiddenConjunction):
+                dlcs = forbidden.get_descendant_literal_clauses()
+                for dlc in sorted(dlcs, key=str):
+                    hp_name = dlc.hyperparameter.name
+                    self.nodes[hp_name].forbiddens.append(forbidden)
+            elif isinstance(forbidden, ForbiddenRelation):
+                left_name = forbidden.left.name
+                right_name = forbidden.right.name
+                self.nodes[left_name].forbiddens.append(forbidden)
+                self.nodes[right_name].forbiddens.append(forbidden)
+            else:
+                raise NotImplementedError(type(forbidden))
+
+        # Now we reduce the set of all forbiddens to ensure equivalence on nodes.
+        for node in nodes.values():
+            node.forbiddens = list(unique_everseen(node.forbiddens, key=id))
 
         self.unconditional_forbiddens = unconditional_forbiddens
         self.conditional_forbiddens = conditional_forbiddens
@@ -247,7 +274,8 @@ class DAG:
                 f"\nNew one: {hp}",
             )
 
-        node = _Node(hp, maximum_depth=1)
+        # idx will get filled in post transaction
+        node = _Node(hp, maximum_depth=1, idx=len(self.nodes))
         self.nodes[hp.name] = node
         self.roots[hp.name] = node
 
@@ -350,33 +378,6 @@ class DAG:
         else:
             self.conditional_forbiddens.append(forbidden)
 
-    def bfs(self) -> Iterator[_Node]:
-        visited: set[str] = set()
-        queue: deque[_Node] = deque(maxlen=len(self.nodes))
-        queue.extend(self.roots.values())
-
-        while queue:
-            node = queue.popleft()
-            visited.add(node.name)
-            yield node
-
-            for child_name, (child_node, _) in node.children.items():
-                if child_name not in visited:
-                    queue.append(child_node)
-
-    def dfs(self) -> Iterator[_Node]:
-        visited: set[str] = set()
-        stack: list[_Node] = list(self.roots.values())
-
-        while stack:
-            node = stack.pop()
-            yield node
-            visited.add(node.name)
-
-            for child_name, (child_node, _) in node.children.items():
-                if child_name not in visited:
-                    stack.append(child_node)
-
     def dependancies(
         self,
         name: str | Hyperparameter,
@@ -411,31 +412,68 @@ class DAG:
 
     def _generate_minimum_condition_span(
         self,
-    ) -> list[tuple[ConditionLike, npt.NDArray[np.int64]]]:
+    ) -> list[tuple[ConditionLike, list[_Node], npt.NDArray[np.int64]]]:
+        # TODO: This can be improved by using knowledge of AND conjunctions
+        # of conditionals
+
         # The minimum number of conditions required to determine whether all
         # hyperparameters are active or inactive. I.e. many hps' will rely on
         # a single choice being to a specific value.
-        basis_conditions: list[tuple[ConditionLike, list[str]]] = []
-        for node in self.bfs():
-            for condition in self.parent_conditions_of[node.name]:
-                # If we can match one of the conditions effecting this node to one
-                # of the already found basis conditions, we can add this node to
-                # it, otherwise we have found a new basis condition
-                for basis_condition, effected_hps in basis_conditions:
-                    if condition.conditionally_equal(basis_condition):
-                        if node.name not in effected_hps:
-                            effected_hps.append(node.name)
-                        break
-                else:
-                    basis_conditions.append((condition, [node.name]))
 
-        return [
-            (
-                condition,
-                np.array([self.index_of[hp] for hp in effected_hps], dtype=np.int64),
-            )
-            for condition, effected_hps in basis_conditions
+        # First collect all conditions and their nodes
+        def affected_children(condition: ConditionLike) -> list[_Node]:
+            if isinstance(condition, Condition):
+                return [self.nodes[condition.child.name]]
+
+            if isinstance(condition, Conjunction):
+                return [self.nodes[dlc.child.name] for dlc in condition.dlcs]
+
+            raise NotImplementedError(type(condition))
+
+        conditions_with_nodes_effected = [
+            (condition, affected_children(condition)) for condition in self.conditions
         ]
+
+        # We ensure they're sorted such that by traversing through them lineraly,
+        # the condition being checked will have all the parents it relies on having
+        # been fully checked. This is done by ensuring they'red order by have soon
+        # in the heirarchy they need to be inferred.
+        sorted_conditions = sorted(
+            conditions_with_nodes_effected,
+            key=lambda cond_nodes: min(
+                c.maximum_depth for c in affected_children(cond_nodes[0])
+            ),
+        )
+
+        # Now we deduplicate conditions, merging the effected children. This happens as
+        # multiple hyperparameters may have the exact same condition to be activated,
+        # i.e. random forest variables are active when classifier == "random_forest"
+        # NOTE: The dict part is just to remove duplicate entries
+        basis_conditions_with_effected_nodes: list[
+            tuple[ConditionLike, dict[int, _Node]]
+        ] = []
+        for condition, nodes in sorted_conditions:
+            for basis_condition, effected_nodes in basis_conditions_with_effected_nodes:
+                if condition.conditionally_equal(basis_condition):
+                    effected_nodes.update({n.idx: n for n in nodes})
+                    break
+            else:
+                basis_conditions_with_effected_nodes.append(
+                    (condition, {n.idx: n for n in nodes}),
+                )
+
+        # And as a final touch, sort and get ready for use
+        basis_condition_with_index_masks: list[
+            tuple[ConditionLike, list[_Node], npt.NDArray[np.int64]]
+        ] = []
+        for condition, effected_nodes in basis_conditions_with_effected_nodes:
+            sorted_effected_nodes = sorted(effected_nodes.values(), key=lambda n: n.idx)
+            indices = np.array([n.idx for n in sorted_effected_nodes], dtype=np.int64)
+            basis_condition_with_index_masks.append(
+                (condition, sorted_effected_nodes, indices),
+            )
+
+        return basis_condition_with_index_masks
 
     def _check_cyclic_dependancy(self) -> None:
         tmp_dag = nx.DiGraph()
