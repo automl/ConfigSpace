@@ -67,7 +67,7 @@ def _test_random_neigbor(hp):
     if not isinstance(hp, list):
         hp = [hp]
     for hp_ in hp:
-        cs.add_hyperparameter(hp_)
+        cs.add(hp_)
     cs.seed(1)
     config = cs.sample_configuration()
     for i in range(100):
@@ -82,7 +82,7 @@ def _test_get_one_exchange_neighbourhood(hp):
         hp = [hp]
 
     for hp_ in hp:
-        cs.add_hyperparameter(hp_)
+        cs.add(hp_)
         if np.isinf(hp_.get_num_neighbors()):
             num_neighbors += 4
         else:
@@ -169,7 +169,7 @@ def test_random_neighborhood_int():
     assert pytest.approx(np.var(all_neighbors), abs=1e-2) == 8.39
 
     cs = ConfigurationSpace()
-    cs.add_hyperparameter(hp)
+    cs.add(hp)
     for val in range(1, 11):
         config = Configuration(cs, values={"a": val})
         for _ in range(100):
@@ -240,10 +240,10 @@ def test_deactivate_inactive_hyperparameters():
     left = CategoricalHyperparameter("left", [0, 1])
     right = CategoricalHyperparameter("right", [0, 1])
     bottom = CategoricalHyperparameter("bottom", [0, 1])
-    diamond.add_hyperparameters([head, left, right, bottom])
-    diamond.add_condition(EqualsCondition(left, head, 0))
-    diamond.add_condition(EqualsCondition(right, head, 0))
-    diamond.add_condition(
+    diamond.add([head, left, right, bottom])
+    diamond.add(EqualsCondition(left, head, 0))
+    diamond.add(EqualsCondition(right, head, 0))
+    diamond.add(
         AndConjunction(
             EqualsCondition(bottom, left, 0),
             EqualsCondition(bottom, right, 0),
@@ -273,10 +273,10 @@ def test_deactivate_inactive_hyperparameters():
     left = CategoricalHyperparameter("left", [0, 1])
     right = CategoricalHyperparameter("right", [0, 1])
     bottom = CategoricalHyperparameter("bottom", [0, 1])
-    diamond.add_hyperparameters([head, left, right, bottom])
-    diamond.add_condition(EqualsCondition(left, head, 0))
-    diamond.add_condition(EqualsCondition(right, head, 0))
-    diamond.add_condition(
+    diamond.add([head, left, right, bottom])
+    diamond.add(EqualsCondition(left, head, 0))
+    diamond.add(EqualsCondition(right, head, 0))
+    diamond.add(
         OrConjunction(
             EqualsCondition(bottom, left, 0),
             EqualsCondition(bottom, right, 0),
@@ -304,7 +304,7 @@ def test_deactivate_inactive_hyperparameters():
     plain = ConfigurationSpace()
     a = UniformIntegerHyperparameter("a", 0, 10)
     b = UniformIntegerHyperparameter("b", 0, 10)
-    plain.add_hyperparameters([a, b])
+    plain.add([a, b])
     c = deactivate_inactive_hyperparameters({"a": 5, "b": 6}, plain)
     plain.check_configuration(c)
 
@@ -315,10 +315,10 @@ def test_check_neighbouring_config_diamond():
     left = CategoricalHyperparameter("left", [0, 1])
     right = CategoricalHyperparameter("right", [0, 1, 2, 3])
     bottom = CategoricalHyperparameter("bottom", [0, 1])
-    diamond.add_hyperparameters([head, left, right, bottom])
-    diamond.add_condition(EqualsCondition(left, head, 0))
-    diamond.add_condition(EqualsCondition(right, head, 0))
-    diamond.add_condition(
+    diamond.add([head, left, right, bottom])
+    diamond.add(EqualsCondition(left, head, 0))
+    diamond.add(EqualsCondition(right, head, 0))
+    diamond.add(
         AndConjunction(
             EqualsCondition(bottom, left, 1),
             EqualsCondition(bottom, right, 1),
@@ -327,7 +327,7 @@ def test_check_neighbouring_config_diamond():
 
     config = Configuration(diamond, {"bottom": 0, "head": 0, "left": 1, "right": 1})
     hp_name = "head"
-    index = diamond.get_idx_by_hyperparameter_name(hp_name)
+    index = diamond.index_of[hp_name]
     neighbor_value = 1
 
     new_array = change_hp_value(
@@ -349,10 +349,10 @@ def test_check_neighbouring_config_diamond_or_conjunction():
     bottom_left = CategoricalHyperparameter("bottom_left", [0, 1], 1)
     bottom_right = CategoricalHyperparameter("bottom_right", [0, 1, 2, 3], 1)
 
-    diamond.add_hyperparameters([top, bottom_left, bottom_right, middle])
-    diamond.add_condition(EqualsCondition(middle, top, 0))
-    diamond.add_condition(EqualsCondition(bottom_left, middle, 0))
-    diamond.add_condition(
+    diamond.add([top, bottom_left, bottom_right, middle])
+    diamond.add(EqualsCondition(middle, top, 0))
+    diamond.add(EqualsCondition(bottom_left, middle, 0))
+    diamond.add(
         OrConjunction(
             EqualsCondition(bottom_right, middle, 1),
             EqualsCondition(bottom_right, top, 1),
@@ -361,7 +361,7 @@ def test_check_neighbouring_config_diamond_or_conjunction():
 
     config = Configuration(diamond, {"top": 0, "middle": 1, "bottom_right": 1})
     hp_name = "top"
-    index = diamond.get_idx_by_hyperparameter_name(hp_name)
+    index = diamond.index_of[hp_name]
     neighbor_value = 1
 
     new_array = change_hp_value(
@@ -382,10 +382,10 @@ def test_check_neighbouring_config_diamond_str():
     left = CategoricalHyperparameter("left", ["red", "green"])
     right = CategoricalHyperparameter("right", ["red", "green", "blue", "yellow"])
     bottom = CategoricalHyperparameter("bottom", ["red", "green"])
-    diamond.add_hyperparameters([head, left, right, bottom])
-    diamond.add_condition(EqualsCondition(left, head, "red"))
-    diamond.add_condition(EqualsCondition(right, head, "red"))
-    diamond.add_condition(
+    diamond.add([head, left, right, bottom])
+    diamond.add(EqualsCondition(left, head, "red"))
+    diamond.add(EqualsCondition(right, head, "red"))
+    diamond.add(
         AndConjunction(
             EqualsCondition(bottom, left, "green"),
             EqualsCondition(bottom, right, "green"),
@@ -397,7 +397,7 @@ def test_check_neighbouring_config_diamond_str():
         {"bottom": "red", "head": "red", "left": "green", "right": "green"},
     )
     hp_name = "head"
-    index = diamond.get_idx_by_hyperparameter_name(hp_name)
+    index = diamond.index_of[hp_name]
     neighbor_value = 1
 
     new_array = change_hp_value(
@@ -416,7 +416,7 @@ def test_fix_types():
     # Test categorical and ordinal
     for hyperparameter_type in [CategoricalHyperparameter, OrdinalHyperparameter]:
         cs = ConfigurationSpace()
-        cs.add_hyperparameters(
+        cs.add(
             [
                 hyperparameter_type("bools", [True, False]),
                 hyperparameter_type("ints", [1, 2, 3, 4, 5]),
@@ -445,7 +445,7 @@ def test_fix_types():
     # Test constant
     for m in [2, 1.5, "string"]:
         cs = ConfigurationSpace()
-        cs.add_hyperparameter(Constant("constant", m))
+        cs.add(Constant("constant", m))
         c = dict(cs.get_default_configuration())
         c_str = {k: str(v) for k, v in c.items()}
         assert fix_types(c_str, cs) == c
@@ -462,7 +462,7 @@ def test_generate_grid():
     int1 = UniformIntegerHyperparameter(name="int1", lower=10, upper=100, log=True)
     ord1 = OrdinalHyperparameter(name="ord1", sequence=["1", "2", "3"])
 
-    cs.add_hyperparameters([float1, int1, cat1, ord1, const1])
+    cs.add([float1, int1, cat1, ord1, const1])
 
     num_steps_dict = {"float1": 11, "int1": 6}
     generated_grid = generate_grid(cs, num_steps_dict)
@@ -503,7 +503,7 @@ def test_generate_grid():
     # Sub-test 2
     # Test for extreme cases: only numerical
     cs = ConfigurationSpace(seed=1234)
-    cs.add_hyperparameters([float1, int1])
+    cs.add([float1, int1])
 
     num_steps_dict = {"float1": 11, "int1": 6}
     generated_grid = generate_grid(cs, num_steps_dict)
@@ -517,7 +517,7 @@ def test_generate_grid():
 
     # Test: only categorical
     cs = ConfigurationSpace(seed=1234)
-    cs.add_hyperparameters([cat1])
+    cs.add([cat1])
 
     generated_grid = generate_grid(cs)
 
@@ -528,7 +528,7 @@ def test_generate_grid():
 
     # Test: only constant
     cs = ConfigurationSpace(seed=1234)
-    cs.add_hyperparameters([const1])
+    cs.add([const1])
 
     generated_grid = generate_grid(cs)
 
@@ -550,7 +550,7 @@ def test_generate_grid():
     cs2 = ConfigurationSpace(seed=123)
     float1 = UniformFloatHyperparameter(name="float1", lower=-1, upper=1, log=False)
     int1 = UniformIntegerHyperparameter(name="int1", lower=0, upper=1000, log=False)
-    cs2.add_hyperparameters([float1, int1])
+    cs2.add([float1, int1])
 
     int2_cond = UniformIntegerHyperparameter(
         name="int2_cond",
@@ -558,21 +558,21 @@ def test_generate_grid():
         upper=100,
         log=True,
     )
-    cs2.add_hyperparameters([int2_cond])
+    cs2.add([int2_cond])
     cond_1 = AndConjunction(
         LessThanCondition(int2_cond, float1, -0.5),
         GreaterThanCondition(int2_cond, int1, 600),
     )
-    cs2.add_conditions([cond_1])
+    cs2.add([cond_1])
     cat1_cond = CategoricalHyperparameter(name="cat1_cond", choices=["apple", "orange"])
-    cs2.add_hyperparameters([cat1_cond])
+    cs2.add([cat1_cond])
     cond_2 = AndConjunction(
         GreaterThanCondition(cat1_cond, int1, 300),
         LessThanCondition(cat1_cond, int1, 700),
         GreaterThanCondition(cat1_cond, float1, -0.5),
         LessThanCondition(cat1_cond, float1, 0.5),
     )
-    cs2.add_conditions([cond_2])
+    cs2.add([cond_2])
     float2_cond = UniformFloatHyperparameter(
         name="float2_cond",
         lower=10.0,
@@ -580,9 +580,9 @@ def test_generate_grid():
         log=True,
     )
     # 2nd level dependency in ConfigurationSpace tree being tested
-    cs2.add_hyperparameters([float2_cond])
+    cs2.add([float2_cond])
     cond_3 = GreaterThanCondition(float2_cond, int2_cond, 50)
-    cs2.add_conditions([cond_3])
+    cs2.add([cond_3])
     num_steps_dict1 = {"float1": 4, "int2_cond": 3, "float2_cond": 3, "int1": 3}
     generated_grid = generate_grid(cs2, num_steps_dict1)
     assert len(generated_grid) == 18
@@ -620,7 +620,7 @@ def test_generate_grid():
     # Sub-test 4
     # Test: only a single hyperparameter and num_steps_dict is None
     cs = ConfigurationSpace(seed=1234)
-    cs.add_hyperparameters([float1])
+    cs.add([float1])
 
     num_steps_dict = {"float1": 11}
     try:
@@ -641,9 +641,9 @@ def test_generate_grid():
 
     # Test forbidden clause
     cs = ConfigurationSpace(seed=1234)
-    cs.add_hyperparameters([cat1, ord1, int1])
-    cs.add_condition(EqualsCondition(int1, cat1, "T"))  # int1 only active if cat1 == T
-    cs.add_forbidden_clause(
+    cs.add([cat1, ord1, int1])
+    cs.add(EqualsCondition(int1, cat1, "T"))  # int1 only active if cat1 == T
+    cs.add(
         ForbiddenAndConjunction(  # Forbid ord1 == 3 if cat1 == F
             ForbiddenEqualsClause(cat1, "F"),
             ForbiddenEqualsClause(ord1, "3"),
