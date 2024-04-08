@@ -15,7 +15,7 @@ from typing import (
     overload,
     runtime_checkable,
 )
-from typing_extensions import Self
+from typing_extensions import Self, deprecated
 
 import numpy as np
 import numpy.typing as npt
@@ -170,7 +170,7 @@ class Hyperparameter(ABC, Generic[DType]):
         if not isinstance(vector, (int, float, np.number)):
             return False
 
-        return self._transformer.legal_vector(np.array([vector]))[0]
+        return self._transformer.legal_vector_single(vector)
 
     @overload
     def legal_value(self, value: DType) -> bool: ...
@@ -191,7 +191,7 @@ class Hyperparameter(ABC, Generic[DType]):
         if isinstance(value, Sequence) and not isinstance(value, str):
             return self._transformer.legal_value(np.asarray(value))
 
-        return self._transformer.legal_value(np.array([value]))[0]
+        return self._transformer.legal_value_single(value)  # type: ignore
 
     @overload
     def rvs(
@@ -240,23 +240,23 @@ class Hyperparameter(ABC, Generic[DType]):
         return self._transformer.to_value(np.array([vector]))[0]
 
     @overload
-    def to_vector(self, value: DType) -> np.float64: ...
+    def to_vector(self, value: DType | int | float) -> np.float64: ...
 
     @overload
     def to_vector(
         self,
-        value: Sequence[DType] | npt.NDArray,
+        value: Sequence[int | float | DType] | npt.NDArray,
     ) -> npt.NDArray[np.float64]: ...
 
     def to_vector(
         self,
-        value: DType | Sequence[DType] | npt.NDArray,
+        value: DType | int | float | Sequence[DType | int | float] | npt.NDArray,
     ) -> np.float64 | npt.NDArray[np.float64]:
         if isinstance(value, np.ndarray):
             return self._transformer.to_vector(value)
 
         if isinstance(value, Sequence) and not isinstance(value, str):
-            return self._transformer.to_vector(value)
+            return self._transformer.to_vector(np.asarray(value))
 
         return self._transformer.to_vector(np.array([value]))[0]
 
@@ -271,7 +271,7 @@ class Hyperparameter(ABC, Generic[DType]):
         if std is not None:
             assert 0.0 <= std <= 1.0, f"std must be in [0, 1], got {std}"
 
-        if not self.is_legal_vector(vector):
+        if not self.legal_vector(vector):
             raise ValueError(
                 f"Vector value {vector} is not legal for hyperparameter '{self.name}'."
                 f"\n{self}",
@@ -295,45 +295,6 @@ class Hyperparameter(ABC, Generic[DType]):
             vector=self.neighbors_vectorized(vector, n, std=std, seed=seed),
         )
 
-    def get_neighbors(
-        self,
-        value: np.float64,
-        rs: np.random.RandomState,
-        number: int | None = None,
-        std: float | None = None,
-        transform: bool = False,
-    ) -> npt.NDArray:
-        if transform is True:
-            raise RuntimeError(
-                "Previous `get_neighbors` with `transform=True` had different"
-                " behaviour depending on the hyperparameter. Notably numerics"
-                " were still considered to be in vectorized form while for ordinals"
-                " they were considered to be in value form."
-                "\nPlease use either `neighbors_vectorized` or `neighbors_values`"
-                " instead, depending on your need. You can use `to_value` or"
-                " `to_vector` to switch between the results of the two.",
-            )
-
-        warnings.warn(
-            "Please use"
-            "`neighbors_vectorized(value=value, n=number, seed=rs, std=str)`"
-            " instead. This is deprecated and will be removed in the future."
-            " If you need `transform=True`, please apply `to_value` to the result.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        if number is None:
-            warnings.warn(
-                "Please provide a number of neighbors to sample. The"
-                " default used to be `4` but will be explicitly required"
-                " in the futurefuture.",
-                DeprecationWarning,
-                stacklevel=2,
-            )
-            number = 4
-
-        return self.neighbors_vectorized(value, number, std=std, seed=rs)
-
     def pdf_vector(self, vector: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
         legal_mask = self.legal_vector(vector).astype(np.float64)
         return self.vector_dist.pdf_vector(vector) * legal_mask
@@ -350,9 +311,8 @@ class Hyperparameter(ABC, Generic[DType]):
                 f" {_values.ndim} dimensions."
                 f"\n{_values}",
             )
-        legal_mask = self.legal_value(values).astype(np.float64)
         vector = self.to_vector(_values)
-        return self.pdf_vector(vector) * legal_mask
+        return self.pdf_vector(vector)
 
     def copy(self, **kwargs: Any) -> Self:
         return replace(self, **kwargs)
@@ -387,36 +347,22 @@ class Hyperparameter(ABC, Generic[DType]):
         return cls(**data)
 
     # ------------- Deprecations
+    @deprecated("Please use `get_num_neighbors() > 0` or `hp.size > 1` instead.")
     def has_neighbors(self) -> bool:
-        warnings.warn(
-            "Please use `get_num_neighbors() > 0` instead."
-            " This will be removed in the future.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
         return self.get_num_neighbors() > 0
 
+    @deprecated("Please use `to_vector(value)` instead.")
     def _inverse_transform(
         self,
         value: DType | npt.NDArray[DType],
     ) -> np.float64 | npt.NDArray[np.float64]:
-        warnings.warn(
-            "Please use `to_vector(value)` instead."
-            " This will be removed in the future.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
         return self.to_vector(value)
 
+    @deprecated("Please use `sample_value(seed=rs)` instead.")
     def sample(self, rs: np.random.RandomState) -> DType:
-        warnings.warn(
-            "Please use `sample_value(seed=rs)` instead."
-            " This will be removed in the future.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
         return self.sample_value(seed=rs)
 
+    @deprecated("Please use `sample_vector(size, seed=rs)` instead.")
     def _sample(
         self,
         rs: np.random.RandomState,
@@ -432,122 +378,88 @@ class Hyperparameter(ABC, Generic[DType]):
             )
             return self.sample_vector(size=1, seed=rs)
 
-        warnings.warn(
-            "Private method is deprecated, please use"
-            f"`sample_vector(size={size}, seed=rs)` for old behaviour."
-            " This will be removed in the future.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
         return self.sample_vector(size=size, seed=rs)
 
+    @deprecated("Please use `pdf_value(value)` instead.")
     def pdf(
         self,
         vector: DType | npt.NDArray[DType],  # NOTE: New convention this should be value
     ) -> np.float64 | npt.NDArray[np.float64]:
         if isinstance(vector, np.ndarray):
-            warnings.warn(
-                "Please use `pdf_value(value)` instead."
-                " This will be removed in the future.",
-                DeprecationWarning,
-                stacklevel=2,
-            )
             return self.pdf_values(vector)
 
-        warnings.warn(
-            "Please use `pdf_value(np.asarray([value]))[0]` instead."
-            " This will be removed in the future.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
         return self.pdf_values(np.asarray([vector]))[0]
 
+    @deprecated("Please use `pdf_vector(vector)` instead.")
     def _pdf(
         self,
         vector: np.float64 | npt.NDArray[np.float64],
     ) -> np.float64 | npt.NDArray[np.float64]:
         if isinstance(vector, np.ndarray):
-            warnings.warn(
-                "Please use `pdf_vector(vector)` instead."
-                " This will be removed in the future.",
-                DeprecationWarning,
-                stacklevel=2,
-            )
             return self.pdf_vector(vector)
 
-        warnings.warn(
-            "Please use `pdf_vector(np.asarray([vector]))[0]` instead."
-            " This will be removed in the future.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
         return self.pdf_vector(np.asarray([vector]))[0]
 
+    @deprecated("Please use `.size` attribute instead.")
     def get_size(self) -> int | float:
-        warnings.warn(
-            "Please just use the `.size` attribute directly",
-            DeprecationWarning,
-            stacklevel=2,
-        )
         return self.size
 
+    @deprecated("Please use `legal_value(value)` instead")
     def is_legal(self, value: DType) -> bool:
-        warnings.warn(
-            "Please use `legal_value(value)` instead."
-            " This will be removed in the future.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
         return self.legal_value(value)
 
+    @deprecated("Please use `legal_vector(vector)` instead.")
     def is_legal_vector(self, value: np.float64) -> bool:
-        # TODO: Can we remove this?
-        warnings.warn(
-            "Please use `legal_vector(vector)` instead."
-            " This will be removed in the future.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
         return self.legal_vector(value)
 
+    @deprecated("Please use `to_value(vector)` instead.")
     def _transform(
         self,
         vector: np.float64 | npt.NDArray[np.float64],
     ) -> DType | npt.NDArray[DType]:
-        warnings.warn(
-            "Private method `_transform(vector)` deprecated."
-            "Please use `to_value(vector)` instead."
-            " This will be removed in the future.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
         return self.to_value(vector)
 
     @property
+    @deprecated("Please use `.upper_vectorized` instead.")
     def _upper(self) -> np.float64:
-        warnings.warn(
-            "Private property `_upper` was deprecated and had no gaurantee to its"
-            " meaning. `upper_vectorized` was made publically available and represents"
-            " the upper bound on the vectorized form of the hyperparameter. This will"
-            " be removed in the future. Please note that the vectorized boundaries of"
-            " some hyperparameters have changed!",
-            DeprecationWarning,
-            stacklevel=2,
-        )
         return self.upper_vectorized
 
     @property
+    @deprecated("Please use `.lower_vectorized` instead.")
     def _lower(self) -> np.float64:
-        warnings.warn(
-            "Private property `_lower` was deprecated and had no gaurantee to its"
-            " meaning. `lower_vectorized` was made publically available and represents"
-            " the lower bound on the vectorized form of the hyperparameter. This will"
-            " be removed in the future. Please note that the vectorized boundaries of"
-            " some hyperparameters have changed!",
-            DeprecationWarning,
-            stacklevel=2,
-        )
         return self.lower_vectorized
+
+    @deprecated("Please use `neighbors_vectorized`  instead.")
+    def get_neighbors(
+        self,
+        value: np.float64,
+        rs: np.random.RandomState,
+        number: int | None = None,
+        std: float | None = None,
+        transform: bool = False,
+    ) -> npt.NDArray:
+        if transform is True:
+            raise RuntimeError(
+                "Previous `get_neighbors` with `transform=True` had different"
+                " behaviour depending on the hyperparameter. Notably numerics"
+                " were still considered to be in vectorized form while for ordinals"
+                " they were considered to be in value form."
+                "\nPlease use either `neighbors_vectorized` or `neighbors_values`"
+                " instead, depending on your need. You can use `to_value` or"
+                " `to_vector` to switch between the results of the two.",
+            )
+
+        if number is None:
+            warnings.warn(
+                "Please provide a number of neighbors to sample. The"
+                " default used to be `4` but will be explicitly required"
+                " in the futurefuture.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            number = 4
+
+        return self.neighbors_vectorized(value, number, std=std, seed=rs)
 
 
 HPType = TypeVar("HPType", bound=Hyperparameter)
@@ -558,15 +470,12 @@ class HyperparameterWithPrior(Protocol[HPType]):
     def to_uniform(self) -> HPType: ...
 
 
-NumberDType = TypeVar("NumberDType", np.number, int, float)
-
-
 @dataclass(init=False)
-class NumericalHyperparameter(Hyperparameter[NumberDType]):
+class NumericalHyperparameter(Hyperparameter[DType]):
     legal_value_types: ClassVar[tuple[type, ...]] = (int, float, np.number)
 
-    lower: NumberDType = field(hash=True)
-    upper: NumberDType = field(hash=True)
+    lower: DType = field(hash=True)
+    upper: DType = field(hash=True)
     log: bool = field(hash=True)
 
 

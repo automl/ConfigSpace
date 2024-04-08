@@ -9,7 +9,6 @@ from typing import Any, ClassVar, Set
 import numpy as np
 import numpy.typing as npt
 
-from ConfigSpace.functional import split_arange
 from ConfigSpace.hyperparameters._distributions import (
     UniformIntegerDistribution,
     WeightedIntegerDiscreteDistribution,
@@ -34,17 +33,13 @@ class NeighborhoodCat(_Neighborhood):
         seed: np.random.RandomState | None = None,
     ) -> npt.NDArray[np.float64]:
         seed = np.random.RandomState() if seed is None else seed
-        choices = split_arange(
-            (0, int(vector)),
-            (int(vector) + 1, self.size),
-            dtype=np.float64,
-        )
-
-        if n >= len(choices):
-            seed.shuffle(choices)
-            return choices
-
-        return seed.choice(choices, n, replace=False)
+        pivot = int(vector)
+        _range = np.arange(0, self.size, dtype=np.float64)
+        bot = _range[:pivot]
+        top = _range[pivot + 1 :]
+        choices = np.concatenate((bot, top))
+        seed.shuffle(choices)
+        return choices[:n]
 
 
 @dataclass(init=False)
@@ -64,8 +59,8 @@ class CategoricalHyperparameter(Hyperparameter[Any]):
         weights: Sequence[int | float] | None = None,
         meta: Mapping[Hashable, Any] | None = None,
     ) -> None:
-        # TODO: We can allow for None but we need to be sure it doesn't break anything
-        # elsewhere.
+        # TODO: We can allow for None but we need to be sure it doesn't break
+        # anything elsewhere.
         if any(choice is None for choice in choices):
             raise TypeError("Choice 'None' is not supported")
 
@@ -151,12 +146,21 @@ class CategoricalHyperparameter(Hyperparameter[Any]):
         else:
             vect_dist = UniformIntegerDistribution(size=size)
 
+        seq_choices = np.asarray(choices)
+        # NOTE: Unfortunatly, numpy will promote number types to str
+        # if there are string types in the array, where we'd rather
+        # stick to object type in that case. Hence the manual...
+        if seq_choices.dtype.kind in {"U", "S"} and not all(
+            isinstance(choice, str) for choice in choices
+        ):
+            seq_choices = np.asarray(choices, dtype=object)
+
         super().__init__(
             name=name,
             size=size,
             default_value=default_value,
             meta=meta,
-            transformer=TransformerSeq(seq=choices),
+            transformer=TransformerSeq(seq=seq_choices),
             neighborhood=NeighborhoodCat(size=len(choices)),
             vector_dist=vect_dist,
             neighborhood_size=self._neighborhood_size,

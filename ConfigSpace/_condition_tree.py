@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+from collections import deque
 from contextlib import contextmanager
 from dataclasses import dataclass, field
+from itertools import chain, product
 from typing import TYPE_CHECKING, Iterator
 from typing_extensions import Self
 
@@ -19,8 +21,11 @@ from ConfigSpace.exceptions import (
     ParentNotFoundError,
 )
 from ConfigSpace.forbidden import (
+    ForbiddenAndConjunction,
     ForbiddenClause,
     ForbiddenConjunction,
+    ForbiddenEqualsClause,
+    ForbiddenInClause,
     ForbiddenLike,
     ForbiddenRelation,
 )
@@ -33,11 +38,59 @@ if TYPE_CHECKING:
 
 
 @dataclass
-class _Node:
+class ConditionNode:
+    condition: ConditionLike
+    dependants: list[ConditionNode]
+    unique_children: dict[int, HPNode]
+    children_vector: npt.NDArray[np.int64] = field(
+        default_factory=lambda: np.array((), dtype=np.int64),
+    )
+
+    def node_parents(self) -> list[str]:
+        if isinstance(self.condition, Condition):
+            return [self.condition.parent.name]
+        return [dlc.parent.name for dlc in self.condition.dlcs]
+
+    def depends_on(self, other: ConditionNode) -> bool:
+        return any(parent in other.dependant_names() for parent in self.node_parents())
+
+    def dependant_names(self) -> set[str]:
+        _dep = {node.name for node in self.unique_children.values()}
+        for dep in self.dependants:
+            _dep.update(dep.dependant_names())
+        return _dep
+
+    @classmethod
+    def from_node(cls, node: HPNode) -> ConditionNode:
+        assert node.parent_condition is not None
+        return cls(
+            condition=node.parent_condition,
+            dependants=[],
+            unique_children={node.idx: node},
+            children_vector=np.array([node.idx], dtype=np.int64),
+        )
+
+    def has_equivalent_condition(self, node: HPNode) -> bool:
+        assert node.parent_condition is not None
+        return self.condition.equivalent_condition_on_parent(
+            node.parent_condition,
+        )
+
+    def __str__(self, indent: int = 0) -> str:
+        parts = ["  " * indent + "*" + str(self.condition)]
+        for child in self.unique_children.values():
+            parts.append("  " * (indent + 1) + f"Activates: {child.name}")
+        for dominated in self.dependants:
+            parts.append(dominated.__str__(indent + 1))
+        return "\n".join(parts)
+
+
+@dataclass
+class HPNode:
     hp: Hyperparameter
     idx: int
     maximum_depth: int
-    children: dict[str, tuple[_Node, ConditionLike]] = field(default_factory=dict)
+    children: dict[str, tuple[HPNode, ConditionLike]] = field(default_factory=dict)
     forbiddens: list[ForbiddenLike] = field(default_factory=list)
 
     # NOTE: We have the restriction that a hyperparameter can only have one parent
@@ -47,7 +100,7 @@ class _Node:
     # but not the other.
     # * A useful assertion to make is that all nodes in `parents` will have the same
     #   parent condition, also accessible via `parent_condition`
-    parents: dict[str, tuple[_Node, ConditionLike]] = field(
+    parents: dict[str, tuple[HPNode, ConditionLike]] = field(
         default_factory=dict,
         # We explicitly don't compare parents to prevent recursion
         compare=False,
@@ -55,7 +108,7 @@ class _Node:
     parent_condition: ConditionLike | None = None
 
     def __lt__(self, __value: object) -> bool:
-        if not isinstance(__value, _Node):
+        if not isinstance(__value, HPNode):
             return NotImplemented
 
         return (self.maximum_depth, self.hp.name) < (
@@ -64,7 +117,7 @@ class _Node:
         )
 
     def __le__(self, __value: object) -> bool:
-        if not isinstance(__value, _Node):
+        if not isinstance(__value, HPNode):
             return NotImplemented
 
         return (self.maximum_depth, self.hp.name) <= (
@@ -73,7 +126,7 @@ class _Node:
         )
 
     def __gt__(self, __value: object) -> bool:
-        if not isinstance(__value, _Node):
+        if not isinstance(__value, HPNode):
             return NotImplemented
 
         return (self.maximum_depth, self.hp.name) > (
@@ -82,7 +135,7 @@ class _Node:
         )
 
     def __ge__(self, __value: object) -> bool:
-        if not isinstance(__value, _Node):
+        if not isinstance(__value, HPNode):
             return NotImplemented
 
         return (self.maximum_depth, self.hp.name) >= (
@@ -116,20 +169,37 @@ class _Node:
 @dataclass
 class DAG:
     # All relevant information is kept in these fields, rest is cached information
-    nodes: dict[str, _Node] = field(default_factory=dict)
+    nodes: dict[str, HPNode] = field(default_factory=dict)
     unconditional_forbiddens: list[ForbiddenLike] = field(default_factory=list)
     conditional_forbiddens: list[ForbiddenLike] = field(default_factory=list)
 
     # Keep track of nodes
-    roots: dict[str, _Node] = field(default_factory=dict, compare=False)
-    non_roots: dict[str, _Node] = field(default_factory=dict, compare=False)
+    roots: dict[str, HPNode] = field(default_factory=dict, compare=False)
+    non_roots: dict[str, HPNode] = field(default_factory=dict, compare=False)
 
     # Keep track of conditions
     conditions: list[ConditionLike] = field(default_factory=list, compare=False)
-    minimum_condition_span: list[
-        tuple[ConditionLike, list[_Node], npt.NDArray[np.int64]]
-    ] = field(
+    minimum_conditions: list[ConditionNode] = field(default_factory=list, compare=False)
+    change_hp_lookup: dict[str, list[ConditionNode]] = field(
+        default_factory=dict,
+        compare=False,
+    )
+    all_trees_needed_for_sampling: list[ConditionNode] = field(
         default_factory=list,
+        compare=False,
+    )
+    normalized_defaults: npt.NDArray[np.float64] = field(
+        default_factory=lambda: np.array((), dtype=np.float64),
+        compare=False,
+    )
+    # OPTIM: Mainly used for generating neighbors, do not use if validation
+    # the underlying forbidden is required to be displayed to the user
+    fast_forbidden_checks: list[ForbiddenLike] = field(
+        default_factory=list,
+        compare=False,
+    )
+    forbidden_lookup: dict[str, list[ForbiddenLike]] = field(
+        default_factory=dict,
         compare=False,
     )
 
@@ -152,6 +222,7 @@ class DAG:
         default_factory=dict,
         compare=False,
     )
+    hyperparameters: list[Hyperparameter] = field(default_factory=list, compare=False)
 
     # Internal flag to keep track of whether we are currently in a transaction
     _updating: bool = False
@@ -172,11 +243,12 @@ class DAG:
             self._updating = False
 
         # Sort the nodes into roots, non-roots, and nodes, each sorted by (depth, name)
-        roots: dict[str, _Node] = {}
-        non_roots: dict[str, _Node] = {}
-        nodes: dict[str, _Node] = {}
+        roots: dict[str, HPNode] = {}
+        non_roots: dict[str, HPNode] = {}
+        nodes: dict[str, HPNode] = {}
         at: list[str] = []
         index_of: dict[str, int] = {}
+        hyperparameters: list[Hyperparameter] = []
 
         nodes_sorted_by_depth_and_name = sorted(self.nodes.values())
         for i, n in enumerate(nodes_sorted_by_depth_and_name):
@@ -188,6 +260,7 @@ class DAG:
             n.idx = i
             index_of[n.name] = i
             at.append(n.name)
+            hyperparameters.append(n.hp)
 
             nodes[n.name] = n
 
@@ -196,6 +269,11 @@ class DAG:
         self.nodes = nodes
         self.at = at
         self.index_of = index_of
+        self.hyperparameters = hyperparameters
+        self.normalized_defaults = np.array(
+            [hp.normalized_default_value for hp in hyperparameters],
+            dtype=np.float64,
+        )
 
         # Sort out forbiddens based on whether they are unconditional or conditional
         unconditional_forbiddens = []
@@ -231,6 +309,32 @@ class DAG:
         self.unconditional_forbiddens = unconditional_forbiddens
         self.conditional_forbiddens = conditional_forbiddens
 
+        # Please check function for optimization applied, these are only
+        # used to speed up internal verifications
+        self.fast_forbidden_checks = self._optimized_forbiddens(
+            unconditional_forbiddens + conditional_forbiddens,
+        )
+
+        def _parents(_f: ForbiddenLike) -> list[str]:
+            if isinstance(_f, ForbiddenClause):
+                return [_f.hyperparameter.name]
+            if isinstance(_f, ForbiddenConjunction):
+                return list(set(chain.from_iterable(_parents(dlc) for dlc in _f.dlcs)))
+            if isinstance(_f, ForbiddenRelation):
+                return [_f.left.name, _f.right.name]
+
+            raise NotImplementedError(type(_f))
+
+        forbidden_lookup: dict[str, list[ForbiddenLike]] = {}
+        for forbidden in self.fast_forbidden_checks:
+            for parent in _parents(forbidden):
+                if parent not in forbidden_lookup:
+                    forbidden_lookup[parent] = [forbidden]
+                else:
+                    forbidden_lookup[parent].append(forbidden)
+
+        self.forbidden_lookup = forbidden_lookup
+
         # Sort conditions by their parents sort order
         conditions = []
         for node in self.nodes.values():
@@ -259,7 +363,55 @@ class DAG:
             self.parent_conditions_of[n.name] = n.parent_conditions()
 
         # Cache out the minimum condition span used for sampling
-        self.minimum_condition_span = self._generate_minimum_condition_span()
+        # This is useful for sampling
+        minimum_conditions = self._minimum_conditions()
+
+        for a, b in product(minimum_conditions, minimum_conditions):
+            if a is not b:
+                assert a.unique_children.keys().isdisjoint(b.unique_children.keys())
+
+        def shallowest_parent(_x: ConditionNode) -> int:
+            return min(self.nodes[_p].maximum_depth for _p in _x.node_parents())
+
+        self.minimum_conditions = sorted(minimum_conditions, key=shallowest_parent)
+
+        condition_trees = {id(c): c for c in self.minimum_conditions}
+        updated = True
+        while updated:
+            updated = False
+            values: list[ConditionNode] = list(condition_trees.values())
+            for a, b in product(values, values):
+                if a is b:
+                    continue
+
+                if b.depends_on(a):
+                    a.dependants.append(b)
+                    a.dependants = sorted(a.dependants, key=shallowest_parent)
+                    if id(b) in condition_trees:
+                        condition_trees.pop(id(b))
+                    updated = True
+
+        condition_trees = sorted(condition_trees.values(), key=shallowest_parent)
+
+        # Now we go through the trees and update the lookup
+        # Note that it's possible to have reconverging paths, i.e.
+        # the same condition node might appear when starting from two
+        # different roots.
+        self.change_hp_lookup: dict[str, list[ConditionNode]] = {}
+        trees: deque[ConditionNode] = deque(condition_trees)
+        while trees:
+            tree = trees.popleft()
+            for parent in tree.node_parents():
+                if parent not in self.change_hp_lookup:
+                    self.change_hp_lookup[parent] = [tree, *tree.dependants]
+                else:
+                    self.change_hp_lookup[parent].extend([tree, *tree.dependants])
+                    self.change_hp_lookup[parent] = sorted(
+                        self.change_hp_lookup[parent],
+                        key=shallowest_parent,
+                    )
+
+            trees.extend(tree.dependants)
 
     @property
     def forbiddens(self) -> list[ForbiddenLike]:
@@ -275,7 +427,7 @@ class DAG:
             )
 
         # idx will get filled in post transaction
-        node = _Node(hp, maximum_depth=1, idx=len(self.nodes))
+        node = HPNode(hp, maximum_depth=1, idx=len(self.nodes))
         self.nodes[hp.name] = node
         self.roots[hp.name] = node
 
@@ -378,22 +530,6 @@ class DAG:
         else:
             self.conditional_forbiddens.append(forbidden)
 
-    def dependancies(
-        self,
-        name: str | Hyperparameter,
-    ) -> Iterator[tuple[_Node, ConditionLike]]:
-        # child -> [root to this parameter]
-        _name = name if isinstance(name, str) else name.name
-        node = self.nodes[_name]
-        seen: set[str] = set()
-        for parent, condition in node.parents.values():
-            if parent.name in seen:
-                continue
-
-            seen.add(parent.name)
-            yield from self.dependancies(parent.name)
-            yield (parent, condition)
-
     def _is_unconditional_forbidden(self, forbidden: ForbiddenLike) -> bool:
         if isinstance(forbidden, ForbiddenClause):
             name = forbidden.hyperparameter.name
@@ -410,70 +546,102 @@ class DAG:
 
         raise NotImplementedError(type(forbidden))
 
-    def _generate_minimum_condition_span(
-        self,
-    ) -> list[tuple[ConditionLike, list[_Node], npt.NDArray[np.int64]]]:
-        # TODO: This can be improved by using knowledge of AND conjunctions
-        # of conditionals
+    def _minimum_conditions(self) -> list[ConditionNode]:
+        # First we group the conditions by the equivalence of their parent conditions,
+        # i.e. two hyperparameters both rely on algorithm == "A"
+        base_conditions: dict[int, ConditionNode] = {}
+        for node in self.nodes.values():
+            # This node has no parent as is a root
+            if node.parent_condition is None:
+                assert node.name in self.roots
+                continue
 
-        # The minimum number of conditions required to determine whether all
-        # hyperparameters are active or inactive. I.e. many hps' will rely on
-        # a single choice being to a specific value.
-
-        # First collect all conditions and their nodes
-        def affected_children(condition: ConditionLike) -> list[_Node]:
-            if isinstance(condition, Condition):
-                return [self.nodes[condition.child.name]]
-
-            if isinstance(condition, Conjunction):
-                return [self.nodes[dlc.child.name] for dlc in condition.dlcs]
-
-            raise NotImplementedError(type(condition))
-
-        conditions_with_nodes_effected = [
-            (condition, affected_children(condition)) for condition in self.conditions
-        ]
-
-        # We ensure they're sorted such that by traversing through them lineraly,
-        # the condition being checked will have all the parents it relies on having
-        # been fully checked. This is done by ensuring they'red order by have soon
-        # in the heirarchy they need to be inferred.
-        sorted_conditions = sorted(
-            conditions_with_nodes_effected,
-            key=lambda cond_nodes: min(
-                c.maximum_depth for c in affected_children(cond_nodes[0])
-            ),
-        )
-
-        # Now we deduplicate conditions, merging the effected children. This happens as
-        # multiple hyperparameters may have the exact same condition to be activated,
-        # i.e. random forest variables are active when classifier == "random_forest"
-        # NOTE: The dict part is just to remove duplicate entries
-        basis_conditions_with_effected_nodes: list[
-            tuple[ConditionLike, dict[int, _Node]]
-        ] = []
-        for condition, nodes in sorted_conditions:
-            for basis_condition, effected_nodes in basis_conditions_with_effected_nodes:
-                if condition.conditionally_equal(basis_condition):
-                    effected_nodes.update({n.idx: n for n in nodes})
+            for a in base_conditions.values():
+                if a.has_equivalent_condition(node):
+                    a.unique_children[node.idx] = node
+                    a.children_vector = np.array(
+                        list(a.unique_children.keys()),
+                        dtype=np.int64,
+                    )
                     break
             else:
-                basis_conditions_with_effected_nodes.append(
-                    (condition, {n.idx: n for n in nodes}),
+                _a = ConditionNode.from_node(node)
+                base_conditions[id(_a)] = _a
+
+        # We return the base conditions such that conditions relying on
+        # earlier shallower hps are first
+        return list(base_conditions.values())
+
+    def _optimized_forbiddens(
+        self,
+        forbiddens: list[ForbiddenLike],
+    ) -> list[ForbiddenLike]:
+        # OPTIM: Many time, forbiddens are an AND conjunction of multiple
+        # clauses, where the clauses are all on the same hyperparameters.
+        # (classifier== 'adaboost' && preprocessor== 'densifier'),
+        # (classifier== 'adaboost' && preprocessor== 'kitchen_sinks'),
+        # (classifier== 'adaboost' && preprocessor == 'nystroem_sampler')
+        # When performing operations of forbiddens, only a single array at a time,
+        # the **slowest part is actually indexing into a numpy array like[so_idx]**,
+        # even if just retrieving one index.
+        # https://stackoverflow.com/a/29311751/5332072
+        # We can't get around indexing so the next best attempt is to reduce the
+        # amount indexing required.
+        # (classifier== 'adaboost' && preprocessor in ('nystroem_sampler', 'kitchen_sinks', 'densifier'))  # noqa: E501
+        # We make the assumption that shared forbiddens are more likely to occure
+        # on _more shallow_ nodes.
+        to_optimize: dict[
+            # First parent_name, with N-1 (hp_name, value)...
+            tuple[str, tuple[tuple[str, np.float64], ...]],
+            # unique parts of AND, list to for isin
+            tuple[tuple[ForbiddenEqualsClause, ...], list[ForbiddenEqualsClause]],
+        ] = {}
+        unoptimized_forbiddens = []
+
+        and_conjunction_parts: list[list[ForbiddenEqualsClause]] = []
+        for f in forbiddens:
+            if isinstance(f, ForbiddenAndConjunction) and all(
+                isinstance(c, ForbiddenEqualsClause) for c in f.components
+            ):
+                and_conjunction_parts.append(
+                    sorted(
+                        f.components,  # type: ignore
+                        key=lambda _x: self.index_of[_x.hyperparameter.name],  # type: ignore
+                    ),
                 )
+            else:
+                unoptimized_forbiddens.append(f)
 
-        # And as a final touch, sort and get ready for use
-        basis_condition_with_index_masks: list[
-            tuple[ConditionLike, list[_Node], npt.NDArray[np.int64]]
-        ] = []
-        for condition, effected_nodes in basis_conditions_with_effected_nodes:
-            sorted_effected_nodes = sorted(effected_nodes.values(), key=lambda n: n.idx)
-            indices = np.array([n.idx for n in sorted_effected_nodes], dtype=np.int64)
-            basis_condition_with_index_masks.append(
-                (condition, sorted_effected_nodes, indices),
+        for *firsts, last in and_conjunction_parts:
+            shallowest_key = tuple(
+                (x.hyperparameter.name, x.vector_value) for x in firsts
             )
+            parent_key = last.hyperparameter.name
+            joint_key = (parent_key, shallowest_key)
+            if joint_key in to_optimize:
+                _, conjunctions = to_optimize[joint_key]
+                conjunctions.append(last)
+            else:
+                to_optimize[joint_key] = (tuple(firsts), [last])
 
-        return basis_condition_with_index_masks
+        new_conjunctions = []
+        for _and_parts, equal_components in to_optimize.values():
+            # Didn't share first parts such that we could group it with anything else
+            if len(equal_components) == 1:
+                conj = ForbiddenAndConjunction(*_and_parts, equal_components[0])
+                conj.set_vector_idx(self.index_of)
+                unoptimized_forbiddens.append(conj)
+                continue
+
+            isin_clause = ForbiddenInClause(
+                equal_components[0].hyperparameter,
+                [x.value for x in equal_components],
+            )
+            conj = ForbiddenAndConjunction(*_and_parts, isin_clause)
+            conj.set_vector_idx(self.index_of)
+            new_conjunctions.append(conj)
+
+        return unoptimized_forbiddens + new_conjunctions
 
     def _check_cyclic_dependancy(self) -> None:
         tmp_dag = nx.DiGraph()

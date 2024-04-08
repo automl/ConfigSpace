@@ -156,7 +156,9 @@ class ForbiddenConjunction(ABC):
         for component in self.components:
             component.set_vector_idx(hyperparameter_to_idx)
 
-    def get_descendant_literal_clauses(self) -> tuple[ForbiddenClause, ...]:
+    def get_descendant_literal_clauses(
+        self,
+    ) -> tuple[ForbiddenClause | ForbiddenRelation, ...]:
         children = []
         for component in self.components:
             if isinstance(component, ForbiddenConjunction):

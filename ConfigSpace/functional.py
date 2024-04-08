@@ -117,26 +117,33 @@ NPDType = TypeVar("NPDType", bound=np.generic)
 
 
 def split_arange(
-    *bounds: tuple[int | np.int64, int | np.int64],
-    dtype: type[NPDType] = np.int64,
-) -> npt.NDArray[NPDType]:
+    frm: int,
+    to: int,
+    *,
+    pivot: int,
+) -> npt.NDArray[np.int64]:
     """Split an arange into multiple ranges.
 
-    >>> split_arange((0, 2), (3, 5), (6, 10))
+    >>> split_arange(0, 10, pivot=5)
     [0, 1, 3, 4, 6, 7, 8, 9]
 
     Parameters
     ----------
-    bounds: tuple[int, int]
-        The bounds of the ranges
+    frm:
+        Start of range
+
+    to:
+        End of range
+
+    pivot:
+        The pivot point, ommited from the output
 
     Returns:
         The concatenated ranges
     """
-    return np.concatenate(
-        [np.arange(start, stop, dtype=dtype) for start, stop in bounds],
-        dtype=dtype,
-    )
+    bot = np.arange(frm, pivot)
+    top = np.arange(pivot + 1, to)
+    return np.concatenate([bot, top])
 
 
 def quantize_log(
@@ -199,14 +206,18 @@ def quantize(
 
     Returns:
     -------
-        np.NDArray[np.int64]
+        np.NDArray[np.float64]
     """  # noqa: E501
     # Shortcut out if we have unit norm already
-    unitnorm = x if bounds == (0, 1) else normalize(x, bounds=bounds)
-    int_bounds = (0, bins - 1)
+    l, u = bounds  # noqa: E741
+    unitnorm = x if bounds == (0, 1) else (x - l) / (u - l)
 
-    quantization_levels = np.floor(unitnorm * bins).clip(*int_bounds)
-    return rescale(quantization_levels, frm=int_bounds, to=bounds)
+    quantization_levels = np.floor(unitnorm * bins).clip(0, bins - 1)
+    unit_norm_quantized = quantization_levels / (bins - 1)
+    if bounds == (0, 1):
+        return unit_norm_quantized
+
+    return unit_norm_quantized * (u - l) + l  # type: ignore
 
 
 def scale(
@@ -239,21 +250,43 @@ def rescale(
 
 
 @overload
-def is_close_to_integer(value: int | float | np.number, decimals: int) -> bool: ...
+def is_close_to_integer(
+    value: int | float | np.number,
+    *,
+    atol: float = ...,
+    rtol: float = ...,
+) -> bool: ...
 
 
 @overload
 def is_close_to_integer(
     value: np.ndarray,
-    decimals: int,
+    *,
+    atol: float = ...,
+    rtol: float = ...,
 ) -> npt.NDArray[np.bool_]: ...
 
 
 def is_close_to_integer(
     value: int | float | np.number | np.ndarray,
-    decimals: int,
+    *,
+    atol: float = 1e-9,
+    rtol: float = 1e-5,
 ) -> bool | npt.NDArray[np.bool_]:
-    return np.round(value, decimals) == np.rint(value)  # type: ignore
+    a = np.asarray(value)
+    b = np.rint(a)
+    return np.less_equal(np.abs(a - b), atol + rtol * np.abs(b))
+
+
+def is_close_to_integer_single(
+    value: int | float | np.number,
+    *,
+    atol: float = 1e-9,
+    rtol: float = 1e-5,
+) -> bool:
+    a = value
+    _b = np.rint(a)  # type: ignore
+    return abs(a - _b) <= (atol + rtol * abs(_b))
 
 
 def walk_subclasses(cls: type, seen: set[type] | None = None) -> Iterator[type]:

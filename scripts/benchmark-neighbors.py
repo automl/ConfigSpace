@@ -31,6 +31,8 @@ def run_test(configuration_space_path):
     for i in range(3):
         cs.seed(i)
         configurations = cs.sample_configuration(size=n_configs)
+        for c in configurations:
+            c.is_valid_configuration()
 
         for j, c in enumerate(configurations):
             start_time = time.time()

@@ -11,10 +11,9 @@ from ConfigSpace.functional import (
     linspace_chunked,
     quantize,
     quantize_log,
-    split_arange,
 )
 from ConfigSpace.hyperparameters._hp_components import (
-    ROUND_PLACES,
+    ATOL,
     DType,
     _Transformer,
 )
@@ -72,7 +71,9 @@ def quantized_neighborhood(
             return np.arange(0, bins - 1) / (bins - 1)
 
         qint = np.rint(vector * (bins - 1)).astype(np.int64)
-        return split_arange((0, qint), (qint + 1, bins)) / (bins - 1)
+        bottom = np.arange(0, qint)
+        top = np.arange(qint + 1, bins)
+        return np.concatenate((bottom, top)) / (bins - 1)
 
     # Otherwise, we use a repeated sampling strategy where we slowly increase the
     # std of a normal, centered on `center`, slowly expanding `std` such that
@@ -395,22 +396,21 @@ class DiscretizedContinuousScipyDistribution(Distribution, Generic[DType]):
                 if steps_to_take == 1:
                     bottom = np.array([])
                 else:
-                    bottom = self.transformer.to_vector(
-                        np.linspace(
-                            orig_low,  # type: ignore
-                            qvector_orig,  # type: ignore
-                            steps_to_take,
-                            endpoint=False,
-                        ),
+                    bottom_orig = np.linspace(
+                        orig_low,  # type: ignore
+                        qvector_orig,  # type: ignore
+                        steps_to_take - 1,
+                        endpoint=False,
                     )
+                    bottom = self.transformer.to_vector(bottom_orig)
 
-                top = self.transformer.to_vector(
-                    np.linspace(
-                        qvector_orig + stepsize,
-                        orig_high,  # type: ignore
-                        steps - steps_to_take,
-                    ),
+                top_orig = np.linspace(
+                    qvector_orig + stepsize,
+                    orig_high,  # type: ignore
+                    steps - steps_to_take,
                 )
+
+                top = self.transformer.to_vector(top_orig)
             else:
                 stepsize = (upper - lower) / (self.steps - 1)
 
@@ -519,7 +519,7 @@ class UniformIntegerNormalizedDistribution(Distribution):
         valid_mask = (
             (vector >= self.lower_vectorized)
             & (vector <= self.upper_vectorized)
-            & is_close_to_integer(vector * (self.size - 1), ROUND_PLACES)
+            & is_close_to_integer(vector * (self.size - 1), atol=ATOL)
         )
         return np.where(valid_mask, self.max_density(), 0)
 
@@ -624,7 +624,7 @@ class UniformIntegerDistribution(Distribution):
         valid_mask = (
             (vector >= self.lower_vectorized)
             & (vector <= self.upper_vectorized)
-            & is_close_to_integer(vector, ROUND_PLACES)
+            & is_close_to_integer(vector, atol=ATOL)
         )
         return np.where(valid_mask, self.max_density(), 0)
 
@@ -660,7 +660,9 @@ class UniformIntegerDistribution(Distribution):
             if qvector == steps - 1:
                 return np.arange(0, steps - 1, dtype=np.float64)
 
-            return split_arange((0, qvector), (qvector + 1, steps), dtype=np.float64)
+            bottom = np.arange(0, qvector)
+            top = np.arange(qvector + 1, steps)
+            return np.concatenate((bottom, top)).astype(np.float64)
 
         # Otherwise, we use a repeated sampling strategy where we slowly increase the
         # std of a normal, centered on `center`, slowly expanding `std` such that
@@ -743,8 +745,7 @@ class WeightedIntegerDiscreteDistribution(Distribution):
         valid_mask = (
             (vector >= self.lower_vectorized)
             & (vector <= self.upper_vectorized)
-            & is_close_to_integer(vector, ROUND_PLACES)
-            & ~np.isnan(vector)
+            & is_close_to_integer(vector, atol=ATOL)
         )
 
         # Bring it all into range to index by
@@ -762,17 +763,12 @@ class WeightedIntegerDiscreteDistribution(Distribution):
         seed: RandomState | None = None,
     ) -> npt.NDArray[np.float64]:
         seed = np.random.RandomState() if seed is None else seed
-        choices = split_arange(
-            (0, int(vector)),
-            (int(vector) + 1, self.size),
-            dtype=np.float64,
-        )
-
-        if n >= len(choices):
-            seed.shuffle(choices)
-            return choices
-
-        return seed.choice(choices, n, replace=False)
+        pivot = int(np.rint(vector))
+        bot = np.arange(0, pivot)
+        top = np.arange(pivot + 1, self.size)
+        choices = np.concatenate((bot, top)).astype(np.float64)
+        seed.shuffle(choices)
+        return choices[:n]
 
 
 @dataclass

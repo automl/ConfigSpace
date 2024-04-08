@@ -158,7 +158,7 @@ def test_greater_and_less_condition():
         gt.set_vector_idx(hyperparameter_idx)
         assert not gt.satisfied_by_value({hp.name: 0})
         assert gt.satisfied_by_value({hp.name: 2})
-        with pytest.raises((TypeError, ValueError)):
+        with pytest.raises((KeyError, TypeError)):
             gt.satisfied_by_value({hp.name: None})
 
         # Evaluate vector
@@ -173,7 +173,7 @@ def test_greater_and_less_condition():
         assert lt.satisfied_by_value({hp.name: 0})
         assert not lt.satisfied_by_value({hp.name: 2})
 
-        with pytest.raises((TypeError, ValueError)):
+        with pytest.raises((KeyError, TypeError)):
             lt.satisfied_by_value({hp.name: None})
 
         # Evaluate vector

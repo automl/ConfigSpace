@@ -33,6 +33,7 @@ from collections.abc import Iterator, Sequence
 from typing import TYPE_CHECKING, Any, cast
 
 import numpy as np
+import numpy.typing as npt
 
 from ConfigSpace import Configuration
 from ConfigSpace.exceptions import (
@@ -143,158 +144,119 @@ def get_one_exchange_neighbourhood_fast(
          the given configuration.
 
     """
-    # TODO: If this needs to get faster, hyperparameters should have a
-    # `_get_num_neighbors_vector`, preventing the need to convert to value
     space = configuration.config_space
-    config_vector = configuration._vector
+    config = configuration
+    arr = configuration._vector
 
-    hyperparameters_list = list(space)
-    n_hps = len(hyperparameters_list)
-    hyperparameters_used = []
+    # Define how many neighbors and std.dev we should sample for a given hyperparameter
+    sample_strategy: dict[str, tuple[int, float | None, bool]] = {}
 
-    # For all in_use hyperparameters with a size of 1, these have no neighbors
-    # and are automatically in use.
+    # Define the total number of neighbors we should generate for any given
+    # hyperparameter
+    neighbors_to_generate: list[tuple[Hyperparameter, int, list[np.float64]]] = []
+
     for hp in space.values():
-        hp_idx = space._hyperparameter_idx[hp.name]
-        in_use = not np.isnan(config_vector[hp_idx])
-        if in_use and hp.size == 1:
-            hyperparameters_used.append(hp.name)
+        hp_idx = space.index_of[hp.name]
 
-    neighbor_count: dict[str, int | float] = {}
-    for hp in space.values():
-        # TODO: Not sure why numericals have their num_neighbors restricted
-        if isinstance(hp, NumericalHyperparameter):
-            if hp.size > num_neighbors:
-                neighbor_count[hp.name] = num_neighbors
-            else:
-                neighbor_count[hp.name] = hp.get_num_neighbors(
-                    value=configuration.get(hp.name),
-                )
+        # inactive hyperparameters skipped
+        # hps with a size of one can't be modified to a neighbor
+        if np.isnan(arr[hp_idx]) or hp.size == 1:
+            continue
+
+        if isinstance(hp, NumericalHyperparameter) and hp.size > num_neighbors:
+            UFH = UniformFloatHyperparameter
+            UIH = UniformIntegerHyperparameter
+            _std = stdev if isinstance(hp, (UFH, UIH)) else None
+
+            # For numericals we just cap it at the number of neighbors
+            should_shuffle = not np.isinf(hp.size)
+            sample_strategy[hp.name] = (int(min(20, hp.size)), _std, should_shuffle)
+            neighbors_to_generate.append((hp, num_neighbors, []))
         else:
-            value = configuration.get(hp.name)
-            neighbor_count[hp.name] = hp.get_num_neighbors(value)
+            # Otherwise, it's either a cateogircal/oridinal (allow all), or a numerical
+            # with some number of neighbors less than request
+            value = config.get(hp.name)
+            n_possible_neighbors = int(hp.get_num_neighbors(value))
+            sample_strategy[hp.name] = (n_possible_neighbors, None, False)
+            neighbors_to_generate.append((hp, n_possible_neighbors, []))
 
-    finite_neighbors_stack: dict[str, list[np.number]] = {}
-    number_of_usable_hyperparameters = sum(np.isfinite(configuration._vector))
-
-    # TODO: Better idea of what to set to than 200
-    # Seems to loop around 600 times...
-    # Is there some way to calculate how many neighbors we can possibly sample?
     random = np.random.RandomState(seed)
-    randints = iter(random.randint(n_hps, size=num_neighbors * 200))
+    arr = config.get_array()
 
-    while len(hyperparameters_used) < number_of_usable_hyperparameters:
-        index = next(randints, None)
-        if index is None:
-            randints = iter(random.randint(n_hps, size=num_neighbors * 10))
-            index = next(randints)
+    assert not any(n_to_gen == 0 for _, n_to_gen, _ in neighbors_to_generate)
 
-        hp_name = hyperparameters_list[index]
-        if neighbor_count[hp_name] == 0:
+    # Generate some random integers based on the number of neighbors
+    # we need to generate and number of forbiddens
+    sum_total_to_gen = sum(n_to_gen for _, n_to_gen, _ in neighbors_to_generate)
+    _size = (
+        sum_total_to_gen
+        * len(neighbors_to_generate)
+        * int(np.sqrt(len(space.forbidden_clauses)))
+    )
+    n_hps = len(neighbors_to_generate)
+    integers = random.randint(n_hps, size=_size)
+    _ridx = 0
+
+    # Keep looping until we have used all hyperparameters
+    n_hps_left_to_exhuast = len(neighbors_to_generate)
+    while n_hps_left_to_exhuast > 0:
+        # Our random int's ran out, make more
+        if _ridx >= _size:
+            # If we got here, we don't need to generate so many more new ones
+            _size = len(neighbors_to_generate) * sum_total_to_gen * 2
+            integers = random.randint(n_hps, size=_size)
+            _ridx = 0
+
+        chosen_hp_idx: int = integers[_ridx]
+        _ridx += 1
+
+        hp, n_left, neighbors = neighbors_to_generate[chosen_hp_idx]
+        hp_name = hp.name
+        hp_idx = space.index_of[hp_name]
+
+        if n_left == 0:
             continue
 
-        neighbourhood = []
-        number_of_sampled_neighbors = 0
-        array = configuration.get_array()
-        vector: np.float64 = array[index]  # type: float
+        neighbor_config: Configuration | None = None
 
-        # Inactive value
-        if np.isnan(vector):
-            continue
-
-        iteration = 0
-        hp = space[hp_name]
-        num_neighbors_for_hp = hp.get_num_neighbors(configuration.get(hp_name))
-        while True:
-            # Obtain neigbors differently for different possible numbers of
-            # neighbors
-            if num_neighbors_for_hp == 0 or iteration > 100:
-                break
-
-            if np.isinf(num_neighbors_for_hp):
-                if number_of_sampled_neighbors >= 1:
-                    break
-
-                if isinstance(hp, UniformFloatHyperparameter):
-                    neighbor = hp.neighbors_vectorized(
-                        vector,
-                        n=1,
-                        seed=random,
-                        std=stdev,
-                    )[0]
-                else:
-                    neighbor = hp.neighbors_vectorized(vector, n=1, seed=random)[0]
-
-            else:
-                if iteration > 0:
-                    break
-
-                if hp_name not in finite_neighbors_stack:
-                    # TODO: Why only uniform int?
-                    if isinstance(hp, UniformIntegerHyperparameter):
-                        neighbors = hp.neighbors_vectorized(
-                            vector,
-                            n=int(neighbor_count[hp_name]),
-                            seed=random,
-                            std=stdev,
-                        )
-                    else:
-                        neighbors = hp.neighbors_vectorized(
-                            vector,
-                            n=4,
-                            seed=random,
-                        )
-
-                    neighbors = list(neighbors)
+        # The only way we escape this loop and return a value is if we break
+        for _ in range(100):
+            if len(neighbors) == 0:
+                _ns, _std, _should_shuffle = sample_strategy[hp_name]
+                vec = arr[hp_idx]
+                neighbors = hp._neighborhood(vec, n=_ns, seed=random, std=_std)
+                if _should_shuffle:
+                    # Inf sized hp's are already basically shuffled. This is more for
+                    # finite hps which may give a linear ordering of neighbors...
                     random.shuffle(neighbors)
-                    finite_neighbors_stack[hp_name] = neighbors
-                else:
-                    neighbors = finite_neighbors_stack[hp_name]
 
-                neighbor = neighbors.pop()
-                if len(neighbors) == 0:
-                    finite_neighbors_stack.pop(hp_name)
+                neighbors = list(neighbors)
+                neighbors_to_generate[chosen_hp_idx] = (hp, n_left, neighbors)
 
-            # Check all newly obtained neigbors
-            new_array = array.copy()
-            new_array = change_hp_value(
+            neighbor_vector_val = neighbors.pop()
+
+            new_arr = change_hp_value2(
                 configuration_space=space,
-                configuration_array=new_array,
+                configuration_array=arr.copy(),
                 hp_name=hp_name,
-                hp_value=neighbor,
-                index=index,
+                hp_value=neighbor_vector_val,
+                index=hp_idx,
             )
-            try:
-                # Populating a configuration from an array does not check
-                #  if it is a legal configuration - check this (slow)
-                new_configuration = Configuration(space, vector=new_array)
-                # Only rigorously check every tenth configuration (
-                # because moving around in the neighborhood should
-                # just work!)
-                if random.random() > 0.95:
-                    new_configuration.is_valid_configuration()
-                else:
-                    space._check_forbidden(new_array)
-                neighbourhood.append(new_configuration)
-            except ForbiddenValueError:
-                pass
-
-            iteration += 1
-            if len(neighbourhood) > 0:
-                number_of_sampled_neighbors += 1
-
-        # Some infinite loop happened and no valid neighbor was found OR
-        # no valid neighbor is available for a categorical
-        if len(neighbourhood) == 0:
-            hyperparameters_used.append(hp_name)
-            neighbor_count[hp_name] = 0
-            hyperparameters_used.append(hp_name)
-        elif hp_name not in hyperparameters_used:
-            n_ = neighbourhood.pop()
-            neighbor_count[hp_name] -= 1
-            if neighbor_count[hp_name] == 0:
-                hyperparameters_used.append(hp_name)
-            yield n_
+            for forbidden in space.dag.forbidden_lookup.get(hp_name, []):
+                if forbidden.is_forbidden_vector(new_arr):
+                    break
+            else:
+                neighbor_config = Configuration(space, vector=new_arr)
+                one_less = n_left - 1
+                neighbors_to_generate[chosen_hp_idx] = (hp, one_less, neighbors)
+                if one_less == 0:
+                    n_hps_left_to_exhuast -= 1
+                yield neighbor_config
+                break
+        else:
+            # We didn't manage to break the for loop, choose the next hp
+            n_hps_left_to_exhuast -= 1
+            neighbors_to_generate[chosen_hp_idx] = (hp, 0, neighbors)
 
 
 def get_one_exchange_neighbourhood(
@@ -332,6 +294,12 @@ def get_one_exchange_neighbourhood(
          the given configuration.
 
     """
+    return get_one_exchange_neighbourhood_fast(
+        configuration,
+        seed,
+        num_neighbors,
+        stdev,
+    )
     random = np.random.RandomState(seed)
     space = configuration.config_space
     hyperparameters_list = list(space)
@@ -694,53 +662,86 @@ def check_configuration(
     vector: np.ndarray,
     allow_inactive_with_values: bool = False,
 ) -> None:
-    # First ensure all root nodes are active
-    for node in space.dag.roots.values():
-        if np.isnan(vector[node.idx]):
-            raise ActiveHyperparameterNotSetError(node.hp)
+    activated = np.isfinite(vector)
 
-    # Then check that all conditional nodes are set correctly
-    for condition, nodes, effected_hp_idxs in space.dag.minimum_condition_span:
-        inactive = np.isnan(vector[effected_hp_idxs])
-        if condition.satisfied_by_vector(vector):
-            # Uh oh, something is inactive when it should be active
-            if inactive.any():
-                # Get the first index of the inactive
-                inactive_idxs = effected_hp_idxs[inactive]
-                hp_name: str = space.at[inactive_idxs[0]]  # type: ignore
+    # Make sure the roots are all good
+    for root in space.dag.roots.values():
+        hp_idx = root.idx
+        if not activated[hp_idx]:
+            raise ActiveHyperparameterNotSetError(root.hp)
+
+    for cnode in space.dag.minimum_conditions:
+        # Everything for the condition is satisfied, make sure active
+        # hyperparameters are set, legal and not forbidden
+        children_idxs = cnode.children_vector
+        if cnode.condition.satisfied_by_vector(vector):
+            active_mask = activated[children_idxs]
+            if not active_mask.all():
+                idx: int = children_idxs[~active_mask][0]
+                hp_name = space.at[idx]
                 hp = space[hp_name]
                 raise ActiveHyperparameterNotSetError(hp)
 
-            # So now we know that effected hyperparameters are correctly active, now we
-            # need to ensure they have legal values.
-            for node in nodes:
-                hp = node.hp
-                if not hp.is_legal_vector(vector[node.idx]):
-                    raise IllegalVectorizedValueError(hp, vector[node.idx])
+            for hp_idx, hp_node in cnode.unique_children.items():
+                # OPTIM: We bypass the larger safety checking of the hp and access
+                # the underlying transformer directly
+                transformer = hp_node.hp._transformer
+                if not transformer.legal_vector_single(vector[hp_idx]):
+                    raise IllegalVectorizedValueError(hp_node.hp, vector[hp_idx])
 
-        # Condition not satisfied, by default, everything should be inactive
-        # If we don't allow it, we check what is active and error it
-        elif not allow_inactive_with_values and not inactive.all():
-            is_active_indices = effected_hp_idxs[~inactive]
-            _idx = is_active_indices[0]
-            hp_name: str = space.at[_idx]  # type: ignore
-            hp = space[hp_name]
-            raise InactiveHyperparameterSetError(hp, hp.to_value(vector[_idx]))
+        elif not allow_inactive_with_values:
+            active_mask = activated[children_idxs]
+            if active_mask.any():
+                idx = children_idxs[active_mask][0]
+                hp_name = space.at[idx]
+                hp = space[hp_name]
+                raise InactiveHyperparameterSetError(hp, hp.to_value(vector[idx]))
 
-    # Now lastly, ensure no forbiddens are set
-    for forbidden_clause in space.forbidden_clauses:
-        if forbidden_clause.is_forbidden_vector(vector):
+    for forbidden in space.dag.fast_forbidden_checks:
+        if forbidden.is_forbidden_vector(vector):
             raise ForbiddenValueError(
-                f"Given vector violates forbidden clause {forbidden_clause}",
+                f"Given vector violates forbidden clause: {forbidden}",
             )
+
+
+def change_hp_value2(
+    configuration_space: ConfigurationSpace,
+    configuration_array: npt.NDArray[np.float64],
+    hp_name: str,
+    hp_value: float | np.float64,
+    index: int | np.int64,
+) -> npt.NDArray[np.float64]:
+    space = configuration_space
+    arr = configuration_array
+    arr[index] = hp_value
+
+    dependants = space.dag.change_hp_lookup.get(hp_name)
+
+    if dependants is None:
+        return arr
+
+    for dep in dependants:
+        condition = dep.condition
+        child_idxs = dep.children_vector
+        if condition.satisfied_by_vector(arr):
+            children = arr[child_idxs]
+            arr[child_idxs] = np.where(
+                np.isnan(children),
+                space.dag.normalized_defaults[child_idxs],
+                children,
+            )
+        else:
+            arr[child_idxs] = np.nan
+
+    return arr
 
 
 def change_hp_value(
     configuration_space: ConfigurationSpace,
     configuration_array: np.ndarray,
     hp_name: str,
-    hp_value: float,
-    index: int,
+    hp_value: float | np.number,
+    index: int | np.int64,
 ) -> np.ndarray:
     """Change hyperparameter value in configuration array to given value.
 
@@ -764,6 +765,13 @@ def change_hp_value(
     -------
     np.ndarray
     """
+    return change_hp_value2(
+        configuration_space,
+        configuration_array,
+        hp_name,
+        hp_value,
+        index,
+    )
     configuration_array[index] = hp_value
 
     # Hyperparameters which are going to be set to inactive
@@ -805,7 +813,7 @@ def change_hp_value(
 
             if active:
                 hps_to_be_activate.add(current_idx)
-                if current_value == current_value:
+                if not np.isnan(current_value):
                     children_ = configuration_space.children_of[current_name]
                     if len(children_) > 0:
                         to_visit.extendleft(children_)
@@ -813,7 +821,7 @@ def change_hp_value(
             if current_name in disabled:
                 continue
 
-            if active and current_value != current_value:
+            if active and np.isnan(current_value):
                 default_value = current.normalized_default_value
                 configuration_array[current_idx] = default_value
                 children_ = configuration_space.children_of[current_name]
@@ -822,7 +830,7 @@ def change_hp_value(
 
             # If the hyperparameter was made inactive,
             # all its children need to be deactivade as well
-            if not active and current_value == current_value:
+            if not active and not np.isnan(current_value):
                 configuration_array[current_idx] = np.nan
 
                 children = configuration_space.children_of[current_name]

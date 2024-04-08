@@ -11,7 +11,7 @@ from ConfigSpace.functional import is_close_to_integer
 from ConfigSpace.hyperparameters._distributions import (
     DiscretizedContinuousScipyDistribution,
 )
-from ConfigSpace.hyperparameters._hp_components import ROUND_PLACES, UnitScaler
+from ConfigSpace.hyperparameters._hp_components import ATOL, UnitScaler
 from ConfigSpace.hyperparameters.hyperparameter import (
     HyperparameterWithPrior,
     IntegerHyperparameter,
@@ -56,7 +56,7 @@ class NormalIntegerHyperparameter(
                 np.int64,
             )
         else:
-            if not is_close_to_integer(default_value, decimals=ROUND_PLACES):
+            if not is_close_to_integer(default_value, atol=ATOL):
                 raise TypeError(
                     f"`default_value` for hyperparameter '{name}' must be an integer."
                     f" Got '{type(default_value).__name__}' for {default_value=}.",

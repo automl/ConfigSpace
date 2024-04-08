@@ -50,12 +50,21 @@ class OrdinalHyperparameter(Hyperparameter[Any]):
                 f"Got {default_value!r} which is not in {sequence}.",
             )
 
+        seq_choices = np.asarray(sequence)
+        # NOTE: Unfortunatly, numpy will promote number types to str
+        # if there are string types in the array, where we'd rather
+        # stick to object type in that case. Hence the manual...
+        if seq_choices.dtype.kind in {"U", "S"} and not all(
+            isinstance(item, str) for item in sequence
+        ):
+            seq_choices = np.asarray(sequence, dtype=object)
+
         super().__init__(
             name=name,
             size=size,
             default_value=default_value,
             meta=meta,
-            transformer=TransformerSeq(seq=sequence),
+            transformer=TransformerSeq(seq=seq_choices),
             neighborhood=partial(ordinal_neighborhood, size=int(size)),
             vector_dist=UniformIntegerDistribution(size=size),
             neighborhood_size=self._neighborhood_size,

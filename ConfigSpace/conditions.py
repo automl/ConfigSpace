@@ -25,24 +25,12 @@
 # ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-# TODO: Apparently there's sort of 'value' expected on the subclasses.
-# * `evaluate()` relies on subclass `evaluate()`.
-# * Remove legality checks from runtime functions ..., conditions shouldn't
-#  be validating this so much, expensive...
-# * `InCondition` is weird due to it's use of `values` and not `value`.
-# * Using iterators where possible instead of lists might save a lot of time...
-# * children and parent iteration can be pre-computed ...
-# * Can we lift the vector indices out of the conditionals?
-# * Just pass the raw value to the conditionals themselves.
-# * See if we can pass in other conjunctions to conjunctions?
-# * Fixup the old usage of AbstractX
 from __future__ import annotations
 
 import copy
 import io
 import operator
 from abc import abstractmethod
-from collections.abc import Sequence
 from itertools import combinations
 from typing import (
     TYPE_CHECKING,
@@ -76,9 +64,6 @@ DC = TypeVar("DC", bound=np.number)
 """Type variable user data type for the parent and child."""
 
 
-# TODO: Used to signify joint operations between condition conjuctions and
-# but also singlure conditionals
-# Might be able to just unify into one but keep serpeate for now
 class Condition(Generic[DC, DP]):
     def __init__(
         self,
@@ -117,12 +102,6 @@ class Condition(Generic[DC, DP]):
 
         return self.value == other.value
 
-    def conditionally_equal(self, other: Any) -> bool:
-        if not isinstance(other, self.__class__):
-            return False
-
-        return self.parent == other.parent and self.value == other.value
-
     @abstractmethod
     def satisfied_by_value(
         self,
@@ -131,27 +110,28 @@ class Condition(Generic[DC, DP]):
         pass
 
     @abstractmethod
-    def satisfied_by_vector(
-        self,
-        instantiated_parent_hyperparameter: (
-            Sequence[np.number] | npt.NDArray[np.number]
-        ),
-    ) -> bool:
+    def satisfied_by_vector(self, vector: npt.NDArray[np.float64]) -> bool:
         pass
 
     @abstractmethod
     def satisfied_by_vector_array(
         self,
-        arr: npt.NDArray[np.number],
+        arr: npt.NDArray[np.float64],
     ) -> npt.NDArray[np.bool_]:
         pass
+
+    def equivalent_condition_on_parent(self, other: ConditionLike) -> bool:
+        if isinstance(other, self.__class__):
+            return self.parent == other.parent and self.value == other.value
+
+        return False
 
 
 class _BinaryOpCondition(Condition[DC, DP]):
     _op_str: ClassVar[str]
     _requires_orderable_parent: ClassVar[bool]
     _op: Callable[[Any, Any], bool]
-    _vector_op: Callable[[npt.NDArray[np.number], np.float64], npt.NDArray[np.bool_]]
+    _vector_op: Callable[..., npt.NDArray[np.bool_]]
 
     def __init__(
         self,
@@ -176,13 +156,19 @@ class _BinaryOpCondition(Condition[DC, DP]):
                 f"its parent hyperparameter '{parent.name}'",
             )
 
-        # TODO: If we can change this to just vector
         self.vector_value = np.float64(self.parent.to_vector(value))
+
+        # HACK: For now, the only kind of hyperparameter that can **not** be ordered
+        # as a value type but can be ordered as a vector type is an OrdinalHyperparameter
+        # This is an explicit hack for that, but if the needs arise, we can make
+        # this more generic
+        from ConfigSpace.hyperparameters.ordinal import OrdinalHyperparameter
+
+        self.need_compare_as_vector = isinstance(self.parent, OrdinalHyperparameter)
 
     def __repr__(self) -> str:
         return f"{self.child.name} | {self.parent.name} {self._op_str} {self.value!r}"
 
-    # TODO: Dataclassing would make this obsolete.
     def __copy__(self) -> Self:
         return self.__class__(
             child=copy.copy(self.child),
@@ -190,19 +176,12 @@ class _BinaryOpCondition(Condition[DC, DP]):
             value=copy.copy(self.value),
         )
 
-    def satisfied_by_vector(
-        self,
-        instantiated_parent_hyperparameter: (
-            Sequence[np.number] | npt.NDArray[np.number]
-        ),
-    ) -> bool:
-        vector = instantiated_parent_hyperparameter[self.parent_vector_id]
-        val = self._op(vector, self.vector_value)
-        return bool(val)
+    def satisfied_by_vector(self, vector: npt.NDArray[np.float64]) -> bool:
+        return self._vector_op(vector[self.parent_vector_id], self.vector_value)
 
     def satisfied_by_vector_array(
         self,
-        arr: npt.NDArray[np.number],
+        arr: npt.NDArray[np.float64],
     ) -> npt.NDArray[np.bool_]:
         vector = arr[self.parent_vector_id]
         return self._vector_op(vector, self.vector_value)
@@ -215,10 +194,11 @@ class _BinaryOpCondition(Condition[DC, DP]):
         if value is NotSet:
             return False
 
-        # TODO: This can be sped up by using the value in some cases but it's
-        # likely only a marginal gain.
-        vector = self.parent.to_vector(value)
-        return bool(self._op(vector, self.vector_value))
+        if not self.need_compare_as_vector:
+            return bool(self._op(value, self.value))
+
+        vector_value = self.parent.to_vector(value)
+        return bool(self._vector_op(vector_value, self.vector_value))
 
 
 class EqualsCondition(_BinaryOpCondition[DC, DP]):
@@ -413,18 +393,12 @@ class InCondition(Condition[DC, DP]):
             values=copy.copy(self.values),
         )
 
-    def satisfied_by_vector(
-        self,
-        instantiated_parent_hyperparameter: (
-            Sequence[np.number] | npt.NDArray[np.number]
-        ),
-    ) -> bool:
-        vector = instantiated_parent_hyperparameter[self.parent_vector_id]  # type: ignore
-        return bool(vector in self.vector_values)
+    def satisfied_by_vector(self, vector: npt.NDArray[np.float64]) -> bool:
+        return vector[self.parent_vector_id] in self.vector_values
 
     def satisfied_by_vector_array(
         self,
-        arr: npt.NDArray[np.number],
+        arr: npt.NDArray[np.float64],
     ) -> npt.NDArray[np.bool_]:
         vector = arr[self.parent_vector_id]
         return np.isin(vector, self.vector_values)
@@ -480,21 +454,6 @@ class Conjunction:
 
         return True
 
-    def conditionally_equal(self, other: Any) -> bool:
-        if not isinstance(other, self.__class__):
-            return False
-
-        this_dlcs = self.get_descendant_literal_conditions()
-        other_dlcs = other.get_descendant_literal_conditions()
-
-        if len(this_dlcs) != len(other_dlcs):
-            return False
-
-        return all(
-            c.conditionally_equal(oc)
-            for c, oc in zip(this_dlcs, other_dlcs, strict=True)
-        )
-
     def __copy__(self):
         return self.__class__(*[copy.copy(comp) for comp in self.components])
 
@@ -538,15 +497,30 @@ class Conjunction:
         pass
 
     @abstractmethod
-    def satisfied_by_vector(self, instantiated_vector: np.ndarray) -> bool:
+    def satisfied_by_vector(self, vector: np.ndarray) -> bool:
         pass
 
     @abstractmethod
     def satisfied_by_vector_array(
         self,
-        arr: npt.NDArray[np.number],
+        arr: npt.NDArray[np.float64],
     ) -> npt.NDArray[np.bool_]:
         pass
+
+    def equivalent_condition_on_parent(self, other: ConditionLike) -> bool:
+        # Not entirely true but it's a good enough approximation
+        if not isinstance(other, Conjunction):
+            return False
+
+        if len(self.components) != len(other.components):
+            return False
+
+        # Each condition must match at one of the other conditions, which is of the same
+        # conjunction type and has equal amount of components
+        return all(
+            any(c.equivalent_condition_on_parent(o) for o in other.components)
+            for c in self.components
+        )
 
 
 class AndConjunction(Conjunction):
@@ -595,34 +569,22 @@ class AndConjunction(Conjunction):
         return retval.getvalue()
 
     def satisfied_by_value(self, instantiated_hyperparameters: dict[str, Any]) -> bool:
-        # Then, check if all parents were passed
-        # TODO: Speed this up
-        conditions = self.dlcs
-        for condition in conditions:
-            if condition.parent.name not in instantiated_hyperparameters:
-                raise ValueError(
-                    "Evaluate must be called with all "
-                    "instanstatiated parent hyperparameters in "
-                    "the conjunction; you are (at least) missing "
-                    "'%s'" % condition.parent.name,
-                )
-
         for c in self.components:
             if not c.satisfied_by_value(instantiated_hyperparameters):
                 return False
 
         return True
 
-    def satisfied_by_vector(self, instantiated_vector: np.ndarray) -> bool:
+    def satisfied_by_vector(self, vector: npt.NDArray[np.float64]) -> bool:
         for c in self.components:  # noqa: SIM110
-            if not c.satisfied_by_vector(instantiated_vector):
+            if not c.satisfied_by_vector(vector):
                 return False
 
         return True
 
     def satisfied_by_vector_array(
         self,
-        arr: npt.NDArray[np.number],
+        arr: npt.NDArray[np.float64],
     ) -> npt.NDArray[np.bool_]:
         satisfied = np.ones(arr.shape[1], dtype=np.bool_)
         for c in self.components:
@@ -673,34 +635,22 @@ class OrConjunction(Conjunction):
         return retval.getvalue()
 
     def satisfied_by_value(self, instantiated_hyperparameters: dict[str, Any]) -> bool:
-        # Then, check if all parents were passed
-        # TODO: Speed this up
-        conditions = self.dlcs
-        for condition in conditions:
-            if condition.parent.name not in instantiated_hyperparameters:
-                raise ValueError(
-                    "Evaluate must be called with all "
-                    "instanstatiated parent hyperparameters in "
-                    "the conjunction; you are (at least) missing "
-                    "'%s'" % condition.parent.name,
-                )
-
         for c in self.components:
             if c.satisfied_by_value(instantiated_hyperparameters):
                 return True
 
         return False
 
-    def satisfied_by_vector(self, instantiated_vector: np.ndarray) -> bool:
+    def satisfied_by_vector(self, vector: npt.NDArray[np.float64]) -> bool:
         for c in self.components:  # noqa: SIM110
-            if c.satisfied_by_vector(instantiated_vector):
+            if c.satisfied_by_vector(vector):
                 return True
 
         return False
 
     def satisfied_by_vector_array(
         self,
-        arr: npt.NDArray[np.number],
+        arr: npt.NDArray[np.float64],
     ) -> npt.NDArray[np.bool_]:
         satisfied = np.zeros(arr.shape[1], dtype=np.bool_)
         for c in self.components:

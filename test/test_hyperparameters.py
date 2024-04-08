@@ -1318,7 +1318,6 @@ def test_uniformint_pdf():
     non_integer_point = np.array([3.7])
     array_1 = np.array([1, 3, 3.7])
     point_outside_range = np.array([-1])
-    np.array([10001])
     wrong_shape_1 = np.array([[3]])
     wrong_shape_2 = np.array([3, 5, 7]).reshape(1, -1)
     wrong_shape_3 = np.array([3, 5, 7]).reshape(-1, 1)
@@ -1326,14 +1325,16 @@ def test_uniformint_pdf():
     # need to lower the amount of places since the bounds
     # are inexact (._lower=-0.49999, ._upper=4.49999)
     assert c1.pdf(point_1)[0] == pytest.approx(0.2, abs=1e-5)
-    assert c2.pdf(point_1_log)[0] == pytest.approx(0.0001, abs=1e-5)
     assert c1.pdf(point_2)[0] == pytest.approx(0.2, abs=1e-5)
+    assert c1.pdf(non_integer_point)[0] == pytest.approx(0.0, abs=1e-5)
+
+    assert c2.pdf(point_1_log)[0] == pytest.approx(0.0001, abs=1e-5)
     assert c2.pdf(np.array([10_000]))[0] == pytest.approx(0.0001, abs=1e-5)
     assert c2.pdf(np.array([1]))[0] == pytest.approx(0.0001, abs=1e-5)
     assert c2.pdf(np.array([2]))[0] == pytest.approx(0.0001, abs=1e-5)
     assert c2.pdf(point_2_log)[0] == pytest.approx(0.0001, abs=1e-5)
-    assert c1.pdf(non_integer_point)[0] == pytest.approx(0.0, abs=1e-5)
     assert c2.pdf(non_integer_point)[0] == pytest.approx(0.0, abs=1e-5)
+
     assert c3.pdf(point_1)[0] == pytest.approx(0.07142857142857142, abs=1e-5)
 
     # this, however, is a negative value on a log param, which cannot be pulled into range
@@ -1579,7 +1580,7 @@ def test_normalint_is_legal():
     assert f1.is_legal_vector(1.0)
     assert f1.is_legal_vector(0.0)
     assert f1.is_legal_vector(0)
-    assert f1.is_legal_vector(0.3)
+    assert f1.is_legal_vector(f1.to_vector(10))
     assert not f1.is_legal_vector(-0.1)
     assert not f1.is_legal_vector(1.1)
     assert not f1.is_legal_vector("Hahaha")
@@ -2112,49 +2113,42 @@ def test_betaint__pdf():
 
     # since the logged and unlogged parameters will have different active domains
     # in the unit range, they will not evaluate identically under _pdf
-    point_1 = np.array([0.249995])
-    point_1_log = np.array([0.345363])
-    point_2 = np.array([0.850001])
-    point_2_log = np.array([0.906480])
-    array_1 = np.array([0.249995, 0.850001, -0.01])
-    array_1_log = np.array([0.345363, 0.906480, -0.01])
+    point_1 = c1.to_vector(2)
+    point_2 = c1.to_vector(8)
     point_outside_range_1 = np.array([-0.01])
-    point_outside_range_1_log = np.array([-0.01])
     point_outside_range_2 = np.array([1.01])
 
+    point_1_log = c2.to_vector(30)
+    point_2_log = c2.to_vector(900)
+    point_outside_range_1_log = np.array([-0.01])
+
+    assert c1.legal_vector(point_1)
+    assert c1._pdf(point_1) == pytest.approx(0.0387878787)
+    assert c1._pdf(point_2) == pytest.approx(0.15515151515151512)
+    assert c1._pdf(point_outside_range_1) == 0.0
+    assert c1._pdf(point_outside_range_2) == 0.0
+
+    assert c2._pdf(point_1_log) == pytest.approx(4.159063043660821e-05)
+    assert c2._pdf(point_2_log) == pytest.approx(8.06146036115482e-05)
+    assert c2._pdf(point_outside_range_1_log) == 0.0
+
+    c1_array = np.concatenate([c1.to_vector([2, 8]), np.array([-0.01])])
+    array_results = c1._pdf(c1_array)
+    expected_results = np.array([0.0387878787, 0.15515151515151512, 0.0])
+
+    c2_array = np.concatenate([c2.to_vector([30, 900]), np.array([-0.01])])
+    array_results_log = c2._pdf(c2_array)
+    expected_results_log = np.array([4.159063043660821e-05, 8.06146036115482e-05, 0])
+
+    assert np.allclose(array_results, expected_results)
+    assert np.allclose(array_results_log, expected_results_log)
+    assert array_results.shape == expected_results.shape
+    assert array_results_log.shape == expected_results_log.shape
+
+    # Simply check that it runs, since _pdf does not restrict shape (only public method does)
     accepted_shape_1 = np.array([[3]])
     accepted_shape_2 = np.array([3, 5, 7]).reshape(1, -1)
     accepted_shape_3 = np.array([3, 5, 7]).reshape(-1, 1)
-
-    assert c1._pdf(point_1)[0] == pytest.approx(0.05681628788636377)
-    assert c2._pdf(point_1_log)[0] == pytest.approx(4.254195992347626e-05)
-    assert c1._pdf(point_2)[0] == pytest.approx(0.13136306969509084)
-    assert c2._pdf(point_2_log)[0] == pytest.approx(4.1868391944038355e-05)
-
-    # test points that are actually outside of the _pdf range due to the skewing
-    # of the unit hypercube space
-    assert c1._pdf(point_outside_range_1)[0] == 0.0
-    assert c1._pdf(point_outside_range_2)[0] == 0.0
-    assert c2._pdf(point_outside_range_1_log)[0] == 0.0
-
-    array_results = c1._pdf(array_1)
-    array_results_log = c2._pdf(array_1_log)
-    expected_results = np.array(
-        [0.05681628788636377, 0.13136306969509084, 0],
-    )
-    expected_results_log = np.array([0.00004333811, 4.1868391944038355e-05, 0])
-    assert array_results.shape == expected_results.shape
-    assert array_results_log.shape == expected_results_log.shape
-    for res, log_res, exp_res, exp_log_res in zip(
-        array_results,
-        array_results_log,
-        expected_results,
-        expected_results_log,
-    ):
-        assert res == pytest.approx(exp_res, abs=1e-5)
-        assert log_res == pytest.approx(exp_log_res, abs=1e-5)
-
-    # Simply check that it runs, since _pdf does not restrict shape (only public method does)
     c1._pdf(accepted_shape_1)
     c1._pdf(accepted_shape_2)
     c1._pdf(accepted_shape_3)
@@ -2954,7 +2948,7 @@ def test_ordinal_pdf():
     for res, exp_res in zip(array_results, expected_results):
         assert res == exp_res
 
-    with pytest.raises(ValueError):
+    with pytest.raises(KeyError):
         c1.pdf(np.array(["zero"]))
 
     with pytest.raises(

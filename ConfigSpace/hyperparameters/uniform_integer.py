@@ -2,10 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Hashable, Mapping
 from dataclasses import dataclass
-from typing import (
-    Any,
-    ClassVar,
-)
+from typing import Any, ClassVar
 
 import numpy as np
 from scipy.stats import uniform
@@ -15,7 +12,7 @@ from ConfigSpace.hyperparameters._distributions import (
     DiscretizedContinuousScipyDistribution,
     UniformIntegerNormalizedDistribution,
 )
-from ConfigSpace.hyperparameters._hp_components import ROUND_PLACES, UnitScaler
+from ConfigSpace.hyperparameters._hp_components import ATOL, UnitScaler
 from ConfigSpace.hyperparameters.integer_hyperparameter import IntegerHyperparameter
 
 
@@ -39,7 +36,7 @@ class UniformIntegerHyperparameter(IntegerHyperparameter):
 
         if default_value is not None and not is_close_to_integer(
             default_value,
-            decimals=ROUND_PLACES,
+            atol=ATOL,
         ):
             raise TypeError(
                 f"`default_value` for hyperparameter '{name}' must be an integer."

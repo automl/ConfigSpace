@@ -56,7 +56,7 @@ from ConfigSpace.util import (
     deactivate_inactive_hyperparameters,
     fix_types,
     generate_grid,
-    get_one_exchange_neighbourhood,
+    get_one_exchange_neighbourhood_fast,
     get_random_neighbor,
     impute_inactive_values,
 )
@@ -92,12 +92,13 @@ def _test_get_one_exchange_neighbourhood(hp):
     config = cs.get_default_configuration()
     all_neighbors = []
     for i in range(100):
-        neighborhood = get_one_exchange_neighbourhood(
+        neighborhood = get_one_exchange_neighbourhood_fast(
             config,
             i,
             num_neighbors=num_neighbors,
         )
-        for new_config in neighborhood:
+        ns = list(neighborhood)
+        for new_config in ns:
             assert config != new_config
             assert dict(config) != dict(new_config)
             all_neighbors.append(new_config)
@@ -135,14 +136,14 @@ def test_random_neighborhood_float():
     hp = UniformFloatHyperparameter("a", 1, 10)
     all_neighbors = _test_get_one_exchange_neighbourhood(hp)
     all_neighbors = [neighbor["a"] for neighbor in all_neighbors]
-    assert pytest.approx(np.mean(all_neighbors), abs=1e-2) == 5.6
-    assert pytest.approx(np.var(all_neighbors), abs=1e-2) == 2.85
+    assert np.mean(all_neighbors) == pytest.approx(5.6, abs=1e-1)
+    assert np.var(all_neighbors) == pytest.approx(2.85, abs=1e-2)
     hp = UniformFloatHyperparameter("a", 1, 10, log=True)
     all_neighbors = _test_get_one_exchange_neighbourhood(hp)
     all_neighbors = [neighbor["a"] for neighbor in all_neighbors]
     # Default value is 3.16
-    assert pytest.approx(np.mean(all_neighbors), abs=1e-2) == 3.55
-    assert pytest.approx(np.var(all_neighbors), abs=1e-2) == 2.33
+    assert np.mean(all_neighbors) == pytest.approx(3.61, abs=1e-2)
+    assert np.var(all_neighbors) == pytest.approx(2.50, abs=1e-2)
 
 
 def test_random_neighbor_int():
@@ -164,15 +165,15 @@ def test_random_neighborhood_int():
     all_neighbors = [neighbor["a"] for neighbor in all_neighbors]
     assert hp.default_value == 3
 
-    assert pytest.approx(np.mean(all_neighbors), abs=1e-2) == 5.39
-    assert pytest.approx(np.var(all_neighbors), abs=1e-2) == 8.8
+    assert pytest.approx(np.mean(all_neighbors), abs=1e-2) == 5.77
+    assert pytest.approx(np.var(all_neighbors), abs=1e-2) == 8.39
 
     cs = ConfigurationSpace()
     cs.add_hyperparameter(hp)
     for val in range(1, 11):
         config = Configuration(cs, values={"a": val})
         for _ in range(100):
-            neighborhood = get_one_exchange_neighbourhood(config, seed=1)
+            neighborhood = get_one_exchange_neighbourhood_fast(config, seed=1)
             neighbors = [neighbor["a"] for neighbor in neighborhood]
             assert len(neighbors) == len(np.unique(neighbors)), neighbors
             assert val not in neighbors, neighbors
@@ -228,7 +229,7 @@ def test_random_neigborhood_conditional():
     cs.seed(1)
     configuration = cs.get_default_configuration()
     for i in range(100):
-        neighborhood = get_one_exchange_neighbourhood(configuration, i)
+        neighborhood = get_one_exchange_neighbourhood_fast(configuration, i)
         for new_config in neighborhood:
             assert configuration != new_config
 

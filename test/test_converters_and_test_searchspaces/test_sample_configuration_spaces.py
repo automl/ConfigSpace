@@ -56,7 +56,10 @@ def test_autosklearn_space(pcs_file: Path):
     default = cs.get_default_configuration()
     cs._check_configuration_rigorous(default)
     for i in range(10):
-        neighborhood = ConfigSpace.util.get_one_exchange_neighbourhood(default, seed=i)
+        neighborhood = ConfigSpace.util.get_one_exchange_neighbourhood_fast(
+            default,
+            seed=i,
+        )
 
         for shuffle, n in enumerate(neighborhood):
             n.is_valid_configuration()
@@ -70,7 +73,10 @@ def test_autosklearn_space(pcs_file: Path):
         for c in cs.sample_configuration(size=5):
             c.is_valid_configuration()
             cs._check_configuration_rigorous(c)
-            neighborhood = ConfigSpace.util.get_one_exchange_neighbourhood(c, seed=i)
+            neighborhood = ConfigSpace.util.get_one_exchange_neighbourhood_fast(
+                c,
+                seed=i,
+            )
 
             for shuffle, n in enumerate(neighborhood):
                 n.is_valid_configuration()

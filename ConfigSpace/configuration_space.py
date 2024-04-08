@@ -548,9 +548,10 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
 
             valid_config_matrix = config_matrix[:, ~uncond_forbidden]
 
-            for condition, _, effected_hp_mask in self.dag.minimum_condition_span:
+            for cnode in self.dag.minimum_conditions:
+                condition = cnode.condition
                 satisfied = condition.satisfied_by_vector_array(valid_config_matrix)
-                valid_config_matrix[np.ix_(effected_hp_mask, ~satisfied)] = np.nan
+                valid_config_matrix[np.ix_(cnode.children_vector, ~satisfied)] = np.nan
 
             # Now we apply the forbiddens that depend on conditionals
             cond_forbidden = np.zeros(valid_config_matrix.shape[1], dtype=np.bool_)

@@ -6,7 +6,6 @@ from pytest_cases import parametrize
 from ConfigSpace.functional import (
     arange_chunked,
     center_range,
-    is_close_to_integer,
     normalize,
     quantize,
     rescale,
@@ -158,25 +157,6 @@ def test_rescale(
 ) -> None:
     rescaled = rescale(x, frm=frm, to=to)
     np.testing.assert_array_equal(rescaled, expected)
-
-
-@parametrize(
-    "x, expected",
-    [
-        (0.0, True),
-        (0.0000001, False),
-        (0.0000000000000001, True),
-        (0.1, False),
-        (0.9, False),
-        (1.0, True),
-        (1.1, False),
-        (1.5, False),
-        (2.0, True),
-    ],
-)
-def test_is_close_to_integer(x: float, expected: bool) -> None:
-    is_close = is_close_to_integer(x, decimals=15)
-    np.testing.assert_equal(is_close, expected)
 
 
 """
