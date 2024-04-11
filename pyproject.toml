@@ -230,6 +230,8 @@ exclude = [
 "__init__.py" = ["I002"]
 "src/ConfigSpace/read_and_write/pcs_new.py" = ["N816", "D103", "PLW2901"]
 "src/ConfigSpace/read_and_write/pcs.py" = ["N816", "D103", "PLW2901", "T201"]
+"scripts/*.py" = ["D103", "INP001"]
+"docs/conf.py" = ["INP001"]
 
 
 [tool.ruff.lint.isort]

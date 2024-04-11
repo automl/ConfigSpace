@@ -10,7 +10,7 @@ authors = ", ".join(__authors__)
 
 
 options = {
-    "copyright": f"""Copyright {datetime.date.today().strftime('%Y')}, {authors}""",
+    "copyright": f"""Copyright {datetime.datetime.now(tz=datetime.timezone.utc).strftime('%Y')}, {authors}""",  # noqa: E501
     "author": authors,
     "version": __version__,
     "name": "ConfigSpace",
