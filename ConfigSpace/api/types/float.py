@@ -106,7 +106,7 @@ def Float(
     meta : dict | None = None
         Any meta information you want to associate with this parameter
 
-    Returns:
+    Returns
     -------
     UniformFloatHyperparameter | NormalFloatHyperparameter | BetaFloatHyperparameter
         Returns the corresponding hyperparameter type

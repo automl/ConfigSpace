@@ -838,7 +838,7 @@ class ConstantVectorDistribution(Distribution):
         self,
         n: int | None = None,
         *,
-        seed: RandomState | None = None,
+        seed: RandomState | None = None,  # noqa: ARG002
     ) -> np.float64 | npt.NDArray[np.float64]:
         if n is None:
             return self.vector_value

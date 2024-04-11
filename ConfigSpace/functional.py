@@ -6,7 +6,7 @@ from typing_extensions import overload
 
 import numpy as np
 import numpy.typing as npt
-from more_itertools import pairwise, roundrobin
+from more_itertools import roundrobin
 
 Number = TypeVar("Number", bound=np.number)
 
@@ -36,7 +36,7 @@ def center_range(
     step: int = 1
         The step size
 
-    Returns:
+    Returns
     -------
     Iterator[int]
     """
@@ -72,7 +72,7 @@ def arange_chunked(
     step: int = 1
         The step size
 
-    Returns:
+    Returns
     -------
     Iterator[np.ndarray]
     """
@@ -99,8 +99,30 @@ def linspace_chunked(
 ) -> Iterator[np.ndarray]:
     """Get np.linspace in a chunked fashion.
 
-    >>> list(linspace_chunked(0, 10, 11, chunk_size=3))
+    >>> list(linspace_chunked(0, 10, 11, chunk_size=3, endpoint=True))
     [array([0., 1., 2.]), array([3., 4., 5.]), array([6., 7., 8.]), array([ 9., 10.])]
+
+    Parameters
+    ----------
+    start:
+        The start of the range
+
+    stop:
+        The stop of the range
+
+    num:
+        The number of samples to generate
+
+    chunk_size:
+        The size of the chunks
+
+    endpoint:
+        If True, stop is the last sample. Otherwise, it is not included.
+        Simliar to `np.linspace`
+
+    Returns
+    -------
+    Iterator[np.ndarray]
     """
     assert num > 0
     assert chunk_size > 0
@@ -140,7 +162,8 @@ def split_arange(
     pivot:
         The pivot point, ommited from the output
 
-    Returns:
+    Returns
+    -------
         The concatenated ranges
     """
     bot = np.arange(frm, pivot)
@@ -206,7 +229,7 @@ def quantize(
         bins: int
             The number of bins
 
-    Returns:
+    Returns
     -------
         np.NDArray[np.float64]
     """  # noqa: E501
@@ -275,6 +298,26 @@ def is_close_to_integer(
     atol: float = 1e-9,
     rtol: float = 1e-5,
 ) -> bool | npt.NDArray[np.bool_]:
+    """Check if a value is close to an integer.
+
+    This implements the same logic as `np.isclose` but removes
+    a lot of the overhead.
+
+    Parameters
+    ----------
+    value:
+        The value to check
+
+    atol:
+        The absolute tolerance
+
+    rtol:
+        The relative tolerance
+
+    Returns
+    -------
+        Whether the value is close to an integer
+    """
     a = np.asarray(value)
     b = np.rint(a)
     return np.less_equal(np.abs(a - b), atol + rtol * np.abs(b))
@@ -286,12 +329,46 @@ def is_close_to_integer_single(
     atol: float = 1e-9,
     rtol: float = 1e-5,
 ) -> bool:
+    """Check if a single value is close to an integer.
+
+    This implements the same logic as `np.isclose` but removes
+    a lot of the overhead.
+
+    Parameters
+    ----------
+    value:
+        The value to check
+
+    atol:
+        The absolute tolerance
+
+    rtol:
+        The relative tolerance
+
+    Returns
+    -------
+        Whether the value is close to an integer
+    """
     a = value
     _b = np.rint(a)  # type: ignore
     return abs(a - _b) <= (atol + rtol * abs(_b))
 
 
 def walk_subclasses(cls: type, seen: set[type] | None = None) -> Iterator[type]:
+    """Walk all subclasses of a class.
+
+    Parameters
+    ----------
+    cls:
+        The class to walk
+
+    seen:
+        The set of seen classes
+
+    Returns
+    -------
+        An iterator of subclasses
+    """
     seen = set() if seen is None else seen
     for subclass in cls.__subclasses__():
         if subclass not in seen:

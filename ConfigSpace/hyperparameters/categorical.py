@@ -29,7 +29,7 @@ class NeighborhoodCat(_Neighborhood):
         vector: np.float64,
         n: int,
         *,
-        std: float | None = None,
+        std: float | None = None,  # noqa: ARG002
         seed: np.random.RandomState | None = None,
     ) -> npt.NDArray[np.float64]:
         seed = np.random.RandomState() if seed is None else seed
@@ -176,17 +176,12 @@ class CategoricalHyperparameter(Hyperparameter[Any]):
         )
 
     def __eq__(self, other: Any) -> bool:
-        if not isinstance(other, self.__class__):
-            return False
-
-        # Quick checks first
-        if len(self.choices) != len(other.choices):
-            return False
-
-        if self.default_value != other.default_value:
-            return False
-
-        if self.name != other.name:
+        if (
+            not isinstance(other, self.__class__)
+            or self.name != other.name
+            or self.default_value != other.default_value
+            or len(self.choices) != len(other.choices)
+        ):
             return False
 
         # Longer check

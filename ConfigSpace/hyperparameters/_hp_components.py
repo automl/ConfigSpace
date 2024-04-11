@@ -261,7 +261,7 @@ def ordinal_neighborhood(
     n: int,
     *,
     size: int,
-    std: float | None = None,
+    std: float | None = None,  # noqa: ARG001
     seed: RandomState | None = None,
 ) -> npt.NDArray[np.int64]:
     end_index = size - 1

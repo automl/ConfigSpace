@@ -79,7 +79,7 @@ def impute_inactive_values(
         If float, replace inactive parameters by the given float value,
         which should be able to be splitted apart by a tree-based model.
 
-    Returns:
+    Returns
     -------
     :class:`~ConfigSpace.configuration_space.Configuration`
         A new configuration with the imputed values.
@@ -137,7 +137,7 @@ def get_one_exchange_neighbourhood(
         :class:`~ConfigSpace.hyperparameters.UniformFloatHyperparameter` and
         :class:`~ConfigSpace.hyperparameters.UniformIntegerHyperparameter`.
 
-    Returns:
+    Returns
     -------
     Iterator
          It contains configurations, with values being situated around
@@ -279,7 +279,7 @@ def get_random_neighbor(configuration: Configuration, seed: int) -> Configuratio
     seed : int
         Used to generate a random state.
 
-    Returns:
+    Returns
     -------
     :class:`~ConfigSpace.configuration_space.Configuration`
         The new neighbor
@@ -317,7 +317,7 @@ def get_random_neighbor(configuration: Configuration, seed: int) -> Configuratio
                 hp = configuration.config_space[hp_name]
 
                 # Only choose if there is a possibility of finding a neigboor
-                if not hp.has_neighbors():
+                if hp.size <= 1:
                     active = False
 
             if iteration > 10000:
@@ -365,7 +365,7 @@ def deactivate_inactive_hyperparameters(
         ``vector`` must be specified. If both are specified only
         ``configuration`` will be used.
 
-    Returns:
+    Returns
     -------
     :class:`~ConfigSpace.configuration_space.Configuration`
         A configuration that is equivalent to the given configuration, except
@@ -442,7 +442,7 @@ def fix_types(
     configuration_space : :class:`~ConfigSpace.configuration_space.ConfigurationSpace`
         Configuration space which knows the types for all parameter values
 
-    Returns:
+    Returns
     -------
     dict
         configuration with fixed types of parameter values
@@ -484,7 +484,7 @@ def fix_types(
     return configuration
 
 
-def check_configuration(
+def check_configuration(  # noqa: D103
     space: ConfigurationSpace,
     vector: np.ndarray,
     allow_inactive_with_values: bool = False,
@@ -531,7 +531,7 @@ def check_configuration(
             )
 
 
-def change_hp_value(
+def change_hp_value(  # noqa: D103
     configuration_space: ConfigurationSpace,
     configuration_array: npt.NDArray[np.float64],
     hp_name: str,
@@ -583,7 +583,7 @@ def generate_grid(
         of the corresponding Hyperparameters and the values should be the number of
         points to divide the grid side formed by the corresponding Hyperparameter in to.
 
-    Returns:
+    Returns
     -------
     list
         List containing Configurations. It is a cartesian product of tuples of
@@ -610,7 +610,7 @@ def generate_grid(
         hp_name: str
             Hyperparameter name
 
-        Returns:
+        Returns
         -------
         tuple
             Holds grid values for the given hyperparameter
@@ -704,7 +704,7 @@ def generate_grid(
         hp_names: list of strs
             List of hyperparameter names
 
-        Returns:
+        Returns
         -------
         list of dicts
             List of configuration dicts

@@ -337,7 +337,7 @@ def write(configuration_space: ConfigurationSpace, indent: int = 2) -> str:
     indent : int
         number of whitespaces to use as indent
 
-    Returns:
+    Returns
     -------
     str
         String representation of the configuration space,
@@ -407,7 +407,7 @@ def read(jason_string: str) -> ConfigurationSpace:
     jason_string : str
         A json string representing a configuration space definition
 
-    Returns:
+    Returns
     -------
     :class:`~ConfigSpace.configuration_space.ConfigurationSpace`
         The deserialized ConfigurationSpace object

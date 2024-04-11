@@ -110,7 +110,7 @@ def Integer(
     meta : dict | None = None
         Any meta information you want to associate with this parameter
 
-    Returns:
+    Returns
     -------
     UniformIntegerHyperparameter | NormalIntegerHyperparameter | BetaIntegerHyperparameter
         Returns the corresponding hyperparameter type

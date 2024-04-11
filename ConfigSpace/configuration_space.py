@@ -191,7 +191,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
     def conditional_hyperparameters(self) -> Sequence[str]:
         """Names of all conditional hyperparameters.
 
-        Returns:
+        Returns
         -------
         set[:ref:`Hyperparameters`]
             Set with all conditional hyperparameter
@@ -301,7 +301,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
                 "parent" and "value", meaning that the added configuration space is
                 active when `parent` is equal to `value`
 
-        Returns:
+        Returns
         -------
             The configuration space, which was added.
         """
@@ -396,7 +396,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
     def get_default_configuration(self) -> Configuration:
         """Configuration containing hyperparameters with default values.
 
-        Returns:
+        Returns
         -------
         :class:`~ConfigSpace.configuration_space.Configuration`
             Configuration with the set default values
@@ -436,7 +436,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         configuration : :class:`~ConfigSpace.configuration_space.Configuration`
             Configuration for which the active hyperparameter are returned
 
-        Returns:
+        Returns
         -------
         set(:class:`~ConfigSpace.configuration_space.Configuration`)
             The set of all active hyperparameter
@@ -492,7 +492,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         size : int, optional
             Number of configurations to sample. Default to 1
 
-        Returns:
+        Returns
         -------
         :class:`~ConfigSpace.configuration_space.Configuration`,
             list[:class:`~ConfigSpace.configuration_space.Configuration`]:
@@ -587,7 +587,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         Non-uniform hyperpararmeters are replaced with uniform ones, and
         CategoricalHyperparameters with weights have their weights removed.
 
-        Returns:
+        Returns
         -------
         :class:`~ConfigSpace.configuration_space.ConfigurationSpace`
             The resulting configuration space, without priors on the hyperparameters
@@ -652,7 +652,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
             A ConfigurationSpace containing hyperparameters with the same names as those
             in the conditions.
 
-        Returns:
+        Returns
         -------
         list[Condition | Conjunction]:
             The list of conditions, adjusted to fit the new ConfigurationSpace
@@ -726,7 +726,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
             A ConfigurationSpace containing hyperparameters with the same names as those
             in the forbidden clauses.
 
-        Returns:
+        Returns
         -------
         list[ForbiddenLike]:
             The list of forbidden clauses, adjusted to fit the new ConfigurationSpace
@@ -919,7 +919,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         name : str
             Name of the searched hyperparameter
 
-        Returns:
+        Returns
         -------
         :ref:`Hyperparameters`
             Hyperparameter with the name ``name``
@@ -948,7 +948,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
     def get_hyperparameters(self) -> list[Hyperparameter]:
         """All hyperparameters in the space.
 
-        Returns:
+        Returns
         -------
         list(:ref:`Hyperparameters`)
             A list with all hyperparameters stored in the configuration space object
@@ -959,7 +959,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
     def get_hyperparameters_dict(self) -> dict[str, Hyperparameter]:
         """All the ``(name, Hyperparameter)`` contained in the space.
 
-        Returns:
+        Returns
         -------
         dict(str, :ref:`Hyperparameters`)
             An dict of names and hyperparameters
@@ -970,7 +970,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
     def get_hyperparameter_names(self) -> list[str]:
         """Names of all the hyperparameter in the space.
 
-        Returns:
+        Returns
         -------
         list(str)
             List of hyperparameter names
@@ -993,7 +993,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         ----------
         name : str
 
-        Returns:
+        Returns
         -------
         list
             List with all parent hyperparameters
@@ -1013,7 +1013,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         hyperparameter : :ref:`Hyperparameters`
             The hyperparameter to add
 
-        Returns:
+        Returns
         -------
         :ref:`Hyperparameters`
             The added hyperparameter
@@ -1033,7 +1033,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         hyperparameters : Iterable(:ref:`Hyperparameters`)
             Collection of hyperparameters to add
 
-        Returns:
+        Returns
         -------
         list(:ref:`Hyperparameters`)
             List of added hyperparameters (same as input)
@@ -1065,7 +1065,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         condition : :ref:`Conditions`
             Condition to add
 
-        Returns:
+        Returns
         -------
         :ref:`Conditions`
             Same condition as input
@@ -1085,7 +1085,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         conditions : list(:ref:`Conditions`)
             collection of conditions to add
 
-        Returns:
+        Returns
         -------
         list(:ref:`Conditions`)
             Same as input conditions
@@ -1102,7 +1102,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         clause : :ref:`Forbidden clauses`
             Forbidden clause to add
 
-        Returns:
+        Returns
         -------
         :ref:`Forbidden clauses`
             Same as input forbidden clause
@@ -1122,7 +1122,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         clauses : list(:ref:`Forbidden clauses`)
             Collection of forbidden clauses to add
 
-        Returns:
+        Returns
         -------
         list(:ref:`Forbidden clauses`)
             Same as input clauses
@@ -1139,7 +1139,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         name : str
             Name of a hyperparameter
 
-        Returns:
+        Returns
         -------
         int
             Id of the hyperparameter with name ``name``
@@ -1155,7 +1155,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         idx : int
             Id of a hyperparameter
 
-        Returns:
+        Returns
         -------
         str
             Name of the hyperparameter
@@ -1166,7 +1166,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
     def get_conditions(self) -> Sequence[ConditionLike]:
         """All conditions from the configuration space.
 
-        Returns:
+        Returns
         -------
         list(:ref:`Conditions`)
             Conditions of the configuration space
@@ -1177,7 +1177,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
     def get_forbiddens(self) -> Sequence[ForbiddenLike]:
         """All forbidden clauses from the configuration space.
 
-        Returns:
+        Returns
         -------
         list(:ref:`Forbidden clauses`)
             List with the forbidden clauses
@@ -1192,7 +1192,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
     def get_all_unconditional_hyperparameters(self) -> Sequence[str]:
         """Names of unconditional hyperparameters.
 
-        Returns:
+        Returns
         -------
         list[str]
             List with all parent hyperparameters, which are not part of a condition
@@ -1208,7 +1208,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         name : str, :ref:`Hyperparameters`
             Hyperparameter or its name, for which all children are requested
 
-        Returns:
+        Returns
         -------
         list(:ref:`Hyperparameters`)
             Children of the hyperparameter
@@ -1226,7 +1226,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
             Can either be the name of a hyperparameter or the hyperparameter
             object.
 
-        Returns:
+        Returns
         -------
         list[:ref:`Conditions`]
             List with all parent hyperparameters
@@ -1247,7 +1247,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         name : str, :ref:`Hyperparameters`
             Hyperparameter or its name, for which conditions are requested
 
-        Returns:
+        Returns
         -------
         Sequence(:ref:`Conditions`)
             List with the conditions on the children of the given hyperparameter
@@ -1268,7 +1268,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
             Can either be the name of a hyperparameter or the hyperparameter
             object
 
-        Returns:
+        Returns
         -------
         list[:ref:`Conditions`]
             List with all conditions on parent hyperparameters

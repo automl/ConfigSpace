@@ -134,7 +134,7 @@ class Configuration(Mapping[str, Any]):
     def is_valid_configuration(self) -> None:
         """Check if the object is a valid.
 
-        Raises:
+        Raises
         ------
         ValueError: If configuration is not valid.
         """
@@ -151,7 +151,7 @@ class Configuration(Mapping[str, Any]):
 
         All continuous values are scaled between zero and one.
 
-        Returns:
+        Returns
         -------
         numpy.ndarray
             The vector representation of the configuration
