@@ -1,13 +1,13 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
-from typing import Literal, overload
+from typing import Literal, Union, overload
 from typing_extensions import TypeAlias
 
 from ConfigSpace.hyperparameters import CategoricalHyperparameter, OrdinalHyperparameter
 
 # We only accept these types in `items`
-T: TypeAlias = str | int | float
+T: TypeAlias = Union[str, int, float]
 
 
 # ordered False -> CategoricalHyperparameter
