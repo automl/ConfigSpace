@@ -1323,5 +1323,5 @@ def test_repr_roundtrip():
     default = cs.get_default_configuration()
     repr = default.__repr__()
     repr = repr.replace("})", "}, configuration_space=cs)")
-    config = eval(repr)
+    config = eval(repr)  # noqa: S307
     assert default == config
