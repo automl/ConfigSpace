@@ -444,11 +444,7 @@ class Conjunction:
         if len(self.components) != len(other.components):
             return False
 
-        for component, other_component in zip(
-            self.components,
-            other.components,
-            strict=True,
-        ):
+        for component, other_component in zip(self.components, other.components):
             if component != other_component:
                 return False
 

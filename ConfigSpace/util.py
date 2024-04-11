@@ -1009,7 +1009,7 @@ def generate_grid(
 
         grid = []
         for element in itertools.product(*value_sets):
-            config_dict = dict(zip(hp_names, element, strict=False))
+            config_dict = dict(zip(hp_names, element))
             grid.append(config_dict)
 
         return grid

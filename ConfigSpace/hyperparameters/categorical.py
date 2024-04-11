@@ -193,7 +193,6 @@ class CategoricalHyperparameter(Hyperparameter[Any]):
         for this_choice, this_prob in zip(
             self.choices,
             self.probabilities,
-            strict=True,
         ):
             if this_choice not in other.choices:
                 return False
