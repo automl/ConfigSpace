@@ -71,6 +71,9 @@ prof/
 # VSCode
 .vscode
 
+# Virtual environments
+.venv
+
 # Running pre-commit seems to generate these
 .mypy_cache
 *.speedscope
