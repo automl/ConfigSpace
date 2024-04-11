@@ -240,8 +240,8 @@ combine-as-imports = true
 extra-standard-library = ["typing_extensions"]
 force-wrap-aliases = true
 
-[tool.ruff.pydocstyle]
-convention = "google"
+[tool.ruff.lint.pydocstyle]
+convention = "numpy"
 
 [tool.ruff.lint.pylint]
 max-args = 10 # Changed from default of 5
