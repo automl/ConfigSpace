@@ -759,7 +759,7 @@ class WeightedIntegerDiscreteDistribution(Distribution):
         vector: np.float64,
         n: int,
         *,
-        std: float | None = None,
+        std: float | None = None,  # noqa: ARG002
         seed: RandomState | None = None,
     ) -> npt.NDArray[np.float64]:
         seed = np.random.RandomState() if seed is None else seed

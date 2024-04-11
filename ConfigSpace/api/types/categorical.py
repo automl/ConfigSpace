@@ -91,30 +91,31 @@ def Categorical(
 
     Parameters
     ----------
-    name: str
+    name:
         The name of the hyperparameter
 
-    items: Sequence[T],
+    items:
         A list of items to put in the category. Note that there are limitations:
 
         * Can't use `None`, use a string "None" instead and convert as required.
         * Can't have duplicate categories, use weights if required.
 
-    default: T | None = None
+    default:
         The default value of the categorical hyperparameter
 
-    weights: Sequence[float] | None = None
+    weights:
         The weights to apply to each categorical. Each item will be sampled according
         to these weights.
 
-    ordered: bool = False
+    ordered:
         Whether the categorical is ordered or not. If True, this will return an
         :py:class:`OrdinalHyperparameter`, otherwise it remain a
         :py:class:`CategoricalHyperparameter`.
 
-    meta: dict | None = None
-        Any additional meta information you would like to store along with the hyperparamter.
-    """
+    meta:
+        Any additional meta information you would like to store along with the
+        hyperparamter.
+    """  # noqa: E501
     if ordered and weights is not None:
         raise ValueError("Can't apply `weights` to `ordered` Categorical")
 

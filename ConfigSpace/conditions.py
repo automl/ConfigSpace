@@ -159,9 +159,9 @@ class _BinaryOpCondition(Condition[DC, DP]):
         self.vector_value = np.float64(self.parent.to_vector(value))
 
         # HACK: For now, the only kind of hyperparameter that can **not** be ordered
-        # as a value type but can be ordered as a vector type is an OrdinalHyperparameter
-        # This is an explicit hack for that, but if the needs arise, we can make
-        # this more generic
+        # as a value type but can be ordered as a vector type is an
+        # OrdinalHyperparameter. This is an explicit hack for that, but if the
+        # needs arise, we can make this more generic
         from ConfigSpace.hyperparameters.ordinal import OrdinalHyperparameter
 
         self.need_compare_as_vector = isinstance(self.parent, OrdinalHyperparameter)
@@ -177,7 +177,7 @@ class _BinaryOpCondition(Condition[DC, DP]):
         )
 
     def satisfied_by_vector(self, vector: npt.NDArray[np.float64]) -> bool:
-        return self._vector_op(vector[self.parent_vector_id], self.vector_value)
+        return bool(self._vector_op(vector[self.parent_vector_id], self.vector_value))
 
     def satisfied_by_vector_array(
         self,
@@ -474,12 +474,14 @@ class Conjunction:
 
     def get_children_vector(self) -> list[int]:
         return [
-            int(c.child_vector_id) for c in self.get_descendant_literal_conditions()
+            int(c.child_vector_id)  # type: ignore
+            for c in self.dlcs
         ]
 
     def get_parents_vector(self) -> list[int]:
         return [
-            int(c.parent_vector_id) for c in self.get_descendant_literal_conditions()
+            int(c.parent_vector_id)  # type: ignore
+            for c in self.dlcs
         ]
 
     def get_children(self) -> list[Hyperparameter]:

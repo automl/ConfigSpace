@@ -178,6 +178,30 @@ def quantize_log(
     scale_slice: tuple[int | float | np.number, int | float | np.number] | None = None,
     bins: int,
 ) -> npt.NDArray[np.float64]:
+    """Quantize an array of values on a log scale.
+
+    Works by first lifting the values to the provided slice of the log scale
+    (scale_slice), exponentiate back to linear scale and then perform quantization.
+    Gives back the values in provided scale (bounds).
+
+    Parameters
+    ----------
+    x:
+        The values to quantize
+
+    bounds:
+        The bounds on which the values live on
+
+    scale_slice:
+        The specific slice of the log scale they were logged from.
+
+    bins:
+        The number of bins to quantize to
+
+    Returns
+    -------
+        The quantized values
+    """
     if scale_slice is None:
         scale_slice = bounds
 
@@ -249,6 +273,23 @@ def scale(
     unit_xs: npt.NDArray,
     to: tuple[int | float | np.number, int | float | np.number],
 ) -> npt.NDArray:
+    """Scale values from unit range to a new range.
+
+    >>> scale(np.array([0.0, 0.5, 1.0]), to=(0, 10))
+    array([ 0.,  5., 10.])
+
+    Parameters
+    ----------
+    unit_xs:
+        The values to scale
+
+    to:
+        The new range
+
+    Returns
+    -------
+        The scaled values
+    """
     return unit_xs * (to[1] - to[0]) + to[0]  # type: ignore
 
 
@@ -257,6 +298,23 @@ def normalize(
     *,
     bounds: tuple[int | float | np.number, int | float | np.number],
 ) -> npt.NDArray:
+    """Normalize values to the unit range.
+
+    >>> normalize(np.array([0.0, 5.0, 10.0]), bounds=(0, 10))
+    array([0. , 0.5, 1. ])
+
+    Parameters
+    ----------
+    x:
+        The values to normalize
+
+    bounds:
+        The bounds of the range
+
+    Returns
+    -------
+        The normalized values
+    """
     if bounds == (0, 1):
         return x
     return (x - bounds[0]) / (bounds[1] - bounds[0])  # type: ignore
@@ -267,6 +325,26 @@ def rescale(
     frm: tuple[int | float | np.number, int | float | np.number],
     to: tuple[int | float | np.number, int | float | np.number],
 ) -> npt.NDArray:
+    """Rescale values from one range to another.
+
+    >>> rescale(np.array([0, 10, 20]), frm=(0, 100), to=(0, 10))
+    array([0, 1, 2])
+
+    Parameters
+    ----------
+    x:
+        The values to rescale
+
+    frm:
+        The original range
+
+    to:
+        The new range
+
+    Returns
+    -------
+        The rescaled values
+    """
     if frm == to:
         return x
 

@@ -114,17 +114,14 @@ def Integer(
     -------
     UniformIntegerHyperparameter | NormalIntegerHyperparameter | BetaIntegerHyperparameter
         Returns the corresponding hyperparameter type
-    """
+    """  # noqa: E501
     if distribution is None:
         distribution = Uniform()
 
     if bounds is None and isinstance(distribution, Uniform):
         raise ValueError("`bounds` must be specifed for Uniform distribution")
 
-    if bounds is None:
-        lower, upper = (None, None)
-    else:
-        lower, upper = bounds
+    lower, upper = bounds
 
     if isinstance(distribution, Uniform):
         return UniformIntegerHyperparameter(
