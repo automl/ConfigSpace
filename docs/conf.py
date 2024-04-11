@@ -1,6 +1,9 @@
+from __future__ import annotations
+
 import datetime
 
 import automl_sphinx_theme
+
 from ConfigSpace import __authors__, __version__
 
 authors = ", ".join(__authors__)
