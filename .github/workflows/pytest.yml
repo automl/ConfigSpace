@@ -32,16 +32,6 @@ env:
     --durations=20
     -v
 
-  # Version to run code-cov on
-  # NOTE: These are only acessible inside a jobs **steps** and not in the job setup,
-  #   Hence, some of these varialbes are copied and are just here for reference
-  #
-  code-cov-active: true  # Copied in job setup
-  code-cov-os: ubuntu-latest  # Copied in job setup
-  code-cov-python-version: "3.8"
-  code-cov-args: >-
-    --cov=ConfigSpace
-    --cov-report=xml
 
 jobs:
 
@@ -62,12 +52,14 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
 
     - name: Setup Python
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
+        cache: pip
+        cache-dependency-path: pyproject.toml
 
     - name: Install ${{ env.package-name }}
       run: |
@@ -95,38 +87,3 @@ jobs:
             echo "Not all generated files have been deleted!"
             exit 1
         fi
-
-  # Testing with codecov coverage uploaded
-  codecov-test:
-    name: codecov-test
-
-    runs-on: "ubuntu-latest"
-    defaults:
-      run:
-        shell: bash
-
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v2
-
-    - name: Setup Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: ${{ env.code-cov-python-version }}
-
-    - name: Install ${{ env.package-name }}
-      run: |
-        python -m pip install --upgrade pip
-        python -m pip install wheel
-        python -m pip install -e ".${{ env.extra-requires }}"
-
-    - name: Tests
-      timeout-minutes: 45
-      run: |
-        pytest ${{ env.pytest-args }} ${{ env.code-cov-args }} ${{ env.test-dir }}
-
-    - name: Upload coverage
-      uses: codecov/codecov-action@v2
-      with:
-        fail_ci_if_error: true
-        verbose: true
