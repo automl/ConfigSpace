@@ -30,8 +30,8 @@ from __future__ import annotations
 import copy
 import io
 import warnings
-from collections.abc import Iterable, Iterator, Mapping
-from typing import Any, Sequence, overload
+from collections.abc import Iterable, Iterator
+from typing import Any, Mapping, Sequence, overload
 from typing_extensions import deprecated
 
 import numpy as np
