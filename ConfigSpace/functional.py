@@ -95,22 +95,24 @@ def linspace_chunked(
     num: int,
     *,
     chunk_size: int,
+    endpoint: bool = False,
 ) -> Iterator[np.ndarray]:
+    """Get np.linspace in a chunked fashion.
+
+    >>> list(linspace_chunked(0, 10, 11, chunk_size=3))
+    [array([0., 1., 2.]), array([3., 4., 5.]), array([6., 7., 8.]), array([ 9., 10.])]
+    """
     assert num > 0
     assert chunk_size > 0
     assert start < stop
 
     if num <= chunk_size:
-        yield np.linspace(start, stop, int(num), endpoint=True)
+        yield np.linspace(start, stop, int(num), endpoint=endpoint)
         return
 
-    n_intervals = int(np.ceil(num / chunk_size))
-    intervals = np.linspace(start, stop, n_intervals + 1, endpoint=True)
-    steps_per_chunk = int(min(num, chunk_size))
-
-    for i, (_start, _stop) in enumerate(pairwise(intervals), start=1):
-        is_last = i == n_intervals
-        yield np.linspace(_start, _stop, steps_per_chunk, endpoint=is_last)
+    _div = num - 1 if endpoint else num
+    for chunk in arange_chunked(0, num, chunk_size=chunk_size):
+        yield (chunk / _div) * (stop - start) + start
 
 
 NPDType = TypeVar("NPDType", bound=np.generic)
