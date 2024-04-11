@@ -109,7 +109,7 @@ def impute_inactive_values(
     )
 
 
-def get_one_exchange_neighbourhood_fast(
+def get_one_exchange_neighbourhood(
     configuration: Configuration,
     seed: int,
     num_neighbors: int = 4,
@@ -235,7 +235,7 @@ def get_one_exchange_neighbourhood_fast(
 
             neighbor_vector_val = neighbors.pop()
 
-            new_arr = change_hp_value2(
+            new_arr = change_hp_value(
                 configuration_space=space,
                 configuration_array=arr.copy(),
                 hp_name=hp_name,
@@ -257,179 +257,6 @@ def get_one_exchange_neighbourhood_fast(
             # We didn't manage to break the for loop, choose the next hp
             n_hps_left_to_exhuast -= 1
             neighbors_to_generate[chosen_hp_idx] = (hp, 0, neighbors)
-
-
-def get_one_exchange_neighbourhood(
-    configuration: Configuration,
-    seed: int,
-    num_neighbors: int = 4,
-    stdev: float = 0.2,
-) -> Iterator[Configuration]:
-    """Return all configurations in a one-exchange neighborhood.
-
-    The method is implemented as defined by:
-    Frank Hutter, Holger H. Hoos and Kevin Leyton-Brown
-    Sequential Model-Based Optimization for General Algorithm Configuration
-    In Proceedings of the conference on Learning and Intelligent
-    Optimization(LION 5)
-
-    Parameters
-    ----------
-    configuration : :class:`~ConfigSpace.configuration_space.Configuration`
-        for this Configuration object ``num_neighbors`` neighbors are computed
-    seed : int
-        Sets the random seed to a fixed value
-    num_neighbors : (int, optional)
-        number of configurations, which are sampled from the neighbourhood
-        of the input configuration
-    stdev : (float, optional)
-        The standard deviation is used to determine the neigbours of
-        :class:`~ConfigSpace.hyperparameters.UniformFloatHyperparameter` and
-        :class:`~ConfigSpace.hyperparameters.UniformIntegerHyperparameter`.
-
-    Returns:
-    -------
-    Iterator
-         It contains configurations, with values being situated around
-         the given configuration.
-
-    """
-    return get_one_exchange_neighbourhood_fast(
-        configuration,
-        seed,
-        num_neighbors,
-        stdev,
-    )
-    random = np.random.RandomState(seed)
-    space = configuration.config_space
-    hyperparameters_list = list(space)
-    hyperparameters_list_length = len(hyperparameters_list)
-    hyperparameters_used = [
-        name
-        for name, hp in space.items()
-        if (
-            hp.get_num_neighbors(configuration.get(name)) == 0
-            and configuration.get(name) is not None
-        )
-    ]
-    number_of_usable_hyperparameters = sum(np.isfinite(configuration.get_array()))
-    n_neighbors_per_hp = {
-        hp.name: num_neighbors
-        if (
-            isinstance(hp, NumericalHyperparameter)
-            and hp.get_num_neighbors(configuration.get(hp.name)) > num_neighbors
-        )
-        else hp.get_num_neighbors(configuration.get(hp.name))
-        for hp in space.values()
-    }
-
-    finite_neighbors_stack: dict[str, list[np.number]] = {}
-
-    while len(hyperparameters_used) < number_of_usable_hyperparameters:
-        index = int(random.randint(hyperparameters_list_length))
-        hp_name = hyperparameters_list[index]
-        if n_neighbors_per_hp[hp_name] == 0:
-            continue
-
-        else:
-            neighbourhood = []
-            number_of_sampled_neighbors = 0
-            array = configuration.get_array()
-            vector: np.float64 = array[index]  # type: float
-
-            # Inactive value
-            if np.isnan(vector):
-                continue
-
-            iteration = 0
-            hp = space[hp_name]
-            num_neighbors_for_hp = hp.get_num_neighbors(configuration.get(hp_name))
-            while True:
-                # Obtain neigbors differently for different possible numbers of
-                # neighbors
-                if num_neighbors_for_hp == 0 or iteration > 100:
-                    break
-                elif np.isinf(num_neighbors_for_hp):
-                    if number_of_sampled_neighbors >= 1:
-                        break
-                    if isinstance(hp, UniformFloatHyperparameter):
-                        neighbor = hp.neighbors_vectorized(
-                            vector,
-                            n=1,
-                            seed=random,
-                            std=stdev,
-                        )[0]
-                    else:
-                        neighbor = hp.neighbors_vectorized(vector, n=1, seed=random)[0]
-                else:
-                    if iteration > 0:
-                        break
-
-                    if hp_name not in finite_neighbors_stack:
-                        # TODO: Why only uniform int?
-                        if isinstance(hp, UniformIntegerHyperparameter):
-                            neighbors = hp.neighbors_vectorized(
-                                vector,
-                                n=int(n_neighbors_per_hp[hp_name]),
-                                seed=random,
-                                std=stdev,
-                            )
-                        else:
-                            neighbors = hp.neighbors_vectorized(
-                                vector,
-                                n=4,
-                                seed=random,
-                            )
-
-                        neighbors = list(neighbors)
-                        random.shuffle(neighbors)
-                        finite_neighbors_stack[hp_name] = neighbors
-                    else:
-                        neighbors = finite_neighbors_stack[hp_name]
-                    neighbor = neighbors.pop()
-                    if len(neighbors) == 0:
-                        finite_neighbors_stack.pop(hp_name)
-
-                # Check all newly obtained neigbors
-                new_array = array.copy()
-                new_array = change_hp_value(
-                    configuration_space=space,
-                    configuration_array=new_array,
-                    hp_name=hp_name,
-                    hp_value=neighbor,
-                    index=index,
-                )
-                try:
-                    # Populating a configuration from an array does not check
-                    #  if it is a legal configuration - check this (slow)
-                    new_configuration = Configuration(space, vector=new_array)
-                    # Only rigorously check every tenth configuration (
-                    # because moving around in the neighborhood should
-                    # just work!)
-                    if random.random() > 0.95:
-                        new_configuration.is_valid_configuration()
-                    else:
-                        space._check_forbidden(new_array)
-                    neighbourhood.append(new_configuration)
-                except ForbiddenValueError:
-                    pass
-
-                iteration += 1
-                if len(neighbourhood) > 0:
-                    number_of_sampled_neighbors += 1
-
-            # Some infinite loop happened and no valid neighbor was found OR
-            # no valid neighbor is available for a categorical
-            if len(neighbourhood) == 0:
-                hyperparameters_used.append(hp_name)
-                n_neighbors_per_hp[hp_name] = 0
-                hyperparameters_used.append(hp_name)
-            elif hp_name not in hyperparameters_used:
-                n_ = neighbourhood.pop()
-                n_neighbors_per_hp[hp_name] -= 1
-                if n_neighbors_per_hp[hp_name] == 0:
-                    hyperparameters_used.append(hp_name)
-                yield n_
 
 
 def get_random_neighbor(configuration: Configuration, seed: int) -> Configuration:
@@ -704,7 +531,7 @@ def check_configuration(
             )
 
 
-def change_hp_value2(
+def change_hp_value(
     configuration_space: ConfigurationSpace,
     configuration_array: npt.NDArray[np.float64],
     hp_name: str,
@@ -734,125 +561,6 @@ def change_hp_value2(
             arr[child_idxs] = np.nan
 
     return arr
-
-
-def change_hp_value(
-    configuration_space: ConfigurationSpace,
-    configuration_array: np.ndarray,
-    hp_name: str,
-    hp_value: float | np.number,
-    index: int | np.int64,
-) -> np.ndarray:
-    """Change hyperparameter value in configuration array to given value.
-
-    Does not check if the new value is legal. Activates and deactivates other
-    hyperparameters if necessary. Does not check if new hyperparameter value
-    results in the violation of any forbidden clauses.
-
-    Parameters
-    ----------
-    configuration_space : ConfigurationSpace
-
-    configuration_array : np.ndarray
-
-    hp_name : str
-
-    hp_value : float
-
-    index : int
-
-    Returns:
-    -------
-    np.ndarray
-    """
-    return change_hp_value2(
-        configuration_space,
-        configuration_array,
-        hp_name,
-        hp_value,
-        index,
-    )
-    configuration_array[index] = hp_value
-
-    # Hyperparameters which are going to be set to inactive
-    disabled = []
-
-    # Hyperparameters which are going to be set activate, we introduce this to resolve
-    # the conflict that might be raised by OrConjunction:
-    # Suppose that we have a parent HP_p whose possible values are A, B, C; a
-    # child HP_d is activate if HP_p is A or B. Then when HP_p switches from A to B,
-    # HP_d needs to remain activate.
-    hps_to_be_activate = set()
-
-    # Activate hyperparameters if their parent node got activated
-    children = configuration_space.children_of[hp_name]
-    if len(children) > 0:
-        to_visit = deque()  # type: deque
-        to_visit.extendleft(children)
-        visited = set()
-
-        while len(to_visit) > 0:
-            current = to_visit.pop()
-            current_name = current.name
-            if current_name in visited:
-                continue
-            visited.add(current_name)
-            if current_name in hps_to_be_activate:
-                continue
-
-            current_idx = configuration_space.index_of[current_name]
-            current_value = configuration_array[current_idx]
-
-            conditions = configuration_space.parent_conditions_of[current_name]
-
-            active = True
-            for condition in conditions:
-                if condition.satisfied_by_vector(configuration_array) is False:
-                    active = False
-                    break
-
-            if active:
-                hps_to_be_activate.add(current_idx)
-                if not np.isnan(current_value):
-                    children_ = configuration_space.children_of[current_name]
-                    if len(children_) > 0:
-                        to_visit.extendleft(children_)
-
-            if current_name in disabled:
-                continue
-
-            if active and np.isnan(current_value):
-                default_value = current.normalized_default_value
-                configuration_array[current_idx] = default_value
-                children_ = configuration_space.children_of[current_name]
-                if len(children_) > 0:
-                    to_visit.extendleft(children_)
-
-            # If the hyperparameter was made inactive,
-            # all its children need to be deactivade as well
-            if not active and not np.isnan(current_value):
-                configuration_array[current_idx] = np.nan
-
-                children = configuration_space.children_of[current_name]
-
-                if len(children) > 0:
-                    to_disable = set()
-                    for ch in children:
-                        to_disable.add(ch.name)
-                    while len(to_disable) > 0:
-                        child = to_disable.pop()
-                        child_idx = configuration_space.index_of[child]
-                        disabled.append(child_idx)
-                        children = configuration_space.children_of[child]
-
-                        for ch in children:
-                            to_disable.add(ch.name)
-
-    for idx in disabled:
-        if idx not in hps_to_be_activate:
-            configuration_array[idx] = np.nan
-
-    return configuration_array
 
 
 def generate_grid(

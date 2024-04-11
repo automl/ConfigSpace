@@ -56,7 +56,7 @@ from ConfigSpace.util import (
     deactivate_inactive_hyperparameters,
     fix_types,
     generate_grid,
-    get_one_exchange_neighbourhood_fast,
+    get_one_exchange_neighbourhood,
     get_random_neighbor,
     impute_inactive_values,
 )
@@ -92,7 +92,7 @@ def _test_get_one_exchange_neighbourhood(hp):
     config = cs.get_default_configuration()
     all_neighbors = []
     for i in range(100):
-        neighborhood = get_one_exchange_neighbourhood_fast(
+        neighborhood = get_one_exchange_neighbourhood(
             config,
             i,
             num_neighbors=num_neighbors,
@@ -173,7 +173,7 @@ def test_random_neighborhood_int():
     for val in range(1, 11):
         config = Configuration(cs, values={"a": val})
         for _ in range(100):
-            neighborhood = get_one_exchange_neighbourhood_fast(config, seed=1)
+            neighborhood = get_one_exchange_neighbourhood(config, seed=1)
             neighbors = [neighbor["a"] for neighbor in neighborhood]
             assert len(neighbors) == len(np.unique(neighbors)), neighbors
             assert val not in neighbors, neighbors
@@ -229,7 +229,7 @@ def test_random_neigborhood_conditional():
     cs.seed(1)
     configuration = cs.get_default_configuration()
     for i in range(100):
-        neighborhood = get_one_exchange_neighbourhood_fast(configuration, i)
+        neighborhood = get_one_exchange_neighbourhood(configuration, i)
         for new_config in neighborhood:
             assert configuration != new_config
 

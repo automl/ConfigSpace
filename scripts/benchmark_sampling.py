@@ -42,7 +42,7 @@ def run_test(configuration_space_path):
 
         for j, c in enumerate(configurations):
             if i > 10:
-                neighborhood = ConfigSpace.util.get_one_exchange_neighbourhood_fast(
+                neighborhood = ConfigSpace.util.get_one_exchange_neighbourhood(
                     c,
                     seed=i * j,
                     num_neighbors=4,
