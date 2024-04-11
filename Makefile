@@ -16,7 +16,6 @@ help:
 	@echo "* test             to run the tests"
 
 PYTHON ?= python
-CYTHON ?= cython
 PYTEST ?= python -m pytest
 CTAGS ?= ctags
 PRECOMMIT ?= pre-commit
@@ -103,9 +102,3 @@ publish:
 	@echo "Once you have decided it works, publish to actual pypi with"
 	@echo
 	@echo "    python -m twine upload dist/*"
-
-cython-annotate:
-	C_INCLUDE_PATH=$(NUMPY_INCLUDE) cython -3 --directive boundscheck=False,wraparound=False --annotate ConfigSpace/*.pyx
-
-cython-html: cython-annotate
-	python -c "import webbrowser; from pathlib import Path; [webbrowser.open(f'file://{path}') for path in Path('ConfigSpace').absolute().glob('*.html')]"

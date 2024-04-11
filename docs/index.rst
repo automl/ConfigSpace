@@ -107,22 +107,6 @@ Installation
 
     pip install ConfigSpace
 
-If installing from source, the *ConfigSpace* package requires *numpy*, *cython*
-and *pyparsing*. Additionally, a functioning C compiler is required.
-
-On Ubuntu, the required compiler tools and Python headers can be installed with:
-
-.. code:: bash
-
-    sudo apt-get install build-essential python3 python3-dev
-
-When using Anaconda/Miniconda, the compiler has to be installed with:
-
-.. code:: bash
-
-    conda install gxx_linux-64 gcc_linux-64
-
-
 Citing the ConfigSpace
 ======================
 
