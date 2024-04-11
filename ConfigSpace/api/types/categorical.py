@@ -1,11 +1,8 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
-from typing import (
-    Literal,
-    TypeAlias,
-    overload,
-)
+from typing import Literal, overload
+from typing_extensions import TypeAlias
 
 from ConfigSpace.hyperparameters import CategoricalHyperparameter, OrdinalHyperparameter
 
@@ -23,8 +20,7 @@ def Categorical(
     weights: Sequence[float] | None = None,
     ordered: Literal[False],
     meta: dict | None = None,
-) -> CategoricalHyperparameter:
-    ...
+) -> CategoricalHyperparameter: ...
 
 
 # ordered True -> OrdinalHyperparameter
@@ -37,8 +33,7 @@ def Categorical(
     weights: Sequence[float] | None = None,
     ordered: Literal[True],
     meta: dict | None = None,
-) -> OrdinalHyperparameter:
-    ...
+) -> OrdinalHyperparameter: ...
 
 
 # ordered bool (unknown) -> Either
@@ -51,8 +46,7 @@ def Categorical(
     weights: Sequence[float] | None = None,
     ordered: bool = ...,
     meta: dict | None = None,
-) -> CategoricalHyperparameter | OrdinalHyperparameter:
-    ...
+) -> CategoricalHyperparameter | OrdinalHyperparameter: ...
 
 
 def Categorical(
