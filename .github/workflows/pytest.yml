@@ -1,4 +1,7 @@
 name: Tests
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 on:
   # Allow to manually trigger through github API
@@ -8,13 +11,11 @@ on:
   push:
     branches:
       - main
-      - development
 
   # Triggers with push to a pr aimed at master
   pull_request:
     branches:
       - main
-      - development
 
   schedule:
     # Every day at 7AM UTC
@@ -94,42 +95,6 @@ jobs:
             echo "Not all generated files have been deleted!"
             exit 1
         fi
-
-  # Testing with conda
-  conda-tests:
-    name: conda-${{ matrix.python-version }}-${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    defaults:
-      run:
-        shell: bash -l {0}  # Default to using bash on all and load (-l) .bashrc which miniconda uses
-
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
-        os: ["ubuntu-latest", "macos-latest", "windows-latest"]
-
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v2
-
-    - name: Conda install
-      uses: conda-incubator/setup-miniconda@v2
-      with:
-        auto-update-conda: true
-        python-version: ${{ matrix.python-version }}
-
-    - name: Install ${{ env.package-name }}
-      run: |
-        python -V
-        python -m pip install --upgrade pip
-        python -m pip install wheel
-        python -m pip install -e ".${{ env.extra-requires }}"
-
-    - name: Tests
-      timeout-minutes: 45
-      run: |
-          pytest ${{ env.pytest-args }} ${{ env.test-dir }}
 
   # Testing with codecov coverage uploaded
   codecov-test:
