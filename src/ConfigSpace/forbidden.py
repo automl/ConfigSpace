@@ -37,7 +37,7 @@ import numpy as np
 from more_itertools import unique_everseen
 
 from ConfigSpace.hyperparameters import Hyperparameter
-from ConfigSpace.types import Array, Mask, f64, i64
+from ConfigSpace.types import Array, Mask, f64
 
 if TYPE_CHECKING:
     from ConfigSpace.types import Array
@@ -48,10 +48,10 @@ _SENTINEL = object()
 class ForbiddenClause(ABC):
     def __init__(self, hyperparameter: Hyperparameter) -> None:
         self.hyperparameter = hyperparameter
-        self.vector_id: i64 | None = None
+        self.vector_id: np.intp | None = None
 
     def set_vector_idx(self, hyperparameter_to_idx):
-        self.vector_id = hyperparameter_to_idx[self.hyperparameter.name]
+        self.vector_id = np.intp(hyperparameter_to_idx[self.hyperparameter.name])
 
     @abstractmethod
     def __eq__(self, other: Any) -> bool:
@@ -93,7 +93,7 @@ class ForbiddenRelation(ABC):
 
         self.left = left
         self.right = right
-        self.vector_ids: tuple[None, None] | tuple[int, int] = (None, None)
+        self.vector_ids: tuple[None, None] | tuple[np.intp, np.intp] = (None, None)
 
     def __eq__(self, other: Any) -> bool:
         if not isinstance(other, self.__class__):
@@ -105,8 +105,8 @@ class ForbiddenRelation(ABC):
 
     def set_vector_idx(self, hyperparameter_to_idx):
         self.vector_ids = (
-            hyperparameter_to_idx[self.left.name],
-            hyperparameter_to_idx[self.right.name],
+            np.intp(hyperparameter_to_idx[self.left.name]),
+            np.intp(hyperparameter_to_idx[self.right.name]),
         )
 
     @abstractmethod

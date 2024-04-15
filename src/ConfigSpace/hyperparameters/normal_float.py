@@ -28,6 +28,7 @@ class NormalFloatHyperparameter(FloatHyperparameter):
     name: str
     default_value: f64
     meta: Mapping[Hashable, Any] | None
+    size: float
 
     def __init__(
         self,

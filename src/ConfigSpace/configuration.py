@@ -112,17 +112,20 @@ class Configuration(Mapping[str, Any]):
             self.is_valid_configuration()
 
         elif vector is not None:
-            _vector = np.asarray(vector, dtype=f64)
+            if not isinstance(vector, np.ndarray):
+                _vector = np.asarray(vector, dtype=f64)
+            else:
+                _vector = vector
 
-            # If we have a 2d array with shape (n, 1), flatten it
-            if len(_vector.shape) == 2 and _vector.shape[1] == 1:
-                _vector = _vector.flatten()
-
-            if len(_vector.shape) > 1:
-                raise ValueError(
-                    "Only 1d arrays can be converted to a Configuration, "
-                    f"you passed an array of shape {_vector.shape}",
-                )
+            if _vector.ndim != 1:
+                # If we have a 2d array with shape (n, 1), flatten it
+                if len(_vector.shape) == 2 and _vector.shape[1] == 1:
+                    _vector = _vector.flatten()
+                else:
+                    raise ValueError(
+                        "Only 1d arrays can be converted to a Configuration, "
+                        f"you passed an array of shape {_vector.shape}",
+                    )
 
             n_hyperparameters = len(self.config_space)
             if len(_vector) != n_hyperparameters:

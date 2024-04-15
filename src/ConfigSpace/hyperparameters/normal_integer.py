@@ -29,6 +29,7 @@ class NormalIntegerHyperparameter(IntegerHyperparameter):
     name: str
     default_value: i64
     meta: Mapping[Hashable, Any] | None
+    size: int
 
     def __init__(
         self,

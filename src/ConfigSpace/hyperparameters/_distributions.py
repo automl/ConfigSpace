@@ -34,7 +34,7 @@ ARANGE_CHUNKSIZE = 10_000_000
 
 CONFIDENCE_FOR_NORMALIZATION_OF_DISCRETE = 0.999999
 DEFAULT_VECTORIZED_NUMERIC_STD = 0.2
-NEIGHBOR_GENERATOR_N_RETRIES = 5
+NEIGHBOR_GENERATOR_N_RETRIES = 8
 NEIGHBOR_GENERATOR_SAMPLE_MULTIPLIER = 4
 RandomState = np.random.RandomState
 
@@ -95,9 +95,10 @@ def quantized_neighborhood(
 
         qint = i64(np.rint(vector * (bins - 1)))
 
-        bottom = np.arange(0, qint).astype(f64)
-        top = np.arange(qint + 1, bins).astype(f64)
-        return np.concatenate((bottom, top)) / (bins - 1)
+        _range = np.arange(0, bins, dtype=np.float64)
+        bot = _range[:qint]
+        top = _range[qint + 1 :]
+        return np.concatenate((bot, top)) / (bins - 1)
 
     # Otherwise, we use a repeated sampling strategy where we slowly increase the
     # std of a normal, centered on `center`, slowly expanding `std` such that
@@ -106,6 +107,8 @@ def quantized_neighborhood(
     # We set up a buffer that can hold the number of neighbors we need, plus some
     # extra excess from sampling, preventing us from having to reallocate memory.
     # We also include the initial value in the buffer, as we will remove it later.
+    # OPTIM: If you really need to optimize this more, one could consider using `bins`
+    # as the more bins there are, the less need there is over sample for uniques
     SAMPLE_SIZE = n * sample_multiplier
     BUFFER_SIZE = n * (sample_multiplier + 1)
     neighbors = np.empty(BUFFER_SIZE + 1, dtype=f64)
@@ -192,8 +195,10 @@ def continuous_neighborhood(
 
     for _std in stds:
         candidates = seed.normal(vector, _std * range_size, size=(SAMPLE_SIZE,))
-        valid_candidates = candidates[(candidates >= lower) & (candidates <= upper)]
 
+        # Select all those which are not at the lower boundary
+        valid_mask = np.logical_and(candidates >= lower, candidates <= upper)
+        valid_candidates = candidates[valid_mask]
         n_candidates = len(valid_candidates)
         neighbors[offset : offset + n_candidates] = valid_candidates
         offset += n_candidates

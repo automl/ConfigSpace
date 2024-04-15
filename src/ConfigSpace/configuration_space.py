@@ -182,6 +182,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         self.meta = meta
         self.random = np.random.RandomState(seed)
         self.dag = DAG()
+        self._len = 0
 
         if space is not None:
             hyperparameters = list(_parse_hyperparameters_from_dict(space))
@@ -293,6 +294,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
             for forbidden in forbiddens:
                 self.dag.add_forbidden(forbidden)
 
+        self._len = len(self.dag.nodes)
         self._check_default_configuration()
 
     def add_configuration_space(
@@ -860,9 +862,12 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         """Iterate over the hyperparameter names in the right order."""
         return iter(self.dag.nodes.keys())
 
+    def items(self) -> Iterator[tuple[str, Hyperparameter]]:
+        yield from ((name, node.hp) for name, node in self.dag.nodes.items())
+
     def __len__(self) -> int:
         """Return the number of hyperparameters."""
-        return len(self.dag.nodes)
+        return self._len
 
     # TODO: Move these into a single validate function
     def _check_default_configuration(self) -> Configuration:

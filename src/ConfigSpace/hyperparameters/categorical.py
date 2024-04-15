@@ -19,10 +19,31 @@ from ConfigSpace.types import Array, f64
 if TYPE_CHECKING:
     from ConfigSpace.types import Array
 
+# OPTIM: A lot of categoricals tend to be small, so we cache
+# the arange generation, which can be a bit slow for neighbor
+# generation, as both halves need to be created and then concatenated.
+CACHE_NEIGHBORS_CATEGORICAL_SIZE = 5
+CACHE_ARANGE_CATEGORICAL_SIZE = 25
+
 
 @dataclass
 class NeighborhoodCat(_Neighborhood):
     size: int
+    _cached_arange: Array[f64] | None = None
+    _cached_neighbors: list[Array[f64]] | None = None
+
+    def __post_init__(self) -> None:
+        if self.size <= CACHE_NEIGHBORS_CATEGORICAL_SIZE:
+            _cached_neighbors = []
+            for i in range(self.size):
+                _range = np.arange(0, self.size, dtype=np.float64)
+                bot = _range[:i]
+                top = _range[i + 1 :]
+                choices = np.concatenate((bot, top))
+                _cached_neighbors.append(choices)
+            self._cached_neighbors = _cached_neighbors
+        elif self.size <= CACHE_ARANGE_CATEGORICAL_SIZE:
+            self._cached_arange = np.arange(0, self.size, dtype=np.float64)
 
     def __call__(
         self,
@@ -34,7 +55,16 @@ class NeighborhoodCat(_Neighborhood):
     ) -> Array[f64]:
         seed = np.random.RandomState() if seed is None else seed
         pivot = int(vector)
-        _range = np.arange(0, self.size, dtype=np.float64)
+        if self._cached_neighbors is not None:
+            choices = self._cached_neighbors[pivot].copy()
+            seed.shuffle(choices)
+            return choices
+
+        if self._cached_arange is not None:
+            _range = self._cached_arange
+        else:
+            _range = np.arange(0, self.size, dtype=np.float64).copy()
+
         bot = _range[:pivot]
         top = _range[pivot + 1 :]
         choices = np.concatenate((bot, top))
@@ -48,12 +78,12 @@ class CategoricalHyperparameter(Hyperparameter[Any]):
 
     choices: Sequence[Any]
     weights: tuple[float, ...] | None
-    probabilities: Array[f64] = field(repr=False, init=False)
+    probabilities: Array[f64] = field(repr=False)
 
     name: str
     default_value: Any
     meta: Mapping[Hashable, Any] | None
-    size: int = field(init=False)
+    size: int
 
     def __init__(
         self,

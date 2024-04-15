@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Hashable, Mapping, Sequence
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from functools import partial
 from typing import TYPE_CHECKING, Any, ClassVar
 from typing_extensions import deprecated
@@ -28,8 +28,7 @@ class OrdinalHyperparameter(Hyperparameter[Any]):
     name: str
     default_value: Any
     meta: Mapping[Hashable, Any] | None
-
-    size: int = field(init=False)
+    size: int
 
     def __init__(
         self,

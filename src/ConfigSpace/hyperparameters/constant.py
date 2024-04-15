@@ -27,6 +27,7 @@ class Constant(Hyperparameter[Any]):
     name: str
     value: Any
     meta: Mapping[Hashable, Any] | None
+    size: int
 
     def __init__(
         self,

@@ -110,7 +110,7 @@ def impute_inactive_values(
 
 def get_one_exchange_neighbourhood(
     configuration: Configuration,
-    seed: int,
+    seed: int | np.random.RandomState,
     num_neighbors: int = 4,
     stdev: float = 0.2,
 ) -> Iterator[Configuration]:
@@ -147,18 +147,23 @@ def get_one_exchange_neighbourhood(
     space = configuration.config_space
     config = configuration
     arr = configuration._vector
+    dag = space.dag
 
     # Define how many neighbors and std.dev we should sample for a given hyperparameter
-    sample_strategy: dict[str, tuple[int, float | None, bool]] = {}
+    # -> dict[HP, (n_to_gen, std, should_shuffle, generated, should_regen)]
+    sample_strategy: dict[str, tuple[int, float | None, bool, bool, bool]] = {}
 
     # Define the total number of neighbors we should generate for any given hp
-    neighbors_to_generate: list[tuple[Hyperparameter, int, list[f64]]] = []
+    # -> tuple[HP, hp_idx, n_to_gen, neighbors_generated_for_hp]
+    neighbors_to_generate: list[tuple[Hyperparameter, int, int, list[f64]]] = []
 
     nan_hps = np.isnan(arr)
     UFH = UniformFloatHyperparameter
     UIH = UniformIntegerHyperparameter
-    for hp in space.values():
-        hp_idx = space.index_of[hp.name]
+    _rand_size = 0
+    for hp_name, node in dag.nodes.items():
+        hp = node.hp
+        hp_idx = node.idx
 
         # inactive hyperparameters skipped
         # hps with a size of one can't be modified to a neighbor
@@ -172,7 +177,7 @@ def get_one_exchange_neighbourhood(
             should_shuffle = True
             _std = None
         elif isinstance(hp, OrdinalHyperparameter):
-            n_to_gen = int(hp.get_num_neighbors(config[hp.name]))
+            n_to_gen = int(hp.get_num_neighbors(config[hp_name]))
             neighbor_sample_size = n_to_gen
             should_shuffle = True
             _std = None
@@ -182,62 +187,100 @@ def get_one_exchange_neighbourhood(
             _std = stdev if isinstance(hp, UFH) else None
             should_shuffle = True
         else:  # All non-continuous ones
-            _size = int(hp.size - 1)
-            neighbor_sample_size = int(min(num_neighbors * OVER_SAMPLE_MULT, _size))
-            n_to_gen = min(_size, num_neighbors)
+            _neighborhood_size = int(hp.size - 1)
+            neighbor_sample_size = int(
+                min(num_neighbors * OVER_SAMPLE_MULT, _neighborhood_size),
+            )
+            n_to_gen = min(_neighborhood_size, num_neighbors)
             _std = stdev if isinstance(hp, UIH) else None
             should_shuffle = True
 
-        sample_strategy[hp.name] = (neighbor_sample_size, _std, should_shuffle)  # type: ignore
-        neighbors_to_generate.append((hp, n_to_gen, []))
+        should_regen = n_to_gen >= neighbor_sample_size
+        generated = False
+        _rand_size += n_to_gen * (
+            1 + int(np.sqrt(len(dag.forbidden_lookup.get(hp_name, []))))
+        )
+        sample_strategy[hp_name] = (
+            neighbor_sample_size,
+            _std,
+            should_shuffle,
+            generated,
+            should_regen,
+        )
+        neighbors_to_generate.append((hp, hp_idx, n_to_gen, []))
 
-    random = np.random.RandomState(seed)
+    random = np.random.RandomState(seed) if isinstance(seed, int) else seed
+
     arr = config.get_array()
 
-    assert not any(n_to_gen == 0 for _, n_to_gen, _ in neighbors_to_generate)
+    assert not any(n_to_gen == 0 for _, _, n_to_gen, _ in neighbors_to_generate)
 
     # Generate some random integers based on the number of neighbors
     # we need to generate and number of forbiddens
-    sum_total_to_gen = sum(n_to_gen for _, n_to_gen, _ in neighbors_to_generate)
+    sum(n_to_gen for _, _, n_to_gen, _ in neighbors_to_generate)
     n_hps = len(neighbors_to_generate)
-    _size = sum_total_to_gen * n_hps * int(np.sqrt(len(space.forbidden_clauses)))
-    integers = random.randint(n_hps, size=_size)
+    integers = random.randint(n_hps, size=_rand_size).tolist()
     _ridx = 0
 
     # Keep looping until we have used all hyperparameters
     n_hps_left_to_exhuast = n_hps
     while n_hps_left_to_exhuast > 0:
         # Our random int's ran out, make more
-        if _ridx >= _size:
+        if _ridx >= _rand_size:
             # If we got here, we don't need to generate so many more new ones
-            _size = len(neighbors_to_generate) * sum_total_to_gen * 2
-            integers = random.randint(n_hps, size=_size)
+            _rand_size = len(neighbors_to_generate) * n_hps * 2
+            integers = random.randint(n_hps, size=_rand_size).tolist()
             _ridx = 0
 
         chosen_hp_idx: int = integers[_ridx]
         _ridx += 1
 
-        hp, n_left, neighbors = neighbors_to_generate[chosen_hp_idx]
+        hp, hp_idx, n_left, neighbors = neighbors_to_generate[chosen_hp_idx]
         hp_name = hp.name
-        hp_idx = space.index_of[hp_name]
 
         if n_left == 0:
             continue
 
         neighbor_config: Configuration | None = None
 
-        _sample_size, _std, _should_shuffle = sample_strategy[hp_name]
-        for _ in range(_sample_size):
+        _neighborhood_size, _std, _should_shuffle, _generated, _should_regen = (
+            sample_strategy[hp_name]
+        )
+
+        for _ in range(_neighborhood_size):
             if len(neighbors) == 0:
+                # All possible neighbors of the hp were generated before and were
+                # exhausted, no point in trying it again...
+                if _generated and not _should_regen:
+                    n_hps_left_to_exhuast -= 1
+                    neighbors_to_generate[chosen_hp_idx] = (hp, hp_idx, 0, neighbors)
+                    break
+
+                # We should never resample something that has already had all it's
+                # neighbors sampled.
                 vec = arr[hp_idx]
-                neighbors = hp._neighborhood(vec, n=_sample_size, seed=random, std=_std)
+                neighbors = hp._neighborhood(
+                    vec,
+                    n=_neighborhood_size,
+                    seed=random,
+                    std=_std,
+                )
+
+                # Inf sized hp's are already basically shuffled. This is more for
+                # finite hps which may give a linear ordering of neighbors...
                 if _should_shuffle:
-                    # Inf sized hp's are already basically shuffled. This is more for
-                    # finite hps which may give a linear ordering of neighbors...
                     random.shuffle(neighbors)
 
-                neighbors = list(neighbors)
-                neighbors_to_generate[chosen_hp_idx] = (hp, n_left, neighbors)
+                neighbors = neighbors.tolist()
+                neighbors_to_generate[chosen_hp_idx] = (hp, hp_idx, n_left, neighbors)
+                # Update to say it's been `generated`
+                sample_strategy[hp_name] = (
+                    _neighborhood_size,
+                    _std,
+                    _should_shuffle,
+                    True,
+                    _should_regen,
+                )
 
             neighbor_vector_val = neighbors.pop()
 
@@ -248,21 +291,20 @@ def get_one_exchange_neighbourhood(
                 hp_value=neighbor_vector_val,
                 index=hp_idx,
             )
+
             for forbidden in space.dag.forbidden_lookup.get(hp_name, []):
                 if forbidden.is_forbidden_vector(new_arr):
+                    n_hps_left_to_exhuast -= 1
+                    neighbors_to_generate[chosen_hp_idx] = (hp, hp_idx, 0, neighbors)
                     break
             else:
                 neighbor_config = Configuration(space, vector=new_arr)
                 one_less = n_left - 1
-                neighbors_to_generate[chosen_hp_idx] = (hp, one_less, neighbors)
+                neighbors_to_generate[chosen_hp_idx] = (hp, hp_idx, one_less, neighbors)
                 if one_less == 0:
                     n_hps_left_to_exhuast -= 1
                 yield neighbor_config
                 break
-        else:
-            # We didn't manage to break the for loop, choose the next hp
-            n_hps_left_to_exhuast -= 1
-            neighbors_to_generate[chosen_hp_idx] = (hp, 0, neighbors)
 
 
 def get_random_neighbor(configuration: Configuration, seed: int) -> Configuration:
@@ -562,7 +604,7 @@ def change_hp_value(  # noqa: D103
             # Assign them to defaults
             arr[nan_idx] = defaults[nan_idx]
         else:
-            arr[child_idxs] = np.nan
+            arr[child_idxs] = dep.nan_arr
 
     return arr
 

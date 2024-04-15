@@ -34,15 +34,14 @@ class Hyperparameter(ABC, Generic[DType]):
     name: str
     default_value: DType
     meta: Mapping[Hashable, Any] | None
+    size: int | float
 
-    _size: int | float = field(init=False)
-    _vector_dist: Distribution = field(repr=False, init=False)
-    _normalized_default_value: f64 = field(repr=False, init=False)
-    _transformer: _Transformer[DType] = field(repr=False, init=False)
-    _neighborhood: _Neighborhood = field(repr=False, init=False, compare=False)
+    _vector_dist: Distribution = field(repr=False)
+    _normalized_default_value: f64 = field(repr=False)
+    _transformer: _Transformer[DType] = field(repr=False)
+    _neighborhood: _Neighborhood = field(repr=False, compare=False)
     _neighborhood_size: float | int | Callable[[DType | None], int | float] = field(
         repr=False,
-        init=False,
         compare=False,
     )
 
@@ -65,8 +64,8 @@ class Hyperparameter(ABC, Generic[DType]):
         self.name = name
         self.default_value = default_value
         self.meta = meta
+        self.size = size
 
-        self._size = size
         self._vector_dist = vector_dist
         self._transformer = transformer
         self._neighborhood = neighborhood
@@ -79,11 +78,6 @@ class Hyperparameter(ABC, Generic[DType]):
             )
 
         self._normalized_default_value = self.to_vector(self.default_value)
-        self._size = size
-
-    @property
-    def size(self) -> int | float:
-        return self._size
 
     @property
     def lower_vectorized(self) -> f64:

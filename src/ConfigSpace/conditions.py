@@ -37,7 +37,7 @@ from typing_extensions import Self, override
 
 import numpy as np
 
-from ConfigSpace.types import f64, i64
+from ConfigSpace.types import f64
 
 if TYPE_CHECKING:
     from ConfigSpace.hyperparameters.hyperparameter import Hyperparameter
@@ -67,8 +67,8 @@ class Condition(ABC):
         self.child = child
         self.parent = parent
 
-        self.child_vector_id: i64 | None = None
-        self.parent_vector_id: i64 | None = None
+        self.child_vector_id: np.intp | None = None
+        self.parent_vector_id: np.intp | None = None
 
         self.value = value
 
@@ -78,8 +78,8 @@ class Condition(ABC):
         This is sort of a second-stage init that is called when a condition is
         added to the search space.
         """
-        self.child_vector_id = i64(hyperparameter_to_idx[self.child.name])
-        self.parent_vector_id = i64(hyperparameter_to_idx[self.parent.name])
+        self.child_vector_id = np.intp(hyperparameter_to_idx[self.child.name])
+        self.parent_vector_id = np.intp(hyperparameter_to_idx[self.parent.name])
 
     def __eq__(self, other: Any) -> bool:
         if not isinstance(other, self.__class__):

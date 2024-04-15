@@ -4,7 +4,7 @@ from collections import deque
 from contextlib import contextmanager
 from dataclasses import dataclass, field
 from itertools import chain, product
-from typing import TYPE_CHECKING, Iterator
+from typing import TYPE_CHECKING, ClassVar, Iterator
 from typing_extensions import Self
 
 import numpy as np
@@ -29,7 +29,7 @@ from ConfigSpace.forbidden import (
     ForbiddenLike,
     ForbiddenRelation,
 )
-from ConfigSpace.types import f64, i64
+from ConfigSpace.types import f64
 
 if TYPE_CHECKING:
     from ConfigSpace.conditions import ConditionLike
@@ -39,11 +39,16 @@ if TYPE_CHECKING:
 
 @dataclass
 class ConditionNode:
+    CACHED_NAN_ARRAY: ClassVar[Array[f64]] = np.array([np.nan], dtype=f64)
+
     condition: ConditionLike
     dependants: list[ConditionNode]
     unique_children: dict[int, HPNode]
-    children_indices: Array[i64] = field(
-        default_factory=lambda: np.array((), dtype=i64),
+    children_indices: Array[np.intp] = field(
+        default_factory=lambda: np.array((), dtype=np.intp),
+    )
+    nan_arr: Array[f64] = field(
+        default_factory=lambda: ConditionNode.CACHED_NAN_ARRAY[:0],
     )
 
     def node_parents(self) -> list[str]:
@@ -517,8 +522,7 @@ class DAG:
         if isinstance(forbidden, ForbiddenClause):
             _check_hp(forbidden, forbidden.hyperparameter)
         elif isinstance(forbidden, ForbiddenConjunction):
-            dlcs = forbidden.get_descendant_literal_clauses()
-            for clause in dlcs:
+            for clause in forbidden.dlcs:
                 _check_hp(clause, clause.hyperparameter)
 
         elif isinstance(forbidden, ForbiddenRelation):
@@ -538,8 +542,7 @@ class DAG:
             return name in self.roots
 
         if isinstance(forbidden, ForbiddenConjunction):
-            dlcs = forbidden.get_descendant_literal_clauses()
-            return all(dlc.hyperparameter.name in self.roots for dlc in dlcs)
+            return all(dlc.hyperparameter.name in self.roots for dlc in forbidden.dlcs)
 
         if isinstance(forbidden, ForbiddenRelation):
             return (
@@ -563,12 +566,27 @@ class DAG:
                     a.unique_children[node.idx] = node
                     a.children_indices = np.array(
                         list(a.unique_children.keys()),
-                        dtype=np.int64,
+                        dtype=np.intp,
                     )
                     break
             else:
                 _a = ConditionNode.from_node(node)
                 base_conditions[id(_a)] = _a
+
+        # OPTIM: `change_hp` relies on this to basically nan out the children
+        # We can save some time by pre-creating the nan arrays
+        if any(base_conditions):
+            largest_required = max(
+                len(v.children_indices) for v in base_conditions.values()
+            )
+            # this is a global
+            ConditionNode.CACHED_NAN_ARRAY = np.full(
+                largest_required,
+                np.nan,
+                dtype=f64,
+            )
+            for v in base_conditions.values():
+                v.nan_arr = ConditionNode.CACHED_NAN_ARRAY[: len(v.children_indices)]
 
         # We return the base conditions such that conditions relying on
         # earlier shallower hps are first
