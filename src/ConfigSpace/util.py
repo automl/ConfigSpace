@@ -46,7 +46,6 @@ from ConfigSpace.hyperparameters import (
     CategoricalHyperparameter,
     Constant,
     Hyperparameter,
-    NumericalHyperparameter,
     OrdinalHyperparameter,
     UniformFloatHyperparameter,
     UniformIntegerHyperparameter,
@@ -144,6 +143,7 @@ def get_one_exchange_neighbourhood(
          the given configuration.
 
     """
+    OVER_SAMPLE_MULT = 5
     space = configuration.config_space
     config = configuration
     arr = configuration._vector
@@ -151,34 +151,45 @@ def get_one_exchange_neighbourhood(
     # Define how many neighbors and std.dev we should sample for a given hyperparameter
     sample_strategy: dict[str, tuple[int, float | None, bool]] = {}
 
-    # Define the total number of neighbors we should generate for any given
-    # hyperparameter
+    # Define the total number of neighbors we should generate for any given hp
     neighbors_to_generate: list[tuple[Hyperparameter, int, list[f64]]] = []
 
+    nan_hps = np.isnan(arr)
+    UFH = UniformFloatHyperparameter
+    UIH = UniformIntegerHyperparameter
     for hp in space.values():
         hp_idx = space.index_of[hp.name]
 
         # inactive hyperparameters skipped
         # hps with a size of one can't be modified to a neighbor
-        if np.isnan(arr[hp_idx]) or hp.size == 1:
+        # This catches Constants, single value categoricals and ordinals (ints?)
+        if hp.size == 1 or nan_hps[hp_idx]:
             continue
 
-        if isinstance(hp, NumericalHyperparameter) and hp.size > num_neighbors:
-            UFH = UniformFloatHyperparameter
-            UIH = UniformIntegerHyperparameter
-            _std = stdev if isinstance(hp, (UFH, UIH)) else None
+        if isinstance(hp, CategoricalHyperparameter):
+            neighbor_sample_size = hp.size - 1
+            n_to_gen = neighbor_sample_size  # NOTE: We ignore argument, don't know why
+            should_shuffle = True
+            _std = None
+        elif isinstance(hp, OrdinalHyperparameter):
+            n_to_gen = int(hp.get_num_neighbors(config[hp.name]))
+            neighbor_sample_size = n_to_gen
+            should_shuffle = True
+            _std = None
+        elif np.isinf(hp.size):  # All continuous ones
+            neighbor_sample_size = num_neighbors * OVER_SAMPLE_MULT
+            n_to_gen = num_neighbors
+            _std = stdev if isinstance(hp, UFH) else None
+            should_shuffle = True
+        else:  # All non-continuous ones
+            _size = int(hp.size - 1)
+            neighbor_sample_size = int(min(num_neighbors * OVER_SAMPLE_MULT, _size))
+            n_to_gen = min(_size, num_neighbors)
+            _std = stdev if isinstance(hp, UIH) else None
+            should_shuffle = True
 
-            # For numericals we just cap it at the number of neighbors
-            should_shuffle = not np.isinf(hp.size)
-            sample_strategy[hp.name] = (int(min(20, hp.size)), _std, should_shuffle)
-            neighbors_to_generate.append((hp, num_neighbors, []))
-        else:
-            # Otherwise, it's either a cateogircal/oridinal (allow all), or a numerical
-            # with some number of neighbors less than request
-            value = config.get(hp.name)
-            n_possible_neighbors = int(hp.get_num_neighbors(value))
-            sample_strategy[hp.name] = (n_possible_neighbors, None, False)
-            neighbors_to_generate.append((hp, n_possible_neighbors, []))
+        sample_strategy[hp.name] = (neighbor_sample_size, _std, should_shuffle)  # type: ignore
+        neighbors_to_generate.append((hp, n_to_gen, []))
 
     random = np.random.RandomState(seed)
     arr = config.get_array()
@@ -188,17 +199,13 @@ def get_one_exchange_neighbourhood(
     # Generate some random integers based on the number of neighbors
     # we need to generate and number of forbiddens
     sum_total_to_gen = sum(n_to_gen for _, n_to_gen, _ in neighbors_to_generate)
-    _size = (
-        sum_total_to_gen
-        * len(neighbors_to_generate)
-        * int(np.sqrt(len(space.forbidden_clauses)))
-    )
     n_hps = len(neighbors_to_generate)
+    _size = sum_total_to_gen * n_hps * int(np.sqrt(len(space.forbidden_clauses)))
     integers = random.randint(n_hps, size=_size)
     _ridx = 0
 
     # Keep looping until we have used all hyperparameters
-    n_hps_left_to_exhuast = len(neighbors_to_generate)
+    n_hps_left_to_exhuast = n_hps
     while n_hps_left_to_exhuast > 0:
         # Our random int's ran out, make more
         if _ridx >= _size:
@@ -219,12 +226,11 @@ def get_one_exchange_neighbourhood(
 
         neighbor_config: Configuration | None = None
 
-        # The only way we escape this loop and return a value is if we break
-        for _ in range(100):
+        _sample_size, _std, _should_shuffle = sample_strategy[hp_name]
+        for _ in range(_sample_size):
             if len(neighbors) == 0:
-                _ns, _std, _should_shuffle = sample_strategy[hp_name]
                 vec = arr[hp_idx]
-                neighbors = hp._neighborhood(vec, n=_ns, seed=random, std=_std)
+                neighbors = hp._neighborhood(vec, n=_sample_size, seed=random, std=_std)
                 if _should_shuffle:
                     # Inf sized hp's are already basically shuffled. This is more for
                     # finite hps which may give a linear ordering of neighbors...
@@ -541,22 +547,20 @@ def change_hp_value(  # noqa: D103
     space = configuration_space
     arr = configuration_array
     arr[index] = hp_value
+    dag = space.dag
+    defaults = dag.normalized_defaults
 
-    dependants = space.dag.change_hp_lookup.get(hp_name)
-
-    if dependants is None:
-        return arr
-
-    for dep in dependants:
+    for dep in dag.change_hp_lookup.get(hp_name, []):
         condition = dep.condition
         child_idxs = dep.children_indices
         if condition.satisfied_by_vector(arr):
+            # Get indices of nan children
             children = arr[child_idxs]
-            arr[child_idxs] = np.where(
-                np.isnan(children),
-                space.dag.normalized_defaults[child_idxs],
-                children,
-            )
+            nan_mask = np.isnan(children)
+            nan_idx = child_idxs[nan_mask]
+
+            # Assign them to defaults
+            arr[nan_idx] = defaults[nan_idx]
         else:
             arr[child_idxs] = np.nan
 

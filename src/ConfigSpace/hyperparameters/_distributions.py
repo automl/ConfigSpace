@@ -38,6 +38,15 @@ NEIGHBOR_GENERATOR_N_RETRIES = 5
 NEIGHBOR_GENERATOR_SAMPLE_MULTIPLIER = 4
 RandomState = np.random.RandomState
 
+# OPTIM: No need to keep regnerating this as most of the time we use defaults
+# for generating a linspace for neighborhoods
+_CACHED_LINSPACE = np.linspace(
+    DEFAULT_VECTORIZED_NUMERIC_STD,
+    1.0,
+    NEIGHBOR_GENERATOR_N_RETRIES + 1,
+    endpoint=True,
+)
+
 
 def _compare_rv(a: Any, b: Any) -> bool:
     # scipy stats object don't compare nicely...
@@ -46,7 +55,6 @@ def _compare_rv(a: Any, b: Any) -> bool:
     for key in adict:
         if key == "dist":
             if adict[key]._ctor_param != bdict[key]._ctor_param:
-                print(key)
                 return False
 
         elif adict[key] != bdict[key]:
@@ -73,7 +81,7 @@ def quantized_neighborhood(
     assert n < 1000000, "Can only generate less than 1 million neighbors."
     seed = np.random.RandomState() if seed is None else seed
 
-    qvector = quantize(np.array([vector]), bounds=(lower, upper), bins=bins)
+    qvector = quantize(vector, bounds=(lower, upper), bins=bins)
 
     # In the easiest case, the amount of neighbors we need is more than the amount
     # possible, in this case, we can skip our sampling and just generate all
@@ -85,9 +93,10 @@ def quantized_neighborhood(
         if qvector == bins - 1:
             return np.arange(0, bins - 1) / (bins - 1)
 
-        qint = np.rint(vector * (bins - 1)).astype(i64)
-        bottom = np.arange(0, qint)
-        top = np.arange(qint + 1, bins)
+        qint = i64(np.rint(vector * (bins - 1)))
+
+        bottom = np.arange(0, qint).astype(f64)
+        top = np.arange(qint + 1, bins).astype(f64)
         return np.concatenate((bottom, top)) / (bins - 1)
 
     # Otherwise, we use a repeated sampling strategy where we slowly increase the
@@ -104,7 +113,13 @@ def quantized_neighborhood(
     offset = 1  # Indexes into current progress of filling buffer
 
     # We extend the range of stds to try to find neighbors
-    stds = np.linspace(std, 1.0, n_retries + 1, endpoint=True)
+    if (
+        std == DEFAULT_VECTORIZED_NUMERIC_STD
+        and n_retries == NEIGHBOR_GENERATOR_N_RETRIES
+    ):
+        stds = _CACHED_LINSPACE
+    else:
+        stds = np.linspace(std, 1.0, n_retries + 1, endpoint=True)
 
     range_size = upper - lower
     for _std in stds:
@@ -133,7 +148,7 @@ def quantized_neighborhood(
 
     raise ValueError(
         f"Failed to find enough neighbors with {n_retries} retries."
-        f" Given {n} neighbors, we only found {offset}."
+        f" Given {n=} neighbors to generate, we only found {offset - 1}."
         f" The normal's for sampling neighbors were Normal({vector}, {list(stds)})"
         f" which were meant to find neighbors of {vector}. in the range"
         f" ({lower}, {upper}).",
@@ -162,7 +177,13 @@ def continuous_neighborhood(
     offset = 0
 
     # We extend the range of stds to try to find neighbors
-    stds = np.linspace(std, 1.0, n_retries + 1, endpoint=True)
+    if (
+        std == DEFAULT_VECTORIZED_NUMERIC_STD
+        and n_retries == NEIGHBOR_GENERATOR_N_RETRIES
+    ):
+        stds = _CACHED_LINSPACE
+    else:
+        stds = np.linspace(std, 1.0, n_retries + 1, endpoint=True)
 
     # Generate batches of n * BUFFER_MULTIPLIER candidates, filling the above
     # buffer until we have enough valid candidates.
@@ -464,7 +485,13 @@ class DiscretizedContinuousScipyDistribution(Distribution, Generic[DType]):
         offset = 1  # Indexes into current progress of filling buffer
 
         # We extend the range of stds to try to find neighbors
-        stds = np.linspace(std, 1.0, n_retries + 1, endpoint=True)
+        if (
+            std == DEFAULT_VECTORIZED_NUMERIC_STD
+            and n_retries == NEIGHBOR_GENERATOR_N_RETRIES
+        ):
+            stds = _CACHED_LINSPACE
+        else:
+            stds = np.linspace(std, 1.0, n_retries + 1, endpoint=True)
 
         range_size = upper - lower
         for _std in stds:
@@ -489,7 +516,7 @@ class DiscretizedContinuousScipyDistribution(Distribution, Generic[DType]):
 
         raise ValueError(
             f"Failed to find enough neighbors with {n_retries} retries."
-            f" Given {n} neighbors, we only found {offset}."
+            f" Given {n=} neighbors to generate, we only found {offset - 1}."
             f" The normal's for sampling neighbors were Normal({vector}, {list(stds)})"
             f" which were meant to find neighbors of {vector}. in the range"
             f" ({self.lower_vectorized}, {self.upper_vectorized}).",
@@ -716,7 +743,13 @@ class UniformIntegerDistribution(Distribution):
         offset = 1  # Indexes into current progress of filling buffer
 
         # We extend the range of stds to try to find neighbors
-        stds = np.linspace(std, 1.0, n_retries + 1, endpoint=True)
+        if (
+            std == DEFAULT_VECTORIZED_NUMERIC_STD
+            and n_retries == NEIGHBOR_GENERATOR_N_RETRIES
+        ):
+            stds = _CACHED_LINSPACE
+        else:
+            stds = np.linspace(std, 1.0, n_retries + 1, endpoint=True)
 
         range_size = upper - lower
         for _std in stds:
@@ -745,7 +778,7 @@ class UniformIntegerDistribution(Distribution):
 
         raise ValueError(
             f"Failed to find enough neighbors with {n_retries} retries."
-            f" Given {n} neighbors, we only found {offset}."
+            f" Given {n=} neighbors to generate, we only found {offset - 1}."
             f" The normal's for sampling neighbors were Normal({vector}, {list(stds)})"
             f" which were meant to find neighbors of {vector}. in the range"
             f" ({self.lower_vectorized}, {self.upper_vectorized}).",

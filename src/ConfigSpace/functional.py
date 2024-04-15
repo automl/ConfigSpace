@@ -224,12 +224,25 @@ def quantize_log(
     return rescale(qx_log, frm=log_bounds, to=bounds)
 
 
+@overload
 def quantize(
     x: Array[f64],
     *,
-    bounds: tuple[int | float | np.number, int | float | np.number],
+    bounds: tuple[Number, Number],
     bins: int,
-) -> Array[f64]:
+) -> Array[f64]: ...
+
+
+@overload
+def quantize(x: f64, *, bounds: tuple[Number, Number], bins: int) -> f64: ...
+
+
+def quantize(
+    x: Array[f64] | f64,
+    *,
+    bounds: tuple[Number, Number],
+    bins: int,
+) -> Array[f64] | f64:
     """Discretize an array of values to their closest bin.
 
     Similar to `np.digitize` but does not require the bins to be specified or loaded

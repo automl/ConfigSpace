@@ -29,9 +29,11 @@ from __future__ import annotations
 
 import copy
 import io
+import json
 import warnings
 from collections.abc import Iterable, Iterator
-from typing import Any, Mapping, Sequence, overload
+from pathlib import Path
+from typing import IO, TYPE_CHECKING, Any, Literal, Mapping, Sequence, overload
 from typing_extensions import deprecated
 
 import numpy as np
@@ -67,6 +69,17 @@ from ConfigSpace.hyperparameters import (
     UniformIntegerHyperparameter,
 )
 from ConfigSpace.hyperparameters.hyperparameter import NumericalHyperparameter
+from ConfigSpace.read_and_write.dictionary import (
+    CONDITION_DECODERS,
+    CONDITION_ENCODERS,
+    FORBIDDEN_DECODERS,
+    FORBIDDEN_ENCODERS,
+    HYPERPARAMETER_DECODERS,
+    HYPERPARAMETER_ENCODERS,
+)
+
+if TYPE_CHECKING:
+    from ConfigSpace.read_and_write.dictionary import _Decoder, _Encoder
 
 
 def _parse_hyperparameters_from_dict(items: dict[str, Any]) -> Iterator[Hyperparameter]:
@@ -914,6 +927,185 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
                 raise ForbiddenValueError(
                     f"Provided vector violates forbidden clause : {clause}",
                 )
+
+    def to_serialized_dict(
+        self,
+        encoders: Mapping[type, tuple[str, _Encoder]] | None = None,
+    ) -> dict[str, Any]:
+        # NOTE: Used to be called JSON format
+        SERIALIZATION_FORMAT_VERSION = 0.4
+
+        _encoders = {
+            **HYPERPARAMETER_ENCODERS,
+            **CONDITION_ENCODERS,
+            **FORBIDDEN_ENCODERS,
+            **(encoders or {}),
+        }
+
+        def enc(item: Any, _enc: _Encoder) -> dict[str, Any]:
+            key = type(item)
+            res = _encoders.get(key)
+            if res is None:
+                raise ValueError(
+                    f"No found encoder for '{key}'. Registered encoders are"
+                    f" {_encoders.keys()}. Please include a custom `encoders=` if"
+                    " you want to encode this type.",
+                )
+
+            type_name, encoder = res
+            encoding = encoder(item, _enc)
+            return {"type": type_name, **encoding}
+
+        from ConfigSpace import __version__
+
+        return {
+            "name": self.name,
+            "hyperparameters": [enc(hp, enc) for hp in self.values()],
+            "conditions": [enc(c, enc) for c in self.conditions],
+            "forbiddens": [enc(f, enc) for f in self.forbidden_clauses],
+            "python_module_version": __version__,
+            "format_version": SERIALIZATION_FORMAT_VERSION,
+        }
+
+    @classmethod
+    def from_serialized_dict(
+        cls,
+        d: dict[str, Any],
+        decoders: (
+            Mapping[
+                Literal["hyperparameters", "conditions", "forbiddens"],
+                Mapping[str, _Decoder],
+            ]
+            | None
+        ) = None,
+    ) -> ConfigurationSpace:
+        user_decoders = decoders or {}
+
+        def get_decoder(_decoders: Mapping[str, _Decoder]) -> _Decoder:
+            def dec(
+                item: dict[str, Any],
+                cs: ConfigurationSpace,
+                _dec: _Decoder,
+            ) -> Any:
+                _type = item.pop("type", None)
+                if _type is None:
+                    raise KeyError(
+                        f"Expected a key 'type' in item {item} but did not find it."
+                        " Did you include this in the encoding?",
+                    )
+
+                decoder = _decoders.get(_type)
+                if decoder is None:
+                    raise ValueError(
+                        f"No found decoder for '{_type}'.  Registered decoders are"
+                        f" {_decoders.keys()}. Please include a custom `decoder=` if"
+                        " you want to decode this type.",
+                    )
+
+                return decoder(item, cs, _dec)
+
+            return dec
+
+        space = ConfigurationSpace(name=d.get("name"))
+        _hyperparameters = d.get("hyperparameters", [])
+        _conditions = d.get("conditions", [])
+        _forbiddens = d.get("forbiddens", [])
+
+        hp_decoder = get_decoder(
+            {**HYPERPARAMETER_DECODERS, **user_decoders.get("hyperparameters", {})},
+        )
+        cond_decoder = get_decoder(
+            {**CONDITION_DECODERS, **user_decoders.get("conditions", {})},
+        )
+        forb_decoder = get_decoder(
+            {**FORBIDDEN_DECODERS, **user_decoders.get("forbiddens", {})},
+        )
+
+        # Important that we add hyperparameters first as decoding conditions
+        # and forbiddens rely on having access to the hyperparameters
+        hyperparameters = [hp_decoder(hp, space, hp_decoder) for hp in _hyperparameters]
+        space.add(hyperparameters)
+
+        conditions = [cond_decoder(c, space, cond_decoder) for c in _conditions]
+        forbidden = [forb_decoder(f, space, forb_decoder) for f in _forbiddens]
+        space.add(conditions, forbidden)
+        return space
+
+    def to_json(
+        self,
+        path: str | Path | IO[str],
+        *,
+        encoders: Mapping[type, tuple[str, _Encoder]] | None = None,
+        **kwargs: Any,
+    ) -> None:
+        serialized = self.to_serialized_dict(encoders=encoders)
+        if isinstance(path, (str, Path)):
+            with open(path, "w") as f:
+                json.dump(serialized, f, **kwargs)
+        else:
+            json.dump(serialized, path, **kwargs)
+
+    @classmethod
+    def from_json(
+        cls,
+        path: str | Path | IO[str],
+        *,
+        decoders: (
+            Mapping[
+                Literal["hyperparameters", "conditions", "forbiddens"],
+                Mapping[str, _Decoder],
+            ]
+            | None
+        ) = None,
+        **kwargs: Any,
+    ) -> ConfigurationSpace:
+        if isinstance(path, (str, Path)):
+            with open(path, "w") as f:
+                d = json.load(f, **kwargs)
+        else:
+            d = json.load(path, **kwargs)
+
+        return cls.from_serialized_dict(d, decoders=decoders)
+
+    def to_yaml(
+        self,
+        path: str | Path | IO[str],
+        *,
+        encoders: Mapping[type, tuple[str, _Encoder]] | None = None,
+        **kwargs: Any,
+    ) -> None:
+        import yaml
+
+        serialized = self.to_serialized_dict(encoders=encoders)
+        if isinstance(path, (str, Path)):
+            with open(path, "w") as f:
+                yaml.dump(serialized, f, **kwargs)
+        else:
+            yaml.dump(serialized, path, **kwargs)
+
+    @classmethod
+    def from_yaml(
+        cls,
+        path: str | Path | IO[str],
+        *,
+        decoders: (
+            Mapping[
+                Literal["hyperparameters", "conditions", "forbiddens"],
+                Mapping[str, _Decoder],
+            ]
+            | None
+        ) = None,
+        **kwargs: Any,
+    ) -> ConfigurationSpace:
+        import yaml
+
+        if isinstance(path, (str, Path)):
+            with open(path, "w") as f:
+                d = yaml.safe_load(f, **kwargs)
+        else:
+            d = yaml.safe_load(path, **kwargs)
+
+        return cls.from_serialized_dict(d, decoders=decoders)
 
     # ------------ Marked Deprecated --------------------
     # Probably best to only remove these once we actually

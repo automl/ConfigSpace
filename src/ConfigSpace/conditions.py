@@ -167,7 +167,8 @@ class _BinaryOpCondition(Condition):
         )
 
     def satisfied_by_vector(self, vector: Array[f64]) -> bool:
-        return bool(self._VECTOR_OP(vector[self.parent_vector_id], self.vector_value))
+        parent_value = vector[self.parent_vector_id]
+        return self._OP(parent_value, self.vector_value)  # type: ignore
 
     def satisfied_by_vector_array(self, arr: Array[f64]) -> Mask:
         vector = arr[self.parent_vector_id]
@@ -227,7 +228,7 @@ class EqualsCondition(_BinaryOpCondition):
     _OP_STR = "=="
     _REQUIRES_ORDERABLE_PARENT = False
     _OP = operator.eq
-    _VECTOR_OP = np.equal
+    _VECTOR_OP = operator.eq
     _JSON_STR_TYPE = "EQ"
 
 
@@ -262,7 +263,7 @@ class NotEqualsCondition(_BinaryOpCondition):
     _OP_STR = "!="
     _REQUIRES_ORDERABLE_PARENT = False
     _OP = operator.ne
-    _VECTOR_OP = np.not_equal
+    _VECTOR_OP = operator.ne
     _JSON_STR_TYPE = "NEQ"
 
 
@@ -296,7 +297,7 @@ class LessThanCondition(_BinaryOpCondition):
     _OP_STR = "<"
     _REQUIRES_ORDERABLE_PARENT = True
     _OP = operator.lt
-    _VECTOR_OP = np.less
+    _VECTOR_OP = operator.lt
     _JSON_STR_TYPE = "LT"
 
 
@@ -330,7 +331,7 @@ class GreaterThanCondition(_BinaryOpCondition):
     _OP_STR = ">"
     _REQUIRES_ORDERABLE_PARENT = True
     _OP = operator.gt
-    _VECTOR_OP = np.greater
+    _VECTOR_OP = operator.gt
     _JSON_STR_TYPE = "GT"
 
 
