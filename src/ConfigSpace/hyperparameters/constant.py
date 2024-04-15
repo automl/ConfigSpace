@@ -1,26 +1,32 @@
 from __future__ import annotations
 
 from collections.abc import Hashable, Mapping
+from dataclasses import dataclass
 from typing import Any, ClassVar
 
 import numpy as np
-import numpy.typing as npt
 
 from ConfigSpace.hyperparameters._distributions import ConstantVectorDistribution
 from ConfigSpace.hyperparameters._hp_components import TransformerConstant
 from ConfigSpace.hyperparameters.hyperparameter import Hyperparameter
+from ConfigSpace.types import Array, f64
 
-CONSTANT_VECTOR_VALUE_YES = np.float64(1)
-CONSTANT_VECTOR_VALUE_NO = np.float64(0)
-
-
-def _empty_neighborhood(*_: Any, **__: Any) -> npt.NDArray[np.float64]:
-    return np.ndarray([], dtype=np.float64)
+CONSTANT_VECTOR_VALUE_YES = f64(1)
+CONSTANT_VECTOR_VALUE_NO = f64(0)
 
 
+def _empty_neighborhood(*_: Any, **__: Any) -> Array[f64]:
+    return np.ndarray([], dtype=f64)
+
+
+@dataclass(init=False)
 class Constant(Hyperparameter[Any]):
-    serializable_type_name: ClassVar[str] = "constant"
-    orderable: ClassVar[bool] = False
+    SERIALIZE_TYPE_NAME: ClassVar[str] = "constant"
+    ORDERABLE: ClassVar[bool] = False
+
+    name: str
+    value: Any
+    meta: Mapping[Hashable, Any] | None
 
     def __init__(
         self,
@@ -77,12 +83,5 @@ class Constant(Hyperparameter[Any]):
 
         return ", ".join(parts)
 
-    def to_dict(self) -> dict[str, Any]:
-        return {
-            "name": self.name,
-            "type": self.serializable_type_name,
-            "value": self.value,
-        }
 
-
-UnParametrizedHyperparameter = Constant
+UnParametrizedHyperparameter = Constant  # Legacy

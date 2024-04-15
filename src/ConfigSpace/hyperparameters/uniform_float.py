@@ -3,10 +3,7 @@ from __future__ import annotations
 import math
 from collections.abc import Hashable, Mapping
 from dataclasses import dataclass
-from typing import (
-    Any,
-    ClassVar,
-)
+from typing import TYPE_CHECKING, Any, ClassVar
 
 import numpy as np
 
@@ -14,28 +11,39 @@ from ConfigSpace.hyperparameters._distributions import UnitUniformContinuousDist
 from ConfigSpace.hyperparameters._hp_components import ROUND_PLACES, UnitScaler
 from ConfigSpace.hyperparameters.hyperparameter import FloatHyperparameter
 from ConfigSpace.hyperparameters.uniform_integer import UniformIntegerHyperparameter
+from ConfigSpace.types import f64
+
+if TYPE_CHECKING:
+    from ConfigSpace.types import Number
 
 
 @dataclass(init=False)
 class UniformFloatHyperparameter(FloatHyperparameter):
-    serializable_type_name: ClassVar[str] = "uniform_float"
-    orderable: ClassVar[bool] = True
+    ORDERABLE: ClassVar[bool] = True
+
+    lower: f64
+    upper: f64
+    log: bool
+
+    name: str
+    default_value: f64
+    meta: Mapping[Hashable, Any] | None
 
     def __init__(
         self,
         name: str,
-        lower: int | float | np.floating,
-        upper: int | float | np.floating,
-        default_value: int | float | np.floating | None = None,
+        lower: Number,
+        upper: Number,
+        default_value: Number | None = None,
         log: bool = False,
         meta: Mapping[Hashable, Any] | None = None,
     ) -> None:
-        self.lower = np.float64(lower)
-        self.upper = np.float64(upper)
+        self.lower = f64(lower)
+        self.upper = f64(upper)
         self.log = log
 
         try:
-            scaler = UnitScaler(self.lower, self.upper, log=log, dtype=np.float64)
+            scaler = UnitScaler(self.lower, self.upper, log=log, dtype=f64)
         except ValueError as e:
             raise ValueError(f"Hyperparameter '{name}' has illegal settings") from e
 
@@ -45,7 +53,7 @@ class UniformFloatHyperparameter(FloatHyperparameter):
         super().__init__(
             name=name,
             size=np.inf,
-            default_value=np.float64(
+            default_value=f64(
                 np.round(
                     default_value
                     if default_value is not None
@@ -81,13 +89,3 @@ class UniformFloatHyperparameter(FloatHyperparameter):
             parts.append("on log-scale")
 
         return ", ".join(parts)
-
-    def to_dict(self) -> dict[str, Any]:
-        return {
-            "name": self.name,
-            "type": self.serializable_type_name,
-            "log": self.log,
-            "lower": float(self.lower),
-            "upper": float(self.upper),
-            "default_value": float(self.default_value),
-        }

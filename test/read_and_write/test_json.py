@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 
+import numpy as np
 import pytest
 
 from ConfigSpace import (
@@ -42,7 +43,7 @@ def test_configspace_with_probabilities():
     )
     string = write(cs)
     new_cs = read(string)
-    assert new_cs["a"].probabilities == (0.2, 0.2, 0.6)
+    np.testing.assert_equal(new_cs["a"].probabilities, (0.2, 0.2, 0.6))
 
 
 this_file = os.path.abspath(__file__)
@@ -69,7 +70,6 @@ def test_round_trip(pcs_file: str):
 
     json_string = write(cs)
     new_cs = read(json_string)
-
     assert new_cs == cs
 
 

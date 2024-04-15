@@ -1,13 +1,24 @@
 from __future__ import annotations
 
-from typing import Final
+from typing import Final, TypeVar, Union
 from typing_extensions import TypeAlias
 
 import numpy as np
 import numpy.typing as npt
 
-Vector: TypeAlias = npt.NDArray[np.float64]
-"""Vectorized representation of a configuration."""
+Mask: TypeAlias = npt.NDArray[np.bool_]
+"""Mask, vector of bools."""
+
+DType = TypeVar("DType", bound=np.number)
+
+Array: TypeAlias = npt.NDArray[DType]
+
+f64: TypeAlias = np.float64
+i64: TypeAlias = np.int64
+
+Number: TypeAlias = Union[int, float, np.number]
+
+npt.NDArray[np.generic]
 
 
 class _NotSet:

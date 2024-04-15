@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, ClassVar, Generic, Iterator
+from typing import TYPE_CHECKING, Any, ClassVar, Generic, Iterator
+from typing_extensions import Protocol
 
 import numpy as np
-import numpy.typing as npt
 
 from ConfigSpace.functional import (
     is_close_to_integer,
@@ -12,17 +12,16 @@ from ConfigSpace.functional import (
     quantize,
     quantize_log,
 )
-from ConfigSpace.hyperparameters._hp_components import (
-    ATOL,
-    DType,
-    _Transformer,
-)
+from ConfigSpace.hyperparameters._hp_components import ATOL, _Transformer
+from ConfigSpace.types import DType, f64, i64
 
 if TYPE_CHECKING:
     from scipy.stats._distn_infrastructure import (
         rv_continuous_frozen,
         rv_discrete_frozen,
     )
+
+    from ConfigSpace.types import Array
 
 # OPTIM: Some operations generate an arange which could blowup memory if
 # done over the entire space of integers (int32/64).
@@ -40,18 +39,34 @@ NEIGHBOR_GENERATOR_SAMPLE_MULTIPLIER = 4
 RandomState = np.random.RandomState
 
 
+def _compare_rv(a: Any, b: Any) -> bool:
+    # scipy stats object don't compare nicely...
+    adict = a.__dict__
+    bdict = b.__dict__
+    for key in adict:
+        if key == "dist":
+            if adict[key]._ctor_param != bdict[key]._ctor_param:
+                print(key)
+                return False
+
+        elif adict[key] != bdict[key]:
+            return False
+
+    return True
+
+
 def quantized_neighborhood(
-    vector: np.float64,
+    vector: f64,
     n: int,
     *,
     std: float | None = None,
     seed: RandomState | None = None,
     n_retries: int = NEIGHBOR_GENERATOR_N_RETRIES,
     sample_multiplier: int = NEIGHBOR_GENERATOR_SAMPLE_MULTIPLIER,
-    lower: np.float64,
-    upper: np.float64,
+    lower: f64,
+    upper: f64,
     bins: int,
-) -> npt.NDArray[np.float64]:
+) -> Array[f64]:
     if std is None:
         std = DEFAULT_VECTORIZED_NUMERIC_STD
 
@@ -70,7 +85,7 @@ def quantized_neighborhood(
         if qvector == bins - 1:
             return np.arange(0, bins - 1) / (bins - 1)
 
-        qint = np.rint(vector * (bins - 1)).astype(np.int64)
+        qint = np.rint(vector * (bins - 1)).astype(i64)
         bottom = np.arange(0, qint)
         top = np.arange(qint + 1, bins)
         return np.concatenate((bottom, top)) / (bins - 1)
@@ -84,7 +99,7 @@ def quantized_neighborhood(
     # We also include the initial value in the buffer, as we will remove it later.
     SAMPLE_SIZE = n * sample_multiplier
     BUFFER_SIZE = n * (sample_multiplier + 1)
-    neighbors = np.empty(BUFFER_SIZE + 1, dtype=np.float64)
+    neighbors = np.empty(BUFFER_SIZE + 1, dtype=f64)
     neighbors[0] = qvector
     offset = 1  # Indexes into current progress of filling buffer
 
@@ -126,16 +141,16 @@ def quantized_neighborhood(
 
 
 def continuous_neighborhood(
-    vector: np.float64,
+    vector: f64,
     n: int,
     *,
-    lower: np.float64,
-    upper: np.float64,
+    lower: f64,
+    upper: f64,
     std: float | None = None,
     seed: RandomState | None = None,
     n_retries: int = NEIGHBOR_GENERATOR_N_RETRIES,
     sample_multiplier: int = NEIGHBOR_GENERATOR_SAMPLE_MULTIPLIER,
-) -> npt.NDArray[np.float64]:
+) -> Array[f64]:
     if std is None:
         std = DEFAULT_VECTORIZED_NUMERIC_STD
 
@@ -143,7 +158,7 @@ def continuous_neighborhood(
 
     SAMPLE_SIZE = n * sample_multiplier
     BUFFER_SIZE = n + n * sample_multiplier
-    neighbors = np.empty(BUFFER_SIZE, dtype=np.float64)
+    neighbors = np.empty(BUFFER_SIZE, dtype=f64)
     offset = 0
 
     # We extend the range of stds to try to find neighbors
@@ -177,9 +192,9 @@ def continuous_neighborhood(
     )
 
 
-class Distribution:
-    lower_vectorized: np.float64
-    upper_vectorized: np.float64
+class Distribution(Protocol):
+    lower_vectorized: f64
+    upper_vectorized: f64
 
     def max_density(self) -> float: ...
 
@@ -188,12 +203,9 @@ class Distribution:
         n: int,
         *,
         seed: RandomState | None = None,
-    ) -> npt.NDArray[np.float64]: ...
+    ) -> Array[f64]: ...
 
-    def pdf_vector(
-        self,
-        vector: npt.NDArray[np.float64],
-    ) -> npt.NDArray[np.float64]: ...
+    def pdf_vector(self, vector: Array[f64]) -> Array[f64]: ...
 
 
 @dataclass
@@ -201,8 +213,8 @@ class DiscretizedContinuousScipyDistribution(Distribution, Generic[DType]):
     steps: int
 
     rv: rv_continuous_frozen
-    lower_vectorized: np.float64
-    upper_vectorized: np.float64
+    lower_vectorized: f64
+    upper_vectorized: f64
 
     log_scale: bool = False
     # NOTE: Only required if you require log scaled quantization
@@ -240,6 +252,19 @@ class DiscretizedContinuousScipyDistribution(Distribution, Generic[DType]):
             )
             self.original_value_scale = tuple(orig)
 
+    def __eq__(self, value: object, /) -> bool:
+        if not isinstance(value, self.__class__):
+            return NotImplemented
+
+        for key in self.__dict__:
+            if key == "rv":
+                if not _compare_rv(self.__dict__[key], value.__dict__[key]):
+                    return False
+            elif self.__dict__[key] != value.__dict__[key]:
+                return False
+
+        return True
+
     def max_density(self) -> float:
         if self._max_density is not None:
             return self._max_density
@@ -273,7 +298,7 @@ class DiscretizedContinuousScipyDistribution(Distribution, Generic[DType]):
     def _meaningful_pdf_values(
         self,
         confidence: float = CONFIDENCE_FOR_NORMALIZATION_OF_DISCRETE,
-    ) -> Iterator[npt.NDArray[np.float64]]:
+    ) -> Iterator[Array[f64]]:
         if self.steps > ARANGE_CHUNKSIZE:
             lower, upper = (
                 self.rv.ppf((1 - confidence) / 2),
@@ -328,10 +353,10 @@ class DiscretizedContinuousScipyDistribution(Distribution, Generic[DType]):
         n: int,
         *,
         seed: RandomState | None = None,
-    ) -> npt.NDArray[np.float64]:
+    ) -> Array[f64]:
         return self._quantize(x=self.rv.rvs(size=n, random_state=seed))
 
-    def _quantize(self, x: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
+    def _quantize(self, x: Array[f64]) -> Array[f64]:
         vectorized_bounds = (self.lower_vectorized, self.upper_vectorized)
         if not self.log_scale:
             return quantize(x, bounds=vectorized_bounds, bins=self.steps)
@@ -344,7 +369,7 @@ class DiscretizedContinuousScipyDistribution(Distribution, Generic[DType]):
             bins=self.steps,
         )
 
-    def pdf_vector(self, vector: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
+    def pdf_vector(self, vector: Array[f64]) -> Array[f64]:
         valid_entries = np.where(
             (vector >= self.lower_vectorized) & (vector <= self.upper_vectorized),
             vector,
@@ -357,14 +382,14 @@ class DiscretizedContinuousScipyDistribution(Distribution, Generic[DType]):
 
     def neighborhood(
         self,
-        vector: np.float64,
+        vector: f64,
         n: int,
         *,
         std: float | None = None,
         seed: RandomState | None = None,
         n_retries: int = NEIGHBOR_GENERATOR_N_RETRIES,
         sample_multiplier: int = NEIGHBOR_GENERATOR_SAMPLE_MULTIPLIER,
-    ) -> npt.NDArray[np.float64]:
+    ) -> Array[f64]:
         if std is None:
             std = DEFAULT_VECTORIZED_NUMERIC_STD
 
@@ -434,7 +459,7 @@ class DiscretizedContinuousScipyDistribution(Distribution, Generic[DType]):
         # We also include the initial value in the buffer, as we will remove it later.
         SAMPLE_SIZE = n * sample_multiplier
         BUFFER_SIZE = n * (sample_multiplier + 1)
-        neighbors = np.empty(BUFFER_SIZE + 1, dtype=np.float64)
+        neighbors = np.empty(BUFFER_SIZE + 1, dtype=f64)
         neighbors[0] = qvector
         offset = 1  # Indexes into current progress of filling buffer
 
@@ -474,8 +499,8 @@ class DiscretizedContinuousScipyDistribution(Distribution, Generic[DType]):
 @dataclass
 class ScipyDiscreteDistribution(Distribution):
     rv: rv_discrete_frozen
-    lower_vectorized: np.float64
-    upper_vectorized: np.float64
+    lower_vectorized: f64
+    upper_vectorized: f64
     _max_density: float
 
     def sample_vector(
@@ -483,22 +508,35 @@ class ScipyDiscreteDistribution(Distribution):
         n: int | None = None,
         *,
         seed: RandomState | None = None,
-    ) -> npt.NDArray[np.float64]:
-        return self.rv.rvs(size=n, random_state=seed).astype(np.float64)
+    ) -> Array[f64]:
+        return self.rv.rvs(size=n, random_state=seed).astype(f64)
 
     def max_density(self) -> float:
         return float(self._max_density)
 
-    def pdf_vector(self, vector: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
+    def pdf_vector(self, vector: Array[f64]) -> Array[f64]:
         # By definition, we don't allow NaNs in the pdf
         pdf = self.rv.pmf(vector)
         return np.nan_to_num(pdf, nan=0)
 
+    def __eq__(self, value: object, /) -> bool:
+        if not isinstance(value, self.__class__):
+            return NotImplemented
+
+        for key in self.__dict__:
+            if key == "rv":
+                if not _compare_rv(self.__dict__[key], value.__dict__[key]):
+                    return False
+            elif self.__dict__[key] != value.__dict__[key]:
+                return False
+
+        return True
+
 
 @dataclass
 class UniformIntegerNormalizedDistribution(Distribution):
-    lower_vectorized: ClassVar[np.float64] = np.float64(0.0)
-    upper_vectorized: ClassVar[np.float64] = np.float64(1.0)
+    lower_vectorized: ClassVar[f64] = f64(0.0)
+    upper_vectorized: ClassVar[f64] = f64(1.0)
 
     size: int
 
@@ -507,15 +545,15 @@ class UniformIntegerNormalizedDistribution(Distribution):
         n: int | None = None,
         *,
         seed: RandomState | None = None,
-    ) -> npt.NDArray[np.float64]:
+    ) -> Array[f64]:
         seed = np.random.RandomState() if seed is None else seed
-        ints = seed.randint(low=0, high=self.size, size=n, dtype=np.int64)
-        return np.true_divide(ints, (self.size - 1), dtype=np.float64)
+        ints = seed.randint(low=0, high=self.size, size=n, dtype=i64)
+        return np.true_divide(ints, (self.size - 1), dtype=f64)
 
     def max_density(self) -> float:
         return 1 / self.size
 
-    def pdf_vector(self, vector: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
+    def pdf_vector(self, vector: Array[f64]) -> Array[f64]:
         valid_mask = (
             (vector >= self.lower_vectorized)
             & (vector <= self.upper_vectorized)
@@ -525,14 +563,14 @@ class UniformIntegerNormalizedDistribution(Distribution):
 
     def neighborhood(
         self,
-        vector: np.float64,
+        vector: f64,
         n: int,
         *,
         std: float | None = None,
         seed: RandomState | None = None,
         n_retries: int = NEIGHBOR_GENERATOR_N_RETRIES,
         sample_multiplier: int = NEIGHBOR_GENERATOR_SAMPLE_MULTIPLIER,
-    ) -> npt.NDArray[np.float64]:
+    ) -> Array[f64]:
         return quantized_neighborhood(
             vector,
             n,
@@ -548,8 +586,8 @@ class UniformIntegerNormalizedDistribution(Distribution):
 
 @dataclass
 class UnitUniformContinuousDistribution(Distribution):
-    lower_vectorized: ClassVar[np.float64] = np.float64(0.0)
-    upper_vectorized: ClassVar[np.float64] = np.float64(1.0)
+    lower_vectorized: ClassVar[f64] = f64(0.0)
+    upper_vectorized: ClassVar[f64] = f64(1.0)
 
     pdf_max_density: float
 
@@ -558,14 +596,14 @@ class UnitUniformContinuousDistribution(Distribution):
         n: int | None = None,
         *,
         seed: RandomState | None = None,
-    ) -> npt.NDArray[np.float64]:
+    ) -> Array[f64]:
         seed = np.random.RandomState() if seed is None else seed
         return seed.uniform(self.lower_vectorized, self.upper_vectorized, size=n)
 
     def max_density(self) -> float:
         return self.pdf_max_density
 
-    def pdf_vector(self, vector: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
+    def pdf_vector(self, vector: Array[f64]) -> Array[f64]:
         # By definition, we don't allow NaNs in the pdf
         return np.where(
             (vector >= self.lower_vectorized) & (vector <= self.upper_vectorized),
@@ -575,14 +613,14 @@ class UnitUniformContinuousDistribution(Distribution):
 
     def neighborhood(
         self,
-        vector: np.float64,
+        vector: f64,
         n: int,
         *,
         std: float | None = None,
         seed: RandomState | None = None,
         n_retries: int = NEIGHBOR_GENERATOR_N_RETRIES,
         sample_multiplier: int = NEIGHBOR_GENERATOR_SAMPLE_MULTIPLIER,
-    ) -> npt.NDArray[np.float64]:
+    ) -> Array[f64]:
         return continuous_neighborhood(
             vector,
             n,
@@ -599,27 +637,27 @@ class UnitUniformContinuousDistribution(Distribution):
 class UniformIntegerDistribution(Distribution):
     size: int
 
-    lower_vectorized: np.float64 = field(init=False)
-    upper_vectorized: np.float64 = field(init=False)
+    lower_vectorized: f64 = field(init=False)
+    upper_vectorized: f64 = field(init=False)
 
     def __post_init__(self) -> None:
-        self.lower_vectorized = np.float64(0)
-        self.upper_vectorized = np.float64(self.size - 1)
+        self.lower_vectorized = f64(0)
+        self.upper_vectorized = f64(self.size - 1)
 
     def sample_vector(
         self,
         n: int | None = None,
         *,
         seed: RandomState | None = None,
-    ) -> npt.NDArray[np.float64]:
+    ) -> Array[f64]:
         seed = np.random.RandomState() if seed is None else seed
-        ints = seed.randint(low=0, high=self.size, size=n, dtype=np.int64)
-        return ints.astype(np.float64)
+        ints = seed.randint(low=0, high=self.size, size=n, dtype=i64)
+        return ints.astype(f64)
 
     def max_density(self) -> float:
         return 1 / self.size
 
-    def pdf_vector(self, vector: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
+    def pdf_vector(self, vector: Array[f64]) -> Array[f64]:
         # By definition, we don't allow NaNs in the pdf
         valid_mask = (
             (vector >= self.lower_vectorized)
@@ -630,14 +668,14 @@ class UniformIntegerDistribution(Distribution):
 
     def neighborhood(
         self,
-        vector: np.float64,
+        vector: f64,
         n: int,
         *,
         std: float | None = None,
         seed: RandomState | None = None,
         n_retries: int = NEIGHBOR_GENERATOR_N_RETRIES,
         sample_multiplier: int = NEIGHBOR_GENERATOR_SAMPLE_MULTIPLIER,
-    ) -> npt.NDArray[np.float64]:
+    ) -> Array[f64]:
         # Different than other neighborhoods as it's unnormalized and
         # the quantization is directly integers.
         if std is None:
@@ -648,7 +686,7 @@ class UniformIntegerDistribution(Distribution):
         lower, upper = self.lower_vectorized, self.upper_vectorized
         steps = self.size
 
-        qvector = np.rint(vector).astype(np.int64)
+        qvector = np.rint(vector).astype(i64)
 
         # In the easiest case, the amount of neighbors we need is more than the amount
         # possible, in this case, we can skip our sampling and just generate all
@@ -656,13 +694,13 @@ class UniformIntegerDistribution(Distribution):
         n_available = steps - 1
         if n >= n_available:
             if qvector == 0:
-                return np.arange(1, steps, dtype=np.float64)
+                return np.arange(1, steps, dtype=f64)
             if qvector == steps - 1:
-                return np.arange(0, steps - 1, dtype=np.float64)
+                return np.arange(0, steps - 1, dtype=f64)
 
             bottom = np.arange(0, qvector)
             top = np.arange(qvector + 1, steps)
-            return np.concatenate((bottom, top)).astype(np.float64)
+            return np.concatenate((bottom, top)).astype(f64)
 
         # Otherwise, we use a repeated sampling strategy where we slowly increase the
         # std of a normal, centered on `center`, slowly expanding `std` such that
@@ -673,7 +711,7 @@ class UniformIntegerDistribution(Distribution):
         # We also include the initial value in the buffer, as we will remove it later.
         SAMPLE_SIZE = n * sample_multiplier
         BUFFER_SIZE = n * (sample_multiplier + 1)
-        neighbors = np.empty(BUFFER_SIZE + 1, dtype=np.float64)
+        neighbors = np.empty(BUFFER_SIZE + 1, dtype=f64)
         neighbors[0] = qvector
         offset = 1  # Indexes into current progress of filling buffer
 
@@ -717,30 +755,30 @@ class UniformIntegerDistribution(Distribution):
 @dataclass
 class WeightedIntegerDiscreteDistribution(Distribution):
     size: int
-    probabilities: npt.NDArray[np.float64]
+    probabilities: Array[f64]
 
     _max_density: float = field(init=False)
-    lower_vectorized: np.float64 = field(init=False)
-    upper_vectorized: np.float64 = field(init=False)
+    lower_vectorized: f64 = field(init=False)
+    upper_vectorized: f64 = field(init=False)
 
     def __post_init__(self) -> None:
         self._max_density = float(self.probabilities.max())
-        self.lower_vectorized = np.float64(0)
-        self.upper_vectorized = np.float64(self.size - 1)
+        self.lower_vectorized = f64(0)
+        self.upper_vectorized = f64(self.size - 1)
 
     def sample_vector(
         self,
         n: int | None = None,
         *,
         seed: RandomState | None = None,
-    ) -> npt.NDArray[np.float64]:
+    ) -> Array[f64]:
         seed = np.random.RandomState() if seed is None else seed
         return seed.choice(self.size, size=n, p=self.probabilities)  # type: ignore
 
     def max_density(self) -> float:
         return float(self._max_density)
 
-    def pdf_vector(self, vector: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
+    def pdf_vector(self, vector: Array[f64]) -> Array[f64]:
         # By definition, we don't allow NaNs in the pdf
         valid_mask = (
             (vector >= self.lower_vectorized)
@@ -750,23 +788,23 @@ class WeightedIntegerDiscreteDistribution(Distribution):
 
         # Bring it all into range to index by
         nan_filled = np.nan_to_num(vector, nan=0)
-        xx = np.clip(nan_filled, 0, self.size - 1).astype(np.int64)
+        xx = np.clip(nan_filled, 0, self.size - 1).astype(i64)
         pdf = self.probabilities[xx]
         return np.where(valid_mask, pdf, 0)
 
     def neighborhood(
         self,
-        vector: np.float64,
+        vector: f64,
         n: int,
         *,
         std: float | None = None,  # noqa: ARG002
         seed: RandomState | None = None,
-    ) -> npt.NDArray[np.float64]:
+    ) -> Array[f64]:
         seed = np.random.RandomState() if seed is None else seed
         pivot = int(np.rint(vector))
         bot = np.arange(0, pivot)
         top = np.arange(pivot + 1, self.size)
-        choices = np.concatenate((bot, top)).astype(np.float64)
+        choices = np.concatenate((bot, top)).astype(f64)
         seed.shuffle(choices)
         return choices[:n]
 
@@ -774,8 +812,8 @@ class WeightedIntegerDiscreteDistribution(Distribution):
 @dataclass
 class ScipyContinuousDistribution(Distribution):
     rv: rv_continuous_frozen
-    lower_vectorized: np.float64
-    upper_vectorized: np.float64
+    lower_vectorized: f64
+    upper_vectorized: f64
 
     _max_density: float
     _pdf_norm: float = 1
@@ -785,13 +823,13 @@ class ScipyContinuousDistribution(Distribution):
         n: int | None = None,
         *,
         seed: RandomState | None = None,
-    ) -> npt.NDArray[np.float64]:
-        return self.rv.rvs(size=n, random_state=seed).astype(np.float64)
+    ) -> Array[f64]:
+        return self.rv.rvs(size=n, random_state=seed).astype(f64)
 
     def max_density(self) -> float:
         return float(self._max_density)
 
-    def pdf_vector(self, vector: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
+    def pdf_vector(self, vector: Array[f64]) -> Array[f64]:
         pdf = self.rv.pdf(vector) / self._pdf_norm
 
         # By definition, we don't allow NaNs in the pdf
@@ -799,14 +837,14 @@ class ScipyContinuousDistribution(Distribution):
 
     def neighborhood(
         self,
-        vector: np.float64,
+        vector: f64,
         n: int,
         *,
         std: float | None = None,
         seed: RandomState | None = None,
         n_retries: int = NEIGHBOR_GENERATOR_N_RETRIES,
         sample_multiplier: int = NEIGHBOR_GENERATOR_SAMPLE_MULTIPLIER,
-    ) -> npt.NDArray[np.float64]:
+    ) -> Array[f64]:
         return continuous_neighborhood(
             vector,
             n,
@@ -818,17 +856,30 @@ class ScipyContinuousDistribution(Distribution):
             upper=self.upper_vectorized,
         )
 
+    def __eq__(self, value: object, /) -> bool:
+        if not isinstance(value, self.__class__):
+            return NotImplemented
+
+        for key in self.__dict__:
+            if key == "rv":
+                if not _compare_rv(self.__dict__[key], value.__dict__[key]):
+                    return False
+            elif self.__dict__[key] != value.__dict__[key]:
+                return False
+
+        return True
+
 
 @dataclass
 class ConstantVectorDistribution(Distribution):
-    vector_value: np.float64
+    vector_value: f64
 
     @property
-    def lower_vectorized(self) -> np.float64:
+    def lower_vectorized(self) -> f64:
         return self.vector_value
 
     @property
-    def upper_vectorized(self) -> np.float64:
+    def upper_vectorized(self) -> f64:
         return self.vector_value
 
     def max_density(self) -> float:
@@ -839,11 +890,11 @@ class ConstantVectorDistribution(Distribution):
         n: int | None = None,
         *,
         seed: RandomState | None = None,  # noqa: ARG002
-    ) -> np.float64 | npt.NDArray[np.float64]:
+    ) -> f64 | Array[f64]:
         if n is None:
             return self.vector_value
 
-        return np.full((n,), self.vector_value, dtype=np.float64)
+        return np.full((n,), self.vector_value, dtype=f64)
 
-    def pdf_vector(self, vector: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
-        return (vector == self.vector_value).astype(np.float64)
+    def pdf_vector(self, vector: Array[f64]) -> Array[f64]:
+        return (vector == self.vector_value).astype(f64)

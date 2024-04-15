@@ -2,12 +2,12 @@
 from __future__ import annotations
 
 import json
-from collections.abc import Callable
+import warnings
+from typing import Any, Callable, Hashable, Mapping, TypeAlias
 
 from ConfigSpace import __version__
 from ConfigSpace.conditions import (
     AndConjunction,
-    Condition,
     EqualsCondition,
     GreaterThanCondition,
     InCondition,
@@ -23,299 +23,625 @@ from ConfigSpace.forbidden import (
     ForbiddenGreaterThanRelation,
     ForbiddenInClause,
     ForbiddenLessThanRelation,
-    ForbiddenLike,
-    ForbiddenRelation,
 )
-from ConfigSpace.functional import walk_subclasses
 from ConfigSpace.hyperparameters import (
     BetaFloatHyperparameter,
     BetaIntegerHyperparameter,
     CategoricalHyperparameter,
     Constant,
-    Hyperparameter,
     NormalFloatHyperparameter,
     NormalIntegerHyperparameter,
     OrdinalHyperparameter,
     UniformFloatHyperparameter,
     UniformIntegerHyperparameter,
-    UnParametrizedHyperparameter,
 )
 
 JSON_FORMAT_VERSION = 0.4
 
+_Decoder: TypeAlias = Callable[
+    [dict[str, Any], ConfigurationSpace, "_DecoderLookup"],
+    Any,
+]
+_DecoderLookup: TypeAlias = Mapping[Hashable, _Decoder]
+_Encoder: TypeAlias = Callable[[Any, "_EncoderLookup"], dict[str, Any]]
 
-################################################################################
-# Builder for hyperparameters
-def _build_constant(param: Constant) -> dict:
-    return {
-        "name": param.name,
-        "type": "constant",
-        "value": param.value,
-    }
-
-
-def _build_unparametrized_hyperparameter(param: UnParametrizedHyperparameter) -> dict:
-    return {
-        "name": param.name,
-        "type": "unparametrized",
-        "value": param.value,
-    }
+_EncoderLookup: TypeAlias = Mapping[type, tuple[str | tuple[str, str], _Encoder]]
 
 
-def _build_uniform_float(param: UniformFloatHyperparameter) -> dict:
-    return {
-        "name": param.name,
-        "type": "uniform_float",
-        "log": param.log,
-        "lower": param.lower,
-        "upper": param.upper,
-        "default": param.default_value,
-    }
+def _pop_q(item: dict[str, Any]) -> dict[str, Any]:
+    if item.pop("q", None) is not None:
+        warnings.warn(
+            "The field 'q' was removed! Please update your json file as necessary!"
+            f"\nFound in item {item}",
+            stacklevel=3,
+        )
+    return item
 
 
-def _build_normal_float(param: NormalFloatHyperparameter) -> dict:
-    return {
-        "name": param.name,
-        "type": "normal_float",
-        "log": param.log,
-        "mu": param.mu,
-        "sigma": param.sigma,
-        "default": param.default_value,
-        "lower": param.lower,
-        "upper": param.upper,
-    }
+def _decode_uniform_float(
+    item: dict[str, Any],
+    cs: ConfigurationSpace,  # noqa: ARG001
+    decoders: _DecoderLookup,  # noqa: ARG001
+) -> UniformFloatHyperparameter:
+    item = _pop_q(item)
+    return UniformFloatHyperparameter(**item)
 
 
-def _build_beta_float(param: BetaFloatHyperparameter) -> dict:
-    return {
-        "name": param.name,
-        "type": "beta_float",
-        "log": param.log,
-        "alpha": param.alpha,
-        "beta": param.beta,
-        "lower": param.lower,
-        "upper": param.upper,
-        "default": param.default_value,
-    }
+def _decode_uniform_int(
+    item: dict[str, Any],
+    cs: ConfigurationSpace,  # noqa: ARG001
+    decoders: _DecoderLookup,  # noqa: ARG001
+) -> UniformIntegerHyperparameter:
+    item = _pop_q(item)
+    return UniformIntegerHyperparameter(**item)
 
 
-def _build_uniform_int(param: UniformIntegerHyperparameter) -> dict:
-    return {
-        "name": param.name,
-        "type": "uniform_int",
-        "log": param.log,
-        "lower": param.lower,
-        "upper": param.upper,
-        "default": param.default_value,
-    }
+def _decode_normal_int(
+    item: dict[str, Any],
+    cs: ConfigurationSpace,  # noqa: ARG001
+    decoders: _DecoderLookup,  # noqa: ARG001
+) -> NormalIntegerHyperparameter:
+    item = _pop_q(item)
+    return NormalIntegerHyperparameter(**item)
 
 
-def _build_normal_int(param: NormalIntegerHyperparameter) -> dict:
-    return {
-        "name": param.name,
-        "type": "normal_int",
-        "log": param.log,
-        "mu": param.mu,
-        "sigma": param.sigma,
-        "lower": param.lower,
-        "upper": param.upper,
-        "default": param.default_value,
-    }
+def _decode_normal_float(
+    item: dict[str, Any],
+    cs: ConfigurationSpace,  # noqa: ARG001
+    decoders: _DecoderLookup,  # noqa: ARG001
+) -> NormalFloatHyperparameter:
+    item = _pop_q(item)
+    return NormalFloatHyperparameter(**item)
 
 
-def _build_beta_int(param: BetaIntegerHyperparameter) -> dict:
-    return {
-        "name": param.name,
-        "type": "beta_int",
-        "log": param.log,
-        "alpha": param.alpha,
-        "beta": param.beta,
-        "lower": param.lower,
-        "upper": param.upper,
-        "default": param.default_value,
-    }
+def _decode_beta_int(
+    item: dict[str, Any],
+    cs: ConfigurationSpace,  # noqa: ARG001
+    decoders: _DecoderLookup,  # noqa: ARG001
+) -> BetaIntegerHyperparameter:
+    item = _pop_q(item)
+    return BetaIntegerHyperparameter(**item)
 
 
-def _build_categorical(param: CategoricalHyperparameter) -> dict:
-    return {
-        "name": param.name,
-        "type": "categorical",
-        "choices": param.choices,
-        "default": param.default_value,
-        "weights": param.weights,
-    }
+def _decode_beta_float(
+    item: dict[str, Any],
+    cs: ConfigurationSpace,  # noqa: ARG001
+    decoders: _DecoderLookup,  # noqa: ARG001
+) -> BetaFloatHyperparameter:
+    item = _pop_q(item)
+    return BetaFloatHyperparameter(**item)
 
 
-def _build_ordinal(param: OrdinalHyperparameter) -> dict:
-    return {
-        "name": param.name,
-        "type": "ordinal",
-        "sequence": param.sequence,
-        "default": param.default_value,
-    }
+def _decode_categorical(
+    item: dict[str, Any],
+    cs: ConfigurationSpace,  # noqa: ARG001
+    decoders: _DecoderLookup,  # noqa: ARG001
+) -> CategoricalHyperparameter:
+    return CategoricalHyperparameter(**item)
 
 
-################################################################################
-# Builder for Conditions
-def _build_condition(condition: Condition) -> dict:
-    methods = {
-        AndConjunction: _build_and_conjunction,
-        OrConjunction: _build_or_conjunction,
-        InCondition: _build_in_condition,
-        EqualsCondition: _build_equals_condition,
-        NotEqualsCondition: _build_not_equals_condition,
-        GreaterThanCondition: _build_greater_than_condition,
-        LessThanCondition: _build_less_than_condition,
-    }
-    return methods[type(condition)](condition)
+def _decode_ordinal(
+    item: dict[str, Any],
+    cs: ConfigurationSpace,  # noqa: ARG001
+    decoders: _DecoderLookup,  # noqa: ARG001
+) -> OrdinalHyperparameter:
+    return OrdinalHyperparameter(**item)
 
 
-def _build_and_conjunction(conjunction: AndConjunction) -> dict:
-    child = conjunction.get_descendant_literal_conditions()[0].child.name
-    cond_list = []
-    for component in conjunction.components:
-        cond_list.append(_build_condition(component))
-    return {
-        "child": child,
-        "type": "AND",
-        "conditions": cond_list,
-    }
+def _decode_constant(
+    item: dict[str, Any],
+    cs: ConfigurationSpace,  # noqa: ARG001
+    decoders: _DecoderLookup,  # noqa: ARG001
+) -> Constant:
+    return Constant(**item)
 
 
-def _build_or_conjunction(conjunction: OrConjunction) -> dict:
-    child = conjunction.get_descendant_literal_conditions()[0].child.name
-    cond_list = []
-    for component in conjunction.components:
-        cond_list.append(_build_condition(component))
-    return {
-        "child": child,
-        "type": "OR",
-        "conditions": cond_list,
-    }
+def _decode_equals_condition(
+    item: dict[str, Any],
+    cs: ConfigurationSpace,
+    decoders: _DecoderLookup,  # noqa: ARG001
+) -> EqualsCondition:
+    return EqualsCondition(
+        child=cs[item["child"]],
+        parent=cs[item["parent"]],
+        value=item["value"],
+    )
 
 
-def _build_in_condition(condition: InCondition) -> dict:
-    child = condition.child.name
-    parent = condition.parent.name
-    values = list(condition.values)
-    return {
-        "child": child,
-        "parent": parent,
-        "type": "IN",
-        "values": values,
-    }
+def _decode_not_equals_condition(
+    item: dict[str, Any],
+    cs: ConfigurationSpace,
+    decoders: _DecoderLookup,  # noqa: ARG001
+) -> NotEqualsCondition:
+    return NotEqualsCondition(
+        child=cs[item["child"]],
+        parent=cs[item["parent"]],
+        value=item["value"],
+    )
 
 
-def _build_equals_condition(condition: EqualsCondition) -> dict:
-    child = condition.child.name
-    parent = condition.parent.name
-    value = condition.value
-    return {
-        "child": child,
-        "parent": parent,
-        "type": "EQ",
-        "value": value,
-    }
+def _decode_less_than_condition(
+    item: dict[str, Any],
+    cs: ConfigurationSpace,
+    decoders: _DecoderLookup,  # noqa: ARG001
+) -> LessThanCondition:
+    return LessThanCondition(
+        child=cs[item["child"]],
+        parent=cs[item["parent"]],
+        value=item["value"],
+    )
 
 
-def _build_not_equals_condition(condition: NotEqualsCondition) -> dict:
-    child = condition.child.name
-    parent = condition.parent.name
-    value = condition.value
-    return {
-        "child": child,
-        "parent": parent,
-        "type": "NEQ",
-        "value": value,
-    }
+def _decode_greater_than_condition(
+    item: dict[str, Any],
+    cs: ConfigurationSpace,
+    decoders: _DecoderLookup,  # noqa: ARG001
+) -> GreaterThanCondition:
+    return GreaterThanCondition(
+        child=cs[item["child"]],
+        parent=cs[item["parent"]],
+        value=item["value"],
+    )
 
 
-def _build_greater_than_condition(condition: GreaterThanCondition) -> dict:
-    child = condition.child.name
-    parent = condition.parent.name
-    value = condition.value
-    return {
-        "child": child,
-        "parent": parent,
-        "type": "GT",
-        "value": value,
-    }
+def _decode_in_condition_condition(
+    item: dict[str, Any],
+    cs: ConfigurationSpace,
+    decoders: _DecoderLookup,  # noqa: ARG001
+) -> InCondition:
+    return InCondition(
+        child=cs[item["child"]],
+        parent=cs[item["parent"]],
+        values=item["values"],
+    )
 
 
-def _build_less_than_condition(condition: LessThanCondition) -> dict:
-    child = condition.child.name
-    parent = condition.parent.name
-    value = condition.value
-    return {
-        "child": child,
-        "parent": parent,
-        "type": "LT",
-        "value": value,
-    }
+def _decode_and_conjunction(
+    item: dict[str, Any],
+    cs: ConfigurationSpace,
+    decoders: _DecoderLookup,
+) -> AndConjunction:
+    return AndConjunction(
+        *[_decode_item(cond, cs, decoders=decoders) for cond in item["conditions"]],
+    )
 
 
-################################################################################
-# Builder for forbidden
-def _build_forbidden(clause: ForbiddenLike) -> dict:
-    methods: dict[type, Callable] = {
-        ForbiddenEqualsClause: _build_forbidden_equals_clause,
-        ForbiddenInClause: _build_forbidden_in_clause,
-        ForbiddenAndConjunction: _build_forbidden_and_conjunction,
-        ForbiddenEqualsRelation: _build_forbidden_relation,
-        ForbiddenLessThanRelation: _build_forbidden_relation,
-        ForbiddenGreaterThanRelation: _build_forbidden_relation,
-    }
-    method = methods.get(type(clause), None)
-    if method is None:
-        raise NotImplementedError(f"No serialization for '{type(clause)}'")
-    return method(clause)
+def _decode_or_conjunction(
+    item: dict[str, Any],
+    cs: ConfigurationSpace,
+    decoders: _DecoderLookup,
+) -> OrConjunction:
+    return OrConjunction(
+        *[_decode_item(cond, cs, decoders=decoders) for cond in item["conditions"]],
+    )
 
 
-def _build_forbidden_equals_clause(clause: ForbiddenEqualsClause) -> dict:
-    return {
-        "name": clause.hyperparameter.name,
-        "type": "EQUALS",
-        "value": clause.value,
-    }
+def _decode_forbidden_in(
+    item: dict[str, Any],
+    cs: ConfigurationSpace,
+    decoders: _DecoderLookup,  # noqa: ARG001
+) -> ForbiddenInClause:
+    return ForbiddenInClause(hyperparameter=cs[item["name"]], values=item["values"])
 
 
-def _build_forbidden_in_clause(clause: ForbiddenInClause) -> dict:
-    return {
-        "name": clause.hyperparameter.name,
-        "type": "IN",
-        # The values are a set, but a set cannot be serialized to json
-        "values": list(clause.values),
-    }
+def _decode_forbidden_equal(
+    item: dict[str, Any],
+    cs: ConfigurationSpace,
+    decoders: _DecoderLookup,  # noqa: ARG001
+) -> ForbiddenEqualsClause:
+    return ForbiddenEqualsClause(hyperparameter=cs[item["name"]], value=item["value"])
 
 
-def _build_forbidden_and_conjunction(clause: ForbiddenAndConjunction) -> dict:
-    return {
-        "name": clause.get_descendant_literal_clauses()[0].hyperparameter.name,
-        "type": "AND",
-        "clauses": [_build_forbidden(component) for component in clause.components],
-    }
+def _decode_forbidden_and(
+    item: dict[str, Any],
+    cs: ConfigurationSpace,
+    decoders: _DecoderLookup,
+) -> ForbiddenAndConjunction:
+    return ForbiddenAndConjunction(
+        *[_decode_item(cl, cs, decoders=decoders) for cl in item["clauses"]],
+    )
 
 
-def _build_forbidden_relation(clause: ForbiddenRelation) -> dict:
-    if isinstance(clause, ForbiddenLessThanRelation):
-        lambda_ = "LESS"
-    elif isinstance(clause, ForbiddenEqualsRelation):
-        lambda_ = "EQUALS"
-    elif isinstance(clause, ForbiddenGreaterThanRelation):
-        lambda_ = "GREATER"
+def _decode_forbidden_equals_relation(
+    item: dict[str, Any],
+    cs: ConfigurationSpace,
+    decoders: _DecoderLookup,  # noqa: ARG001
+) -> ForbiddenEqualsRelation:
+    return ForbiddenEqualsRelation(left=cs[item["left"]], right=cs[item["right"]])
+
+
+def _decode_forbidden_less_than_relation(
+    item: dict[str, Any],
+    cs: ConfigurationSpace,
+    decoders: _DecoderLookup,  # noqa: ARG001
+) -> ForbiddenLessThanRelation:
+    return ForbiddenLessThanRelation(left=cs[item["left"]], right=cs[item["right"]])
+
+
+def _decode_forbidden_greater_than_relation(
+    item: dict[str, Any],
+    cs: ConfigurationSpace,
+    decoders: _DecoderLookup,  # noqa: ARG001
+) -> ForbiddenGreaterThanRelation:
+    return ForbiddenGreaterThanRelation(left=cs[item["left"]], right=cs[item["right"]])
+
+
+HYPERPARAMETER_DECODERS: _DecoderLookup = {
+    "uniform_float": _decode_uniform_float,
+    "uniform_int": _decode_uniform_int,
+    "normal_int": _decode_normal_int,
+    "normal_float": _decode_normal_float,
+    "beta_int": _decode_beta_int,
+    "beta_float": _decode_beta_float,
+    "categorical": _decode_categorical,
+    "ordinal": _decode_ordinal,
+    "constant": _decode_constant,
+}
+CONDITION_DECODERS: _DecoderLookup = {
+    "EQ": _decode_equals_condition,
+    "NEQ": _decode_not_equals_condition,
+    "LT": _decode_less_than_condition,
+    "GT": _decode_greater_than_condition,
+    "IN": _decode_in_condition_condition,
+    "AND": _decode_and_conjunction,
+    "OR": _decode_or_conjunction,
+}
+FORBIDDEN_DECODERS: _DecoderLookup = {
+    "EQUALS": _decode_forbidden_equal,
+    "IN": _decode_forbidden_in,
+    "AND": _decode_forbidden_and,
+    ("RELATION", "LESS"): _decode_forbidden_less_than_relation,
+    ("RELATION", "EQUALS"): _decode_forbidden_equals_relation,
+    ("RELATION", "GREATER"): _decode_forbidden_greater_than_relation,
+}
+
+
+def _decode_item(
+    item: dict[str, Any],
+    cs: ConfigurationSpace,
+    *,
+    decoders: _DecoderLookup,
+) -> Any:
+    _type = item.pop("type", None)
+    if _type is None:
+        raise KeyError(
+            f"Expected a key 'type' in item {item} but did not find it."
+            " Did you include this in the encoding?",
+        )
+
+    # NOTE: Previous iterations basically put the type of ForbiddenRelation
+    # into two fields, "type" and "lambda", hence this check here.
+    key: Hashable
+    if _type != "RELATION":
+        key = _type
     else:
-        raise ValueError("Unknown relation '%s'" % type(clause))
+        _lambda = item.pop("lambda", None)
+        if _lambda is None:
+            raise KeyError(
+                f"Expected a key 'lambda' in ForbiddenRelation of type {_type}"
+                f" in item {item} but did not find it. Did you include this"
+                " in the encoding?",
+            )
+        _type = (_type, _lambda)
 
+    decoder = decoders.get(key)
+    if decoder is None:
+        raise ValueError(
+            f"No found decoder for '{key}'.  Registered decoders are"
+            f" {decoders.keys()}. Please include a custom `decoder=` if"
+            " you want to decode this type.",
+        )
+
+    return decoder(item, cs, decoders)
+
+
+def _encode_uniform_float(
+    hp: UniformFloatHyperparameter,
+    encoders: _EncoderLookup,  # noqa: ARG001
+) -> dict[str, Any]:
     return {
-        "left": clause.left.name,
-        "right": clause.right.name,
-        "type": "RELATION",
-        "lambda": lambda_,
+        "name": hp.name,
+        "lower": float(hp.lower),
+        "upper": float(hp.upper),
+        "default_value": float(hp.default_value),
+        "log": hp.log,
+        "meta": hp.meta,
     }
 
 
+def _encode_uniform_int(
+    hp: UniformIntegerHyperparameter,
+    encoders: _EncoderLookup,  # noqa: ARG001
+) -> dict[str, Any]:
+    return {
+        "name": hp.name,
+        "lower": int(hp.lower),
+        "upper": int(hp.upper),
+        "default_value": int(hp.default_value),
+        "log": hp.log,
+        "meta": hp.meta,
+    }
+
+
+def _encode_normal_int(
+    hp: NormalIntegerHyperparameter,
+    encoders: _EncoderLookup,  # noqa: ARG001
+) -> dict[str, Any]:
+    return {
+        "name": hp.name,
+        "mu": float(hp.mu),
+        "sigma": float(hp.sigma),
+        "lower": int(hp.lower),
+        "upper": int(hp.upper),
+        "default_value": int(hp.default_value),
+        "log": hp.log,
+        "meta": hp.meta,
+    }
+
+
+def _encode_normal_float(
+    hp: NormalFloatHyperparameter,
+    encoders: _EncoderLookup,  # noqa: ARG001
+) -> dict[str, Any]:
+    return {
+        "name": hp.name,
+        "mu": float(hp.mu),
+        "sigma": float(hp.sigma),
+        "lower": float(hp.lower),
+        "upper": float(hp.upper),
+        "default_value": float(hp.default_value),
+        "log": hp.log,
+        "meta": hp.meta,
+    }
+
+
+def _encode_beta_int(
+    hp: BetaIntegerHyperparameter,
+    encoders: _EncoderLookup,  # noqa: ARG001
+) -> dict[str, Any]:
+    return {
+        "name": hp.name,
+        "alpha": float(hp.alpha),
+        "beta": float(hp.beta),
+        "lower": int(hp.lower),
+        "upper": int(hp.upper),
+        "default_value": int(hp.default_value),
+        "log": hp.log,
+        "meta": hp.meta,
+    }
+
+
+def _encode_beta_float(
+    hp: BetaFloatHyperparameter,
+    encoders: _EncoderLookup,  # noqa: ARG001
+) -> dict[str, Any]:
+    return {
+        "name": hp.name,
+        "alpha": float(hp.alpha),
+        "beta": float(hp.beta),
+        "lower": float(hp.lower),
+        "upper": float(hp.upper),
+        "default_value": float(hp.default_value),
+        "log": hp.log,
+        "meta": hp.meta,
+    }
+
+
+def _encode_categorical(
+    hp: CategoricalHyperparameter,
+    encoders: _EncoderLookup,  # noqa: ARG001
+) -> dict[str, Any]:
+    return {
+        "name": hp.name,
+        "choices": list(hp.choices),
+        "weights": list(hp.weights) if hp.weights else None,
+        "default_value": hp.default_value,
+        "meta": hp.meta,
+    }
+
+
+def _encode_ordinal(
+    hp: OrdinalHyperparameter,
+    encoders: _EncoderLookup,  # noqa: ARG001
+) -> dict[str, Any]:
+    return {
+        "name": hp.name,
+        "sequence": list(hp.sequence),
+        "default_value": hp.default_value,
+        "meta": hp.meta,
+    }
+
+
+def _encode_constant(hp: Constant, encoders: _EncoderLookup) -> dict[str, Any]:  # noqa: ARG001
+    return {"name": hp.name, "value": hp.value, "meta": hp.meta}
+
+
+def _encode_equals_condition(
+    cond: EqualsCondition,
+    encoders: _EncoderLookup,  # noqa: ARG001
+) -> dict[str, Any]:
+    return {
+        "child": cond.child.name,
+        "parent": cond.parent.name,
+        "value": cond.value,
+    }
+
+
+def _encode_not_equals_condition(
+    cond: NotEqualsCondition,
+    encoders: _EncoderLookup,  # noqa: ARG001
+) -> dict[str, Any]:
+    return {
+        "child": cond.child.name,
+        "parent": cond.parent.name,
+        "value": cond.value,
+    }
+
+
+def _encode_less_than_condition(
+    cond: LessThanCondition,
+    encoders: _EncoderLookup,  # noqa: ARG001
+) -> dict[str, Any]:
+    return {
+        "child": cond.child.name,
+        "parent": cond.parent.name,
+        "value": cond.value,
+    }
+
+
+def _encode_greater_than_condition(
+    cond: GreaterThanCondition,
+    encoders: _EncoderLookup,  # noqa: ARG001
+) -> dict[str, Any]:
+    return {
+        "child": cond.child.name,
+        "parent": cond.parent.name,
+        "value": cond.value,
+    }
+
+
+def _encode_in_condition(cond: InCondition, encoders: _EncoderLookup) -> dict[str, Any]:  # noqa: ARG001
+    return {
+        "child": cond.child.name,
+        "parent": cond.parent.name,
+        "values": cond.values,
+    }
+
+
+def _encode_and_conjuction(
+    cond: AndConjunction,
+    encoders: _EncoderLookup,
+) -> dict[str, Any]:
+    return {
+        "child": cond.child.name,
+        "conditions": [_encode_item(c, encoders) for c in cond.components],
+    }
+
+
+def _encode_or_conjuction(
+    cond: AndConjunction,
+    encoders: _EncoderLookup,
+) -> dict[str, Any]:
+    return {
+        "child": cond.child.name,
+        "conditions": [_encode_item(c, encoders) for c in cond.components],
+    }
+
+
+def _encode_forbidden_equals(
+    cond: ForbiddenEqualsClause,
+    encoders: _EncoderLookup,  # noqa: ARG001
+) -> dict[str, Any]:
+    return {"name": cond.hyperparameter.name, "value": cond.value}
+
+
+def _encode_forbidden_in(
+    cond: ForbiddenInClause,
+    encoders: _EncoderLookup,  # noqa: ARG001
+) -> dict[str, Any]:
+    return {"name": cond.hyperparameter.name, "values": cond.values}
+
+
+def _encode_forbidden_and(
+    cond: ForbiddenAndConjunction,
+    encoders: _EncoderLookup,
+) -> dict[str, Any]:
+    return {"clauses": [_encode_item(c, encoders) for c in cond.components]}
+
+
+def _encoder_forbidden_less_than(
+    cond: ForbiddenLessThanRelation,
+    encoders: _EncoderLookup,  # noqa: ARG001
+) -> dict[str, Any]:
+    return {"left": cond.left.name, "right": cond.right.name}
+
+
+def _encoder_forbidden_equals(
+    cond: ForbiddenEqualsRelation,
+    encoders: _EncoderLookup,  # noqa: ARG001
+) -> dict[str, Any]:
+    return {"left": cond.left.name, "right": cond.right.name}
+
+
+def _encoder_forbidden_greater_than(
+    cond: ForbiddenGreaterThanRelation,
+    encoders: _EncoderLookup,  # noqa: ARG001
+) -> dict[str, Any]:
+    return {"left": cond.left.name, "right": cond.right.name}
+
+
+HYPERPARAMETER_ENCODERS: _EncoderLookup = {
+    UniformFloatHyperparameter: ("uniform_float", _encode_uniform_float),
+    UniformIntegerHyperparameter: ("uniform_int", _encode_uniform_int),
+    NormalFloatHyperparameter: ("normal_float", _encode_normal_float),
+    NormalIntegerHyperparameter: ("normal_int", _encode_normal_int),
+    BetaIntegerHyperparameter: ("beta_int", _encode_beta_int),
+    BetaFloatHyperparameter: ("beta_float", _encode_beta_float),
+    CategoricalHyperparameter: ("categorical", _encode_categorical),
+    OrdinalHyperparameter: ("ordinal", _encode_ordinal),
+    Constant: ("constant", _encode_constant),
+}
+CONDITION_ENCODERS: _EncoderLookup = {
+    EqualsCondition: ("EQ", _encode_equals_condition),
+    NotEqualsCondition: ("NEQ", _encode_not_equals_condition),
+    LessThanCondition: ("LT", _encode_less_than_condition),
+    GreaterThanCondition: ("GT", _encode_greater_than_condition),
+    InCondition: ("IN", _encode_in_condition),
+    AndConjunction: ("AND", _encode_and_conjuction),
+    OrConjunction: ("OR", _encode_or_conjuction),
+}
+
+# NOTE: The two part for relations is due to a legacy issue
+FORBIDDEN_ENCODERS: _EncoderLookup = {
+    ForbiddenEqualsClause: ("EQUALS", _encode_forbidden_equals),
+    ForbiddenInClause: ("IN", _encode_forbidden_in),
+    ForbiddenAndConjunction: ("AND", _encode_forbidden_and),
+    ForbiddenLessThanRelation: (("RELATION", "LESS"), _encoder_forbidden_less_than),
+    ForbiddenEqualsRelation: (("RELATION", "EQUALS"), _encoder_forbidden_equals),
+    ForbiddenGreaterThanRelation: (
+        ("RELATION", "GREATER"),
+        _encoder_forbidden_greater_than,
+    ),
+}
+
+
+def _encode_item(item: Any, encoders: _EncoderLookup) -> Mapping[str, Any]:
+    key = type(item)
+    res = encoders.get(key)
+    if res is None:
+        raise ValueError(
+            f"No found encoder for '{key}'. Registered encoders are"
+            f" {encoders.keys()}. Please include a custom `encoder=` if"
+            " you want to encode this type.",
+        )
+
+    type_name, encoder = res
+    encoding = encoder(item, encoders)
+    if isinstance(type_name, tuple):
+        # NOTE: This is due to legacy where Forbidden's are delcared using two keys
+        encoding.update({"type": type_name[0], "lambda": type_name[1]})
+    else:
+        encoding.update({"type": type_name})
+
+    try:
+        json.dumps(encoding)
+    except TypeError as e:
+        clsname = item.__class__.__name__
+        raise TypeError(
+            f"`{clsname}` is not serializable to json with the"
+            f" dictionary {encoding}.\n{item}",
+        ) from e
+
+    return encoding
+
+
 ################################################################################
-def write(configuration_space: ConfigurationSpace, indent: int = 2) -> str:
+def write(
+    configuration_space: ConfigurationSpace,
+    *,
+    indent: int = 2,
+    encoders: _EncoderLookup | None = None,
+) -> str:
     """Create a string representation of a
     :class:`~ConfigSpace.configuration_space.ConfigurationSpace` in json format.
     This string can be written to file.
@@ -336,12 +662,17 @@ def write(configuration_space: ConfigurationSpace, indent: int = 2) -> str:
         a configuration space, which should be written to file.
     indent : int
         number of whitespaces to use as indent
+    encoders: dict[type, tuple[str, Callable[[Any, encoders], dict]]]
+        Additional encoders to include where they key is a type to which the encoder
+        applies to and the value is a tuple, where the first element is the type name
+        to include in the dictionary and the second element is the encoder function which
+        gives back a serializable dictionary.
 
     Returns
     -------
     str
         String representation of the configuration space,
-        which will be written to file
+        which can be written to file
     """
     if not isinstance(configuration_space, ConfigurationSpace):
         raise TypeError(
@@ -349,41 +680,33 @@ def write(configuration_space: ConfigurationSpace, indent: int = 2) -> str:
             f"you provided '{type(configuration_space)}'",
         )
 
-    conditions = []
-    forbiddens = []
+    user_encoders = encoders or {}
 
-    # Sanity check to make debugging easier
-    for hyperparameter in configuration_space.values():
-        try:
-            json.dumps(hyperparameter.to_dict())
-        except TypeError as e:
-            raise TypeError(
-                f"Hyperparameter {hyperparameter.name} is not serializable to json",
-                f" with the dictionary {hyperparameter.to_dict()}.",
-            ) from e
-
-    hyperparameters = [hp.to_dict() for hp in configuration_space.values()]
-
-    for condition in configuration_space.get_conditions():
-        conditions.append(_build_condition(condition))
-
-    for forbidden_clause in configuration_space.get_forbiddens():
-        forbiddens.append(_build_forbidden(forbidden_clause))
-
-    rval: dict = {}
-    if configuration_space.name is not None:
-        rval["name"] = configuration_space.name
-    rval["hyperparameters"] = hyperparameters
-    rval["conditions"] = conditions
-    rval["forbiddens"] = forbiddens
-    rval["python_module_version"] = __version__
-    rval["json_format_version"] = JSON_FORMAT_VERSION
-
-    return json.dumps(rval, indent=indent)
+    json_dict: dict[str, Any] = {
+        "name": configuration_space.name,
+        "hyperparameters": [
+            _encode_item(hp, {**HYPERPARAMETER_ENCODERS, **user_encoders})
+            for hp in configuration_space.values()
+        ],
+        "conditions": [
+            _encode_item(c, {**CONDITION_ENCODERS, **user_encoders})
+            for c in configuration_space.conditions
+        ],
+        "forbiddens": [
+            _encode_item(f, {**FORBIDDEN_ENCODERS, **user_encoders})
+            for f in configuration_space.forbidden_clauses
+        ],
+        "python_module_version": __version__,
+        "json_format_version": JSON_FORMAT_VERSION,
+    }
+    return json.dumps(json_dict, indent=indent)
 
 
 ################################################################################
-def read(jason_string: str) -> ConfigurationSpace:
+def read(
+    jason_string: str,
+    decoders: _DecoderLookup | None = None,
+) -> ConfigurationSpace:
     """Create a configuration space definition from a json string.
 
     .. code:: python
@@ -412,191 +735,27 @@ def read(jason_string: str) -> ConfigurationSpace:
     :class:`~ConfigSpace.configuration_space.ConfigurationSpace`
         The deserialized ConfigurationSpace object
     """
-    jason = json.loads(jason_string)
-    if "name" in jason:
-        configuration_space = ConfigurationSpace(name=jason["name"])
-    else:
-        configuration_space = ConfigurationSpace()
+    jason: dict[str, Any] = json.loads(jason_string)
+    user_decoders = decoders or {}
+    space = ConfigurationSpace(name=jason.get("name"))
 
-    hyperparameters: list[Hyperparameter] = []
+    hyperparameters_json = jason.get("hyperparameters", [])
+    conditions_json = jason.get("conditions", [])
+    forbiddens_json = jason.get("forbiddens", [])
 
-    hp_classes = {
-        serializable_type_name: hp
-        for hp in walk_subclasses(Hyperparameter)
-        if (serializable_type_name := getattr(hp, "serializable_type_name", None))
-        is not None
-    }
-    for hyperparameter in jason["hyperparameters"]:
-        hp_type = hyperparameter["type"]
-        hp_class = hp_classes.get(hp_type)
-        if hp_class is None:
-            raise ValueError(
-                f"Unknown hyperparameter type '{hp_type}'. Registered hyperparameters"
-                f" are {hp_classes.keys()}",
-            )
+    hyperparameters = [
+        _decode_item(hp, space, decoders={**HYPERPARAMETER_DECODERS, **user_decoders})
+        for hp in hyperparameters_json
+    ]
+    space.add(hyperparameters)
 
-        hp = hp_class.from_dict(hyperparameter)
-        hyperparameters.append(hp)
-
-    configuration_space.add_hyperparameters(hyperparameters)
-
-    # TODO: Can add multiple at a time?
-    conditionals = []
-    for condition in jason["conditions"]:
-        conditionals.append(_construct_condition(condition, configuration_space))
-
-    configuration_space.add_conditions(conditionals)
-
-    forbiddens = []
-    for forbidden in jason["forbiddens"]:
-        forbiddens.append(_construct_forbidden(forbidden, configuration_space))
-
-    configuration_space.add_forbidden_clauses(forbiddens)
-
-    return configuration_space
-
-
-def _construct_condition(
-    condition: dict,
-    cs: ConfigurationSpace,
-) -> Condition:
-    condition_type = condition["type"]
-    methods = {
-        "AND": _construct_and_condition,
-        "OR": _construct_or_condition,
-        "IN": _construct_in_condition,
-        "EQ": _construct_eq_condition,
-        "NEQ": _construct_neq_condition,
-        "GT": _construct_gt_condition,
-        "LT": _construct_lt_condition,
-    }
-    return methods[condition_type](condition, cs)
-
-
-def _construct_and_condition(
-    condition: dict,
-    cs: ConfigurationSpace,
-) -> AndConjunction:
-    conditions = [_construct_condition(cond, cs) for cond in condition["conditions"]]
-    return AndConjunction(*conditions)
-
-
-def _construct_or_condition(
-    condition: dict,
-    cs: ConfigurationSpace,
-) -> OrConjunction:
-    conditions = [_construct_condition(cond, cs) for cond in condition["conditions"]]
-    return OrConjunction(*conditions)
-
-
-def _construct_in_condition(
-    condition: dict,
-    cs: ConfigurationSpace,
-) -> InCondition:
-    return InCondition(
-        child=cs[condition["child"]],
-        parent=cs[condition["parent"]],
-        values=condition["values"],
-    )
-
-
-def _construct_eq_condition(
-    condition: dict,
-    cs: ConfigurationSpace,
-) -> EqualsCondition:
-    return EqualsCondition(
-        child=cs[condition["child"]],
-        parent=cs[condition["parent"]],
-        value=condition["value"],
-    )
-
-
-def _construct_neq_condition(
-    condition: dict,
-    cs: ConfigurationSpace,
-) -> NotEqualsCondition:
-    return NotEqualsCondition(
-        child=cs[condition["child"]],
-        parent=cs[condition["parent"]],
-        value=condition["value"],
-    )
-
-
-def _construct_gt_condition(
-    condition: dict,
-    cs: ConfigurationSpace,
-) -> GreaterThanCondition:
-    return GreaterThanCondition(
-        child=cs[condition["child"]],
-        parent=cs[condition["parent"]],
-        value=condition["value"],
-    )
-
-
-def _construct_lt_condition(
-    condition: dict,
-    cs: ConfigurationSpace,
-) -> LessThanCondition:
-    return LessThanCondition(
-        child=cs[condition["child"]],
-        parent=cs[condition["parent"]],
-        value=condition["value"],
-    )
-
-
-def _construct_forbidden(
-    clause: dict,
-    cs: ConfigurationSpace,
-) -> ForbiddenLike:
-    forbidden_type = clause["type"]
-    methods = {
-        "EQUALS": _construct_forbidden_equals,
-        "IN": _construct_forbidden_in,
-        "AND": _construct_forbidden_and,
-        "RELATION": _construct_forbidden_equals,
-    }
-    return methods[forbidden_type](clause, cs)
-
-
-def _construct_forbidden_equals(
-    clause: dict,
-    cs: ConfigurationSpace,
-) -> ForbiddenEqualsClause:
-    return ForbiddenEqualsClause(
-        hyperparameter=cs[clause["name"]],
-        value=clause["value"],
-    )
-
-
-def _construct_forbidden_in(
-    clause: dict,
-    cs: ConfigurationSpace,
-) -> ForbiddenEqualsClause:
-    return ForbiddenInClause(hyperparameter=cs[clause["name"]], values=clause["values"])
-
-
-def _construct_forbidden_and(
-    clause: dict,
-    cs: ConfigurationSpace,
-) -> ForbiddenAndConjunction:
-    clauses = [_construct_forbidden(cl, cs) for cl in clause["clauses"]]
-    return ForbiddenAndConjunction(*clauses)
-
-
-def _construct_forbidden_relation(  # pyright: ignore
-    clause: dict,
-    cs: ConfigurationSpace,
-) -> ForbiddenRelation:
-    left = cs[clause["left"]]
-    right = cs[clause["right"]]
-
-    if clause["lambda"] == "LESS":
-        return ForbiddenLessThanRelation(left, right)
-
-    if clause["lambda"] == "EQUALS":
-        return ForbiddenEqualsRelation(left, right)
-
-    if clause["lambda"] == "GREATER":
-        return ForbiddenGreaterThanRelation(left, right)
-
-    raise ValueError("Unknown relation '%s'" % clause["lambda"])
+    conditions = [
+        _decode_item(c, space, decoders={**CONDITION_DECODERS, **user_decoders})
+        for c in conditions_json
+    ]
+    forbidden = [
+        _decode_item(f, space, decoders={**FORBIDDEN_DECODERS, **user_decoders})
+        for f in forbiddens_json
+    ]
+    space.add(conditions, forbidden)
+    return space

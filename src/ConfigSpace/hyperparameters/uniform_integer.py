@@ -14,28 +14,36 @@ from ConfigSpace.hyperparameters._distributions import (
 )
 from ConfigSpace.hyperparameters._hp_components import ATOL, UnitScaler
 from ConfigSpace.hyperparameters.integer_hyperparameter import IntegerHyperparameter
+from ConfigSpace.types import Number, f64, i64
 
 
 @dataclass(init=False)
 class UniformIntegerHyperparameter(IntegerHyperparameter):
-    serializable_type_name: ClassVar[str] = "uniform_int"
-    orderable: ClassVar[bool] = True
+    ORDERABLE: ClassVar[bool] = True
+
+    lower: i64
+    upper: i64
+    log: bool
+
+    name: str
+    default_value: i64
+    meta: Mapping[Hashable, Any] | None
 
     def __init__(
         self,
         name: str,
-        lower: int | float | np.number,
-        upper: int | float | np.number,
-        default_value: int | np.integer | None = None,
+        lower: Number,
+        upper: Number,
+        default_value: Number | None = None,
         log: bool = False,
         meta: Mapping[Hashable, Any] | None = None,
     ) -> None:
-        self.lower = np.int64(np.rint(lower))
-        self.upper = np.int64(np.rint(upper))
+        self.lower = i64(np.rint(lower))
+        self.upper = i64(np.rint(upper))
         self.log = bool(log)
 
         if default_value is not None and not is_close_to_integer(
-            default_value,
+            f64(default_value),
             atol=ATOL,
         ):
             raise TypeError(
@@ -44,7 +52,7 @@ class UniformIntegerHyperparameter(IntegerHyperparameter):
             )
 
         try:
-            scaler = UnitScaler(self.lower, self.upper, log=log, dtype=np.int64)
+            scaler = UnitScaler(self.lower, self.upper, log=log, dtype=i64)
         except ValueError as e:
             raise ValueError(f"Hyperparameter '{name}' has illegal settings") from e
 
@@ -57,8 +65,8 @@ class UniformIntegerHyperparameter(IntegerHyperparameter):
                 steps=int(size),
                 _max_density=float(1 / size),
                 _pdf_norm=float(size),
-                lower_vectorized=np.float64(0.0),
-                upper_vectorized=np.float64(1.0),
+                lower_vectorized=f64(0.0),
+                upper_vectorized=f64(1.0),
                 log_scale=log,
                 transformer=scaler,
             )
@@ -67,7 +75,7 @@ class UniformIntegerHyperparameter(IntegerHyperparameter):
             name=name,
             size=int(size),
             default_value=(
-                np.int64(
+                i64(
                     default_value
                     if default_value is not None
                     else np.rint(scaler.to_value(np.array([0.5]))[0]),
@@ -91,13 +99,3 @@ class UniformIntegerHyperparameter(IntegerHyperparameter):
             parts.append("on log-scale")
 
         return ", ".join(parts)
-
-    def to_dict(self) -> dict[str, Any]:
-        return {
-            "name": self.name,
-            "type": self.serializable_type_name,
-            "log": self.log,
-            "lower": int(self.lower),
-            "upper": int(self.upper),
-            "default_value": int(self.default_value),
-        }

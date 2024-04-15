@@ -12,57 +12,58 @@ from ConfigSpace.hyperparameters._distributions import (
     DiscretizedContinuousScipyDistribution,
 )
 from ConfigSpace.hyperparameters._hp_components import ATOL, UnitScaler
-from ConfigSpace.hyperparameters.hyperparameter import (
-    HyperparameterWithPrior,
-    IntegerHyperparameter,
-)
-from ConfigSpace.hyperparameters.uniform_integer import UniformIntegerHyperparameter
+from ConfigSpace.hyperparameters.hyperparameter import IntegerHyperparameter
+from ConfigSpace.types import Number, f64, i64
 
 
 @dataclass(init=False)
-class NormalIntegerHyperparameter(
-    IntegerHyperparameter,
-    HyperparameterWithPrior[UniformIntegerHyperparameter],
-):
-    serializable_type_name: ClassVar[str] = "normal_int"
-    orderable: ClassVar[bool] = True
-    mu: float
-    sigma: float
+class NormalIntegerHyperparameter(IntegerHyperparameter):
+    ORDERABLE: ClassVar[bool] = True
+
+    mu: f64
+    sigma: f64
+    lower: i64
+    upper: i64
+    log: bool
+
+    name: str
+    default_value: i64
+    meta: Mapping[Hashable, Any] | None
 
     def __init__(
         self,
         name: str,
-        mu: float,
-        sigma: float,
-        lower: int,
-        upper: int,
-        default_value: int | np.integer | None = None,
+        mu: Number,
+        sigma: Number,
+        lower: Number,
+        upper: Number,
+        default_value: Number | None = None,
         log: bool = False,
         meta: Mapping[Hashable, Any] | None = None,
     ) -> None:
-        self.mu = float(mu)
-        self.sigma = float(sigma)
+        self.mu = f64(mu)
+        self.sigma = f64(sigma)
+        self.lower = i64(np.rint(lower))
+        self.upper = i64(np.rint(upper))
         self.log = bool(log)
-        self.lower = np.int64(np.rint(lower))
-        self.upper = np.int64(np.rint(upper))
 
         try:
-            scaler = UnitScaler(self.lower, self.upper, log=self.log, dtype=np.int64)
+            scaler = UnitScaler(self.lower, self.upper, log=self.log, dtype=i64)
         except ValueError as e:
             raise ValueError(f"Hyperparameter '{name}' has illegal settings") from e
 
         if default_value is None:
             _default_value = np.rint(np.clip(self.mu, self.lower, self.upper)).astype(
-                np.int64,
+                i64,
             )
         else:
-            if not is_close_to_integer(default_value, atol=ATOL):
+            if not is_close_to_integer(f64(default_value), atol=ATOL):
                 raise TypeError(
                     f"`default_value` for hyperparameter '{name}' must be an integer."
                     f" Got '{type(default_value).__name__}' for {default_value=}.",
                 )
 
-            _default_value = np.rint(default_value).astype(np.int64)
+            _default_value = np.rint(default_value).astype(i64)
 
         size = self.upper - self.lower + 1
 
@@ -79,8 +80,8 @@ class NormalIntegerHyperparameter(
         vector_dist = DiscretizedContinuousScipyDistribution(
             rv=vec_truncnorm_dist,  # type: ignore
             steps=int(size),
-            lower_vectorized=np.float64(0.0),
-            upper_vectorized=np.float64(1.0),
+            lower_vectorized=f64(0.0),
+            upper_vectorized=f64(1.0),
         )
         super().__init__(
             name=name,
@@ -91,16 +92,6 @@ class NormalIntegerHyperparameter(
             vector_dist=vector_dist,
             neighborhood=vector_dist.neighborhood,
             neighborhood_size=self._neighborhood_size,
-        )
-
-    def to_uniform(self) -> UniformIntegerHyperparameter:
-        return UniformIntegerHyperparameter(
-            self.name,
-            lower=self.lower,
-            upper=self.upper,
-            default_value=self.default_value,
-            log=self.log,
-            meta=self.meta,
         )
 
     def __str__(self) -> str:
@@ -116,15 +107,3 @@ class NormalIntegerHyperparameter(
             parts.append("on log-scale")
 
         return ", ".join(parts)
-
-    def to_dict(self) -> dict[str, Any]:
-        return {
-            "name": self.name,
-            "type": self.serializable_type_name,
-            "log": self.log,
-            "mu": float(self.mu),
-            "sigma": float(self.sigma),
-            "lower": int(self.lower),
-            "upper": int(self.upper),
-            "default_value": int(self.default_value),
-        }

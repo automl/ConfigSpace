@@ -1,14 +1,16 @@
 from __future__ import annotations
 
 from collections.abc import Iterator
-from typing import TypeVar
+from typing import TYPE_CHECKING, TypeVar
 from typing_extensions import overload
 
 import numpy as np
-import numpy.typing as npt
 from more_itertools import roundrobin
 
-Number = TypeVar("Number", bound=np.number)
+from ConfigSpace.types import Number, f64, i64
+
+if TYPE_CHECKING:
+    from ConfigSpace.types import Array, Mask
 
 
 def center_range(
@@ -140,12 +142,7 @@ def linspace_chunked(
 NPDType = TypeVar("NPDType", bound=np.generic)
 
 
-def split_arange(
-    frm: int,
-    to: int,
-    *,
-    pivot: int,
-) -> npt.NDArray[np.int64]:
+def split_arange(frm: int, to: int, *, pivot: int) -> Array[i64]:
     """Split an arange into multiple ranges.
 
     >>> split_arange(0, 10, pivot=5)
@@ -172,12 +169,12 @@ def split_arange(
 
 
 def quantize_log(
-    x: npt.NDArray[np.number],
+    x: Array[f64],
     *,
     bounds: tuple[int | float | np.number, int | float | np.number],
     scale_slice: tuple[int | float | np.number, int | float | np.number] | None = None,
     bins: int,
-) -> npt.NDArray[np.float64]:
+) -> Array[f64]:
     """Quantize an array of values on a log scale.
 
     Works by first lifting the values to the provided slice of the log scale
@@ -228,11 +225,11 @@ def quantize_log(
 
 
 def quantize(
-    x: npt.NDArray[np.number],
+    x: Array[f64],
     *,
     bounds: tuple[int | float | np.number, int | float | np.number],
     bins: int,
-) -> npt.NDArray[np.float64]:
+) -> Array[f64]:
     """Discretize an array of values to their closest bin.
 
     Similar to `np.digitize` but does not require the bins to be specified or loaded
@@ -244,7 +241,7 @@ def quantize(
     array([0, 0, 0, 0.5, 0.5, 0.5, 1, 1, 1])
 
     Args:
-        x: np.NDArray[np.float64]
+        x: np.NDArray[f64]
             The values to discretize
 
         bounds: tuple[int, int]
@@ -255,7 +252,7 @@ def quantize(
 
     Returns
     -------
-        np.NDArray[np.float64]
+        np.NDArray[f64]
     """  # noqa: E501
     # Shortcut out if we have unit norm already
     l, u = bounds  # noqa: E741
@@ -270,9 +267,9 @@ def quantize(
 
 
 def scale(
-    unit_xs: npt.NDArray,
+    unit_xs: Array[f64],
     to: tuple[int | float | np.number, int | float | np.number],
-) -> npt.NDArray:
+) -> Array[f64]:
     """Scale values from unit range to a new range.
 
     >>> scale(np.array([0.0, 0.5, 1.0]), to=(0, 10))
@@ -294,10 +291,10 @@ def scale(
 
 
 def normalize(
-    x: npt.NDArray,
+    x: Array[f64],
     *,
     bounds: tuple[int | float | np.number, int | float | np.number],
-) -> npt.NDArray:
+) -> Array[f64]:
     """Normalize values to the unit range.
 
     >>> normalize(np.array([0.0, 5.0, 10.0]), bounds=(0, 10))
@@ -317,14 +314,15 @@ def normalize(
     """
     if bounds == (0, 1):
         return x
+
     return (x - bounds[0]) / (bounds[1] - bounds[0])  # type: ignore
 
 
 def rescale(
-    x: npt.NDArray,
+    x: Array[f64],
     frm: tuple[int | float | np.number, int | float | np.number],
     to: tuple[int | float | np.number, int | float | np.number],
-) -> npt.NDArray:
+) -> Array[f64]:
     """Rescale values from one range to another.
 
     >>> rescale(np.array([0, 10, 20]), frm=(0, 100), to=(0, 10))
@@ -346,7 +344,7 @@ def rescale(
         The rescaled values
     """
     if frm == to:
-        return x
+        return x.astype(f64)
 
     normed = normalize(x, bounds=frm)
     return scale(unit_xs=normed, to=to)
@@ -354,7 +352,7 @@ def rescale(
 
 @overload
 def is_close_to_integer(
-    value: int | float | np.number,
+    value: f64 | float,
     *,
     atol: float = ...,
     rtol: float = ...,
@@ -363,19 +361,19 @@ def is_close_to_integer(
 
 @overload
 def is_close_to_integer(
-    value: np.ndarray,
+    value: Array[f64],
     *,
     atol: float = ...,
     rtol: float = ...,
-) -> npt.NDArray[np.bool_]: ...
+) -> Mask: ...
 
 
 def is_close_to_integer(
-    value: int | float | np.number | np.ndarray,
+    value: f64 | float | Array[f64],
     *,
     atol: float = 1e-9,
     rtol: float = 1e-5,
-) -> bool | npt.NDArray[np.bool_]:
+) -> bool | Mask:
     """Check if a value is close to an integer.
 
     This implements the same logic as `np.isclose` but removes
@@ -402,7 +400,7 @@ def is_close_to_integer(
 
 
 def is_close_to_integer_single(
-    value: int | float | np.number,
+    value: Number,
     *,
     atol: float = 1e-9,
     rtol: float = 1e-5,
@@ -432,7 +430,13 @@ def is_close_to_integer_single(
     return abs(a - _b) <= (atol + rtol * abs(_b))
 
 
-def walk_subclasses(cls: type, seen: set[type] | None = None) -> Iterator[type]:
+T = TypeVar("T")
+
+
+def walk_subclasses(
+    cls: type[T],
+    seen: set[type[T]] | None = None,
+) -> Iterator[type[T]]:
     """Walk all subclasses of a class.
 
     Parameters

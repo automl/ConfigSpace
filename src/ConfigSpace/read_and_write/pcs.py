@@ -7,16 +7,14 @@ A detailed explanation of the **old** PCS format can be found
 
 from __future__ import annotations
 
-from ConfigSpace.hyperparameters.hyperparameter import HyperparameterWithPrior
-
 __authors__ = ["Katharina Eggensperger", "Matthias Feurer"]
 __contact__ = "automl.org"
 
-import sys
 from collections import OrderedDict
 from collections.abc import Iterable
 from io import StringIO
 from itertools import product
+from typing_extensions import deprecated
 
 import pyparsing
 
@@ -43,8 +41,6 @@ from ConfigSpace.hyperparameters import (
     CategoricalHyperparameter,
     Constant,
     IntegerHyperparameter,
-    NormalFloatHyperparameter,
-    NormalIntegerHyperparameter,
     NumericalHyperparameter,
     UniformFloatHyperparameter,
     UniformIntegerHyperparameter,
@@ -134,11 +130,8 @@ def build_constant(param: Constant) -> str:
     return constant_template % (param.name, param.value, param.value)
 
 
-def build_continuous(
-    param: NormalIntegerHyperparameter | NormalFloatHyperparameter,
-) -> str:
-    if isinstance(param, HyperparameterWithPrior):
-        param = param.to_uniform()
+def build_continuous(param: NumericalHyperparameter) -> str:
+    param = param.to_uniform()
 
     float_template = "%s%s [%s, %s] [%s]"
     int_template = "%s%s [%d, %d] [%d]i"
@@ -228,12 +221,13 @@ def build_forbidden(clause: ForbiddenLike) -> str:
         # TODO: Fixup
         assert hasattr(dlc, "value")
         assert hasattr(dlc, "hyperparameter")
-        retval.write(f"{dlc.hyperparameter.name}={dlc.value}")
+        retval.write(f"{dlc.hyperparameter.name}={dlc.value}")  # type: ignore
     retval.write("}")
     retval.seek(0)
     return retval.getvalue()
 
 
+@deprecated("Please use `ConfigSpace.read_and_write.pcs_new.read` instead")
 def read(pcs_string: Iterable[str]) -> ConfigurationSpace:
     """Read in a :py:class:`~ConfigSpace.configuration_space.ConfigurationSpace`
     definition from a pcs file.
@@ -358,7 +352,7 @@ def read(pcs_string: Iterable[str]) -> ConfigurationSpace:
 
         hp_params_to_add.append(param)
 
-    configuration_space.add_hyperparameters(hp_params_to_add)
+    configuration_space.add(hp_params_to_add)
 
     for clause in forbidden:
         # TODO test this properly!
@@ -421,12 +415,12 @@ def read(pcs_string: Iterable[str]) -> ConfigurationSpace:
         else:
             conditions_to_add.append(condition_objects[0])
 
-    configuration_space.add_conditions(conditions_to_add)
-    configuration_space.add_forbidden_clauses(forbiddens_to_add)
+    configuration_space.add(conditions_to_add, forbiddens_to_add)
 
     return configuration_space
 
 
+@deprecated("Please use `ConfigSpace.read_and_write.pcs_new.write` instead")
 def write(configuration_space: ConfigurationSpace) -> str:
     """Create a string representation of a
     :class:`~ConfigSpace.configuration_space.ConfigurationSpace` in pcs format.
@@ -475,7 +469,7 @@ def write(configuration_space: ConfigurationSpace) -> str:
         if param_lines.tell() > 0:
             param_lines.write("\n")
         if isinstance(hyperparameter, NumericalHyperparameter):
-            param_lines.write(build_continuous(hyperparameter))
+            param_lines.write(build_continuous(hyperparameter))  # type: ignore
         elif isinstance(hyperparameter, CategoricalHyperparameter):
             param_lines.write(build_categorical(hyperparameter))
         elif isinstance(hyperparameter, Constant):
@@ -483,12 +477,12 @@ def write(configuration_space: ConfigurationSpace) -> str:
         else:
             raise TypeError(f"Unknown type: {type(hyperparameter)} ({hyperparameter})")
 
-    for condition in configuration_space.get_conditions():
+    for condition in configuration_space.conditions:
         if condition_lines.tell() > 0:
             condition_lines.write("\n")
         condition_lines.write(build_condition(condition))
 
-    for forbidden_clause in configuration_space.get_forbiddens():
+    for forbidden_clause in configuration_space.forbidden_clauses:
         # Convert in-statement into two or more equals statements
         dlcs = (
             [forbidden_clause]
@@ -536,19 +530,3 @@ def write(configuration_space: ConfigurationSpace) -> str:
 
     param_lines.seek(0)
     return param_lines.getvalue()
-
-
-if __name__ == "__main__":
-    with open(sys.argv[1]) as fh:
-        orig_pcs = fh.readlines()
-
-    sp = read(orig_pcs)
-    created_pcs = write(sp).split("\n")
-    print("============== Writing Results")
-    print("#Lines: ", len(created_pcs))
-    print("#LostLines: ", len(orig_pcs) - len(created_pcs))
-    diff = ["%s\n" % i for i in created_pcs if i not in " ".join(orig_pcs)]
-    print("Identical Lines: ", len(created_pcs) - len(diff))
-    print()
-    print("Up to 10 random different lines (of %d):" % len(diff))
-    print("".join(diff[:10]))

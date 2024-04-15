@@ -66,7 +66,7 @@ from ConfigSpace.hyperparameters import (
     UniformFloatHyperparameter,
     UniformIntegerHyperparameter,
 )
-from ConfigSpace.hyperparameters.hyperparameter import HyperparameterWithPrior
+from ConfigSpace.hyperparameters.hyperparameter import NumericalHyperparameter
 
 
 def _parse_hyperparameters_from_dict(items: dict[str, Any]) -> Iterator[Hyperparameter]:
@@ -124,7 +124,13 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         | (
             dict[
                 str,
-                tuple[int, int] | tuple[float, float] | list[Any] | int | float | str,
+                tuple[int, int]
+                | tuple[float, float]
+                | list[Any]
+                | int
+                | float
+                | str
+                | Hyperparameter,
             ]
         ) = None,
     ) -> None:
@@ -341,7 +347,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         for forbidden_clause in configuration_space.forbidden_clauses:
             new_forbidden = copy.copy(forbidden_clause)
             dlcs = (
-                new_forbidden.get_descendant_literal_clauses()
+                new_forbidden.dlcs
                 if isinstance(new_forbidden, ForbiddenConjunction)
                 else [new_forbidden]
             )
@@ -551,7 +557,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
             for cnode in self.dag.minimum_conditions:
                 condition = cnode.condition
                 satisfied = condition.satisfied_by_vector_array(valid_config_matrix)
-                valid_config_matrix[np.ix_(cnode.children_vector, ~satisfied)] = np.nan
+                valid_config_matrix[np.ix_(cnode.children_indices, ~satisfied)] = np.nan
 
             # Now we apply the forbiddens that depend on conditionals
             cond_forbidden = np.zeros(valid_config_matrix.shape[1], dtype=np.bool_)
@@ -569,7 +575,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         if size <= 1:
             return accepted_configurations[0]
 
-        return accepted_configurations
+        return accepted_configurations[:size]
 
     def seed(self, seed: int) -> None:
         """Set the random seed to a number.
@@ -595,7 +601,10 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         uniform_config_space = ConfigurationSpace()
         new_params = []
         for parameter in self.values():
-            if isinstance(parameter, HyperparameterWithPrior):
+            if isinstance(
+                parameter,
+                (NumericalHyperparameter, CategoricalHyperparameter),
+            ):
                 new_params.append(parameter.to_uniform())
             else:
                 new_params.append(copy.copy(parameter))
@@ -784,6 +793,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
                 if k in ("random",):
                     continue
                 if v != other_dict.get(k):
+                    print(k)
                     return False
 
             return True

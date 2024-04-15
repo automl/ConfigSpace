@@ -30,14 +30,17 @@ from __future__ import annotations
 import io
 from abc import ABC, abstractmethod
 from copy import copy
-from typing import Any, Iterable, Union
-from typing_extensions import Self
+from typing import TYPE_CHECKING, Any, ClassVar, Iterable, Union
+from typing_extensions import Self, deprecated
 
 import numpy as np
-import numpy.typing as npt
 from more_itertools import unique_everseen
 
 from ConfigSpace.hyperparameters import Hyperparameter
+from ConfigSpace.types import Array, Mask, f64, i64
+
+if TYPE_CHECKING:
+    from ConfigSpace.types import Array
 
 _SENTINEL = object()
 
@@ -45,7 +48,7 @@ _SENTINEL = object()
 class ForbiddenClause(ABC):
     def __init__(self, hyperparameter: Hyperparameter) -> None:
         self.hyperparameter = hyperparameter
-        self.vector_id = None
+        self.vector_id: i64 | None = None
 
     def set_vector_idx(self, hyperparameter_to_idx):
         self.vector_id = hyperparameter_to_idx[self.hyperparameter.name]
@@ -59,14 +62,11 @@ class ForbiddenClause(ABC):
         pass
 
     @abstractmethod
-    def is_forbidden_vector(self, vector: npt.NDArray[np.float64]) -> bool:
+    def is_forbidden_vector(self, vector: Array[f64]) -> bool:
         pass
 
     @abstractmethod
-    def is_forbidden_vector_array(
-        self,
-        arr: npt.NDArray[np.float64],
-    ) -> npt.NDArray[np.bool_]:
+    def is_forbidden_vector_array(self, arr: Array[f64]) -> Mask:
         pass
 
     @abstractmethod
@@ -74,11 +74,17 @@ class ForbiddenClause(ABC):
         pass
 
     @abstractmethod
-    def __repr__(self):
+    def __repr__(self) -> str:
+        pass
+
+    @abstractmethod
+    def to_dict(self) -> dict[str, Any]:
         pass
 
 
 class ForbiddenRelation(ABC):
+    _RELATION_STR: ClassVar[str]
+
     def __init__(self, left: Hyperparameter, right: Hyperparameter):
         if not isinstance(left, Hyperparameter):
             raise TypeError("Argument 'left' is not of type %s." % Hyperparameter)
@@ -112,15 +118,20 @@ class ForbiddenRelation(ABC):
         pass
 
     @abstractmethod
-    def is_forbidden_vector(self, instantiated_vector: npt.NDArray[np.float64]) -> bool:
+    def is_forbidden_vector(self, instantiated_vector: Array[f64]) -> bool:
         pass
 
     @abstractmethod
-    def is_forbidden_vector_array(
-        self,
-        arr: npt.NDArray[np.float64],
-    ) -> npt.NDArray[np.bool_]:
+    def is_forbidden_vector_array(self, arr: Array[f64]) -> Mask:
         pass
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "left": self.left.name,
+            "right": self.right.name,
+            "type": "RELATION",
+            "lambda": self._RELATION_STR,
+        }
 
 
 class ForbiddenConjunction(ABC):
@@ -138,7 +149,14 @@ class ForbiddenConjunction(ABC):
                 )
 
         self.components = args
-        self.dlcs = self.get_descendant_literal_clauses()
+        dlcs = []
+        for component in self.components:
+            if isinstance(component, ForbiddenConjunction):
+                dlcs.extend(component.dlcs)
+            else:
+                dlcs.append(component)
+
+        self.dlcs = tuple(unique_everseen(dlcs, key=lambda x: id(x)))
 
     def __copy__(self):
         return self.__class__(*[copy(comp) for comp in self.components])
@@ -156,16 +174,11 @@ class ForbiddenConjunction(ABC):
         for component in self.components:
             component.set_vector_idx(hyperparameter_to_idx)
 
+    @deprecated("Use `.dlcs` instead")
     def get_descendant_literal_clauses(
         self,
     ) -> tuple[ForbiddenClause | ForbiddenRelation, ...]:
-        children = []
-        for component in self.components:
-            if isinstance(component, ForbiddenConjunction):
-                children.extend(component.get_descendant_literal_clauses())
-            else:
-                children.append(component)
-        return tuple(unique_everseen(children, key=lambda x: id(x)))
+        return self.dlcs
 
     @abstractmethod
     def __repr__(self):
@@ -176,14 +189,15 @@ class ForbiddenConjunction(ABC):
         pass
 
     @abstractmethod
-    def is_forbidden_vector(self, instantiated_vector: npt.NDArray[np.float64]) -> bool:
+    def is_forbidden_vector(self, instantiated_vector: Array[f64]) -> bool:
         pass
 
     @abstractmethod
-    def is_forbidden_vector_array(
-        self,
-        arr: npt.NDArray[np.float64],
-    ) -> npt.NDArray[np.bool_]:
+    def is_forbidden_vector_array(self, arr: Array[f64]) -> Mask:
+        pass
+
+    @abstractmethod
+    def to_dict(self) -> dict[str, Any]:
         pass
 
 
@@ -221,8 +235,8 @@ class ForbiddenEqualsClause(ForbiddenClause):
         self.value = value
 
         # OPTIM: Since forbiddens are used in sampling which converts everything to
-        # np.float64, we pre-convert the value here to make the comparison check faster
-        self.vector_value = np.float64(self.hyperparameter.to_vector(self.value))
+        # f64, we pre-convert the value here to make the comparison check faster
+        self.vector_value = f64(self.hyperparameter.to_vector(self.value))
 
     def __eq__(self, other: Any) -> bool:
         if not isinstance(other, self.__class__):
@@ -241,14 +255,18 @@ class ForbiddenEqualsClause(ForbiddenClause):
             instantiated_values.get(self.hyperparameter.name, _SENTINEL) == self.value
         )
 
-    def is_forbidden_vector(self, vector: npt.NDArray[np.float64]) -> bool:
+    def is_forbidden_vector(self, vector: Array[f64]) -> bool:
         return vector[self.vector_id] == self.vector_value
 
-    def is_forbidden_vector_array(
-        self,
-        arr: npt.NDArray[np.float64],
-    ) -> npt.NDArray[np.bool_]:
+    def is_forbidden_vector_array(self, arr: Array[f64]) -> Mask:
         return np.equal(arr[self.vector_id], self.vector_value, dtype=np.bool_)
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "name": self.hyperparameter.name,
+            "type": "EQUALS",
+            "value": self.value,
+        }
 
 
 class ForbiddenInClause(ForbiddenClause):
@@ -317,14 +335,18 @@ class ForbiddenInClause(ForbiddenClause):
             instantiated_values.get(self.hyperparameter.name, _SENTINEL) in self.values
         )
 
-    def is_forbidden_vector(self, instantiated_vector: npt.NDArray[np.float64]) -> bool:
+    def is_forbidden_vector(self, instantiated_vector: Array[f64]) -> bool:
         return instantiated_vector[self.vector_id] in self.vector_values
 
-    def is_forbidden_vector_array(
-        self,
-        arr: npt.NDArray[np.float64],
-    ) -> npt.NDArray[np.bool_]:
+    def is_forbidden_vector_array(self, arr: Array[f64]) -> Mask:
         return np.isin(arr[self.vector_id], self.vector_values)
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "name": self.hyperparameter.name,
+            "type": "IN",
+            "values": self.values,
+        }
 
 
 class ForbiddenAndConjunction(ForbiddenConjunction):
@@ -373,7 +395,7 @@ class ForbiddenAndConjunction(ForbiddenConjunction):
 
         return True
 
-    def is_forbidden_vector(self, instantiated_vector: npt.NDArray[np.float64]) -> bool:
+    def is_forbidden_vector(self, instantiated_vector: Array[f64]) -> bool:
         # OPTIM: Using `any()` would be nice here but plain old for loop is faster
         # and this is used in the sampling hot-loop.
         for forbidden in self.components:
@@ -382,15 +404,19 @@ class ForbiddenAndConjunction(ForbiddenConjunction):
 
         return True
 
-    def is_forbidden_vector_array(
-        self,
-        arr: npt.NDArray[np.float64],
-    ) -> npt.NDArray[np.bool_]:
+    def is_forbidden_vector_array(self, arr: Array[f64]) -> Mask:
         forbidden_mask = np.ones(shape=arr.shape[1], dtype=np.bool_)
         for forbidden in self.components:
             forbidden_mask &= forbidden.is_forbidden_vector_array(arr)
 
         return forbidden_mask
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            # name:
+            "type": "AND",
+            "clauses": [component.to_dict() for component in self.components],
+        }
 
 
 class ForbiddenLessThanRelation(ForbiddenRelation):
@@ -421,6 +447,8 @@ class ForbiddenLessThanRelation(ForbiddenRelation):
          right side of the comparison
     """
 
+    _RELATION_STR = "LESS"
+
     def __repr__(self):
         return f"Forbidden: {self.left.name} < {self.right.name}"
 
@@ -436,16 +464,13 @@ class ForbiddenLessThanRelation(ForbiddenRelation):
 
         return left < right
 
-    def is_forbidden_vector(self, instantiated_vector: npt.NDArray[np.float64]) -> bool:
+    def is_forbidden_vector(self, instantiated_vector: Array[f64]) -> bool:
         # Relation is always evaluated against actual value and not vector rep
-        left: np.float64 = instantiated_vector[self.vector_ids[0]]  # type: ignore
-        right: np.float64 = instantiated_vector[self.vector_ids[1]]  # type: ignore
+        left: f64 = instantiated_vector[self.vector_ids[0]]  # type: ignore
+        right: f64 = instantiated_vector[self.vector_ids[1]]  # type: ignore
         return self.left.to_value(left) < self.right.to_value(right)
 
-    def is_forbidden_vector_array(
-        self,
-        arr: npt.NDArray[np.float64],
-    ) -> npt.NDArray[np.bool_]:
+    def is_forbidden_vector_array(self, arr: Array[f64]) -> Mask:
         left = arr[self.vector_ids[0]]
         right = arr[self.vector_ids[1]]
         return self.left.to_value(left) < self.right.to_value(right)
@@ -478,6 +503,8 @@ class ForbiddenEqualsRelation(ForbiddenRelation):
          right side of the comparison
     """
 
+    _RELATION_STR = "EQUALS"
+
     def __repr__(self):
         return f"Forbidden: {self.left.name} == {self.right.name}"
 
@@ -491,16 +518,13 @@ class ForbiddenEqualsRelation(ForbiddenRelation):
             return False
         return left == right
 
-    def is_forbidden_vector(self, instantiated_vector: npt.NDArray[np.float64]) -> bool:
+    def is_forbidden_vector(self, instantiated_vector: Array[f64]) -> bool:
         # Relation is always evaluated against actual value and not vector rep
         left = instantiated_vector[self.vector_ids[0]]
         right = instantiated_vector[self.vector_ids[1]]
         return self.left.to_value(left) == self.right.to_value(right)
 
-    def is_forbidden_vector_array(
-        self,
-        arr: npt.NDArray[np.float64],
-    ) -> npt.NDArray[np.bool_]:
+    def is_forbidden_vector_array(self, arr: Array[f64]) -> Mask:
         left = arr[self.vector_ids[0]]
         right = arr[self.vector_ids[1]]
         return self.left.to_value(left) < self.right.to_value(right)
@@ -533,6 +557,8 @@ class ForbiddenGreaterThanRelation(ForbiddenRelation):
          right side of the comparison
     """
 
+    _RELATION_STR = "GREATER"
+
     def __repr__(self):
         return f"Forbidden: {self.left.name} > {self.right.name}"
 
@@ -546,16 +572,13 @@ class ForbiddenGreaterThanRelation(ForbiddenRelation):
             return False
         return left > right
 
-    def is_forbidden_vector(self, instantiated_vector: npt.NDArray[np.float64]) -> bool:
+    def is_forbidden_vector(self, instantiated_vector: Array[f64]) -> bool:
         # Relation is always evaluated against actual value and not vector rep
-        left: np.float64 = instantiated_vector[self.vector_ids[0]]  # type: ignore
-        right: np.float64 = instantiated_vector[self.vector_ids[1]]  # type: ignore
+        left: f64 = instantiated_vector[self.vector_ids[0]]  # type: ignore
+        right: f64 = instantiated_vector[self.vector_ids[1]]  # type: ignore
         return self.left.to_value(left) > self.right.to_value(right)
 
-    def is_forbidden_vector_array(
-        self,
-        arr: npt.NDArray[np.float64],
-    ) -> npt.NDArray[np.bool_]:
+    def is_forbidden_vector_array(self, arr: Array[f64]) -> Mask:
         left = arr[self.vector_ids[0]]
         right = arr[self.vector_ids[1]]
         return self.left.to_value(left) > self.right.to_value(right)

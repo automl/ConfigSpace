@@ -33,7 +33,6 @@ from collections.abc import Iterator, Sequence
 from typing import TYPE_CHECKING, Any, cast
 
 import numpy as np
-import numpy.typing as npt
 
 from ConfigSpace import Configuration
 from ConfigSpace.exceptions import (
@@ -55,6 +54,7 @@ from ConfigSpace.hyperparameters import (
 
 if TYPE_CHECKING:
     from ConfigSpace.configuration_space import ConfigurationSpace
+    from ConfigSpace.types import Array, f64, i64
 
 
 def impute_inactive_values(
@@ -153,7 +153,7 @@ def get_one_exchange_neighbourhood(
 
     # Define the total number of neighbors we should generate for any given
     # hyperparameter
-    neighbors_to_generate: list[tuple[Hyperparameter, int, list[np.float64]]] = []
+    neighbors_to_generate: list[tuple[Hyperparameter, int, list[f64]]] = []
 
     for hp in space.values():
         hp_idx = space.index_of[hp.name]
@@ -500,7 +500,7 @@ def check_configuration(  # noqa: D103
     for cnode in space.dag.minimum_conditions:
         # Everything for the condition is satisfied, make sure active
         # hyperparameters are set, legal and not forbidden
-        children_idxs = cnode.children_vector
+        children_idxs = cnode.children_indices
         if cnode.condition.satisfied_by_vector(vector):
             active_mask = activated[children_idxs]
             if not active_mask.all():
@@ -533,11 +533,11 @@ def check_configuration(  # noqa: D103
 
 def change_hp_value(  # noqa: D103
     configuration_space: ConfigurationSpace,
-    configuration_array: npt.NDArray[np.float64],
+    configuration_array: Array[f64],
     hp_name: str,
-    hp_value: float | np.float64,
-    index: int | np.int64,
-) -> npt.NDArray[np.float64]:
+    hp_value: float | f64,
+    index: int | i64,
+) -> Array[f64]:
     space = configuration_space
     arr = configuration_array
     arr[index] = hp_value
@@ -549,7 +549,7 @@ def change_hp_value(  # noqa: D103
 
     for dep in dependants:
         condition = dep.condition
-        child_idxs = dep.children_vector
+        child_idxs = dep.children_indices
         if condition.satisfied_by_vector(arr):
             children = arr[child_idxs]
             arr[child_idxs] = np.where(

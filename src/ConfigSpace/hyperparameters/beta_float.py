@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 from collections.abc import Hashable, Mapping
-from typing import Any, ClassVar
+from dataclasses import dataclass
+from typing import TYPE_CHECKING, Any, ClassVar
 
 import numpy as np
 from scipy.stats import beta as spbeta
@@ -12,25 +13,34 @@ from ConfigSpace.hyperparameters._distributions import (
 from ConfigSpace.hyperparameters._hp_components import ROUND_PLACES, UnitScaler
 from ConfigSpace.hyperparameters.beta_integer import BetaIntegerHyperparameter
 from ConfigSpace.hyperparameters.float_hyperparameter import FloatHyperparameter
-from ConfigSpace.hyperparameters.hyperparameter import HyperparameterWithPrior
-from ConfigSpace.hyperparameters.uniform_float import UniformFloatHyperparameter
+from ConfigSpace.types import f64
+
+if TYPE_CHECKING:
+    from ConfigSpace.types import Number
 
 
-class BetaFloatHyperparameter(
-    FloatHyperparameter,
-    HyperparameterWithPrior[UniformFloatHyperparameter],
-):
-    serializable_type_name: ClassVar[str] = "beta_float"
-    orderable: ClassVar[bool] = True
+@dataclass(init=False)
+class BetaFloatHyperparameter(FloatHyperparameter):
+    ORDERABLE: ClassVar[bool] = True
+
+    alpha: f64
+    beta: f64
+    lower: f64
+    upper: f64
+    log: bool
+
+    name: str
+    default_value: f64
+    meta: Mapping[Hashable, Any] | None
 
     def __init__(
         self,
         name: str,
-        alpha: int | float | np.number,
-        beta: int | float | np.number,
-        lower: float | int | np.number,
-        upper: float | int | np.number,
-        default_value: None | float | int | np.number = None,
+        alpha: Number,
+        beta: Number,
+        lower: Number,
+        upper: Number,
+        default_value: Number | None = None,
         log: bool = False,
         meta: Mapping[Hashable, Any] | None = None,
     ) -> None:
@@ -77,14 +87,14 @@ class BetaFloatHyperparameter(
                 " 1 so that the probability density is finite.",
             )
 
-        self.alpha = np.float64(alpha)
-        self.beta = np.float64(beta)
-        self.lower = np.float64(lower)
-        self.upper = np.float64(upper)
+        self.alpha = f64(alpha)
+        self.beta = f64(beta)
+        self.lower = f64(lower)
+        self.upper = f64(upper)
         self.log = bool(log)
 
         try:
-            scaler = UnitScaler(self.lower, self.upper, log=log, dtype=np.float64)
+            scaler = UnitScaler(self.lower, self.upper, log=log, dtype=f64)
         except ValueError as e:
             raise ValueError(f"Hyperparameter '{name}' has illegal settings") from e
 
@@ -103,30 +113,20 @@ class BetaFloatHyperparameter(
         beta_rv = spbeta(self.alpha, self.beta)
         vector_dist = ScipyContinuousDistribution(
             rv=beta_rv,  # type: ignore
-            lower_vectorized=np.float64(0.0),
-            upper_vectorized=np.float64(1.0),
+            lower_vectorized=f64(0.0),
+            upper_vectorized=f64(1.0),
             _max_density=beta_rv.pdf(normalized_mode),  # type: ignore
         )
 
         super().__init__(
             name=name,
             size=np.inf,
-            default_value=np.float64(np.round(_default_value, ROUND_PLACES)),
+            default_value=f64(np.round(_default_value, ROUND_PLACES)),
             meta=meta,
             transformer=scaler,
             vector_dist=vector_dist,
             neighborhood=vector_dist.neighborhood,
             neighborhood_size=np.inf,
-        )
-
-    def to_uniform(self) -> UniformFloatHyperparameter:
-        return UniformFloatHyperparameter(
-            name=self.name,
-            lower=self.lower,
-            upper=self.upper,
-            default_value=self.default_value,
-            log=self.log,
-            meta=None,
         )
 
     def to_integer(self) -> BetaIntegerHyperparameter:
@@ -158,15 +158,3 @@ class BetaFloatHyperparameter(
             parts.append("on log-scale")
 
         return ", ".join(parts)
-
-    def to_dict(self) -> dict[str, Any]:
-        return {
-            "name": self.name,
-            "type": self.serializable_type_name,
-            "log": self.log,
-            "alpha": float(self.alpha),
-            "beta": float(self.beta),
-            "lower": float(self.lower),
-            "upper": float(self.upper),
-            "default_value": float(self.default_value),
-        }

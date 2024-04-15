@@ -20,8 +20,6 @@ and further examples are provided in the
 
 from __future__ import annotations
 
-from ConfigSpace.hyperparameters.hyperparameter import HyperparameterWithPrior
-
 __authors__ = [
     "Katharina Eggensperger",
     "Matthias Feurer",
@@ -54,7 +52,6 @@ from ConfigSpace.forbidden import (
     ForbiddenConjunction,
     ForbiddenEqualsClause,
     ForbiddenInClause,
-    ForbiddenLike,
     ForbiddenRelation,
 )
 from ConfigSpace.hyperparameters import (
@@ -62,8 +59,6 @@ from ConfigSpace.hyperparameters import (
     Constant,
     FloatHyperparameter,
     IntegerHyperparameter,
-    NormalFloatHyperparameter,
-    NormalIntegerHyperparameter,
     NumericalHyperparameter,
     OrdinalHyperparameter,
     UniformFloatHyperparameter,
@@ -203,10 +198,8 @@ def build_constant(param: Constant) -> str:
     return const_template % (param.name, param.value, param.value)
 
 
-def build_continuous(
-    param: NormalFloatHyperparameter | NormalIntegerHyperparameter,
-) -> str:
-    _param = param.to_uniform() if isinstance(param, HyperparameterWithPrior) else param
+def build_continuous(param: NumericalHyperparameter) -> str:
+    _param = param.to_uniform()
 
     float_template = "%s%s real [%s, %s] [%s]"
     int_template = "%s%s integer [%d, %d] [%d]"
@@ -297,6 +290,12 @@ def build_conjunction(conjunction: Conjunction) -> str:
 
     cond_list = []
     for component in conjunction.components:
+        if not isinstance(component, Condition):
+            # TODO: Fix this
+            raise NotImplementedError(
+                "build_conjunction only accepts Condition objects, "
+                " if this error occurs, please report it to the developers",
+            )
         tmp = build_condition(component)
 
         # This is somehow hacky, but should work for now
@@ -311,7 +310,7 @@ def build_conjunction(conjunction: Conjunction) -> str:
     return line
 
 
-def build_forbidden(clause: ForbiddenLike) -> str:
+def build_forbidden(clause: ForbiddenClause | ForbiddenConjunction) -> str:
     accepted = (ForbiddenRelation, ForbiddenClause, ForbiddenConjunction)
     if not isinstance(clause, accepted):
         raise TypeError(
@@ -321,9 +320,9 @@ def build_forbidden(clause: ForbiddenLike) -> str:
 
     # TODO: Why ...?
     if isinstance(clause, ForbiddenRelation):
-        raise TypeError(
-            "build_forbidden must not be called with an instance of "
-            f"'{ForbiddenRelation}', got '{type(clause)}'",
+        raise NotImplementedError(
+            "build_forbidden does not support ForbiddenRelation"
+            " objects, please report this to the developers",
         )
 
     retval = StringIO()
@@ -335,9 +334,20 @@ def build_forbidden(clause: ForbiddenLike) -> str:
         if retval.tell() > 1:
             retval.write(", ")
         # TODO: Fixup
-        assert hasattr(dlc, "value")
-        assert hasattr(dlc, "hyperparameter")
-        retval.write(f"{dlc.hyperparameter.name}={dlc.value}")
+        if isinstance(dlc, ForbiddenRelation):
+            raise NotImplementedError(
+                "build_forbidden does not support ForbiddenRelation"
+                " objects, please report this to the developers",
+            )
+
+        if isinstance(dlc, ForbiddenInClause):
+            retval.write(f"{dlc.hyperparameter.name}={dlc.values}")
+        else:
+            sentinal = object()
+            _val = getattr(dlc, "value", sentinal)
+            assert _val is not sentinal
+            retval.write(f"{dlc.hyperparameter.name}={_val}")
+
     retval.write("}")
     retval.seek(0)
     return retval.getvalue()
@@ -355,17 +365,19 @@ def condition_specification(
     operation = condition[1]
     if operation == "in":
         restrictions = list(condition[3:-1:2])
-        for i, val in enumerate(restrictions):
-            if isinstance(parent, FloatHyperparameter):
-                restrictions[i] = float(val)  # type: ignore
-            elif isinstance(parent, IntegerHyperparameter):
-                restrictions[i] = int(val)  # type: ignore
+
+        if isinstance(parent, FloatHyperparameter):
+            restricted_values = [float(val) for val in restrictions]
+        elif isinstance(parent, IntegerHyperparameter):
+            restricted_values = [int(val) for val in restrictions]
+        else:
+            restricted_values = restrictions
 
         if len(restrictions) == 1:
-            condition = EqualsCondition(child, parent, restrictions[0])
+            cond = EqualsCondition(child, parent, restricted_values[0])
         else:
-            condition = InCondition(child, parent, values=restrictions)
-        return condition
+            cond = InCondition(child, parent, values=restricted_values)
+        return cond
 
     restriction: float | int | str = condition[2]
     if isinstance(parent, FloatHyperparameter):
@@ -374,9 +386,9 @@ def condition_specification(
         restriction = int(restriction)
 
     if operation == "==":
-        condition = EqualsCondition(child, parent, restriction)
+        cond = EqualsCondition(child, parent, restriction)
     elif operation == "!=":
-        condition = NotEqualsCondition(child, parent, restriction)
+        cond = NotEqualsCondition(child, parent, restriction)
     else:
         if isinstance(parent, FloatHyperparameter):
             restriction = float(restriction)
@@ -392,10 +404,15 @@ def condition_specification(
             )
 
         if operation == "<":
-            condition = LessThanCondition(child, parent, restriction)
+            cond = LessThanCondition(child, parent, value=restriction)  # type: ignore
         elif operation == ">":
-            condition = GreaterThanCondition(child, parent, restriction)
-    return condition
+            cond = GreaterThanCondition(child, parent, value=restriction)  # type: ignore
+        else:
+            raise NotImplementedError(
+                "Could not parse condition: %s" % condition,
+            )
+
+    return cond
 
 
 def read(pcs_string: Iterable[str]) -> ConfigurationSpace:
@@ -545,7 +562,7 @@ def read(pcs_string: Iterable[str]) -> ConfigurationSpace:
         if param is None:
             raise NotImplementedError("Could not parse: %s" % line)
 
-        configuration_space.add_hyperparameter(param)
+        configuration_space.add(param)
 
     for clause in forbidden:
         param_list = pp_forbidden_clause.parseString(clause)
@@ -607,7 +624,7 @@ def read(pcs_string: Iterable[str]) -> ConfigurationSpace:
                 tmp_list = []
         forbidden_to_add.append(ForbiddenAndConjunction(*clause_list))
 
-    configuration_space.add_forbidden_clauses(forbidden_to_add)
+    configuration_space.add(forbidden_to_add)
 
     conditions_per_child: dict = OrderedDict()
 
@@ -696,7 +713,7 @@ def read(pcs_string: Iterable[str]) -> ConfigurationSpace:
                 )
                 conditions_to_add.append(normal_condition)
 
-    configuration_space.add_conditions(conditions_to_add)
+    configuration_space.add(conditions_to_add)
 
     return configuration_space
 
@@ -765,15 +782,17 @@ def write(configuration_space: ConfigurationSpace) -> str:
         else:
             raise TypeError(f"Unknown type: {type(hyperparameter)} ({hyperparameter})")
 
-    for condition in configuration_space.get_conditions():
+    for condition in configuration_space.conditions:
         if condition_lines.tell() > 0:
             condition_lines.write("\n")
         if isinstance(condition, AndConjunction | OrConjunction):
             condition_lines.write(build_conjunction(condition))
-        else:
+        elif isinstance(condition, Condition):
             condition_lines.write(build_condition(condition))
+        else:
+            raise TypeError(f"Unknown type: {type(condition)} ({condition})")
 
-    for forbidden_clause in configuration_space.get_forbiddens():
+    for forbidden_clause in configuration_space.forbidden_clauses:
         # Convert in-statement into two or more equals statements
         dlcs = (
             forbidden_clause.get_descendant_literal_clauses()
@@ -802,6 +821,9 @@ def write(configuration_space: ConfigurationSpace) -> str:
                 f = ForbiddenAndConjunction(*all_forbidden_clauses)
                 forbidden_lines.append(build_forbidden(f))
         else:
+            if isinstance(forbidden_clause, ForbiddenRelation):
+                raise TypeError("ForbiddenRelation is not supported")
+
             forbidden_lines.append(build_forbidden(forbidden_clause))
 
     if condition_lines.tell() > 0:

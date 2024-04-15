@@ -30,25 +30,18 @@ from __future__ import annotations
 import copy
 import io
 import operator
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from itertools import combinations
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Callable,
-    ClassVar,
-    Generic,
-    Iterator,
-    TypeVar,
-    Union,
-)
-from typing_extensions import Self
+from typing import TYPE_CHECKING, Any, Callable, ClassVar, Iterator, Union
+from typing_extensions import Self, override
 
 import numpy as np
-import numpy.typing as npt
+
+from ConfigSpace.types import f64, i64
 
 if TYPE_CHECKING:
     from ConfigSpace.hyperparameters.hyperparameter import Hyperparameter
+    from ConfigSpace.types import Array, Mask
 
 
 class _NotSet:
@@ -59,16 +52,11 @@ class _NotSet:
 NotSet = _NotSet()  # Sentinal value for unset values
 
 
-DP = TypeVar("DP", bound=np.number)
-DC = TypeVar("DC", bound=np.number)
-"""Type variable user data type for the parent and child."""
-
-
-class Condition(Generic[DC, DP]):
+class Condition(ABC):
     def __init__(
         self,
-        child: Hyperparameter[DC],
-        parent: Hyperparameter[DP],
+        child: Hyperparameter,
+        parent: Hyperparameter,
         value: Any,
     ) -> None:
         if child == parent:
@@ -79,8 +67,8 @@ class Condition(Generic[DC, DP]):
         self.child = child
         self.parent = parent
 
-        self.child_vector_id: np.int64 | None = None
-        self.parent_vector_id: np.int64 | None = None
+        self.child_vector_id: i64 | None = None
+        self.parent_vector_id: i64 | None = None
 
         self.value = value
 
@@ -90,8 +78,8 @@ class Condition(Generic[DC, DP]):
         This is sort of a second-stage init that is called when a condition is
         added to the search space.
         """
-        self.child_vector_id = np.int64(hyperparameter_to_idx[self.child.name])
-        self.parent_vector_id = np.int64(hyperparameter_to_idx[self.parent.name])
+        self.child_vector_id = i64(hyperparameter_to_idx[self.child.name])
+        self.parent_vector_id = i64(hyperparameter_to_idx[self.parent.name])
 
     def __eq__(self, other: Any) -> bool:
         if not isinstance(other, self.__class__):
@@ -102,6 +90,12 @@ class Condition(Generic[DC, DP]):
 
         return self.value == other.value
 
+    def equivalent_condition_on_parent(self, other: ConditionLike) -> bool:
+        if isinstance(other, self.__class__):
+            return self.parent == other.parent and self.value == other.value
+
+        return False
+
     @abstractmethod
     def satisfied_by_value(
         self,
@@ -110,40 +104,36 @@ class Condition(Generic[DC, DP]):
         pass
 
     @abstractmethod
-    def satisfied_by_vector(self, vector: npt.NDArray[np.float64]) -> bool:
+    def satisfied_by_vector(self, vector: Array[f64]) -> bool:
         pass
 
     @abstractmethod
-    def satisfied_by_vector_array(
-        self,
-        arr: npt.NDArray[np.float64],
-    ) -> npt.NDArray[np.bool_]:
+    def satisfied_by_vector_array(self, arr: Array[f64]) -> Mask:
         pass
 
-    def equivalent_condition_on_parent(self, other: ConditionLike) -> bool:
-        if isinstance(other, self.__class__):
-            return self.parent == other.parent and self.value == other.value
-
-        return False
+    @abstractmethod
+    def to_dict(self) -> dict[str, Any]:
+        pass
 
 
-class _BinaryOpCondition(Condition[DC, DP]):
-    _op_str: ClassVar[str]
-    _requires_orderable_parent: ClassVar[bool]
-    _op: Callable[[Any, Any], bool]
-    _vector_op: Callable[..., npt.NDArray[np.bool_]]
+class _BinaryOpCondition(Condition):
+    _OP_STR: ClassVar[str]
+    _REQUIRES_ORDERABLE_PARENT: ClassVar[bool]
+    _OP: ClassVar[Callable[[Any, Any], bool]]
+    _VECTOR_OP: ClassVar[Callable[..., Mask]]
+    _JSON_STR_TYPE: ClassVar[str]
 
     def __init__(
         self,
-        child: Hyperparameter[DC],
-        parent: Hyperparameter[DP],
+        child: Hyperparameter,
+        parent: Hyperparameter,
         value: Any,  # HACK: Typing here is to allow in conditional
         *,
         check_condition_legality: bool = True,
     ) -> None:
         super().__init__(child, parent, value)
 
-        if self._requires_orderable_parent and not parent.orderable:
+        if self._REQUIRES_ORDERABLE_PARENT and not parent.ORDERABLE:
             _clsname = self.__class__.__name__
             raise ValueError(
                 f"The parent hyperparameter must be orderable to use "
@@ -156,7 +146,7 @@ class _BinaryOpCondition(Condition[DC, DP]):
                 f"its parent hyperparameter '{parent.name}'",
             )
 
-        self.vector_value = np.float64(self.parent.to_vector(value))
+        self.vector_value = f64(self.parent.to_vector(value))
 
         # HACK: For now, the only kind of hyperparameter that can **not** be ordered
         # as a value type but can be ordered as a vector type is an
@@ -167,7 +157,7 @@ class _BinaryOpCondition(Condition[DC, DP]):
         self.need_compare_as_vector = isinstance(self.parent, OrdinalHyperparameter)
 
     def __repr__(self) -> str:
-        return f"{self.child.name} | {self.parent.name} {self._op_str} {self.value!r}"
+        return f"{self.child.name} | {self.parent.name} {self._OP_STR} {self.value!r}"
 
     def __copy__(self) -> Self:
         return self.__class__(
@@ -176,15 +166,12 @@ class _BinaryOpCondition(Condition[DC, DP]):
             value=copy.copy(self.value),
         )
 
-    def satisfied_by_vector(self, vector: npt.NDArray[np.float64]) -> bool:
-        return bool(self._vector_op(vector[self.parent_vector_id], self.vector_value))
+    def satisfied_by_vector(self, vector: Array[f64]) -> bool:
+        return bool(self._VECTOR_OP(vector[self.parent_vector_id], self.vector_value))
 
-    def satisfied_by_vector_array(
-        self,
-        arr: npt.NDArray[np.float64],
-    ) -> npt.NDArray[np.bool_]:
+    def satisfied_by_vector_array(self, arr: Array[f64]) -> Mask:
         vector = arr[self.parent_vector_id]
-        return self._vector_op(vector, self.vector_value)
+        return self._VECTOR_OP(vector, self.vector_value)
 
     def satisfied_by_value(
         self,
@@ -195,13 +182,22 @@ class _BinaryOpCondition(Condition[DC, DP]):
             return False
 
         if not self.need_compare_as_vector:
-            return bool(self._op(value, self.value))
+            return bool(self._OP(value, self.value))  # type: ignore
 
         vector_value = self.parent.to_vector(value)
-        return bool(self._vector_op(vector_value, self.vector_value))
+        return bool(self._VECTOR_OP(vector_value, self.vector_value))
+
+    @override
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "child": self.child.name,
+            "parent": self.parent.name,
+            "type": self._JSON_STR_TYPE,
+            "value": self.value,
+        }
 
 
-class EqualsCondition(_BinaryOpCondition[DC, DP]):
+class EqualsCondition(_BinaryOpCondition):
     """Hyperparameter ``child`` is conditional on the ``parent`` hyperparameter
     being *equal* to ``value``.
 
@@ -228,13 +224,14 @@ class EqualsCondition(_BinaryOpCondition[DC, DP]):
         Value, which the parent is compared to
     """
 
-    _op_str = "=="
-    _requires_orderable_parent = False
-    _op = operator.eq
-    _vector_op = np.equal
+    _OP_STR = "=="
+    _REQUIRES_ORDERABLE_PARENT = False
+    _OP = operator.eq
+    _VECTOR_OP = np.equal
+    _JSON_STR_TYPE = "EQ"
 
 
-class NotEqualsCondition(_BinaryOpCondition[DC, DP]):
+class NotEqualsCondition(_BinaryOpCondition):
     """Hyperparameter ``child`` is conditional on the ``parent`` hyperparameter
     being *not equal* to ``value``.
 
@@ -262,13 +259,14 @@ class NotEqualsCondition(_BinaryOpCondition[DC, DP]):
         Value, which the parent is compared to
     """
 
-    _op_str = "!="
-    _requires_orderable_parent = False
-    _op = operator.ne
-    _vector_op = np.not_equal
+    _OP_STR = "!="
+    _REQUIRES_ORDERABLE_PARENT = False
+    _OP = operator.ne
+    _VECTOR_OP = np.not_equal
+    _JSON_STR_TYPE = "NEQ"
 
 
-class LessThanCondition(_BinaryOpCondition[DC, DP]):
+class LessThanCondition(_BinaryOpCondition):
     """Hyperparameter ``child`` is conditional on the ``parent`` hyperparameter
     being *less than* ``value``.
 
@@ -295,13 +293,14 @@ class LessThanCondition(_BinaryOpCondition[DC, DP]):
         Value, which the parent is compared to
     """
 
-    _op_str = "<"
-    _requires_orderable_parent = True
-    _op = operator.lt
-    _vector_op = np.less
+    _OP_STR = "<"
+    _REQUIRES_ORDERABLE_PARENT = True
+    _OP = operator.lt
+    _VECTOR_OP = np.less
+    _JSON_STR_TYPE = "LT"
 
 
-class GreaterThanCondition(_BinaryOpCondition[DC, DP]):
+class GreaterThanCondition(_BinaryOpCondition):
     """Hyperparameter ``child`` is conditional on the ``parent`` hyperparameter
     being *greater than* ``value``.
 
@@ -328,13 +327,14 @@ class GreaterThanCondition(_BinaryOpCondition[DC, DP]):
         Value, which the parent is compared to
     """
 
-    _op_str = ">"
-    _requires_orderable_parent = True
-    _op = operator.gt
-    _vector_op = np.greater
+    _OP_STR = ">"
+    _REQUIRES_ORDERABLE_PARENT = True
+    _OP = operator.gt
+    _VECTOR_OP = np.greater
+    _JSON_STR_TYPE = "GT"
 
 
-class InCondition(Condition[DC, DP]):
+class InCondition(Condition):
     """Hyperparameter ``child`` is conditional on the ``parent`` hyperparameter
     being *in* a set of ``values``.
 
@@ -363,9 +363,9 @@ class InCondition(Condition[DC, DP]):
 
     def __init__(
         self,
-        child: Hyperparameter[DC],
-        parent: Hyperparameter[DP],
-        values: list[DP],
+        child: Hyperparameter,
+        parent: Hyperparameter,
+        values: list[Any],
     ) -> None:
         super().__init__(child, parent, values)
         for value in values:
@@ -393,13 +393,10 @@ class InCondition(Condition[DC, DP]):
             values=copy.copy(self.values),
         )
 
-    def satisfied_by_vector(self, vector: npt.NDArray[np.float64]) -> bool:
+    def satisfied_by_vector(self, vector: Array[f64]) -> bool:
         return vector[self.parent_vector_id] in self.vector_values
 
-    def satisfied_by_vector_array(
-        self,
-        arr: npt.NDArray[np.float64],
-    ) -> npt.NDArray[np.bool_]:
+    def satisfied_by_vector_array(self, arr: Array[f64]) -> Mask:
         vector = arr[self.parent_vector_id]
         return np.isin(vector, self.vector_values)
 
@@ -411,6 +408,14 @@ class InCondition(Condition[DC, DP]):
         if value is NotSet:
             return False
         return bool(value in self.values)
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "child": self.child.name,
+            "parent": self.parent.name,
+            "type": "IN",
+            "values": self.values,
+        }
 
 
 class Conjunction:
@@ -490,21 +495,6 @@ class Conjunction:
     def get_parents(self) -> list[Hyperparameter]:
         return [c.parent for c in self.iter() if isinstance(c, Condition)]
 
-    @abstractmethod
-    def satisfied_by_value(self, instantiated_hyperparameters: dict[str, Any]) -> bool:
-        pass
-
-    @abstractmethod
-    def satisfied_by_vector(self, vector: np.ndarray) -> bool:
-        pass
-
-    @abstractmethod
-    def satisfied_by_vector_array(
-        self,
-        arr: npt.NDArray[np.float64],
-    ) -> npt.NDArray[np.bool_]:
-        pass
-
     def equivalent_condition_on_parent(self, other: ConditionLike) -> bool:
         # Not entirely true but it's a good enough approximation
         if not isinstance(other, Conjunction):
@@ -519,6 +509,22 @@ class Conjunction:
             any(c.equivalent_condition_on_parent(o) for o in other.components)
             for c in self.components
         )
+
+    @abstractmethod
+    def satisfied_by_value(self, instantiated_hyperparameters: dict[str, Any]) -> bool:
+        pass
+
+    @abstractmethod
+    def satisfied_by_vector(self, vector: np.ndarray) -> bool:
+        pass
+
+    @abstractmethod
+    def satisfied_by_vector_array(self, arr: Array[f64]) -> Mask:
+        pass
+
+    @abstractmethod
+    def to_dict(self) -> dict[str, Any]:
+        pass
 
 
 class AndConjunction(Conjunction):
@@ -573,22 +579,26 @@ class AndConjunction(Conjunction):
 
         return True
 
-    def satisfied_by_vector(self, vector: npt.NDArray[np.float64]) -> bool:
+    def satisfied_by_vector(self, vector: Array[f64]) -> bool:
         for c in self.components:  # noqa: SIM110
             if not c.satisfied_by_vector(vector):
                 return False
 
         return True
 
-    def satisfied_by_vector_array(
-        self,
-        arr: npt.NDArray[np.float64],
-    ) -> npt.NDArray[np.bool_]:
+    def satisfied_by_vector_array(self, arr: Array[f64]) -> Mask:
         satisfied = np.ones(arr.shape[1], dtype=np.bool_)
         for c in self.components:
             satisfied &= c.satisfied_by_vector_array(arr)
 
         return satisfied
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "child": self.child.name,
+            "type": "AND",
+            "conditions": [component.to_dict() for component in self.components],
+        }
 
 
 class OrConjunction(Conjunction):
@@ -639,22 +649,26 @@ class OrConjunction(Conjunction):
 
         return False
 
-    def satisfied_by_vector(self, vector: npt.NDArray[np.float64]) -> bool:
+    def satisfied_by_vector(self, vector: Array[f64]) -> bool:
         for c in self.components:  # noqa: SIM110
             if c.satisfied_by_vector(vector):
                 return True
 
         return False
 
-    def satisfied_by_vector_array(
-        self,
-        arr: npt.NDArray[np.float64],
-    ) -> npt.NDArray[np.bool_]:
+    def satisfied_by_vector_array(self, arr: Array[f64]) -> Mask:
         satisfied = np.zeros(arr.shape[1], dtype=np.bool_)
         for c in self.components:
             satisfied |= c.satisfied_by_vector_array(arr)
 
         return satisfied
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "child": self.child.name,
+            "type": "OR",
+            "conditions": [component.to_dict() for component in self.components],
+        }
 
 
 # Backwards compatibility

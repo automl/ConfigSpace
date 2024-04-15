@@ -753,20 +753,24 @@ def test_sample_configuration_with_or_conjunction():
 
     # == print(cs.at)
     # hp8, hp5, hp7
+    # hp8 (first index) always active
+    # hp5 (second index) only active if hp8 (second index) is 0
+    # hp7 (last index) only active if either hp8 (first) or hp5 (second) is 1
 
-    for cfg, fixture in zip(
-        cs.sample_configuration(6),
+    configs = cs.sample_configuration(6)
+    sampled_arrays = np.asarray([config.get_array() for config in configs])
+    expected_arrays = np.asarray(
         [
-            [1, np.nan, 0],
-            [0, 0, np.nan],
-            [0, 1, 1],
-            [1, np.nan, 2],
-            [1, np.nan, 0],
-            [2, np.nan, np.nan],
             [1, np.nan, 1],
+            [2, np.nan, np.nan],
+            [0, 1, 0],
+            [0, 1, 2],
+            [0, 1, 0],
+            [2, np.nan, np.nan],
         ],
-    ):
-        np.testing.assert_array_almost_equal(cfg.get_array(), fixture)
+    )
+
+    np.testing.assert_equal(sampled_arrays, expected_arrays)
 
 
 def test_sample_wrong_argument():
@@ -830,9 +834,9 @@ def test_subspace_switches():
     assert cs["algo2_subspace:algo2_param1"].choices == ("X", "Y")
 
     # check probabilities in the final configuration space
-    assert cs["switch"].probabilities == (0.25, 0.75)
-    assert cs["algo1_subspace:algo1_param1"].probabilities == (0.3, 0.7)
-    assert cs["algo2_subspace:algo2_param1"].probabilities == (0.5, 0.5)
+    np.testing.assert_equal(cs["switch"].probabilities, (0.25, 0.75))
+    np.testing.assert_equal(cs["algo1_subspace:algo1_param1"].probabilities, (0.3, 0.7))
+    np.testing.assert_equal(cs["algo2_subspace:algo2_param1"].probabilities, (0.5, 0.5))
 
     # check default values in the final configuration space
     assert cs["switch"].default_value == "algo1"
@@ -875,7 +879,7 @@ def test_remove_hyperparameter_priors():
     cat = CategoricalHyperparameter("cat", [0, 1, 2], weights=[1, 2, 3])
     beta = BetaFloatHyperparameter("beta", alpha=8, beta=2, lower=-1, upper=11)
     norm = NormalIntegerHyperparameter("norm", mu=5, sigma=4, lower=1, upper=15)
-    cs.add_hyperparameters([integer, cat, beta, norm])
+    cs.add([integer, cat, beta, norm])
 
     cat_default = cat.default_value
     norm_default = norm.default_value
@@ -889,13 +893,13 @@ def test_remove_hyperparameter_priors():
         EqualsCondition(norm, integer, 3),
         EqualsCondition(norm, integer, 5),
     )
-    cs.add_conditions([cond_2, cond_3])
+    cs.add([cond_2, cond_3])
 
     # add some forbidden clauses too, to test that remove_parameter_priors keeps the forbiddens
     forbidden_clause_a = ForbiddenEqualsClause(cat, 0)
     forbidden_clause_c = ForbiddenEqualsClause(integer, 3)
     forbidden_clause_d = ForbiddenAndConjunction(forbidden_clause_a, forbidden_clause_c)
-    cs.add_forbidden_clauses([forbidden_clause_c, forbidden_clause_d])
+    cs.add([forbidden_clause_c, forbidden_clause_d])
 
     uniform_cs = cs.remove_hyperparameter_priors()
 
@@ -915,7 +919,7 @@ def test_remove_hyperparameter_priors():
         upper=15,
         default_value=norm_default,
     )
-    expected_cs.add_hyperparameters([unif_integer, unif_cat, unif_beta, unif_norm])
+    expected_cs.add([unif_integer, unif_cat, unif_beta, unif_norm])
 
     # add some conditions, to test that remove_parameter_priors keeps the forbiddens
     cond_2 = OrConjunction(
@@ -928,13 +932,13 @@ def test_remove_hyperparameter_priors():
         EqualsCondition(unif_norm, unif_integer, 3),
         EqualsCondition(unif_norm, unif_integer, 5),
     )
-    expected_cs.add_conditions([cond_2, cond_3])
+    expected_cs.add([cond_2, cond_3])
 
     # add some forbidden clauses too, to test that remove_parameter_priors keeps the forbiddens
     forbidden_clause_a = ForbiddenEqualsClause(unif_cat, 0)
     forbidden_clause_c = ForbiddenEqualsClause(unif_integer, 3)
     forbidden_clause_d = ForbiddenAndConjunction(forbidden_clause_a, forbidden_clause_c)
-    expected_cs.add_forbidden_clauses([forbidden_clause_c, forbidden_clause_d])
+    expected_cs.add([forbidden_clause_c, forbidden_clause_d])
 
     # __eq__ not implemented, so this is the next best thing
     assert repr(uniform_cs) == repr(expected_cs)

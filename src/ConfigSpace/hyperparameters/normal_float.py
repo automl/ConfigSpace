@@ -11,52 +11,50 @@ from scipy.stats._distn_infrastructure import rv_continuous_frozen
 from ConfigSpace.hyperparameters._distributions import ScipyContinuousDistribution
 from ConfigSpace.hyperparameters._hp_components import ROUND_PLACES, UnitScaler
 from ConfigSpace.hyperparameters.float_hyperparameter import FloatHyperparameter
-from ConfigSpace.hyperparameters.hyperparameter import HyperparameterWithPrior
 from ConfigSpace.hyperparameters.normal_integer import NormalIntegerHyperparameter
-from ConfigSpace.hyperparameters.uniform_float import UniformFloatHyperparameter
+from ConfigSpace.types import Number, f64
 
 
 @dataclass(init=False)
-class NormalFloatHyperparameter(
-    FloatHyperparameter,
-    HyperparameterWithPrior[UniformFloatHyperparameter],
-):
-    serializable_type_name: ClassVar[str] = "normal_float"
-    orderable: ClassVar[bool] = True
-    mu: float
-    sigma: float
+class NormalFloatHyperparameter(FloatHyperparameter):
+    ORDERABLE: ClassVar[bool] = True
+
+    mu: f64
+    sigma: f64
+    lower: f64
+    upper: f64
+    log: bool
+
+    name: str
+    default_value: f64
+    meta: Mapping[Hashable, Any] | None
 
     def __init__(
         self,
         name: str,
-        mu: int | float,
-        sigma: int | float,
-        lower: float | int,
-        upper: float | int,
-        default_value: None | float = None,
+        mu: Number,
+        sigma: Number,
+        lower: Number,
+        upper: Number,
+        default_value: Number | None = None,
         log: bool = False,
         meta: Mapping[Hashable, Any] | None = None,
     ) -> None:
-        self.lower = np.float64(lower)
-        self.upper = np.float64(upper)
-        self.mu = float(mu)
-        self.sigma = float(sigma)
+        self.lower = f64(lower)
+        self.upper = f64(upper)
+        self.mu = f64(mu)
+        self.sigma = f64(sigma)
         self.log = bool(log)
 
         try:
-            scaler = UnitScaler(
-                self.lower,
-                self.upper,
-                log=log,
-                dtype=np.float64,
-            )
+            scaler = UnitScaler(self.lower, self.upper, log=log, dtype=f64)
         except ValueError as e:
             raise ValueError(f"Hyperparameter '{name}' has illegal settings") from e
 
         if default_value is None:
-            _default_value = np.clip(np.float64(self.mu), self.lower, self.upper)
+            _default_value = np.clip(self.mu, self.lower, self.upper)
         else:
-            _default_value = np.float64(default_value)
+            _default_value = f64(default_value)
 
         _default_value = np.round(_default_value, ROUND_PLACES)
 
@@ -72,11 +70,10 @@ class NormalFloatHyperparameter(
         assert isinstance(vec_truncnorm_dist, rv_continuous_frozen)
 
         max_density_point = np.clip(vectorized_mu, 0.0, 1.0)
-
         vect_dist = ScipyContinuousDistribution(
             rv=vec_truncnorm_dist,
-            lower_vectorized=np.float64(0.0),
-            upper_vectorized=np.float64(1.0),
+            lower_vectorized=f64(0.0),
+            upper_vectorized=f64(1.0),
             _max_density=vec_truncnorm_dist.pdf(max_density_point),
         )
         super().__init__(
@@ -90,24 +87,14 @@ class NormalFloatHyperparameter(
             neighborhood_size=np.inf,
         )
 
-    def to_uniform(self) -> UniformFloatHyperparameter:
-        return UniformFloatHyperparameter(
-            name=self.name,
-            lower=self.lower,
-            upper=self.upper,
-            default_value=self.default_value,
-            log=self.log,
-            meta=self.meta,
-        )
-
     def to_integer(self) -> NormalIntegerHyperparameter:
         return NormalIntegerHyperparameter(
             name=self.name,
-            mu=round(self.mu),
+            mu=self.mu,
             sigma=self.sigma,
             lower=np.ceil(self.lower),
             upper=np.floor(self.upper),
-            default_value=round(self.default_value),
+            default_value=np.rint(self.default_value),
             log=self.log,
         )
 
@@ -124,15 +111,3 @@ class NormalFloatHyperparameter(
             parts.append("on log-scale")
 
         return ", ".join(parts)
-
-    def to_dict(self) -> dict[str, Any]:
-        return {
-            "name": self.name,
-            "type": self.serializable_type_name,
-            "log": self.log,
-            "mu": float(self.mu),
-            "sigma": float(self.sigma),
-            "lower": float(self.lower),
-            "upper": float(self.upper),
-            "default_value": float(self.default_value),
-        }

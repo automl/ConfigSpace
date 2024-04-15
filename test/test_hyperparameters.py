@@ -195,7 +195,7 @@ def test_uniformfloat():
     assert f1.upper == pytest.approx(10.0)
     assert f1.log is False
     assert f1.default_value == pytest.approx(5.0)
-    assert f1.normalized_default_value == pytest.approx(0.5)
+    assert f1._normalized_default_value == pytest.approx(0.5)
 
     f3 = UniformFloatHyperparameter("param", 0.00001, 10, log=True)
     f3_ = UniformFloatHyperparameter("param", 0.00001, 10, log=True)
@@ -471,7 +471,7 @@ def test_normalfloat():
     assert f1.sigma == pytest.approx(10.5)
     assert f1.log is False
     assert f1.default_value == pytest.approx(0.5)
-    assert f1.normalized_default_value == pytest.approx(0.5125)
+    assert f1._normalized_default_value == pytest.approx(0.5125)
 
     # Test copy
     copy_f1 = copy.copy(f1)
@@ -900,7 +900,7 @@ def test_betafloat_default_value():
     # should default to the maximal value in the search space
     f_max = BetaFloatHyperparameter("param", lower=-2.0, upper=2.0, alpha=3.0, beta=1.0)
     assert f_max.default_value == pytest.approx(2.0)
-    assert f_max.normalized_default_value == pytest.approx(1.0)
+    assert f_max._normalized_default_value == pytest.approx(1.0)
 
     f_max_log = BetaFloatHyperparameter(
         "param",
@@ -911,12 +911,12 @@ def test_betafloat_default_value():
         log=True,
     )
     assert f_max_log.default_value == pytest.approx(10.0)
-    assert f_max_log.normalized_default_value == pytest.approx(1.0)
+    assert f_max_log._normalized_default_value == pytest.approx(1.0)
 
     # should default to the minimal value in the search space
     f_min = BetaFloatHyperparameter("param", lower=-2.0, upper=2.0, alpha=1.0, beta=1.5)
     assert f_min.default_value == pytest.approx(-2.0)
-    assert f_min.normalized_default_value == pytest.approx(0.0)
+    assert f_min._normalized_default_value == pytest.approx(0.0)
 
     f_min_log = BetaFloatHyperparameter(
         "param",
@@ -927,12 +927,12 @@ def test_betafloat_default_value():
         log=True,
     )
     assert f_min_log.default_value == pytest.approx(1.0)
-    assert f_min_log.normalized_default_value == pytest.approx(0.0)
+    assert f_min_log._normalized_default_value == pytest.approx(0.0)
 
     # Symmeric, should default to the middle
     f_symm = BetaFloatHyperparameter("param", lower=5, upper=9, alpha=4.6, beta=4.6)
     assert f_symm.default_value == pytest.approx(7)
-    assert f_symm.normalized_default_value == pytest.approx(0.5)
+    assert f_symm._normalized_default_value == pytest.approx(0.5)
 
     # This should yield a value that's halfway towards the max in logspace
     f_symm_log = BetaFloatHyperparameter(
@@ -944,12 +944,12 @@ def test_betafloat_default_value():
         log=True,
     )
     assert f_symm_log.default_value == pytest.approx(np.exp(5))
-    assert f_symm_log.normalized_default_value == pytest.approx(0.5)
+    assert f_symm_log._normalized_default_value == pytest.approx(0.5)
 
     # Uniform, should also default to the middle
     f_unif = BetaFloatHyperparameter("param", lower=2.2, upper=3.2, alpha=1.0, beta=1.0)
     assert f_unif.default_value == pytest.approx(2.7)
-    assert f_unif.normalized_default_value == pytest.approx(0.5)
+    assert f_unif._normalized_default_value == pytest.approx(0.5)
 
     # This should yield a value that's halfway towards the max in logspace
     f_unif_log = BetaFloatHyperparameter(
@@ -961,7 +961,7 @@ def test_betafloat_default_value():
         log=True,
     )
     assert f_unif_log.default_value == pytest.approx(np.exp(2.7))
-    assert f_unif_log.normalized_default_value == pytest.approx(0.5)
+    assert f_unif_log._normalized_default_value == pytest.approx(0.5)
 
     # Then, test a case where the default value is the mode of the beta dist
     f_max = BetaFloatHyperparameter(
@@ -972,7 +972,7 @@ def test_betafloat_default_value():
         beta=2.12,
     )
     assert f_max.default_value == pytest.approx(1.0705394190871367)
-    assert f_max.normalized_default_value == pytest.approx(0.7676348547717842)
+    assert f_max._normalized_default_value == pytest.approx(0.7676348547717842)
 
     f_max_log = BetaFloatHyperparameter(
         "param",
@@ -983,7 +983,7 @@ def test_betafloat_default_value():
         log=True,
     )
     assert f_max_log.default_value == pytest.approx(np.exp(1.0705394190871367))
-    assert f_max_log.normalized_default_value == pytest.approx(0.7676348547717842)
+    assert f_max_log._normalized_default_value == pytest.approx(0.7676348547717842)
 
     # TODO log and quantization together does not yield a correct default for the beta
     # hyperparameter, but it is relatively close to being correct. However, it is not
@@ -1231,7 +1231,7 @@ def test_uniforminteger():
     assert f1.upper == 5
     assert f1.default_value == 2
     assert f1.log is False
-    assert f1.normalized_default_value == 0.4
+    assert f1._normalized_default_value == 0.4
 
     f3 = UniformIntegerHyperparameter("param", 1, 10, log=True)
     f3_ = UniformIntegerHyperparameter("param", 1, 10, log=True)
@@ -1455,7 +1455,7 @@ def test_normalint():
     assert f1.sigma == 5.5
     assert f1.log is False
     assert f1.default_value == 0.0
-    assert f1.normalized_default_value == pytest.approx(0.5)
+    assert f1._normalized_default_value == pytest.approx(0.5)
     assert f1.size == 21
 
     f3 = NormalIntegerHyperparameter("param", 0, 10, log=True, lower=1, upper=10)
@@ -1619,11 +1619,11 @@ def test_normalint_pdf():
     wrong_shape_2 = np.array([3, 5, 7]).reshape(1, -1)
     wrong_shape_3 = np.array([3, 5, 7]).reshape(-1, 1)
 
-    assert c1.pdf(point_1)[0] == pytest.approx(0.20747194595587332)
-    assert c2.pdf(point_1_log)[0] == pytest.approx(0.0009326191507499944)
-    assert c1.pdf(point_2)[0] == pytest.approx(0.00045384303905059246)
+    assert c1.pdf(point_1)[0] == pytest.approx(0.18913087287205807)
+    assert c2.pdf(point_1_log)[0] == pytest.approx(0.000931687087884632)
+    assert c1.pdf(point_2)[0] == pytest.approx(0.00041372210458180426)
     assert c2.pdf(point_2_log)[0] == pytest.approx(2.3595145186898904e-18)
-    assert c3.pdf(point_3)[0] == pytest.approx(0.9988874412972069)
+    assert c3.pdf(point_3)[0] == pytest.approx(0.9834724443747417)
     # TODO - change this once the is_legal support is there
     # but does not have an actual impact of now
     assert c1.pdf(point_outside_range_1)[0] == 0.0
@@ -1637,8 +1637,8 @@ def test_normalint_pdf():
 
     array_results = c1.pdf(array_1)
     array_results_log = c2.pdf(array_1_log)
-    expected_results = np.array([0.20747194595587332, 0.00045384303905059246, 0])
-    expected_results_log = np.array([0.0009326191507499944, 2.3595145186898904e-18, 0])
+    expected_results = np.array([0.18913087287205807, 0.00041372210458180426, 0])
+    expected_results_log = np.array([0.000931687087884632, 2.3595145186898904e-18, 0])
     assert array_results.shape == expected_results.shape
     assert array_results_log.shape == expected_results.shape
     for res, log_res, exp_res, exp_log_res in zip(
@@ -1726,7 +1726,7 @@ def test_normalint_get_max_density():
         log=True,
     )
     c3 = NormalIntegerHyperparameter("param", lower=0, upper=2, mu=-1.2, sigma=0.5)
-    assert c1.get_max_density() == pytest.approx(2.138045617479014)
+    assert c1.get_max_density() == pytest.approx(2.118259218934877)
     assert c2.get_max_density() == pytest.approx(4.213796445068097)
     assert c3.get_max_density() == pytest.approx(10.927444887375877)
 
@@ -1822,7 +1822,7 @@ def test_betaint_default_value():
         beta=1.0,
     )
     assert f_max.default_value == pytest.approx(2.0)
-    assert f_max.normalized_default_value == pytest.approx(1.0, abs=1e-4)
+    assert f_max._normalized_default_value == pytest.approx(1.0, abs=1e-4)
 
     # The normalized log defaults should be the same as if one were to create a uniform
     # distribution with the same default value as is generated by the beta
@@ -1835,7 +1835,7 @@ def test_betaint_default_value():
         log=True,
     )
     assert f_max_log.default_value == pytest.approx(10.0)
-    assert f_max_log.normalized_default_value == pytest.approx(1.0)
+    assert f_max_log._normalized_default_value == pytest.approx(1.0)
 
     # should default to the minimal value in the search space
     f_min = BetaIntegerHyperparameter(
@@ -1846,7 +1846,7 @@ def test_betaint_default_value():
         beta=1.5,
     )
     assert f_min.default_value == pytest.approx(-2.0)
-    assert f_min.normalized_default_value == pytest.approx(0.0, abs=1e-4)
+    assert f_min._normalized_default_value == pytest.approx(0.0, abs=1e-4)
 
     f_min_log = BetaIntegerHyperparameter(
         "param",
@@ -1857,12 +1857,12 @@ def test_betaint_default_value():
         log=True,
     )
     assert f_min_log.default_value == pytest.approx(1.0)
-    assert f_min_log.normalized_default_value == pytest.approx(0.0)
+    assert f_min_log._normalized_default_value == pytest.approx(0.0)
 
     # Symmeric, should default to the middle
     f_symm = BetaIntegerHyperparameter("param", lower=5, upper=9, alpha=4.6, beta=4.6)
     assert f_symm.default_value == pytest.approx(7)
-    assert f_symm.normalized_default_value == pytest.approx(0.5)
+    assert f_symm._normalized_default_value == pytest.approx(0.5)
 
     # This should yield a value that's approximately halfway towards the max in logspace
     f_symm_log = BetaIntegerHyperparameter(
@@ -1874,12 +1874,12 @@ def test_betaint_default_value():
         log=True,
     )
     assert f_symm_log.default_value == pytest.approx(148)
-    assert f_symm_log.normalized_default_value == pytest.approx(0.5, abs=1e-3)
+    assert f_symm_log._normalized_default_value == pytest.approx(0.5, abs=1e-3)
 
     # Uniform, should also default to the middle
     f_unif = BetaIntegerHyperparameter("param", lower=2, upper=6, alpha=1.0, beta=1.0)
     assert f_unif.default_value == pytest.approx(4)
-    assert f_unif.normalized_default_value == pytest.approx(0.5)
+    assert f_unif._normalized_default_value == pytest.approx(0.5)
 
     # This should yield a value that's halfway towards the max in logspace
     f_unif_log = BetaIntegerHyperparameter(
@@ -1891,7 +1891,7 @@ def test_betaint_default_value():
         log=True,
     )
     assert f_unif_log.default_value == pytest.approx(148)
-    assert f_unif_log.normalized_default_value == pytest.approx(0.5, abs=1e-3)
+    assert f_unif_log._normalized_default_value == pytest.approx(0.5, abs=1e-3)
 
     # Then, test a case where the default value is the mode of the beta dist somewhere in
     # the interior of the search space - but not the center
@@ -1903,7 +1903,7 @@ def test_betaint_default_value():
         beta=2.12,
     )
     assert f_max.default_value == pytest.approx(1.0)
-    assert f_max.normalized_default_value == pytest.approx(0.75)
+    assert f_max._normalized_default_value == pytest.approx(0.75)
 
     f_max_log = BetaIntegerHyperparameter(
         "param",
@@ -1914,7 +1914,7 @@ def test_betaint_default_value():
         log=True,
     )
     assert f_max_log.default_value == pytest.approx(2157)
-    assert f_max_log.normalized_default_value == pytest.approx(0.767648988)
+    assert f_max_log._normalized_default_value == pytest.approx(0.767648988)
 
     # These parameters yield a mode at approximately 1.1, so should thus yield default at 1
     f_quant = BetaIntegerHyperparameter(
@@ -1925,7 +1925,7 @@ def test_betaint_default_value():
         beta=2.12,
     )
     assert f_quant.default_value == pytest.approx(1.0)
-    assert f_quant.normalized_default_value == pytest.approx(0.75)
+    assert f_quant._normalized_default_value == pytest.approx(0.75)
 
     # TODO log and quantization together does not yield a correct default for the beta
     # hyperparameter, but it is relatively close to being correct.
@@ -2053,11 +2053,11 @@ def test_betaint_pdf():
     wrong_shape_3 = np.array([3, 5, 7]).reshape(-1, 1)
 
     # The quantization constant (0.4999) dictates the accuracy of the integer beta pdf
-    assert c1.pdf(point_1)[0] == pytest.approx(0.07636363636363634, abs=1e-3)
+    assert c1.pdf(point_1)[0] == pytest.approx(0.0692999999999999, abs=1e-3)
     assert c2.pdf(point_1_log)[0] == pytest.approx(0.0008724511426701984, abs=1e-3)
-    assert c1.pdf(point_2)[0] == pytest.approx(0.09818181818181816, abs=1e-3)
+    assert c1.pdf(point_2)[0] == pytest.approx(0.08909999999999998, abs=1e-3)
     assert c2.pdf(point_2_log)[0] == pytest.approx(0.0008683622684160343, abs=1e-3)
-    assert c3.pdf(point_3)[0] == pytest.approx(0.9979110652388783, abs=1e-3)
+    assert c3.pdf(point_3)[0] == pytest.approx(0.34686070212329767, abs=1e-3)
 
     assert c1.pdf(point_outside_range_1)[0] == 0.0
     assert c1.pdf(point_outside_range_2)[0] == 0.0
@@ -2070,7 +2070,7 @@ def test_betaint_pdf():
 
     array_results = c1.pdf(array_1)
     array_results_log = c2.pdf(array_1_log)
-    expected_results = np.array([0.07636363636363634, 0.09818181818181816, 0])
+    expected_results = np.array([0.0692999999999999, 0.08909999999999998, 0])
     expected_results_log = np.array([0.0008724511426701984, 0.0008683622684160343, 0])
     assert array_results.shape == expected_results.shape
     assert array_results_log.shape == expected_results.shape
@@ -2123,25 +2123,25 @@ def test_betaint__pdf():
     point_outside_range_1_log = np.array([-0.01])
 
     assert c1.legal_vector(point_1)
-    assert c1._pdf(point_1) == pytest.approx(0.0387878787)
-    assert c1._pdf(point_2) == pytest.approx(0.15515151515151512)
+    assert c1._pdf(point_1) == pytest.approx(0.03520000000000001)
+    assert c1._pdf(point_2) == pytest.approx(0.1408)
     assert c1._pdf(point_outside_range_1) == 0.0
     assert c1._pdf(point_outside_range_2) == 0.0
 
-    assert c2._pdf(point_1_log) == pytest.approx(4.159063043660821e-05)
-    assert c2._pdf(point_2_log) == pytest.approx(8.06146036115482e-05)
+    assert c2._pdf(point_1_log) == pytest.approx(4.158874218496887e-05)
+    assert c2._pdf(point_2_log) == pytest.approx(8.061094363679364e-05)
     assert c2._pdf(point_outside_range_1_log) == 0.0
 
     c1_array = np.concatenate([c1.to_vector([2, 8]), np.array([-0.01])])
     array_results = c1._pdf(c1_array)
-    expected_results = np.array([0.0387878787, 0.15515151515151512, 0.0])
+    expected_results = np.array([0.0352, 0.1408, 0.0])
 
     c2_array = np.concatenate([c2.to_vector([30, 900]), np.array([-0.01])])
     array_results_log = c2._pdf(c2_array)
-    expected_results_log = np.array([4.159063043660821e-05, 8.06146036115482e-05, 0])
+    expected_results_log = np.array([4.158874e-05, 8.061094e-05, 0.0])
 
-    assert np.allclose(array_results, expected_results)
-    assert np.allclose(array_results_log, expected_results_log)
+    np.testing.assert_allclose(array_results, expected_results)
+    np.testing.assert_allclose(array_results_log, expected_results_log)
     assert array_results.shape == expected_results.shape
     assert array_results_log.shape == expected_results_log.shape
 
@@ -2165,9 +2165,9 @@ def test_betaint_get_max_density():
         log=True,
     )
     c3 = BetaIntegerHyperparameter("param", alpha=1.1, beta=10, lower=0, upper=3)
-    assert c1.get_max_density() == pytest.approx(1.7640000000000007)
+    assert c1.get_max_density() == pytest.approx(1.767092411720511)
     assert c2.get_max_density() == pytest.approx(1.7777777777777777)
-    assert c3.get_max_density() == pytest.approx(0.31007530917571263)
+    assert c3.get_max_density() == pytest.approx(0.8696530286559991)
 
 
 def test_categorical():
@@ -2181,8 +2181,8 @@ def test_categorical():
     assert f1.name == "param"
     assert f1.num_choices == 2
     assert f1.default_value == 0
-    assert f1.normalized_default_value == 0
-    assert f1.probabilities == pytest.approx((0.5, 0.5))
+    assert f1._normalized_default_value == 0
+    assert f1._probabilities == pytest.approx((0.5, 0.5))
 
     f2 = CategoricalHyperparameter("param", list(range(1000)))
     f2_ = CategoricalHyperparameter("param", list(range(1000)))
@@ -2631,7 +2631,7 @@ def test_sample_CategoricalHyperparameter_with_weights():
         weights=[1, 2, 3, 4, 0],
     )
     np.testing.assert_almost_equal(
-        actual=hp.probabilities,
+        actual=hp._probabilities,
         desired=[0.1, 0.2, 0.3, 0.4, 0],
         decimal=3,
     )
@@ -2664,7 +2664,7 @@ def test_categorical_copy_with_weights():
     assert copy_hp.choices == orig_hp.choices
     assert copy_hp.default_value == orig_hp.default_value
     assert copy_hp.num_choices == orig_hp.num_choices
-    assert copy_hp.probabilities == orig_hp.probabilities
+    assert copy_hp._probabilities == orig_hp._probabilities
 
 
 def test_categorical_copy_without_weights():
@@ -2679,12 +2679,12 @@ def test_categorical_copy_without_weights():
     assert copy_hp.choices == orig_hp.choices
     assert copy_hp.default_value == orig_hp.default_value
     assert copy_hp.num_choices == orig_hp.num_choices
-    assert copy_hp.probabilities == (
+    assert copy_hp._probabilities == (
         0.3333333333333333,
         0.3333333333333333,
         0.3333333333333333,
     )
-    assert orig_hp.probabilities == (
+    assert orig_hp._probabilities == (
         0.3333333333333333,
         0.3333333333333333,
         0.3333333333333333,
@@ -2737,7 +2737,7 @@ def test_categorical_with_some_zero_weights():
     assert sorted(np.unique(cat_hp_str.sample_value(1000, seed=rs))) == ["A", "C"]
 
     np.testing.assert_almost_equal(
-        actual=cat_hp_str.probabilities,
+        actual=cat_hp_str._probabilities,
         desired=[0.25, 0.0, 0.75],
         decimal=3,
     )
@@ -2751,7 +2751,7 @@ def test_categorical_with_some_zero_weights():
     assert sorted(np.unique(cat_hp_int.sample_value(1000, seed=rs))) == [1, 2]
 
     np.testing.assert_almost_equal(
-        actual=cat_hp_int.probabilities,
+        actual=cat_hp_int._probabilities,
         desired=[0.1429, 0.8571, 0.0],
         decimal=3,
     )
@@ -2765,7 +2765,7 @@ def test_categorical_with_some_zero_weights():
     assert sorted(np.unique(cat_hp_float.sample_value(1000, seed=rs))) == [0.0, 0.3]
 
     np.testing.assert_almost_equal(
-        actual=cat_hp_float.probabilities,
+        actual=cat_hp_float._probabilities,
         desired=[0.00, 0.6667, 0.3333],
         decimal=3,
     )
@@ -2851,7 +2851,7 @@ def test_ordinal_attributes_accessible():
     assert f1.sequence == ("freezing", "cold", "warm", "hot")
     assert f1.num_elements == 4
     assert f1.default_value == "freezing"
-    assert f1.normalized_default_value == 0
+    assert f1._normalized_default_value == 0
 
 
 def test_ordinal_is_legal():

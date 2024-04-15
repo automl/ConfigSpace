@@ -1,18 +1,19 @@
 from __future__ import annotations
 
-from collections.abc import Iterator, Sequence
+from collections.abc import Iterator
 from typing import TYPE_CHECKING, Any, Mapping
 from typing_extensions import deprecated
 
 import numpy as np
-import numpy.typing as npt
 
 from ConfigSpace.conditions import NotSet
 from ConfigSpace.exceptions import IllegalValueError
 from ConfigSpace.hyperparameters import FloatHyperparameter
+from ConfigSpace.types import f64
 
 if TYPE_CHECKING:
     from ConfigSpace.configuration_space import ConfigurationSpace
+    from ConfigSpace.types import Array
 
 
 class Configuration(Mapping[str, Any]):
@@ -20,7 +21,7 @@ class Configuration(Mapping[str, Any]):
         self,
         configuration_space: ConfigurationSpace,
         values: Mapping[str, Any] | None = None,
-        vector: Sequence[float] | np.ndarray | None = None,
+        vector: Array[f64] | None = None,
         allow_inactive_with_values: bool = False,
         origin: Any | None = None,
         config_id: int | None = None,
@@ -88,7 +89,7 @@ class Configuration(Mapping[str, Any]):
             # in the configuration are sorted in the same way as they are sorted in
             # the configuration space
             self._values = {}
-            self._vector = np.empty(shape=len(configuration_space), dtype=np.float64)
+            self._vector = np.empty(shape=len(configuration_space), dtype=f64)
 
             for key, hp in configuration_space.items():
                 i = configuration_space.index_of[key]
@@ -111,7 +112,7 @@ class Configuration(Mapping[str, Any]):
             self.is_valid_configuration()
 
         elif vector is not None:
-            _vector = np.asarray(vector, dtype=np.float64)
+            _vector = np.asarray(vector, dtype=f64)
 
             # If we have a 2d array with shape (n, 1), flatten it
             if len(_vector.shape) == 2 and _vector.shape[1] == 1:
@@ -146,7 +147,7 @@ class Configuration(Mapping[str, Any]):
             allow_inactive_with_values=self.allow_inactive_with_values,
         )
 
-    def get_array(self) -> npt.NDArray[np.float64]:
+    def get_array(self) -> Array[f64]:
         """The internal vector representation of this config.
 
         All continuous values are scaled between zero and one.

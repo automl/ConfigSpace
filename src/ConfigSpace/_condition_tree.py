@@ -29,12 +29,12 @@ from ConfigSpace.forbidden import (
     ForbiddenLike,
     ForbiddenRelation,
 )
+from ConfigSpace.types import f64, i64
 
 if TYPE_CHECKING:
-    import numpy.typing as npt
-
     from ConfigSpace.conditions import ConditionLike
     from ConfigSpace.hyperparameters import Hyperparameter
+    from ConfigSpace.types import Array
 
 
 @dataclass
@@ -42,8 +42,8 @@ class ConditionNode:
     condition: ConditionLike
     dependants: list[ConditionNode]
     unique_children: dict[int, HPNode]
-    children_vector: npt.NDArray[np.int64] = field(
-        default_factory=lambda: np.array((), dtype=np.int64),
+    children_indices: Array[i64] = field(
+        default_factory=lambda: np.array((), dtype=i64),
     )
 
     def node_parents(self) -> list[str]:
@@ -67,7 +67,7 @@ class ConditionNode:
             condition=node.parent_condition,
             dependants=[],
             unique_children={node.idx: node},
-            children_vector=np.array([node.idx], dtype=np.int64),
+            children_indices=np.array([node.idx], dtype=np.int64),
         )
 
     def has_equivalent_condition(self, node: HPNode) -> bool:
@@ -188,8 +188,8 @@ class DAG:
         default_factory=list,
         compare=False,
     )
-    normalized_defaults: npt.NDArray[np.float64] = field(
-        default_factory=lambda: np.array((), dtype=np.float64),
+    normalized_defaults: Array[f64] = field(
+        default_factory=lambda: np.array((), dtype=f64),
         compare=False,
     )
     # OPTIM: Mainly used for generating neighbors, do not use if validation
@@ -271,36 +271,38 @@ class DAG:
         self.index_of = index_of
         self.hyperparameters = hyperparameters
         self.normalized_defaults = np.array(
-            [hp.normalized_default_value for hp in hyperparameters],
-            dtype=np.float64,
+            [hp._normalized_default_value for hp in hyperparameters],
+            dtype=f64,
         )
 
         # Sort out forbiddens based on whether they are unconditional or conditional
         unconditional_forbiddens = []
         conditional_forbiddens = []
 
+        def _sort_forbiddens(_f: ForbiddenLike, append: bool = True) -> None:
+            if append:
+                if self._is_unconditional_forbidden(_f):
+                    unconditional_forbiddens.append(_f)
+                else:
+                    conditional_forbiddens.append(_f)
+
+            if isinstance(_f, ForbiddenClause):
+                hp_name = _f.hyperparameter.name
+                self.nodes[hp_name].forbiddens.append(_f)
+            elif isinstance(_f, ForbiddenConjunction):
+                for dlc in sorted(_f.dlcs, key=str):
+                    _sort_forbiddens(dlc, append=False)
+            elif isinstance(_f, ForbiddenRelation):
+                left_name = _f.left.name
+                right_name = _f.right.name
+                self.nodes[left_name].forbiddens.append(_f)
+                self.nodes[right_name].forbiddens.append(_f)
+            else:
+                raise NotImplementedError(type(_f))
+
         # Sort forbiddens so it's always same order
         for forbidden in sorted(self.forbiddens, key=str):
-            if self._is_unconditional_forbidden(forbidden):
-                unconditional_forbiddens.append(forbidden)
-            else:
-                conditional_forbiddens.append(forbidden)
-
-            if isinstance(forbidden, ForbiddenClause):
-                hp_name = forbidden.hyperparameter.name
-                self.nodes[hp_name].forbiddens.append(forbidden)
-            elif isinstance(forbidden, ForbiddenConjunction):
-                dlcs = forbidden.get_descendant_literal_clauses()
-                for dlc in sorted(dlcs, key=str):
-                    hp_name = dlc.hyperparameter.name
-                    self.nodes[hp_name].forbiddens.append(forbidden)
-            elif isinstance(forbidden, ForbiddenRelation):
-                left_name = forbidden.left.name
-                right_name = forbidden.right.name
-                self.nodes[left_name].forbiddens.append(forbidden)
-                self.nodes[right_name].forbiddens.append(forbidden)
-            else:
-                raise NotImplementedError(type(forbidden))
+            _sort_forbiddens(forbidden)
 
         # Now we reduce the set of all forbiddens to ensure equivalence on nodes.
         for node in nodes.values():
@@ -559,7 +561,7 @@ class DAG:
             for a in base_conditions.values():
                 if a.has_equivalent_condition(node):
                     a.unique_children[node.idx] = node
-                    a.children_vector = np.array(
+                    a.children_indices = np.array(
                         list(a.unique_children.keys()),
                         dtype=np.int64,
                     )
@@ -592,7 +594,7 @@ class DAG:
         # on _more shallow_ nodes.
         to_optimize: dict[
             # First parent_name, with N-1 (hp_name, value)...
-            tuple[str, tuple[tuple[str, np.float64], ...]],
+            tuple[str, tuple[tuple[str, f64], ...]],
             # unique parts of AND, list to for isin
             tuple[tuple[ForbiddenEqualsClause, ...], list[ForbiddenEqualsClause]],
         ] = {}
