@@ -50,6 +50,7 @@ from ConfigSpace.hyperparameters import (
     UniformFloatHyperparameter,
     UniformIntegerHyperparameter,
 )
+from ConfigSpace.types import NotSet
 
 if TYPE_CHECKING:
     from ConfigSpace.configuration_space import ConfigurationSpace
@@ -86,8 +87,8 @@ def impute_inactive_values(
     """
     values = {}
     for hp in configuration.config_space.values():
-        value = configuration.get(hp.name)
-        if value is None:
+        value = configuration.get(hp.name, NotSet)
+        if value is NotSet:
             if strategy == "default":
                 new_value = hp.default_value
 

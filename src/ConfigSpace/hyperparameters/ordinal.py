@@ -32,7 +32,7 @@ class OrdinalHyperparameter(Hyperparameter[Any, Any]):
         self,
         name: str,
         sequence: Sequence[Any],
-        default_value: Any | None = None,
+        default_value: Any | _NotSet = NotSet,
         meta: Mapping[Hashable, Any] | None = None,
     ) -> None:
         # TODO: Maybe give some way to not check this, i.e. for large sequences
@@ -45,7 +45,7 @@ class OrdinalHyperparameter(Hyperparameter[Any, Any]):
             )
 
         size = len(sequence)
-        if default_value is None:
+        if default_value is NotSet:
             default_value = sequence[0]
         elif default_value not in sequence:
             raise ValueError(
