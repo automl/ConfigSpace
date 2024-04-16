@@ -21,12 +21,12 @@ if TYPE_CHECKING:
 class UniformFloatHyperparameter(FloatHyperparameter):
     ORDERABLE: ClassVar[bool] = True
 
-    lower: f64
-    upper: f64
+    lower: float
+    upper: float
     log: bool
 
     name: str
-    default_value: f64
+    default_value: float
     meta: Mapping[Hashable, Any] | None
     size: float
 
@@ -39,12 +39,12 @@ class UniformFloatHyperparameter(FloatHyperparameter):
         log: bool = False,
         meta: Mapping[Hashable, Any] | None = None,
     ) -> None:
-        self.lower = f64(lower)
-        self.upper = f64(upper)
+        self.lower = float(lower)
+        self.upper = float(upper)
         self.log = log
 
         try:
-            scaler = UnitScaler(self.lower, self.upper, log=log, dtype=f64)
+            scaler = UnitScaler(f64(self.lower), f64(self.upper), log=log, dtype=f64)
         except ValueError as e:
             raise ValueError(f"Hyperparameter '{name}' has illegal settings") from e
 
@@ -54,7 +54,7 @@ class UniformFloatHyperparameter(FloatHyperparameter):
         super().__init__(
             name=name,
             size=np.inf,
-            default_value=f64(
+            default_value=float(
                 np.round(
                     default_value
                     if default_value is not None
@@ -67,6 +67,7 @@ class UniformFloatHyperparameter(FloatHyperparameter):
             neighborhood=vect_dist.neighborhood,
             vector_dist=vect_dist,
             neighborhood_size=np.inf,
+            value_cast=float,
         )
 
     def to_integer(self) -> UniformIntegerHyperparameter:

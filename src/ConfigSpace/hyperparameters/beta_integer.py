@@ -23,14 +23,14 @@ if TYPE_CHECKING:
 class BetaIntegerHyperparameter(IntegerHyperparameter):
     ORDERABLE: ClassVar[bool] = True
 
-    alpha: f64
-    beta: f64
-    lower: i64
-    upper: i64
+    alpha: float
+    beta: float
+    lower: int
+    upper: int
     log: bool
 
     name: str
-    default_value: f64
+    default_value: float
     meta: Mapping[Hashable, Any] | None
     size: int
 
@@ -88,14 +88,14 @@ class BetaIntegerHyperparameter(IntegerHyperparameter):
                 "Please provide values of alpha and beta larger than or equal to"
                 "1 so that the probability density is finite.",
             )
-        self.alpha = f64(alpha)
-        self.beta = f64(beta)
-        self.lower = i64(np.rint(lower))
-        self.upper = i64(np.rint(upper))
+        self.alpha = float(alpha)
+        self.beta = float(beta)
+        self.lower = int(np.rint(lower))
+        self.upper = int(np.rint(upper))
         self.log = bool(log)
 
         try:
-            scaler = UnitScaler(self.lower, self.upper, log=log, dtype=i64)
+            scaler = UnitScaler(i64(self.lower), i64(self.upper), log=log, dtype=i64)
         except ValueError as e:
             raise ValueError(f"Hyperparameter '{name}' has illegal settings") from e
 
@@ -135,6 +135,7 @@ class BetaIntegerHyperparameter(IntegerHyperparameter):
             vector_dist=vector_dist,
             neighborhood=vector_dist.neighborhood,
             neighborhood_size=self._neighborhood_size,
+            value_cast=int,
         )
 
     def __str__(self) -> str:

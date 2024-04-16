@@ -73,7 +73,7 @@ class NeighborhoodCat(_Neighborhood):
 
 
 @dataclass(init=False)
-class CategoricalHyperparameter(Hyperparameter[Any]):
+class CategoricalHyperparameter(Hyperparameter[Any, Any]):
     ORDERABLE: ClassVar[bool] = False
 
     choices: Sequence[Any]
@@ -200,6 +200,7 @@ class CategoricalHyperparameter(Hyperparameter[Any]):
             neighborhood=NeighborhoodCat(size=size),
             neighborhood_size=self._neighborhood_size,
             meta=meta,
+            value_cast=None,
         )
 
     def to_uniform(self) -> CategoricalHyperparameter:

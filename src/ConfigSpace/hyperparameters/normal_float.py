@@ -19,14 +19,14 @@ from ConfigSpace.types import Number, f64
 class NormalFloatHyperparameter(FloatHyperparameter):
     ORDERABLE: ClassVar[bool] = True
 
-    mu: f64
-    sigma: f64
-    lower: f64
-    upper: f64
+    mu: float
+    sigma: float
+    lower: float
+    upper: float
     log: bool
 
     name: str
-    default_value: f64
+    default_value: float
     meta: Mapping[Hashable, Any] | None
     size: float
 
@@ -41,26 +41,26 @@ class NormalFloatHyperparameter(FloatHyperparameter):
         log: bool = False,
         meta: Mapping[Hashable, Any] | None = None,
     ) -> None:
-        self.lower = f64(lower)
-        self.upper = f64(upper)
-        self.mu = f64(mu)
-        self.sigma = f64(sigma)
+        self.lower = float(lower)
+        self.upper = float(upper)
+        self.mu = float(mu)
+        self.sigma = float(sigma)
         self.log = bool(log)
 
         try:
-            scaler = UnitScaler(self.lower, self.upper, log=log, dtype=f64)
+            scaler = UnitScaler(f64(self.lower), f64(self.upper), log=log, dtype=f64)
         except ValueError as e:
             raise ValueError(f"Hyperparameter '{name}' has illegal settings") from e
 
         if default_value is None:
             _default_value = np.clip(self.mu, self.lower, self.upper)
         else:
-            _default_value = f64(default_value)
+            _default_value = default_value
 
-        _default_value = np.round(_default_value, ROUND_PLACES)
+        _default_value = float(np.round(_default_value, ROUND_PLACES))
 
         vectorized_mu = scaler.to_vector(np.array([self.mu]))[0]
-        vectorized_sigma = scaler.vectorize_size(self.sigma)
+        vectorized_sigma = scaler.vectorize_size(f64(self.sigma))
 
         vec_truncnorm_dist = truncnorm(  # type: ignore
             a=(0.0 - vectorized_mu) / vectorized_sigma,
@@ -86,6 +86,7 @@ class NormalFloatHyperparameter(FloatHyperparameter):
             vector_dist=vect_dist,
             neighborhood=vect_dist.neighborhood,
             neighborhood_size=np.inf,
+            value_cast=float,
         )
 
     def to_integer(self) -> NormalIntegerHyperparameter:

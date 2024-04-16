@@ -20,14 +20,14 @@ from ConfigSpace.types import Number, f64, i64
 class NormalIntegerHyperparameter(IntegerHyperparameter):
     ORDERABLE: ClassVar[bool] = True
 
-    mu: f64
-    sigma: f64
-    lower: i64
-    upper: i64
+    mu: float
+    sigma: float
+    lower: int
+    upper: int
     log: bool
 
     name: str
-    default_value: i64
+    default_value: int
     meta: Mapping[Hashable, Any] | None
     size: int
 
@@ -42,21 +42,24 @@ class NormalIntegerHyperparameter(IntegerHyperparameter):
         log: bool = False,
         meta: Mapping[Hashable, Any] | None = None,
     ) -> None:
-        self.mu = f64(mu)
-        self.sigma = f64(sigma)
-        self.lower = i64(np.rint(lower))
-        self.upper = i64(np.rint(upper))
+        self.mu = float(mu)
+        self.sigma = float(sigma)
+        self.lower = int(np.rint(lower))
+        self.upper = int(np.rint(upper))
         self.log = bool(log)
 
         try:
-            scaler = UnitScaler(self.lower, self.upper, log=self.log, dtype=i64)
+            scaler = UnitScaler(
+                i64(self.lower),
+                i64(self.upper),
+                log=self.log,
+                dtype=i64,
+            )
         except ValueError as e:
             raise ValueError(f"Hyperparameter '{name}' has illegal settings") from e
 
         if default_value is None:
-            _default_value = np.rint(np.clip(self.mu, self.lower, self.upper)).astype(
-                i64,
-            )
+            _default_value = int(np.rint(np.clip(self.mu, self.lower, self.upper)))
         else:
             if not is_close_to_integer(f64(default_value), atol=ATOL):
                 raise TypeError(
@@ -64,12 +67,12 @@ class NormalIntegerHyperparameter(IntegerHyperparameter):
                     f" Got '{type(default_value).__name__}' for {default_value=}.",
                 )
 
-            _default_value = np.rint(default_value).astype(i64)
+            _default_value = int(np.rint(default_value))
 
         size = self.upper - self.lower + 1
 
         vectorized_mu = scaler.to_vector(np.array([self.mu]))[0]
-        vectorized_sigma = scaler.vectorize_size(self.sigma)
+        vectorized_sigma = scaler.vectorize_size(f64(self.sigma))
 
         vec_truncnorm_dist = truncnorm(  # type: ignore
             a=(0.0 - vectorized_mu) / vectorized_sigma,
@@ -93,6 +96,7 @@ class NormalIntegerHyperparameter(IntegerHyperparameter):
             vector_dist=vector_dist,
             neighborhood=vector_dist.neighborhood,
             neighborhood_size=self._neighborhood_size,
+            value_cast=int,
         )
 
     def __str__(self) -> str:

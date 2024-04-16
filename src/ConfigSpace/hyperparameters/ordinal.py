@@ -3,7 +3,7 @@ from __future__ import annotations
 from collections.abc import Hashable, Mapping, Sequence
 from dataclasses import dataclass
 from functools import partial
-from typing import TYPE_CHECKING, Any, ClassVar
+from typing import Any, ClassVar
 from typing_extensions import deprecated
 
 import numpy as np
@@ -14,13 +14,11 @@ from ConfigSpace.hyperparameters._hp_components import (
     ordinal_neighborhood,
 )
 from ConfigSpace.hyperparameters.hyperparameter import Hyperparameter
-
-if TYPE_CHECKING:
-    from ConfigSpace.types import Array, i64
+from ConfigSpace.types import Array, NotSet, _NotSet, i64
 
 
 @dataclass(init=False)
-class OrdinalHyperparameter(Hyperparameter[Any]):
+class OrdinalHyperparameter(Hyperparameter[Any, Any]):
     ORDERABLE: ClassVar[bool] = True
 
     sequence: tuple[Any, ...]
@@ -75,11 +73,12 @@ class OrdinalHyperparameter(Hyperparameter[Any]):
             neighborhood=partial(ordinal_neighborhood, size=int(size)),
             vector_dist=UniformIntegerDistribution(size=size),
             neighborhood_size=self._neighborhood_size,
+            value_cast=None,
         )
 
-    def _neighborhood_size(self, value: Any | None) -> int:
+    def _neighborhood_size(self, value: Any | _NotSet) -> int:
         size = len(self.sequence)
-        if value is None:
+        if value is NotSet:
             return size
 
         # No neighbors if it's the only element

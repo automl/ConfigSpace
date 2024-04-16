@@ -20,7 +20,7 @@ def _empty_neighborhood(*_: Any, **__: Any) -> Array[f64]:
 
 
 @dataclass(init=False)
-class Constant(Hyperparameter[Any]):
+class Constant(Hyperparameter[Any, Any]):
     SERIALIZE_TYPE_NAME: ClassVar[str] = "constant"
     ORDERABLE: ClassVar[bool] = False
 
@@ -73,6 +73,7 @@ class Constant(Hyperparameter[Any]):
             ),
             neighborhood=_empty_neighborhood,
             neighborhood_size=0,
+            value_cast=None,
         )
 
     def __str__(self) -> str:

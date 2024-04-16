@@ -10,13 +10,14 @@ from typing import (
     ClassVar,
     Generic,
     Literal,
+    TypeVar,
     overload,
 )
 from typing_extensions import Self, deprecated
 
 import numpy as np
 
-from ConfigSpace.types import DType, f64, i64
+from ConfigSpace.types import DType, NotSet, _NotSet, f64, i64
 
 if TYPE_CHECKING:
     from ConfigSpace.hyperparameters._distributions import Distribution
@@ -25,14 +26,16 @@ if TYPE_CHECKING:
     from ConfigSpace.hyperparameters.uniform_integer import UniformIntegerHyperparameter
     from ConfigSpace.types import Array, Mask
 
+ValueT = TypeVar("ValueT")
+
 
 @dataclass(init=False)
-class Hyperparameter(ABC, Generic[DType]):
+class Hyperparameter(ABC, Generic[ValueT, DType]):
     ORDERABLE: ClassVar[bool] = False
     LEGAL_VALUE_TYPES: ClassVar[tuple[type, ...] | Literal["all"]] = "all"
 
     name: str
-    default_value: DType
+    default_value: ValueT
     meta: Mapping[Hashable, Any] | None
     size: int | float
 
@@ -40,7 +43,10 @@ class Hyperparameter(ABC, Generic[DType]):
     _normalized_default_value: f64 = field(repr=False)
     _transformer: _Transformer[DType] = field(repr=False)
     _neighborhood: _Neighborhood = field(repr=False, compare=False)
-    _neighborhood_size: float | int | Callable[[DType | None], int | float] = field(
+    _value_cast: Callable[[DType], ValueT] | None = field(repr=False, compare=False)
+    _neighborhood_size: (
+        float | int | Callable[[ValueT | DType | _NotSet], int | float]
+    ) = field(
         repr=False,
         compare=False,
     )
@@ -48,12 +54,13 @@ class Hyperparameter(ABC, Generic[DType]):
     def __init__(
         self,
         name: str,
-        default_value: DType,
+        default_value: ValueT,
         vector_dist: Distribution,
         transformer: _Transformer[DType],
         neighborhood: _Neighborhood,
         size: int | float,
-        neighborhood_size: float | int | Callable[[DType | None], int | float],
+        neighborhood_size: float | int | Callable[[DType | ValueT | None], int | float],
+        value_cast: Callable[[DType], ValueT] | None,
         meta: Mapping[Hashable, Any] | None = None,
     ) -> None:
         if not isinstance(name, str):
@@ -70,6 +77,7 @@ class Hyperparameter(ABC, Generic[DType]):
         self._transformer = transformer
         self._neighborhood = neighborhood
         self._neighborhood_size = neighborhood_size
+        self._value_cast = value_cast
 
         if not self.legal_value(self.default_value):
             raise ValueError(
@@ -93,7 +101,7 @@ class Hyperparameter(ABC, Generic[DType]):
         size: None = None,
         *,
         seed: np.random.RandomState | None = None,
-    ) -> DType: ...
+    ) -> ValueT: ...
 
     @overload
     def sample_value(
@@ -108,7 +116,7 @@ class Hyperparameter(ABC, Generic[DType]):
         size: int | None = None,
         *,
         seed: np.random.RandomState | None = None,
-    ) -> DType | Array[DType]:
+    ) -> ValueT | Array[DType]:
         """Sample a value from this hyperparameter."""
         samples = self.sample_vector(size=size, seed=seed)
         return self.to_value(samples)
@@ -160,7 +168,7 @@ class Hyperparameter(ABC, Generic[DType]):
         return self._transformer.legal_vector_single(vector)
 
     @overload
-    def legal_value(self, value: DType) -> bool: ...
+    def legal_value(self, value: ValueT | DType) -> bool: ...
 
     @overload
     def legal_value(
@@ -170,7 +178,7 @@ class Hyperparameter(ABC, Generic[DType]):
 
     def legal_value(
         self,
-        value: DType | Sequence[DType] | Array[Any],
+        value: ValueT | DType | Sequence[DType] | Array[Any],
     ) -> bool | Mask:
         if isinstance(value, np.ndarray):
             return self._transformer.legal_value(value)
@@ -186,7 +194,7 @@ class Hyperparameter(ABC, Generic[DType]):
         size: None = None,
         *,
         random_state: np.random.Generator | np.random.RandomState | int | None = None,
-    ) -> DType: ...
+    ) -> ValueT: ...
 
     @overload
     def rvs(
@@ -201,7 +209,7 @@ class Hyperparameter(ABC, Generic[DType]):
         size: int | None = None,
         *,
         random_state: np.random.Generator | np.random.RandomState | int | None = None,
-    ) -> DType | Array[DType]:
+    ) -> ValueT | Array[DType]:
         if isinstance(random_state, int) or random_state is None:
             random_state = np.random.RandomState(random_state)
         elif isinstance(random_state, np.random.Generator):
@@ -212,7 +220,7 @@ class Hyperparameter(ABC, Generic[DType]):
         return self.to_value(vector)
 
     @overload
-    def to_value(self, vector: f64) -> DType: ...
+    def to_value(self, vector: f64) -> ValueT: ...
 
     @overload
     def to_value(self, vector: Array[f64]) -> Array[DType]: ...
@@ -220,24 +228,28 @@ class Hyperparameter(ABC, Generic[DType]):
     def to_value(
         self,
         vector: f64 | Array[f64],
-    ) -> DType | Array[DType]:
+    ) -> ValueT | Array[DType]:
         if isinstance(vector, np.ndarray):
             return self._transformer.to_value(vector)
 
-        return self._transformer.to_value(np.array([vector]))[0]
+        value = self._transformer.to_value(np.array([vector]))[0]
+        if self._value_cast is not None:
+            return self._value_cast(value)
+
+        return value
 
     @overload
-    def to_vector(self, value: DType | int | float) -> f64: ...
+    def to_vector(self, value: ValueT | DType) -> f64: ...
 
     @overload
     def to_vector(
         self,
-        value: Sequence[int | float | DType] | Array,
+        value: Sequence[ValueT | DType] | Array[Any],
     ) -> Array[f64]: ...
 
     def to_vector(
         self,
-        value: DType | int | float | Sequence[DType | int | float] | Array,
+        value: ValueT | Sequence[ValueT | DType] | Array[Any],
     ) -> f64 | Array[f64]:
         if isinstance(value, np.ndarray):
             return self._transformer.to_vector(value)
@@ -305,7 +317,7 @@ class Hyperparameter(ABC, Generic[DType]):
         # HACK: Really the only thing implementing Hyperparameter should be a dataclass
         return replace(self, **kwargs)  # type: ignore
 
-    def get_num_neighbors(self, value: DType | None = None) -> int | float:
+    def get_num_neighbors(self, value: DType | _NotSet = NotSet) -> int | float:
         return (
             self._neighborhood_size(value)
             if callable(self._neighborhood_size)
@@ -325,7 +337,7 @@ class Hyperparameter(ABC, Generic[DType]):
         return self.to_vector(value)
 
     @deprecated("Please use `sample_value(seed=rs)` instead.")
-    def sample(self, rs: np.random.RandomState) -> DType:
+    def sample(self, rs: np.random.RandomState) -> ValueT:
         return self.sample_value(seed=rs)
 
     @deprecated("Please use `sample_vector(size, seed=rs)` instead.")
@@ -382,7 +394,7 @@ class Hyperparameter(ABC, Generic[DType]):
     def _transform(
         self,
         vector: f64 | Array[f64],
-    ) -> DType | Array[DType]:
+    ) -> ValueT | Array[DType]:
         return self.to_value(vector)
 
     @property
@@ -428,12 +440,15 @@ class Hyperparameter(ABC, Generic[DType]):
         return self.neighbors_vectorized(value, number, std=std, seed=rs)
 
 
+NumberT = TypeVar("NumberT", int, float)
+
+
 @dataclass(init=False)
-class NumericalHyperparameter(Hyperparameter[DType]):
+class NumericalHyperparameter(Hyperparameter[NumberT, DType]):
     LEGAL_VALUE_TYPES: ClassVar[tuple[type, ...]] = (int, float, np.number)
 
-    lower: DType
-    upper: DType
+    lower: NumberT
+    upper: NumberT
     log: bool
 
     def to_uniform(
@@ -442,8 +457,8 @@ class NumericalHyperparameter(Hyperparameter[DType]):
 
 
 @dataclass(init=False)
-class IntegerHyperparameter(NumericalHyperparameter[i64]):
-    def _neighborhood_size(self, value: i64 | None) -> int:
+class IntegerHyperparameter(NumericalHyperparameter[int, i64]):
+    def _neighborhood_size(self, value: int | i64 | None) -> int:
         if value is None:
             return int(self.size)
 
@@ -468,7 +483,7 @@ class IntegerHyperparameter(NumericalHyperparameter[i64]):
 
 
 @dataclass(init=False)
-class FloatHyperparameter(NumericalHyperparameter[f64]):
+class FloatHyperparameter(NumericalHyperparameter[float, f64]):
     def to_uniform(self) -> UniformFloatHyperparameter:
         from ConfigSpace.hyperparameters.uniform_float import UniformFloatHyperparameter
 

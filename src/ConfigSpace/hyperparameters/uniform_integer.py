@@ -21,12 +21,12 @@ from ConfigSpace.types import Number, f64, i64
 class UniformIntegerHyperparameter(IntegerHyperparameter):
     ORDERABLE: ClassVar[bool] = True
 
-    lower: i64
-    upper: i64
+    lower: int
+    upper: int
     log: bool
 
     name: str
-    default_value: i64
+    default_value: int
     meta: Mapping[Hashable, Any] | None
     size: int
 
@@ -39,8 +39,8 @@ class UniformIntegerHyperparameter(IntegerHyperparameter):
         log: bool = False,
         meta: Mapping[Hashable, Any] | None = None,
     ) -> None:
-        self.lower = i64(np.rint(lower))
-        self.upper = i64(np.rint(upper))
+        self.lower = int(np.rint(lower))
+        self.upper = int(np.rint(upper))
         self.log = bool(log)
 
         if default_value is not None and not is_close_to_integer(
@@ -53,7 +53,7 @@ class UniformIntegerHyperparameter(IntegerHyperparameter):
             )
 
         try:
-            scaler = UnitScaler(self.lower, self.upper, log=log, dtype=i64)
+            scaler = UnitScaler(i64(self.lower), i64(self.upper), log=log, dtype=i64)
         except ValueError as e:
             raise ValueError(f"Hyperparameter '{name}' has illegal settings") from e
 
@@ -76,7 +76,7 @@ class UniformIntegerHyperparameter(IntegerHyperparameter):
             name=name,
             size=int(size),
             default_value=(
-                i64(
+                int(
                     default_value
                     if default_value is not None
                     else np.rint(scaler.to_value(np.array([0.5]))[0]),
@@ -87,6 +87,7 @@ class UniformIntegerHyperparameter(IntegerHyperparameter):
             vector_dist=vector_dist,
             neighborhood=vector_dist.neighborhood,
             neighborhood_size=self._neighborhood_size,
+            value_cast=int,
         )
 
     def __str__(self) -> str:
