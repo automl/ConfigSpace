@@ -1270,7 +1270,7 @@ def test_uniforminteger():
 def test_uniformint_legal_float_values():
     n_iter = UniformIntegerHyperparameter("n_iter", 5.0, 1000.0, default_value=20.0)
 
-    assert isinstance(n_iter.default_value, np.integer)
+    assert isinstance(n_iter.default_value, int)
     with pytest.raises(
         TypeError,
         match=(
@@ -1550,7 +1550,7 @@ def test_normalint_legal_float_values():
         lower=0,
         upper=10,
     )
-    assert isinstance(n_iter.default_value, np.integer)
+    assert isinstance(n_iter.default_value, int)
     with pytest.raises(
         TypeError,
         match=(
