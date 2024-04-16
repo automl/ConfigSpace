@@ -1072,7 +1072,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         **kwargs: Any,
     ) -> ConfigurationSpace:
         if isinstance(path, (str, Path)):
-            with open(path, "w") as f:
+            with open(path) as f:
                 d = json.load(f, **kwargs)
         else:
             d = json.load(path, **kwargs)
