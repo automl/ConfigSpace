@@ -14,7 +14,7 @@ from ConfigSpace.hyperparameters._distributions import (
 )
 from ConfigSpace.hyperparameters._hp_components import TransformerSeq, _Neighborhood
 from ConfigSpace.hyperparameters.hyperparameter import Hyperparameter
-from ConfigSpace.types import Array, f64
+from ConfigSpace.types import Array, NotSet, _NotSet, f64
 
 if TYPE_CHECKING:
     from ConfigSpace.types import Array
@@ -89,15 +89,10 @@ class CategoricalHyperparameter(Hyperparameter[Any, Any]):
         self,
         name: str,
         choices: Sequence[Any],
-        default_value: Any | None = None,
+        default_value: Any | _NotSet = NotSet,
         meta: Mapping[Hashable, Any] | None = None,
         weights: Sequence[float] | Array[np.number] | None = None,
     ) -> None:
-        # TODO: We can allow for None but we need to be sure it doesn't break
-        # anything elsewhere.
-        if any(choice is None for choice in choices):
-            raise TypeError("Choice 'None' is not supported")
-
         if isinstance(choices, Set):
             raise TypeError(
                 "Using a set of choices is prohibited as it can result in "
@@ -146,7 +141,7 @@ class CategoricalHyperparameter(Hyperparameter[Any, Any]):
         else:
             tupled_weights = None
 
-        if default_value is not None and default_value not in choices:
+        if default_value is not NotSet and default_value not in choices:
             raise ValueError(
                 "The default value has to be one of the choices. "
                 f"Got {default_value!r} which is not in {choices}.",
@@ -159,9 +154,9 @@ class CategoricalHyperparameter(Hyperparameter[Any, Any]):
             _weights = np.asarray(weights, dtype=np.float64)
             probabilities = _weights / np.sum(_weights)
 
-        if default_value is None and weights is None:
+        if default_value is NotSet and weights is None:
             default_value = choices[0]
-        elif default_value is None:
+        elif default_value is NotSet:
             highest_prob_index = np.argmax(probabilities)
             default_value = choices[highest_prob_index]
         elif default_value in choices:
@@ -236,8 +231,8 @@ class CategoricalHyperparameter(Hyperparameter[Any, Any]):
 
         return True
 
-    def _neighborhood_size(self, value: Any | None) -> int:
-        if value is None or value not in self.choices:
+    def _neighborhood_size(self, value: Any | _NotSet) -> int:
+        if value is NotSet or value not in self.choices:
             return self.size
         return self.size - 1
 

@@ -29,11 +29,13 @@ from __future__ import annotations
 
 import copy
 from collections import defaultdict
+from pathlib import Path
 from typing import Any
 
 import numpy as np
 import pytest
 
+from ConfigSpace.configuration_space import ConfigurationSpace
 from ConfigSpace.hyperparameters import (
     BetaFloatHyperparameter,
     BetaIntegerHyperparameter,
@@ -2333,9 +2335,6 @@ def test_categorical_choices():
     ):
         CategoricalHyperparameter("param", ["a", "a"])
 
-    with pytest.raises(TypeError, match="Choice 'None' is not supported"):
-        CategoricalHyperparameter("param", ["a", None])
-
 
 def test_categorical_default():
     # Test that the default value is the most probable choice when weights are given
@@ -3017,3 +3016,52 @@ def test_hyperparam_representation():
     )
     c1 = CategoricalHyperparameter("param", [True, False])
     assert str(c1) == "param, Type: Categorical, Choices: {True, False}, Default: True"
+
+
+@pytest.mark.parametrize(
+    "cat, i",
+    [
+        (
+            CategoricalHyperparameter("param", [True, False, None], default_value=None),
+            2,
+        ),
+        (CategoricalHyperparameter("param", ["a", "b", None], default_value=None), 2),
+        (CategoricalHyperparameter("param", [None]), 0),
+        (CategoricalHyperparameter("param", [None, 1, 2]), 0),
+    ],
+)
+def test_none_allowed_in_categorical(
+    cat: CategoricalHyperparameter,
+    i: int,
+    tmp_path: Path,
+) -> None:
+    assert cat.legal_value(None)
+    assert cat.to_value(np.float64(i)) is None
+    assert cat.to_vector(None) == i
+
+    if cat.size != 1:
+        first_non_none = next(x for x in cat.choices if x is not None)
+        assert None in cat.neighbors_values(first_non_none, n=cat.size)
+        assert cat.get_num_neighbors(None) == cat.size - 1
+
+    assert cat.pdf_values([None])[0] > 0
+
+    space = ConfigurationSpace({"c": cat})
+
+    _path = tmp_path / "space.json"
+    with _path.open("w") as f:
+        space.to_json(f)
+
+    with _path.open("r") as f:
+        loaded_space = ConfigurationSpace.from_json(f)
+
+    assert space == loaded_space
+
+    default_config = space.get_default_configuration()
+    assert dict(default_config) == {"param": None}
+
+    assert default_config._vector[0] == i
+    assert None in default_config.values()
+    default_config["param"] = None  # no raise
+    assert default_config == default_config  # noqa: PLR0124
+    default_config.is_valid_configuration()  # no raise
