@@ -185,7 +185,7 @@ def get_one_exchange_neighbourhood(
             neighbor_sample_size = num_neighbors * OVER_SAMPLE_MULT
             n_to_gen = num_neighbors
             _std = stdev if isinstance(hp, UFH) else None
-            should_shuffle = True
+            should_shuffle = False
         else:  # All non-continuous ones
             _neighborhood_size = int(hp.size - 1)
             neighbor_sample_size = int(

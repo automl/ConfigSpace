@@ -23,7 +23,6 @@ def run_test(configuration_space_path):
 
     with open(configuration_space_path) as fh:
         cs = pcs_parser.read(fh)
-
     sampling_time = []
 
     # Sample a little bit

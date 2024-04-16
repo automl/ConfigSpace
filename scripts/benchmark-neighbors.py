@@ -30,15 +30,16 @@ def run_test(configuration_space_path):
 
     for i in range(3):
         cs.seed(i)
+        rs = np.random.RandomState(i)
         configurations = cs.sample_configuration(size=n_configs)
         for c in configurations:
             c.is_valid_configuration()
 
-        for j, c in enumerate(configurations):
+        for _j, c in enumerate(configurations):
             start_time = time.time()
             neighborhood = ConfigSpace.util.get_one_exchange_neighbourhood(
                 c,
-                seed=i * j,
+                seed=rs,
                 num_neighbors=4,
             )
             _ns = list(neighborhood)

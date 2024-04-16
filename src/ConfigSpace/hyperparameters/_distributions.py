@@ -811,7 +811,7 @@ class WeightedIntegerDiscreteDistribution(Distribution):
         seed: RandomState | None = None,
     ) -> Array[f64]:
         seed = np.random.RandomState() if seed is None else seed
-        return seed.choice(self.size, size=n, p=self.probabilities)  # type: ignore
+        return seed.choice(self.size, size=n, p=self.probabilities, replace=True)  # type: ignore
 
     def max_density(self) -> float:
         return float(self._max_density)

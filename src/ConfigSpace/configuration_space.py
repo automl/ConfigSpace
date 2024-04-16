@@ -558,7 +558,10 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
                 dtype=np.float64,
             )
             for i, hp in enumerate(self.values()):
-                config_matrix[i] = hp.sample_vector(sample_size, seed=self.random)
+                config_matrix[i] = hp._vector_dist.sample_vector(
+                    n=sample_size,
+                    seed=self.random,
+                )
 
             # Apply unconditional forbiddens across the columns (hps)
             # We treat this as an OR, i.e. if any of the forbidden clauses are
@@ -808,7 +811,6 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
                 if k in ("random",):
                     continue
                 if v != other_dict.get(k):
-                    print(k)
                     return False
 
             return True

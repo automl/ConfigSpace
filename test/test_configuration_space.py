@@ -761,11 +761,11 @@ def test_sample_configuration_with_or_conjunction():
     sampled_arrays = np.asarray([config.get_array() for config in configs])
     expected_arrays = np.asarray(
         [
-            [1, np.nan, 1],
-            [2, np.nan, np.nan],
-            [0, 1, 0],
-            [0, 1, 2],
-            [0, 1, 0],
+            [1, np.nan, 0],
+            [0, 0, np.nan],
+            [0, 1, 1],
+            [1, np.nan, 2],
+            [1, np.nan, 0],
             [2, np.nan, np.nan],
         ],
     )

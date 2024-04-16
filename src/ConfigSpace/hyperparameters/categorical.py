@@ -63,7 +63,7 @@ class NeighborhoodCat(_Neighborhood):
         if self._cached_arange is not None:
             _range = self._cached_arange
         else:
-            _range = np.arange(0, self.size, dtype=np.float64).copy()
+            _range = np.arange(0, self.size, dtype=np.float64)
 
         bot = _range[:pivot]
         top = _range[pivot + 1 :]
@@ -170,7 +170,7 @@ class CategoricalHyperparameter(Hyperparameter[Any]):
             raise ValueError(f"Illegal default value {default_value}")
 
         # We only need to pass probabilties is they are non-uniform...
-        if probabilities is not None:
+        if weights is not None:
             vector_dist = WeightedIntegerDiscreteDistribution(
                 size=size,
                 probabilities=np.asarray(probabilities),

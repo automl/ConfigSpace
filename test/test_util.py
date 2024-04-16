@@ -136,14 +136,14 @@ def test_random_neighborhood_float():
     hp = UniformFloatHyperparameter("a", 1, 10)
     all_neighbors = _test_get_one_exchange_neighbourhood(hp)
     all_neighbors = [neighbor["a"] for neighbor in all_neighbors]
-    assert np.mean(all_neighbors) == pytest.approx(5.48, abs=1e-1)
-    assert np.var(all_neighbors) == pytest.approx(3.10, abs=1e-2)
+    assert np.mean(all_neighbors) == pytest.approx(5.65, abs=1e-1)
+    assert np.var(all_neighbors) == pytest.approx(2.85, abs=1e-2)
     hp = UniformFloatHyperparameter("a", 1, 10, log=True)
     all_neighbors = _test_get_one_exchange_neighbourhood(hp)
     all_neighbors = [neighbor["a"] for neighbor in all_neighbors]
     # Default value is 3.16
-    assert np.mean(all_neighbors) == pytest.approx(3.48, abs=1e-2)
-    assert np.var(all_neighbors) == pytest.approx(2.64, abs=1e-2)
+    assert np.mean(all_neighbors) == pytest.approx(3.61, abs=1e-2)
+    assert np.var(all_neighbors) == pytest.approx(2.50, abs=1e-2)
 
 
 def test_random_neighbor_int():
