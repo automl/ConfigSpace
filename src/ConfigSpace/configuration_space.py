@@ -822,10 +822,6 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
 
         return NotImplemented
 
-    def __hash__(self) -> int:
-        """Override the default hash behavior (that returns the id or the object)."""
-        return hash(self.__repr__())
-
     def __repr__(self) -> str:
         retval = io.StringIO()
         retval.write("Configuration space object:\n  Hyperparameters:\n")
