@@ -47,6 +47,7 @@ from ConfigSpace.hyperparameters import (
     UniformFloatHyperparameter,
     UniformIntegerHyperparameter,
 )
+from ConfigSpace.util import get_one_exchange_neighbourhood
 
 META_DATA = {"additional": "meta-data", "useful": "for integrations", "input_id": 42}
 
@@ -3019,34 +3020,47 @@ def test_hyperparam_representation():
 
 
 @pytest.mark.parametrize(
-    "cat, i",
+    "hp, i",
     [
         (
             CategoricalHyperparameter("param", [True, False, None], default_value=None),
             2,
         ),
-        (CategoricalHyperparameter("param", ["a", "b", None], default_value=None), 2),
+        (
+            CategoricalHyperparameter("param", ["a", "b", None], default_value=None),
+            2,
+        ),
         (CategoricalHyperparameter("param", [None]), 0),
         (CategoricalHyperparameter("param", [None, 1, 2]), 0),
+        (
+            OrdinalHyperparameter(
+                "param",
+                [1, None, 2],
+                default_value=None,
+            ),  # Essential None is in the middle for tests
+            1,
+        ),
+        (OrdinalHyperparameter("param", [None]), 0),
     ],
 )
-def test_none_allowed_in_categorical(
-    cat: CategoricalHyperparameter,
+def test_none_allowed_in_categorical_ordinal(
+    hp: CategoricalHyperparameter | OrdinalHyperparameter,
     i: int,
     tmp_path: Path,
 ) -> None:
-    assert cat.legal_value(None)
-    assert cat.to_value(np.float64(i)) is None
-    assert cat.to_vector(None) == i
+    assert hp.legal_value(None)
+    assert hp.to_value(np.float64(i)) is None
+    assert hp.to_vector(None) == i
 
-    if cat.size != 1:
-        first_non_none = next(x for x in cat.choices if x is not None)
-        assert None in cat.neighbors_values(first_non_none, n=cat.size)
-        assert cat.get_num_neighbors(None) == cat.size - 1
+    if hp.size != 1:
+        seq = hp.choices if isinstance(hp, CategoricalHyperparameter) else hp.sequence
+        first_non_none = next(x for x in seq if x is not None)
+        assert None in hp.neighbors_values(first_non_none, n=hp.size)
+        assert 0 < hp.get_num_neighbors(None) < hp.size
 
-    assert cat.pdf_values([None])[0] > 0
+    assert hp.pdf_values([None])[0] > 0
 
-    space = ConfigurationSpace({"c": cat})
+    space = ConfigurationSpace({"c": hp})
 
     _path = tmp_path / "space.json"
     with _path.open("w") as f:
@@ -3061,7 +3075,10 @@ def test_none_allowed_in_categorical(
     assert dict(default_config) == {"param": None}
 
     assert default_config._vector[0] == i
+
     assert None in default_config.values()
     default_config["param"] = None  # no raise
     assert default_config == default_config  # noqa: PLR0124
     default_config.is_valid_configuration()  # no raise
+
+    _ = list(get_one_exchange_neighbourhood(default_config, seed=1))  # no raise
