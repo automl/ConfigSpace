@@ -519,6 +519,11 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
             list[:class:`~ConfigSpace.configuration_space.Configuration`]:
             A single configuration if ``size`` 1 else a list of Configurations
         """
+        if len(self) == 0:
+            if size is None:
+                return Configuration(self, vector=np.array([]))
+            return [Configuration(self, vector=np.array([])) for _ in range(size)]
+
         if size is not None and not isinstance(size, int):
             raise TypeError(f"Expected int or None, got {type(size)}")
 
