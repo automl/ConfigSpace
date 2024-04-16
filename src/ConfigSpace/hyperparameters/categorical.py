@@ -3,8 +3,9 @@ from __future__ import annotations
 from collections import Counter
 from collections.abc import Hashable, Mapping, Sequence
 from dataclasses import dataclass, field
+from itertools import product
 from typing import TYPE_CHECKING, Any, ClassVar, Set
-from typing_extensions import deprecated
+from typing_extensions import deprecated, override
 
 import numpy as np
 
@@ -14,7 +15,7 @@ from ConfigSpace.hyperparameters._distributions import (
 )
 from ConfigSpace.hyperparameters._hp_components import TransformerSeq, _Neighborhood
 from ConfigSpace.hyperparameters.hyperparameter import Hyperparameter
-from ConfigSpace.types import Array, NotSet, _NotSet, f64
+from ConfigSpace.types import Array, Mask, NotSet, _NotSet, f64
 
 if TYPE_CHECKING:
     from ConfigSpace.types import Array
@@ -85,6 +86,8 @@ class CategoricalHyperparameter(Hyperparameter[Any, Any]):
     meta: Mapping[Hashable, Any] | None
     size: int
 
+    _contains_sequence_as_value: bool
+
     def __init__(
         self,
         name: str,
@@ -99,17 +102,27 @@ class CategoricalHyperparameter(Hyperparameter[Any, Any]):
                 "non-deterministic behavior. Please use a list or a tuple.",
             )
 
-        # TODO:For now we assume hashable for choices to make the below check with
-        # Counter work. We can probably relax this assumption
         choices = tuple(choices)
-        counter = Counter(choices)
-        for choice, count in counter.items():
-            if count > 1:
-                raise ValueError(
-                    f"Choices for categorical hyperparameters {name} contain"
-                    f" choice `{choice}` {count} times, while only a single oocurence"
-                    " is allowed.",
-                )
+
+        # We first try the fast route if it's Hashable, otherwise we resort to doing
+        # an N^2 check.
+        try:
+            counter = Counter(choices)
+            for choice, count in counter.items():
+                if count > 1:
+                    raise ValueError(
+                        f"Choices for categorical hyperparameters {name} contain"
+                        f" choice `{choice}` {count} times, while only a single"
+                        " occurence is allowed.",
+                    )
+        except TypeError:
+            for a, b in product(choices, choices):
+                if a is not b and a == b:
+                    raise ValueError(  # noqa: B904
+                        f"Choices for categorical hyperparameters {name} contain"
+                        f" choice `{a}` multiple times, while only a single occurence"
+                        " is allowed.",
+                    )
 
         if isinstance(weights, set):
             raise TypeError(
@@ -173,14 +186,29 @@ class CategoricalHyperparameter(Hyperparameter[Any, Any]):
         else:
             vector_dist = UniformIntegerDistribution(size=size)
 
-        # NOTE: Unfortunatly, numpy will promote number types to str
-        # if there are string types in the array, where we'd rather
-        # stick to object type in that case. Hence the manual...
-        seq_choices = np.asarray(choices)
-        if seq_choices.dtype.kind in {"U", "S"} and not all(
-            isinstance(choice, str) for choice in choices
-        ):
-            seq_choices = np.asarray(choices, dtype=object)
+        try:
+            # This can fail with a ValueError if the choices contain arbitrary objects
+            # that are list like.
+            seq_choices = np.asarray(choices)
+
+            # NOTE: Unfortunatly, numpy will promote number types to str
+            # if there are string types in the array, where we'd rather
+            # stick to object type in that case. Hence the manual...
+            if seq_choices.dtype.kind in {"U", "S"} and not all(
+                isinstance(choice, str) for choice in choices
+            ):
+                seq_choices = np.array(choices, dtype=object)
+
+        except ValueError:
+            seq_choices = list(choices)
+
+        # If the Hyperparameter recieves as a Sequence during legality checks or
+        # conversions, we need to inform it that one of the values is a Sequence itself,
+        # i.e. we should treat it as a single value and not a list of multiple values
+        self._contains_sequence_as_value = any(
+            isinstance(choice, Sequence) and not isinstance(choice, str)
+            for choice in choices
+        )
 
         self.probabilities = probabilities
         self.choices = choices
@@ -257,3 +285,73 @@ class CategoricalHyperparameter(Hyperparameter[Any, Any]):
             parts.append(f"Probabilities: {self.probabilities}")
 
         return ", ".join(parts)
+
+    @override
+    def to_vector(self, value: Any | Sequence[Any] | Array[Any]) -> f64 | Array[f64]:
+        if isinstance(value, np.ndarray):
+            return self._transformer.to_vector(value)
+
+        if isinstance(value, str):
+            return self._transformer.to_vector(np.array([value]))[0]
+
+        # Got a sequence of things, could be a list of stuff or a single value which is
+        # itself a list, e.g. a tuple (1, 2) indicating a single value
+        # If we could have single values which are sequences, we need to do some
+        # magic to get it into an array without numpy flattening it down
+        if isinstance(value, Sequence):
+            if self._contains_sequence_as_value:
+                # https://stackoverflow.com/a/47389566/5332072
+                _v = np.empty(1, dtype=object)
+                _v[0] = value
+                return self._transformer.to_vector(_v)[0]
+
+            # A sequence of things containing different values
+            return self._transformer.to_vector(np.asarray(value))
+
+        # Single value that is not a sequence
+        return self._transformer.to_vector(np.array([value]))[0]
+
+    @override
+    def legal_value(self, value: Any | Sequence[Any] | Array[Any]) -> bool | Mask:
+        if isinstance(value, np.ndarray):
+            return self._transformer.legal_value(value)
+
+        if isinstance(value, str):
+            return self._transformer.legal_value(np.array([value]))[0]
+
+        # Got a sequence of things, could be a list of stuff or a single value which is
+        # itself a list, e.g. a tuple (1, 2) indicating a single value
+        # If we could have single values which are sequences, we need to do some
+        # magic to get it into an array without numpy flattening it down
+        if isinstance(value, Sequence):
+            if self._contains_sequence_as_value:
+                # https://stackoverflow.com/a/47389566/5332072
+                _v = np.empty(1, dtype=object)
+                _v[0] = value
+                return self._transformer.legal_value(_v)[0]
+
+            # A sequence of things containing different values
+            return self._transformer.legal_value(np.asarray(value))
+
+        # Single value that is not a sequence
+        return self._transformer.legal_value(np.array([value]))[0]
+
+    @override
+    def pdf_values(self, values: Sequence[Any] | Array[Any]) -> Array[f64]:
+        if isinstance(values, np.ndarray):
+            if values.ndim != 1:
+                raise ValueError("Method pdf expects a one-dimensional numpy array")
+
+            vector = self.to_vector(values)  # type: ignore
+            return self.pdf_vector(vector)
+
+        if self._contains_sequence_as_value:
+            # We have to convert it into a numpy array of objects carefully
+            # https://stackoverflow.com/a/47389566/5332072
+            _v = np.empty(len(values), dtype=object)
+            _v[:] = values
+            _vector: Array[f64] = self.to_vector(_v)  # type: ignore
+            return self.pdf_vector(_vector)
+
+        vector: Array[f64] = self.to_vector(values)  # type: ignore
+        return self.pdf_vector(vector)

@@ -29,13 +29,16 @@ from __future__ import annotations
 
 import copy
 from collections import defaultdict
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
 import numpy as np
 import pytest
 
+from ConfigSpace.conditions import AndConjunction, EqualsCondition, InCondition
 from ConfigSpace.configuration_space import ConfigurationSpace
+from ConfigSpace.forbidden import ForbiddenEqualsClause, ForbiddenInClause
 from ConfigSpace.hyperparameters import (
     BetaFloatHyperparameter,
     BetaIntegerHyperparameter,
@@ -2332,7 +2335,7 @@ def test_categorical_choices():
     with pytest.raises(
         ValueError,
         match="Choices for categorical hyperparameters param contain choice `a` 2 times, "
-        "while only a single oocurence is allowed.",
+        "while only a single occurence is allowed.",
     ):
         CategoricalHyperparameter("param", ["a", "a"])
 
@@ -3082,3 +3085,101 @@ def test_none_allowed_in_categorical_ordinal(
     default_config.is_valid_configuration()  # no raise
 
     _ = list(get_one_exchange_neighbourhood(default_config, seed=1))  # no raise
+
+
+@dataclass
+class _DummyClass:
+    x: int
+
+
+@pytest.mark.parametrize(
+    "hp",
+    [
+        (
+            CategoricalHyperparameter(
+                "param",
+                [{"hello": "world"}, _DummyClass(4), (1, 2), None],
+                default_value=_DummyClass(4),
+            )
+        ),
+        (
+            OrdinalHyperparameter(
+                "param",
+                [(0, 0), (10, 20), _DummyClass(10), (30, 40), None],
+            )
+        ),
+    ],
+)
+def test_arbitrary_object_allowed_in_categorical_ordinal(
+    hp: CategoricalHyperparameter | OrdinalHyperparameter,
+    tmp_path: Path,
+) -> None:
+    assert hp == hp  # noqa: PLR0124
+
+    _seq = hp.choices if isinstance(hp, CategoricalHyperparameter) else hp.sequence
+    for s in _seq:
+        assert hp.legal_value(s)
+
+        vector_value = hp.to_vector(s)
+        assert hp.lower_vectorized <= vector_value <= hp.upper_vectorized
+
+        value_value = hp.to_value(vector_value)
+        assert value_value == s
+
+        if isinstance(hp, CategoricalHyperparameter):
+            neighbors = hp.neighbors_values(s, n=hp.size)
+            for other in _seq:
+                if other is s:
+                    continue
+                assert other in neighbors.tolist()
+
+        assert 0 < hp.get_num_neighbors(s) < hp.size
+
+        assert hp.pdf_values([s])[0] > 0
+
+    space = ConfigurationSpace({"c": hp})
+    assert space == space  # noqa: PLR0124
+
+    with pytest.raises(TypeError):
+        _path = tmp_path / "space.json"
+        with _path.open("w") as f:
+            space.to_json(f)
+
+    default_config = space.get_default_configuration()
+    default_config.is_valid_configuration()  # no raise
+
+    for s in _seq:
+        u = UniformFloatHyperparameter("u", 1, 10)
+        space_with_cond = ConfigurationSpace()
+        space_with_cond.add(
+            hp,
+            u,
+            AndConjunction(
+                EqualsCondition(child=u, parent=hp, value=s),
+                InCondition(child=u, parent=hp, values=[s]),
+            ),
+        )
+        samples = space_with_cond.sample_configuration(10)
+        for sample in samples:
+            ns = list(get_one_exchange_neighbourhood(sample, seed=1))  # no raise
+            for n in ns:
+                n.is_valid_configuration()  # no raise
+
+    for s in _seq:
+        # We can't put a forbidden on the default value unfortunatly...
+        if s == hp.default_value:
+            continue
+
+        u = UniformFloatHyperparameter("u", 1, 10)
+        space_with_forb = ConfigurationSpace()
+        space_with_forb.add(
+            hp,
+            u,
+            ForbiddenEqualsClause(hp, s),
+            ForbiddenInClause(hp, [s]),
+        )
+        samples = space_with_cond.sample_configuration(10)
+        for sample in samples:
+            list(get_one_exchange_neighbourhood(sample, seed=1))  # no raise
+            for n in ns:
+                n.is_valid_configuration()  # no raise

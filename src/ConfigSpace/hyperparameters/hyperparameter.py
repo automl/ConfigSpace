@@ -241,13 +241,10 @@ class Hyperparameter(ABC, Generic[ValueT, DType]):
         return value
 
     @overload
-    def to_vector(self, value: ValueT | DType) -> f64: ...
+    def to_vector(self, value: ValueT | DType | Sequence[ValueT | DType]) -> f64: ...
 
     @overload
-    def to_vector(
-        self,
-        value: Sequence[ValueT | DType] | Array[Any],
-    ) -> Array[f64]: ...
+    def to_vector(self, value: Sequence[ValueT | DType] | Array[Any]) -> Array[f64]: ...
 
     def to_vector(
         self,
@@ -300,19 +297,11 @@ class Hyperparameter(ABC, Generic[ValueT, DType]):
         legal_mask = self.legal_vector(vector).astype(f64)
         return self._vector_dist.pdf_vector(vector) * legal_mask
 
-    def pdf_values(
-        self,
-        values: Sequence[DType] | Array[DType],
-    ) -> Array[f64]:
-        # TODO: why this restriction?
-        _values = np.asarray(values)
-        if _values.ndim != 1:
-            raise ValueError(
-                "Method pdf expects a one-dimensional numpy array but got"
-                f" {_values.ndim} dimensions."
-                f"\n{_values}",
-            )
-        vector = self.to_vector(_values)
+    def pdf_values(self, values: Sequence[DType] | Array[DType]) -> Array[f64]:
+        if isinstance(values, np.ndarray) and values.ndim != 1:
+            raise ValueError("Method pdf expects a one-dimensional numpy array")
+
+        vector = self.to_vector(values)
         return self.pdf_vector(vector)
 
     def copy(self, **kwargs: Any) -> Self:
