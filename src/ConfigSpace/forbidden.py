@@ -168,7 +168,9 @@ class ForbiddenConjunction(ABC):
         if len(self.components) != len(other.components):
             return False
 
-        return all(c in other.components for c in self.components)
+        return all(c in other.components for c in self.components) and all(
+            oc in self.components for oc in other.components
+        )
 
     def set_vector_idx(self, hyperparameter_to_idx: dict[str, int]) -> None:
         for component in self.components:

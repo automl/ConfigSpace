@@ -450,11 +450,11 @@ class Conjunction:
         if len(self.components) != len(other.components):
             return False
 
-        for component, other_component in zip(self.components, other.components):
-            if component != other_component:
-                return False
-
-        return True
+        # We need to check that all of this components exist in the other
+        # and vice versa...
+        return all(c in other.components for c in self.components) and all(
+            oc in self.components for oc in other.components
+        )
 
     def __copy__(self):
         return self.__class__(*[copy.copy(comp) for comp in self.components])
