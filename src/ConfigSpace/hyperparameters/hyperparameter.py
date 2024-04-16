@@ -44,11 +44,11 @@ class Hyperparameter(ABC, Generic[ValueT, DType]):
     _transformer: _Transformer[DType] = field(repr=False)
     _neighborhood: _Neighborhood = field(repr=False, compare=False)
     _value_cast: Callable[[DType], ValueT] | None = field(repr=False, compare=False)
-    _neighborhood_size: (
-        float | int | Callable[[ValueT | DType | _NotSet], int | float]
-    ) = field(
-        repr=False,
-        compare=False,
+    _neighborhood_size: float | int | Callable[[ValueT | DType | None], int | float] = (
+        field(
+            repr=False,
+            compare=False,
+        )
     )
 
     def __init__(
@@ -317,7 +317,7 @@ class Hyperparameter(ABC, Generic[ValueT, DType]):
         # HACK: Really the only thing implementing Hyperparameter should be a dataclass
         return replace(self, **kwargs)  # type: ignore
 
-    def get_num_neighbors(self, value: DType | _NotSet = NotSet) -> int | float:
+    def get_num_neighbors(self, value: DType | None = None) -> int | float:
         return (
             self._neighborhood_size(value)
             if callable(self._neighborhood_size)
