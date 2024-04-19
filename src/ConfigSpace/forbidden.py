@@ -174,7 +174,7 @@ class ForbiddenConjunction(ABC):
             oc in self.components for oc in other.components
         )
 
-    def set_vector_idx(self, hyperparameter_to_idx: dict[str, int]) -> None:
+    def set_vector_idx(self, hyperparameter_to_idx: Mapping[str, int]) -> None:
         for component in self.components:
             component.set_vector_idx(hyperparameter_to_idx)
 

@@ -31,11 +31,11 @@ import copy
 import io
 import operator
 from abc import ABC, abstractmethod
-from itertools import combinations
-from typing import TYPE_CHECKING, Any, Callable, ClassVar, Iterator, Union
-from typing_extensions import Self, override
+from typing import TYPE_CHECKING, Any, Callable, ClassVar, Iterator, Mapping, Union
+from typing_extensions import Self, deprecated, override
 
 import numpy as np
+from more_itertools import all_equal, unique_everseen
 
 from ConfigSpace.types import f64
 
@@ -45,7 +45,7 @@ if TYPE_CHECKING:
 
 
 class _NotSet:
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "ValueNotSetObject"
 
 
@@ -72,7 +72,7 @@ class Condition(ABC):
 
         self.value = value
 
-    def set_vector_idx(self, hyperparameter_to_idx: dict):
+    def set_vector_idx(self, hyperparameter_to_idx: Mapping[str, int]) -> None:
         """Sets the index of the hyperparameter for the vectorized form.
 
         This is sort of a second-stage init that is called when a condition is
@@ -88,7 +88,7 @@ class Condition(ABC):
         if self.child != other.child or self.parent != other.parent:
             return False
 
-        return self.value == other.value
+        return self.value == other.value  # type: ignore
 
     def equivalent_condition_on_parent(self, other: ConditionLike) -> bool:
         if isinstance(other, self.__class__):
@@ -421,27 +421,35 @@ class InCondition(Condition):
 
 class Conjunction:
     def __init__(self, *args: Condition | Conjunction) -> None:
-        self.components = args
-        self.n_components = len(self.components)
-        self.dlcs = self.get_descendant_literal_conditions()
-
         # Test the classes
-        for idx, component in enumerate(self.components):
+        for idx, component in enumerate(args):
             if not isinstance(component, (Condition, Conjunction)):
                 raise TypeError(
                     "Argument #%d is not an instance of Condition or Conjunction, "
                     "but %s" % (idx, type(component)),
                 )
 
+        self.components = args
+        self.n_components = len(self.components)
+
+        dlcs: list[Condition] = []
+        for component in self.components:
+            if isinstance(component, Conjunction):
+                dlcs.extend(component.dlcs)
+            else:
+                dlcs.append(component)
+
+        self.dlcs: tuple[Condition, ...] = tuple(
+            unique_everseen(dlcs, key=lambda x: id(x)),
+        )
+
         # Test that all conjunctions and conditions have the same child!
-        children = self.get_children()
-        for c1, c2 in combinations(children, 2):
-            if c1 != c2:
-                raise ValueError(
-                    "All Conjunctions and Conditions must have the same child.",
-                )
+        children = [dlc.child for dlc in self.dlcs]
+        if not all_equal(children):
+            raise ValueError("All Conjunctions, Conditions must have the same child.")
 
         self.child = children[0]
+        self.child_vector_id: np.intp | None = None
 
     def __eq__(self, other: Any) -> bool:
         if not isinstance(other, self.__class__):
@@ -456,17 +464,12 @@ class Conjunction:
             oc in self.components for oc in other.components
         )
 
-    def __copy__(self):
+    def __copy__(self) -> Self:
         return self.__class__(*[copy.copy(comp) for comp in self.components])
 
+    @deprecated("Please just use `.dlcs` instead.")
     def get_descendant_literal_conditions(self) -> tuple[Condition, ...]:
-        children = []
-        for component in self.components:
-            if isinstance(component, Conjunction):
-                children.extend(component.get_descendant_literal_conditions())
-            else:
-                children.append(component)
-        return tuple(children)
+        return self.dlcs
 
     def iter(self) -> Iterator[Condition | Conjunction]:
         for component in self.components:
@@ -474,12 +477,16 @@ class Conjunction:
             if isinstance(component, Conjunction):
                 yield from component.iter()
 
-    def set_vector_idx(self, hyperparameter_to_idx: dict):
+    def set_vector_idx(self, hyperparameter_to_idx: Mapping[str, int]) -> None:
         for component in self.components:
             component.set_vector_idx(hyperparameter_to_idx)
 
+    @deprecated(
+        "Conjunctions of conditions can only every have one child."
+        " Please use .child_vector_id instead.",
+    )
     def get_children_vector(self) -> Array[np.intp]:
-        return np.array([c.child_vector_id for c in self.dlcs], dtype=np.intp)
+        return np.array([self.child_vector_id], dtype=np.intp)
 
     def get_parents_vector(self) -> Array[np.intp]:
         return np.array(
@@ -490,8 +497,12 @@ class Conjunction:
             dtype=np.intp,
         )
 
+    @deprecated(
+        "Conjunctions of conditions can only every have one child."
+        " Please use .child instead.",
+    )
     def get_children(self) -> list[Hyperparameter]:
-        return [c.child for c in self.iter() if isinstance(c, Condition)]
+        return [self.child]
 
     def get_parents(self) -> list[Hyperparameter]:
         return [c.parent for c in self.iter() if isinstance(c, Condition)]
@@ -588,7 +599,7 @@ class AndConjunction(Conjunction):
         return True
 
     def satisfied_by_vector_array(self, arr: Array[f64]) -> Mask:
-        satisfied = np.ones(arr.shape[1], dtype=np.bool_)
+        satisfied: Mask = np.ones(arr.shape[1], dtype=np.bool_)
         for c in self.components:
             satisfied &= c.satisfied_by_vector_array(arr)
 
@@ -658,7 +669,7 @@ class OrConjunction(Conjunction):
         return False
 
     def satisfied_by_vector_array(self, arr: Array[f64]) -> Mask:
-        satisfied = np.zeros(arr.shape[1], dtype=np.bool_)
+        satisfied: Mask = np.zeros(arr.shape[1], dtype=np.bool_)
         for c in self.components:
             satisfied |= c.satisfied_by_vector_array(arr)
 
