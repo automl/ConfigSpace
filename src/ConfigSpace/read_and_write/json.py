@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from io import StringIO
-from typing import TYPE_CHECKING, Mapping
+from typing import TYPE_CHECKING, Literal, Mapping
 from typing_extensions import deprecated
 
 from ConfigSpace.configuration_space import ConfigurationSpace
@@ -63,7 +63,11 @@ def write(
 )
 def read(
     jason_string: str,
-    decoders: Mapping[str, _Decoder] | None = None,
+    decoders: Mapping[
+        Literal["hyperparameters", "conditions", "forbiddens"],
+        Mapping[str, _Decoder],
+    ]
+    | None = None,
 ) -> ConfigurationSpace:
     """Create a configuration space definition from a json string.
 
