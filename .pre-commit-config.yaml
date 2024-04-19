@@ -38,32 +38,15 @@ repos:
     hooks:
       - id: mypy
         files: '^ConfigSpace/.*\.py$'
+        additional_dependencies:
+          - "types-pyyaml"
         args:
           - "--no-warn-return-any" # Disable this because it doesn't know about 3rd party imports
           - "--ignore-missing-imports"
           - "--show-traceback"
-      - id: mypy
-        files: '^test/.*\.py$'
-        args:
-          - "--no-warn-return-any" # Disable this because it doesn't know about 3rd party imports
-          - "--ignore-missing-imports"
-          - "--show-traceback"
-          - "--disable-error-code"
-          - "no-untyped-def"
-
-  - repo: https://github.com/psf/black
-    rev: 23.3.0
-    hooks:
-      - id: black
-        args: ["--config=pyproject.toml"]
   - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: v0.0.263
+    rev: v0.4.0
     hooks:
       - id: ruff
-        args: ["--fix", "ConfigSpace", "test"]
-  - repo: https://github.com/MarcoGorelli/cython-lint
-    rev: v0.15.0
-    hooks:
-      - id: cython-lint
-        args: [--ignore=E501]
-      - id: double-quote-cython-strings
+        args: [--fix, --exit-non-zero-on-fix, --no-cache]
+      - id: ruff-format

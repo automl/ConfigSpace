@@ -65,7 +65,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["mypy", "pre-commit", "ruff"]
+dev = ["mypy", "pre-commit", "ruff", "types-pyyaml"]
 test = ["pytest>=7", "pytest-cov", "pytest_cases"]
 docs = ["automl_sphinx_theme>=0.1.11"]
 
