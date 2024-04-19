@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import warnings
-from typing import TYPE_CHECKING, Any, Callable
+from typing import TYPE_CHECKING, Any, Callable, Dict
 from typing_extensions import TypeAlias
 
 from ConfigSpace.conditions import (
@@ -38,10 +38,10 @@ if TYPE_CHECKING:
     from ConfigSpace.configuration_space import ConfigurationSpace
 
     _Decoder: TypeAlias = Callable[
-        [dict[str, Any], ConfigurationSpace, "_Decoder"],
+        [Dict[str, Any], ConfigurationSpace, "_Decoder"],
         Any,
     ]
-    _Encoder: TypeAlias = Callable[[Any, "_Encoder"], dict[str, Any]]
+    _Encoder: TypeAlias = Callable[[Any, "_Encoder"], Dict[str, Any]]
 
 
 def _pop_q(item: dict[str, Any]) -> dict[str, Any]:
