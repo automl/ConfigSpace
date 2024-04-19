@@ -31,7 +31,7 @@ import copy
 import io
 import operator
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Any, Callable, ClassVar, Iterator, Mapping, Union
+from typing import TYPE_CHECKING, Any, Callable, ClassVar, Mapping, Union
 from typing_extensions import Self, deprecated, override
 
 import numpy as np
@@ -434,6 +434,8 @@ class Conjunction:
 
         self.child = children[0]
         self.child_vector_id: np.intp | None = None
+        self.parent_vector_ids: Array[np.intp] | None = None
+        self.parents = [c.parent for c in self.dlcs]
 
     def __eq__(self, other: Any) -> bool:
         if not isinstance(other, self.__class__):
@@ -455,16 +457,14 @@ class Conjunction:
     def get_descendant_literal_conditions(self) -> tuple[Condition, ...]:
         return self.dlcs
 
-    def iter(self) -> Iterator[Condition | Conjunction]:
-        for component in self.components:
-            yield component
-            if isinstance(component, Conjunction):
-                yield from component.iter()
-
     def set_vector_idx(self, hyperparameter_to_idx: Mapping[str, int]) -> None:
         for component in self.components:
             component.set_vector_idx(hyperparameter_to_idx)
         self.child_vector_id = np.intp(hyperparameter_to_idx[self.child.name])
+        self.parent_vector_ids = np.array(
+            [c.parent_vector_id for c in self.dlcs],
+            dtype=np.intp,
+        )
 
     @deprecated(
         "Conjunctions of conditions can only every have one child."
@@ -473,14 +473,9 @@ class Conjunction:
     def get_children_vector(self) -> Array[np.intp]:
         return np.array([self.child_vector_id], dtype=np.intp)
 
+    @deprecated("Please use .parent_vector_ids instead.")
     def get_parents_vector(self) -> Array[np.intp]:
-        return np.array(
-            [
-                c.parent_vector_id  # type: ignore
-                for c in self.dlcs
-            ],
-            dtype=np.intp,
-        )
+        return self.parent_vector_ids  # type: ignore
 
     @deprecated(
         "Conjunctions of conditions can only every have one child."
@@ -489,8 +484,9 @@ class Conjunction:
     def get_children(self) -> list[Hyperparameter]:
         return [self.child]
 
+    @deprecated("Please use .parents instead.")
     def get_parents(self) -> list[Hyperparameter]:
-        return [c.parent for c in self.iter() if isinstance(c, Condition)]
+        return self.parents
 
     def equivalent_condition_on_parent(self, other: ConditionLike) -> bool:
         # Not entirely true but it's a good enough approximation

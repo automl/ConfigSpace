@@ -234,7 +234,10 @@ def build_forbidden(clause: ForbiddenLike) -> str:
     return retval.getvalue()
 
 
-@deprecated("Please use `ConfigSpace.read_and_write.pcs_new.read` instead")
+@deprecated(
+    "pcs.read is has stopped being maintained, please use `space.to_json`"
+    " or `space.to_yaml` instead",
+)
 def read(pcs_string: Iterable[str]) -> ConfigurationSpace:
     """Read in a :py:class:`~ConfigSpace.configuration_space.ConfigurationSpace`
     definition from a pcs file.
@@ -427,7 +430,10 @@ def read(pcs_string: Iterable[str]) -> ConfigurationSpace:
     return configuration_space
 
 
-@deprecated("Please use `ConfigSpace.read_and_write.pcs_new.write` instead")
+@deprecated(
+    "pcs.write is has stopped being maintained, please use `space.to_json`"
+    " or `space.to_yaml` instead",
+)
 def write(configuration_space: ConfigurationSpace) -> str:
     """Create a string representation of a
     :class:`~ConfigSpace.configuration_space.ConfigurationSpace` in pcs format.

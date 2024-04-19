@@ -32,6 +32,7 @@ from collections import OrderedDict
 from collections.abc import Iterable
 from io import StringIO
 from itertools import product
+from typing_extensions import deprecated
 
 import pyparsing
 
@@ -422,6 +423,10 @@ def condition_specification(
     return cond
 
 
+@deprecated(
+    "pcs_new.read is has stopped being maintained, please use `space.to_json`"
+    " or `space.to_yaml` instead",
+)
 def read(pcs_string: Iterable[str]) -> ConfigurationSpace:
     """Read in a :py:class:`~ConfigSpace.configuration_space.ConfigurationSpace`
     definition from a pcs file.
@@ -725,6 +730,10 @@ def read(pcs_string: Iterable[str]) -> ConfigurationSpace:
     return configuration_space
 
 
+@deprecated(
+    "pcs_new.write is has stopped being maintained, please use `space.to_json`"
+    " or `space.to_yaml` instead",
+)
 def write(configuration_space: ConfigurationSpace) -> str:
     """Create a string representation of a
     :class:`~ConfigSpace.configuration_space.ConfigurationSpace`

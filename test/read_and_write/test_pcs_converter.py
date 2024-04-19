@@ -29,6 +29,7 @@ from __future__ import annotations
 
 import os
 import tempfile
+import warnings
 from io import StringIO
 
 import pytest
@@ -54,7 +55,10 @@ from ConfigSpace.hyperparameters import (
     UniformFloatHyperparameter,
     UniformIntegerHyperparameter,
 )
-from ConfigSpace.read_and_write import pcs, pcs_new
+
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore")
+    from ConfigSpace.read_and_write import pcs, pcs_new
 
 # More complex search space
 classifier = CategoricalHyperparameter("classifier", ["svm", "nn"])
@@ -132,7 +136,9 @@ def test_read_configuration_space_easy():
     expected.write('cat_a {a,"b",c,d} [a]\n')
     expected.write(r'@.:;/\?!$%&_-<>*+1234567890 {"const"} ["const"]\n')
     expected.seek(0)
-    cs = pcs.read(expected)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        cs = pcs.read(expected)
     assert cs == easy_space
 
 
@@ -155,7 +161,9 @@ def test_read_configuration_space_conditional():
     complex_cs.append("degree | kernel in {poly, sigmoid}")
     complex_cs.append("gamma | kernel in {rbf}")
 
-    cs = pcs.read(complex_cs)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        cs = pcs.read(complex_cs)
     assert cs == conditional_space
 
 
@@ -166,22 +174,28 @@ def test_read_configuration_space_conditional_with_two_parents():
     config_space.append("@1:2:Luby:restarts [1,65535][1000]il")
     config_space.append("@1:2:Luby:restarts | @1:0:restarts in {L}")
     config_space.append("@1:2:Luby:restarts | @1:S:Luby:aryrestarts in {2}")
-    cs = pcs.read(config_space)
-    assert len(cs.get_conditions()) == 1
-    assert isinstance(cs.get_conditions()[0], AndConjunction)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        cs = pcs.read(config_space)
+    assert len(cs.conditions) == 1
+    assert isinstance(cs.conditions[0], AndConjunction)
 
 
 def test_write_illegal_argument():
     sp = {"a": int_a}
-    with pytest.raises(TypeError):
-        pcs.write(sp)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        with pytest.raises(TypeError):
+            pcs.write(sp)  # type: ignore
 
 
 def test_write_int():
     expected = "int_a [-1, 6] [2]i"
     cs = ConfigurationSpace()
     cs.add(int_a)
-    value = pcs.write(cs)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        value = pcs.write(cs)
     assert expected == value
 
 
@@ -189,7 +203,9 @@ def test_write_log_int():
     expected = "int_log_a [1, 6] [2]il"
     cs = ConfigurationSpace()
     cs.add(int_log_a)
-    value = pcs.write(cs)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        value = pcs.write(cs)
     assert expected == value
 
 
@@ -197,7 +213,9 @@ def test_write_log10():
     expected = "a [10.0, 1000.0] [100.0]l"
     cs = ConfigurationSpace()
     cs.add(UniformFloatHyperparameter("a", 10, 1000, log=True))
-    value = pcs.write(cs)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        value = pcs.write(cs)
     assert expected == value
 
 
@@ -216,7 +234,9 @@ def test_build_forbidden():
         ForbiddenInClause(b, ["a", "b"]),
     )
     cs.add(fb)
-    value = pcs.write(cs)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        value = pcs.write(cs)
     assert expected in value
 
 
@@ -239,7 +259,9 @@ def test_read_new_configuration_space_easy():
     expected.write('cat_a categorical {a,"b",c,d} [a]\n')
     expected.write(r'@.:;/\?!$%&_-<>*+1234567890 categorical {"const"} ["const"]\n')
     expected.seek(0)
-    cs = pcs_new.read(expected)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        cs = pcs_new.read(expected)
     assert cs == easy_space
 
 
@@ -262,7 +284,9 @@ def test_read_new_configuration_space_conditional():
     complex_cs.append("degree | kernel in {poly, sigmoid}")
     complex_cs.append("gamma | kernel in {rbf}")
 
-    cs_new = pcs_new.read(complex_cs)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        cs_new = pcs_new.read(complex_cs)
     assert cs_new == conditional_space
 
     # same in older version
@@ -283,21 +307,28 @@ def test_read_new_configuration_space_conditional():
     complex_cs_old.append("degree | kernel in {poly, sigmoid}")
     complex_cs_old.append("gamma | kernel in {rbf}")
 
-    cs_old = pcs.read(complex_cs_old)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        cs_old = pcs.read(complex_cs_old)
+
     assert cs_old == cs_new
 
 
 def test_write_new_illegal_argument():
     sp = {"a": int_a}
-    with pytest.raises(TypeError):
-        pcs_new.write(sp)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        with pytest.raises(TypeError):
+            pcs_new.write(sp)  # type: ignore
 
 
 def test_write_new_int():
     expected = "int_a integer [-1, 6] [2]"
     cs = ConfigurationSpace()
     cs.add(int_a)
-    value = pcs_new.write(cs)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        value = pcs_new.write(cs)
     assert expected == value
 
 
@@ -305,7 +336,9 @@ def test_write_new_log_int():
     expected = "int_log_a integer [1, 6] [2]log"
     cs = ConfigurationSpace()
     cs.add(int_log_a)
-    value = pcs_new.write(cs)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        value = pcs_new.write(cs)
     assert expected == value
 
 
@@ -313,7 +346,9 @@ def test_write_new_log10():
     expected = "a real [10.0, 1000.0] [100.0]log"
     cs = ConfigurationSpace()
     cs.add(UniformFloatHyperparameter("a", 10, 1000, log=True))
-    value = pcs_new.write(cs)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        value = pcs_new.write(cs)
     assert expected == value
 
 
@@ -332,7 +367,9 @@ def test_build_new_forbidden():
         ForbiddenInClause(b, ["a", "b"]),
     )
     cs.add(fb)
-    value = pcs_new.write(cs)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        value = pcs_new.write(cs)
     assert expected == value
 
 
@@ -346,7 +383,9 @@ def test_build_new_GreaterThanFloatCondition():
     cond = GreaterThanCondition(a, b, 5)
     cs.add(cond)
 
-    value = pcs_new.write(cs)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        value = pcs_new.write(cs)
     assert expected == value
 
     expected = "b real [0.0, 10.0] [5.0]\n" "a real [0.0, 1.0] [0.5]\n\n" "a | b > 5"
@@ -358,7 +397,9 @@ def test_build_new_GreaterThanFloatCondition():
     cond = GreaterThanCondition(a, b, 5)
     cs.add(cond)
 
-    value = pcs_new.write(cs)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        value = pcs_new.write(cs)
     assert expected == value
 
 
@@ -372,7 +413,9 @@ def test_build_new_GreaterThanIntCondition():
     cond = GreaterThanCondition(b, a, 0.5)
     cs.add(cond)
 
-    value = pcs_new.write(cs)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        value = pcs_new.write(cs)
     assert expected == value
 
     expected = "a integer [0, 10] [5]\n" "b integer [0, 10] [5]\n\n" "b | a > 5"
@@ -384,7 +427,9 @@ def test_build_new_GreaterThanIntCondition():
     cond = GreaterThanCondition(b, a, 5)
     cs.add(cond)
 
-    value = pcs_new.write(cs)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        value = pcs_new.write(cs)
     assert expected == value
 
 
@@ -431,7 +476,9 @@ def test_read_new_configuration_space_forbidden():
     complex_cs.append("{float_hp=1.0, float_hp=2.0}")
     complex_cs.append("{cat_hp_str=a}")
     complex_cs.append("{ord_hp_str=a}")
-    cs_new = pcs_new.read(complex_cs)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        cs_new = pcs_new.read(complex_cs)
 
     assert cs_new == cs_with_forbidden
 
@@ -444,8 +491,10 @@ def test_write_new_configuration_space_forbidden_relation():
     forbidden = ForbiddenGreaterThanRelation(int_hp, float_hp)
     cs_with_forbidden.add([int_hp, float_hp])
     cs_with_forbidden.add(forbidden)
-    with pytest.raises(TypeError):
-        pcs_new.write({"configuration_space": cs_with_forbidden})
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        with pytest.raises(TypeError):
+            pcs_new.write({"configuration_space": cs_with_forbidden})  # type: ignore
 
 
 def test_read_new_configuration_space_complex_conditionals():
@@ -528,7 +577,9 @@ def test_read_new_configuration_space_complex_conditionals():
         "temperature | weather == rainy && weather == cloudy || "
         "weather == sunny && weather != snowing",
     )
-    cs_new = pcs_new.read(complex_cs)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        cs_new = pcs_new.read(complex_cs)
     assert cs_new == complex_conditional_space
 
 
@@ -546,7 +597,9 @@ def test_convert_restrictions():
     x3 | x4 > 1 && x4 == 2 && x4 in {2}
     x5 | x6 > luke-warm"""
 
-    pcs_new.read(s.split("\n"))
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        pcs_new.read(s.split("\n"))
 
 
 def test_write_restrictions():
@@ -561,8 +614,11 @@ def test_write_restrictions():
         + "a | b == 0.5 && e > 0.5"
     )
 
-    a = pcs_new.read(s.split("\n"))
-    out = pcs_new.write(a)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        a = pcs_new.read(s.split("\n"))
+        out = pcs_new.write(a)
+
     assert out == s
 
 
@@ -577,17 +633,21 @@ def test_read_write():
         configuration_space_path,
         "spear-params-mixed.pcs",
     )
-    with open(configuration_space_path) as fh:
-        cs = pcs.read(fh)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        with open(configuration_space_path) as fh:
+            cs = pcs.read(fh)
 
     tf = tempfile.NamedTemporaryFile()
     name = tf.name
     tf.close()
-    with open(name, "w") as fh:
-        pcs_string = pcs.write(cs)
-        fh.write(pcs_string)
-    with open(name) as fh:
-        pcs_new = pcs.read(fh)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        with open(name, "w") as fh:
+            pcs_string = pcs.write(cs)
+            fh.write(pcs_string)
+        with open(name) as fh:
+            pcs_new = pcs.read(fh)
 
     assert pcs_new == cs, (pcs_new, cs)
 
@@ -596,8 +656,10 @@ def test_write_categorical_with_weights():
     cat = CategoricalHyperparameter("a", ["a", "b"], weights=[0.3, 0.7])
     cs = ConfigurationSpace()
     cs.add(cat)
-    with pytest.raises(ValueError, match="The pcs format does not support"):
-        pcs.write(cs)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        with pytest.raises(ValueError, match="The pcs format does not support"):
+            pcs.write(cs)
 
 
 def test_write_numerical_cond_and_forb():
@@ -647,5 +709,7 @@ def test_write_numerical_cond_and_forb():
         + "{hc1=False}\n"
         + "{hf1=2.0, hi1=3}\n"
     )
-    out = pcs_new.write(cs)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        out = pcs_new.write(cs)
     assert out == expected

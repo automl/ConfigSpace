@@ -424,7 +424,7 @@ def test_get_conditions():
     assert [] == cs.conditions
     cond1 = EqualsCondition(hp2, hp1, 0)
     cs.add(cond1)
-    assert [cond1] == cs.get_conditions()
+    assert [cond1] == cs.conditions
 
 
 def test_get_parent_and_chil_conditions_of():
@@ -436,16 +436,16 @@ def test_get_parent_and_chil_conditions_of():
     cond1 = EqualsCondition(hp2, hp1, 0)
     cs.add(cond1)
 
-    assert [cond1] == cs.get_parent_conditions_of(hp2.name)
-    assert [cond1] == cs.get_parent_conditions_of(hp2)
-    assert [cond1] == cs.get_child_conditions_of(hp1.name)
-    assert [cond1] == cs.get_child_conditions_of(hp1)
+    assert [cond1] == cs.parent_conditions_of[hp2.name]
+    assert [cond1] == cs.parent_conditions_of[hp2.name]
+    assert [cond1] == cs.child_conditions_of[hp1.name]
+    assert [cond1] == cs.child_conditions_of[hp1.name]
 
     with pytest.raises(KeyError):
-        cs.get_parents_of("Foo")
+        cs.parent_conditions_of["Foo"]
 
     with pytest.raises(KeyError):
-        cs.get_children_of("Foo")
+        cs.child_conditions_of["Foo"]
 
 
 def test_get_parent_and_children_of():
@@ -457,16 +457,16 @@ def test_get_parent_and_children_of():
     cond1 = EqualsCondition(hp2, hp1, 0)
     cs.add(cond1)
 
-    assert [hp1] == cs.get_parents_of(hp2.name)
-    assert [hp1] == cs.get_parents_of(hp2)
-    assert [hp2] == cs.get_children_of(hp1.name)
-    assert [hp2] == cs.get_children_of(hp1)
+    assert [hp1] == cs.parents_of[hp2.name]
+    assert [hp1] == cs.parents_of[hp2.name]
+    assert [hp2] == cs.children_of[hp1.name]
+    assert [hp2] == cs.children_of[hp1.name]
 
     with pytest.raises(KeyError):
-        cs.get_parents_of("Foo")
+        cs.parents_of["Foo"]
 
     with pytest.raises(KeyError):
-        cs.get_children_of("Foo")
+        cs.children_of["Foo"]
 
 
 def test_check_configuration():
@@ -825,14 +825,14 @@ def test_subspace_switches():
     )
 
     # check choices in the final configuration space
-    assert cs["switch"].choices == ("algo1", "algo2")
-    assert cs["algo1_subspace:algo1_param1"].choices == ("A", "B")
-    assert cs["algo2_subspace:algo2_param1"].choices == ("X", "Y")
+    assert cs["switch"].choices == ("algo1", "algo2")  # type: ignore
+    assert cs["algo1_subspace:algo1_param1"].choices == ("A", "B")  # type: ignore
+    assert cs["algo2_subspace:algo2_param1"].choices == ("X", "Y")  # type: ignore
 
     # check probabilities in the final configuration space
-    np.testing.assert_equal(cs["switch"].probabilities, (0.25, 0.75))
-    np.testing.assert_equal(cs["algo1_subspace:algo1_param1"].probabilities, (0.3, 0.7))
-    np.testing.assert_equal(cs["algo2_subspace:algo2_param1"].probabilities, (0.5, 0.5))
+    np.testing.assert_equal(cs["switch"].probabilities, (0.25, 0.75))  # type: ignore
+    np.testing.assert_equal(cs["algo1_subspace:algo1_param1"].probabilities, (0.3, 0.7))  # type: ignore
+    np.testing.assert_equal(cs["algo2_subspace:algo2_param1"].probabilities, (0.5, 0.5))  # type: ignore
 
     # check default values in the final configuration space
     assert cs["switch"].default_value == "algo1"
@@ -959,7 +959,7 @@ def test_substitute_hyperparameters_in_conditions():
     sub_hp4 = BetaIntegerHyperparameter("child2", lower=0, upper=10, alpha=3, beta=5)
     cs2.add([sub_hp1, sub_hp2, sub_hp3, sub_hp4])
     new_conditions = cs1.substitute_hyperparameters_in_conditions(
-        cs1.get_conditions(),
+        cs1.conditions,
         cs2,
     )
 
@@ -968,7 +968,7 @@ def test_substitute_hyperparameters_in_conditions():
     test_cond3 = EqualsCondition(sub_hp1, sub_hp4, 1)
     test_andCond = AndConjunction(test_cond2, test_cond3)
     cs2.add([test_cond1, test_andCond])
-    test_conditions = cs2.get_conditions()
+    test_conditions = cs2.conditions
 
     assert new_conditions[0] == test_conditions[0]
     assert new_conditions[1] == test_conditions[1]
@@ -988,13 +988,13 @@ def test_substitute_hyperparameters_in_inconditions():
     sub_b = UniformFloatHyperparameter("b", lower=1.0, upper=8.0, log=False)
     cs2.add([sub_a, sub_b])
     new_conditions = cs1.substitute_hyperparameters_in_conditions(
-        cs1.get_conditions(),
+        cs1.conditions,
         cs2,
     )
 
     test_cond = InCondition(b, a, [1, 2, 3, 4])
     cs2.add([test_cond])
-    test_conditions = cs2.get_conditions()
+    test_conditions = cs2.conditions
 
     new_c = new_conditions[0]
     test_c = test_conditions[0]
@@ -1033,7 +1033,7 @@ def test_substitute_hyperparameters_in_forbiddens():
     cs2.add([sub_hp1, sub_hp2, sub_hp3, sub_hp4])
 
     new_forbiddens = cs1.substitute_hyperparameters_in_forbiddens(
-        cs1.get_forbiddens(),
+        cs1.forbidden_clauses,
         cs2,
     )
 
@@ -1043,7 +1043,7 @@ def test_substitute_hyperparameters_in_forbiddens():
     test_forb_4 = ForbiddenAndConjunction(test_forb_1, test_forb_2)
     test_forb_5 = ForbiddenLessThanRelation(sub_hp1, sub_hp2)
     cs2.add([test_forb_3, test_forb_4, test_forb_5])
-    test_forbiddens = cs2.get_forbiddens()
+    test_forbiddens = cs2.forbidden_clauses
 
     assert new_forbiddens[2] == test_forbiddens[2]
     assert new_forbiddens[1] == test_forbiddens[1]
@@ -1089,9 +1089,9 @@ def test_init_with_values(simple_cs: ConfigurationSpace):
         "child": 0.22727223140405708,
         "friend": 0.583333611112037,
     }
-    vector = [0.0] * 3
-    for name in simple_cs._hyperparameter_idx:
-        vector[simple_cs._hyperparameter_idx[name]] = vector_values[name]
+    vector = np.zeros(3)
+    for name in simple_cs.index_of:
+        vector[simple_cs.index_of[name]] = vector_values[name]
     c2 = Configuration(simple_cs, vector=vector)
     # This tests
     # a) that the vector representation of both are the same

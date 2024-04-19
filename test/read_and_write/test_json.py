@@ -18,8 +18,11 @@ from ConfigSpace import (
     Uniform,
 )
 from ConfigSpace.forbidden import ForbiddenLessThanRelation
-from ConfigSpace.read_and_write.pcs import read as read_pcs
-from ConfigSpace.read_and_write.pcs_new import read as read_pcs_new
+
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore")
+    from ConfigSpace.read_and_write.pcs import read as read_pcs
+    from ConfigSpace.read_and_write.pcs_new import read as read_pcs_new
 
 
 def test_serialize_forbidden_in_clause(tmp_path: Path) -> None:

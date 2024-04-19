@@ -46,6 +46,7 @@ from ConfigSpace.hyperparameters import (
     UniformFloatHyperparameter,
     UniformIntegerHyperparameter,
 )
+from ConfigSpace.hyperparameters.hyperparameter import Hyperparameter
 
 
 # TODO: return only copies of the objects!
@@ -56,7 +57,7 @@ def test_equals_condition():
     cond_ = EqualsCondition(hp2, hp1, 0)
 
     # Test vector value:
-    assert cond.vector_value == hp1._inverse_transform(0)
+    assert cond.vector_value == hp1.to_vector(0)
     assert cond.vector_value == cond_.vector_value
 
     # Test invalid conditions:
@@ -98,7 +99,7 @@ def test_not_equals_condition():
     assert cond == cond_
 
     # Test vector value:
-    assert cond.vector_value == hp1._inverse_transform(0)
+    assert cond.vector_value == hp1.to_vector(0)
     assert cond.vector_value == cond_.vector_value
 
     cond_reverse = NotEqualsCondition(hp1, hp2, 0)
@@ -134,7 +135,7 @@ def test_in_condition():
     assert cond == cond_
 
     # Test vector value:
-    assert cond.vector_values == [hp1._inverse_transform(i) for i in [0, 1, 2, 3, 4, 5]]
+    assert cond.vector_values == [hp1.to_vector(i) for i in [0, 1, 2, 3, 4, 5]]
     assert cond.vector_values == cond_.vector_values
 
     cond_reverse = InCondition(hp1, hp2, [0, 1, 2, 3, 4, 5])
@@ -150,8 +151,9 @@ def test_greater_and_less_condition():
     hp1 = UniformFloatHyperparameter("float", 0, 5)
     hp2 = UniformIntegerHyperparameter("int", 0, 5)
     hp3 = OrdinalHyperparameter("ord", list(range(6)))
+    hps: list[Hyperparameter] = [hp1, hp2, hp3]
 
-    for hp in [hp1, hp2, hp3]:
+    for hp in hps:
         hyperparameter_idx = {child.name: 0, hp.name: 1}
 
         gt = GreaterThanCondition(child, hp, 1)
@@ -162,7 +164,7 @@ def test_greater_and_less_condition():
             gt.satisfied_by_value({hp.name: None})
 
         # Evaluate vector
-        test_value = hp._inverse_transform(2)
+        test_value = hp.to_vector(2)
 
         assert not gt.satisfied_by_vector(np.array([np.nan, 0]))
         assert gt.satisfied_by_vector(np.array([np.nan, test_value]))
@@ -177,7 +179,7 @@ def test_greater_and_less_condition():
             lt.satisfied_by_value({hp.name: None})
 
         # Evaluate vector
-        test_value = hp._inverse_transform(2)
+        test_value = hp.to_vector(2)
         assert lt.satisfied_by_vector(np.array([np.nan, 0, 0, 0]))
         assert not lt.satisfied_by_vector(np.array([np.nan, test_value]))
         assert not lt.satisfied_by_vector(np.array([np.nan, np.nan]))
@@ -256,7 +258,7 @@ def test_and_conjunction():
     # Test setting vector idx
     hyperparameter_idx = {hp1.name: 0, hp2.name: 1, hp3.name: 2, hp4.name: 3}
     andconj1.set_vector_idx(hyperparameter_idx)
-    np.testing.assert_equal(andconj1.get_parents_vector(), [0, 1])
+    np.testing.assert_equal(andconj1.parent_vector_ids, [0, 1])
     assert andconj1.child_vector_id == 3
 
     andconj2 = AndConjunction(cond2, cond3)
@@ -295,7 +297,7 @@ def test_or_conjunction():
     # Test setting vector idx
     hyperparameter_idx = {hp1.name: 0, hp2.name: 1, hp3.name: 2, hp4.name: 3}
     andconj1.set_vector_idx(hyperparameter_idx)
-    np.testing.assert_equal(andconj1.get_parents_vector(), [0, 1])
+    np.testing.assert_equal(andconj1.parent_vector_ids, [0, 1])
     assert andconj1.child_vector_id == 3
 
     andconj2 = OrConjunction(cond2, cond3)

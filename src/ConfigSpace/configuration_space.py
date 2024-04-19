@@ -481,7 +481,8 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
             for condition in conditions:
                 parent_vector_idx: np.intp | Array[np.intp]
                 if isinstance(condition, Conjunction):
-                    parent_vector_idx = condition.get_parents_vector()
+                    assert condition.parent_vector_ids is not None
+                    parent_vector_idx = condition.parent_vector_ids
                 else:
                     parent_vector_idx = np.asarray(condition.parent_vector_id)
 

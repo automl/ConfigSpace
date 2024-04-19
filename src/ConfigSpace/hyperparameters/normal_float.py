@@ -41,6 +41,12 @@ class NormalFloatHyperparameter(FloatHyperparameter):
         log: bool = False,
         meta: Mapping[Hashable, Any] | None = None,
     ) -> None:
+        if mu <= 0 and log:
+            raise ValueError(
+                f"Hyperparameter '{name}' has illegal settings: "
+                f"mu={mu} must be positive for log-scale.",
+            )
+
         self.lower = float(lower)
         self.upper = float(upper)
         self.mu = float(mu)

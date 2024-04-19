@@ -31,6 +31,7 @@ import os
 
 import numpy as np
 import pytest
+from pyparsing import warnings
 from pytest import approx
 
 from ConfigSpace import (
@@ -50,7 +51,11 @@ from ConfigSpace import (
     UniformIntegerHyperparameter,
 )
 from ConfigSpace.exceptions import NoPossibleNeighborsError
-from ConfigSpace.read_and_write.pcs import read
+
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore")
+    from ConfigSpace.read_and_write.pcs import read
+
 from ConfigSpace.util import (
     change_hp_value,
     deactivate_inactive_hyperparameters,
@@ -112,8 +117,10 @@ def test_impute_inactive_values():
         "test_searchspaces",
         "mini_autosklearn_original.pcs",
     )
-    with open(mini_autosklearn_config_space_path) as fh:
-        cs = read(fh)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        with open(mini_autosklearn_config_space_path) as fh:
+            cs = read(fh)
 
     cs.seed(2)
     configuration = cs.sample_configuration()
@@ -207,8 +214,10 @@ def test_random_neigbor_conditional():
         "test_searchspaces",
         "mini_autosklearn_original.pcs",
     )
-    with open(mini_autosklearn_config_space_path) as fh:
-        cs = read(fh)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        with open(mini_autosklearn_config_space_path) as fh:
+            cs = read(fh)
 
     cs.seed(1)
     configuration = cs.get_default_configuration()
@@ -223,8 +232,10 @@ def test_random_neigborhood_conditional():
         "test_searchspaces",
         "mini_autosklearn_original.pcs",
     )
-    with open(mini_autosklearn_config_space_path) as fh:
-        cs = read(fh)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        with open(mini_autosklearn_config_space_path) as fh:
+            cs = read(fh)
 
     cs.seed(1)
     configuration = cs.get_default_configuration()
@@ -327,7 +338,7 @@ def test_check_neighbouring_config_diamond():
 
     config = Configuration(diamond, {"bottom": 0, "head": 0, "left": 1, "right": 1})
     hp_name = "head"
-    index = diamond.get_idx_by_hyperparameter_name(hp_name)
+    index = diamond.index_of[hp_name]
     neighbor_value = 1
 
     new_array = change_hp_value(
@@ -361,7 +372,7 @@ def test_check_neighbouring_config_diamond_or_conjunction():
 
     config = Configuration(diamond, {"top": 0, "middle": 1, "bottom_right": 1})
     hp_name = "top"
-    index = diamond.get_idx_by_hyperparameter_name(hp_name)
+    index = diamond.index_of[hp_name]
     neighbor_value = 1
 
     new_array = change_hp_value(
@@ -397,7 +408,7 @@ def test_check_neighbouring_config_diamond_str():
         {"bottom": "red", "head": "red", "left": "green", "right": "green"},
     )
     hp_name = "head"
-    index = diamond.get_idx_by_hyperparameter_name(hp_name)
+    index = diamond.index_of[hp_name]
     neighbor_value = 1
 
     new_array = change_hp_value(

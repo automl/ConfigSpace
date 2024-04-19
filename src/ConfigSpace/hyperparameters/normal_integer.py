@@ -42,6 +42,12 @@ class NormalIntegerHyperparameter(IntegerHyperparameter):
         log: bool = False,
         meta: Mapping[Hashable, Any] | None = None,
     ) -> None:
+        if mu <= 0 and log:
+            raise ValueError(
+                f"Hyperparameter '{name}' has illegal settings: "
+                f"mu={mu} must be positive for log-scale.",
+            )
+
         self.mu = float(mu)
         self.sigma = float(sigma)
         self.lower = int(np.rint(lower))

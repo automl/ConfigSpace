@@ -27,14 +27,19 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 from __future__ import annotations
 
+import warnings
 from pathlib import Path
 
 import pytest
 
 import ConfigSpace
-import ConfigSpace.read_and_write.pcs as pcs_parser
-import ConfigSpace.read_and_write.pcs_new as pcs_new_parser
 import ConfigSpace.util
+
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore")
+    import ConfigSpace.read_and_write.pcs as pcs_parser
+    import ConfigSpace.read_and_write.pcs_new as pcs_new_parser
+
 
 this_file = Path(__file__).absolute().resolve()
 this_directory = this_file.parent
@@ -46,12 +51,14 @@ pcs_files = list(Path(configuration_space_path).glob("*.pcs"))
 
 @pytest.mark.parametrize("pcs_file", pcs_files)
 def test_autosklearn_space(pcs_file: Path):
-    try:
-        with pcs_file.open("r") as fh:
-            cs = pcs_parser.read(fh)
-    except Exception:
-        with pcs_file.open("r") as fh:
-            cs = pcs_new_parser.read(fh)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        try:
+            with pcs_file.open("r") as fh:
+                cs = pcs_parser.read(fh)
+        except Exception:
+            with pcs_file.open("r") as fh:
+                cs = pcs_new_parser.read(fh)
 
     default = cs.get_default_configuration()
     cs._check_configuration_rigorous(default)

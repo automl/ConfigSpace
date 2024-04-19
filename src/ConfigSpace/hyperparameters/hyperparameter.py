@@ -17,7 +17,7 @@ from typing_extensions import Self, deprecated
 
 import numpy as np
 
-from ConfigSpace.types import DType, f64, i64
+from ConfigSpace.types import DType, Number, f64, i64
 
 if TYPE_CHECKING:
     from ConfigSpace.hyperparameters._distributions import Distribution
@@ -148,12 +148,12 @@ class Hyperparameter(ABC, Generic[ValueT, DType]):
         return self._vector_dist.sample_vector(n=size, seed=seed)
 
     @overload
-    def legal_vector(self, vector: f64) -> bool: ...
+    def legal_vector(self, vector: Number) -> bool: ...
 
     @overload
     def legal_vector(self, vector: Array[f64]) -> Mask: ...
 
-    def legal_vector(self, vector: f64 | Array[f64]) -> Mask | bool:
+    def legal_vector(self, vector: Number | Array[f64]) -> Mask | bool:
         if isinstance(vector, np.ndarray):
             if not np.issubdtype(vector.dtype, np.number):
                 raise ValueError(
@@ -165,7 +165,7 @@ class Hyperparameter(ABC, Generic[ValueT, DType]):
         if not isinstance(vector, (int, float, np.number)):
             return False
 
-        return self._transformer.legal_vector_single(vector)
+        return self._transformer.legal_vector_single(f64(vector))
 
     # NOTE: @overload, mypy seems to thing this will overlap with below
     @overload
@@ -174,12 +174,12 @@ class Hyperparameter(ABC, Generic[ValueT, DType]):
     @overload
     def legal_value(
         self,
-        value: Sequence[DType] | Array[Any],
+        value: Sequence[ValueT | DType] | Array[Any],
     ) -> Mask: ...
 
     def legal_value(
         self,
-        value: ValueT | DType | Sequence[DType] | Array[Any],
+        value: ValueT | DType | Sequence[ValueT | DType] | Array[Any],
     ) -> bool | Mask:
         if isinstance(value, np.ndarray):
             return self._transformer.legal_value(value)
@@ -221,14 +221,14 @@ class Hyperparameter(ABC, Generic[ValueT, DType]):
         return self.to_value(vector)
 
     @overload
-    def to_value(self, vector: f64) -> ValueT: ...
+    def to_value(self, vector: Number) -> ValueT: ...
 
     @overload
     def to_value(self, vector: Array[f64]) -> Array[DType]: ...
 
     def to_value(
         self,
-        vector: f64 | Array[f64],
+        vector: Number | Array[f64],
     ) -> ValueT | Array[DType]:
         if isinstance(vector, np.ndarray):
             return self._transformer.to_value(vector)
@@ -263,7 +263,7 @@ class Hyperparameter(ABC, Generic[ValueT, DType]):
 
     def neighbors_vectorized(
         self,
-        vector: f64,
+        vector: Number,
         n: int,
         *,
         std: float | None = None,
@@ -278,14 +278,14 @@ class Hyperparameter(ABC, Generic[ValueT, DType]):
                 f"\n{self}",
             )
 
-        return self._neighborhood(vector, n, std=std, seed=seed)
+        return self._neighborhood(f64(vector), n, std=std, seed=seed)
 
     def get_max_density(self) -> float:
         return self._vector_dist.max_density()
 
     def neighbors_values(
         self,
-        value: DType,
+        value: ValueT | DType,
         n: int,
         *,
         std: float | None = None,
@@ -302,7 +302,7 @@ class Hyperparameter(ABC, Generic[ValueT, DType]):
 
     def pdf_values(
         self,
-        values: Sequence[DType] | Array[DType],
+        values: Sequence[ValueT | DType] | Array[DType],
     ) -> Array[f64]:
         # TODO: why this restriction?
         _values = np.asarray(values)
@@ -319,7 +319,7 @@ class Hyperparameter(ABC, Generic[ValueT, DType]):
         # HACK: Really the only thing implementing Hyperparameter should be a dataclass
         return replace(self, **kwargs)  # type: ignore
 
-    def get_num_neighbors(self, value: DType | None = None) -> int | float:
+    def get_num_neighbors(self, value: ValueT | DType | None = None) -> int | float:
         return (
             self._neighborhood_size(value)
             if callable(self._neighborhood_size)
@@ -334,7 +334,7 @@ class Hyperparameter(ABC, Generic[ValueT, DType]):
     @deprecated("Please use `to_vector(value)` instead.")
     def _inverse_transform(
         self,
-        value: DType | Array[DType],
+        value: ValueT | DType | Array[DType],
     ) -> f64 | Array[f64]:
         return self.to_vector(value)
 

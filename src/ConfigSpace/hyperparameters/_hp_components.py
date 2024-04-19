@@ -199,7 +199,8 @@ class UnitScaler(_Transformer[DType]):
         """Vectorize to the correct scale but is not necessarily in the range."""
         if self.log:
             return np.abs(  # type: ignore
-                np.log(size) / (np.log(self.upper_value) - np.log(self.lower_value)),
+                np.log(self.lower_value + size)
+                / (np.log(self.upper_value) - np.log(self.lower_value)),
             )
 
         return f64(size / (self.upper_value - self.lower_value))

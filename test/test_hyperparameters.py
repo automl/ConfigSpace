@@ -89,7 +89,7 @@ def test_constant():
 
     # Test getting the size
     for constant in (c1, c2, c3, c4, c5, c1_meta):
-        assert constant.get_size() == 1
+        assert constant.size == 1
 
 
 def test_constant_pdf():
@@ -108,69 +108,67 @@ def test_constant_pdf():
     wrong_shape_2 = np.array([1, 2, 3]).reshape(1, -1)
     wrong_shape_3 = np.array([1, 2, 3]).reshape(-1, 1)
 
-    assert c1.pdf(point_1) == np.array([1.0])
-    assert c2.pdf(point_2) == np.array([1.0])
-    assert c1.pdf(point_2) == np.array([0.0])
-    assert c2.pdf(point_1) == np.array([0.0])
+    assert c1.pdf_values(point_1) == np.array([1.0])
+    assert c2.pdf_values(point_2) == np.array([1.0])
+    assert c1.pdf_values(point_2) == np.array([0.0])
+    assert c2.pdf_values(point_1) == np.array([0.0])
 
-    assert tuple(c1.pdf(array_1)) == tuple(np.array([1.0, 1.0]))
-    assert tuple(c2.pdf(array_2)) == tuple(np.array([1.0, 1.0]))
-    assert tuple(c1.pdf(array_2)) == tuple(np.array([0.0, 0.0]))
-    assert tuple(c1.pdf(array_3)) == tuple(np.array([1.0, 0.0]))
+    assert tuple(c1.pdf_values(array_1)) == tuple(np.array([1.0, 1.0]))
+    assert tuple(c2.pdf_values(array_2)) == tuple(np.array([1.0, 1.0]))
+    assert tuple(c1.pdf_values(array_2)) == tuple(np.array([0.0, 0.0]))
+    assert tuple(c1.pdf_values(array_3)) == tuple(np.array([1.0, 0.0]))
 
     # it must be one-dimensional
     with pytest.raises(
         ValueError,
         match="Method pdf expects a one-dimensional numpy array",
     ):
-        c1.pdf(wrong_shape_1)
+        c1.pdf_values(wrong_shape_1)
     with pytest.raises(
         ValueError,
         match="Method pdf expects a one-dimensional numpy array",
     ):
-        c1.pdf(wrong_shape_2)
+        c1.pdf_values(wrong_shape_2)
     with pytest.raises(
         ValueError,
         match="Method pdf expects a one-dimensional numpy array",
     ):
-        c1.pdf(wrong_shape_3)
+        c1.pdf_values(wrong_shape_3)
 
 
 def test_constant__pdf():
-    # TODO: This test needs to be fixed, it was testing a broken feature.
-    # The real result should be `_pdf(1) = 1.0` and `_pdf(!1)` == 0.0
-    # The normalization happens independently of the value of the constant
-    pytest.skip()
     c1 = Constant("valuee", 1)
     c2 = Constant("valueee", -2)
 
     point_1 = np.array([1])
-    point_2 = np.array([-2])
+    point_2 = np.array([0])
     array_1 = np.array([1, 1])
-    array_2 = np.array([-2, -2])
-    array_3 = np.array([1, -2])
+    array_2 = np.array([0, 0])
+    array_3 = np.array([1, 0])
 
     # These shapes are allowed in _pdf
     accepted_shape_1 = np.array([[1]])
     accepted_shape_2 = np.array([1, 2, 3]).reshape(1, -1)
     accepted_shape_3 = np.array([3, 2, 1]).reshape(-1, 1)
 
-    assert c1._pdf(point_1) == np.array([1.0])
-    assert c2._pdf(point_2) == np.array([1.0])
-    assert c1._pdf(point_2) == np.array([0.0])
-    assert c2._pdf(point_1) == np.array([0.0])
+    assert c1.pdf_vector(point_1) == np.array([1.0])
+    assert c1.pdf_vector(point_2) == np.array([0.0])
 
-    # Only (N, ) numpy arrays are seamlessly converted to tuples
-    # so the __eq__ method works as intended
-    assert tuple(c1._pdf(array_1)) == tuple(np.array([1.0, 1.0]))
-    assert tuple(c2._pdf(array_2)) == tuple(np.array([1.0, 1.0]))
-    assert tuple(c1._pdf(array_2)) == tuple(np.array([0.0, 0.0]))
-    assert tuple(c1._pdf(array_3)) == tuple(np.array([1.0, 0.0]))
+    assert c2.pdf_vector(point_1) == np.array([1.0])
+    assert c2.pdf_vector(point_2) == np.array([0.0])
+
+    assert tuple(c1.pdf_vector(array_1)) == tuple(np.array([1.0, 1.0]))
+    assert tuple(c1.pdf_vector(array_2)) == tuple(np.array([0.0, 0.0]))
+    assert tuple(c1.pdf_vector(array_3)) == tuple(np.array([1.0, 0.0]))
+
+    assert tuple(c2.pdf_vector(array_1)) == tuple(np.array([1.0, 1.0]))
+    assert tuple(c2.pdf_vector(array_2)) == tuple(np.array([0.0, 0.0]))
+    assert tuple(c2.pdf_vector(array_3)) == tuple(np.array([1.0, 0.0]))
 
     # Simply check that it runs, since _pdf does not restrict shape (only public method does)
-    c1._pdf(accepted_shape_1)
-    c1._pdf(accepted_shape_2)
-    c1._pdf(accepted_shape_3)
+    c1.pdf_vector(accepted_shape_1)
+    c1.pdf_vector(accepted_shape_2)
+    c1.pdf_vector(accepted_shape_3)
 
 
 def test_constant_get_max_density():
@@ -249,7 +247,7 @@ def test_uniformfloat():
 
     # Test get_size
     for float_hp in (f1, f3, f4, f5):
-        assert np.isinf(float_hp.get_size())
+        assert np.isinf(float_hp.size)
 
 
 def test_uniformfloat_to_integer():
@@ -294,21 +292,21 @@ def test_uniformfloat_is_legal():
     upper = 10
     f1 = UniformFloatHyperparameter("param", lower, upper, log=True)
 
-    assert f1.is_legal(3.0)
-    assert f1.is_legal(3)
-    assert not f1.is_legal(-0.1)
-    assert not f1.is_legal(10.1)
-    assert not f1.is_legal("AAA")
-    assert not f1.is_legal({})
+    assert f1.legal_value(3.0)
+    assert f1.legal_value(3)
+    assert not f1.legal_value(-0.1)
+    assert not f1.legal_value(10.1)
+    assert not f1.legal_value("AAA")  # type: ignore
+    assert not f1.legal_value({})  # type: ignore
 
     # Test legal vector values
-    assert f1.is_legal_vector(1.0)
-    assert f1.is_legal_vector(0.0)
-    assert f1.is_legal_vector(0)
-    assert f1.is_legal_vector(0.3)
-    assert not f1.is_legal_vector(-0.1)
-    assert not f1.is_legal_vector(1.1)
-    assert not f1.is_legal_vector("Hahaha")
+    assert f1.legal_vector(1.0)
+    assert f1.legal_vector(0.0)
+    assert f1.legal_vector(0)
+    assert f1.legal_vector(0.3)
+    assert not f1.legal_vector(-0.1)
+    assert not f1.legal_vector(1.1)
+    assert not f1.legal_vector("Hahaha")  # type: ignore
 
 
 def test_uniformfloat_pdf():
@@ -331,21 +329,21 @@ def test_uniformfloat_pdf():
     wrong_shape_2 = np.array([3, 5, 7]).reshape(1, -1)
     wrong_shape_3 = np.array([3, 5, 7]).reshape(-1, 1)
 
-    assert c1.pdf(point_1)[0] == pytest.approx(0.1)
-    assert c2.pdf(point_2)[0] == pytest.approx(4.539992976248485e-05, abs=1e-3)
-    assert c1.pdf(point_1)[0] == pytest.approx(0.1)
-    assert c2.pdf(point_2)[0] == pytest.approx(4.539992976248485e-05, abs=1e-3)
-    assert c3.pdf(point_3)[0] == pytest.approx(2.0)
+    assert c1.pdf_values(point_1)[0] == pytest.approx(0.1)
+    assert c2.pdf_values(point_2)[0] == pytest.approx(4.539992976248485e-05, abs=1e-3)
+    assert c1.pdf_values(point_1)[0] == pytest.approx(0.1)
+    assert c2.pdf_values(point_2)[0] == pytest.approx(4.539992976248485e-05, abs=1e-3)
+    assert c3.pdf_values(point_3)[0] == pytest.approx(2.0)
 
-    assert c1.pdf(point_outside_range)[0] == 0.0
-    assert c2.pdf(point_outside_range_log)[0] == 0.0
+    assert c1.pdf_values(point_outside_range)[0] == 0.0
+    assert c2.pdf_values(point_outside_range_log)[0] == 0.0
 
     # this, however, is a negative value on a log param, which cannot be pulled into range
     with pytest.warns(RuntimeWarning, match="invalid value encountered in log"):
-        assert c2.pdf(point_outside_range)[0] == 0.0
+        assert c2.pdf_values(point_outside_range)[0] == 0.0
 
-    array_results = c1.pdf(array_1)
-    array_results_log = c2.pdf(array_1)
+    array_results = c1.pdf_values(array_1)
+    array_results_log = c2.pdf_values(array_1)
     expected_results = np.array([0.1, 0.1, 0.1])
     expected_log_results = np.array(
         [4.539992976248485e-05, 4.539992976248485e-05, 4.539992976248485e-05],
@@ -365,17 +363,17 @@ def test_uniformfloat_pdf():
         ValueError,
         match="Method pdf expects a one-dimensional numpy array",
     ):
-        c1.pdf(wrong_shape_1)
+        c1.pdf_values(wrong_shape_1)
     with pytest.raises(
         ValueError,
         match="Method pdf expects a one-dimensional numpy array",
     ):
-        c1.pdf(wrong_shape_2)
+        c1.pdf_values(wrong_shape_2)
     with pytest.raises(
         ValueError,
         match="Method pdf expects a one-dimensional numpy array",
     ):
-        c1.pdf(wrong_shape_3)
+        c1.pdf_values(wrong_shape_3)
 
 
 def test_uniformfloat__pdf():
@@ -398,23 +396,23 @@ def test_uniformfloat__pdf():
     accepted_shape_2 = np.array([0.3, 0.5, 1.1]).reshape(1, -1)
     accepted_shape_3 = np.array([1.1, 0.5, 0.3]).reshape(-1, 1)
 
-    assert c1._pdf(point_1)[0] == pytest.approx(0.1, abs=1e-3)
-    assert c2._pdf(point_2)[0] == pytest.approx(4.539992976248485e-05, abs=1e-3)
-    assert c1._pdf(point_1)[0] == pytest.approx(0.1)
-    assert c2._pdf(point_2)[0] == pytest.approx(4.539992976248485e-05, abs=1e-3)
-    assert c3._pdf(point_3)[0] == pytest.approx(2.0)
+    assert c1.pdf_vector(point_1)[0] == pytest.approx(0.1, abs=1e-3)
+    assert c2.pdf_vector(point_2)[0] == pytest.approx(4.539992976248485e-05, abs=1e-3)
+    assert c1.pdf_vector(point_1)[0] == pytest.approx(0.1)
+    assert c2.pdf_vector(point_2)[0] == pytest.approx(4.539992976248485e-05, abs=1e-3)
+    assert c3.pdf_vector(point_3)[0] == pytest.approx(2.0)
 
     # TODO - change this once the is_legal support is there
     # but does not have an actual impact of now
     # since inverse_transform pulls everything into range,
     # even points outside get evaluated in range
-    assert c1._pdf(point_outside_range_1)[0] == pytest.approx(0.0)
-    assert c2._pdf(point_outside_range_2)[0] == pytest.approx(0.0)
-    assert c1._pdf(point_outside_range_2)[0] == pytest.approx(0.0)
-    assert c2._pdf(point_outside_range_1)[0] == pytest.approx(0.0)
+    assert c1.pdf_vector(point_outside_range_1)[0] == pytest.approx(0.0)
+    assert c2.pdf_vector(point_outside_range_2)[0] == pytest.approx(0.0)
+    assert c1.pdf_vector(point_outside_range_2)[0] == pytest.approx(0.0)
+    assert c2.pdf_vector(point_outside_range_1)[0] == pytest.approx(0.0)
 
-    array_results = c1._pdf(array_1)
-    array_results_log = c2._pdf(array_1)
+    array_results = c1.pdf_vector(array_1)
+    array_results_log = c2.pdf_vector(array_1)
     expected_results = np.array([0.1, 0.1, 0])
     expected_log_results = np.array([4.539992976248485e-05, 4.539992976248485e-05, 0.0])
     assert array_results.shape == expected_results.shape
@@ -429,9 +427,9 @@ def test_uniformfloat__pdf():
         assert log_res == pytest.approx(exp_log_res, abs=1e-5)
 
     # Simply check that it runs, since _pdf does not restrict shape (only public method does)
-    c1._pdf(accepted_shape_1)
-    c1._pdf(accepted_shape_2)
-    c1._pdf(accepted_shape_3)
+    c1.pdf_vector(accepted_shape_1)
+    c1.pdf_vector(accepted_shape_2)
+    c1.pdf_vector(accepted_shape_3)
 
 
 def test_uniformfloat_get_max_density():
@@ -460,7 +458,7 @@ def test_normalfloat():
 
     expected = [0.59934283060225, 0.47234713976576, 0.62953770762014, 0.80460597128161]
     np.testing.assert_almost_equal(
-        f1.get_neighbors(0.5, rs=np.random.RandomState(42)),
+        f1.neighbors_vectorized(0.5, n=4, seed=np.random.RandomState(42)),
         expected,
         decimal=14,
     )
@@ -533,7 +531,7 @@ def test_normalfloat():
     # They are equal up to 14 decimal places
     expected = [0.59934283060225, 0.47234713976576, 0.62953770762014, 0.80460597128161]
     np.testing.assert_almost_equal(
-        f6.get_neighbors(0.5, rs=np.random.RandomState(42)),
+        f6.neighbors_vectorized(0.5, n=4, seed=np.random.RandomState(42)),
         expected,
         decimal=14,
     )
@@ -556,7 +554,7 @@ def test_normalfloat():
 
     # Test get_size
     for float_hp in (f1, f2, f6):
-        assert np.isinf(float_hp.get_size())
+        assert np.isinf(float_hp.size)
 
     with pytest.raises(ValueError):
         _ = NormalFloatHyperparameter(
@@ -593,18 +591,18 @@ def test_normalfloat_to_uniformfloat():
 
 def test_normalfloat_is_legal():
     f1 = NormalFloatHyperparameter("param", 0, 10, lower=-20, upper=20)
-    assert f1.is_legal(3.0)
-    assert f1.is_legal(2)
-    assert not f1.is_legal("Hahaha")
+    assert f1.legal_value(3.0)
+    assert f1.legal_value(2)
+    assert not f1.legal_value("Hahaha")  # type: ignore
 
     # Test legal vector values
-    assert f1.is_legal_vector(1.0)
-    assert f1.is_legal_vector(0.0)
-    assert f1.is_legal_vector(0)
-    assert f1.is_legal_vector(0.3)
-    assert not f1.is_legal_vector(-0.1)
-    assert not f1.is_legal_vector(1.1)
-    assert not f1.is_legal_vector("Hahaha")
+    assert f1.legal_vector(1.0)
+    assert f1.legal_vector(0.0)
+    assert f1.legal_vector(0)
+    assert f1.legal_vector(0.3)
+    assert not f1.legal_vector(-0.1)
+    assert not f1.legal_vector(1.1)
+    assert not f1.legal_vector("Hahaha")  # type: ignore
 
     f2 = NormalFloatHyperparameter(
         "param",
@@ -614,13 +612,13 @@ def test_normalfloat_is_legal():
         upper=10,
         default_value=5.0,
     )
-    assert f2.is_legal_vector(1.0)
-    assert f2.is_legal_vector(0.0)
-    assert f2.is_legal_vector(0)
-    assert f2.is_legal_vector(0.3)
-    assert f2.is_legal(5.0)
-    assert not f2.is_legal(10.01)
-    assert not f2.is_legal(0.009)
+    assert f2.legal_vector(1.0)
+    assert f2.legal_vector(0.0)
+    assert f2.legal_vector(0)
+    assert f2.legal_vector(0.3)
+    assert f2.legal_value(5.0)
+    assert not f2.legal_value(10.01)
+    assert not f2.legal_value(0.009)
 
 
 def test_normalfloat_to_integer():
@@ -655,108 +653,48 @@ def test_normalfloat_pdf():
     wrong_shape_2 = np.array([3, 5, 7]).reshape(1, -1)
     wrong_shape_3 = np.array([3, 5, 7]).reshape(-1, 1)
 
-    assert c1.pdf(point_1)[0] == pytest.approx(2.138045617479014)
-    assert c2.pdf(point_1_log)[0] == pytest.approx(2.138045617479014)
-    assert c1.pdf(point_2)[0] == pytest.approx(0.00467695579850518)
-    assert c2.pdf(point_2_log)[0] == pytest.approx(0.00467695579850518)
-    assert c3.pdf(point_3)[0] == c3.get_max_density()
+    assert c1.pdf_values(point_1)[0] == pytest.approx(2.138045617479014)
+    assert c2.pdf_values(point_1_log)[0] == pytest.approx(2.038104873599176)
+    assert c1.pdf_values(point_2)[0] == pytest.approx(0.00467695579850518)
+    assert c2.pdf_values(point_2_log)[0] == pytest.approx(0.009061204414610455)
+    assert c3.pdf_values(point_3)[0] == c3.get_max_density()
     # TODO - change this once the is_legal support is there
     # but does not have an actual impact of now
-    assert c1.pdf(point_outside_range_1)[0] == 0.0
-    assert c1.pdf(point_outside_range_2)[0] == 0.0
-    assert c2.pdf(point_outside_range_1_log)[0] == 0.0
-    assert c2.pdf(point_outside_range_2_log)[0] == 0.0
+    assert c1.pdf_values(point_outside_range_1)[0] == 0.0
+    assert c1.pdf_values(point_outside_range_2)[0] == 0.0
+    assert c2.pdf_values(point_outside_range_1_log)[0] == 0.0
+    assert c2.pdf_values(point_outside_range_2_log)[0] == 0.0
 
     array_1 = np.array([3, 10, 10.01])
     array_1_log = np.array([np.exp(3), np.exp(10), np.exp(10.01)])
-    array_results = c1.pdf(array_1)
-    array_results_log = c2.pdf(array_1_log)
-    expected_results = np.array([2.138045617479014, 0.004676955798505195, 0])
-    assert array_results.shape == expected_results.shape
-    assert array_results_log.shape == expected_results.shape
-    for res, log_res, exp_res in zip(
+    array_results = c1.pdf_values(array_1)
+    array_results_log = c2.pdf_values(array_1_log)
+    np.testing.assert_almost_equal(
         array_results,
-        array_results_log,
-        expected_results,
-    ):
-        assert res == pytest.approx(exp_res)
-        assert log_res == pytest.approx(exp_res)
-
-    with pytest.raises(
-        ValueError,
-        match="Method pdf expects a one-dimensional numpy array",
-    ):
-        c1.pdf(wrong_shape_1)
-    with pytest.raises(
-        ValueError,
-        match="Method pdf expects a one-dimensional numpy array",
-    ):
-        c1.pdf(wrong_shape_2)
-    with pytest.raises(
-        ValueError,
-        match="Method pdf expects a one-dimensional numpy array",
-    ):
-        c1.pdf(wrong_shape_3)
-
-
-def test_normalfloat__pdf():
-    pytest.skip("Since internal vector rep changed, this test was made invalid")
-    c1 = NormalFloatHyperparameter("param", lower=0, upper=10, mu=3, sigma=2)
-    c2 = NormalFloatHyperparameter(
-        "logparam",
-        lower=np.exp(0),
-        upper=np.exp(10),
-        mu=np.exp(3),
-        sigma=np.exp(2),
-        log=True,
+        np.array([2.13804561747901, 0.00467695579851, 0.0]),
+        decimal=14,
     )
-    c3 = NormalFloatHyperparameter("param", lower=0, upper=0.5, mu=-1, sigma=0.2)
-
-    # since there is no logtransformation, the logged and unlogged parameters
-    # should output the same given the same input
-
-    point_1 = np.array([3])
-    point_2 = np.array([10])
-    point_3 = np.array([0])
-    array_1 = np.array([3, 10, 10.01])
-    point_outside_range_1 = np.array([-0.01])
-    point_outside_range_2 = np.array([10.01])
-    accepted_shape_1 = np.array([[3]])
-    accepted_shape_2 = np.array([3, 5, 7]).reshape(1, -1)
-    accepted_shape_3 = np.array([7, 5, 3]).reshape(-1, 1)
-
-    assert c1._pdf(point_1)[0] == pytest.approx(0.2138045617479014)
-    assert c2._pdf(point_1)[0] == pytest.approx(0.2138045617479014)
-    assert c1._pdf(point_2)[0] == pytest.approx(0.000467695579850518)
-    assert c2._pdf(point_2)[0] == pytest.approx(0.000467695579850518)
-    assert c3._pdf(point_3)[0] == pytest.approx(25.932522722334905)
-    # TODO - change this once the is_legal support is there
-    # but does not have an actual impact of now
-    assert c1._pdf(point_outside_range_1)[0] == 0.0
-    assert c1._pdf(point_outside_range_2)[0] == 0.0
-    assert c2._pdf(point_outside_range_1)[0] == 0.0
-    assert c2._pdf(point_outside_range_2)[0] == 0.0
-
-    array_results = c1.pdf(array_1)
-    array_results_log = c2.pdf(array_1)
-    expected_results = np.array([0.2138045617479014, 0.0004676955798505186, 0])
-    assert array_results.shape == expected_results.shape
-    assert array_results_log.shape == expected_results.shape
-    for res, log_res, exp_res in zip(
-        array_results,
+    np.testing.assert_almost_equal(
         array_results_log,
-        expected_results,
+        np.array([2.03810487359918, 0.00906120441461, 0.0]),
+        decimal=14,
+    )
+
+    with pytest.raises(
+        ValueError,
+        match="Method pdf expects a one-dimensional numpy array",
     ):
-        assert res == pytest.approx(exp_res)
-        assert log_res == pytest.approx(exp_res)
-
-    c_nobounds = NormalFloatHyperparameter("param", mu=3, sigma=2)
-    assert c_nobounds.pdf(np.array([2]))[0] == pytest.approx(0.17603266338214976)
-
-    # Simply check that it runs, since _pdf does not restrict shape (only public method does)
-    c1._pdf(accepted_shape_1)
-    c1._pdf(accepted_shape_2)
-    c1._pdf(accepted_shape_3)
+        c1.pdf_values(wrong_shape_1)
+    with pytest.raises(
+        ValueError,
+        match="Method pdf expects a one-dimensional numpy array",
+    ):
+        c1.pdf_values(wrong_shape_2)
+    with pytest.raises(
+        ValueError,
+        match="Method pdf expects a one-dimensional numpy array",
+    ):
+        c1.pdf_values(wrong_shape_3)
 
 
 def test_normalfloat_get_max_density():
@@ -771,7 +709,7 @@ def test_normalfloat_get_max_density():
     )
     c3 = NormalFloatHyperparameter("param", lower=0, upper=0.5, mu=-1, sigma=0.2)
     assert c1.get_max_density() == pytest.approx(2.138045617479014, abs=1e-9)
-    assert c2.get_max_density() == pytest.approx(2.138045617479014, abs=1e-9)
+    assert c2.get_max_density() == pytest.approx(2.038104873599176, abs=1e-9)
     assert c3.get_max_density() == pytest.approx(12.966261361167449, abs=1e-9)
 
 
@@ -790,8 +728,8 @@ def test_betafloat():
 
     # with identical domains, beta and uniform should sample the same points
     np.testing.assert_equal(
-        u1.get_neighbors(0.5, rs=np.random.RandomState(42)),
-        b1.get_neighbors(0.5, rs=np.random.RandomState(42)),
+        u1.neighbors_vectorized(0.5, n=4, seed=np.random.RandomState(42)),
+        b1.neighbors_vectorized(0.5, n=4, seed=np.random.RandomState(42)),
     )
     # Test copy
     copy_f1 = copy.copy(f1)
@@ -1105,20 +1043,20 @@ def test_betafloat_pdf():
     wrong_shape_2 = np.array([3, 5, 7]).reshape(1, -1)
     wrong_shape_3 = np.array([3, 5, 7]).reshape(-1, 1)
 
-    assert c1.pdf(point_1)[0] == pytest.approx(0.7559999999999997)
-    assert c2.pdf(point_1_log)[0] == pytest.approx(0.7559999999999997)
-    assert c1.pdf(point_2)[0] == pytest.approx(0.11761200000000013)
-    assert c2.pdf(point_2_log)[0] == pytest.approx(0.11761200000000013)
-    assert c3.pdf(point_3)[0] == pytest.approx(15.131082000930544)
+    assert c1.pdf_values(point_1)[0] == pytest.approx(0.7559999999999997)
+    assert c2.pdf_values(point_1_log)[0] == pytest.approx(0.7559999999999997)
+    assert c1.pdf_values(point_2)[0] == pytest.approx(0.11761200000000013)
+    assert c2.pdf_values(point_2_log)[0] == pytest.approx(0.11761200000000013)
+    assert c3.pdf_values(point_3)[0] == pytest.approx(15.131082000930544)
     # TODO - change this once the is_legal support is there
     # but does not have an actual impact of now
-    assert c1.pdf(point_outside_range_1)[0] == 0.0
-    assert c1.pdf(point_outside_range_2)[0] == 0.0
-    assert c2.pdf(point_outside_range_1_log)[0] == 0.0
-    assert c2.pdf(point_outside_range_2_log)[0] == 0.0
+    assert c1.pdf_values(point_outside_range_1)[0] == 0.0
+    assert c1.pdf_values(point_outside_range_2)[0] == 0.0
+    assert c2.pdf_values(point_outside_range_1_log)[0] == 0.0
+    assert c2.pdf_values(point_outside_range_2_log)[0] == 0.0
 
-    array_results = c1.pdf(array_1)
-    array_results_log = c2.pdf(array_1_log)
+    array_results = c1.pdf_values(array_1)
+    array_results_log = c2.pdf_values(array_1_log)
     expected_results = np.array([0.7559999999999997, 0.11761200000000013, 0])
     assert array_results.shape == expected_results.shape
     assert array_results_log.shape == expected_results.shape
@@ -1134,17 +1072,17 @@ def test_betafloat_pdf():
         ValueError,
         match="Method pdf expects a one-dimensional numpy array",
     ):
-        c1.pdf(wrong_shape_1)
+        c1.pdf_values(wrong_shape_1)
     with pytest.raises(
         ValueError,
         match="Method pdf expects a one-dimensional numpy array",
     ):
-        c1.pdf(wrong_shape_2)
+        c1.pdf_values(wrong_shape_2)
     with pytest.raises(
         ValueError,
         match="Method pdf expects a one-dimensional numpy array",
     ):
-        c1.pdf(wrong_shape_3)
+        c1.pdf_values(wrong_shape_3)
 
 
 def test_betafloat__pdf():
@@ -1169,21 +1107,21 @@ def test_betafloat__pdf():
     accepted_shape_2 = np.array([0.3, 0.5, 0.7]).reshape(1, -1)
     accepted_shape_3 = np.array([0.7, 0.5, 0.3]).reshape(-1, 1)
 
-    assert c1._pdf(point_1)[0] == pytest.approx(0.7559999999999997)
-    assert c2._pdf(point_1)[0] == pytest.approx(0.7559999999999997)
-    assert c1._pdf(point_2)[0] == pytest.approx(0.11761200000000013)
-    assert c2._pdf(point_2)[0] == pytest.approx(0.11761200000000013)
-    assert c3._pdf(point_3)[0] == pytest.approx(15.131082000930544)
+    assert c1.pdf_vector(point_1)[0] == pytest.approx(0.7559999999999997)
+    assert c2.pdf_vector(point_1)[0] == pytest.approx(0.7559999999999997)
+    assert c1.pdf_vector(point_2)[0] == pytest.approx(0.11761200000000013)
+    assert c2.pdf_vector(point_2)[0] == pytest.approx(0.11761200000000013)
+    assert c3.pdf_vector(point_3)[0] == pytest.approx(15.131082000930544)
 
     # TODO - change this once the is_legal support is there
     # but does not have an actual impact of now
-    assert c1._pdf(point_outside_range_1)[0] == 0.0
-    assert c1._pdf(point_outside_range_2)[0] == 0.0
-    assert c2._pdf(point_outside_range_1)[0] == 0.0
-    assert c2._pdf(point_outside_range_2)[0] == 0.0
+    assert c1.pdf_vector(point_outside_range_1)[0] == 0.0
+    assert c1.pdf_vector(point_outside_range_2)[0] == 0.0
+    assert c2.pdf_vector(point_outside_range_1)[0] == 0.0
+    assert c2.pdf_vector(point_outside_range_2)[0] == 0.0
 
-    array_results = c1._pdf(array_1)
-    array_results_log = c2._pdf(array_1)
+    array_results = c1.pdf_vector(array_1)
+    array_results_log = c2.pdf_vector(array_1)
     expected_results = np.array([0.7559999999999997, 0.11761200000000013, 0])
     assert array_results.shape == expected_results.shape
     assert array_results_log.shape == expected_results.shape
@@ -1196,9 +1134,9 @@ def test_betafloat__pdf():
         assert log_res == pytest.approx(exp_res)
 
     # Simply check that it runs, since _pdf does not restrict shape (only public method does)
-    c1._pdf(accepted_shape_1)
-    c1._pdf(accepted_shape_2)
-    c1._pdf(accepted_shape_3)
+    c1.pdf_vector(accepted_shape_1)
+    c1.pdf_vector(accepted_shape_2)
+    c1.pdf_vector(accepted_shape_3)
 
 
 def test_betafloat_get_max_density():
@@ -1262,9 +1200,9 @@ def test_uniforminteger():
     )
     assert f_meta.meta == META_DATA
 
-    assert f1.get_size() == 6
-    assert f3.get_size() == 10
-    assert f4.get_size() == 10
+    assert f1.size == 6
+    assert f3.size == 10
+    assert f4.size == 10
 
 
 def test_uniformint_legal_float_values():
@@ -1324,25 +1262,25 @@ def test_uniformint_pdf():
 
     # need to lower the amount of places since the bounds
     # are inexact (._lower=-0.49999, ._upper=4.49999)
-    assert c1.pdf(point_1)[0] == pytest.approx(0.2, abs=1e-5)
-    assert c1.pdf(point_2)[0] == pytest.approx(0.2, abs=1e-5)
-    assert c1.pdf(non_integer_point)[0] == pytest.approx(0.0, abs=1e-5)
+    assert c1.pdf_values(point_1)[0] == pytest.approx(0.2, abs=1e-5)
+    assert c1.pdf_values(point_2)[0] == pytest.approx(0.2, abs=1e-5)
+    assert c1.pdf_values(non_integer_point)[0] == pytest.approx(0.0, abs=1e-5)
 
-    assert c2.pdf(point_1_log)[0] == pytest.approx(0.0001, abs=1e-5)
-    assert c2.pdf(np.array([10_000]))[0] == pytest.approx(0.0001, abs=1e-5)
-    assert c2.pdf(np.array([1]))[0] == pytest.approx(0.0001, abs=1e-5)
-    assert c2.pdf(np.array([2]))[0] == pytest.approx(0.0001, abs=1e-5)
-    assert c2.pdf(point_2_log)[0] == pytest.approx(0.0001, abs=1e-5)
-    assert c2.pdf(non_integer_point)[0] == pytest.approx(0.0, abs=1e-5)
+    assert c2.pdf_values(point_1_log)[0] == pytest.approx(0.0001, abs=1e-5)
+    assert c2.pdf_values(np.array([10_000]))[0] == pytest.approx(0.0001, abs=1e-5)
+    assert c2.pdf_values(np.array([1]))[0] == pytest.approx(0.0001, abs=1e-5)
+    assert c2.pdf_values(np.array([2]))[0] == pytest.approx(0.0001, abs=1e-5)
+    assert c2.pdf_values(point_2_log)[0] == pytest.approx(0.0001, abs=1e-5)
+    assert c2.pdf_values(non_integer_point)[0] == pytest.approx(0.0, abs=1e-5)
 
-    assert c3.pdf(point_1)[0] == pytest.approx(0.07142857142857142, abs=1e-5)
+    assert c3.pdf_values(point_1)[0] == pytest.approx(0.07142857142857142, abs=1e-5)
 
     # this, however, is a negative value on a log param, which cannot be pulled into range
     with pytest.warns(RuntimeWarning, match="invalid value encountered in log"):
-        assert c2.pdf(point_outside_range)[0] == 0.0
+        assert c2.pdf_values(point_outside_range)[0] == 0.0
 
-    array_results = c1.pdf(array_1)
-    array_results_log = c2.pdf(array_1)
+    array_results = c1.pdf_values(array_1)
+    array_results_log = c2.pdf_values(array_1)
     expected_results = np.array([0.2, 0.2, 0])
     expected_results_log = np.array([0.0001, 0.0001, 0])
     assert array_results.shape == pytest.approx(expected_results.shape)
@@ -1360,17 +1298,17 @@ def test_uniformint_pdf():
         ValueError,
         match="Method pdf expects a one-dimensional numpy array",
     ):
-        c1.pdf(wrong_shape_1)
+        c1.pdf_values(wrong_shape_1)
     with pytest.raises(
         ValueError,
         match="Method pdf expects a one-dimensional numpy array",
     ):
-        c1.pdf(wrong_shape_2)
+        c1.pdf_values(wrong_shape_2)
     with pytest.raises(
         ValueError,
         match="Method pdf expects a one-dimensional numpy array",
     ):
-        c1.pdf(wrong_shape_3)
+        c1.pdf_values(wrong_shape_3)
 
 
 def test_uniformint__pdf():
@@ -1387,20 +1325,20 @@ def test_uniformint__pdf():
 
     # need to lower the amount of places since the bounds
     # are inexact (._lower=-0.49999, ._upper=4.49999)
-    assert c1._pdf(point_1)[0] == pytest.approx(0.2, abs=1e-5)
-    assert c2._pdf(point_1)[0] == pytest.approx(0.0001, abs=1e-5)
-    assert c1._pdf(point_2)[0] == pytest.approx(0.2, abs=1e-5)
-    assert c2._pdf(point_2)[0] == pytest.approx(0.0001, abs=1e-5)
+    assert c1.pdf_vector(point_1)[0] == pytest.approx(0.2, abs=1e-5)
+    assert c2.pdf_vector(point_1)[0] == pytest.approx(0.0001, abs=1e-5)
+    assert c1.pdf_vector(point_2)[0] == pytest.approx(0.2, abs=1e-5)
+    assert c2.pdf_vector(point_2)[0] == pytest.approx(0.0001, abs=1e-5)
 
     # TODO - change this once the is_legal support is there
     # but does not have an actual impact of now
     # since inverse_transform pulls everything into range,
     # even points outside get evaluated in range
-    assert c1._pdf(point_outside_range)[0] == pytest.approx(0.0, abs=1e-5)
-    assert c2._pdf(point_outside_range)[0] == pytest.approx(0.0, abs=1e-5)
+    assert c1.pdf_vector(point_outside_range)[0] == pytest.approx(0.0, abs=1e-5)
+    assert c2.pdf_vector(point_outside_range)[0] == pytest.approx(0.0, abs=1e-5)
 
-    array_results = c1._pdf(array_1)
-    array_results_log = c2._pdf(array_1)
+    array_results = c1.pdf_vector(array_1)
+    array_results_log = c2.pdf_vector(array_1)
     expected_results = np.array([0.2, 0.2, 0])
     expected_results_log = np.array([0.0001, 0.0001, 0])
     assert array_results.shape == pytest.approx(expected_results.shape)
@@ -1415,9 +1353,9 @@ def test_uniformint__pdf():
         assert log_res == pytest.approx(exp_log_res, abs=1e-5)
 
     # Simply check that it runs, since _pdf does not restrict shape (only public method does)
-    c1._pdf(accepted_shape_1)
-    c1._pdf(accepted_shape_2)
-    c1._pdf(accepted_shape_3)
+    c1.pdf_vector(accepted_shape_1)
+    c1.pdf_vector(accepted_shape_2)
+    c1.pdf_vector(accepted_shape_3)
 
 
 def test_uniformint_get_max_density():
@@ -1458,18 +1396,18 @@ def test_normalint():
     assert f1._normalized_default_value == pytest.approx(0.5)
     assert f1.size == 21
 
-    f3 = NormalIntegerHyperparameter("param", 0, 10, log=True, lower=1, upper=10)
-    f3_ = NormalIntegerHyperparameter("param", 0, 10, log=True, lower=1, upper=10)
+    f3 = NormalIntegerHyperparameter("param", 1, 10, log=True, lower=1, upper=10)
+    f3_ = NormalIntegerHyperparameter("param", 1, 10, log=True, lower=1, upper=10)
     assert f3 == f3_
     assert f3.size == 10
     assert (
         str(f3)
-        == "param, Type: NormalInteger, Mu: 0.0, Sigma: 10.0, Range: [1, 10], Default: 1, on log-scale"
+        == "param, Type: NormalInteger, Mu: 1.0, Sigma: 10.0, Range: [1, 10], Default: 1, on log-scale"
     )
 
     f4 = NormalIntegerHyperparameter(
         "param",
-        0,
+        1,
         10,
         lower=1,
         upper=10,
@@ -1478,7 +1416,7 @@ def test_normalint():
     )
     f4_ = NormalIntegerHyperparameter(
         "param",
-        0,
+        1,
         10,
         lower=1,
         upper=10,
@@ -1489,7 +1427,7 @@ def test_normalint():
     assert f4.size == 10
     assert (
         str(f4)
-        == "param, Type: NormalInteger, Mu: 0.0, Sigma: 10.0, Range: [1, 10], Default: 3, on log-scale"
+        == "param, Type: NormalInteger, Mu: 1.0, Sigma: 10.0, Range: [1, 10], Default: 3, on log-scale"
     )
 
     assert f1 != f4
@@ -1498,7 +1436,7 @@ def test_normalint():
     # test that meta-data is stored correctly
     f_meta = NormalIntegerHyperparameter(
         "param",
-        0,
+        1,
         10,
         lower=1,
         upper=10,
@@ -1511,11 +1449,11 @@ def test_normalint():
     # Bounded case
     f1 = NormalIntegerHyperparameter("param", 0, 10, lower=-100, upper=100)
     np.testing.assert_equal(
-        f1.get_neighbors(0.1, np.random.RandomState(9001), number=1),
+        f1.neighbors_vectorized(0.1, seed=np.random.RandomState(9001), n=1),
         np.array([0.14]),
     )
     np.testing.assert_equal(
-        f1.get_neighbors(0.1, np.random.RandomState(9001), number=5),
+        f1.neighbors_vectorized(0.1, seed=np.random.RandomState(9001), n=5),
         np.array([0.06, 0.065, 0.09, 0.14, 0.175]),
     )
 
@@ -1538,6 +1476,17 @@ def test_normalint():
             lower=1,
             upper=10,
             default_value=0,
+        )
+
+    with pytest.raises(ValueError, match=r"must be positive for log-scale"):
+        _ = NormalIntegerHyperparameter(
+            "param",
+            0,  # mu must be positive for log-scale
+            10,
+            lower=1,
+            upper=10,
+            default_value=0,
+            log=True,
         )
 
 
@@ -1569,26 +1518,26 @@ def test_normalint_to_uniform():
 
 
 def test_normalint_is_legal():
-    f1 = NormalIntegerHyperparameter("param", 0, 10, log=True, lower=1, upper=30)
-    assert f1.is_legal(3.0)  # 3.0 behaves like an Integer
-    assert f1.is_legal(2)
-    assert not f1.is_legal(3.1)
-    assert not f1.is_legal("BlaBlaBla")
-    assert not f1.is_legal(-15)
+    f1 = NormalIntegerHyperparameter("param", 1, 10, log=True, lower=1, upper=30)
+    assert f1.legal_value(3.0)  # 3.0 behaves like an Integer  # type: ignore
+    assert f1.legal_value(2)
+    assert not f1.legal_value(3.1)  # type: ignore
+    assert not f1.legal_value("BlaBlaBla")  # type: ignore
+    assert not f1.legal_value(-15)
 
     # Test is legal vector
-    assert f1.is_legal_vector(1.0)
-    assert f1.is_legal_vector(0.0)
-    assert f1.is_legal_vector(0)
-    assert f1.is_legal_vector(f1.to_vector(10))
-    assert not f1.is_legal_vector(-0.1)
-    assert not f1.is_legal_vector(1.1)
-    assert not f1.is_legal_vector("Hahaha")
+    assert f1.legal_vector(1.0)
+    assert f1.legal_vector(0.0)
+    assert f1.legal_vector(0)
+    assert f1.legal_vector(f1.to_vector(10))
+    assert not f1.legal_vector(-0.1)
+    assert not f1.legal_vector(1.1)
+    assert not f1.legal_vector("Hahaha")  # type: ignore
 
     f2 = NormalIntegerHyperparameter("param", 5, 10, lower=1, upper=10, default_value=5)
-    assert f2.is_legal(5)
-    assert not f2.is_legal(0)
-    assert not f2.is_legal(11)
+    assert f2.legal_value(5)
+    assert not f2.legal_value(0)
+    assert not f2.legal_value(11)
 
 
 def test_normalint_pdf():
@@ -1597,8 +1546,8 @@ def test_normalint_pdf():
         "logparam",
         lower=1,
         upper=1000,
-        mu=3,
-        sigma=2,
+        mu=np.exp(3),
+        sigma=np.exp(2),
         log=True,
     )
     c3 = NormalIntegerHyperparameter("param", lower=0, upper=2, mu=-1.2, sigma=0.5)
@@ -1619,100 +1568,48 @@ def test_normalint_pdf():
     wrong_shape_2 = np.array([3, 5, 7]).reshape(1, -1)
     wrong_shape_3 = np.array([3, 5, 7]).reshape(-1, 1)
 
-    assert c1.pdf(point_1)[0] == pytest.approx(0.18913087287205807)
-    assert c2.pdf(point_1_log)[0] == pytest.approx(0.000931687087884632)
-    assert c1.pdf(point_2)[0] == pytest.approx(0.00041372210458180426)
-    assert c2.pdf(point_2_log)[0] == pytest.approx(2.3595145186898904e-18)
-    assert c3.pdf(point_3)[0] == pytest.approx(0.9834724443747417)
+    assert c1.pdf_values(point_1)[0] == pytest.approx(0.18913087287205807)
+    assert c2.pdf_values(point_1_log)[0] == pytest.approx(0.0013829743550526114)
+    assert c1.pdf_values(point_2)[0] == pytest.approx(0.00041372210458180426)
+    assert c2.pdf_values(point_2_log)[0] == pytest.approx(0.0002698746029856508)
+    assert c3.pdf_values(point_3)[0] == pytest.approx(0.9834724443747417)
     # TODO - change this once the is_legal support is there
     # but does not have an actual impact of now
-    assert c1.pdf(point_outside_range_1)[0] == 0.0
-    assert c1.pdf(point_outside_range_2)[0] == 0.0
+    assert c1.pdf_values(point_outside_range_1)[0] == 0.0
+    assert c1.pdf_values(point_outside_range_2)[0] == 0.0
     with pytest.warns(RuntimeWarning, match="divide by zero encountered in log"):
-        assert c2.pdf(point_outside_range_1_log)[0] == 0.0
-    assert c2.pdf(point_outside_range_2_log)[0] == 0.0
+        assert c2.pdf_values(point_outside_range_1_log)[0] == 0.0
+    assert c2.pdf_values(point_outside_range_2_log)[0] == 0.0
 
-    assert c1.pdf(non_integer_point)[0] == 0.0
-    assert c2.pdf(non_integer_point)[0] == 0.0
+    assert c1.pdf_values(non_integer_point)[0] == 0.0
+    assert c2.pdf_values(non_integer_point)[0] == 0.0
 
-    array_results = c1.pdf(array_1)
-    array_results_log = c2.pdf(array_1_log)
-    expected_results = np.array([0.18913087287205807, 0.00041372210458180426, 0])
-    expected_results_log = np.array([0.000931687087884632, 2.3595145186898904e-18, 0])
-    assert array_results.shape == expected_results.shape
-    assert array_results_log.shape == expected_results.shape
-    for res, log_res, exp_res, exp_log_res in zip(
+    array_results = c1.pdf_values(array_1)
+    array_results_log = c2.pdf_values(array_1_log)
+    np.testing.assert_allclose(
         array_results,
+        np.array([0.18913087287205807, 0.00041372210458180426, 0]),
+    )
+    np.testing.assert_allclose(
         array_results_log,
-        expected_results,
-        expected_results_log,
-    ):
-        assert res == pytest.approx(exp_res)
-        assert log_res == pytest.approx(exp_log_res)
-
-    with pytest.raises(
-        ValueError,
-        match="Method pdf expects a one-dimensional numpy array",
-    ):
-        c1.pdf(wrong_shape_1)
-    with pytest.raises(
-        ValueError,
-        match="Method pdf expects a one-dimensional numpy array",
-    ):
-        c1.pdf(wrong_shape_2)
-    with pytest.raises(
-        ValueError,
-        match="Method pdf expects a one-dimensional numpy array",
-    ):
-        c1.pdf(wrong_shape_3)
-
-
-def test_normalint__pdf():
-    pytest.skip("Changed vectorized bounds, no longer valid")
-    c1 = NormalIntegerHyperparameter("param", lower=0, upper=10, mu=3, sigma=2)
-    c2 = NormalIntegerHyperparameter(
-        "logparam",
-        lower=1,
-        upper=1000,
-        mu=3,
-        sigma=2,
-        log=True,
+        np.array([0.0013829743550526114, 0.0002698746029856508, 0.0]),
     )
 
-    point_1 = np.array([3])
-    point_2 = np.array([5.2])
-    array_1 = np.array([3, 5.2, 11])
-    point_outside_range_1 = np.array([-1])
-    point_outside_range_2 = np.array([11])
-
-    assert c1._pdf(point_1)[0] == pytest.approx(0.20747194595587332)
-    assert c2._pdf(point_1)[0] == pytest.approx(0.0027903779510164133)
-    assert c1._pdf(point_2)[0] == pytest.approx(0.1132951239316783)
-    assert c2._pdf(point_2)[0] == pytest.approx(0.001523754039709375)
-    # TODO - change this once the is_legal support is there
-    # but does not have an actual impact of now
-    assert c1._pdf(point_outside_range_1)[0] == 0.0
-    assert c1._pdf(point_outside_range_2)[0] == 0.0
-    assert c2._pdf(point_outside_range_1)[0] == 0.0
-    assert c2._pdf(point_outside_range_2)[0] == 0.0
-
-    array_results = c1._pdf(array_1)
-    array_results_log = c2._pdf(array_1)
-    expected_results = np.array([0.20747194595587332, 0.1132951239316783, 0])
-    expected_results_log = np.array([0.0027903779510164133, 0.001523754039709375, 0])
-    assert array_results.shape == expected_results.shape
-    assert array_results_log.shape == expected_results.shape
-    for res, log_res, exp_res, exp_log_res in zip(
-        array_results,
-        array_results_log,
-        expected_results,
-        expected_results_log,
+    with pytest.raises(
+        ValueError,
+        match="Method pdf expects a one-dimensional numpy array",
     ):
-        assert res == pytest.approx(exp_res)
-        assert log_res == pytest.approx(exp_log_res)
-
-    c_nobounds = NormalFloatHyperparameter("param", mu=3, sigma=2)
-    assert c_nobounds.pdf(np.array([2]))[0] == pytest.approx(0.17603266338214976)
+        c1.pdf_values(wrong_shape_1)
+    with pytest.raises(
+        ValueError,
+        match="Method pdf expects a one-dimensional numpy array",
+    ):
+        c1.pdf_values(wrong_shape_2)
+    with pytest.raises(
+        ValueError,
+        match="Method pdf expects a one-dimensional numpy array",
+    ):
+        c1.pdf_values(wrong_shape_3)
 
 
 def test_normalint_get_max_density():
@@ -1721,13 +1618,13 @@ def test_normalint_get_max_density():
         "logparam",
         lower=1,
         upper=1000,
-        mu=3,
-        sigma=2,
+        mu=np.exp(3),
+        sigma=np.exp(2),
         log=True,
     )
     c3 = NormalIntegerHyperparameter("param", lower=0, upper=2, mu=-1.2, sigma=0.5)
     assert c1.get_max_density() == pytest.approx(2.118259218934877)
-    assert c2.get_max_density() == pytest.approx(4.213796445068097)
+    assert c2.get_max_density() == pytest.approx(1.4595513607866044)
     assert c3.get_max_density() == pytest.approx(10.927444887375877)
 
 
@@ -2053,23 +1950,29 @@ def test_betaint_pdf():
     wrong_shape_3 = np.array([3, 5, 7]).reshape(-1, 1)
 
     # The quantization constant (0.4999) dictates the accuracy of the integer beta pdf
-    assert c1.pdf(point_1)[0] == pytest.approx(0.0692999999999999, abs=1e-3)
-    assert c2.pdf(point_1_log)[0] == pytest.approx(0.0008724511426701984, abs=1e-3)
-    assert c1.pdf(point_2)[0] == pytest.approx(0.08909999999999998, abs=1e-3)
-    assert c2.pdf(point_2_log)[0] == pytest.approx(0.0008683622684160343, abs=1e-3)
-    assert c3.pdf(point_3)[0] == pytest.approx(0.34686070212329767, abs=1e-3)
+    assert c1.pdf_values(point_1)[0] == pytest.approx(0.0692999999999999, abs=1e-3)
+    assert c2.pdf_values(point_1_log)[0] == pytest.approx(
+        0.0008724511426701984,
+        abs=1e-3,
+    )
+    assert c1.pdf_values(point_2)[0] == pytest.approx(0.08909999999999998, abs=1e-3)
+    assert c2.pdf_values(point_2_log)[0] == pytest.approx(
+        0.0008683622684160343,
+        abs=1e-3,
+    )
+    assert c3.pdf_values(point_3)[0] == pytest.approx(0.34686070212329767, abs=1e-3)
 
-    assert c1.pdf(point_outside_range_1)[0] == 0.0
-    assert c1.pdf(point_outside_range_2)[0] == 0.0
+    assert c1.pdf_values(point_outside_range_1)[0] == 0.0
+    assert c1.pdf_values(point_outside_range_2)[0] == 0.0
     with pytest.warns(RuntimeWarning, match="divide by zero encountered in log"):
-        assert c2.pdf(point_outside_range_1_log)[0] == 0.0
-    assert c2.pdf(point_outside_range_2_log)[0] == 0.0
+        assert c2.pdf_values(point_outside_range_1_log)[0] == 0.0
+    assert c2.pdf_values(point_outside_range_2_log)[0] == 0.0
 
-    assert c1.pdf(non_integer_point)[0] == 0.0
-    assert c2.pdf(non_integer_point)[0] == 0.0
+    assert c1.pdf_values(non_integer_point)[0] == 0.0
+    assert c2.pdf_values(non_integer_point)[0] == 0.0
 
-    array_results = c1.pdf(array_1)
-    array_results_log = c2.pdf(array_1_log)
+    array_results = c1.pdf_values(array_1)
+    array_results_log = c2.pdf_values(array_1_log)
     expected_results = np.array([0.0692999999999999, 0.08909999999999998, 0])
     expected_results_log = np.array([0.0008724511426701984, 0.0008683622684160343, 0])
     assert array_results.shape == expected_results.shape
@@ -2087,17 +1990,17 @@ def test_betaint_pdf():
         ValueError,
         match="Method pdf expects a one-dimensional numpy array",
     ):
-        c1.pdf(wrong_shape_1)
+        c1.pdf_values(wrong_shape_1)
     with pytest.raises(
         ValueError,
         match="Method pdf expects a one-dimensional numpy array",
     ):
-        c1.pdf(wrong_shape_2)
+        c1.pdf_values(wrong_shape_2)
     with pytest.raises(
         ValueError,
         match="Method pdf expects a one-dimensional numpy array",
     ):
-        c1.pdf(wrong_shape_3)
+        c1.pdf_values(wrong_shape_3)
 
 
 def test_betaint__pdf():
@@ -2113,31 +2016,31 @@ def test_betaint__pdf():
 
     # since the logged and unlogged parameters will have different active domains
     # in the unit range, they will not evaluate identically under _pdf
-    point_1 = c1.to_vector(2)
-    point_2 = c1.to_vector(8)
+    point_1 = c1.to_vector([2])
+    point_2 = c1.to_vector([8])
     point_outside_range_1 = np.array([-0.01])
     point_outside_range_2 = np.array([1.01])
 
-    point_1_log = c2.to_vector(30)
-    point_2_log = c2.to_vector(900)
+    point_1_log = c2.to_vector([30])
+    point_2_log = c2.to_vector([900])
     point_outside_range_1_log = np.array([-0.01])
 
     assert c1.legal_vector(point_1)
-    assert c1._pdf(point_1) == pytest.approx(0.03520000000000001)
-    assert c1._pdf(point_2) == pytest.approx(0.1408)
-    assert c1._pdf(point_outside_range_1) == 0.0
-    assert c1._pdf(point_outside_range_2) == 0.0
+    assert c1.pdf_vector(point_1) == pytest.approx(0.03520000000000001)
+    assert c1.pdf_vector(point_2) == pytest.approx(0.1408)
+    assert c1.pdf_vector(point_outside_range_1) == 0.0
+    assert c1.pdf_vector(point_outside_range_2) == 0.0
 
-    assert c2._pdf(point_1_log) == pytest.approx(4.158874218496887e-05)
-    assert c2._pdf(point_2_log) == pytest.approx(8.061094363679364e-05)
-    assert c2._pdf(point_outside_range_1_log) == 0.0
+    assert c2.pdf_vector(point_1_log) == pytest.approx(4.158874218496887e-05)
+    assert c2.pdf_vector(point_2_log) == pytest.approx(8.061094363679364e-05)
+    assert c2.pdf_vector(point_outside_range_1_log) == 0.0
 
     c1_array = np.concatenate([c1.to_vector([2, 8]), np.array([-0.01])])
-    array_results = c1._pdf(c1_array)
+    array_results = c1.pdf_vector(c1_array)
     expected_results = np.array([0.0352, 0.1408, 0.0])
 
     c2_array = np.concatenate([c2.to_vector([30, 900]), np.array([-0.01])])
-    array_results_log = c2._pdf(c2_array)
+    array_results_log = c2.pdf_vector(c2_array)
     expected_results_log = np.array([4.158874e-05, 8.061094e-05, 0.0])
 
     np.testing.assert_allclose(array_results, expected_results)
@@ -2149,9 +2052,9 @@ def test_betaint__pdf():
     accepted_shape_1 = np.array([[3]])
     accepted_shape_2 = np.array([3, 5, 7]).reshape(1, -1)
     accepted_shape_3 = np.array([3, 5, 7]).reshape(-1, 1)
-    c1._pdf(accepted_shape_1)
-    c1._pdf(accepted_shape_2)
-    c1._pdf(accepted_shape_3)
+    c1.pdf_vector(accepted_shape_1)
+    c1.pdf_vector(accepted_shape_2)
+    c1.pdf_vector(accepted_shape_3)
 
 
 def test_betaint_get_max_density():
@@ -2179,10 +2082,10 @@ def test_categorical():
 
     # Test attributes are accessible
     assert f1.name == "param"
-    assert f1.num_choices == 2
+    assert f1.size == 2
     assert f1.default_value == 0
     assert f1._normalized_default_value == 0
-    assert f1._probabilities == pytest.approx((0.5, 0.5))
+    np.testing.assert_equal(f1.probabilities, (0.5, 0.5))
 
     f2 = CategoricalHyperparameter("param", list(range(1000)))
     f2_ = CategoricalHyperparameter("param", list(range(1000)))
@@ -2217,12 +2120,12 @@ def test_categorical():
     )
     assert f_meta.meta == META_DATA
 
-    assert f1.get_size() == 2
-    assert f2.get_size() == 1000
-    assert f3.get_size() == 999
-    assert f4.get_size() == 1000
-    assert f5.get_size() == 1000
-    assert f6.get_size() == 2
+    assert f1.size == 2
+    assert f2.size == 1000
+    assert f3.size == 999
+    assert f4.size == 1000
+    assert f5.size == 1000
+    assert f6.size == 2
 
 
 def test_cat_equal():
@@ -2311,18 +2214,18 @@ def test_categorical_strings():
 
 def test_categorical_is_legal():
     f1 = CategoricalHyperparameter("param", ["a", "b"])
-    assert f1.is_legal("a")
-    assert f1.is_legal("a")
-    assert not f1.is_legal("c")
-    assert not f1.is_legal(3)
+    assert f1.legal_value("a")
+    assert f1.legal_value("a")
+    assert not f1.legal_value("c")
+    assert not f1.legal_value(3)
 
     # Test is legal vector
-    assert f1.is_legal_vector(1.0)
-    assert f1.is_legal_vector(0.0)
-    assert f1.is_legal_vector(0)
-    assert not f1.is_legal_vector(0.3)
-    assert not f1.is_legal_vector(-0.1)
-    assert not f1.is_legal_vector("Hahaha")
+    assert f1.legal_vector(1.0)
+    assert f1.legal_vector(0.0)
+    assert f1.legal_vector(0)
+    assert not f1.legal_vector(0.3)
+    assert not f1.legal_vector(-0.1)
+    assert not f1.legal_vector("Hahaha")  # type: ignore
 
 
 def test_categorical_choices():
@@ -2428,27 +2331,27 @@ def test_categorical_pdf():
     wrong_shape_2 = np.array(["one", "two"]).reshape(1, -1)
     wrong_shape_3 = np.array(["one", "two"]).reshape(-1, 1)
 
-    assert c1.pdf(point_1)[0] == 0.4
-    assert c1.pdf(point_2)[0] == 0.2
-    assert c2.pdf(point_1)[0] == pytest.approx(0.7142857142857143)
-    assert c2.pdf(point_2)[0] == 0.0
-    assert c3.pdf(point_1)[0] == 0.25
+    assert c1.pdf_values(point_1)[0] == 0.4
+    assert c1.pdf_values(point_2)[0] == 0.2
+    assert c2.pdf_values(point_1)[0] == pytest.approx(0.7142857142857143)
+    assert c2.pdf_values(point_2)[0] == 0.0
+    assert c3.pdf_values(point_1)[0] == 0.25
 
     with pytest.raises(
         ValueError,
         match="Method pdf expects a one-dimensional numpy array",
     ):
-        c1.pdf(wrong_shape_1)
+        c1.pdf_values(wrong_shape_1)
     with pytest.raises(
         ValueError,
         match="Method pdf expects a one-dimensional numpy array",
     ):
-        c1.pdf(wrong_shape_2)
+        c1.pdf_values(wrong_shape_2)
     with pytest.raises(
         ValueError,
         match="Method pdf expects a one-dimensional numpy array",
     ):
-        c1.pdf(wrong_shape_3)
+        c1.pdf_values(wrong_shape_3)
 
 
 def test_categorical__pdf():
@@ -2467,18 +2370,18 @@ def test_categorical__pdf():
     point_2 = np.array([1])
     array_1 = np.array([1, 0, 2])
     nan = np.array([0, np.nan])
-    assert c1._pdf(point_1)[0] == 0.4
-    assert c1._pdf(point_2)[0] == 0.2
-    assert c2._pdf(point_1)[0] == pytest.approx(0.7142857142857143)
-    assert c2._pdf(point_2)[0] == 0.0
+    assert c1.pdf_vector(point_1)[0] == 0.4
+    assert c1.pdf_vector(point_2)[0] == 0.2
+    assert c2.pdf_vector(point_1)[0] == pytest.approx(0.7142857142857143)
+    assert c2.pdf_vector(point_2)[0] == 0.0
 
-    array_results = c1._pdf(array_1)
+    array_results = c1.pdf_vector(array_1)
     expected_results = np.array([0.2, 0.4, 0.4])
     assert array_results.shape == expected_results.shape
     for res, exp_res in zip(array_results, expected_results):
         assert res == exp_res
 
-    nan_results = c1._pdf(nan)
+    nan_results = c1.pdf_vector(nan)
     expected_results = np.array([0.4, 0])
     assert nan_results.shape == expected_results.shape
     for res, exp_res in zip(nan_results, expected_results):
@@ -2500,39 +2403,6 @@ def test_categorical_get_max_density():
     assert c1.get_max_density() == 0.4
     assert c2.get_max_density() == 0.7142857142857143
     assert c3.get_max_density() == pytest.approx(0.33333333333333)
-
-
-def test_sample_NormalFloatHyperparameter():
-    pytest.skip("No more unbounded Normals")
-    hp = NormalFloatHyperparameter("nfhp", 0, 1)
-
-    def actual_test():
-        rs = np.random.RandomState(1)
-        counts_per_bin = [0 for _ in range(11)]
-        value = None
-        for _ in range(100000):
-            value = hp.sample(rs)
-            index = min(max(int((np.round(value + 0.5)) + 5), 0), 9)
-            counts_per_bin[index] += 1
-
-        assert [
-            0,
-            4,
-            138,
-            2113,
-            13394,
-            34104,
-            34282,
-            13683,
-            2136,
-            146,
-            0,
-        ] == counts_per_bin
-
-        assert isinstance(value, float)
-        return counts_per_bin
-
-    assert actual_test() == actual_test()
 
 
 def test_sample_NormalFloatHyperparameter_with_bounds():
@@ -2631,7 +2501,7 @@ def test_sample_CategoricalHyperparameter_with_weights():
         weights=[1, 2, 3, 4, 0],
     )
     np.testing.assert_almost_equal(
-        actual=hp._probabilities,
+        actual=hp.probabilities,
         desired=[0.1, 0.2, 0.3, 0.4, 0],
         decimal=3,
     )
@@ -2640,7 +2510,7 @@ def test_sample_CategoricalHyperparameter_with_weights():
         rs = np.random.RandomState(1)
         counts_per_bin: dict[str | int, int] = defaultdict(int)
         for _ in range(10000):
-            value = hp.sample(rs)
+            value = hp.sample_value(seed=rs)
             counts_per_bin[value] += 1
 
         assert {0: 1003, 2: 2061, "Bla": 2994, "Blub": 3942} == dict(
@@ -2663,8 +2533,8 @@ def test_categorical_copy_with_weights():
     assert copy_hp.name == orig_hp.name
     assert copy_hp.choices == orig_hp.choices
     assert copy_hp.default_value == orig_hp.default_value
-    assert copy_hp.num_choices == orig_hp.num_choices
-    assert copy_hp._probabilities == orig_hp._probabilities
+    assert copy_hp.size == orig_hp.size
+    np.testing.assert_equal(copy_hp.probabilities, orig_hp.probabilities)
 
 
 def test_categorical_copy_without_weights():
@@ -2678,16 +2548,14 @@ def test_categorical_copy_without_weights():
     assert copy_hp.name == orig_hp.name
     assert copy_hp.choices == orig_hp.choices
     assert copy_hp.default_value == orig_hp.default_value
-    assert copy_hp.num_choices == orig_hp.num_choices
-    assert copy_hp._probabilities == (
-        0.3333333333333333,
-        0.3333333333333333,
-        0.3333333333333333,
+    assert copy_hp.size == orig_hp.size
+    np.testing.assert_equal(
+        copy_hp.probabilities,
+        (0.3333333333333333, 0.3333333333333333, 0.3333333333333333),
     )
-    assert orig_hp._probabilities == (
-        0.3333333333333333,
-        0.3333333333333333,
-        0.3333333333333333,
+    np.testing.assert_equal(
+        orig_hp.probabilities,
+        (0.3333333333333333, 0.3333333333333333, 0.3333333333333333),
     )
 
 
@@ -2737,7 +2605,7 @@ def test_categorical_with_some_zero_weights():
     assert sorted(np.unique(cat_hp_str.sample_value(1000, seed=rs))) == ["A", "C"]
 
     np.testing.assert_almost_equal(
-        actual=cat_hp_str._probabilities,
+        actual=cat_hp_str.probabilities,
         desired=[0.25, 0.0, 0.75],
         decimal=3,
     )
@@ -2751,7 +2619,7 @@ def test_categorical_with_some_zero_weights():
     assert sorted(np.unique(cat_hp_int.sample_value(1000, seed=rs))) == [1, 2]
 
     np.testing.assert_almost_equal(
-        actual=cat_hp_int._probabilities,
+        actual=cat_hp_int.probabilities,
         desired=[0.1429, 0.8571, 0.0],
         decimal=3,
     )
@@ -2765,7 +2633,7 @@ def test_categorical_with_some_zero_weights():
     assert sorted(np.unique(cat_hp_float.sample_value(1000, seed=rs))) == [0.0, 0.3]
 
     np.testing.assert_almost_equal(
-        actual=cat_hp_float._probabilities,
+        actual=cat_hp_float.probabilities,
         desired=[0.00, 0.6667, 0.3333],
         decimal=3,
     )
@@ -2822,7 +2690,7 @@ def test_categorical_with_set():
     with pytest.raises(TypeError, match="Using a set of choices is prohibited."):
         CategoricalHyperparameter(
             name="param",
-            choices={"A", "B", "C"},
+            choices={"A", "B", "C"},  # type: ignore
             default_value="A",
         )
 
@@ -2831,44 +2699,44 @@ def test_categorical_with_set():
             name="param",
             choices=["A", "B", "C"],
             default_value="A",
-            weights={0.2, 0.6, 0.8},
+            weights={0.2, 0.6, 0.8},  # type: ignore
         )
 
 
 def test_log_space_conversion():
     lower, upper = 1e-5, 1e5
     hyper = UniformFloatHyperparameter("test", lower=lower, upper=upper, log=True)
-    assert hyper.is_legal(hyper._transform(1.0))
+    assert hyper.legal_value(hyper.to_value(1.0))
 
     lower, upper = 1e-10, 1e10
     hyper = UniformFloatHyperparameter("test", lower=lower, upper=upper, log=True)
-    assert hyper.is_legal(hyper._transform(1.0))
+    assert hyper.legal_value(hyper.to_value(1.0))
 
 
 def test_ordinal_attributes_accessible():
     f1 = OrdinalHyperparameter("temp", ["freezing", "cold", "warm", "hot"])
     assert f1.name == "temp"
     assert f1.sequence == ("freezing", "cold", "warm", "hot")
-    assert f1.num_elements == 4
+    assert f1.size == 4
     assert f1.default_value == "freezing"
     assert f1._normalized_default_value == 0
 
 
 def test_ordinal_is_legal():
     f1 = OrdinalHyperparameter("temp", ["freezing", "cold", "warm", "hot"])
-    assert f1.is_legal("warm")
-    assert f1.is_legal("freezing")
-    assert not f1.is_legal("chill")
-    assert not f1.is_legal(2.5)
-    assert not f1.is_legal("3")
+    assert f1.legal_value("warm")
+    assert f1.legal_value("freezing")
+    assert not f1.legal_value("chill")
+    assert not f1.legal_value(2.5)
+    assert not f1.legal_value("3")
 
     # Test is legal vector
-    assert f1.is_legal_vector(1.0)
-    assert f1.is_legal_vector(0.0)
-    assert f1.is_legal_vector(0)
-    assert f1.is_legal_vector(3)
-    assert not f1.is_legal_vector(-0.1)
-    assert not f1.is_legal_vector("Hahaha")
+    assert f1.legal_vector(1.0)
+    assert f1.legal_vector(0.0)
+    assert f1.legal_vector(0)
+    assert f1.legal_vector(3)
+    assert not f1.legal_vector(-0.1)
+    assert not f1.legal_vector("Hahaha")  # type: ignore
 
 
 def test_ordinal_check_order():
@@ -2899,10 +2767,9 @@ def test_ordinal_get_seq_order():
 def test_ordinal_get_neighbors():
     f1 = OrdinalHyperparameter("temp", ["freezing", "cold", "warm", "hot"])
 
-    # TODO: These need to be updated to use specific versions of get_neighbors
-    np.testing.assert_array_equal(f1.get_neighbors(0, rs=None), [1])
-    np.testing.assert_array_equal(f1.get_neighbors(1, rs=None), [0, 2])
-    np.testing.assert_array_equal(f1.get_neighbors(3, rs=None), [2])
+    np.testing.assert_array_equal(f1.neighbors_vectorized(0, n=4, seed=None), [1])
+    np.testing.assert_array_equal(f1.neighbors_vectorized(1, n=4, seed=None), [0, 2])
+    np.testing.assert_array_equal(f1.neighbors_vectorized(3, n=4, seed=None), [2])
 
     np.testing.assert_array_equal(f1.neighbors_values("hot", n=1), ["warm"])
     np.testing.assert_array_equal(f1.neighbors_values("freezing", n=1), ["cold"])
@@ -2926,7 +2793,7 @@ def test_get_num_neighbors():
 
 def test_ordinal_get_size():
     f1 = OrdinalHyperparameter("temp", ["freezing", "cold", "warm", "hot"])
-    assert f1.get_size() == 4
+    assert f1.size == 4
 
 
 def test_ordinal_pdf():
@@ -2939,33 +2806,33 @@ def test_ordinal_pdf():
     wrong_shape_2 = np.array(["freezing", "warm"]).reshape(1, -1)
     wrong_shape_3 = np.array(["freezing", "warm"]).reshape(-1, 1)
 
-    assert c1.pdf(point_1)[0] == 0.25
-    assert c1.pdf(point_2)[0] == 0.25
+    assert c1.pdf_values(point_1)[0] == 0.25
+    assert c1.pdf_values(point_2)[0] == 0.25
 
-    array_results = c1.pdf(array_1)
+    array_results = c1.pdf_values(array_1)
     expected_results = np.array([0.25, 0.25])
     assert array_results.shape == expected_results.shape
     for res, exp_res in zip(array_results, expected_results):
         assert res == exp_res
 
     with pytest.raises(KeyError):
-        c1.pdf(np.array(["zero"]))
+        c1.pdf_values(np.array(["zero"]))
 
     with pytest.raises(
         ValueError,
         match="Method pdf expects a one-dimensional numpy array",
     ):
-        c1.pdf(wrong_shape_1)
+        c1.pdf_values(wrong_shape_1)
     with pytest.raises(
         ValueError,
         match="Method pdf expects a one-dimensional numpy array",
     ):
-        c1.pdf(wrong_shape_2)
+        c1.pdf_values(wrong_shape_2)
     with pytest.raises(
         ValueError,
         match="Method pdf expects a one-dimensional numpy array",
     ):
-        c1.pdf(wrong_shape_3)
+        c1.pdf_values(wrong_shape_3)
 
 
 def test_ordinal_get_max_density():
