@@ -478,17 +478,17 @@ class Conjunction:
         for component in self.components:
             component.set_vector_idx(hyperparameter_to_idx)
 
-    def get_children_vector(self) -> list[int]:
-        return [
-            int(c.child_vector_id)  # type: ignore
-            for c in self.dlcs
-        ]
+    def get_children_vector(self) -> Array[np.intp]:
+        return np.array([c.child_vector_id for c in self.dlcs], dtype=np.intp)
 
-    def get_parents_vector(self) -> list[int]:
-        return [
-            int(c.parent_vector_id)  # type: ignore
-            for c in self.dlcs
-        ]
+    def get_parents_vector(self) -> Array[np.intp]:
+        return np.array(
+            [
+                c.parent_vector_id  # type: ignore
+                for c in self.dlcs
+            ],
+            dtype=np.intp,
+        )
 
     def get_children(self) -> list[Hyperparameter]:
         return [c.child for c in self.iter() if isinstance(c, Condition)]

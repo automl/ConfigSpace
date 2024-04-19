@@ -259,7 +259,7 @@ def get_one_exchange_neighbourhood(
                 # We should never resample something that has already had all it's
                 # neighbors sampled.
                 vec = arr[hp_idx]
-                neighbors = hp._neighborhood(
+                _neighbors = hp._neighborhood(
                     vec,
                     n=_neighborhood_size,
                     seed=random,
@@ -269,9 +269,9 @@ def get_one_exchange_neighbourhood(
                 # Inf sized hp's are already basically shuffled. This is more for
                 # finite hps which may give a linear ordering of neighbors...
                 if _should_shuffle:
-                    random.shuffle(neighbors)
+                    random.shuffle(_neighbors)
 
-                neighbors = neighbors.tolist()
+                neighbors = _neighbors.tolist()
                 neighbors_to_generate[chosen_hp_idx] = (hp, hp_idx, n_left, neighbors)
                 # Update to say it's been `generated`
                 sample_strategy[hp_name] = (

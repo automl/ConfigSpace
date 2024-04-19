@@ -149,7 +149,7 @@ class ForbiddenConjunction(ABC):
                 )
 
         self.components = args
-        dlcs = []
+        dlcs: list[ForbiddenClause | ForbiddenRelation] = []
         for component in self.components:
             if isinstance(component, ForbiddenConjunction):
                 dlcs.extend(component.dlcs)

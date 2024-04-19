@@ -31,7 +31,7 @@ import copy
 import io
 import json
 import warnings
-from collections.abc import Iterable, Iterator
+from collections.abc import ItemsView, Iterable, Iterator
 from pathlib import Path
 from typing import IO, TYPE_CHECKING, Any, Literal, Mapping, Sequence, overload
 from typing_extensions import deprecated
@@ -77,6 +77,7 @@ from ConfigSpace.read_and_write.dictionary import (
     HYPERPARAMETER_DECODERS,
     HYPERPARAMETER_ENCODERS,
 )
+from ConfigSpace.types import Array, Mask, f64
 
 if TYPE_CHECKING:
     from ConfigSpace.read_and_write.dictionary import _Decoder, _Encoder
@@ -109,7 +110,7 @@ def _parse_hyperparameters_from_dict(items: dict[str, Any]) -> Iterator[Hyperpar
             yield CategoricalHyperparameter(name, hp)
 
         # If it's an allowed type, it's a constant
-        elif isinstance(hp, int | str | float):
+        elif isinstance(hp, (int, str, float)):
             yield Constant(name, hp)
 
         else:
@@ -346,32 +347,32 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         conditions_to_add = []
         for condition in configuration_space.conditions:
             new_condition = copy.copy(condition)
-            dlcs = (
+            cond_dlcs = (
                 new_condition.get_descendant_literal_conditions()
                 if isinstance(new_condition, Conjunction)
                 else [new_condition]
             )
-            for dlc in dlcs:
+            for cond_dlc in cond_dlcs:
                 # Rename children
-                dlc.child.name = _new_name(dlc.child)
-                dlc.parent.name = _new_name(dlc.parent)
+                cond_dlc.child.name = _new_name(cond_dlc.child)
+                cond_dlc.parent.name = _new_name(cond_dlc.parent)
 
             conditions_to_add.append(new_condition)
 
         forbiddens_to_add = []
         for forbidden_clause in configuration_space.forbidden_clauses:
             new_forbidden = copy.copy(forbidden_clause)
-            dlcs = (
+            forb_dlcs = (
                 new_forbidden.dlcs
                 if isinstance(new_forbidden, ForbiddenConjunction)
                 else [new_forbidden]
             )
-            for dlc in dlcs:
-                if isinstance(dlc, ForbiddenRelation):
-                    dlc.left.name = _new_name(dlc.left)
-                    dlc.right.name = _new_name(dlc.right)
+            for forb_dlc in forb_dlcs:
+                if isinstance(forb_dlc, ForbiddenRelation):
+                    forb_dlc.left.name = _new_name(forb_dlc.left)
+                    forb_dlc.right.name = _new_name(forb_dlc.right)
                 else:
-                    dlc.hyperparameter.name = _new_name(dlc.hyperparameter)
+                    forb_dlc.hyperparameter.name = _new_name(forb_dlc.hyperparameter)
             forbiddens_to_add.append(new_forbidden)
 
         self.add(new_parameters, conditions_to_add, forbiddens_to_add)
@@ -436,25 +437,25 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         """
         ConfigSpace.util.check_configuration(self, configuration.get_array(), False)
 
-    def check_configuration_vector_representation(self, vector: np.ndarray) -> None:
+    def check_configuration_vector_representation(self, vector: Array[f64]) -> None:
         """Raise error if configuration in vector representation is not legal.
 
         Parameters
         ----------
-        vector : np.ndarray
+        vector:
             Configuration in vector representation
         """
         ConfigSpace.util.check_configuration(self, vector, False)
 
     def get_active_hyperparameters(
         self,
-        configuration: Configuration,
-    ) -> set[Hyperparameter]:
+        configuration: Configuration | Array[f64],
+    ) -> set[str]:
         """Set of active hyperparameter for a given configuration.
 
         Parameters
         ----------
-        configuration : :class:`~ConfigSpace.configuration_space.Configuration`
+        configuration:
             Configuration for which the active hyperparameter are returned
 
         Returns
@@ -463,23 +464,24 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
             The set of all active hyperparameter
 
         """
-        vector = configuration.get_array()
+        vector = (
+            configuration.get_array()
+            if isinstance(configuration, Configuration)
+            else configuration
+        )
         active_hyperparameters = set()
         for hp_name in self.keys():
             conditions = self.parent_conditions_of[hp_name]
 
             active = True
             for condition in conditions:
+                parent_vector_idx: np.intp | Array[np.intp]
                 if isinstance(condition, Conjunction):
                     parent_vector_idx = condition.get_parents_vector()
                 else:
-                    parent_vector_idx = [condition.parent_vector_id]
+                    parent_vector_idx = np.asarray(condition.parent_vector_id)
 
-                # if one of the parents is None, the hyperparameter cannot be
-                # active! Else we have to check this
-                # Note from trying to optimize this - this is faster than using
-                # dedicated numpy functions and indexing
-                if any(vector[i] != vector[i] for i in parent_vector_idx):
+                if np.isnan(vector[parent_vector_idx]).any():
                     active = False
                     break
 
@@ -558,9 +560,9 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
             # OPTIM: We put the hyperparameters as rows as we perform row-wise
             # operations and the matrices themselves are row-oriented in memory,
             # helping to improve cache locality.
-            config_matrix = np.empty(
+            config_matrix: Array[f64] = np.empty(
                 (num_hyperparameters, sample_size),
-                dtype=np.float64,
+                dtype=f64,
             )
             for i, hp in enumerate(self.values()):
                 config_matrix[i] = hp._vector_dist.sample_vector(
@@ -571,27 +573,27 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
             # Apply unconditional forbiddens across the columns (hps)
             # We treat this as an OR, i.e. if any of the forbidden clauses are
             # forbidden, the entire configuration (row) is forbidden
-            uncond_forbidden = np.zeros(sample_size, dtype=np.bool_)
+            uncond_forbidden: Mask = np.zeros(sample_size, dtype=np.bool_)
             for clause in self.dag.unconditional_forbiddens:
                 uncond_forbidden |= clause.is_forbidden_vector_array(config_matrix)
 
-            valid_config_matrix = config_matrix[:, ~uncond_forbidden]
+            valid_configs = config_matrix[:, ~uncond_forbidden]
 
             for cnode in self.dag.minimum_conditions:
                 condition = cnode.condition
-                satisfied = condition.satisfied_by_vector_array(valid_config_matrix)
-                valid_config_matrix[np.ix_(cnode.children_indices, ~satisfied)] = np.nan
+                satisfied = condition.satisfied_by_vector_array(valid_configs)
+                valid_configs[np.ix_(cnode.children_indices, ~satisfied)] = np.nan
 
             # Now we apply the forbiddens that depend on conditionals
-            cond_forbidden = np.zeros(valid_config_matrix.shape[1], dtype=np.bool_)
+            cond_forbidden: Mask = np.zeros(valid_configs.shape[1], dtype=np.bool_)
             for clause in self.dag.conditional_forbiddens:
-                cond_forbidden |= clause.is_forbidden_vector_array(valid_config_matrix)
+                cond_forbidden |= clause.is_forbidden_vector_array(valid_configs)
 
-            valid_config_matrix = valid_config_matrix[:, ~cond_forbidden]
+            valid_configs = valid_configs[:, ~cond_forbidden]
 
             # And now we have a matrix of valid configurations
             accepted_configurations.extend(
-                [Configuration(self, vector=vec) for vec in valid_config_matrix.T],
+                [Configuration(self, vector=vec) for vec in valid_configs.T],
             )
             sample_size = size - len(accepted_configurations)
 
@@ -621,28 +623,24 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         :class:`~ConfigSpace.configuration_space.ConfigurationSpace`
             The resulting configuration space, without priors on the hyperparameters
         """
-        uniform_config_space = ConfigurationSpace()
-        new_params = []
-        for parameter in self.values():
-            if isinstance(
-                parameter,
-                (NumericalHyperparameter, CategoricalHyperparameter),
-            ):
-                new_params.append(parameter.to_uniform())
-            else:
-                new_params.append(copy.copy(parameter))
-
-        uniform_config_space.add(new_params)
-
-        new_conditions = self.substitute_hyperparameters_in_conditions(
-            self.conditions,
-            uniform_config_space,
+        uniform_config_space = ConfigurationSpace(
+            {
+                name: p.to_uniform()
+                if isinstance(p, NumericalHyperparameter)
+                else copy.copy(p)
+                for name, p in self.items()
+            },
         )
-        new_forbiddens = self.substitute_hyperparameters_in_forbiddens(
-            self.forbidden_clauses,
-            uniform_config_space,
+        uniform_config_space.add(
+            self.substitute_hyperparameters_in_conditions(
+                self.conditions,
+                uniform_config_space,
+            ),
+            self.substitute_hyperparameters_in_forbiddens(
+                self.forbidden_clauses,
+                uniform_config_space,
+            ),
         )
-        uniform_config_space.add(new_conditions, new_forbiddens)
         return uniform_config_space
 
     def estimate_size(self) -> float | int:
@@ -661,7 +659,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         if len(sizes) == 0:
             return 0.0
 
-        acc = 1
+        acc: int | float = 1
         for size in sizes:
             acc *= size
 
@@ -757,30 +755,36 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
                 new_forbiddens.append(substituted_conjunction)
 
             elif isinstance(forbidden, ForbiddenClause):
-                new_hyperparameter = new_configspace[forbidden.hyperparameter.name]
                 if isinstance(forbidden, ForbiddenInClause):
-                    substituted_forbidden = forbidden.__class__(
-                        hyperparameter=new_hyperparameter,
-                        values=forbidden.values,
+                    new_forbiddens.append(
+                        forbidden.__class__(
+                            hyperparameter=new_configspace[
+                                forbidden.hyperparameter.name
+                            ],
+                            values=forbidden.values,
+                        ),
                     )
-                    new_forbiddens.append(substituted_forbidden)
                 elif isinstance(forbidden, ForbiddenEqualsClause):
-                    substituted_forbidden = forbidden.__class__(
-                        hyperparameter=new_hyperparameter,
-                        value=forbidden.value,
+                    new_forbiddens.append(
+                        forbidden.__class__(
+                            hyperparameter=new_configspace[
+                                forbidden.hyperparameter.name
+                            ],
+                            value=forbidden.value,
+                        ),
                     )
-                    new_forbiddens.append(substituted_forbidden)
                 else:
                     raise TypeError(
                         f"Forbidden of type '{type(forbidden)}' not recognized.",
                     )
 
             elif isinstance(forbidden, ForbiddenRelation):
-                substituted_forbidden = forbidden.__class__(
-                    left=new_configspace[forbidden.left.name],
-                    right=new_configspace[forbidden.right.name],
+                new_forbiddens.append(
+                    forbidden.__class__(
+                        left=new_configspace[forbidden.left.name],
+                        right=new_configspace[forbidden.right.name],
+                    ),
                 )
-                new_forbiddens.append(substituted_forbidden)
             else:
                 raise TypeError(f"Did not expect type {type(forbidden)}.")
 
@@ -846,8 +850,8 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         """Iterate over the hyperparameter names in the right order."""
         return iter(self.dag.nodes.keys())
 
-    def items(self) -> Iterator[tuple[str, Hyperparameter]]:
-        yield from ((name, node.hp) for name, node in self.dag.nodes.items())
+    def items(self) -> ItemsView[str, Hyperparameter]:
+        return {name: node.hp for name, node in self.dag.nodes.items()}.items()
 
     def __len__(self) -> int:
         """Return the number of hyperparameters."""
@@ -910,7 +914,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
 
         self._check_forbidden(vector)
 
-    def _check_forbidden(self, vector: np.ndarray) -> None:
+    def _check_forbidden(self, vector: Array[f64]) -> None:
         for clause in self.forbidden_clauses:
             if clause.is_forbidden_vector(vector):
                 raise ForbiddenValueError(
