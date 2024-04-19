@@ -10,7 +10,6 @@ from typing_extensions import Self
 import numpy as np
 from more_itertools import unique_everseen
 
-from ConfigSpace import nx
 from ConfigSpace.conditions import Condition, Conjunction
 from ConfigSpace.exceptions import (
     AmbiguousConditionError,
@@ -669,21 +668,31 @@ class DAG:
         return forbiddens_to_return
 
     def _check_cyclic_dependancy(self) -> None:
-        tmp_dag = nx.DiGraph()
-        for node_name in self.nodes:
-            tmp_dag.add_node(node_name)
+        seen: set[str] = set()
+        explored: set[str] = set()
 
         for node in self.nodes.values():
-            for parent_name, _ in node.parents.items():
-                tmp_dag.add_edge(parent_name, node.hp.name)
+            if node.name in explored:
+                continue
+            fringe = [node]
+            while fringe:
+                w = fringe[-1]
+                if w.name in explored:
+                    fringe.pop()
+                    continue
+                seen.add(w.name)
 
-        for node in self.nodes.values():
-            for parent_name, _ in node.parents.items():
-                tmp_dag.add_edge(parent_name, node.hp.name)
+                new_nodes = []
+                children = [c for c, _ in w.children.values()]
+                for c in children:
+                    if c.name not in explored:
+                        if c.name in seen:
+                            raise CyclicDependancyError()
 
-        if not nx.is_directed_acyclic_graph(tmp_dag):
-            cycles = list(nx.simple_cycles(tmp_dag))
-            for cycle in cycles:
-                cycle.sort()
-            cycles.sort()
-            raise CyclicDependancyError(cycles)
+                        new_nodes.append(c)
+
+                if new_nodes:
+                    fringe.extend(new_nodes)
+                else:
+                    explored.add(w.name)
+                    fringe.pop()

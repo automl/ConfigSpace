@@ -201,8 +201,6 @@ exclude = [
   "node_modules",
   "venv",
   "docs",
-  # This is vendored, ignore it
-  "src/ConfigSpace/nx/**",
 ]
 
 # Exclude a variety of commonly ignored directories.
@@ -284,9 +282,4 @@ module = [
   "ConfigSpace.read_and_write.pcs",
   "ConfigSpace.read_and_write.pcs_new",
 ]
-ignore_errors = true
-
-
-[[tool.mypy.overrides]]
-module = ["ConfigSpace.nx.*"] # This is vendored, we ignore it
 ignore_errors = true

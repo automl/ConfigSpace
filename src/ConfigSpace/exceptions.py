@@ -95,12 +95,7 @@ class HyperparameterAlreadyExistsError(ValueError):
 
 
 class CyclicDependancyError(ValueError):
-    def __init__(self, cycles: list[list[str]]) -> None:
-        super().__init__(cycles)
-        self.cycles = cycles
-
-    def __str__(self) -> str:
-        return f"Hyperparameter configuration contains a cycle {self.cycles}"
+    pass
 
 
 class NoPossibleNeighborsError(ValueError):
