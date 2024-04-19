@@ -274,6 +274,10 @@ disallow_untyped_defs = false       # Sometimes we just want to ignore verbose t
 disallow_untyped_decorators = false # Test decorators are not properly typed
 disallow_incomplete_defs = false    # Sometimes we just want to ignore verbose types
 
+[[tool.mypy.overrides]]
+module = ["scipy.*"]
+ignore_missing_imports = true
+
 # These modules are no longer recieving support
 [[tool.mypy.overrides]]
 module = [
