@@ -398,14 +398,14 @@ class DAG:
                         condition_trees.pop(id(b))
                     updated = True
 
-        condition_trees = sorted(condition_trees.values(), key=shallowest_parent)
+        sorted_condition_trees = sorted(condition_trees.values(), key=shallowest_parent)
 
         # Now we go through the trees and update the lookup
         # Note that it's possible to have reconverging paths, i.e.
         # the same condition node might appear when starting from two
         # different roots.
         self.change_hp_lookup: dict[str, list[ConditionNode]] = {}
-        trees: deque[ConditionNode] = deque(condition_trees)
+        trees: deque[ConditionNode] = deque(sorted_condition_trees)
         while trees:
             tree = trees.popleft()
             for parent in tree.node_parents():
@@ -523,7 +523,11 @@ class DAG:
             _check_hp(forbidden, forbidden.hyperparameter)
         elif isinstance(forbidden, ForbiddenConjunction):
             for clause in forbidden.dlcs:
-                _check_hp(clause, clause.hyperparameter)
+                if isinstance(clause, ForbiddenRelation):
+                    _check_hp(clause, clause.left)
+                    _check_hp(clause, clause.right)
+                else:
+                    _check_hp(clause, clause.hyperparameter)
 
         elif isinstance(forbidden, ForbiddenRelation):
             _check_hp(forbidden, forbidden.left)
@@ -541,13 +545,13 @@ class DAG:
             name = forbidden.hyperparameter.name
             return name in self.roots
 
-        if isinstance(forbidden, ForbiddenConjunction):
-            return all(dlc.hyperparameter.name in self.roots for dlc in forbidden.dlcs)
-
         if isinstance(forbidden, ForbiddenRelation):
             return (
                 forbidden.left.name in self.roots and forbidden.right.name in self.roots
             )
+
+        if isinstance(forbidden, ForbiddenConjunction):
+            return all(self._is_unconditional_forbidden(dlc) for dlc in forbidden.dlcs)
 
         raise NotImplementedError(type(forbidden))
 
@@ -616,7 +620,7 @@ class DAG:
             # unique parts of AND, list to for isin
             tuple[tuple[ForbiddenEqualsClause, ...], list[ForbiddenEqualsClause]],
         ] = {}
-        unoptimized_forbiddens = []
+        forbiddens_to_return: list[ForbiddenLike] = []
 
         and_conjunction_parts: list[list[ForbiddenEqualsClause]] = []
         for f in forbiddens:
@@ -630,7 +634,7 @@ class DAG:
                     ),
                 )
             else:
-                unoptimized_forbiddens.append(f)
+                forbiddens_to_return.append(f)
 
         for *firsts, last in and_conjunction_parts:
             shallowest_key = tuple(
@@ -644,13 +648,12 @@ class DAG:
             else:
                 to_optimize[joint_key] = (tuple(firsts), [last])
 
-        new_conjunctions = []
         for _and_parts, equal_components in to_optimize.values():
             # Didn't share first parts such that we could group it with anything else
             if len(equal_components) == 1:
                 conj = ForbiddenAndConjunction(*_and_parts, equal_components[0])
                 conj.set_vector_idx(self.index_of)
-                unoptimized_forbiddens.append(conj)
+                forbiddens_to_return.append(conj)
                 continue
 
             isin_clause = ForbiddenInClause(
@@ -659,9 +662,9 @@ class DAG:
             )
             conj = ForbiddenAndConjunction(*_and_parts, isin_clause)
             conj.set_vector_idx(self.index_of)
-            new_conjunctions.append(conj)
+            forbiddens_to_return.append(conj)
 
-        return unoptimized_forbiddens + new_conjunctions
+        return forbiddens_to_return
 
     def _check_cyclic_dependancy(self) -> None:
         tmp_dag = nx.DiGraph()
