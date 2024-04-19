@@ -27,6 +27,7 @@ __authors__ = [
 ]
 __contact__ = "automl.org"
 
+import warnings
 from collections import OrderedDict
 from collections.abc import Iterable
 from io import StringIO
@@ -63,6 +64,12 @@ from ConfigSpace.hyperparameters import (
     OrdinalHyperparameter,
     UniformFloatHyperparameter,
     UniformIntegerHyperparameter,
+)
+
+warnings.warn(
+    "Modules pcs and pcs_new are deprecated but will remain without future support. ",
+    DeprecationWarning,
+    stacklevel=2,
 )
 
 # Build pyparsing expressions for params

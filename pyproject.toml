@@ -274,6 +274,15 @@ disallow_untyped_defs = false       # Sometimes we just want to ignore verbose t
 disallow_untyped_decorators = false # Test decorators are not properly typed
 disallow_incomplete_defs = false    # Sometimes we just want to ignore verbose types
 
+# These modules are no longer recieving support
+[[tool.mypy.overrides]]
+module = [
+  "ConfigSpace.read_and_write.pcs",
+  "ConfigSpace.read_and_write.pcs_new",
+]
+ignore_errors = true
+
+
 [[tool.mypy.overrides]]
 module = ["ConfigSpace.nx.*"] # This is vendored, we ignore it
 ignore_errors = true
