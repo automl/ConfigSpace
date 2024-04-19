@@ -26,8 +26,11 @@ T_contra = TypeVar("T_contra", contravariant=True)
 
 
 class _Transformer(Protocol[DType]):
-    lower_vectorized: f64
-    upper_vectorized: f64
+    @property
+    def lower_vectorized(self) -> f64: ...
+
+    @property
+    def upper_vectorized(self) -> f64: ...
 
     def to_value(self, vector: Array[f64]) -> Array[DType]: ...
 
@@ -55,9 +58,11 @@ class _Neighborhood(Protocol):
 
 @dataclass
 class TransformerSeq(_Transformer[Any]):
-    lower_vectorized: ClassVar[i64] = i64(0)
     seq: Array[Any]
     _lookup: dict[Any, int] | None = field(init=False)
+
+    lower_vectorized: f64 = field(init=False)
+    upper_vectorized: f64 = field(init=False)
 
     def __post_init__(self) -> None:
         if len(self.seq) == 0:
@@ -68,6 +73,9 @@ class TransformerSeq(_Transformer[Any]):
         except TypeError:
             self._lookup = None
 
+        self.lower_vectorized = f64(0)
+        self.upper_vectorized = f64(len(self.seq))
+
     def __eq__(self, value: object, /) -> bool:
         if not isinstance(value, TransformerSeq):
             return False
@@ -77,10 +85,6 @@ class TransformerSeq(_Transformer[Any]):
             and self.lower_vectorized == value.lower_vectorized
         )
 
-    @property
-    def upper_vectorized(self) -> i64:
-        return i64(len(self.seq))
-
     def to_value(self, vector: Array[f64]) -> Array[Any]:
         if not is_close_to_integer(vector, atol=ATOL).all():
             raise ValueError(
@@ -88,8 +92,8 @@ class TransformerSeq(_Transformer[Any]):
                 f" representation into a value in {self.seq}."
                 f"Expected integers but got {vector} (dtype: {vector.dtype})",
             )
-        indices = np.rint(vector).astype(i64)
-        return self.seq[indices]
+        indices: Array[np.intp] = np.rint(vector).astype(np.intp)
+        return self.seq[indices]  # type: ignore
 
     def to_vector(self, value: Array[Any]) -> Array[f64]:
         if self._lookup is not None:
@@ -131,7 +135,7 @@ class UnitScaler(_Transformer[DType]):
 
     _scale_vec_to_int: DType = field(init=False)
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if self.lower_value >= self.upper_value:
             raise ValueError(
                 f"Upper bound {self.upper_value:f} must be larger than"
@@ -152,7 +156,7 @@ class UnitScaler(_Transformer[DType]):
         if np.issubdtype(self.dtype, np.integer):
             return unchecked_values.round().astype(self.dtype)
 
-        return np.clip(
+        return np.clip(  # type: ignore
             unchecked_values,
             self.lower_value,
             self.upper_value,
@@ -164,11 +168,11 @@ class UnitScaler(_Transformer[DType]):
             _l = np.log(self.lower_value)
             _u = np.log(self.upper_value)
             scaled = vector * (_u - _l) + _l
-            return np.exp(scaled)
+            return np.exp(scaled)  # type: ignore
 
         _l = self.lower_value
         _u = self.upper_value
-        return vector * (_u - _l) + _l
+        return vector * (_u - _l) + _l  # type: ignore
 
     def _unsafe_to_value(self, vector: Array[f64]) -> Array[f64]:
         # NOTE: Unsafe as it does not check boundaries, clip or integer'ness
@@ -195,7 +199,7 @@ class UnitScaler(_Transformer[DType]):
     def vectorize_size(self, size: f64) -> f64:
         """Vectorize to the correct scale but is not necessarily in the range."""
         if self.log:
-            return np.abs(
+            return np.abs(  # type: ignore
                 np.log(size) / (np.log(self.upper_value) - np.log(self.lower_value)),
             )
 
@@ -208,7 +212,7 @@ class UnitScaler(_Transformer[DType]):
 
         if np.issubdtype(self.dtype, np.integer):
             rints = np.rint(value)
-            return (
+            return (  # type: ignore
                 (rints >= self.lower_value)
                 & (rints <= self.upper_value)
                 & is_close_to_integer(value, atol=ATOL)
@@ -250,7 +254,7 @@ class UnitScaler(_Transformer[DType]):
         if not self.log:
             inbounds = bool(self.lower_vectorized <= vector <= self.upper_vectorized)
             scaled = vector * self._scale_vec_to_int
-            return is_close_to_integer_single(scaled, atol=ATOL) and inbounds
+            return bool(is_close_to_integer_single(scaled, atol=ATOL) and inbounds)
 
         value = self._unsafe_to_value_single(vector)  # type: ignore
         return self.legal_value_single(value)
@@ -281,7 +285,7 @@ def ordinal_neighborhood(
         return np.array([end_index - 1], dtype=f64)
 
     # We have at least 3 elements and the value is not at the ends
-    neighbors = np.array([vector - 1, vector + 1], dtype=f64)
+    neighbors: Array[f64] = np.array([vector - 1, vector + 1], dtype=f64)
     if n >= 2:
         return neighbors
 
@@ -303,31 +307,28 @@ class TransformerConstant(_Transformer[DType]):
     def upper_vectorized(self) -> f64:
         return self.vector_value_yes
 
-    def to_vector(self, value: Array[DType]) -> f64 | Array[f64]:
+    def to_vector(self, value: Array[DType]) -> Array[f64]:
         return np.where(
             value == self.value,
             self.vector_value_yes,
             self.vector_value_no,
-        ).astype(f64)
+        )
 
-    def to_value(self, vector: f64 | Array[f64]) -> DType | Array[DType]:
-        if isinstance(vector, np.ndarray):
-            try:
-                return np.full_like(vector, self.value, dtype=type(self.value))
-            except TypeError:
-                # Let numpy figure it out
-                return np.array([self.value] * len(vector))
+    def to_value(self, vector: Array[f64]) -> Array[DType]:
+        try:
+            return np.full_like(vector, self.value, dtype=type(self.value))
+        except TypeError:
+            # Let numpy figure it out
+            return np.array([self.value] * len(vector))
 
-        return self.value
+    def legal_value(self, value: Array[DType]) -> Mask:
+        return value == self.value  # type: ignore
 
-    def legal_value(self, value: Any) -> bool:
-        return value == self.value
-
-    def legal_vector(self, vector: f64) -> bool:
-        return vector == self.vector_value_yes
+    def legal_vector(self, vector: Array[f64]) -> Mask:
+        return vector == self.vector_value_yes  # type: ignore
 
     def legal_value_single(self, vector: np.number) -> bool:
-        return vector == self.value
+        return vector == self.value  # type: ignore
 
     def legal_vector_single(self, vector: np.number) -> bool:
-        return vector == self.vector_value_yes
+        return vector == self.vector_value_yes  # type: ignore

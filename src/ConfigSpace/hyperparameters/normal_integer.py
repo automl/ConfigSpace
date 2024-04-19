@@ -95,7 +95,7 @@ class NormalIntegerHyperparameter(IntegerHyperparameter):
             transformer=scaler,
             vector_dist=vector_dist,
             neighborhood=vector_dist.neighborhood,
-            neighborhood_size=self._neighborhood_size,
+            neighborhood_size=self._integer_neighborhood_size,
             value_cast=int,
         )
 

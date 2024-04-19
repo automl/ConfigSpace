@@ -9,6 +9,7 @@ from typing_extensions import deprecated
 import numpy as np
 
 from ConfigSpace.hyperparameters._distributions import (
+    Distribution,
     UniformIntegerDistribution,
     WeightedIntegerDiscreteDistribution,
 )
@@ -36,14 +37,14 @@ class NeighborhoodCat(_Neighborhood):
         if self.size <= CACHE_NEIGHBORS_CATEGORICAL_SIZE:
             _cached_neighbors = []
             for i in range(self.size):
-                _range = np.arange(0, self.size, dtype=np.float64)
+                _range: Array[f64] = np.arange(0, self.size, dtype=f64)
                 bot = _range[:i]
                 top = _range[i + 1 :]
                 choices = np.concatenate((bot, top))
                 _cached_neighbors.append(choices)
             self._cached_neighbors = _cached_neighbors
         elif self.size <= CACHE_ARANGE_CATEGORICAL_SIZE:
-            self._cached_arange = np.arange(0, self.size, dtype=np.float64)
+            self._cached_arange = np.arange(0, self.size, dtype=f64)
 
     def __call__(
         self,
@@ -63,7 +64,7 @@ class NeighborhoodCat(_Neighborhood):
         if self._cached_arange is not None:
             _range = self._cached_arange
         else:
-            _range = np.arange(0, self.size, dtype=np.float64)
+            _range = np.arange(0, self.size, dtype=f64)
 
         bot = _range[:pivot]
         top = _range[pivot + 1 :]
@@ -154,9 +155,9 @@ class CategoricalHyperparameter(Hyperparameter[Any, Any]):
 
         size = len(choices)
         if weights is None:
-            probabilities = np.full(size, fill_value=1 / size, dtype=f64)
+            probabilities: Array[f64] = np.full(size, fill_value=1 / size, dtype=f64)
         else:
-            _weights = np.asarray(weights, dtype=np.float64)
+            _weights: Array[f64] = np.asarray(weights, dtype=f64)
             probabilities = _weights / np.sum(_weights)
 
         if default_value is None and weights is None:
@@ -170,6 +171,7 @@ class CategoricalHyperparameter(Hyperparameter[Any, Any]):
             raise ValueError(f"Illegal default value {default_value}")
 
         # We only need to pass probabilties is they are non-uniform...
+        vector_dist: Distribution
         if weights is not None:
             vector_dist = WeightedIntegerDiscreteDistribution(
                 size=size,
@@ -198,7 +200,7 @@ class CategoricalHyperparameter(Hyperparameter[Any, Any]):
             size=size,
             transformer=TransformerSeq(seq=seq_choices),
             neighborhood=NeighborhoodCat(size=size),
-            neighborhood_size=self._neighborhood_size,
+            neighborhood_size=self._categorical_neighborhood_size,
             meta=meta,
             value_cast=None,
         )
@@ -236,7 +238,7 @@ class CategoricalHyperparameter(Hyperparameter[Any, Any]):
 
         return True
 
-    def _neighborhood_size(self, value: Any | None) -> int:
+    def _categorical_neighborhood_size(self, value: Any | None) -> int:
         if value is None or value not in self.choices:
             return self.size
         return self.size - 1

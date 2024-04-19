@@ -72,11 +72,11 @@ class OrdinalHyperparameter(Hyperparameter[Any, Any]):
             transformer=TransformerSeq(seq=seq_choices),
             neighborhood=partial(ordinal_neighborhood, size=int(size)),
             vector_dist=UniformIntegerDistribution(size=size),
-            neighborhood_size=self._neighborhood_size,
+            neighborhood_size=self._ordinal_neighborhood_size,
             value_cast=None,
         )
 
-    def _neighborhood_size(self, value: Any | _NotSet) -> int:
+    def _ordinal_neighborhood_size(self, value: Any | _NotSet) -> int:
         size = len(self.sequence)
         if value is NotSet:
             return size

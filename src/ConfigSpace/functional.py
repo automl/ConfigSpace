@@ -304,7 +304,7 @@ def scale(
 
 
 def normalize(
-    x: Array[f64],
+    x: Array[np.number],
     *,
     bounds: tuple[int | float | np.number, int | float | np.number],
 ) -> Array[f64]:
@@ -326,7 +326,7 @@ def normalize(
         The normalized values
     """
     if bounds == (0, 1):
-        return x
+        return x.astype(f64)
 
     return (x - bounds[0]) / (bounds[1] - bounds[0])  # type: ignore
 
@@ -369,7 +369,7 @@ def is_close_to_integer(
     *,
     atol: float = ...,
     rtol: float = ...,
-) -> bool: ...
+) -> np.bool_: ...
 
 
 @overload
@@ -386,7 +386,7 @@ def is_close_to_integer(
     *,
     atol: float = 1e-9,
     rtol: float = 1e-5,
-) -> bool | Mask:
+) -> np.bool_ | Mask:
     """Check if a value is close to an integer.
 
     This implements the same logic as `np.isclose` but removes
@@ -409,7 +409,7 @@ def is_close_to_integer(
     """
     a = np.asarray(value)
     b = np.rint(a)
-    return np.less_equal(np.abs(a - b), atol + rtol * np.abs(b))
+    return np.less_equal(np.abs(a - b), atol + rtol * np.abs(b))  # type: ignore
 
 
 def is_close_to_integer_single(
@@ -417,7 +417,7 @@ def is_close_to_integer_single(
     *,
     atol: float = 1e-9,
     rtol: float = 1e-5,
-) -> bool:
+) -> np.bool_:
     """Check if a single value is close to an integer.
 
     This implements the same logic as `np.isclose` but removes
@@ -440,7 +440,7 @@ def is_close_to_integer_single(
     """
     a = value
     _b = np.rint(a)  # type: ignore
-    return abs(a - _b) <= (atol + rtol * abs(_b))
+    return abs(a - _b) <= (atol + rtol * abs(_b))  # type: ignore
 
 
 T = TypeVar("T")

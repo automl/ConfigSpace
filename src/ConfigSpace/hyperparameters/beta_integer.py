@@ -30,7 +30,7 @@ class BetaIntegerHyperparameter(IntegerHyperparameter):
     log: bool
 
     name: str
-    default_value: float
+    default_value: int
     meta: Mapping[Hashable, Any] | None
     size: int
 
@@ -134,7 +134,7 @@ class BetaIntegerHyperparameter(IntegerHyperparameter):
             transformer=scaler,
             vector_dist=vector_dist,
             neighborhood=vector_dist.neighborhood,
-            neighborhood_size=self._neighborhood_size,
+            neighborhood_size=self._integer_neighborhood_size,
             value_cast=int,
         )
 

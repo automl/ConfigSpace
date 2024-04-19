@@ -95,10 +95,10 @@ def quantized_neighborhood(
 
         qint = i64(np.rint(vector * (bins - 1)))
 
-        _range = np.arange(0, bins, dtype=np.float64)
+        _range: Array[f64] = np.arange(0, bins, dtype=np.float64)
         bot = _range[:qint]
         top = _range[qint + 1 :]
-        return np.concatenate((bot, top)) / (bins - 1)
+        return np.concatenate((bot, top)) / (bins - 1)  # type: ignore
 
     # Otherwise, we use a repeated sampling strategy where we slowly increase the
     # std of a normal, centered on `center`, slowly expanding `std` such that
@@ -111,7 +111,7 @@ def quantized_neighborhood(
     # as the more bins there are, the less need there is over sample for uniques
     SAMPLE_SIZE = n * sample_multiplier
     BUFFER_SIZE = n * (sample_multiplier + 1)
-    neighbors = np.empty(BUFFER_SIZE + 1, dtype=f64)
+    neighbors: Array[f64] = np.empty(BUFFER_SIZE + 1, dtype=f64)
     neighbors[0] = qvector
     offset = 1  # Indexes into current progress of filling buffer
 
@@ -176,7 +176,7 @@ def continuous_neighborhood(
 
     SAMPLE_SIZE = n * sample_multiplier
     BUFFER_SIZE = n + n * sample_multiplier
-    neighbors = np.empty(BUFFER_SIZE, dtype=f64)
+    neighbors: Array[f64] = np.empty(BUFFER_SIZE, dtype=f64)
     offset = 0
 
     # We extend the range of stds to try to find neighbors
@@ -219,8 +219,14 @@ def continuous_neighborhood(
 
 
 class Distribution(Protocol):
-    lower_vectorized: f64
-    upper_vectorized: f64
+    # NOTE: This is just saying the object should have some attribute
+    # named `lower_vectorized` and `upper_vectorized` that are of type `f64`
+    # and are read-only.
+    @property
+    def lower_vectorized(self) -> f64: ...
+
+    @property
+    def upper_vectorized(self) -> f64: ...
 
     def max_density(self) -> float: ...
 
@@ -404,7 +410,7 @@ class DiscretizedContinuousScipyDistribution(Distribution, Generic[DType]):
         pdf = self.rv.pdf(valid_entries) / self._pdf_normalization_constant()
 
         # By definition, we don't allow NaNs in the pdf
-        return np.nan_to_num(pdf, nan=0)
+        return np.nan_to_num(pdf, nan=0)  # type: ignore
 
     def neighborhood(
         self,
@@ -452,6 +458,7 @@ class DiscretizedContinuousScipyDistribution(Distribution, Generic[DType]):
                         qvector_orig,  # type: ignore
                         steps_to_take - 1,
                         endpoint=False,
+                        dtype=f64,
                     )
                     bottom = self.transformer.to_vector(bottom_orig)
 
@@ -459,6 +466,7 @@ class DiscretizedContinuousScipyDistribution(Distribution, Generic[DType]):
                     qvector_orig + stepsize,
                     orig_high,  # type: ignore
                     steps - steps_to_take,
+                    dtype=f64,
                 )
 
                 top = self.transformer.to_vector(top_orig)
@@ -485,7 +493,7 @@ class DiscretizedContinuousScipyDistribution(Distribution, Generic[DType]):
         # We also include the initial value in the buffer, as we will remove it later.
         SAMPLE_SIZE = n * sample_multiplier
         BUFFER_SIZE = n * (sample_multiplier + 1)
-        neighbors = np.empty(BUFFER_SIZE + 1, dtype=f64)
+        neighbors: Array[f64] = np.empty(BUFFER_SIZE + 1, dtype=f64)
         neighbors[0] = qvector
         offset = 1  # Indexes into current progress of filling buffer
 
@@ -537,11 +545,11 @@ class ScipyDiscreteDistribution(Distribution):
 
     def sample_vector(
         self,
-        n: int | None = None,
+        n: int,
         *,
         seed: RandomState | None = None,
     ) -> Array[f64]:
-        return self.rv.rvs(size=n, random_state=seed).astype(f64)
+        return self.rv.rvs(size=n, random_state=seed).astype(f64)  # type: ignore
 
     def max_density(self) -> float:
         return float(self._max_density)
@@ -549,7 +557,7 @@ class ScipyDiscreteDistribution(Distribution):
     def pdf_vector(self, vector: Array[f64]) -> Array[f64]:
         # By definition, we don't allow NaNs in the pdf
         pdf = self.rv.pmf(vector)
-        return np.nan_to_num(pdf, nan=0)
+        return np.nan_to_num(pdf, nan=0)  # type: ignore
 
     def __eq__(self, value: object, /) -> bool:
         if not isinstance(value, self.__class__):
@@ -574,7 +582,7 @@ class UniformIntegerNormalizedDistribution(Distribution):
 
     def sample_vector(
         self,
-        n: int | None = None,
+        n: int,
         *,
         seed: RandomState | None = None,
     ) -> Array[f64]:
@@ -625,7 +633,7 @@ class UnitUniformContinuousDistribution(Distribution):
 
     def sample_vector(
         self,
-        n: int | None = None,
+        n: int,
         *,
         seed: RandomState | None = None,
     ) -> Array[f64]:
@@ -678,7 +686,7 @@ class UniformIntegerDistribution(Distribution):
 
     def sample_vector(
         self,
-        n: int | None = None,
+        n: int,
         *,
         seed: RandomState | None = None,
     ) -> Array[f64]:
@@ -743,7 +751,7 @@ class UniformIntegerDistribution(Distribution):
         # We also include the initial value in the buffer, as we will remove it later.
         SAMPLE_SIZE = n * sample_multiplier
         BUFFER_SIZE = n * (sample_multiplier + 1)
-        neighbors = np.empty(BUFFER_SIZE + 1, dtype=f64)
+        neighbors: Array[f64] = np.empty(BUFFER_SIZE + 1, dtype=f64)
         neighbors[0] = qvector
         offset = 1  # Indexes into current progress of filling buffer
 
@@ -806,12 +814,17 @@ class WeightedIntegerDiscreteDistribution(Distribution):
 
     def sample_vector(
         self,
-        n: int | None = None,
+        n: int,
         *,
         seed: RandomState | None = None,
     ) -> Array[f64]:
         seed = np.random.RandomState() if seed is None else seed
-        return seed.choice(self.size, size=n, p=self.probabilities, replace=True)  # type: ignore
+        return seed.choice(
+            self.size,
+            size=n,
+            p=self.probabilities,
+            replace=True,
+        )  # type: ignore
 
     def max_density(self) -> float:
         return float(self._max_density)
@@ -825,8 +838,8 @@ class WeightedIntegerDiscreteDistribution(Distribution):
         )
 
         # Bring it all into range to index by
-        nan_filled = np.nan_to_num(vector, nan=0)
-        xx = np.clip(nan_filled, 0, self.size - 1).astype(i64)
+        nan_filled: Array[f64] = np.nan_to_num(vector, nan=0)
+        xx: Array[i64] = np.clip(nan_filled, 0, self.size - 1, dtype=i64)
         pdf = self.probabilities[xx]
         return np.where(valid_mask, pdf, 0)
 
@@ -844,7 +857,7 @@ class WeightedIntegerDiscreteDistribution(Distribution):
         top = np.arange(pivot + 1, self.size)
         choices = np.concatenate((bot, top)).astype(f64)
         seed.shuffle(choices)
-        return choices[:n]
+        return choices[:n]  # type: ignore
 
 
 @dataclass
@@ -858,11 +871,11 @@ class ScipyContinuousDistribution(Distribution):
 
     def sample_vector(
         self,
-        n: int | None = None,
+        n: int,
         *,
         seed: RandomState | None = None,
     ) -> Array[f64]:
-        return self.rv.rvs(size=n, random_state=seed).astype(f64)
+        return self.rv.rvs(size=n, random_state=seed).astype(f64)  # type: ignore
 
     def max_density(self) -> float:
         return float(self._max_density)
@@ -871,7 +884,7 @@ class ScipyContinuousDistribution(Distribution):
         pdf = self.rv.pdf(vector) / self._pdf_norm
 
         # By definition, we don't allow NaNs in the pdf
-        return np.nan_to_num(pdf, nan=0)
+        return np.nan_to_num(pdf, nan=0)  # type: ignore
 
     def neighborhood(
         self,
@@ -925,14 +938,11 @@ class ConstantVectorDistribution(Distribution):
 
     def sample_vector(
         self,
-        n: int | None = None,
+        n: int,
         *,
         seed: RandomState | None = None,  # noqa: ARG002
-    ) -> f64 | Array[f64]:
-        if n is None:
-            return self.vector_value
-
+    ) -> Array[f64]:
         return np.full((n,), self.vector_value, dtype=f64)
 
     def pdf_vector(self, vector: Array[f64]) -> Array[f64]:
-        return (vector == self.vector_value).astype(f64)
+        return (vector == self.vector_value).astype(f64)  # type: ignore

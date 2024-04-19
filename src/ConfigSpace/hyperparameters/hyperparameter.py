@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import warnings
-from abc import ABC
+from abc import ABC, abstractmethod
 from collections.abc import Callable, Hashable, Mapping, Sequence
 from dataclasses import dataclass, field, replace
 from typing import (
@@ -144,7 +144,7 @@ class Hyperparameter(ABC, Generic[ValueT, DType]):
         seed: np.random.RandomState | None = None,
     ) -> f64 | Array[f64]:
         if size is None:
-            return self._vector_dist.sample_vector(n=1, seed=seed)[0]
+            return self._vector_dist.sample_vector(n=1, seed=seed)[0]  # type: ignore
         return self._vector_dist.sample_vector(n=size, seed=seed)
 
     @overload
@@ -167,8 +167,9 @@ class Hyperparameter(ABC, Generic[ValueT, DType]):
 
         return self._transformer.legal_vector_single(vector)
 
+    # NOTE: @overload, mypy seems to thing this will overlap with below
     @overload
-    def legal_value(self, value: ValueT | DType) -> bool: ...
+    def legal_value(self, value: ValueT | DType) -> bool: ...  # type: ignore
 
     @overload
     def legal_value(
@@ -232,24 +233,25 @@ class Hyperparameter(ABC, Generic[ValueT, DType]):
         if isinstance(vector, np.ndarray):
             return self._transformer.to_value(vector)
 
-        value = self._transformer.to_value(np.array([vector]))[0]
+        value: DType = self._transformer.to_value(np.array([vector]))[0]
         if self._value_cast is not None:
             return self._value_cast(value)
 
-        return value
+        return value  # type: ignore
 
+    # NOTE: @overload, mypy seems to complain that this overlaps with below...
     @overload
-    def to_vector(self, value: ValueT | DType) -> f64: ...
-
-    @overload
-    def to_vector(
+    def to_vector(  # type: ignore
         self,
         value: Sequence[ValueT | DType] | Array[Any],
     ) -> Array[f64]: ...
 
+    @overload
+    def to_vector(self, value: ValueT | DType) -> f64: ...
+
     def to_vector(
         self,
-        value: ValueT | Sequence[ValueT | DType] | Array[Any],
+        value: ValueT | DType | Sequence[ValueT | DType] | Array[Any],
     ) -> f64 | Array[f64]:
         if isinstance(value, np.ndarray):
             return self._transformer.to_vector(value)
@@ -257,7 +259,7 @@ class Hyperparameter(ABC, Generic[ValueT, DType]):
         if isinstance(value, Sequence) and not isinstance(value, str):
             return self._transformer.to_vector(np.asarray(value))
 
-        return self._transformer.to_vector(np.array([value]))[0]
+        return self._transformer.to_vector(np.array([value]))[0]  # type: ignore
 
     def neighbors_vectorized(
         self,
@@ -295,7 +297,7 @@ class Hyperparameter(ABC, Generic[ValueT, DType]):
         )
 
     def pdf_vector(self, vector: Array[f64]) -> Array[f64]:
-        legal_mask = self.legal_vector(vector).astype(f64)
+        legal_mask: Array[f64] = self.legal_vector(vector).astype(f64)
         return self._vector_dist.pdf_vector(vector) * legal_mask
 
     def pdf_values(
@@ -366,7 +368,7 @@ class Hyperparameter(ABC, Generic[ValueT, DType]):
         if isinstance(vector, np.ndarray):
             return self.pdf_values(vector)
 
-        return self.pdf_values(np.asarray([vector]))[0]
+        return self.pdf_values(np.asarray([vector]))[0]  # type: ignore
 
     @deprecated("Please use `pdf_vector(vector)` instead.")
     def _pdf(
@@ -376,7 +378,7 @@ class Hyperparameter(ABC, Generic[ValueT, DType]):
         if isinstance(vector, np.ndarray):
             return self.pdf_vector(vector)
 
-        return self.pdf_vector(np.asarray([vector]))[0]
+        return self.pdf_vector(np.asarray([vector]))[0]  # type: ignore
 
     @deprecated("Please use `.size` attribute instead.")
     def get_size(self) -> int | float:
@@ -451,6 +453,7 @@ class NumericalHyperparameter(Hyperparameter[NumberT, DType]):
     upper: NumberT
     log: bool
 
+    @abstractmethod
     def to_uniform(
         self,
     ) -> UniformFloatHyperparameter | UniformIntegerHyperparameter: ...
@@ -458,7 +461,7 @@ class NumericalHyperparameter(Hyperparameter[NumberT, DType]):
 
 @dataclass(init=False)
 class IntegerHyperparameter(NumericalHyperparameter[int, i64]):
-    def _neighborhood_size(self, value: int | i64 | None) -> int:
+    def _integer_neighborhood_size(self, value: int | i64 | None) -> int:
         if value is None:
             return int(self.size)
 
