@@ -74,38 +74,38 @@ def byteify(input):
     return input
 
 
-def test_add_hyperparameter():
+def test_add():
     cs = ConfigurationSpace()
     hp = UniformIntegerHyperparameter("name", 0, 10)
-    cs.add_hyperparameter(hp)
+    cs.add(hp)
 
 
 def test_add_non_hyperparameter():
     cs = ConfigurationSpace()
     with pytest.raises(TypeError):
-        cs.add_hyperparameter(object())  # type: ignore
+        cs.add(object())  # type: ignore
 
 
 def test_add_hyperparameters_with_equal_names():
     cs = ConfigurationSpace()
     hp = UniformIntegerHyperparameter("name", 0, 10)
-    cs.add_hyperparameter(hp)
+    cs.add(hp)
     with pytest.raises(HyperparameterAlreadyExistsError):
-        cs.add_hyperparameter(hp)
+        cs.add(hp)
 
 
 def test_illegal_default_configuration():
     cs = ConfigurationSpace()
     hp1 = CategoricalHyperparameter("loss", ["l1", "l2"], default_value="l1")
     hp2 = CategoricalHyperparameter("penalty", ["l1", "l2"], default_value="l1")
-    cs.add_hyperparameter(hp1)
-    cs.add_hyperparameter(hp2)
+    cs.add(hp1)
+    cs.add(hp2)
     forb1 = ForbiddenEqualsClause(hp1, "l1")
     forb2 = ForbiddenEqualsClause(hp2, "l1")
     forb3 = ForbiddenAndConjunction(forb1, forb2)
 
     with pytest.raises(ForbiddenValueError):
-        cs.add_forbidden_clause(forb3)
+        cs.add(forb3)
 
 
 def test_meta_data_stored():
@@ -121,18 +121,19 @@ def test_meta_data_stored():
 def test_add_non_condition():
     cs = ConfigurationSpace()
     with pytest.raises(TypeError):
-        cs.add_condition(object())  # type: ignore
+        cs.add(object())  # type: ignore
 
 
 def test_hyperparameters_with_valid_condition():
     cs = ConfigurationSpace()
     hp1 = CategoricalHyperparameter("parent", [0, 1])
-    cs.add_hyperparameter(hp1)
+    cs.add(hp1)
     hp2 = UniformIntegerHyperparameter("child", 0, 10)
-    cs.add_hyperparameter(hp2)
+    cs.add(hp2)
     cond = EqualsCondition(hp2, hp1, 0)
-    cs.add_condition(cond)
-    assert len(cs._hyperparameters) == 2
+    cs.add(cond)
+
+    assert len(cs) == 2
 
 
 def test_condition_without_added_hyperparameters():
@@ -142,33 +143,33 @@ def test_condition_without_added_hyperparameters():
     cond = EqualsCondition(hp2, hp1, 0)
 
     with pytest.raises(ChildNotFoundError):
-        cs.add_condition(cond)
+        cs.add(cond)
 
-    cs.add_hyperparameter(hp1)
+    cs.add(hp1)
 
     with pytest.raises(ChildNotFoundError):
-        cs.add_condition(cond)
+        cs.add(cond)
 
     # Test also the parent hyperparameter
     cs2 = ConfigurationSpace()
-    cs2.add_hyperparameter(hp2)
+    cs2.add(hp2)
 
     with pytest.raises(ParentNotFoundError):
-        cs2.add_condition(cond)
+        cs2.add(cond)
 
 
 def test_condition_with_cycles():
     cs = ConfigurationSpace()
     hp1 = CategoricalHyperparameter("parent", [0, 1])
-    cs.add_hyperparameter(hp1)
+    cs.add(hp1)
     hp2 = UniformIntegerHyperparameter("child", 0, 10)
-    cs.add_hyperparameter(hp2)
+    cs.add(hp2)
     cond1 = EqualsCondition(hp2, hp1, 0)
-    cs.add_condition(cond1)
+    cs.add(cond1)
     cond2 = EqualsCondition(hp1, hp2, 0)
 
     with pytest.raises(CyclicDependancyError):
-        cs.add_condition(cond2)
+        cs.add(cond2)
 
 
 def test_add_conjunction():
@@ -184,13 +185,13 @@ def test_add_conjunction():
     andconj1 = AndConjunction(cond1, cond2, cond3)
 
     cs = ConfigurationSpace()
-    cs.add_hyperparameter(hp1)
-    cs.add_hyperparameter(hp2)
-    cs.add_hyperparameter(hp3)
-    cs.add_hyperparameter(hp4)
+    cs.add(hp1)
+    cs.add(hp2)
+    cs.add(hp3)
+    cs.add(hp4)
 
-    cs.add_condition(andconj1)
-    assert hp4 not in cs.get_all_unconditional_hyperparameters()
+    cs.add(andconj1)
+    assert hp4 not in cs.unconditional_hyperparameters
 
 
 def test_add_second_condition_wo_conjunction():
@@ -202,20 +203,20 @@ def test_add_second_condition_wo_conjunction():
     cond2 = EqualsCondition(hp3, hp2, 1)
 
     cs = ConfigurationSpace()
-    cs.add_hyperparameters([hp1, hp2, hp3])
-    cs.add_condition(cond1)
+    cs.add([hp1, hp2, hp3])
+    cs.add(cond1)
 
     with pytest.raises(AmbiguousConditionError):
-        cs.add_condition(cond2)
+        cs.add(cond2)
 
 
 def test_add_forbidden_clause():
     cs = ConfigurationSpace()
     hp1 = CategoricalHyperparameter("input1", [0, 1])
-    cs.add_hyperparameter(hp1)
+    cs.add(hp1)
     forb = ForbiddenEqualsClause(hp1, 1)
     # TODO add checking whether a forbidden clause makes sense at all
-    cs.add_forbidden_clause(forb)
+    cs.add(forb)
     # TODO add something to properly retrieve the forbidden clauses
     assert (
         str(cs)
@@ -227,10 +228,10 @@ def test_add_forbidden_relation():
     cs = ConfigurationSpace()
     hp1 = CategoricalHyperparameter("input1", [0, 1])
     hp2 = CategoricalHyperparameter("input2", [1, 0])
-    cs.add_hyperparameters([hp1, hp2])
+    cs.add([hp1, hp2])
     forb = ForbiddenEqualsRelation(hp1, hp2)
     # TODO add checking whether a forbidden clause makes sense at all
-    cs.add_forbidden_clause(forb)
+    cs.add(forb)
     # TODO add something to properly retrieve the forbidden clauses
     assert (
         str(cs)
@@ -242,10 +243,10 @@ def test_add_forbidden_relation_categorical():
     cs = ConfigurationSpace()
     hp1 = CategoricalHyperparameter("input1", ["a", "b"], default_value="b")
     hp2 = CategoricalHyperparameter("input2", ["b", "c"], default_value="b")
-    cs.add_hyperparameters([hp1, hp2])
+    cs.add([hp1, hp2])
     forb = ForbiddenEqualsRelation(hp1, hp2)
     with pytest.raises(ForbiddenValueError):
-        cs.add_forbidden_clause(forb)
+        cs.add(forb)
 
 
 def test_add_forbidden_illegal():
@@ -254,20 +255,19 @@ def test_add_forbidden_illegal():
     forb = ForbiddenEqualsClause(hp, 1)
 
     with pytest.raises(HyperparameterNotFoundError):
-        cs.add_forbidden_clause(forb)
+        cs.add(forb)
 
     forb2 = ForbiddenEqualsClause(hp, 0)
 
     with pytest.raises(HyperparameterNotFoundError):
-        cs.add_forbidden_clauses([forb, forb2])
+        cs.add([forb, forb2])
 
 
 def test_add_configuration_space():
-    cs = ConfigurationSpace()
-    hp1 = cs.add_hyperparameter(CategoricalHyperparameter("input1", [0, 1]))
-    cs.add_forbidden_clause(ForbiddenEqualsClause(hp1, 1))
-    hp2 = cs.add_hyperparameter(UniformIntegerHyperparameter("child", 0, 10))
-    cs.add_condition(EqualsCondition(hp2, hp1, 0))
+    cs = ConfigurationSpace({"input1": [0, 1], "child": (0, 10)})
+    cs.add(ForbiddenEqualsClause(cs["input1"], 1))
+    cs.add(EqualsCondition(cs["child"], cs["input1"], 0))
+
     cs2 = ConfigurationSpace()
     cs2.add_configuration_space("prefix", cs, delimiter="__")
     assert (
@@ -277,20 +277,23 @@ def test_add_configuration_space():
 
 
 def test_add_configuration_space_conjunctions():
-    cs1 = ConfigurationSpace()
+    cs1 = ConfigurationSpace(
+        {
+            "input1": [0, 1],
+            "input2": [0, 1],
+            "child1": (0, 10),
+            "child2": (0, 10),
+        },
+    )
+    cs1.add(
+        EqualsCondition(cs1["input2"], cs1["child1"], 0),
+        AndConjunction(
+            EqualsCondition(cs1["input1"], cs1["child1"], 5),
+            EqualsCondition(cs1["input1"], cs1["child2"], 1),
+        ),
+    )
+
     cs2 = ConfigurationSpace()
-
-    hp1 = cs1.add_hyperparameter(CategoricalHyperparameter("input1", [0, 1]))
-    hp2 = cs1.add_hyperparameter(CategoricalHyperparameter("input2", [0, 1]))
-    hp3 = cs1.add_hyperparameter(UniformIntegerHyperparameter("child1", 0, 10))
-    hp4 = cs1.add_hyperparameter(UniformIntegerHyperparameter("child2", 0, 10))
-
-    cond1 = EqualsCondition(hp2, hp3, 0)
-    cond2 = EqualsCondition(hp1, hp3, 5)
-    cond3 = EqualsCondition(hp1, hp4, 1)
-    andCond = AndConjunction(cond2, cond3)
-
-    cs1.add_conditions([cond1, andCond])
     cs2.add_configuration_space(prefix="test", configuration_space=cs1)
 
     assert str(cs2).count("test:") == 10
@@ -299,26 +302,19 @@ def test_add_configuration_space_conjunctions():
 
 
 def test_add_conditions():
-    cs1 = ConfigurationSpace()
-    cs2 = ConfigurationSpace()
+    cs1 = ConfigurationSpace(
+        {"input1": [0, 1], "input2": [0, 1], "child1": (0, 10), "child2": (0, 10)},
+    )
+    cs2 = ConfigurationSpace(cs1)
 
-    hp1 = cs1.add_hyperparameter(CategoricalHyperparameter("input1", [0, 1]))
-    cs2.add_hyperparameter(hp1)
-    hp2 = cs1.add_hyperparameter(CategoricalHyperparameter("input2", [0, 1]))
-    cs2.add_hyperparameter(hp2)
-    hp3 = cs1.add_hyperparameter(UniformIntegerHyperparameter("child1", 0, 10))
-    cs2.add_hyperparameter(hp3)
-    hp4 = cs1.add_hyperparameter(UniformIntegerHyperparameter("child2", 0, 10))
-    cs2.add_hyperparameter(hp4)
-
-    cond1 = EqualsCondition(hp2, hp3, 0)
-    cond2 = EqualsCondition(hp1, hp3, 5)
-    cond3 = EqualsCondition(hp1, hp4, 1)
+    cond1 = EqualsCondition(cs1["input2"], cs1["child1"], 0)
+    cond2 = EqualsCondition(cs1["input1"], cs1["child1"], 5)
+    cond3 = EqualsCondition(cs1["input1"], cs1["child2"], 1)
     andCond = AndConjunction(cond2, cond3)
 
-    cs1.add_conditions([cond1, andCond])
-    cs2.add_condition(cond1)
-    cs2.add_condition(andCond)
+    cs1.add([cond1, andCond])
+    cs2.add(cond1)
+    cs2.add(andCond)
 
     assert str(cs1) == str(cs2)
 
@@ -327,12 +323,12 @@ def test_get_hyperparamforbidden_clauseseters():
     cs = ConfigurationSpace()
     assert len(cs) == 0
     hp1 = CategoricalHyperparameter("parent", [0, 1])
-    cs.add_hyperparameter(hp1)
+    cs.add(hp1)
     assert [hp1] == list(cs.values())
     hp2 = UniformIntegerHyperparameter("child", 0, 10)
-    cs.add_hyperparameter(hp2)
+    cs.add(hp2)
     cond1 = EqualsCondition(hp2, hp1, 1)
-    cs.add_condition(cond1)
+    cs.add(cond1)
     assert [hp1, hp2] == list(cs.values())
     # TODO: I need more tests for the topological sort!
     assert [hp1, hp2] == list(cs.values())
@@ -342,11 +338,11 @@ def test_get_hyperparameters_topological_sort_simple():
     for _ in range(10):
         cs = ConfigurationSpace()
         hp1 = CategoricalHyperparameter("parent", [0, 1])
-        cs.add_hyperparameter(hp1)
+        cs.add(hp1)
         hp2 = UniformIntegerHyperparameter("child", 0, 10)
-        cs.add_hyperparameter(hp2)
+        cs.add(hp2)
         cond1 = EqualsCondition(hp2, hp1, 0)
-        cs.add_condition(cond1)
+        cs.add(cond1)
         # This automatically checks the configuration!
         Configuration(cs, {"parent": 0, "child": 5})
 
@@ -366,7 +362,7 @@ def test_get_hyperparameters_topological_sort():
     hyperparameters = [hp1, hp2, hp3, hp4, hp5, hp6, hp7]
 
     for hp in hyperparameters:
-        cs.add_hyperparameter(hp)
+        cs.add(hp)
 
     cond1 = EqualsCondition(hp6, hp1, 1)
     cond2 = NotEqualsCondition(hp6, hp2, 1)
@@ -380,35 +376,35 @@ def test_get_hyperparameters_topological_sort():
     conj2 = OrConjunction(conj1, cond3)
     conj3 = AndConjunction(conj2, cond6, cond7)
 
-    cs.add_condition(cond4)
+    cs.add(cond4)
     hps = list(cs.values())
     # AND is moved to the front because of alphabetical sorting
     for hp, idx in zip(hyperparameters, [1, 2, 3, 4, 6, 0, 5]):
         assert hps.index(hp) == idx
-        assert cs._hyperparameter_idx[hp.name] == idx
-        assert cs._idx_to_hyperparameter[idx] == hp.name
+        assert cs.index_of[hp.name] == idx
+        assert cs.at[idx] == hp.name
 
-    cs.add_condition(cond5)
+    cs.add(cond5)
     hps = list(cs.values())
     for hp, idx in zip(hyperparameters, [1, 2, 3, 6, 5, 0, 4]):
         assert hps.index(hp) == idx
-        assert cs._hyperparameter_idx[hp.name] == idx
-        assert cs._idx_to_hyperparameter[idx] == hp.name
+        assert cs.index_of[hp.name] == idx
+        assert cs.at[idx] == hp.name
 
-    cs.add_condition(conj3)
+    cs.add(conj3)
     hps = list(cs.values())
     for hp, idx in zip(hyperparameters, [0, 1, 2, 5, 4, 6, 3]):
         assert hps.index(hp) == idx
-        assert cs._hyperparameter_idx[hp.name] == idx
-        assert cs._idx_to_hyperparameter[idx] == hp.name
+        assert cs.index_of[hp.name] == idx
+        assert cs.at[idx] == hp.name
 
 
 def test_get_hyperparameter():
     cs = ConfigurationSpace()
     hp1 = CategoricalHyperparameter("parent", [0, 1])
-    cs.add_hyperparameter(hp1)
+    cs.add(hp1)
     hp2 = UniformIntegerHyperparameter("child", 0, 10)
-    cs.add_hyperparameter(hp2)
+    cs.add(hp2)
 
     retval = cs["parent"]
     assert hp1 == retval
@@ -422,23 +418,23 @@ def test_get_hyperparameter():
 def test_get_conditions():
     cs = ConfigurationSpace()
     hp1 = CategoricalHyperparameter("parent", [0, 1])
-    cs.add_hyperparameter(hp1)
+    cs.add(hp1)
     hp2 = UniformIntegerHyperparameter("child", 0, 10)
-    cs.add_hyperparameter(hp2)
-    assert [] == cs.get_conditions()
+    cs.add(hp2)
+    assert [] == cs.conditions
     cond1 = EqualsCondition(hp2, hp1, 0)
-    cs.add_condition(cond1)
+    cs.add(cond1)
     assert [cond1] == cs.get_conditions()
 
 
 def test_get_parent_and_chil_conditions_of():
     cs = ConfigurationSpace()
     hp1 = CategoricalHyperparameter("parent", [0, 1])
-    cs.add_hyperparameter(hp1)
+    cs.add(hp1)
     hp2 = UniformIntegerHyperparameter("child", 0, 10)
-    cs.add_hyperparameter(hp2)
+    cs.add(hp2)
     cond1 = EqualsCondition(hp2, hp1, 0)
-    cs.add_condition(cond1)
+    cs.add(cond1)
 
     assert [cond1] == cs.get_parent_conditions_of(hp2.name)
     assert [cond1] == cs.get_parent_conditions_of(hp2)
@@ -455,11 +451,11 @@ def test_get_parent_and_chil_conditions_of():
 def test_get_parent_and_children_of():
     cs = ConfigurationSpace()
     hp1 = CategoricalHyperparameter("parent", [0, 1])
-    cs.add_hyperparameter(hp1)
+    cs.add(hp1)
     hp2 = UniformIntegerHyperparameter("child", 0, 10)
-    cs.add_hyperparameter(hp2)
+    cs.add(hp2)
     cond1 = EqualsCondition(hp2, hp1, 0)
-    cs.add_condition(cond1)
+    cs.add(cond1)
 
     assert [hp1] == cs.get_parents_of(hp2.name)
     assert [hp1] == cs.get_parents_of(hp2)
@@ -479,28 +475,28 @@ def test_check_configuration():
     # conditions module!
     cs = ConfigurationSpace()
     hp1 = CategoricalHyperparameter("parent", [0, 1])
-    cs.add_hyperparameter(hp1)
+    cs.add(hp1)
     hp2 = UniformIntegerHyperparameter("child", 0, 10)
-    cs.add_hyperparameter(hp2)
+    cs.add(hp2)
     cond1 = EqualsCondition(hp2, hp1, 0)
-    cs.add_condition(cond1)
+    cs.add(cond1)
     # This automatically checks the configuration!
     Configuration(cs, {"parent": 0, "child": 5})
 
     # and now for something more complicated
     cs = ConfigurationSpace()
     hp1 = CategoricalHyperparameter("input1", [0, 1])
-    cs.add_hyperparameter(hp1)
+    cs.add(hp1)
     hp2 = CategoricalHyperparameter("input2", [0, 1])
-    cs.add_hyperparameter(hp2)
+    cs.add(hp2)
     hp3 = CategoricalHyperparameter("input3", [0, 1])
-    cs.add_hyperparameter(hp3)
+    cs.add(hp3)
     hp4 = CategoricalHyperparameter("input4", [0, 1])
-    cs.add_hyperparameter(hp4)
+    cs.add(hp4)
     hp5 = CategoricalHyperparameter("input5", [0, 1])
-    cs.add_hyperparameter(hp5)
+    cs.add(hp5)
     hp6 = Constant("AND", "True")
-    cs.add_hyperparameter(hp6)
+    cs.add(hp6)
 
     cond1 = EqualsCondition(hp6, hp1, 1)
     cond2 = NotEqualsCondition(hp6, hp2, 1)
@@ -511,7 +507,7 @@ def test_check_configuration():
     conj1 = AndConjunction(cond1, cond2)
     conj2 = OrConjunction(conj1, cond3)
     conj3 = AndConjunction(conj2, cond4, cond5)
-    cs.add_condition(conj3)
+    cs.add(conj3)
 
     expected_outcomes = [
         False,
@@ -603,14 +599,14 @@ def test_check_configuration2():
         "k_nearest_neighbors",
     )
     p_depends_on_metric = EqualsCondition(p, metric, "minkowski")
-    cs.add_hyperparameter(metric)
-    cs.add_hyperparameter(p)
-    cs.add_hyperparameter(classifier)
-    cs.add_condition(metric_depends_on_classifier)
-    cs.add_condition(p_depends_on_metric)
+    cs.add(metric)
+    cs.add(p)
+    cs.add(classifier)
+    cs.add(metric_depends_on_classifier)
+    cs.add(p_depends_on_metric)
 
     forbidden = ForbiddenEqualsClause(metric, "other")
-    cs.add_forbidden_clause(forbidden)
+    cs.add(forbidden)
 
     configuration = Configuration(cs, {"classifier": "extra_trees"})
 
@@ -621,10 +617,10 @@ def test_check_configuration2():
 def test_check_forbidden_with_sampled_vector_configuration():
     cs = ConfigurationSpace()
     metric = CategoricalHyperparameter("metric", ["minkowski", "other"])
-    cs.add_hyperparameter(metric)
+    cs.add(metric)
 
     forbidden = ForbiddenEqualsClause(metric, "other")
-    cs.add_forbidden_clause(forbidden)
+    cs.add(forbidden)
     configuration = Configuration(cs, vector=np.ones(1, dtype=float))
 
     with pytest.raises(ValueError, match="violates forbidden clause"):
@@ -645,14 +641,14 @@ def test_eq():
     hp2 = UniformIntegerHyperparameter("child", 0, 10)
     hp3 = UniformIntegerHyperparameter("friend", 0, 5)
     cond1 = EqualsCondition(hp2, hp1, 0)
-    cs1.add_hyperparameter(hp1)
-    cs1.add_hyperparameter(hp2)
-    cs1.add_condition(cond1)
-    cs2.add_hyperparameter(hp1)
-    cs2.add_hyperparameter(hp2)
-    cs2.add_condition(cond1)
+    cs1.add(hp1)
+    cs1.add(hp2)
+    cs1.add(cond1)
+    cs2.add(hp1)
+    cs2.add(hp2)
+    cs2.add(cond1)
     assert cs1 == cs2
-    cs1.add_hyperparameter(hp3)
+    cs1.add(hp3)
     assert cs1 != cs2
 
 
@@ -667,7 +663,7 @@ def test_repr():
     assert retval == "Configuration space object:\n  Hyperparameters:\n"
 
     hp1 = CategoricalHyperparameter("parent", [0, 1])
-    cs1.add_hyperparameter(hp1)
+    cs1.add(hp1)
     retval = cs1.__str__()
     assert (
         "Configuration space object:\n  Hyperparameters:\n    %s\n" % str(hp1) == retval
@@ -675,8 +671,8 @@ def test_repr():
 
     hp2 = UniformIntegerHyperparameter("child", 0, 10)
     cond1 = EqualsCondition(hp2, hp1, 0)
-    cs1.add_hyperparameter(hp2)
-    cs1.add_condition(cond1)
+    cs1.add(hp2)
+    cs1.add(cond1)
     retval = cs1.__str__()
     assert (
         f"Configuration space object:\n  Hyperparameters:\n    {hp2}\n    {hp1}\n  Conditions:\n    {cond1}\n"
@@ -687,28 +683,28 @@ def test_repr():
 def test_sample_configuration():
     cs = ConfigurationSpace()
     hp1 = CategoricalHyperparameter("parent", [0, 1])
-    cs.add_hyperparameter(hp1)
+    cs.add(hp1)
     hp2 = UniformIntegerHyperparameter("child", 0, 10)
-    cs.add_hyperparameter(hp2)
+    cs.add(hp2)
     cond1 = EqualsCondition(hp2, hp1, 0)
-    cs.add_condition(cond1)
+    cs.add(cond1)
     # This automatically checks the configuration!
     Configuration(cs, {"parent": 0, "child": 5})
 
     # and now for something more complicated
     cs = ConfigurationSpace(seed=1)
     hp1 = CategoricalHyperparameter("input1", [0, 1])
-    cs.add_hyperparameter(hp1)
+    cs.add(hp1)
     hp2 = CategoricalHyperparameter("input2", [0, 1])
-    cs.add_hyperparameter(hp2)
+    cs.add(hp2)
     hp3 = CategoricalHyperparameter("input3", [0, 1])
-    cs.add_hyperparameter(hp3)
+    cs.add(hp3)
     hp4 = CategoricalHyperparameter("input4", [0, 1])
-    cs.add_hyperparameter(hp4)
+    cs.add(hp4)
     hp5 = CategoricalHyperparameter("input5", [0, 1])
-    cs.add_hyperparameter(hp5)
+    cs.add(hp5)
     hp6 = Constant("AND", "True")
-    cs.add_hyperparameter(hp6)
+    cs.add(hp6)
 
     cond1 = EqualsCondition(hp6, hp1, 1)
     cond2 = NotEqualsCondition(hp6, hp2, 1)
@@ -721,9 +717,9 @@ def test_sample_configuration():
     conj1 = AndConjunction(cond1, cond2)
     conj2 = OrConjunction(conj1, cond3)
     conj3 = AndConjunction(conj2, cond6, cond7)
-    cs.add_condition(cond4)
-    cs.add_condition(cond5)
-    cs.add_condition(conj3)
+    cs.add(cond4)
+    cs.add(cond5)
+    cs.add(conj3)
 
     samples: list[list[Configuration]] = []
     for i in range(5):
@@ -802,7 +798,7 @@ def test_subspace_switches():
         weights=[0.3, 0.7],
         default_value="B",
     )
-    algo1_cs.add_hyperparameter(hp1)
+    algo1_cs.add(hp1)
 
     # create sub-configuration space for algorithm 2
     algo2_cs = ConfigurationSpace()
@@ -811,12 +807,12 @@ def test_subspace_switches():
         choices=["X", "Y"],
         default_value="Y",
     )
-    algo2_cs.add_hyperparameter(hp2)
+    algo2_cs.add(hp2)
 
     # create a configuration space and populate it with both the switch
     # and the two sub-configuration spaces
     cs = ConfigurationSpace()
-    cs.add_hyperparameter(algo_switch)
+    cs.add(algo_switch)
     cs.add_configuration_space(
         prefix="algo1_subspace",
         configuration_space=algo1_cs,
@@ -851,7 +847,7 @@ def test_acts_as_mapping_2():
     cs = ConfigurationSpace()
     names = [f"name{i}" for i in range(5)]
     hyperparameters = [UniformIntegerHyperparameter(name, 0, 10) for name in names]
-    cs.add_hyperparameters(hyperparameters)
+    cs.add(hyperparameters)
 
     # Test indexing
     assert cs["name3"] == hyperparameters[3]
@@ -949,19 +945,19 @@ def test_substitute_hyperparameters_in_conditions():
     orig_hp2 = CategoricalHyperparameter("input2", [0, 1])
     orig_hp3 = UniformIntegerHyperparameter("child1", 0, 10)
     orig_hp4 = UniformIntegerHyperparameter("child2", 0, 10)
-    cs1.add_hyperparameters([orig_hp1, orig_hp2, orig_hp3, orig_hp4])
+    cs1.add([orig_hp1, orig_hp2, orig_hp3, orig_hp4])
     cond1 = EqualsCondition(orig_hp2, orig_hp3, 0)
     cond2 = EqualsCondition(orig_hp1, orig_hp3, 5)
     cond3 = EqualsCondition(orig_hp1, orig_hp4, 1)
     andCond = AndConjunction(cond2, cond3)
-    cs1.add_conditions([cond1, andCond])
+    cs1.add([cond1, andCond])
 
     cs2 = ConfigurationSpace()
     sub_hp1 = CategoricalHyperparameter("input1", [0, 1, 2])
     sub_hp2 = CategoricalHyperparameter("input2", [0, 1, 3])
     sub_hp3 = NormalIntegerHyperparameter("child1", lower=0, upper=10, mu=5, sigma=2)
     sub_hp4 = BetaIntegerHyperparameter("child2", lower=0, upper=10, alpha=3, beta=5)
-    cs2.add_hyperparameters([sub_hp1, sub_hp2, sub_hp3, sub_hp4])
+    cs2.add([sub_hp1, sub_hp2, sub_hp3, sub_hp4])
     new_conditions = cs1.substitute_hyperparameters_in_conditions(
         cs1.get_conditions(),
         cs2,
@@ -971,7 +967,7 @@ def test_substitute_hyperparameters_in_conditions():
     test_cond2 = EqualsCondition(sub_hp1, sub_hp3, 5)
     test_cond3 = EqualsCondition(sub_hp1, sub_hp4, 1)
     test_andCond = AndConjunction(test_cond2, test_cond3)
-    cs2.add_conditions([test_cond1, test_andCond])
+    cs2.add([test_cond1, test_andCond])
     test_conditions = cs2.get_conditions()
 
     assert new_conditions[0] == test_conditions[0]
@@ -982,22 +978,22 @@ def test_substitute_hyperparameters_in_inconditions():
     cs1 = ConfigurationSpace()
     a = UniformIntegerHyperparameter("a", lower=0, upper=10)
     b = UniformFloatHyperparameter("b", lower=1.0, upper=8.0, log=False)
-    cs1.add_hyperparameters([a, b])
+    cs1.add([a, b])
 
     cond = InCondition(b, a, [1, 2, 3, 4])
-    cs1.add_conditions([cond])
+    cs1.add([cond])
 
     cs2 = ConfigurationSpace()
     sub_a = UniformIntegerHyperparameter("a", lower=0, upper=10)
     sub_b = UniformFloatHyperparameter("b", lower=1.0, upper=8.0, log=False)
-    cs2.add_hyperparameters([sub_a, sub_b])
+    cs2.add([sub_a, sub_b])
     new_conditions = cs1.substitute_hyperparameters_in_conditions(
         cs1.get_conditions(),
         cs2,
     )
 
     test_cond = InCondition(b, a, [1, 2, 3, 4])
-    cs2.add_conditions([test_cond])
+    cs2.add([test_cond])
     test_conditions = cs2.get_conditions()
 
     new_c = new_conditions[0]
@@ -1021,20 +1017,20 @@ def test_substitute_hyperparameters_in_forbiddens():
     orig_hp2 = CategoricalHyperparameter("input2", [0, 1])
     orig_hp3 = UniformIntegerHyperparameter("input3", 0, 10)
     orig_hp4 = UniformIntegerHyperparameter("input4", 0, 10)
-    cs1.add_hyperparameters([orig_hp1, orig_hp2, orig_hp3, orig_hp4])
+    cs1.add([orig_hp1, orig_hp2, orig_hp3, orig_hp4])
     forb_1 = ForbiddenEqualsClause(orig_hp1, 0)
     forb_2 = ForbiddenEqualsClause(orig_hp2, 1)
     forb_3 = ForbiddenEqualsClause(orig_hp3, 10)
     forb_4 = ForbiddenAndConjunction(forb_1, forb_2)
     forb_5 = ForbiddenLessThanRelation(orig_hp1, orig_hp2)
-    cs1.add_forbidden_clauses([forb_3, forb_4, forb_5])
+    cs1.add([forb_3, forb_4, forb_5])
 
     cs2 = ConfigurationSpace()
     sub_hp1 = CategoricalHyperparameter("input1", [0, 1, 2])
     sub_hp2 = CategoricalHyperparameter("input2", [0, 1, 3])
     sub_hp3 = NormalIntegerHyperparameter("input3", lower=0, upper=10, mu=5, sigma=2)
     sub_hp4 = BetaIntegerHyperparameter("input4", lower=0, upper=10, alpha=3, beta=5)
-    cs2.add_hyperparameters([sub_hp1, sub_hp2, sub_hp3, sub_hp4])
+    cs2.add([sub_hp1, sub_hp2, sub_hp3, sub_hp4])
 
     new_forbiddens = cs1.substitute_hyperparameters_in_forbiddens(
         cs1.get_forbiddens(),
@@ -1046,7 +1042,7 @@ def test_substitute_hyperparameters_in_forbiddens():
     test_forb_3 = ForbiddenEqualsClause(sub_hp3, 10)
     test_forb_4 = ForbiddenAndConjunction(test_forb_1, test_forb_2)
     test_forb_5 = ForbiddenLessThanRelation(sub_hp1, sub_hp2)
-    cs2.add_forbidden_clauses([test_forb_3, test_forb_4, test_forb_5])
+    cs2.add([test_forb_3, test_forb_4, test_forb_5])
     test_forbiddens = cs2.get_forbiddens()
 
     assert new_forbiddens[2] == test_forbiddens[2]
@@ -1057,13 +1053,13 @@ def test_substitute_hyperparameters_in_forbiddens():
 def test_estimate_size():
     cs = ConfigurationSpace()
     assert cs.estimate_size() == 0
-    cs.add_hyperparameter(Constant("constant", 0))
+    cs.add(Constant("constant", 0))
     assert cs.estimate_size() == 1
-    cs.add_hyperparameter(UniformIntegerHyperparameter("integer", 0, 5))
+    cs.add(UniformIntegerHyperparameter("integer", 0, 5))
     assert cs.estimate_size() == 6
-    cs.add_hyperparameter(CategoricalHyperparameter("cat", [0, 1, 2]))
+    cs.add(CategoricalHyperparameter("cat", [0, 1, 2]))
     assert cs.estimate_size() == 18
-    cs.add_hyperparameter(UniformFloatHyperparameter("float", 0, 1))
+    cs.add(UniformFloatHyperparameter("float", 0, 1))
     assert np.isinf(cs.estimate_size())
 
 
@@ -1109,10 +1105,12 @@ def test_uniformfloat_transform():
     equal when it is serialized via JSON and the deserialized again.
     """
     cs = ConfigurationSpace()
-    a = cs.add_hyperparameter(UniformFloatHyperparameter("a", -5, 10))
-    b = cs.add_hyperparameter(
+    cs.add(
+        UniformFloatHyperparameter("a", -5, 10),
         NormalFloatHyperparameter("b", 1, 2, log=True, lower=0.1, upper=5),
     )
+    a = cs["a"]
+    b = cs["b"]
     for _i in range(100):
         config = cs.sample_configuration()
         value = OrderedDict(sorted(config.items()))
@@ -1125,8 +1123,8 @@ def test_uniformfloat_transform():
     # Configuration with a dictionary
     for _i in range(100):
         rs = np.random.RandomState(1)
-        value_a = a.sample(rs)
-        value_b = b.sample(rs)
+        value_a = a.sample_value(seed=rs)
+        value_b = b.sample_value(seed=rs)
         values_dict = {"a": value_a, "b": value_b}
         config = Configuration(cs, values=values_dict)
         string = json.dumps(dict(config))
@@ -1138,18 +1136,18 @@ def test_uniformfloat_transform():
 def test_setitem():
     """Checks overriding a sampled configuration."""
     pcs = ConfigurationSpace()
-    pcs.add_hyperparameter(UniformIntegerHyperparameter("x0", 1, 5, default_value=1))
-    x1 = pcs.add_hyperparameter(
+    pcs.add(UniformIntegerHyperparameter("x0", 1, 5, default_value=1))
+    pcs.add(
         CategoricalHyperparameter("x1", ["ab", "bc", "cd", "de"], default_value="ab"),
     )
 
     # Condition
-    x2 = pcs.add_hyperparameter(CategoricalHyperparameter("x2", [1, 2]))
-    pcs.add_condition(EqualsCondition(x2, x1, "ab"))
+    pcs.add(CategoricalHyperparameter("x2", [1, 2]))
+    pcs.add(EqualsCondition(pcs["x2"], pcs["x1"], "ab"))
 
     # Forbidden
-    x3 = pcs.add_hyperparameter(CategoricalHyperparameter("x3", [1, 2]))
-    pcs.add_forbidden_clause(ForbiddenEqualsClause(x3, 2))
+    pcs.add(CategoricalHyperparameter("x3", [1, 2]))
+    pcs.add(ForbiddenEqualsClause(pcs["x3"], 2))
 
     conf = pcs.get_default_configuration()
 
@@ -1194,7 +1192,7 @@ def test_setitem():
 
 def test_setting_illegal_value():
     cs = ConfigurationSpace()
-    cs.add_hyperparameter(UniformFloatHyperparameter("x", 0, 1))
+    cs.add(UniformFloatHyperparameter("x", 0, 1))
     configuration = {"x": 2}
     with pytest.raises(ValueError):
         Configuration(cs, values=configuration)
@@ -1216,9 +1214,9 @@ def test_keys():
         1.0,
         0.5,
     )
-    cs.add_hyperparameters([shrinkage, shrinkage_factor])
+    cs.add([shrinkage, shrinkage_factor])
 
-    cs.add_condition(EqualsCondition(shrinkage_factor, shrinkage, "manual"))
+    cs.add(EqualsCondition(shrinkage_factor, shrinkage, "manual"))
 
     for _ in range(10):
         config = cs.sample_configuration()
@@ -1266,10 +1264,10 @@ def test_order_of_hyperparameters_is_same_as_config_space(
 
 def test_meta_field():
     cs = ConfigurationSpace()
-    cs.add_hyperparameter(
+    cs.add(
         UniformIntegerHyperparameter("uihp", lower=1, upper=10, meta={"uihp": True}),
     )
-    cs.add_hyperparameter(
+    cs.add(
         NormalIntegerHyperparameter(
             "nihp",
             mu=5,
@@ -1279,10 +1277,10 @@ def test_meta_field():
             upper=10,
         ),
     )
-    cs.add_hyperparameter(
+    cs.add(
         UniformFloatHyperparameter("ufhp", lower=1, upper=10, meta={"ufhp": True}),
     )
-    cs.add_hyperparameter(
+    cs.add(
         NormalFloatHyperparameter(
             "nfhp",
             mu=5,
@@ -1292,13 +1290,13 @@ def test_meta_field():
             upper=10,
         ),
     )
-    cs.add_hyperparameter(
+    cs.add(
         CategoricalHyperparameter("chp", choices=["1", "2", "3"], meta={"chp": True}),
     )
-    cs.add_hyperparameter(
+    cs.add(
         OrdinalHyperparameter("ohp", sequence=["1", "2", "3"], meta={"ohp": True}),
     )
-    cs.add_hyperparameter(Constant("const", value=1, meta={"const": True}))
+    cs.add(Constant("const", value=1, meta={"const": True}))
     parent = ConfigurationSpace()
     parent.add_configuration_space("sub", cs, delimiter=":")
     assert parent["sub:uihp"].meta == {"uihp": True}
@@ -1312,17 +1310,17 @@ def test_meta_field():
 
 def test_repr_roundtrip():
     cs = ConfigurationSpace()
-    cs.add_hyperparameter(UniformIntegerHyperparameter("uihp", lower=1, upper=10))
-    cs.add_hyperparameter(
+    cs.add(UniformIntegerHyperparameter("uihp", lower=1, upper=10))
+    cs.add(
         NormalIntegerHyperparameter("nihp", mu=1, sigma=1, lower=0.1, upper=1),
     )
-    cs.add_hyperparameter(UniformFloatHyperparameter("ufhp", lower=1, upper=10))
-    cs.add_hyperparameter(
+    cs.add(UniformFloatHyperparameter("ufhp", lower=1, upper=10))
+    cs.add(
         NormalFloatHyperparameter("nfhp", mu=1, sigma=1, lower=0.1, upper=1),
     )
-    cs.add_hyperparameter(CategoricalHyperparameter("chp", choices=["1", "2", "3"]))
-    cs.add_hyperparameter(OrdinalHyperparameter("ohp", sequence=["1", "2", "3"]))
-    cs.add_hyperparameter(Constant("const", value=1))
+    cs.add(CategoricalHyperparameter("chp", choices=["1", "2", "3"]))
+    cs.add(OrdinalHyperparameter("ohp", sequence=["1", "2", "3"]))
+    cs.add(Constant("const", value=1))
     default = cs.get_default_configuration()
     repr = default.__repr__()
     repr = repr.replace("})", "}, configuration_space=cs)")

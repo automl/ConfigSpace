@@ -83,7 +83,9 @@ if TYPE_CHECKING:
     from ConfigSpace.read_and_write.dictionary import _Decoder, _Encoder
 
 
-def _parse_hyperparameters_from_dict(items: dict[str, Any]) -> Iterator[Hyperparameter]:
+def _parse_hyperparameters_from_dict(
+    items: Mapping[str, Any],
+) -> Iterator[Hyperparameter]:
     for name, hp in items.items():
         # Anything that is a Hyperparameter already is good
         # Note that we discard the key name in this case in favour
@@ -130,17 +132,17 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
 
     def __init__(
         self,
-        name: str | dict | None = None,
+        name: str | Mapping[str, Any] | None = None,
         seed: int | None = None,
         meta: dict | None = None,
         *,
         space: None
         | (
-            dict[
+            Mapping[
                 str,
                 tuple[int, int]
                 | tuple[float, float]
-                | list[Any]
+                | Sequence[Any]
                 | int
                 | float
                 | str
@@ -175,11 +177,13 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
 
         """
         # If first arg is a dict, we assume this to be `space`
-        if isinstance(name, dict):
+        if isinstance(name, Mapping):
             space = name
-            name = None
+            _name = None
+        else:
+            _name = name
 
-        self.name = name
+        self.name = _name
         self.meta = meta
         self.random = np.random.RandomState(seed)
         self.dag = DAG()
@@ -348,7 +352,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         for condition in configuration_space.conditions:
             new_condition = copy.copy(condition)
             cond_dlcs = (
-                new_condition.get_descendant_literal_conditions()
+                new_condition.dlcs
                 if isinstance(new_condition, Conjunction)
                 else [new_condition]
             )
@@ -691,7 +695,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         for condition in conditions:
             if isinstance(condition, Conjunction):
                 conjunction_type = type(condition)
-                children = condition.get_descendant_literal_conditions()
+                children = condition.dlcs
                 substituted_children = (
                     ConfigurationSpace.substitute_hyperparameters_in_conditions(
                         children,
@@ -860,21 +864,17 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
     # TODO: Move these into a single validate function
     def _check_default_configuration(self) -> Configuration:
         # Check if adding that hyperparameter leads to an illegal default configuration
-        instantiated_hyperparameters: dict[str, Any] = {}
+        values: dict[str, Any] = {}
         for hp_name, hp in self.items():
             active: bool = True
             for condition in self.parent_conditions_of[hp_name]:
                 if isinstance(condition, Conjunction):
-                    parent_names = [
-                        c.parent.name
-                        for c in condition.get_descendant_literal_conditions()
-                    ]
+                    parent_names = [c.parent.name for c in condition.dlcs]
                 else:
                     parent_names = [condition.parent.name]
 
                 parents = {
-                    parent_name: instantiated_hyperparameters[parent_name]
-                    for parent_name in parent_names
+                    parent_name: values[parent_name] for parent_name in parent_names
                 }
 
                 # OPTIM: Can speed up things here by just breaking early?
@@ -884,11 +884,11 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
             if not active:
                 # the evaluate above will use compares so we need
                 # to use NotSet and replace later....
-                instantiated_hyperparameters[hp_name] = NotSet
+                values[hp_name] = NotSet
             else:
-                instantiated_hyperparameters[hp_name] = hp.default_value
+                values[hp_name] = hp.default_value
 
-        return Configuration(self, values=instantiated_hyperparameters)
+        return Configuration(self, values=values)
 
     def _check_configuration_rigorous(
         self,

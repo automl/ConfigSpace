@@ -97,10 +97,7 @@ class Condition(ABC):
         return False
 
     @abstractmethod
-    def satisfied_by_value(
-        self,
-        instantiated_parent_hyperparameter: dict[str, Any],
-    ) -> bool:
+    def satisfied_by_value(self, values: dict[str, Any]) -> bool:
         pass
 
     @abstractmethod
@@ -173,11 +170,8 @@ class _BinaryOpCondition(Condition):
         vector = arr[self.parent_vector_id]
         return self._VECTOR_OP(vector, self.vector_value)
 
-    def satisfied_by_value(
-        self,
-        instantiated_parent_hyperparameter: dict[str, Any],
-    ) -> bool:
-        value = instantiated_parent_hyperparameter[self.parent.name]
+    def satisfied_by_value(self, values: dict[str, Any]) -> bool:
+        value = values[self.parent.name]
         if value is NotSet:
             return False
 
@@ -209,7 +203,7 @@ class EqualsCondition(_BinaryOpCondition):
     ...     "b": (1.0, 8.0)
     ... })
     >>> cond = EqualsCondition(cs['b'], cs['a'], 1)
-    >>> cs.add_condition(cond)
+    >>> cs.add(cond)
     b | a == 1
 
     Parameters
@@ -242,7 +236,7 @@ class NotEqualsCondition(_BinaryOpCondition):
     ...     "b": (1.0, 8.0)
     ... })
     >>> cond = NotEqualsCondition(cs['b'], cs['a'], 1)
-    >>> cs.add_condition(cond)
+    >>> cs.add(cond)
     b | a != 1
 
     Parameters
@@ -276,7 +270,7 @@ class LessThanCondition(_BinaryOpCondition):
     ...    "b": (1.0, 8.0)
     ... })
     >>> cond = LessThanCondition(cs['b'], cs['a'], 5)
-    >>> cs.add_condition(cond)
+    >>> cs.add(cond)
     b | a < 5
 
     Parameters
@@ -309,7 +303,7 @@ class GreaterThanCondition(_BinaryOpCondition):
     ...     "b": (1.0, 8.0)
     ... })
     >>> cond = GreaterThanCondition(cs['b'], cs['a'], 5)
-    >>> cs.add_condition(cond)
+    >>> cs.add(cond)
     b | a > 5
 
     Parameters
@@ -342,7 +336,7 @@ class InCondition(Condition):
     ...     "b": (1.0, 8.0)
     ... })
     >>> cond = InCondition(cs['b'], cs['a'], [1, 2, 3, 4])
-    >>> cs.add_condition(cond)
+    >>> cs.add(cond)
     b | a in {1, 2, 3, 4}
 
     Parameters
@@ -395,11 +389,8 @@ class InCondition(Condition):
         vector = arr[self.parent_vector_id]
         return np.isin(vector, self.vector_values)
 
-    def satisfied_by_value(
-        self,
-        instantiated_parent_hyperparameter: dict[str, Any],
-    ) -> bool:
-        value = instantiated_parent_hyperparameter[self.parent.name]
+    def satisfied_by_value(self, values: dict[str, Any]) -> bool:
+        value = values[self.parent.name]
         if value is NotSet:
             return False
         return bool(value in self.values)
@@ -517,7 +508,7 @@ class Conjunction:
         )
 
     @abstractmethod
-    def satisfied_by_value(self, instantiated_hyperparameters: dict[str, Any]) -> bool:
+    def satisfied_by_value(self, values: dict[str, Any]) -> bool:
         pass
 
     @abstractmethod
@@ -556,7 +547,7 @@ class AndConjunction(Conjunction):
         ... })
         >>> less_cond = LessThanCondition(cs['c'], cs['a'], 10)
         >>> greater_cond = GreaterThanCondition(cs['c'], cs['b'], 5)
-        >>> cs.add_condition(AndConjunction(less_cond, greater_cond))
+        >>> cs.add(AndConjunction(less_cond, greater_cond))
         (c | a < 10 && c | b > 5)
 
         Parameters
@@ -578,12 +569,8 @@ class AndConjunction(Conjunction):
         retval.write(")")
         return retval.getvalue()
 
-    def satisfied_by_value(self, instantiated_hyperparameters: dict[str, Any]) -> bool:
-        for c in self.components:
-            if not c.satisfied_by_value(instantiated_hyperparameters):
-                return False
-
-        return True
+    def satisfied_by_value(self, values: dict[str, Any]) -> bool:
+        return all(c.satisfied_by_value(values) for c in self.components)
 
     def satisfied_by_vector(self, vector: Array[f64]) -> bool:
         for c in self.components:  # noqa: SIM110
@@ -625,7 +612,7 @@ class OrConjunction(Conjunction):
         ... })
         >>> less_cond = LessThanCondition(cs['c'], cs['a'], 10)
         >>> greater_cond = GreaterThanCondition(cs['c'], cs['b'], 5)
-        >>> cs.add_condition(OrConjunction(less_cond, greater_cond))
+        >>> cs.add(OrConjunction(less_cond, greater_cond))
         (c | a < 10 || c | b > 5)
 
         Parameters
@@ -647,19 +634,11 @@ class OrConjunction(Conjunction):
         retval.write(")")
         return retval.getvalue()
 
-    def satisfied_by_value(self, instantiated_hyperparameters: dict[str, Any]) -> bool:
-        for c in self.components:
-            if c.satisfied_by_value(instantiated_hyperparameters):
-                return True
-
-        return False
+    def satisfied_by_value(self, values: dict[str, Any]) -> bool:
+        return any(c.satisfied_by_value(values) for c in self.components)
 
     def satisfied_by_vector(self, vector: Array[f64]) -> bool:
-        for c in self.components:  # noqa: SIM110
-            if c.satisfied_by_vector(vector):
-                return True
-
-        return False
+        return any(c.satisfied_by_vector(vector) for c in self.components)
 
     def satisfied_by_vector_array(self, arr: Array[f64]) -> Mask:
         satisfied: Mask = np.zeros(arr.shape[1], dtype=np.bool_)

@@ -141,7 +141,7 @@ First, lets start with building the two individual subspaces where for ``A``, we
             )
 
             # We have to make sure "kernel_floops" is only active when the kernel is "floops"
-            cs.add_condition(EqualsCondition(cs_B["kernel_floops"], cs_B["kernel"], "flooper"))
+            cs.add(EqualsCondition(cs_B["kernel_floops"], cs_B["kernel"], "flooper"))
 
             return cs
 

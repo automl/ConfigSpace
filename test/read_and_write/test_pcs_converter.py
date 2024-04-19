@@ -72,21 +72,21 @@ lr = UniformFloatHyperparameter("lr", 0.0001, 1.0)
 lr_condition = EqualsCondition(lr, classifier, "nn")
 preprocessing = CategoricalHyperparameter("preprocessing", ["None", "pca"])
 conditional_space = ConfigurationSpace()
-conditional_space.add_hyperparameter(preprocessing)
-conditional_space.add_hyperparameter(classifier)
-conditional_space.add_hyperparameter(kernel)
-conditional_space.add_hyperparameter(C)
-conditional_space.add_hyperparameter(neurons)
-conditional_space.add_hyperparameter(lr)
-conditional_space.add_hyperparameter(degree)
-conditional_space.add_hyperparameter(gamma)
+conditional_space.add(preprocessing)
+conditional_space.add(classifier)
+conditional_space.add(kernel)
+conditional_space.add(C)
+conditional_space.add(neurons)
+conditional_space.add(lr)
+conditional_space.add(degree)
+conditional_space.add(gamma)
 
-conditional_space.add_condition(C_condition)
-conditional_space.add_condition(kernel_condition)
-conditional_space.add_condition(lr_condition)
-conditional_space.add_condition(neurons_condition)
-conditional_space.add_condition(degree_condition)
-conditional_space.add_condition(gamma_condition)
+conditional_space.add(C_condition)
+conditional_space.add(kernel_condition)
+conditional_space.add(lr_condition)
+conditional_space.add(neurons_condition)
+conditional_space.add(degree_condition)
+conditional_space.add(gamma_condition)
 
 float_a = UniformFloatHyperparameter("float_a", -1.23, 6.45)
 e_float_a = UniformFloatHyperparameter("e_float_a", 0.5e-2, 4.5e06)
@@ -96,13 +96,13 @@ int_log_a = UniformIntegerHyperparameter("int_log_a", 1, 6, log=True)
 cat_a = CategoricalHyperparameter("cat_a", ["a", "b", "c", "d"])
 crazy = CategoricalHyperparameter(r"@.:;/\?!$%&_-<>*+1234567890", ["const"])
 easy_space = ConfigurationSpace()
-easy_space.add_hyperparameter(float_a)
-easy_space.add_hyperparameter(e_float_a)
-easy_space.add_hyperparameter(int_a)
-easy_space.add_hyperparameter(log_a)
-easy_space.add_hyperparameter(int_log_a)
-easy_space.add_hyperparameter(cat_a)
-easy_space.add_hyperparameter(crazy)
+easy_space.add(float_a)
+easy_space.add(e_float_a)
+easy_space.add(int_a)
+easy_space.add(log_a)
+easy_space.add(int_log_a)
+easy_space.add(cat_a)
+easy_space.add(crazy)
 
 
 def test_read_configuration_space_basic():
@@ -180,7 +180,7 @@ def test_write_illegal_argument():
 def test_write_int():
     expected = "int_a [-1, 6] [2]i"
     cs = ConfigurationSpace()
-    cs.add_hyperparameter(int_a)
+    cs.add(int_a)
     value = pcs.write(cs)
     assert expected == value
 
@@ -188,7 +188,7 @@ def test_write_int():
 def test_write_log_int():
     expected = "int_log_a [1, 6] [2]il"
     cs = ConfigurationSpace()
-    cs.add_hyperparameter(int_log_a)
+    cs.add(int_log_a)
     value = pcs.write(cs)
     assert expected == value
 
@@ -196,7 +196,7 @@ def test_write_log_int():
 def test_write_log10():
     expected = "a [10.0, 1000.0] [100.0]l"
     cs = ConfigurationSpace()
-    cs.add_hyperparameter(UniformFloatHyperparameter("a", 10, 1000, log=True))
+    cs.add(UniformFloatHyperparameter("a", 10, 1000, log=True))
     value = pcs.write(cs)
     assert expected == value
 
@@ -209,13 +209,13 @@ def test_build_forbidden():
     cs = ConfigurationSpace()
     a = CategoricalHyperparameter("a", ["a", "b", "c"], "a")
     b = CategoricalHyperparameter("b", ["a", "b", "c"], "c")
-    cs.add_hyperparameter(a)
-    cs.add_hyperparameter(b)
+    cs.add(a)
+    cs.add(b)
     fb = ForbiddenAndConjunction(
         ForbiddenInClause(a, ["a", "b"]),
         ForbiddenInClause(b, ["a", "b"]),
     )
-    cs.add_forbidden_clause(fb)
+    cs.add(fb)
     value = pcs.write(cs)
     assert expected in value
 
@@ -296,7 +296,7 @@ def test_write_new_illegal_argument():
 def test_write_new_int():
     expected = "int_a integer [-1, 6] [2]"
     cs = ConfigurationSpace()
-    cs.add_hyperparameter(int_a)
+    cs.add(int_a)
     value = pcs_new.write(cs)
     assert expected == value
 
@@ -304,7 +304,7 @@ def test_write_new_int():
 def test_write_new_log_int():
     expected = "int_log_a integer [1, 6] [2]log"
     cs = ConfigurationSpace()
-    cs.add_hyperparameter(int_log_a)
+    cs.add(int_log_a)
     value = pcs_new.write(cs)
     assert expected == value
 
@@ -312,7 +312,7 @@ def test_write_new_log_int():
 def test_write_new_log10():
     expected = "a real [10.0, 1000.0] [100.0]log"
     cs = ConfigurationSpace()
-    cs.add_hyperparameter(UniformFloatHyperparameter("a", 10, 1000, log=True))
+    cs.add(UniformFloatHyperparameter("a", 10, 1000, log=True))
     value = pcs_new.write(cs)
     assert expected == value
 
@@ -325,13 +325,13 @@ def test_build_new_forbidden():
     cs = ConfigurationSpace()
     a = CategoricalHyperparameter("a", ["a", "b", "c"], "a")
     b = CategoricalHyperparameter("b", ["a", "b", "c"], "c")
-    cs.add_hyperparameter(a)
-    cs.add_hyperparameter(b)
+    cs.add(a)
+    cs.add(b)
     fb = ForbiddenAndConjunction(
         ForbiddenInClause(a, ["a", "b"]),
         ForbiddenInClause(b, ["a", "b"]),
     )
-    cs.add_forbidden_clause(fb)
+    cs.add(fb)
     value = pcs_new.write(cs)
     assert expected == value
 
@@ -341,10 +341,10 @@ def test_build_new_GreaterThanFloatCondition():
     cs = ConfigurationSpace()
     a = UniformFloatHyperparameter("a", 0, 1, 0.5)
     b = UniformIntegerHyperparameter("b", 0, 10, 5)
-    cs.add_hyperparameter(a)
-    cs.add_hyperparameter(b)
+    cs.add(a)
+    cs.add(b)
     cond = GreaterThanCondition(a, b, 5)
-    cs.add_condition(cond)
+    cs.add(cond)
 
     value = pcs_new.write(cs)
     assert expected == value
@@ -353,10 +353,10 @@ def test_build_new_GreaterThanFloatCondition():
     cs = ConfigurationSpace()
     a = UniformFloatHyperparameter("a", 0, 1, 0.5)
     b = UniformFloatHyperparameter("b", 0, 10, 5)
-    cs.add_hyperparameter(a)
-    cs.add_hyperparameter(b)
+    cs.add(a)
+    cs.add(b)
     cond = GreaterThanCondition(a, b, 5)
-    cs.add_condition(cond)
+    cs.add(cond)
 
     value = pcs_new.write(cs)
     assert expected == value
@@ -367,10 +367,10 @@ def test_build_new_GreaterThanIntCondition():
     cs = ConfigurationSpace()
     a = UniformFloatHyperparameter("a", 0, 1, 0.5)
     b = UniformIntegerHyperparameter("b", 0, 10, 5)
-    cs.add_hyperparameter(a)
-    cs.add_hyperparameter(b)
+    cs.add(a)
+    cs.add(b)
     cond = GreaterThanCondition(b, a, 0.5)
-    cs.add_condition(cond)
+    cs.add(cond)
 
     value = pcs_new.write(cs)
     assert expected == value
@@ -379,10 +379,10 @@ def test_build_new_GreaterThanIntCondition():
     cs = ConfigurationSpace()
     a = UniformIntegerHyperparameter("a", 0, 10, 5)
     b = UniformIntegerHyperparameter("b", 0, 10, 5)
-    cs.add_hyperparameter(a)
-    cs.add_hyperparameter(b)
+    cs.add(a)
+    cs.add(b)
     cond = GreaterThanCondition(b, a, 5)
-    cs.add_condition(cond)
+    cs.add(cond)
 
     value = pcs_new.write(cs)
     assert expected == value
@@ -395,7 +395,7 @@ def test_read_new_configuration_space_forbidden():
     cat_hp_str = CategoricalHyperparameter("cat_hp_str", ["a", "b", "c"], "b")
     ord_hp_str = OrdinalHyperparameter("ord_hp_str", ["a", "b", "c"], "b")
 
-    cs_with_forbidden.add_hyperparameters([int_hp, float_hp, cat_hp_str, ord_hp_str])
+    cs_with_forbidden.add([int_hp, float_hp, cat_hp_str, ord_hp_str])
 
     int_hp_forbidden = ForbiddenAndConjunction(ForbiddenEqualsClause(int_hp, 1))
 
@@ -412,7 +412,7 @@ def test_read_new_configuration_space_forbidden():
     ord_hp_float_forbidden = ForbiddenAndConjunction(
         ForbiddenEqualsClause(ord_hp_str, "a"),
     )
-    cs_with_forbidden.add_forbidden_clauses(
+    cs_with_forbidden.add(
         [
             int_hp_forbidden,
             float_hp_forbidden,
@@ -442,9 +442,8 @@ def test_write_new_configuration_space_forbidden_relation():
     float_hp = UniformFloatHyperparameter("float_hp", 0.0, 50.0, 30.0)
 
     forbidden = ForbiddenGreaterThanRelation(int_hp, float_hp)
-    cs_with_forbidden.add_hyperparameters([int_hp, float_hp])
-    cs_with_forbidden.add_forbidden_clause(forbidden)
-
+    cs_with_forbidden.add([int_hp, float_hp])
+    cs_with_forbidden.add(forbidden)
     with pytest.raises(TypeError):
         pcs_new.write({"configuration_space": cs_with_forbidden})
 
@@ -491,20 +490,20 @@ def test_read_new_configuration_space_complex_conditionals():
     another_condition = OrConjunction(and1, and2)
 
     complex_conditional_space = ConfigurationSpace()
-    complex_conditional_space.add_hyperparameter(classi)
-    complex_conditional_space.add_hyperparameter(knn_weights)
-    complex_conditional_space.add_hyperparameter(weather)
-    complex_conditional_space.add_hyperparameter(temperature)
-    complex_conditional_space.add_hyperparameter(rain)
-    complex_conditional_space.add_hyperparameter(gloves)
-    complex_conditional_space.add_hyperparameter(heur1)
-    complex_conditional_space.add_hyperparameter(heur2)
-    complex_conditional_space.add_hyperparameter(heur_order)
+    complex_conditional_space.add(classi)
+    complex_conditional_space.add(knn_weights)
+    complex_conditional_space.add(weather)
+    complex_conditional_space.add(temperature)
+    complex_conditional_space.add(rain)
+    complex_conditional_space.add(gloves)
+    complex_conditional_space.add(heur1)
+    complex_conditional_space.add(heur2)
+    complex_conditional_space.add(heur_order)
 
-    complex_conditional_space.add_condition(gloves_condition)
-    complex_conditional_space.add_condition(heur_condition)
-    complex_conditional_space.add_condition(Cl_condition)
-    complex_conditional_space.add_condition(another_condition)
+    complex_conditional_space.add(gloves_condition)
+    complex_conditional_space.add(heur_condition)
+    complex_conditional_space.add(Cl_condition)
+    complex_conditional_space.add(another_condition)
 
     complex_cs = []
     complex_cs.append(
@@ -596,7 +595,7 @@ def test_read_write():
 def test_write_categorical_with_weights():
     cat = CategoricalHyperparameter("a", ["a", "b"], weights=[0.3, 0.7])
     cs = ConfigurationSpace()
-    cs.add_hyperparameter(cat)
+    cs.add(cat)
     with pytest.raises(ValueError, match="The pcs format does not support"):
         pcs.write(cs)
 
@@ -622,19 +621,19 @@ def test_write_numerical_cond_and_forb():
         default_value=5.0,
     )
     hi1 = UniformIntegerHyperparameter(name="hi1", lower=1, upper=10, default_value=5)
-    cs.add_hyperparameters([hc1, hc2, hf1, hi1])
+    cs.add([hc1, hc2, hf1, hi1])
     c1 = InCondition(child=hc1, parent=hc2, values=[True])
     c2 = InCondition(child=hc2, parent=hi1, values=[1, 2, 3, 4])
     c3 = GreaterThanCondition(hi1, hf1, 6.0)
     c4 = EqualsCondition(hi1, hf1, 8.0)
     c5 = AndConjunction(c3, c4)
 
-    cs.add_conditions([c1, c2, c5])
+    cs.add([c1, c2, c5])
 
     f1 = ForbiddenEqualsClause(hc1, False)
     f2 = ForbiddenEqualsClause(hf1, 2.0)
     f3 = ForbiddenEqualsClause(hi1, 3)
-    cs.add_forbidden_clauses([ForbiddenAndConjunction(f2, f3), f1])
+    cs.add([ForbiddenAndConjunction(f2, f3), f1])
     expected = (
         "hf1 real [1.0, 10.0] [5.0]\n"
         + "hi1 integer [1, 10] [5]\n"

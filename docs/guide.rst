@@ -109,7 +109,7 @@ conditions on them.
 >>> gamma = Float('gamma', bounds=(1e-5, 1e2), default=1, log=True)
 >>>
 >>> cs = ConfigurationSpace()
->>> cs.add_hyperparameters([kernel_type, degree, coef0, gamma])
+>>> cs.add([kernel_type, degree, coef0, gamma])
 [kernel_type, Type: Categorical, Choices: {linear, poly, rbf, sigmoid}, ...]
 
 First, we define the conditions. Conditions work by constraining a child
@@ -146,7 +146,7 @@ that ``gamma`` is valid if ``kernel_type in ["rbf", "poly", "sigmoid"]`` which w
 
 Finally, we add the conditions to the configuration space
 
->>> cs.add_conditions([cond_1, cond_2, cond_3])
+>>> cs.add([cond_1, cond_2, cond_3])
 [degree | kernel_type == 'poly', (coef0 | kernel_type == 'poly' || coef0 | ...), ...]
 
 .. note::
@@ -191,7 +191,7 @@ First, we add these three new hyperparameters to the configuration space.
 >>> penalty = Categorical("penalty", ["l1", "l2"], default="l2")
 >>> loss = Categorical("loss", ["hinge", "squared_hinge"], default="squared_hinge")
 >>> dual = Constant("dual", "False")
->>> cs.add_hyperparameters([penalty, loss, dual])
+>>> cs.add([penalty, loss, dual])
 [penalty, Type: Categorical, Choices: {l1, l2}, Default: l2, ...]
 
 Now, we want to forbid the following hyperparameter combinations:
@@ -218,7 +218,7 @@ Now, we want to forbid the following hyperparameter combinations:
 
 In the last step, we add them to the configuration space object:
 
->>> cs.add_forbidden_clauses([penalty_and_loss, constant_penalty_and_loss, penalty_and_dual])
+>>> cs.add([penalty_and_loss, constant_penalty_and_loss, penalty_and_dual])
 [(Forbidden: penalty == 'l1' && Forbidden: loss == 'hinge'), ...]
 
 

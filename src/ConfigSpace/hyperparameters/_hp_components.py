@@ -39,7 +39,7 @@ class _Transformer(Protocol[DType]):
 
     def legal_vector_single(self, vector: np.number) -> bool: ...
 
-    def legal_value_single(self, vector: np.number) -> bool: ...
+    def legal_value_single(self, value: np.number) -> bool: ...
 
 
 class _Neighborhood(Protocol):
@@ -325,8 +325,8 @@ class TransformerConstant(_Transformer[DType]):
     def legal_vector(self, vector: Array[f64]) -> Mask:
         return vector == self.vector_value_yes  # type: ignore
 
-    def legal_value_single(self, vector: np.number) -> bool:
-        return vector == self.value  # type: ignore
+    def legal_value_single(self, value: Any) -> bool:
+        return value == self.value  # type: ignore
 
     def legal_vector_single(self, vector: np.number) -> bool:
         return vector == self.vector_value_yes  # type: ignore

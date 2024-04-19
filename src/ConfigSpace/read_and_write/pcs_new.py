@@ -434,7 +434,7 @@ def read(pcs_string: Iterable[str]) -> ConfigurationSpace:
         import ConfigSpace.hyperparameters as CSH
         from ConfigSpace.read_and_write import pcs_new
         cs = ConfigurationSpace()
-        cs.add_hyperparameter(CSH.CategoricalHyperparameter('a', choices=[1, 2, 3]))
+        cs.add(CSH.CategoricalHyperparameter('a', choices=[1, 2, 3]))
         with open('configspace.pcs_new', 'w') as f:
              f.write(pcs_new.write(cs))
 
@@ -738,7 +738,7 @@ def write(configuration_space: ConfigurationSpace) -> str:
         >>> import ConfigSpace.hyperparameters as CSH
         >>> from ConfigSpace.read_and_write import pcs_new
         >>> cs = CS.ConfigurationSpace()
-        >>> cs.add_hyperparameter(CSH.CategoricalHyperparameter('a', choices=[1, 2, 3]))
+        >>> cs.add(CSH.CategoricalHyperparameter('a', choices=[1, 2, 3]))
         a, Type: Categorical, Choices: {1, 2, 3}, Default: 1
 
         <BLANKLINE>

@@ -88,10 +88,10 @@ Maximum flexibility with conditionals, see :ref:`forbidden clauses <Forbidden cl
 >>> cond = EqualsCondition(f, c, "a")
 ...
 >>> # Add them explicitly to the configuration space
->>> cs.add_hyperparameters([c, f])
+>>> cs.add([c, f])
 [c1, Type: Categorical, Choices: {a, b}, Default: a, f1, Type: UniformFloat, Range: [1.0, 10.0], Default: 5.5]
 
->>> cs.add_condition(cond)
+>>> cs.add(cond)
 f1 | c1 == 'a'
 
 
