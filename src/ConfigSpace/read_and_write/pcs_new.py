@@ -792,7 +792,7 @@ def write(configuration_space: ConfigurationSpace) -> str:
     for condition in configuration_space.conditions:
         if condition_lines.tell() > 0:
             condition_lines.write("\n")
-        if isinstance(condition, AndConjunction | OrConjunction):
+        if isinstance(condition, (AndConjunction, OrConjunction)):
             condition_lines.write(build_conjunction(condition))
         elif isinstance(condition, Condition):
             condition_lines.write(build_condition(condition))

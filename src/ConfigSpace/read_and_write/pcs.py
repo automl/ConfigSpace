@@ -211,7 +211,7 @@ def build_forbidden(clause: ForbiddenLike) -> str:
             f"'{accepted}', got '{type(clause)}'",
         )
 
-    if not isinstance(clause, ForbiddenEqualsClause | ForbiddenAndConjunction):
+    if not isinstance(clause, (ForbiddenEqualsClause, ForbiddenAndConjunction)):
         raise NotImplementedError(
             "SMAC cannot handle '{}' of type {}".format(*str(clause)),
             (type(clause)),
