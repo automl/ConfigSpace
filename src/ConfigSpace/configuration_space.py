@@ -689,7 +689,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         list[Condition | Conjunction]:
             The list of conditions, adjusted to fit the new ConfigurationSpace
         """
-        new_conditions = []
+        new_conditions: list[ConditionLike] = []
         for condition in conditions:
             if isinstance(condition, Conjunction):
                 conjunction_type = type(condition)
@@ -704,34 +704,15 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
                 new_conditions.append(substituted_conjunction)
 
             elif isinstance(condition, Condition):
-                condition_type = type(condition)
-                child_name = condition.child.name
-                parent_name = condition.parent.name
-                new_child = new_configspace[child_name]
-                new_parent = new_configspace[parent_name]
-
-                # TODO: Fix this up
-                if hasattr(condition, "values"):
-                    condition_arg = condition.values
-                    substituted_condition = condition_type(
-                        child=new_child,
-                        parent=new_parent,
-                        values=condition_arg,
-                    )
-                elif hasattr(condition, "value"):
-                    condition_arg = condition.value
-                    substituted_condition = condition_type(
-                        child=new_child,
-                        parent=new_parent,
-                        value=condition_arg,
-                    )
-                else:
-                    raise AttributeError(
-                        f"Did not find the expected attribute in condition"
-                        f" {type(condition)}.",
-                    )
-
-                new_conditions.append(substituted_condition)
+                new_conditions.append(
+                    condition.__class__(
+                        **{
+                            **condition.to_dict(),
+                            "parent": new_configspace[condition.parent.name],
+                            "child": new_configspace[condition.child.name],
+                        },
+                    ),
+                )
             else:
                 raise TypeError(
                     f"Did not expect the supplied condition type {type(condition)}.",
@@ -763,7 +744,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         list[ForbiddenLike]:
             The list of forbidden clauses, adjusted to fit the new ConfigurationSpace
         """
-        new_forbiddens = []
+        new_forbiddens: list[ForbiddenLike] = []
         for forbidden in forbiddens:
             if isinstance(forbidden, ForbiddenConjunction):
                 substituted_children = (
@@ -880,10 +861,10 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
             active: bool = True
             for condition in self.parent_conditions_of[hp_name]:
                 if isinstance(condition, Conjunction):
-                    parent_names = (
+                    parent_names = [
                         c.parent.name
                         for c in condition.get_descendant_literal_conditions()
-                    )
+                    ]
                 else:
                     parent_names = [condition.parent.name]
 
