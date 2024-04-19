@@ -427,7 +427,7 @@ class Conjunction:
 
         # Test the classes
         for idx, component in enumerate(self.components):
-            if not isinstance(component, Condition | Conjunction):
+            if not isinstance(component, (Condition, Conjunction)):
                 raise TypeError(
                     "Argument #%d is not an instance of Condition or Conjunction, "
                     "but %s" % (idx, type(component)),

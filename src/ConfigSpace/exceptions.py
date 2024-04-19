@@ -80,9 +80,9 @@ class HyperparameterIndexError(KeyError):
         self.space = space
 
     def __str__(self) -> str:
-        raise KeyError(
+        return (
             f"Hyperparameter #'{self.idx}' does not exist in this space."
-            f"\n{self.space}",
+            f"\n{self.space}"
         )
 
 

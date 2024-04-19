@@ -57,7 +57,7 @@ def _pop_q(item: dict[str, Any]) -> dict[str, Any]:
 def _decode_uniform_float(
     item: dict[str, Any],
     cs: ConfigurationSpace,  # noqa: ARG001
-    decode: _Decoder,
+    decode: _Decoder,  # noqa: ARG001
 ) -> UniformFloatHyperparameter:
     item = _pop_q(item)
     return UniformFloatHyperparameter(**item)
@@ -66,7 +66,7 @@ def _decode_uniform_float(
 def _decode_uniform_int(
     item: dict[str, Any],
     cs: ConfigurationSpace,  # noqa: ARG001
-    decode: _Decoder,
+    decode: _Decoder,  # noqa: ARG001
 ) -> UniformIntegerHyperparameter:
     item = _pop_q(item)
     return UniformIntegerHyperparameter(**item)
@@ -75,7 +75,7 @@ def _decode_uniform_int(
 def _decode_normal_int(
     item: dict[str, Any],
     cs: ConfigurationSpace,  # noqa: ARG001
-    decode: _Decoder,
+    decode: _Decoder,  # noqa: ARG001
 ) -> NormalIntegerHyperparameter:
     item = _pop_q(item)
     return NormalIntegerHyperparameter(**item)
@@ -84,7 +84,7 @@ def _decode_normal_int(
 def _decode_normal_float(
     item: dict[str, Any],
     cs: ConfigurationSpace,  # noqa: ARG001
-    decode: _Decoder,
+    decode: _Decoder,  # noqa: ARG001
 ) -> NormalFloatHyperparameter:
     item = _pop_q(item)
     return NormalFloatHyperparameter(**item)
@@ -93,7 +93,7 @@ def _decode_normal_float(
 def _decode_beta_int(
     item: dict[str, Any],
     cs: ConfigurationSpace,  # noqa: ARG001
-    decode: _Decoder,
+    decode: _Decoder,  # noqa: ARG001
 ) -> BetaIntegerHyperparameter:
     item = _pop_q(item)
     return BetaIntegerHyperparameter(**item)
@@ -102,7 +102,7 @@ def _decode_beta_int(
 def _decode_beta_float(
     item: dict[str, Any],
     cs: ConfigurationSpace,  # noqa: ARG001
-    decode: _Decoder,
+    decode: _Decoder,  # noqa: ARG001
 ) -> BetaFloatHyperparameter:
     item = _pop_q(item)
     return BetaFloatHyperparameter(**item)
@@ -111,7 +111,7 @@ def _decode_beta_float(
 def _decode_categorical(
     item: dict[str, Any],
     cs: ConfigurationSpace,  # noqa: ARG001
-    decode: _Decoder,
+    decode: _Decoder,  # noqa: ARG001
 ) -> CategoricalHyperparameter:
     return CategoricalHyperparameter(**item)
 
@@ -119,7 +119,7 @@ def _decode_categorical(
 def _decode_ordinal(
     item: dict[str, Any],
     cs: ConfigurationSpace,  # noqa: ARG001
-    decode: _Decoder,
+    decode: _Decoder,  # noqa: ARG001
 ) -> OrdinalHyperparameter:
     return OrdinalHyperparameter(**item)
 
@@ -127,7 +127,7 @@ def _decode_ordinal(
 def _decode_constant(
     item: dict[str, Any],
     cs: ConfigurationSpace,  # noqa: ARG001
-    decode: _Decoder,
+    decode: _Decoder,  # noqa: ARG001
 ) -> Constant:
     return Constant(**item)
 
@@ -135,7 +135,7 @@ def _decode_constant(
 def _decode_equals_condition(
     item: dict[str, Any],
     cs: ConfigurationSpace,
-    decode: _Decoder,
+    decode: _Decoder,  # noqa: ARG001
 ) -> EqualsCondition:
     return EqualsCondition(
         child=cs[item["child"]],
@@ -147,7 +147,7 @@ def _decode_equals_condition(
 def _decode_not_equals_condition(
     item: dict[str, Any],
     cs: ConfigurationSpace,
-    decode: _Decoder,
+    decode: _Decoder,  # noqa: ARG001
 ) -> NotEqualsCondition:
     return NotEqualsCondition(
         child=cs[item["child"]],
@@ -159,7 +159,7 @@ def _decode_not_equals_condition(
 def _decode_less_than_condition(
     item: dict[str, Any],
     cs: ConfigurationSpace,
-    decode: _Decoder,
+    decode: _Decoder,  # noqa: ARG001
 ) -> LessThanCondition:
     return LessThanCondition(
         child=cs[item["child"]],
@@ -171,7 +171,7 @@ def _decode_less_than_condition(
 def _decode_greater_than_condition(
     item: dict[str, Any],
     cs: ConfigurationSpace,
-    decode: _Decoder,
+    decode: _Decoder,  # noqa: ARG001
 ) -> GreaterThanCondition:
     return GreaterThanCondition(
         child=cs[item["child"]],

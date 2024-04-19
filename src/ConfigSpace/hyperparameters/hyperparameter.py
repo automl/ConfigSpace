@@ -17,7 +17,7 @@ from typing_extensions import Self, deprecated
 
 import numpy as np
 
-from ConfigSpace.types import DType, NotSet, _NotSet, f64, i64
+from ConfigSpace.types import DType, f64, i64
 
 if TYPE_CHECKING:
     from ConfigSpace.hyperparameters._distributions import Distribution

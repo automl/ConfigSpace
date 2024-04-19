@@ -42,8 +42,8 @@ def write(
     encoders: dict[type, tuple[str, Callable[[Any, encoders], dict]]]
         Additional encoders to include where they key is a type to which the encoder
         applies to and the value is a tuple, where the first element is the type name
-        to include in the dictionary and the second element is the encoder function which
-        gives back a serializable dictionary.
+        to include in the dictionary and the second element is the encoder function
+        which gives back a serializable dictionary.
 
     Returns
     -------
