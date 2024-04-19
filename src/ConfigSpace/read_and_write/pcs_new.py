@@ -517,20 +517,23 @@ def read(pcs_string: Iterable[str]) -> ConfigurationSpace:
             name = param_list[0]
             if param_list[1] == "integer":
                 paramtype = "int"
+                value_cast = int
             elif param_list[1] == "real":
                 paramtype = "float"
+                value_cast = float
             else:
                 paramtype = None
+                value_cast = lambda x: x
 
             if paramtype in ["int", "float"]:
                 log = param_list[10:]
                 param_list = param_list[:10]
                 if len(log) > 0:
                     log = log[0]
-                lower = float(param_list[3])  # type: ignore
-                upper = float(param_list[5])  # type: ignore
+                lower = value_cast(param_list[3])  # type: ignore
+                upper = value_cast(param_list[5])  # type: ignore
                 log_on = "log" in log
-                default_value = float(param_list[8])  # type: ignore
+                default_value = value_cast(param_list[8])  # type: ignore
                 param = create[paramtype](
                     name=name,
                     lower=lower,
