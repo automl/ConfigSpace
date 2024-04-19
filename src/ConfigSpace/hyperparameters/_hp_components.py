@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Any, ClassVar, Protocol, TypeVar
+from typing import TYPE_CHECKING, Any, Protocol, TypeVar
 
 import numpy as np
 
@@ -26,11 +26,8 @@ T_contra = TypeVar("T_contra", contravariant=True)
 
 
 class _Transformer(Protocol[DType]):
-    @property
-    def lower_vectorized(self) -> f64: ...
-
-    @property
-    def upper_vectorized(self) -> f64: ...
+    lower_vectorized: f64
+    upper_vectorized: f64
 
     def to_value(self, vector: Array[f64]) -> Array[DType]: ...
 
@@ -125,14 +122,13 @@ class TransformerSeq(_Transformer[Any]):
 
 @dataclass
 class UnitScaler(_Transformer[DType]):
-    lower_vectorized: ClassVar[f64] = f64(0.0)
-    upper_vectorized: ClassVar[f64] = f64(1.0)
-
     lower_value: DType
     upper_value: DType
     dtype: type[DType]
     log: bool = False
 
+    lower_vectorized: f64 = field(init=False)
+    upper_vectorized: f64 = field(init=False)
     _scale_vec_to_int: DType = field(init=False)
 
     def __post_init__(self) -> None:
@@ -147,6 +143,9 @@ class UnitScaler(_Transformer[DType]):
                 f"Negative lower bound {self.lower_value:f} for log-scale is not"
                 " possible.",
             )
+
+        self.lower_vectorized = f64(0)
+        self.upper_vectorized = f64(1)
 
         self._scale_vec_to_int = self.upper_value - self.lower_value
 
@@ -299,13 +298,12 @@ class TransformerConstant(_Transformer[DType]):
     vector_value_yes: f64
     vector_value_no: f64
 
-    @property
-    def lower_vectorized(self) -> f64:
-        return self.vector_value_no
+    lower_vectorized: f64 = field(init=False)
+    upper_vectorized: f64 = field(init=False)
 
-    @property
-    def upper_vectorized(self) -> f64:
-        return self.vector_value_yes
+    def __post_init__(self) -> None:
+        self.lower_vectorized = self.vector_value_no
+        self.upper_vectorized = self.vector_value_yes
 
     def to_vector(self, value: Array[DType]) -> Array[f64]:
         return np.where(

@@ -256,8 +256,8 @@ def test_and_conjunction():
     # Test setting vector idx
     hyperparameter_idx = {hp1.name: 0, hp2.name: 1, hp3.name: 2, hp4.name: 3}
     andconj1.set_vector_idx(hyperparameter_idx)
-    assert andconj1.get_parents_vector() == [0, 1]
-    assert andconj1.get_children_vector() == [3, 3]
+    np.testing.assert_equal(andconj1.get_parents_vector(), [0, 1])
+    assert andconj1.child_vector_id == 3
 
     andconj2 = AndConjunction(cond2, cond3)
     assert andconj1 != andconj2
@@ -295,8 +295,8 @@ def test_or_conjunction():
     # Test setting vector idx
     hyperparameter_idx = {hp1.name: 0, hp2.name: 1, hp3.name: 2, hp4.name: 3}
     andconj1.set_vector_idx(hyperparameter_idx)
-    assert andconj1.get_parents_vector() == [0, 1]
-    assert andconj1.get_children_vector() == [3, 3]
+    np.testing.assert_equal(andconj1.get_parents_vector(), [0, 1])
+    assert andconj1.child_vector_id == 3
 
     andconj2 = OrConjunction(cond2, cond3)
     assert andconj1 != andconj2

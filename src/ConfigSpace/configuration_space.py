@@ -626,7 +626,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         uniform_config_space = ConfigurationSpace(
             {
                 name: p.to_uniform()
-                if isinstance(p, NumericalHyperparameter)
+                if isinstance(p, (NumericalHyperparameter, CategoricalHyperparameter))
                 else copy.copy(p)
                 for name, p in self.items()
             },

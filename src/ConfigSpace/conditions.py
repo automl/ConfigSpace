@@ -121,7 +121,6 @@ class _BinaryOpCondition(Condition):
     _REQUIRES_ORDERABLE_PARENT: ClassVar[bool]
     _OP: ClassVar[Callable[[Any, Any], bool]]
     _VECTOR_OP: ClassVar[Callable[..., Mask]]
-    _JSON_STR_TYPE: ClassVar[str]
 
     def __init__(
         self,
@@ -193,7 +192,6 @@ class _BinaryOpCondition(Condition):
         return {
             "child": self.child.name,
             "parent": self.parent.name,
-            "type": self._JSON_STR_TYPE,
             "value": self.value,
         }
 
@@ -229,7 +227,6 @@ class EqualsCondition(_BinaryOpCondition):
     _REQUIRES_ORDERABLE_PARENT = False
     _OP = operator.eq
     _VECTOR_OP = operator.eq
-    _JSON_STR_TYPE = "EQ"
 
 
 class NotEqualsCondition(_BinaryOpCondition):
@@ -264,7 +261,6 @@ class NotEqualsCondition(_BinaryOpCondition):
     _REQUIRES_ORDERABLE_PARENT = False
     _OP = operator.ne
     _VECTOR_OP = operator.ne
-    _JSON_STR_TYPE = "NEQ"
 
 
 class LessThanCondition(_BinaryOpCondition):
@@ -298,7 +294,6 @@ class LessThanCondition(_BinaryOpCondition):
     _REQUIRES_ORDERABLE_PARENT = True
     _OP = operator.lt
     _VECTOR_OP = operator.lt
-    _JSON_STR_TYPE = "LT"
 
 
 class GreaterThanCondition(_BinaryOpCondition):
@@ -332,7 +327,6 @@ class GreaterThanCondition(_BinaryOpCondition):
     _REQUIRES_ORDERABLE_PARENT = True
     _OP = operator.gt
     _VECTOR_OP = operator.gt
-    _JSON_STR_TYPE = "GT"
 
 
 class InCondition(Condition):
@@ -414,7 +408,6 @@ class InCondition(Condition):
         return {
             "child": self.child.name,
             "parent": self.parent.name,
-            "type": "IN",
             "values": self.values,
         }
 
@@ -480,6 +473,7 @@ class Conjunction:
     def set_vector_idx(self, hyperparameter_to_idx: Mapping[str, int]) -> None:
         for component in self.components:
             component.set_vector_idx(hyperparameter_to_idx)
+        self.child_vector_id = np.intp(hyperparameter_to_idx[self.child.name])
 
     @deprecated(
         "Conjunctions of conditions can only every have one child."
@@ -608,7 +602,6 @@ class AndConjunction(Conjunction):
     def to_dict(self) -> dict[str, Any]:
         return {
             "child": self.child.name,
-            "type": "AND",
             "conditions": [component.to_dict() for component in self.components],
         }
 
@@ -678,7 +671,6 @@ class OrConjunction(Conjunction):
     def to_dict(self) -> dict[str, Any]:
         return {
             "child": self.child.name,
-            "type": "OR",
             "conditions": [component.to_dict() for component in self.components],
         }
 

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Any, ClassVar, Generic, Iterator
+from typing import TYPE_CHECKING, Any, Generic, Iterator
 from typing_extensions import Protocol
 
 import numpy as np
@@ -219,14 +219,8 @@ def continuous_neighborhood(
 
 
 class Distribution(Protocol):
-    # NOTE: This is just saying the object should have some attribute
-    # named `lower_vectorized` and `upper_vectorized` that are of type `f64`
-    # and are read-only.
-    @property
-    def lower_vectorized(self) -> f64: ...
-
-    @property
-    def upper_vectorized(self) -> f64: ...
+    lower_vectorized: f64
+    upper_vectorized: f64
 
     def max_density(self) -> float: ...
 
@@ -539,9 +533,9 @@ class DiscretizedContinuousScipyDistribution(Distribution, Generic[DType]):
 @dataclass
 class ScipyDiscreteDistribution(Distribution):
     rv: rv_discrete_frozen
+    _max_density: float
     lower_vectorized: f64
     upper_vectorized: f64
-    _max_density: float
 
     def sample_vector(
         self,
@@ -575,10 +569,13 @@ class ScipyDiscreteDistribution(Distribution):
 
 @dataclass
 class UniformIntegerNormalizedDistribution(Distribution):
-    lower_vectorized: ClassVar[f64] = f64(0.0)
-    upper_vectorized: ClassVar[f64] = f64(1.0)
-
     size: int
+
+    def __post_init__(self) -> None:
+        if self.size < 1:
+            raise ValueError("The number of steps must be at least 1.")
+        self.lower_vectorized = f64(0.0)
+        self.upper_vectorized = f64(1.0)
 
     def sample_vector(
         self,
@@ -626,10 +623,14 @@ class UniformIntegerNormalizedDistribution(Distribution):
 
 @dataclass
 class UnitUniformContinuousDistribution(Distribution):
-    lower_vectorized: ClassVar[f64] = f64(0.0)
-    upper_vectorized: ClassVar[f64] = f64(1.0)
+    lower_vectorized: f64 = field(init=False)
+    upper_vectorized: f64 = field(init=False)
 
     pdf_max_density: float
+
+    def __post_init__(self) -> None:
+        self.lower_vectorized = f64(0.0)
+        self.upper_vectorized = f64(1.0)
 
     def sample_vector(
         self,
@@ -839,7 +840,7 @@ class WeightedIntegerDiscreteDistribution(Distribution):
 
         # Bring it all into range to index by
         nan_filled: Array[f64] = np.nan_to_num(vector, nan=0)
-        xx: Array[i64] = np.clip(nan_filled, 0, self.size - 1, dtype=i64)
+        xx: Array[i64] = np.clip(nan_filled, 0, self.size - 1).astype(np.intp)
         pdf = self.probabilities[xx]
         return np.where(valid_mask, pdf, 0)
 
@@ -863,9 +864,9 @@ class WeightedIntegerDiscreteDistribution(Distribution):
 @dataclass
 class ScipyContinuousDistribution(Distribution):
     rv: rv_continuous_frozen
+
     lower_vectorized: f64
     upper_vectorized: f64
-
     _max_density: float
     _pdf_norm: float = 1
 
@@ -925,13 +926,11 @@ class ScipyContinuousDistribution(Distribution):
 class ConstantVectorDistribution(Distribution):
     vector_value: f64
 
-    @property
-    def lower_vectorized(self) -> f64:
-        return self.vector_value
-
-    @property
-    def upper_vectorized(self) -> f64:
-        return self.vector_value
+    def __post_init__(self) -> None:
+        if not np.isfinite(self.vector_value):
+            raise ValueError("The constant value must be finite.")
+        self.lower_vectorized = self.vector_value
+        self.upper_vectorized = self.vector_value
 
     def max_density(self) -> float:
         return 1.0

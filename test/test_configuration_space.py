@@ -940,8 +940,7 @@ def test_remove_hyperparameter_priors():
     forbidden_clause_d = ForbiddenAndConjunction(forbidden_clause_a, forbidden_clause_c)
     expected_cs.add([forbidden_clause_c, forbidden_clause_d])
 
-    # __eq__ not implemented, so this is the next best thing
-    assert repr(uniform_cs) == repr(expected_cs)
+    assert uniform_cs == expected_cs
 
 
 def test_substitute_hyperparameters_in_conditions():

@@ -46,9 +46,11 @@ class ConditionNode:
     unique_children: dict[int, HPNode]
     children_indices: Array[np.intp] = field(
         default_factory=lambda: np.array((), dtype=np.intp),
+        compare=False,
     )
     nan_arr: Array[f64] = field(
         default_factory=lambda: ConditionNode.CACHED_NAN_ARRAY[:0],
+        compare=False,
     )
 
     def node_parents(self) -> list[str]:
@@ -311,7 +313,7 @@ class DAG:
 
         # Now we reduce the set of all forbiddens to ensure equivalence on nodes.
         for node in nodes.values():
-            node.forbiddens = list(unique_everseen(node.forbiddens, key=id))
+            node.forbiddens = list(unique_everseen(node.forbiddens, key=str))
 
         self.unconditional_forbiddens = unconditional_forbiddens
         self.conditional_forbiddens = conditional_forbiddens
@@ -348,7 +350,7 @@ class DAG:
             if node.parent_condition is not None:
                 conditions.append(node.parent_condition)
 
-        self.conditions = list(unique_everseen(conditions, key=id))
+        self.conditions = list(unique_everseen(conditions, key=str))
 
         # Update indices of conditions and forbiddens
         for forbidden in self.forbiddens:
