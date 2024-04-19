@@ -605,7 +605,7 @@ def read(pcs_string: Iterable[str]) -> ConfigurationSpace:
 
                     elif isinstance(
                         hp,
-                        CategoricalHyperparameter | OrdinalHyperparameter,
+                        (CategoricalHyperparameter, OrdinalHyperparameter),
                     ):
                         hp_values = (
                             hp.choices
