@@ -86,6 +86,7 @@ class Hyperparameter(ABC, Generic[ValueT, DType]):
             )
 
         self._normalized_default_value = self.to_vector(self.default_value)
+        print("Normalized Default", self.name, self._normalized_default_value)
 
     @property
     def lower_vectorized(self) -> f64:

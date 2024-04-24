@@ -50,7 +50,6 @@ from ConfigSpace.configuration import Configuration, NotSet
 from ConfigSpace.exceptions import (
     ActiveHyperparameterNotSetError,
     ForbiddenValueError,
-    IllegalValueError,
     IllegalVectorizedValueError,
     InactiveHyperparameterSetError,
 )
