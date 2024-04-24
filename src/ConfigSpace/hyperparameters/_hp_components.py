@@ -252,6 +252,7 @@ class UnitScaler(_Transformer[DType]):
         if not self.log:
             inbounds = bool(self.lower_vectorized <= vector <= self.upper_vectorized)
             scaled = vector * self._size
+            print("small vector", vector)
             print("SCALED", scaled)
             print("is_close", is_close_to_integer_single(scaled, atol=ATOL))
             print("inbounds", inbounds)

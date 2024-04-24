@@ -154,6 +154,7 @@ class Hyperparameter(ABC, Generic[ValueT, DType]):
     def legal_vector(self, vector: Array[f64]) -> Mask: ...
 
     def legal_vector(self, vector: Number | Array[f64]) -> Mask | bool:
+        print("VECTOR", vector)
         if isinstance(vector, np.ndarray):
             if not np.issubdtype(vector.dtype, np.number):
                 raise ValueError(
