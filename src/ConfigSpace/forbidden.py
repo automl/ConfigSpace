@@ -289,7 +289,7 @@ class ForbiddenInClause(ForbiddenClause):
         >>> cs.add(forbidden_clause_a)
         Forbidden: a in {2, 3}
 
-        Note:
+        Note
         ----
         The forbidden values have to be a subset of the hyperparameter's values.
 

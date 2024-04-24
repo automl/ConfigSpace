@@ -129,7 +129,7 @@ class UnitScaler(_Transformer[DType]):
 
     lower_vectorized: f64 = field(init=False)
     upper_vectorized: f64 = field(init=False)
-    _scale_vec_to_int: DType = field(init=False)
+    _size: DType = field(init=False)
 
     def __post_init__(self) -> None:
         if self.lower_value >= self.upper_value:
@@ -147,7 +147,7 @@ class UnitScaler(_Transformer[DType]):
         self.lower_vectorized = f64(0)
         self.upper_vectorized = f64(1)
 
-        self._scale_vec_to_int = self.upper_value - self.lower_value
+        self._size = self.upper_value - self.lower_value
 
     def to_value(self, vector: Array[f64]) -> Array[DType]:
         """Transform a value from the unit interval to the range."""
@@ -169,9 +169,7 @@ class UnitScaler(_Transformer[DType]):
             scaled = vector * (_u - _l) + _l
             return np.exp(scaled)  # type: ignore
 
-        _l = self.lower_value
-        _u = self.upper_value
-        return vector * (_u - _l) + _l  # type: ignore
+        return vector * self._size + _l  # type: ignore
 
     def _unsafe_to_value(self, vector: Array[f64]) -> Array[f64]:
         # NOTE: Unsafe as it does not check boundaries, clip or integer'ness
@@ -203,7 +201,7 @@ class UnitScaler(_Transformer[DType]):
                 / (np.log(self.upper_value) - np.log(self.lower_value)),
             )
 
-        return f64(size / (self.upper_value - self.lower_value))
+        return f64(size / self._size)
 
     def legal_value(self, value: Array[Any]) -> Mask:
         # If we have a non numeric dtype, we have to unfortunatly go through but by bit
@@ -253,7 +251,10 @@ class UnitScaler(_Transformer[DType]):
 
         if not self.log:
             inbounds = bool(self.lower_vectorized <= vector <= self.upper_vectorized)
-            scaled = vector * self._scale_vec_to_int
+            scaled = vector * self._size
+            print("SCALED", scaled)
+            print("is_close", is_close_to_integer_single(scaled, atol=ATOL))
+            print("inbounds", inbounds)
             return bool(is_close_to_integer_single(scaled, atol=ATOL) and inbounds)
 
         value = self._unsafe_to_value_single(vector)  # type: ignore
