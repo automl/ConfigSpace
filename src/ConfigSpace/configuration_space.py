@@ -51,6 +51,7 @@ from ConfigSpace.exceptions import (
     ActiveHyperparameterNotSetError,
     ForbiddenValueError,
     IllegalValueError,
+    IllegalVectorizedValueError,
     InactiveHyperparameterSetError,
 )
 from ConfigSpace.forbidden import (
@@ -901,17 +902,21 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
 
         for hp_name, node in self.dag.nodes.items():
             hyperparameter = node.hp
-            hp_value = vector[self.index_of[hp_name]]
+            hp_vector = vector[self.index_of[hp_name]]
             active = hp_name in active_hyperparameters
 
-            if not np.isnan(hp_value) and not hyperparameter.legal_vector(hp_value):
-                raise IllegalValueError(hyperparameter, hp_value)
+            if not np.isnan(hp_vector) and not hyperparameter.legal_vector(hp_vector):
+                raise IllegalVectorizedValueError(hyperparameter, hp_vector)
 
-            if active and np.isnan(hp_value):
+            if active and np.isnan(hp_vector):
                 raise ActiveHyperparameterNotSetError(hyperparameter)
 
-            if not allow_inactive_with_values and not active and not np.isnan(hp_value):
-                raise InactiveHyperparameterSetError(hyperparameter, hp_value)
+            if (
+                not allow_inactive_with_values
+                and not active
+                and not np.isnan(hp_vector)
+            ):
+                raise InactiveHyperparameterSetError(hyperparameter, hp_vector)
 
         self._check_forbidden(vector)
 
