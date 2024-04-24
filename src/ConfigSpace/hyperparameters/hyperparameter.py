@@ -86,7 +86,6 @@ class Hyperparameter(ABC, Generic[ValueT, DType]):
             )
 
         self._normalized_default_value = self.to_vector(self.default_value)
-        print("Normalized Default", self.name, self._normalized_default_value)
 
     @property
     def lower_vectorized(self) -> f64:
@@ -155,7 +154,6 @@ class Hyperparameter(ABC, Generic[ValueT, DType]):
     def legal_vector(self, vector: Array[f64]) -> Mask: ...
 
     def legal_vector(self, vector: Number | Array[f64]) -> Mask | bool:
-        print("VECTOR", vector)
         if isinstance(vector, np.ndarray):
             if not np.issubdtype(vector.dtype, np.number):
                 raise ValueError(

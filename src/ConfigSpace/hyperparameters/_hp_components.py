@@ -129,7 +129,12 @@ class UnitScaler(_Transformer[DType]):
 
     lower_vectorized: f64 = field(init=False)
     upper_vectorized: f64 = field(init=False)
-    _size: DType = field(init=False)
+    _size: f64 = field(init=False)
+
+    # NOTE(eddiebergman): This is required as it's easy to overflow on Windows
+    # when normalizing or performing other operations on large boundaries.
+    _lower_value_f64: f64 = field(init=False)
+    _upper_value_f64: f64 = field(init=False)
 
     def __post_init__(self) -> None:
         if self.lower_value >= self.upper_value:
@@ -146,8 +151,9 @@ class UnitScaler(_Transformer[DType]):
 
         self.lower_vectorized = f64(0)
         self.upper_vectorized = f64(1)
-
-        self._size = self.upper_value - self.lower_value
+        self._lower_value_f64 = f64(self.lower_value)
+        self._upper_value_f64 = f64(self.upper_value)
+        self._size = self._upper_value_f64 - self._lower_value_f64
 
     def to_value(self, vector: Array[f64]) -> Array[DType]:
         """Transform a value from the unit interval to the range."""
@@ -157,8 +163,8 @@ class UnitScaler(_Transformer[DType]):
 
         return np.clip(  # type: ignore
             unchecked_values,
-            self.lower_value,
-            self.upper_value,
+            self._lower_value_f64,
+            self._upper_value_f64,
             dtype=self.dtype,
         )
 
@@ -177,28 +183,28 @@ class UnitScaler(_Transformer[DType]):
         if self.log:
             scaled_to_log_bounds = scale(
                 vector,
-                to=(np.log(self.lower_value), np.log(self.upper_value)),
+                to=(np.log(self._lower_value_f64), np.log(self._upper_value_f64)),
             )
             return np.exp(scaled_to_log_bounds)
 
-        return scale(vector, to=(self.lower_value, self.upper_value))
+        return scale(vector, to=(self._lower_value_f64, self._upper_value_f64))
 
     def to_vector(self, value: Array[DType]) -> Array[f64]:
         """Transform a value from the range to the unit interval."""
         if self.log:
             return normalize(
                 np.log(value),
-                bounds=(np.log(self.lower_value), np.log(self.upper_value)),
+                bounds=(np.log(self._lower_value_f64), np.log(self._upper_value_f64)),
             )
 
-        return normalize(value, bounds=(self.lower_value, self.upper_value))
+        return normalize(value, bounds=(self._lower_value_f64, self._upper_value_f64))
 
     def vectorize_size(self, size: f64) -> f64:
         """Vectorize to the correct scale but is not necessarily in the range."""
         if self.log:
             return np.abs(  # type: ignore
-                np.log(self.lower_value + size)
-                / (np.log(self.upper_value) - np.log(self.lower_value)),
+                np.log(self._lower_value_f64 + size)
+                / (np.log(self._upper_value_f64) - np.log(self._lower_value_f64)),
             )
 
         return f64(size / self._size)
@@ -211,12 +217,12 @@ class UnitScaler(_Transformer[DType]):
         if np.issubdtype(self.dtype, np.integer):
             rints = np.rint(value)
             return (  # type: ignore
-                (rints >= self.lower_value)
-                & (rints <= self.upper_value)
+                (rints >= self._lower_value_f64)
+                & (rints <= self._upper_value_f64)
                 & is_close_to_integer(value, atol=ATOL)
             )
 
-        return (value >= self.lower_value) & (value <= self.upper_value)
+        return (value >= self._lower_value_f64) & (value <= self._upper_value_f64)
 
     def legal_vector(self, vector: Array[f64]) -> Mask:
         if np.issubdtype(self.dtype, np.integer):
@@ -238,12 +244,12 @@ class UnitScaler(_Transformer[DType]):
         if np.issubdtype(self.dtype, np.integer):
             rint = np.rint(value)
             return bool(
-                (self.lower_value <= rint)
-                & (rint <= self.upper_value)
+                (self._lower_value_f64 <= rint)
+                & (rint <= self._upper_value_f64)
                 & is_close_to_integer_single(value, atol=ATOL),
             )
 
-        return bool(self.lower_value <= value <= self.upper_value)
+        return bool(self._lower_value_f64 <= value <= self._upper_value_f64)
 
     def legal_vector_single(self, vector: np.number) -> bool:
         if not np.issubdtype(self.dtype, np.integer):
@@ -252,10 +258,6 @@ class UnitScaler(_Transformer[DType]):
         if not self.log:
             inbounds = bool(self.lower_vectorized <= vector <= self.upper_vectorized)
             scaled = vector * self._size
-            print("small vector", vector)
-            print("SCALED", scaled)
-            print("is_close", is_close_to_integer_single(scaled, atol=ATOL))
-            print("inbounds", inbounds)
             return bool(is_close_to_integer_single(scaled, atol=ATOL) and inbounds)
 
         value = self._unsafe_to_value_single(vector)  # type: ignore
