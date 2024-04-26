@@ -18,8 +18,6 @@ i64: TypeAlias = np.int64
 
 Number: TypeAlias = Union[int, float, np.number]
 
-npt.NDArray[np.generic]
-
 
 class _NotSet:
     def __repr__(self) -> str:
