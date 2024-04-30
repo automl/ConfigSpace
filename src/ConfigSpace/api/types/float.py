@@ -67,10 +67,10 @@ def Float(
         Float("a", (1, 10), distribution=Uniform())
 
         # Normally distributed at 2 with std 3
-        Float("b", (0, 5), distribution=Normal(2, 3))  # ... bounded
+        Float("b", (0, 5), distribution=Normal(2, 3))
 
         # Beta distributed with alpha 1 and beta 2
-        Float("c", (0, 3), distribution=Beta(1, 2))  # ... bounded
+        Float("c", (0, 3), distribution=Beta(1, 2))
 
         # Give it a default value
         Float("a", (1, 10), default=4.3)

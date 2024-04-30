@@ -71,10 +71,10 @@ def Integer(
         Integer("a", (1, 10), distribution=Uniform())
 
         # Normally distributed at 2 with std 3
-        Integer("b", (0, 5), distribution=Normal(2, 3))  # ... bounded
+        Integer("b", (0, 5), distribution=Normal(2, 3))
 
         # Beta distributed with alpha 1 and beta 2
-        Integer("c", (0, 3), distribution=Beta(1, 2))  # ... bounded
+        Integer("c", (0, 3), distribution=Beta(1, 2))
 
         # Give it a default value
         Integer("a", (1, 10), default=4)

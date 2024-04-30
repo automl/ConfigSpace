@@ -1260,8 +1260,6 @@ def test_uniformint_pdf():
     wrong_shape_2 = np.array([3, 5, 7]).reshape(1, -1)
     wrong_shape_3 = np.array([3, 5, 7]).reshape(-1, 1)
 
-    # need to lower the amount of places since the bounds
-    # are inexact (._lower=-0.49999, ._upper=4.49999)
     assert c1.pdf_values(point_1)[0] == pytest.approx(0.2, abs=1e-5)
     assert c1.pdf_values(point_2)[0] == pytest.approx(0.2, abs=1e-5)
     assert c1.pdf_values(non_integer_point)[0] == pytest.approx(0.0, abs=1e-5)

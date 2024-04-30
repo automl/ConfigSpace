@@ -359,3 +359,22 @@ def test_condition_from_cryptominisat():
     condition = EqualsCondition(child, parent, "1")
     assert not condition.satisfied_by_value({"blkrest": "0"})
     assert condition.satisfied_by_value({"blkrest": "1"})
+
+
+def test_get_parents() -> None:
+    # Necessary because we couldn't call cs.get_parents for
+    # clasp-sat-params-nat.pcs
+    counter = UniformIntegerHyperparameter("bump", 10, 4096, log=True)
+    _1_S_countercond = CategoricalHyperparameter("cony", ["yes", "no"])
+    _1_0_restarts = CategoricalHyperparameter(
+        "restarts",
+        ["F", "L", "D", "x", "+", "no"],
+        default_value="x",
+    )
+
+    condition = EqualsCondition(counter, _1_S_countercond, "yes")
+    assert _1_S_countercond == condition.parent
+
+    condition2 = InCondition(counter, _1_0_restarts, ["F", "D", "L", "x", "+"])
+    conjunction = AndConjunction(condition, condition2)
+    assert [_1_S_countercond, _1_0_restarts] == conjunction.parents

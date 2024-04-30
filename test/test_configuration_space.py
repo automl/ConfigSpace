@@ -840,7 +840,7 @@ def test_subspace_switches():
     assert cs["algo2_subspace:algo2_param1"].default_value == "Y"
 
 
-def test_acts_as_mapping_2():
+def test_configuration_space_acts_as_mapping():
     """Test that ConfigurationSpace can act as a mapping with iteration,
     indexing and items, values, keys.
     """
@@ -1082,8 +1082,6 @@ def test_init_with_values(simple_cs: ConfigurationSpace):
         Configuration(simple_cs, values={"parent": 1, "child": 2, "friend": i})
     # Pay attention that the vector does not necessarily has an intuitive
     #  sorting!
-    # Values are a little bit higher than one would expect because,
-    # an integer range of [0,10] is transformed to [-0.499,10.499].
     vector_values = {
         "parent": 1,
         "child": 0.22727223140405708,
@@ -1223,7 +1221,7 @@ def test_keys():
         {hp_name: config[hp_name] for hp_name in config if config[hp_name] is not None}
 
 
-def test_acts_as_mapping(simple_cs: ConfigurationSpace):
+def test_configuration_acts_as_mapping(simple_cs: ConfigurationSpace):
     """This tests checks that a Configuration can be used as a a dictionary by
     checking indexing[], iteration ..., items, keys.
     """
