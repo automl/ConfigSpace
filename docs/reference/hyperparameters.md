@@ -250,7 +250,7 @@ Samples a vectorized value and transforms it back to the value space.
 * [`pdf_value()`][ConfigSpace.hyperparameters.Hyperparameter.pdf_value]: Transforms a value space value to the vectorized space.
 * [`pdf_vector()`][ConfigSpace.hyperparameters.Hyperparameter.pdf_vector]: The probability density function of a vectorized value.
 * [`legal_value()`][ConfigSpace.hyperparameters.Hyperparameter.legal_value]: Check if a value is legal.
-* [`.legal_vector()`][ConfigSpace.hyperparameters.Hyperparameter.legal_vector]: The lower bound in value space.
+* [`legal_vector()`][ConfigSpace.hyperparameters.Hyperparameter.legal_vector]: Check if a vectorized value is legal.
 * [`.lower_vectorized`][ConfigSpace.hyperparameters.Hyperparameter.lower_vectorized]: The lower bound in vectorized space.
 * [`.upper_vectorized`][ConfigSpace.hyperparameters.Hyperparameter.upper_vectorized]: The upper bound in vectorized space.
 
