@@ -16,7 +16,7 @@ cs = ConfigurationSpace(
     {
         "a": (0, 10),    # Integer from 0 to 10
         "b": ["cat", "dog"],  # Categorical with choices "cat" and "dog"
-        "c": (0.0, 1.0)  # Float from 0.0 to 1.0
+        "c": (0.0, 1.0),  # Float from 0.0 to 1.0
     }
 )
 ```
@@ -29,8 +29,8 @@ cs = ConfigurationSpace(
     {
         "a": Integer("a", (0, 10), log=False),    # Integer from 0 to 10
         "b": Categorical("b", ["cat", "dog"], ordered=True),  # Ordered categorical with choices "cat" and "dog"
-        "c": Float("c", (1e-5, 1e2), log=True)  # Float from 0.0 to 1.0, log scaled
-        "d": Float("d", (10, 20), distribution=Normal(15, 2))  # Float from 10 to 20, normal distribution
+        "c": Float("c", (1e-5, 1e2), log=True),  # Float from 0.0 to 1.0, log scaled
+        "d": Float("d", (10, 20), distribution=Normal(15, 2)),  # Float from 10 to 20, normal distribution
     }
 )
 print(cs)
@@ -51,8 +51,8 @@ cs = ConfigurationSpace(
     {
         "a": UniformIntegerHyperparameter("a", lower=0, upper=10, log=False),    # Integer from 0 to 10
         "b": CategoricalHyperparameter("b", choices=["cat", "dog"], default_value="dog"),  # Ordered categorical with choices "cat" and "dog"
-        "c": Float("c", lower=1e-5, upper=1e2, log=True)  # Float from 0.0 to 1.0, log scaled
-        "d": NormalFloatHyperparameter("d", lower=10, upper=20, mu=15, sigma=2)  # Float from 10 to 20, normal distribution
+        "c": Float("c", lower=1e-5, upper=1e2, log=True),  # Float from 0.0 to 1.0, log scaled
+        "d": NormalFloatHyperparameter("d", lower=10, upper=20, mu=15, sigma=2),  # Float from 10 to 20, normal distribution
         "e": OrdinalHyperparameter("e", choices=["s", "m", "l"], default="s"),  # Ordered categorical
     }
 )
