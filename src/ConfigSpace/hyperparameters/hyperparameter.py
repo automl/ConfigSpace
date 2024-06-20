@@ -17,7 +17,7 @@ from typing_extensions import Self, deprecated
 
 import numpy as np
 
-from ConfigSpace.types import DType, Number, f64, i64
+from ConfigSpace.types import DType, Number, ValueT, f64, i64
 
 if TYPE_CHECKING:
     from ConfigSpace.hyperparameters._distributions import Distribution
@@ -26,29 +26,47 @@ if TYPE_CHECKING:
     from ConfigSpace.hyperparameters.uniform_integer import UniformIntegerHyperparameter
     from ConfigSpace.types import Array, Mask
 
-ValueT = TypeVar("ValueT")
-
 
 @dataclass(init=False)
 class Hyperparameter(ABC, Generic[ValueT, DType]):
+    """Base class for all hyperparameters in the configuration space.
+
+    Please see the [reference page](../../reference/hyperparameters.md) for more.
+    """
+
     ORDERABLE: ClassVar[bool] = False
+    """If the hyperparameter values have an order. This is used for
+    conditionals and forbiddens relying on relationships.
+    """
+
     LEGAL_VALUE_TYPES: ClassVar[tuple[type, ...] | Literal["all"]] = "all"
+    """The types of values that are legal for this hyperparameter. If set to
+    `"all"` any type is legal. Otherwise, a tuple of types can be provided.
+    """
 
     name: str
+    """Name of the hyperparameter, with which it can be accessed."""
+
     default_value: ValueT
+    """The default value of this hyperparameter."""
+
     meta: Mapping[Hashable, Any] | None
+    """Field for holding meta data provided by the user. Not used by the ConfigSpace."""
+
     size: int | float
+    """Size of the hyperparameter. For integer and choice hyperparameters this
+    is the number of possible values the hyperparameter can take on within the
+    specified range. For continuous hyperparameters this is usually `np.inf`.
+    """
 
     _vector_dist: Distribution = field(repr=False)
     _normalized_default_value: f64 = field(repr=False)
     _transformer: _Transformer[DType] = field(repr=False)
     _neighborhood: _Neighborhood = field(repr=False, compare=False)
     _value_cast: Callable[[DType], ValueT] | None = field(repr=False, compare=False)
-    _neighborhood_size: float | int | Callable[[ValueT | DType | None], int | float] = (
-        field(
-            repr=False,
-            compare=False,
-        )
+    _neighborhood_size: float | Callable[[ValueT | DType | None], int | float] = field(
+        repr=False,
+        compare=False,
     )
 
     def __init__(
@@ -63,6 +81,36 @@ class Hyperparameter(ABC, Generic[ValueT, DType]):
         value_cast: Callable[[DType], ValueT] | None,
         meta: Mapping[Hashable, Any] | None = None,
     ) -> None:
+        """Initialize a hyperparameter.
+
+        Args:
+            name:
+                Name of the hyperparameter, with which it can be accessed.
+            default_value:
+                The default value of this hyperparameter.
+            vector_dist:
+                The distribution of the hyperparameter in vector space.
+            transformer:
+                The transformer to convert between value and vector space.
+            neighborhood:
+                The function to sample neighbors from the hyperparameter.
+            size:
+                Size of the hyperparameter. For integer and choice hyperparameters
+                this is the number of possible values the hyperparameter can take on
+                within the specified range. For continuous hyperparameters this is
+                usually `np.inf`.
+            neighborhood_size:
+                The number of neighbors to sample from the hyperparameter. This can
+                be a fixed number or a function that takes the current value and
+                returns the number of neighbors to sample.
+            value_cast:
+                A function to cast the value to a different type. This is useful
+                for ensuring when removing from a nunmpy array of hyperparameter values,
+                that the type is preserved.
+            meta:
+                Field for holding meta data provided by the user. Not used by the
+                ConfigSpace.
+        """
         if not isinstance(name, str):
             raise TypeError(
                 f"Name must be a string, got {name} ({type(name)})",
@@ -89,10 +137,12 @@ class Hyperparameter(ABC, Generic[ValueT, DType]):
 
     @property
     def lower_vectorized(self) -> f64:
+        """Lower bound of the hyperparameter in vector space."""
         return self._vector_dist.lower_vectorized
 
     @property
     def upper_vectorized(self) -> f64:
+        """Upper bound of the hyperparameter in vector space."""
         return self._vector_dist.upper_vectorized
 
     @overload
@@ -117,7 +167,19 @@ class Hyperparameter(ABC, Generic[ValueT, DType]):
         *,
         seed: np.random.RandomState | None = None,
     ) -> ValueT | Array[DType]:
-        """Sample a value from this hyperparameter."""
+        """Sample a value from this hyperparameter.
+
+        Args:
+            size:
+                The number of values to sample. If `None` a single value is
+                sampled. Defaults to `None`.
+            seed:
+                The random state to use for sampling. If `None` the global
+                random state is used. Defaults to `None`.
+
+        Returns:
+            The sampled value or an array of sampled values, depending on `size=`.
+        """
         samples = self.sample_vector(size=size, seed=seed)
         return self.to_value(samples)
 
@@ -143,6 +205,19 @@ class Hyperparameter(ABC, Generic[ValueT, DType]):
         *,
         seed: np.random.RandomState | None = None,
     ) -> f64 | Array[f64]:
+        """Sample a vectorized value from this hyperparameter.
+
+        Args:
+            size:
+                The number of values to sample. If `None` a single value is
+                sampled. Defaults to `None`.
+            seed:
+                The random state to use for sampling. If `None` the global
+                random state is used. Defaults to `None`.
+
+        Returns:
+            The sampled vector or an array of sampled vectors, depending on `size=`.
+        """
         if size is None:
             return self._vector_dist.sample_vector(n=1, seed=seed)[0]  # type: ignore
         return self._vector_dist.sample_vector(n=size, seed=seed)
@@ -154,6 +229,16 @@ class Hyperparameter(ABC, Generic[ValueT, DType]):
     def legal_vector(self, vector: Array[f64]) -> Mask: ...
 
     def legal_vector(self, vector: Number | Array[f64]) -> Mask | bool:
+        """Check if a vectorized value is legal for this hyperparameter.
+
+        Args:
+            vector:
+                The vectorized value to check.
+
+        Returns:
+            `True` if the vector is legal, `False` otherwise. If `vector` is an
+            array of vectors, a mask of legal values is returned.
+        """
         if isinstance(vector, np.ndarray):
             if not np.issubdtype(vector.dtype, np.number):
                 raise ValueError(
@@ -181,6 +266,16 @@ class Hyperparameter(ABC, Generic[ValueT, DType]):
         self,
         value: ValueT | DType | Sequence[ValueT | DType] | Array[Any],
     ) -> bool | Mask:
+        """Check if a value is legal for this hyperparameter.
+
+        Args:
+            value:
+                The value to check.
+
+        Returns:
+            `True` if the value is legal, `False` otherwise. If `value` is an
+            array of values, a mask of legal values is returned.
+        """
         if isinstance(value, np.ndarray):
             return self._transformer.legal_value(value)
 
@@ -211,9 +306,25 @@ class Hyperparameter(ABC, Generic[ValueT, DType]):
         *,
         random_state: np.random.Generator | np.random.RandomState | int | None = None,
     ) -> ValueT | Array[DType]:
+        """Sample a value from this hyperparameter, compatbile with scipy.stats.rvs.
+
+        Args:
+            size:
+                The number of values to sample. If `None` a single value is
+                sampled. Defaults to `None`.
+            random_state:
+                The random state to use for sampling. If `None` the global
+                random state is used. Defaults to `None`.
+
+
+        Returns:
+            The sampled value or an array of sampled values, depending on `size=`.
+        """
         if isinstance(random_state, int) or random_state is None:
             random_state = np.random.RandomState(random_state)
         elif isinstance(random_state, np.random.Generator):
+            # HACK: This is to enable backwards compatibliity with numpy<=2.0,
+            # where the default integer type is np.int32.
             MAX_INT = np.iinfo(np.int32).max
             random_state = np.random.RandomState(int(random_state.integers(0, MAX_INT)))
 
@@ -230,6 +341,15 @@ class Hyperparameter(ABC, Generic[ValueT, DType]):
         self,
         vector: Number | Array[f64],
     ) -> ValueT | Array[DType]:
+        """Transform a vectorized value to a value in value space.
+
+        Args:
+            vector:
+                The vectorized value to transform.
+
+        Returns:
+            The value in value space.
+        """
         if isinstance(vector, np.ndarray):
             return self._transformer.to_value(vector)
 
@@ -253,6 +373,15 @@ class Hyperparameter(ABC, Generic[ValueT, DType]):
         self,
         value: ValueT | DType | Sequence[ValueT | DType] | Array[Any],
     ) -> f64 | Array[f64]:
+        """Transform a value to a vectorized value.
+
+        Args:
+            value:
+                The value to transform.
+
+        Returns:
+            The vectorized value.
+        """
         if isinstance(value, np.ndarray):
             return self._transformer.to_vector(value)
 
@@ -269,6 +398,37 @@ class Hyperparameter(ABC, Generic[ValueT, DType]):
         std: float | None = None,
         seed: np.random.RandomState | None = None,
     ) -> Array[f64]:
+        """Sample neighbors of a vectorized value.
+
+        Args:
+            vector:
+                The vectorized value to sample neighbors from.
+            n:
+                The number of **unique** neighbors to sample.
+
+                !!! warning
+
+                    If there are less than `n` legal neighbors, then all legal
+                    neighbors are returned, which is some number less than `n`.
+            std:
+                The standard deviation of the neighborhood. If `None` the
+                neighborhood is deterministic. Defaults to `None`.
+
+                !!! warning
+
+                    Hyperparameter subclasses are under no obligation to use
+                    this if it does not make sense, i.e. for an
+                    [`OrdinalHyperparameter`][configspace.hyperparameters.OrdinalHyperparameter]
+                    or a
+                    [`CategoricalHyperparameter`][configspace.hyperparameters.CategoricalHyperparameter].
+
+            seed:
+                The random state to use for sampling. If `None` the global
+                random state is used. Defaults to `None`.
+
+        Returns:
+            The sampled neighbors in vectorized space.
+        """
         if std is not None:
             assert 0.0 <= std <= 1.0, f"std must be in [0, 1], got {std}"
 
@@ -281,6 +441,7 @@ class Hyperparameter(ABC, Generic[ValueT, DType]):
         return self._neighborhood(f64(vector), n, std=std, seed=seed)
 
     def get_max_density(self) -> float:
+        """Get the maximum density of the hyperparameter distribution."""
         return self._vector_dist.max_density()
 
     def neighbors_values(
@@ -291,12 +452,53 @@ class Hyperparameter(ABC, Generic[ValueT, DType]):
         std: float | None = None,
         seed: np.random.RandomState | None = None,
     ) -> Array[DType]:
+        """Sample neighbors of a value.
+
+        Args:
+            value:
+                The value to sample neighbors from.
+            n:
+                The number of **unique** neighbors to sample.
+
+                !!! warning
+
+                    If there are less than `n` legal neighbors, then all legal
+                    neighbors are returned, which is some number less than `n`.
+            std:
+                The standard deviation of the neighborhood. If `None` the
+                neighborhood is deterministic. Defaults to `None`.
+
+                !!! warning
+
+                    Hyperparameter subclasses are under no obligation to use
+                    this if it does not make sense, i.e. for an
+                    [`OrdinalHyperparameter`][configspace.hyperparameters.OrdinalHyperparameter]
+                    or a
+                    [`CategoricalHyperparameter`][configspace.hyperparameters.CategoricalHyperparameter].
+
+            seed:
+                The random state to use for sampling. If `None` the global
+                random state is used. Defaults to `None`.
+
+        Returns:
+            The sampled neighbors in value space.
+        """
         vector = self.to_vector(value)
         return self.to_value(
             vector=self.neighbors_vectorized(vector, n, std=std, seed=seed),
         )
 
     def pdf_vector(self, vector: Array[f64]) -> Array[f64]:
+        """Get the probability density of an array vectorized values.
+
+        Args:
+            vector:
+                The vectorized values to get the probability density of.
+
+        Returns:
+            The probability density of the vectorized values. Where vectorized
+            values are not legal, the probability density is zero.
+        """
         legal_mask: Array[f64] = self.legal_vector(vector).astype(f64)
         return self._vector_dist.pdf_vector(vector) * legal_mask
 
@@ -304,7 +506,17 @@ class Hyperparameter(ABC, Generic[ValueT, DType]):
         self,
         values: Sequence[ValueT | DType] | Array[DType],
     ) -> Array[f64]:
-        # TODO: why this restriction?
+        """Get the probability density of an array of values.
+
+        Args:
+            values:
+                The values to get the probability density of.
+
+        Returns:
+            The probability density of the values. Where values are not legal,
+            the probability density is zero.
+        """
+        # TODO(eddiebergman): Backwards compatible restriction, why this restriction?
         _values = np.asarray(values)
         if _values.ndim != 1:
             raise ValueError(
@@ -316,10 +528,31 @@ class Hyperparameter(ABC, Generic[ValueT, DType]):
         return self.pdf_vector(vector)
 
     def copy(self, **kwargs: Any) -> Self:
+        """Create a copy of the hyperparameter with updated attributes.
+
+        Args:
+            **kwargs:
+                The attributes to update.
+
+        Returns:
+            A copy of the hyperparameter with the updated attributes.
+        """
         # HACK: Really the only thing implementing Hyperparameter should be a dataclass
+        # If a hyperparameter is somehow not a dataclass, it will likely need to
+        # overwrite this.
         return replace(self, **kwargs)  # type: ignore
 
     def get_num_neighbors(self, value: ValueT | DType | None = None) -> int | float:
+        """Get the number of neighbors to sample for a given value.
+
+        Args:
+            value:
+                The value to get the number of neighbors for. If `None` the
+                default value is used. Defaults to `None`.
+
+        Returns:
+            The number of neighbors to sample.
+        """
         return (
             self._neighborhood_size(value)
             if callable(self._neighborhood_size)
@@ -329,6 +562,7 @@ class Hyperparameter(ABC, Generic[ValueT, DType]):
     # ------------- Deprecations
     @deprecated("Please use `get_num_neighbors() > 0` or `hp.size > 1` instead.")
     def has_neighbors(self) -> bool:
+        """Deprecated."""
         return self.get_num_neighbors() > 0
 
     @deprecated("Please use `to_vector(value)` instead.")
@@ -340,6 +574,7 @@ class Hyperparameter(ABC, Generic[ValueT, DType]):
 
     @deprecated("Please use `sample_value(seed=rs)` instead.")
     def sample(self, rs: np.random.RandomState) -> ValueT:
+        """Deprecated."""
         return self.sample_value(seed=rs)
 
     @deprecated("Please use `sample_vector(size, seed=rs)` instead.")
@@ -365,6 +600,7 @@ class Hyperparameter(ABC, Generic[ValueT, DType]):
         self,
         vector: DType | Array[DType],  # NOTE: New convention this should be value
     ) -> f64 | Array[f64]:
+        """Deprecated."""
         if isinstance(vector, np.ndarray):
             return self.pdf_values(vector)
 
@@ -382,14 +618,17 @@ class Hyperparameter(ABC, Generic[ValueT, DType]):
 
     @deprecated("Please use `.size` attribute instead.")
     def get_size(self) -> int | float:
+        """Deprecated."""
         return self.size
 
     @deprecated("Please use `legal_value(value)` instead")
     def is_legal(self, value: DType) -> bool:
+        """Deprecated."""
         return self.legal_value(value)
 
     @deprecated("Please use `legal_vector(vector)` instead.")
     def is_legal_vector(self, value: f64) -> bool:
+        """Deprecated."""
         return self.legal_vector(value)
 
     @deprecated("Please use `to_value(vector)` instead.")
@@ -418,6 +657,7 @@ class Hyperparameter(ABC, Generic[ValueT, DType]):
         std: float | None = None,
         transform: bool = False,
     ) -> Array[f64]:
+        """Deprecated."""
         if transform is True:
             raise RuntimeError(
                 "Previous `get_neighbors` with `transform=True` had different"
@@ -443,24 +683,42 @@ class Hyperparameter(ABC, Generic[ValueT, DType]):
 
 
 NumberT = TypeVar("NumberT", int, float)
+"""Some number type that represents a single value in value space
+for a numerical hyperparameter.
+"""
 
 
 @dataclass(init=False)
 class NumericalHyperparameter(Hyperparameter[NumberT, DType]):
+    """Base class for numerical hyperparameters in the configuration space.
+
+    Should likely not be used directly and instead inherit from
+    [`IntegerHyperparameter`][configspace.hyperparameters.IntegerHyperparameter]
+    or
+    [`FloatHyperparameter`][configspace.hyperparameters.FloatHyperparameter].
+    """
+
     LEGAL_VALUE_TYPES: ClassVar[tuple[type, ...]] = (int, float, np.number)
 
     lower: NumberT
+    """Lower bound of the hyperparameter in value space."""
     upper: NumberT
+    """Upper bound of the hyperparameter in value space."""
     log: bool
+    """If `True` the hyperparameter is sampled on a logarithmic scale."""
 
     @abstractmethod
     def to_uniform(
         self,
-    ) -> UniformFloatHyperparameter | UniformIntegerHyperparameter: ...
+    ) -> UniformFloatHyperparameter | UniformIntegerHyperparameter:
+        """Convert the hyperparameter to its uniform equivalent."""
+        ...
 
 
 @dataclass(init=False)
 class IntegerHyperparameter(NumericalHyperparameter[int, i64]):
+    """Base class for integer hyperparameters in the configuration space."""
+
     def _integer_neighborhood_size(self, value: int | i64 | None) -> int:
         if value is None:
             return int(self.size)
@@ -471,7 +729,12 @@ class IntegerHyperparameter(NumericalHyperparameter[int, i64]):
         return int(self.size)
 
     def to_uniform(self) -> UniformIntegerHyperparameter:
-        from ConfigSpace.hyperparameters.uniform_float import (
+        """Convert the hyperparameter to its uniform equivalent.
+
+        This will remove any distribution associated with it's vectorized
+        representation.
+        """
+        from ConfigSpace.hyperparameters.uniform_integer import (
             UniformIntegerHyperparameter,
         )
 
@@ -487,7 +750,14 @@ class IntegerHyperparameter(NumericalHyperparameter[int, i64]):
 
 @dataclass(init=False)
 class FloatHyperparameter(NumericalHyperparameter[float, f64]):
+    """Base class for float hyperparameters in the configuration space."""
+
     def to_uniform(self) -> UniformFloatHyperparameter:
+        """Convert the hyperparameter to its uniform equivalent.
+
+        This will remove any distribution associated with it's vectorized
+        representation.
+        """
         from ConfigSpace.hyperparameters.uniform_float import UniformFloatHyperparameter
 
         return UniformFloatHyperparameter(

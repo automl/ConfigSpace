@@ -454,7 +454,7 @@ def read(pcs_string: Iterable[str]) -> ConfigurationSpace:
     pcs_string : Iterable[str]
         ConfigSpace definition in pcs format
 
-    Returns
+    Returns:
     -------
     :py:class:`~ConfigSpace.configuration_space.ConfigurationSpace`
         The deserialized ConfigurationSpace object
@@ -763,7 +763,7 @@ def write(configuration_space: ConfigurationSpace) -> str:
     configuration_space:
         A configuration space
 
-    Returns
+    Returns:
     -------
     str
         The string representation of the configuration space

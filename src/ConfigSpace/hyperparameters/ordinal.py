@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Hashable, Mapping, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from functools import partial
 from typing import Any, ClassVar
 from typing_extensions import deprecated
@@ -19,14 +19,37 @@ from ConfigSpace.types import Array, NotSet, _NotSet, i64
 
 @dataclass(init=False)
 class OrdinalHyperparameter(Hyperparameter[Any, Any]):
+    """Representing an ordinal hyperparameter in the configuration space.
+
+    An ordinal hyperparameter is a hyperparameter that can take on one of a
+    fixed number of arbitrary values. The values are ordered and the order is
+    defined by the sequence in which they are passed to the hyperparameter.
+
+    ```python exec="True" result="python" source="material-block"
+    from ConfigSpace import OrdinalHyperparameter
+
+    hp = OrdinalHyperparameter('hp', sequence=['small', 'medium', 'large'], default_value='medium')
+    print(hp)
+    ```
+    """  # noqa: E501
+
     ORDERABLE: ClassVar[bool] = True
 
     sequence: tuple[Any, ...]
+    """Sequence of values the hyperparameter can take on."""
 
     name: str
+    """Name of the hyperparameter, with which it can be accessed."""
+
     default_value: Any
+    """Default value of the hyperparameter."""
+
     meta: Mapping[Hashable, Any] | None
-    size: int
+    """Field for holding meta data provided by the user. Not used by the ConfigSpace."""
+
+    size: int = field(init=False)
+    """Size of the hyperparameter, which is the number of possible values the
+    hyperparameter can take on within the specified sequence."""
 
     def __init__(
         self,
@@ -35,6 +58,18 @@ class OrdinalHyperparameter(Hyperparameter[Any, Any]):
         default_value: Any | None = None,
         meta: Mapping[Hashable, Any] | None = None,
     ) -> None:
+        """Initialize an ordinal hyperparameter.
+
+        Args:
+            name:
+                Name of the hyperparameter, with which it can be accessed
+            sequence:
+                Sequence of values the hyperparameter can take on
+            default_value:
+                Default value of the hyperparameter
+            meta:
+                Field for holding meta data provided by the user
+        """
         # TODO: Maybe give some way to not check this, i.e. for large sequences
         # of int...
         if any(i != sequence.index(x) for i, x in enumerate(sequence)):
@@ -96,15 +131,19 @@ class OrdinalHyperparameter(Hyperparameter[Any, Any]):
         return 2
 
     def check_order(self, value: Any, other: Any) -> bool:
+        """Check if the value is smaller than the other value."""
         return self.sequence.index(value) < self.sequence.index(other)
 
     def get_order(self, value: Any) -> int:
+        """Get the order of the value in the sequence."""
         return self.sequence.index(value)
 
     def get_value(self, i: int | np.integer) -> Any:
+        """Get the value at the index in the sequence."""
         return self.sequence[int(i)]
 
     def get_seq_order(self) -> Array[i64]:
+        """Get the order of the sequence."""
         return np.arange(len(self.sequence))
 
     def __str__(self) -> str:
@@ -119,4 +158,5 @@ class OrdinalHyperparameter(Hyperparameter[Any, Any]):
     @property
     @deprecated("Please use 'len(hp.sequence)' or `hp.size` instead.")
     def num_elements(self) -> int:
+        """Deprecated: Number of elements in the sequence."""
         return self.size

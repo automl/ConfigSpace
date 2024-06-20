@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import math
 from collections.abc import Hashable, Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, ClassVar
 
 import numpy as np
@@ -10,25 +10,56 @@ import numpy as np
 from ConfigSpace.hyperparameters._distributions import UnitUniformContinuousDistribution
 from ConfigSpace.hyperparameters._hp_components import ROUND_PLACES, UnitScaler
 from ConfigSpace.hyperparameters.hyperparameter import FloatHyperparameter
-from ConfigSpace.hyperparameters.uniform_integer import UniformIntegerHyperparameter
 from ConfigSpace.types import f64
 
 if TYPE_CHECKING:
+    from ConfigSpace.hyperparameters.uniform_integer import UniformIntegerHyperparameter
     from ConfigSpace.types import Number
 
 
 @dataclass(init=False)
 class UniformFloatHyperparameter(FloatHyperparameter):
+    """A uniformly distributed float hyperparameter.
+
+    The 'lower' and 'upper' parameters define the range of values from which the
+    hyperparameter represents. The 'log' parameter defines whether the values of the
+    hyperparameter will be sampled on a log-scale.
+
+    Its values are sampled from a uniform distribution `U(lower, upper)`.
+
+    ```python exec="True" result="python" source="material-block"
+    from ConfigSpace import UniformFloatHyperparameter
+
+    u = UniformFloatHyperparameter('u', lower=11.3, upper=12.5, log=False)
+    print(u)
+    ```
+    """
+
     ORDERABLE: ClassVar[bool] = True
 
     lower: float
+    """Lower bound of a range of values from which the hyperparameter represents."""
+
     upper: float
+    """Upper bound of a range of values from which the hyperparameter represents."""
+
     log: bool
+    """If `True` the values of the hyperparameter will be sampled on a log-scale."""
 
     name: str
+    """Name of the hyperparameter, with which it can be accessed."""
+
     default_value: float
+    """The default value of this hyperparameter.
+
+    If not specified, the default value is the midpoint of the range.
+    """
+
     meta: Mapping[Hashable, Any] | None
-    size: float
+    """Field for holding meta data provided by the user. Not used by the ConfigSpace."""
+
+    size: float = field(init=False)
+    """Size of hyperparameter. It is set to np.inf for continuous hyperparameters."""
 
     def __init__(
         self,
@@ -39,6 +70,26 @@ class UniformFloatHyperparameter(FloatHyperparameter):
         log: bool = False,
         meta: Mapping[Hashable, Any] | None = None,
     ) -> None:
+        """Initialize a uniformly distributed float hyperparameter.
+
+        Args:
+            name:
+                Name of the hyperparameter, with which it can be accessed
+            lower:
+                Lower bound of a range of values from which the hyperparameter
+                represents
+            upper:
+                Upper bound of a range of values from which the hyperparameter
+                represents
+            default_value:
+                The default value of this hyperparameter. If not specified, the
+                default value is the midpoint of the range
+            log:
+                If `True` the values of the hyperparameter will be sampled on a log-scale
+            meta:
+                Field for holding meta data provided by the user. Not used by
+                ConfigSpace.
+        """
         self.lower = float(lower)
         self.upper = float(upper)
         self.log = log
@@ -71,6 +122,18 @@ class UniformFloatHyperparameter(FloatHyperparameter):
         )
 
     def to_integer(self) -> UniformIntegerHyperparameter:
+        """Converts the hyperparameter to a uniformly integer hyperparameter.
+
+        This is done by rounding the lower and upper bounds of the float hyperparameter
+        and the default value.
+
+        Returns:
+            A uniformly distributed integer hyperparameter.
+        """
+        from ConfigSpace.hyperparameters.uniform_integer import (
+            UniformIntegerHyperparameter,
+        )
+
         return UniformIntegerHyperparameter(
             name=self.name,
             lower=math.ceil(self.lower),

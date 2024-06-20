@@ -60,55 +60,52 @@ def Float(
 ) -> UniformFloatHyperparameter | NormalFloatHyperparameter | BetaFloatHyperparameter:
     """Create a FloatHyperparameter.
 
-    .. code:: python
+    ```python
+    # Uniformly distributed
+    Float("a", (1, 10))
+    Float("a", (1, 10), distribution=Uniform())
 
-        # Uniformly distributed
-        Float("a", (1, 10))
-        Float("a", (1, 10), distribution=Uniform())
+    # Normally distributed at 2 with std 3
+    Float("b", (0, 5), distribution=Normal(2, 3))
 
-        # Normally distributed at 2 with std 3
-        Float("b", (0, 5), distribution=Normal(2, 3))
+    # Beta distributed with alpha 1 and beta 2
+    Float("c", (0, 3), distribution=Beta(1, 2))
 
-        # Beta distributed with alpha 1 and beta 2
-        Float("c", (0, 3), distribution=Beta(1, 2))
+    # Give it a default value
+    Float("a", (1, 10), default=4.3)
 
-        # Give it a default value
-        Float("a", (1, 10), default=4.3)
+    # Sample on a log scale
+    Float("a", (1, 100), log=True)
 
-        # Sample on a log scale
-        Float("a", (1, 100), log=True)
+    # Add meta info to the param
+    Float("a", (1.0, 10), meta={"use": "For counting chickens"})
+    ```
 
-        # Add meta info to the param
-        Float("a", (1.0, 10), meta={"use": "For counting chickens"})
+    !!! note
 
-    Note:
-    ----
-    `Float` is actually a function, please use the corresponding return types if
-    doing an `isinstance(param, type)` check and not `Float`.
+        `Float` is actually a function, please use the corresponding return types if
+        doing an `isinstance(param, type)` check and not `Float`.
 
-    Parameters
-    ----------
-    name : str
-        The name to give to this hyperparameter
+    Args:
+        name:
+            The name to give to this hyperparameter
 
-    bounds : tuple[float, float]
-        The bounds to give to the float.
+        bounds:
+            The bounds to give to the float.
 
-    distribution : Uniform | Normal | Beta, = Uniform
-        The distribution to use for the hyperparameter. See above
+        distribution:
+            The distribution to use for the hyperparameter. See above
 
-    default : float | None = None
-        The default value to give to the hyperparameter.
+        default:
+            The default value to give to the hyperparameter.
 
-    log : bool = False
-        Whether to this parameter lives on a log scale
+        log:
+            Whether to this parameter lives on a log scale
 
-    meta : dict | None = None
-        Any meta information you want to associate with this parameter
+        meta:
+            Any meta information you want to associate with this parameter
 
-    Returns
-    -------
-    UniformFloatHyperparameter | NormalFloatHyperparameter | BetaFloatHyperparameter
+    Returns:
         Returns the corresponding hyperparameter type
     """
     if distribution is None:

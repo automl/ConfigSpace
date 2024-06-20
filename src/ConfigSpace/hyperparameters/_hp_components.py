@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, Protocol, TypeVar
+from typing_extensions import override
 
 import numpy as np
 
@@ -26,23 +27,73 @@ T_contra = TypeVar("T_contra", contravariant=True)
 
 
 class _Transformer(Protocol[DType]):
+    """Protocol for a transformer.
+
+    This protocol defines how to move from **vectorized** representation to
+    **value** representation and vice versa. It also defines how to check if
+    a value or vector is legal.
+
+    With this it also include
+    [`.lower_vectorized`][`ConfigSpace._hp_components._Transformer.lower_vectorized`]
+    and
+    [`.upper_vectorized`][`ConfigSpace._hp_components._Transformer.upper_vectorized`]
+    which defines the upper and lower bounds of the vectorized representation.
+
+    !!! note
+
+        All vectorized representations should be of type `np.float64`, even
+        if they are integer values. This helps with calculations and being
+        able to store configurations in a single array.
+    """
+
     lower_vectorized: f64
+    """Lower bound of the vectorized representation."""
+
     upper_vectorized: f64
+    """Upper bound of the vectorized representation."""
 
-    def to_value(self, vector: Array[f64]) -> Array[DType]: ...
+    def to_value(self, vector: Array[f64]) -> Array[DType]:
+        """Transform a vector representation into its value representation."""
+        ...
 
-    def to_vector(self, value: Array[DType]) -> Array[f64]: ...
+    def to_vector(self, value: Array[DType]) -> Array[f64]:
+        """Transform a value representation into its vector representation."""
+        ...
 
-    def legal_value(self, value: Array[DType]) -> Mask: ...
+    def legal_value(self, value: Array[DType]) -> Mask:
+        """Returns a boolean mask of which values are legal."""
+        ...
 
-    def legal_vector(self, vector: Array[f64]) -> Mask: ...
+    def legal_vector(self, vector: Array[f64]) -> Mask:
+        """Returns a boolean mask of which vectors are legal."""
+        ...
 
-    def legal_vector_single(self, vector: np.number) -> bool: ...
+    def legal_vector_single(self, vector: np.number) -> bool:
+        """Check if a single vector value is legal.
 
-    def legal_value_single(self, value: np.number) -> bool: ...
+        This is used as an optimization instead of having to wrap
+        a single vector value into an array and then unpack it.
+        """
+        ...
+
+    def legal_value_single(self, value: np.number) -> bool:
+        """Check if a single value is legal.
+
+        This is used as an optimization instead of having to wrap
+        a single value into an array and then unpack it.
+        """
+        ...
 
 
 class _Neighborhood(Protocol):
+    """Protocol for a neighborhood function.
+
+    This protocol defines how to get the neighborhood of a value in a
+    vectorized representation. This is used for the `neighborhood=` argument
+    in the `ConfigSpace.hyperparameters.Hyperparameter` class, letting the
+    hyperparameter know how to get the neighborhood of a vectorized value.
+    """
+
     def __call__(
         self,
         vector: f64,
@@ -50,16 +101,47 @@ class _Neighborhood(Protocol):
         *,
         std: float | None = None,
         seed: RandomState | None = None,
-    ) -> Array[f64]: ...
+    ) -> Array[f64]:
+        """Get the neighborhood of a vectorized value.
+
+        Args:
+            vector: The vectorized value to get the neighborhood of.
+            n: The number of neighbors to get.
+            std: The standard deviation of the neighborhood.
+            seed: The seed for the random number generator.
+        """
+        ...
 
 
 @dataclass
 class TransformerSeq(_Transformer[Any]):
+    """Implmentation of a transformer for a sequence of values.
+
+    This uses an integer range from 0 to `len(seq) - 1` to represent the
+    sequence of values in vectorized space.
+
+    This is useful primarily for categorical and ordinal hyperparameters.
+
+    Args:
+        seq: The sequence of values to transform.
+    """
+
     seq: Array[Any]
-    _lookup: dict[Any, int] | None = field(init=False)
+    """The original sequence of values."""
 
     lower_vectorized: f64 = field(init=False)
+    """Lower bound of the vectorized representation.
+
+    Always 0.
+    """
+
     upper_vectorized: f64 = field(init=False)
+    """Upper bound of the vectorized representation.
+
+    Always `len(seq) - 1`.
+    """
+
+    _lookup: dict[Any, int] | None = field(init=False)
 
     def __post_init__(self) -> None:
         if len(self.seq) == 0:
@@ -82,6 +164,7 @@ class TransformerSeq(_Transformer[Any]):
             and self.lower_vectorized == value.lower_vectorized
         )
 
+    @override
     def to_value(self, vector: Array[f64]) -> Array[Any]:
         if not is_close_to_integer(vector, atol=ATOL).all():
             raise ValueError(
@@ -92,16 +175,19 @@ class TransformerSeq(_Transformer[Any]):
         indices: Array[np.intp] = np.rint(vector).astype(np.intp)
         return self.seq[indices]  # type: ignore
 
+    @override
     def to_vector(self, value: Array[Any]) -> Array[f64]:
         if self._lookup is not None:
             return np.array([self._lookup[v] for v in value], dtype=f64)
         return np.flatnonzero(np.isin(self.seq, value)).astype(f64)
 
+    @override
     def legal_value(self, value: Array[Any]) -> Mask:
         if self._lookup is not None:
             return np.array([v in self._lookup for v in value], dtype=np.bool_)
         return np.isin(value, self.seq)
 
+    @override
     def legal_vector(self, vector: Array[f64]) -> Mask:
         return (
             (vector >= 0)
@@ -109,9 +195,11 @@ class TransformerSeq(_Transformer[Any]):
             & is_close_to_integer(vector, atol=ATOL)
         )
 
+    @override
     def legal_value_single(self, value: Any) -> bool:
         return value in self.seq
 
+    @override
     def legal_vector_single(self, vector: np.number) -> bool:
         return bool(
             vector >= 0
@@ -122,13 +210,40 @@ class TransformerSeq(_Transformer[Any]):
 
 @dataclass
 class UnitScaler(_Transformer[DType]):
+    """Implementation of a transformer from a vectorized continuous range `(0, 1)`
+    to another specified range in value space.
+
+    Args:
+        lower_value: Lower bound of the range.
+        upper_value: Upper bound of the range.
+        dtype: The type of the values in the range.
+        log: Whether to use a log scale or not.
+    """
+
     lower_value: DType
+    """Lower bound of the value range."""
+
     upper_value: DType
+    """Upper bound of the value range."""
+
     dtype: type[DType]
+    """What type we should return when transforming to value space."""
+
     log: bool = False
+    """Whether to use a log scale or not."""
 
     lower_vectorized: f64 = field(init=False)
+    """Lower bound of the vectorized representation.
+
+    Always 0.
+    """
+
     upper_vectorized: f64 = field(init=False)
+    """Lower bound of the vectorized representation.
+
+    Always 1.
+    """
+
     _size: f64 = field(init=False)
 
     # NOTE(eddiebergman): This is required as it's easy to overflow on Windows
@@ -155,6 +270,7 @@ class UnitScaler(_Transformer[DType]):
         self._upper_value_f64 = f64(self.upper_value)
         self._size = self._upper_value_f64 - self._lower_value_f64
 
+    @override
     def to_value(self, vector: Array[f64]) -> Array[DType]:
         """Transform a value from the unit interval to the range."""
         unchecked_values = self._unsafe_to_value(vector)
@@ -189,8 +305,8 @@ class UnitScaler(_Transformer[DType]):
 
         return scale(vector, to=(self._lower_value_f64, self._upper_value_f64))
 
+    @override
     def to_vector(self, value: Array[DType]) -> Array[f64]:
-        """Transform a value from the range to the unit interval."""
         if self.log:
             return normalize(
                 np.log(value),
@@ -200,7 +316,11 @@ class UnitScaler(_Transformer[DType]):
         return normalize(value, bounds=(self._lower_value_f64, self._upper_value_f64))
 
     def vectorize_size(self, size: f64) -> f64:
-        """Vectorize to the correct scale but is not necessarily in the range."""
+        """Vectorize to the correct scale but is not necessarily in the range.
+
+        Mainly useful for scaling things like `std` in value space to it's equivalent
+        in vector space.
+        """
         if self.log:
             return np.abs(  # type: ignore
                 np.log(self._lower_value_f64 + size)
@@ -209,6 +329,7 @@ class UnitScaler(_Transformer[DType]):
 
         return f64(size / self._size)
 
+    @override
     def legal_value(self, value: Array[Any]) -> Mask:
         # If we have a non numeric dtype, we have to unfortunatly go through but by bit
         if value.dtype.kind not in "iuf":
@@ -224,6 +345,7 @@ class UnitScaler(_Transformer[DType]):
 
         return (value >= self._lower_value_f64) & (value <= self._upper_value_f64)
 
+    @override
     def legal_vector(self, vector: Array[f64]) -> Mask:
         if np.issubdtype(self.dtype, np.integer):
             # NOTE: Unfortunatly for integers, we have to transform back to original
@@ -237,6 +359,7 @@ class UnitScaler(_Transformer[DType]):
 
         return (vector >= self.lower_vectorized) & (vector <= self.upper_vectorized)
 
+    @override
     def legal_value_single(self, value: Any) -> bool:
         if not isinstance(value, (int, float, np.number)):
             return False
@@ -251,6 +374,7 @@ class UnitScaler(_Transformer[DType]):
 
         return bool(self._lower_value_f64 <= value <= self._upper_value_f64)
 
+    @override
     def legal_vector_single(self, vector: np.number) -> bool:
         if not np.issubdtype(self.dtype, np.integer):
             return bool(self.lower_vectorized <= vector <= self.upper_vectorized)
@@ -272,6 +396,26 @@ def ordinal_neighborhood(
     std: float | None = None,  # noqa: ARG001
     seed: RandomState | None = None,
 ) -> Array[f64]:
+    """Get the neighborhood of a vectorized ordinal value.
+
+    This is used for the `neighborhood=` argument in the
+    [`ConfigSpace.hyperparameters.OrdinalHyperparameter`][ConfigSpace.hyperparameters.OrdinalHyperparameter]
+
+    Args:
+        vector: The vectorized value to get the neighborhood of.
+
+            !!! warning
+
+                This is assumed to be an integer in the range `[0, size - 1]`.
+
+        n: The number of neighbors to get.
+        size: The size of the sequence.
+        std: The standard deviation of the neighborhood.
+        seed: The seed for the random number generator.
+
+    Returns:
+        The neighborhood of the vectorized value.
+    """
     end_index = size - 1
     assert 0 <= vector <= end_index
 
@@ -281,6 +425,7 @@ def ordinal_neighborhood(
 
     # We have at least 2 elements,
     # in this case it's only neighbor is the one beside it
+    # which is itself +1
     if vector == 0:
         return np.array([1.0], dtype=f64)
 
@@ -289,7 +434,7 @@ def ordinal_neighborhood(
         return np.array([end_index - 1], dtype=f64)
 
     # We have at least 3 elements and the value is not at the ends
-    neighbors: Array[f64] = np.array([vector - 1, vector + 1], dtype=f64)
+    neighbors: Array[f64] = np.rint([vector - 1, vector + 1], dtype=f64)
     if n >= 2:
         return neighbors
 
@@ -299,17 +444,37 @@ def ordinal_neighborhood(
 
 @dataclass
 class TransformerConstant(_Transformer[DType]):
+    """Implementation of a transformer for a constant value."""
+
     value: DType
+    """The constant value."""
+
     vector_value_yes: f64
+    """The vectorized value for the constant value.
+
+    This is the value that represents the constant value and
+    is asserted to be greater than the `vector_value_no`.
+    """
+
     vector_value_no: f64
+    """The vectorized value for anything but the constant value.
+
+    This is the value that represents anything but the constant value
+    and is asserted to be less than the `vector_value_yes`.
+    """
 
     lower_vectorized: f64 = field(init=False)
+    """Lower bound of the vectorized representation."""
+
     upper_vectorized: f64 = field(init=False)
+    """Upper bound of the vectorized representation."""
 
     def __post_init__(self) -> None:
+        assert self.vector_value_yes > self.vector_value_no
         self.lower_vectorized = self.vector_value_no
         self.upper_vectorized = self.vector_value_yes
 
+    @override
     def to_vector(self, value: Array[DType]) -> Array[f64]:
         return np.where(
             value == self.value,
@@ -317,6 +482,7 @@ class TransformerConstant(_Transformer[DType]):
             self.vector_value_no,
         )
 
+    @override
     def to_value(self, vector: Array[f64]) -> Array[DType]:
         try:
             return np.full_like(vector, self.value, dtype=type(self.value))
@@ -324,14 +490,18 @@ class TransformerConstant(_Transformer[DType]):
             # Let numpy figure it out
             return np.array([self.value] * len(vector))
 
+    @override
     def legal_value(self, value: Array[DType]) -> Mask:
         return value == self.value  # type: ignore
 
+    @override
     def legal_vector(self, vector: Array[f64]) -> Mask:
         return vector == self.vector_value_yes  # type: ignore
 
+    @override
     def legal_value_single(self, value: Any) -> bool:
         return value == self.value  # type: ignore
 
+    @override
     def legal_vector_single(self, vector: np.number) -> bool:
         return vector == self.vector_value_yes  # type: ignore

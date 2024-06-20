@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 from collections.abc import Hashable, Mapping
-from dataclasses import dataclass
-from typing import Any, ClassVar
+from dataclasses import dataclass, field
+from typing import TYPE_CHECKING, Any, ClassVar
 
 import numpy as np
 from scipy.stats import uniform
@@ -16,19 +16,53 @@ from ConfigSpace.hyperparameters._hp_components import ATOL, UnitScaler
 from ConfigSpace.hyperparameters.integer_hyperparameter import IntegerHyperparameter
 from ConfigSpace.types import Number, f64, i64
 
+if TYPE_CHECKING:
+    from ConfigSpace.hyperparameters.uniform_float import UniformFloatHyperparameter
+
 
 @dataclass(init=False)
 class UniformIntegerHyperparameter(IntegerHyperparameter):
+    """A uniformly distributed integer hyperparameter.
+
+    The 'lower' and 'upper' parameters define the range of values from which the
+    hyperparameter represents. The 'log' parameter defines whether the values of the
+    hyperparameter will be sampled on a log-scale.
+
+    Its values are sampled from a uniform distribution `U(lower, upper)`.
+
+    ```python exec="True" result="python" source="material-block"
+    from ConfigSpace import UniformIntegerHyperparameter
+
+    u = UniformIntegerHyperparameter('u', lower=0, upper=10, log=False)
+    print(u)
+    ```
+    """
+
     ORDERABLE: ClassVar[bool] = True
 
     lower: int
+    """Lower bound of a range of values from which the hyperparameter represents."""
+
     upper: int
+    """Upper bound of a range of values from which the hyperparameter represents."""
+
     log: bool
+    """If `True` the values of the hyperparameter will be sampled on a log-scale."""
 
     name: str
+    """Name of the hyperparameter, with which it can be accessed."""
+
     default_value: int
+    """The default value of this hyperparameter.
+
+    If not specified, the default value is the midpoint of the range.
+    """
+
     meta: Mapping[Hashable, Any] | None
-    size: int
+    """Field for holding meta data provided by the user. Not used by the ConfigSpace."""
+
+    size: int = field(init=False)
+    """The size of the hyperparameter's domain."""
 
     def __init__(
         self,
@@ -39,6 +73,27 @@ class UniformIntegerHyperparameter(IntegerHyperparameter):
         log: bool = False,
         meta: Mapping[Hashable, Any] | None = None,
     ) -> None:
+        """Initialize a uniformly distributed integer hyperparameter.
+
+        Args:
+            name:
+                Name of the hyperparameter, with which it can be accessed
+            lower:
+                Lower bound of a range of values from which the hyperparameter
+                represents
+            upper:
+                Upper bound of a range of values from which the hyperparameter
+                represents
+            default_value:
+                The default value of this hyperparameter. If not specified, the
+                default value is the midpoint of the range.
+            log:
+                If `True` the values of the hyperparameter will be sampled on a
+                log-scale
+            meta:
+                Field for holding meta data provided by the user. Not used by
+                ConfigSpace.
+        """
         self.lower = int(np.rint(lower))
         self.upper = int(np.rint(upper))
         self.log = bool(log)
@@ -88,6 +143,23 @@ class UniformIntegerHyperparameter(IntegerHyperparameter):
             neighborhood=vector_dist.neighborhood,
             neighborhood_size=self._integer_neighborhood_size,
             value_cast=int,
+        )
+
+    def to_float(self) -> UniformFloatHyperparameter:
+        """Convert this hyperparameter to a uniform float hyperparameter.
+
+        Returns:
+            A uniform float hyperparameter with the same range as this.
+        """
+        from ConfigSpace.hyperparameters.uniform_float import UniformFloatHyperparameter
+
+        return UniformFloatHyperparameter(
+            name=self.name,
+            lower=self.lower,
+            upper=self.upper,
+            default_value=self.default_value,
+            log=self.log,
+            meta=self.meta,
         )
 
     def __str__(self) -> str:

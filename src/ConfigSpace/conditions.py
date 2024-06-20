@@ -191,8 +191,8 @@ class _BinaryOpCondition(Condition):
 
 
 class EqualsCondition(_BinaryOpCondition):
-    """Hyperparameter ``child`` is conditional on the ``parent`` hyperparameter
-    being *equal* to ``value``.
+    """Hyperparameter `child` is conditional on the `parent` hyperparameter
+    being *equal* to `value`.
 
     Make *b* an active hyperparameter if *a* has the value 1
 
@@ -224,8 +224,8 @@ class EqualsCondition(_BinaryOpCondition):
 
 
 class NotEqualsCondition(_BinaryOpCondition):
-    """Hyperparameter ``child`` is conditional on the ``parent`` hyperparameter
-    being *not equal* to ``value``.
+    """Hyperparameter `child` is conditional on the `parent` hyperparameter
+    being *not equal* to `value`.
 
     Make *b* an active hyperparameter if *a* has **not** the value 1
 
@@ -258,8 +258,8 @@ class NotEqualsCondition(_BinaryOpCondition):
 
 
 class LessThanCondition(_BinaryOpCondition):
-    """Hyperparameter ``child`` is conditional on the ``parent`` hyperparameter
-    being *less than* ``value``.
+    """Hyperparameter `child` is conditional on the `parent` hyperparameter
+    being *less than* `value`.
 
     Make *b* an active hyperparameter if *a* is less than 5
 
@@ -291,8 +291,8 @@ class LessThanCondition(_BinaryOpCondition):
 
 
 class GreaterThanCondition(_BinaryOpCondition):
-    """Hyperparameter ``child`` is conditional on the ``parent`` hyperparameter
-    being *greater than* ``value``.
+    """Hyperparameter `child` is conditional on the `parent` hyperparameter
+    being *greater than* `value`.
 
     Make *b* an active hyperparameter if *a* is greater than 5
 
@@ -324,8 +324,8 @@ class GreaterThanCondition(_BinaryOpCondition):
 
 
 class InCondition(Condition):
-    """Hyperparameter ``child`` is conditional on the ``parent`` hyperparameter
-    being *in* a set of ``values``.
+    """Hyperparameter `child` is conditional on the `parent` hyperparameter
+    being *in* a set of `values`.
 
     make *b* an active hyperparameter if *a* is in the set [1, 2, 3, 4]
 

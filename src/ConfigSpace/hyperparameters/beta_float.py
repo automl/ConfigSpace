@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Hashable, Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, ClassVar
 
 import numpy as np
@@ -11,28 +11,59 @@ from ConfigSpace.hyperparameters._distributions import (
     ScipyContinuousDistribution,
 )
 from ConfigSpace.hyperparameters._hp_components import ROUND_PLACES, UnitScaler
-from ConfigSpace.hyperparameters.beta_integer import BetaIntegerHyperparameter
 from ConfigSpace.hyperparameters.float_hyperparameter import FloatHyperparameter
 from ConfigSpace.types import f64
 
 if TYPE_CHECKING:
+    from ConfigSpace.hyperparameters.beta_integer import BetaIntegerHyperparameter
     from ConfigSpace.types import Number
 
 
 @dataclass(init=False)
 class BetaFloatHyperparameter(FloatHyperparameter):
+    """A beta distributed float hyperparameter. The 'lower' and 'upper'
+    parameters move the distribution from the `[0, 1]`-range and scale
+    it appropriately, but the shape of the distribution is preserved as
+    if it were in `[0, 1]`-range.
+
+    Its values are sampled from a beta distribution `Beta(alpha, beta)`.
+
+    ```python exec="True" result="python" source="material-block"
+    from ConfigSpace import BetaFloatHyperparameter
+
+    b = BetaFloatHyperparameter('b', alpha=3, beta=2, lower=1, upper=4, log=False)
+    print(b)
+    ```
+    """
+
     ORDERABLE: ClassVar[bool] = True
 
     alpha: float
+    """Alpha parameter of the normalized beta distribution."""
+
     beta: float
+    """Beta parameter of the normalized beta distribution."""
+
     lower: float
+    """Lower bound of a range of values from which the hyperparameter represents."""
+
     upper: float
+    """Upper bound of a range of values from which the hyperparameter represents."""
+
     log: bool
+    """If `True` the values of the hyperparameter will be sampled on a log-scale."""
 
     name: str
+    """Name of the hyperparameter, with which it can be accessed."""
+
     default_value: float
+    """The default value of this hyperparameter."""
+
     meta: Mapping[Hashable, Any] | None
-    size: float
+    """Field for holding meta data provided by the user. Not used by ConfigSpace."""
+
+    size: float = field(init=False)
+    """Size of the hyperparameter. Always `np.inf` for continuous hyperparameters."""
 
     def __init__(
         self,
@@ -45,18 +76,7 @@ class BetaFloatHyperparameter(FloatHyperparameter):
         log: bool = False,
         meta: Mapping[Hashable, Any] | None = None,
     ) -> None:
-        r"""A beta distributed float hyperparameter. The 'lower' and 'upper'
-        parameters move the distribution from the [0, 1]-range and scale
-        it appropriately, but the shape of the distribution is preserved as
-        if it were in [0, 1]-range.
-
-        Its values are sampled from a beta distribution
-        :math:`Beta(\alpha, \beta)`.
-
-        >>> from ConfigSpace import BetaFloatHyperparameter
-        >>>
-        >>> BetaFloatHyperparameter('b', alpha=3, beta=2, lower=1, upper=4, log=False)
-        b, Type: BetaFloat, Alpha: 3.0 Beta: 2.0, Range: [1.0, 4.0], Default: 3.0
+        """Initialize a beta distributed float hyperparameter.
 
         Args:
             name:
@@ -132,6 +152,21 @@ class BetaFloatHyperparameter(FloatHyperparameter):
         )
 
     def to_integer(self) -> BetaIntegerHyperparameter:
+        """Converts the beta float hyperparameter to a beta integer hyperparameter.
+
+        This happens by rounding the lower and upper bounds and the default value
+        as required.
+
+        !!! warning
+
+            `meta` information is not transferred to the new hyperparameter and
+            must be transferred manually.
+
+        Returns:
+            A beta integer hyperparameter.
+        """
+        from ConfigSpace.hyperparameters.beta_integer import BetaIntegerHyperparameter
+
         lower = int(np.ceil(self.lower))
         upper = int(np.floor(self.upper))
         default_value = int(np.rint(self.default_value))

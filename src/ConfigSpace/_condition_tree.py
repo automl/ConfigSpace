@@ -1,3 +1,34 @@
+r"""This module is considered private an houses most of the algorithmic structure
+of a [`ConfigurationSpace`][ConfigSpace.configuration_space.ConfigurationSpace].
+
+There is a lot of logic dedicated to caching structures that aid in:
+* Sampling
+* Neighbourhood generation
+* Validating
+
+Modify at your own risk, however please try to benchmark any changes made.
+
+We recommend using the scripts available in the `scripts` directory to test
+any changes made to this module.
+
+We also recommend using `py-spy` to profile the code and identify bottlenecks,
+rather than utilize blind optimization.
+
+* https://github.com/benfred/py-spy
+
+```bash
+py-spy record \
+    -r 100 \  # How often to record samples (100 a second)
+    -n \ # Whether to capture native code from numpy
+    -o out-sampling03.speedscope \  # A file that you can open in your browser
+    -- python scripts/benchmark2-sampling.py # The script to run
+```
+
+NOTE: I'm pretty sure a more elegant way can be used to express the relationships
+between hyperparameters and their conditions, however this is the best I could
+manage at the time that remains efficient.
+"""
+
 from __future__ import annotations
 
 from collections import deque
@@ -38,29 +69,55 @@ if TYPE_CHECKING:
 
 @dataclass
 class ConditionNode:
+    """A node in the condition tree, used for structuring the relationship
+    between hyperparameters and their conditions.
+
+    These have a large interplay with [`HPNode`][ConfigSpace._condition_tree.HPNode].
+    """
+
     CACHED_NAN_ARRAY: ClassVar[Array[f64]] = np.array([np.nan], dtype=f64)
+    """A cached array of NaNs.
+
+    We require nans when masking out inactive hyperparameters.
+    Rather than regenerate nan arrays every time, we store one here and
+    slice it as required.
+
+    This will grow to the largest required size by any condition node.
+    """
 
     condition: ConditionLike
+    """The condition that this node represents."""
+
     dependants: list[ConditionNode]
+    """A list of conditions that depend on this node being active."""
+
     unique_children: dict[int, HPNode]
+    """A dictionary of children hyperparameters that are activated by this node."""
+
     children_indices: Array[np.intp] = field(
         default_factory=lambda: np.array((), dtype=np.intp),
         compare=False,
     )
+    """A pre-allocated array of indices into the children hyperparameters."""
+
     nan_arr: Array[f64] = field(
         default_factory=lambda: ConditionNode.CACHED_NAN_ARRAY[:0],
         compare=False,
     )
+    """A slice of the cached NaN array, used for masking inactive hyperparameters."""
 
     def node_parents(self) -> list[str]:
+        """Get the names of the parents of this node."""
         if isinstance(self.condition, Condition):
             return [self.condition.parent.name]
         return [dlc.parent.name for dlc in self.condition.dlcs]
 
     def depends_on(self, other: ConditionNode) -> bool:
+        """Check if this node depends on another node."""
         return any(parent in other.dependant_names() for parent in self.node_parents())
 
     def dependant_names(self) -> set[str]:
+        """Get the names of all the dependant nodes."""
         _dep = {node.name for node in self.unique_children.values()}
         for dep in self.dependants:
             _dep.update(dep.dependant_names())
@@ -68,6 +125,7 @@ class ConditionNode:
 
     @classmethod
     def from_node(cls, node: HPNode) -> ConditionNode:
+        """Create a condition node from a hyperparameter node."""
         assert node.parent_condition is not None
         return cls(
             condition=node.parent_condition,
@@ -77,6 +135,7 @@ class ConditionNode:
         )
 
     def has_equivalent_condition(self, node: HPNode) -> bool:
+        """Check if this node has an equivalent condition to another node."""
         assert node.parent_condition is not None
         return self.condition.equivalent_condition_on_parent(
             node.parent_condition,
@@ -93,14 +152,38 @@ class ConditionNode:
 
 @dataclass
 class HPNode:
+    """A node in the hyperparameter tree, used for structuring the relationship
+    between hyperparameters and their conditions, their 'depth' when considering how many
+    hyperparameters need to be active for this hp to be active, as well as storing
+    information such as their index in a vector.
+
+    A HPNode is also **orderable** by it's
+    [`.maximum_depth`][ConfigSpace._condition_tree.HPNode.maximum_depth],
+    i.e. `sorted(hp_nodes)` will put the nodes in order of their depth.
+    """
+
     hp: Hyperparameter
+    """The hyperparameter that this node represents."""
+
     idx: int
+    """The index of this node in the vector representation of the hyperparameters."""
+
     maximum_depth: int
+    """The maximum depth of this node in the tree.
+
+    NOTE: There is also a notion of a minimum depth, that is if two hyperparameters
+    are a parent of this one, then the minimum depth is 1 + the minimum depth of
+    the parents.
+    """
+
     children: dict[str, tuple[HPNode, ConditionLike]] = field(default_factory=dict)
+    """A dictionary of children hyperparameters and the conditions to activate them."""
+
     forbiddens: list[ForbiddenLike] = field(default_factory=list)
+    """A list of forbidden clauses that prevent this hyperparameter from being active."""
 
     # NOTE: We have the restriction that a hyperparameter can only have one parent
-    # condition but multiple parent from which these relationshops are dervied
+    # condition but multiple parents from which these relationshops are dervied
     # This is to prevent ambiguity between AND and OR, in other words, what
     # do we do with the current Node if the condition for one parent is satisfied
     # but not the other.
@@ -111,7 +194,15 @@ class HPNode:
         # We explicitly don't compare parents to prevent recursion
         compare=False,
     )
+    """A dictionary from the name of it's parent hyperparameters to the parent node
+    and condition that attaches them.
+
+    This is derived from the `parent_condition` field, which may be a conjunction
+    of multiple conditions on various different hyperparameters.
+    """
+
     parent_condition: ConditionLike | None = None
+    """The parent condition attached to this node."""
 
     def __lt__(self, __value: object) -> bool:
         if not isinstance(__value, HPNode):
@@ -151,17 +242,23 @@ class HPNode:
 
     @property
     def name(self) -> str:
+        """The name of the hyperparameter."""
         return self.hp.name
 
     def child_conditions(self) -> list[Condition | Conjunction]:
+        """Get the conditions that check the value of this hyperparameter."""
         return [condition for _, condition in self.children.values()]
 
     def parent_conditions(self) -> list[Condition | Conjunction]:
+        """Get the conditions on this hyperparameters parents that influence if this
+        hp is active.
+        """
         if self.parent_condition is not None:
             return [self.parent_condition]
         return []
 
     def propogate_new_depth(self, depth: int) -> None:
+        """Set the depth of this node and update all it's children."""
         if depth <= self.maximum_depth:
             # There's no need to propogate the depth, this nodes
             # maximum depth already dominates it
@@ -174,67 +271,183 @@ class HPNode:
 
 @dataclass
 class DAG:
+    """This class represents a Directed Acyclic Graph (DAG) that is used to
+    represent the relationships between hyperparameters, where conditions dictate
+    the edges.
+
+    There are a lot of optimized cached structures that are use for various
+    functionality in `ConfigSpace`.
+
+    The primary way to update this dag is as follows:
+
+    ```python
+    with dag.update():  # <- Informed the dag that it will have things added
+        dag.add(hp)
+        dag.add(condition)
+    # <- commits the changes and recomputes all of its cached state
+    ```
+
+    The DAG can possible contain multiple roots, in lue of one **global** root.
+    Each root is a hyperparameter that has no parent conditions, i.e. it's active
+    no matter what.
+    """
+
     # All relevant information is kept in these fields, rest is cached information
     nodes: dict[str, HPNode] = field(default_factory=dict)
+    """A dictionary of hyperparameter nodes, keyed by their name."""
+
     unconditional_forbiddens: list[ForbiddenLike] = field(default_factory=list)
+    """A list of forbidden clauses that can be applied to hyperparameters with no
+    conditions."""
+
     conditional_forbiddens: list[ForbiddenLike] = field(default_factory=list)
+    """A list of forbidden clauses that only make sense to apply if the hyperparameter
+    is activated by some condition."""
 
     # Keep track of nodes
     roots: dict[str, HPNode] = field(default_factory=dict, compare=False)
+    """A dictionary of hyperparameters that are roots in the DAG."""
+
     non_roots: dict[str, HPNode] = field(default_factory=dict, compare=False)
+    """A dictionary of hyperparameters that are not roots in the DAG."""
 
     # Keep track of conditions
     conditions: list[ConditionLike] = field(default_factory=list, compare=False)
+    """A list of conditions that are applied to hyperparameters."""
+
     minimum_conditions: list[ConditionNode] = field(default_factory=list, compare=False)
+    """A minimum set of conditions required to check which hyperparameters are active.
+
+    We often have inverted relationships, i.e. 3 conditions are needed
+    to represent three hyperparameters.
+    ```
+    choice = ["A", "B"]
+    A:x if choice == A
+    A:y if choice == A
+    A:z if choice == A
+    ```
+
+    However you may notice that the conditional check is the same for
+    all 3.
+
+    With a `ConditionNode`, we can instead represent this as:
+    ```
+    choice = ["A", "B"]
+    if choice != A:
+        then A:x, A:y, A:z are inactive
+
+    # NOTE: I'm fairly sure this assumption still leads to a diamond OR condition
+    # problem where we de-activate a hyperparameter when we shouldn't.
+    # This shold be revisisted and fixed.
+    """
+
     change_hp_lookup: dict[str, list[ConditionNode]] = field(
         default_factory=dict,
         compare=False,
     )
-    all_trees_needed_for_sampling: list[ConditionNode] = field(
-        default_factory=list,
-        compare=False,
-    )
+    """A lookup table that is used in `change_hp_value`.
+
+    When a hyperparameter value is changed, we need to determine what other
+    hyperparameters are affected by this change and whether they should
+    be activated or deactivated.
+
+    This lookup maps from the name of the hyperparameter to a list of
+    `ConditionNode` that capture these relationships.
+    """
+
     normalized_defaults: Array[f64] = field(
         default_factory=lambda: np.array((), dtype=f64),
         compare=False,
     )
+    """Precomputed array of normalized default values for all hyperparameters."""
+
     # OPTIM: Mainly used for generating neighbors, do not use if validation
     # the underlying forbidden is required to be displayed to the user
     fast_forbidden_checks: list[ForbiddenLike] = field(
         default_factory=list,
         compare=False,
     )
+    """ Many time, forbiddens are an AND conjunction of multiple
+    clauses, where the clauses are all on the same hyperparameters.
+
+    ```
+    (classifier== 'adaboost' && preprocessor== 'densifier'),
+    (classifier== 'adaboost' && preprocessor== 'kitchen_sinks'),
+    (classifier== 'adaboost' && preprocessor == 'nystroem_sampler')
+    ```
+
+    When performing operations of forbiddens, only a single array at a time,
+    the **slowest part is actually indexing into a numpy array like[so_idx]**,
+    even if just retrieving one index.
+
+    * Ref: https://stackoverflow.com/a/29311751/5332072
+
+    We can't get around indexing so the next best attempt is to reduce the amount
+    indexing required.
+
+    ```
+    (classifier== 'adaboost'
+    && preprocessor in ('nystroem_sampler', 'kitchen_sinks', 'densifier'))
+    ```
+
+    We can't perfectly capture all possible forbidden clauses in this way, but
+    we make the assumption that shared forbiddens are more likely to occur on
+    _more shallow_ nodes, i.e. hp nodes that come before.
+    """
+
     forbidden_lookup: dict[str, list[ForbiddenLike]] = field(
         default_factory=dict,
         compare=False,
     )
+    """A lookup table that is used to quickly determine which forbidden clauses
+    check a given hyperparameter.
+    """
 
     # Indexes into the states of the dag
     index_of: dict[str, int] = field(default_factory=dict, compare=False)
+    """A lookup table that maps from the name of a hyperparameter to it's index."""
+
     at: list[str] = field(default_factory=list, compare=False)
+    """A list of hyperparameter names, ordered by their index."""
+
     children_of: dict[str, list[Hyperparameter]] = field(
         default_factory=dict,
         compare=False,
     )
+    """A dictionary of hyperparameters that are dependant on a hyperparameter."""
+
     parents_of: dict[str, list[Hyperparameter]] = field(
         default_factory=dict,
         compare=False,
     )
+    """A dictionary of hyperparameters that are parents of a hyperparameter."""
+
     child_conditions_of: dict[str, list[ConditionLike]] = field(
         default_factory=dict,
         compare=False,
     )
+    """A dictionary of conditions that are dependant on a hyperparameter."""
+
     parent_conditions_of: dict[str, list[ConditionLike]] = field(
         default_factory=dict,
         compare=False,
     )
+    """A dictionary of conditions that are parents of a hyperparameter."""
+
     hyperparameters: list[Hyperparameter] = field(default_factory=list, compare=False)
+    """A list of hyperparameters in the DAG."""
 
     # Internal flag to keep track of whether we are currently in a transaction
     _updating: bool = False
 
     @contextmanager
     def update(self) -> Iterator[Self]:
+        """A context manager to allow for adding multiple items to the DAG
+        in a single transaction.
+
+        This prevents having to recompute the cached elements of the DAG
+        at every addition.
+        """
         if self._updating:
             raise RuntimeError("Already in a pending update")
 
@@ -311,6 +524,7 @@ class DAG:
             _sort_forbiddens(forbidden)
 
         # Now we reduce the set of all forbiddens to ensure equivalence on nodes.
+        # We dont need to store the same forbidden clause on multiple nodes
         for node in nodes.values():
             node.forbiddens = list(unique_everseen(node.forbiddens, key=str))
 
@@ -370,7 +584,7 @@ class DAG:
             self.child_conditions_of[n.name] = n.child_conditions()
             self.parent_conditions_of[n.name] = n.parent_conditions()
 
-        # Cache out the minimum condition span used for sampling
+        # Cache out the minimum condition span
         # This is useful for sampling
         minimum_conditions = self._minimum_conditions()
 
@@ -423,9 +637,17 @@ class DAG:
 
     @property
     def forbiddens(self) -> list[ForbiddenLike]:
+        """Get all the forbidden clauses in the DAG."""
         return self.unconditional_forbiddens + self.conditional_forbiddens
 
     def add(self, hp: Hyperparameter) -> None:
+        """Add a hyperparameter to the DAG."""
+        if not self._updating:
+            raise RuntimeError(
+                "Cannot add hyperparameters outside of transaction."
+                "Please use `add` inside `with dag.transaction():`",
+            )
+
         existing = self.nodes.get(hp.name, None)
         if existing is not None:
             raise HyperparameterAlreadyExistsError(
@@ -440,6 +662,7 @@ class DAG:
         self.roots[hp.name] = node
 
     def add_condition(self, condition: ConditionLike) -> None:
+        """Add a condition to the DAG."""
         if not self._updating:
             raise RuntimeError(
                 "Cannot add conditions outside of transaction."
@@ -507,6 +730,7 @@ class DAG:
             }
 
     def add_forbidden(self, forbidden: ForbiddenLike) -> None:
+        """Add a forbidden clause to the DAG."""
         if not self._updating:
             raise RuntimeError(
                 "Cannot add forbidden outside of transaction."
@@ -601,20 +825,7 @@ class DAG:
         self,
         forbiddens: list[ForbiddenLike],
     ) -> list[ForbiddenLike]:
-        # OPTIM: Many time, forbiddens are an AND conjunction of multiple
-        # clauses, where the clauses are all on the same hyperparameters.
-        # (classifier== 'adaboost' && preprocessor== 'densifier'),
-        # (classifier== 'adaboost' && preprocessor== 'kitchen_sinks'),
-        # (classifier== 'adaboost' && preprocessor == 'nystroem_sampler')
-        # When performing operations of forbiddens, only a single array at a time,
-        # the **slowest part is actually indexing into a numpy array like[so_idx]**,
-        # even if just retrieving one index.
-        # https://stackoverflow.com/a/29311751/5332072
-        # We can't get around indexing so the next best attempt is to reduce the
-        # amount indexing required.
-        # (classifier== 'adaboost' && preprocessor in ('nystroem_sampler', 'kitchen_sinks', 'densifier'))  # noqa: E501
-        # We make the assumption that shared forbiddens are more likely to occure
-        # on _more shallow_ nodes.
+        # Please see .fast_forbidden_checks for more information
         to_optimize: dict[
             # First parent_name, with N-1 (hp_name, value)...
             tuple[str, tuple[tuple[str, f64], ...]],

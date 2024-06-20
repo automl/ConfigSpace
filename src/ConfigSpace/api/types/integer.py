@@ -64,57 +64,54 @@ def Integer(
 ):
     """Create an IntegerHyperparameter.
 
-    .. code:: python
+    ```python
+    # Uniformly distributed
+    Integer("a", (1, 10))
+    Integer("a", (1, 10), distribution=Uniform())
 
-        # Uniformly distributed
-        Integer("a", (1, 10))
-        Integer("a", (1, 10), distribution=Uniform())
+    # Normally distributed at 2 with std 3
+    Integer("b", (0, 5), distribution=Normal(2, 3))
 
-        # Normally distributed at 2 with std 3
-        Integer("b", (0, 5), distribution=Normal(2, 3))
+    # Beta distributed with alpha 1 and beta 2
+    Integer("c", (0, 3), distribution=Beta(1, 2))
 
-        # Beta distributed with alpha 1 and beta 2
-        Integer("c", (0, 3), distribution=Beta(1, 2))
+    # Give it a default value
+    Integer("a", (1, 10), default=4)
 
-        # Give it a default value
-        Integer("a", (1, 10), default=4)
+    # Sample on a log scale
+    Integer("a", (1, 100), log=True)
 
-        # Sample on a log scale
-        Integer("a", (1, 100), log=True)
+    # Add meta info to the param
+    Integer("a", (1, 10), meta={"use": "For counting chickens"})
+    ```
 
-        # Add meta info to the param
-        Integer("a", (1, 10), meta={"use": "For counting chickens"})
+    !!! note
 
-    Note:
-    ----
-    `Integer` is actually a function, please use the corresponding return types if
-    doing an `isinstance(param, type)` check and not `Integer`.
+        `Integer` is actually a function, please use the corresponding return types if
+        doing an `isinstance(param, type)` check and not `Integer`.
 
-    Parameters
-    ----------
-    name : str
-        The name to give to this hyperparameter
+    Args:
+        name:
+            The name to give to this hyperparameter
 
-    bounds : tuple[int, int]
-        The bounds to give to the integer.
+        bounds:
+            The bounds to give to the integer.
 
-    distribution : Uniform | Normal | Beta, = Uniform
-        The distribution to use for the hyperparameter. See above
+        distribution:
+            The distribution to use for the hyperparameter. See above
 
-    default : int | None = None
-        The default value to give to the hyperparameter.
+        default:
+            The default value to give to the hyperparameter.
 
-    log : bool = False
-        Whether to this parameter lives on a log scale
+        log:
+            Whether to this parameter lives on a log scale
 
-    meta : dict | None = None
-        Any meta information you want to associate with this parameter
+        meta:
+            Any meta information you want to associate with this parameter
 
-    Returns
-    -------
-    UniformIntegerHyperparameter | NormalIntegerHyperparameter | BetaIntegerHyperparameter
-        Returns the corresponding hyperparameter type
-    """  # noqa: E501
+    Returns:
+        The corresponding hyperparameter type
+    """
     if distribution is None:
         distribution = Uniform()
 

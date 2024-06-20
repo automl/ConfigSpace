@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 from collections.abc import Hashable, Mapping
-from dataclasses import dataclass
-from typing import Any, ClassVar
+from dataclasses import dataclass, field
+from typing import TYPE_CHECKING, Any, ClassVar
 
 import numpy as np
 from scipy.stats import truncnorm
@@ -11,24 +11,59 @@ from scipy.stats._distn_infrastructure import rv_continuous_frozen
 from ConfigSpace.hyperparameters._distributions import ScipyContinuousDistribution
 from ConfigSpace.hyperparameters._hp_components import ROUND_PLACES, UnitScaler
 from ConfigSpace.hyperparameters.float_hyperparameter import FloatHyperparameter
-from ConfigSpace.hyperparameters.normal_integer import NormalIntegerHyperparameter
 from ConfigSpace.types import Number, f64
+
+if TYPE_CHECKING:
+    from ConfigSpace.hyperparameters.normal_integer import NormalIntegerHyperparameter
 
 
 @dataclass(init=False)
 class NormalFloatHyperparameter(FloatHyperparameter):
+    """A normally distributed float hyperparameter.
+
+    The 'mu' and 'sigma' parameters define the mean and standard deviation of the
+    normal distribution. The 'lower' and 'upper' parameters move the distribution
+    from the `[0, 1]`-range and scale it appropriately, but the shape of the
+    distribution is preserved as if it were in `[0, 1]`-range.
+
+    Its values are sampled from a normal distribution `N(mu, sigma)`.
+
+    ```python exec="True" result="python" source="material-block"
+    from ConfigSpace import NormalFloatHyperparameter
+
+    n = NormalFloatHyperparameter('n', mu=5.5, sigma=2, lower=0, upper=11, log=False)
+    print(n)
+    ```
+    """
+
     ORDERABLE: ClassVar[bool] = True
 
     mu: float
+    """Mean of the normal distribution."""
+
     sigma: float
+    """Standard deviation of the normal distribution."""
+
     lower: float
+    """Lower bound of a range of values from which the hyperparameter represents."""
+
     upper: float
+    """Upper bound of a range of values from which the hyperparameter represents."""
+
     log: bool
+    """If `True` the values of the hyperparameter will be sampled on a log-scale."""
 
     name: str
+    """Name of the hyperparameter, with which it can be accessed."""
+
     default_value: float
+    """The default value of this hyperparameter."""
+
     meta: Mapping[Hashable, Any] | None
-    size: float
+    """Field for holding meta data provided by the user. Not used by the ConfigSpace."""
+
+    size: float = field(init=False)
+    """Size of the hyperparameter, which is always infinity for a normal float."""
 
     def __init__(
         self,
@@ -41,6 +76,26 @@ class NormalFloatHyperparameter(FloatHyperparameter):
         log: bool = False,
         meta: Mapping[Hashable, Any] | None = None,
     ) -> None:
+        """A normally distributed float hyperparameter.
+
+        Args:
+            name:
+                Name of the hyperparameter, with which it can be accessed
+            mu:
+                Mean of the normal distribution
+            sigma:
+                Standard deviation of the normal distribution
+            lower:
+                Lower bound of of values from which the hyperparameter represents
+            upper:
+                Upper bound of of values from which the hyperparameter represents
+            default_value:
+                The default value of this hyperparameter
+            log:
+                If `True` the values will be sampled on a log-scale
+            meta:
+                Field for meta data provided by the user. Not used by ConfigSpace.
+        """
         if mu <= 0 and log:
             raise ValueError(
                 f"Hyperparameter '{name}' has illegal settings: "
@@ -96,6 +151,18 @@ class NormalFloatHyperparameter(FloatHyperparameter):
         )
 
     def to_integer(self) -> NormalIntegerHyperparameter:
+        """Convert this hyperparameter to a normal integer hyperparameter.
+
+        This is done by rounding the lower and upper bounds and the default value
+        as required.
+
+        Returns:
+            A normal integer hyperparameter.
+        """
+        from ConfigSpace.hyperparameters.normal_integer import (
+            NormalIntegerHyperparameter,
+        )
+
         return NormalIntegerHyperparameter(
             name=self.name,
             mu=self.mu,

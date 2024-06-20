@@ -12,7 +12,10 @@ from ConfigSpace.hyperparameters.hyperparameter import Hyperparameter
 from ConfigSpace.types import Array, f64
 
 CONSTANT_VECTOR_VALUE_YES = f64(1)
+"""Vectorized value for constant when set."""
+
 CONSTANT_VECTOR_VALUE_NO = f64(0)
+"""Vectorized value for constant when not set."""
 
 
 def _empty_neighborhood(*_: Any, **__: Any) -> Array[f64]:
@@ -21,13 +24,25 @@ def _empty_neighborhood(*_: Any, **__: Any) -> Array[f64]:
 
 @dataclass(init=False)
 class Constant(Hyperparameter[Any, Any]):
-    SERIALIZE_TYPE_NAME: ClassVar[str] = "constant"
+    """Representing a constant hyperparameter in the configuration space.
+
+    By sampling from the configuration space each time only a single,
+    constant `value` will be drawn from this hyperparameter.
+    """
+
     ORDERABLE: ClassVar[bool] = False
 
     name: str
+    """Name of the hyperparameter, with which it can be accessed."""
+
     value: Any
+    """Value to sample hyperparameter from."""
+
     meta: Mapping[Hashable, Any] | None
+    """Field for holding meta data provided by the user. Not used by the ConfigSpace."""
+
     size: int
+    """Size of the hyperparameter, which is always 1 for a constant hyperparameter."""
 
     def __init__(
         self,
@@ -38,7 +53,7 @@ class Constant(Hyperparameter[Any, Any]):
         """Representing a constant hyperparameter in the configuration space.
 
         By sampling from the configuration space each time only a single,
-        constant ``value`` will be drawn from this hyperparameter.
+        constant `value` will be drawn from this hyperparameter.
 
         Args:
             name:

@@ -23,15 +23,15 @@ def write(
     :class:`~ConfigSpace.configuration_space.ConfigurationSpace` in json format.
     This string can be written to file.
 
-    .. code:: python
+    ```python
+    from ConfigSpace import ConfigurationSpace
+    from ConfigSpace.read_and_write import json as cs_json
 
-        from ConfigSpace import ConfigurationSpace
-        from ConfigSpace.read_and_write import json as cs_json
+    cs = ConfigurationSpace({"a": [1, 2, 3]})
 
-        cs = ConfigurationSpace({"a": [1, 2, 3]})
-
-        with open('configspace.json', 'w') as f:
-            f.write(cs_json.write(cs))
+    with open('configspace.json', 'w') as f:
+        f.write(cs_json.write(cs))
+    ```
 
     Parameters
     ----------
@@ -45,7 +45,7 @@ def write(
         to include in the dictionary and the second element is the encoder function
         which gives back a serializable dictionary.
 
-    Returns
+    Returns:
     -------
     str
         String representation of the configuration space,
@@ -71,20 +71,20 @@ def read(
 ) -> ConfigurationSpace:
     """Create a configuration space definition from a json string.
 
-    .. code:: python
+    ```python
+    from ConfigSpace import ConfigurationSpace
+    from ConfigSpace.read_and_write import json as cs_json
 
-        from ConfigSpace import ConfigurationSpace
-        from ConfigSpace.read_and_write import json as cs_json
+    cs = ConfigurationSpace({"a": [1, 2, 3]})
 
-        cs = ConfigurationSpace({"a": [1, 2, 3]})
+    cs_string = cs_json.write(cs)
+    with open('configspace.json', 'w') as f:
+         f.write(cs_string)
 
-        cs_string = cs_json.write(cs)
-        with open('configspace.json', 'w') as f:
-             f.write(cs_string)
-
-        with open('configspace.json', 'r') as f:
-            json_string = f.read()
-            config = cs_json.read(json_string)
+    with open('configspace.json', 'r') as f:
+        json_string = f.read()
+        config = cs_json.read(json_string)
+    ```
 
 
     Parameters
@@ -92,7 +92,7 @@ def read(
     jason_string : str
         A json string representing a configuration space definition
 
-    Returns
+    Returns:
     -------
     :class:`~ConfigSpace.configuration_space.ConfigurationSpace`
         The deserialized ConfigurationSpace object

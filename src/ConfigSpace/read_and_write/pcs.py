@@ -243,24 +243,24 @@ def read(pcs_string: Iterable[str]) -> ConfigurationSpace:
     definition from a pcs file.
 
 
-    .. code:: python
+    ```python
+    from ConfigSpace import ConfigurationSpace
+    from ConfigSpace.read_and_write import pcs
 
-        from ConfigSpace import ConfigurationSpace
-        from ConfigSpace.read_and_write import pcs
+    cs = ConfigurationSpace({"a": [1, 2, 3]})
+    with open('configspace.pcs', 'w') as f:
+         f.write(pcs.write(cs))
 
-        cs = ConfigurationSpace({"a": [1, 2, 3]})
-        with open('configspace.pcs', 'w') as f:
-             f.write(pcs.write(cs))
-
-        with open('configspace.pcs', 'r') as f:
-            deserialized_conf = pcs.read(f)
+    with open('configspace.pcs', 'r') as f:
+        deserialized_conf = pcs.read(f)
+    ```
 
     Parameters
     ----------
     pcs_string : Iterable[str]
         ConfigSpace definition in pcs format as an iterable of strings
 
-    Returns
+    Returns:
     -------
     :py:class:`~ConfigSpace.configuration_space.ConfigurationSpace`
         The deserialized ConfigurationSpace object
@@ -439,22 +439,22 @@ def write(configuration_space: ConfigurationSpace) -> str:
     :class:`~ConfigSpace.configuration_space.ConfigurationSpace` in pcs format.
     This string can be written to file.
 
-    .. code:: python
+    ```python
+    from ConfigSpace import ConfigurationSpace
+    from ConfigSpace.read_and_write import pcs
 
-        from ConfigSpace import ConfigurationSpace
-        from ConfigSpace.read_and_write import pcs
+    cs = ConfigurationSpace({"a": [1, 2, 3]})
 
-        cs = ConfigurationSpace({"a": [1, 2, 3]})
-
-        with open('configspace.pcs', 'w') as fh:
-            fh.write(pcs.write(cs))
+    with open('configspace.pcs', 'w') as fh:
+        fh.write(pcs.write(cs))
+    ```
 
     Parameters
     ----------
     configuration_space:
         a configuration space
 
-    Returns
+    Returns:
     -------
     str
         The string representation of the configuration space

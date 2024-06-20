@@ -41,7 +41,10 @@ if TYPE_CHECKING:
         [Dict[str, Any], ConfigurationSpace, "_Decoder"],
         Any,
     ]
+    """Type alias for the decoder function signature."""
+
     _Encoder: TypeAlias = Callable[[Any, "_Encoder"], Dict[str, Any]]
+    """Type alias for the encoder function signature."""
 
 
 def _pop_q(item: dict[str, Any]) -> dict[str, Any]:

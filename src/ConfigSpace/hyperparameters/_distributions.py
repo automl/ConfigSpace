@@ -33,7 +33,10 @@ if TYPE_CHECKING:
 ARANGE_CHUNKSIZE = 10_000_000
 
 CONFIDENCE_FOR_NORMALIZATION_OF_DISCRETE = 0.999999
+
 DEFAULT_VECTORIZED_NUMERIC_STD = 0.2
+"""The default standard deviation for generating neighborhoods of vectorized values."""
+
 NEIGHBOR_GENERATOR_N_RETRIES = 8
 NEIGHBOR_GENERATOR_SAMPLE_MULTIPLIER = 4
 RandomState = np.random.RandomState
@@ -75,6 +78,44 @@ def quantized_neighborhood(
     upper: f64,
     bins: int,
 ) -> Array[f64]:
+    """Create a neighborhood of `n` neighbors around `vector` with a normal distribution.
+
+    The neighborhood is created by sampling from a normal distribution centered around
+    `vector` with a standard deviation of `std`. The samples are then quantized to the
+    range `[lower, upper]` with `bins` bins. The number of samples is `n`.
+
+    !!! warning
+
+        If there are not enough unique neighbors to sample from, the function will
+        return less than `n` neighbors.
+
+    Args:
+        vector: The center of the neighborhood.
+        n: The number of neighbors to generate.
+        lower: The lower bound of the quantized range.
+        upper: The upper bound of the quantized range.
+        bins: The number of bins to quantize the samples into.
+        std: The standard deviation of the normal distribution. If `None` will use
+            [`DEFAULT_VECTORIZED_NUMERIC_STD`][configspace.hyperparameters._distributions.DEFAULT_VECTORIZED_NUMERIC_STD].
+        seed: The random seed to use.
+        n_retries:
+            The number of retries to attempt to generate unique neighbors.
+            Each retry increases the standard deviation of the normal distribution to prevent
+            rejection sampling from failing.
+        sample_multiplier:
+            A multiplier which multiplies by `n` to determine the number of samples to
+            generate for try. By oversampling, we prevent having to repeated calls to
+            both sampling and unique checking.
+
+            However, oversampling makes a tradeoff when the `std` is not high enough to
+            generate `n` unique neighbors, effectively sampling more of the same duplicates.
+
+            Tuning this may be beneficial in unique circumstances, however we advise leaving
+            this as a default.
+
+    Returns:
+        An array of `n` neighbors around `vector`.
+    """  # noqa: E501
     if std is None:
         std = DEFAULT_VECTORIZED_NUMERIC_STD
 
@@ -169,6 +210,42 @@ def continuous_neighborhood(
     n_retries: int = NEIGHBOR_GENERATOR_N_RETRIES,
     sample_multiplier: int = NEIGHBOR_GENERATOR_SAMPLE_MULTIPLIER,
 ) -> Array[f64]:
+    """Create a neighborhood of `n` neighbors around `vector` with a normal distribution.
+
+    The neighborhood is created by sampling from a normal distribution centered around
+    `vector` with a standard deviation of `std`. The samples are then quantized to the
+    range `[lower, upper]` with `bins` bins. The number of samples is `n`.
+
+    !!! warning
+
+        If there are not enough unique neighbors to sample from, the function will
+        return less than `n` neighbors.
+
+    Args:
+        vector: The center of the neighborhood.
+        n: The number of neighbors to generate.
+        lower: The lower bound of the quantized range.
+        upper: The upper bound of the quantized range.
+        bins: The number of bins to quantize the samples into.
+        std: The standard deviation of the normal distribution. If `None` will use
+            [`DEFAULT_VECTORIZED_NUMERIC_STD`][configspace.hyperparameters._distributions.DEFAULT_VECTORIZED_NUMERIC_STD].
+        seed: The random seed to use.
+        n_retries:
+            The number of retries to attempt to generate unique neighbors.
+            Each retry increases the standard deviation of the normal distribution to
+            prevent rejection sampling from failing.
+        sample_multiplier:
+            A multiplier which multiplies by `n` to determine the number of samples to
+            generate for try. By oversampling, we prevent having to repeated calls to
+            sampling. This prevents having to do more rounds of sampling when too many
+            samples are out of bounds, useful for when the `vector` is near the bounds.
+
+            Tuning this may be beneficial in unique circumstances, however we advise
+            leaving this as a default.
+
+    Returns:
+        An array of `n` neighbors around `vector`.
+    """  # noqa: E501
     if std is None:
         std = DEFAULT_VECTORIZED_NUMERIC_STD
 
@@ -219,37 +296,113 @@ def continuous_neighborhood(
 
 
 class Distribution(Protocol):
-    lower_vectorized: f64
-    upper_vectorized: f64
+    """A protocol for distributions.
 
-    def max_density(self) -> float: ...
+    A distribution is defined by some **vectorized** space and allows us to
+    draw samples from it, calculate the probability density function (pdf) and
+    provide a maximum density.
+    """
+
+    lower_vectorized: f64
+    """The lower bound of the vectorized space."""
+
+    upper_vectorized: f64
+    """The lower bound of the vectorized space."""
+
+    def max_density(self) -> float:
+        """Return the maximum density of the distribution."""
+        ...
 
     def sample_vector(
         self,
         n: int,
         *,
         seed: RandomState | None = None,
-    ) -> Array[f64]: ...
+    ) -> Array[f64]:
+        """Sample `n` values from the distribution.
 
-    def pdf_vector(self, vector: Array[f64]) -> Array[f64]: ...
+        Samples generated do not have to be unique.
+
+        !!! note
+            Generated samples must be within the bounds defined by `lower_vectorized`
+            and `upper_vectorized`.
+
+        Args:
+            n: The number of samples to generate.
+            seed: The random seed to use.
+
+        Returns:
+            An array of `n` samples, **not** guaranteed to be unique.
+        """
+        ...
+
+    def pdf_vector(self, vector: Array[f64]) -> Array[f64]:
+        """Calculate the probability density function (pdf) of all elements in `vector`.
+
+        Args:
+            vector: The vectorized values to calculate the pdf for.
+
+        Returns:
+            The pdf of all elements in `vector`. If an element is outside the bounds
+            defined by `lower_vectorized` and `upper_vectorized`, the pdf should be 0.
+        """
+        ...
 
 
 @dataclass
 class DiscretizedContinuousScipyDistribution(Distribution, Generic[DType]):
+    """A wrapper to create discrete samples from a continuous scipy distribution.
+
+    This class allows us to take pre-existing scipy distributions which are
+    defined over a continuous space, and transform them into discrete intervals.
+
+    This can also handle adapt a distribution, such that the discrete bins
+    can be distributed on a log scale over the distributrion.
+
+    !!! note
+        If providing `log=True`, you must also provide the `_Transformer` which
+        will be used to transform from vectorized space to the value space.
+    """
+
     steps: int
+    """The number of steps to discretize the distribution into."""
 
     rv: rv_continuous_frozen
+    """The continuous scipy distribution to discretize."""
+
     lower_vectorized: f64
+    """The lower bound of the vectorized space."""
+
     upper_vectorized: f64
+    """The upper bound of the vectorized space."""
 
     log_scale: bool = False
+    """Whether the distribution is on a log scale."""
+
     # NOTE: Only required if you require log scaled quantization
     transformer: _Transformer[DType] | None = None
+    """The transformer to use for log-scaled distributions.
+
+    Only required if `log_scale=True`.
+    """
 
     _max_density: float | None = None
+    """The maximum density of the distribution.
+
+    If left as `None`, will be calculated on first call.
+    """
+
     _pdf_norm: float | None = None
+    """The normalization constant for the pdf.
+
+    If left as `None`, will be calculated on first call.
+    """
 
     original_value_scale: tuple[DType, DType] | None = None
+    """The original value scale of the transformer.
+
+    This is used on log-scale transformation.
+    """
 
     def __post_init__(self) -> None:
         if self.steps < 1:
@@ -292,6 +445,7 @@ class DiscretizedContinuousScipyDistribution(Distribution, Generic[DType]):
         return True
 
     def max_density(self) -> float:
+        """Return the maximum density of the distribution."""
         if self._max_density is not None:
             return self._max_density
 
@@ -380,6 +534,7 @@ class DiscretizedContinuousScipyDistribution(Distribution, Generic[DType]):
         *,
         seed: RandomState | None = None,
     ) -> Array[f64]:
+        """Sample `n` values from the distribution."""
         return self._quantize(x=self.rv.rvs(size=n, random_state=seed))
 
     def _quantize(self, x: Array[f64]) -> Array[f64]:
@@ -396,6 +551,15 @@ class DiscretizedContinuousScipyDistribution(Distribution, Generic[DType]):
         )
 
     def pdf_vector(self, vector: Array[f64]) -> Array[f64]:
+        """Calculate the probability density function (pdf) of all elements in `vector`.
+
+        Args:
+            vector: The vectorized values to calculate the pdf for.
+
+        Returns:
+            The pdf of all elements in `vector`. If an element is outside the bounds
+            defined by `lower_vectorized` and `upper_vectorized`, the pdf is `0`.
+        """
         valid_entries = np.where(
             (vector >= self.lower_vectorized) & (vector <= self.upper_vectorized),
             vector,
@@ -416,6 +580,46 @@ class DiscretizedContinuousScipyDistribution(Distribution, Generic[DType]):
         n_retries: int = NEIGHBOR_GENERATOR_N_RETRIES,
         sample_multiplier: int = NEIGHBOR_GENERATOR_SAMPLE_MULTIPLIER,
     ) -> Array[f64]:
+        """Create a neighborhood of `n` neighbors around `vector` with a normal distribution.
+
+        The neighborhood is created by sampling from a normal distribution centered
+        around `vector` with a standard deviation of `std`. The samples are then
+        quantized to the range `[lower, upper]` with `bins` bins. The number of samples
+        is `n`.
+
+        !!! warning
+
+            If there are not enough unique neighbors to sample from, the function will
+            return less than `n` neighbors.
+
+        Args:
+            vector: The center of the neighborhood.
+            n: The number of neighbors to generate.
+            lower: The lower bound of the quantized range.
+            upper: The upper bound of the quantized range.
+            bins: The number of bins to quantize the samples into.
+            std: The standard deviation of the normal distribution. If `None` will use
+                [`DEFAULT_VECTORIZED_NUMERIC_STD`][configspace.hyperparameters._distributions.DEFAULT_VECTORIZED_NUMERIC_STD].
+            seed: The random seed to use.
+            n_retries:
+                The number of retries to attempt to generate unique neighbors.
+                Each retry increases the standard deviation of the normal distribution
+                to prevent rejection sampling from failing.
+            sample_multiplier:
+                A multiplier which multiplies by `n` to determine the number of samples
+                to generate for try. By oversampling, we prevent having to repeated
+                calls to both sampling and unique checking.
+
+                However, oversampling makes a tradeoff when the `std` is not high
+                enough to generate `n` unique neighbors,
+                effectively sampling more of the same duplicates.
+
+                Tuning this may be beneficial in unique circumstances, however we advise
+                leaving this as a default.
+
+        Returns:
+            An array of `n` neighbors around `vector`.
+        """  # noqa: E501
         if std is None:
             std = DEFAULT_VECTORIZED_NUMERIC_STD
 
@@ -532,10 +736,19 @@ class DiscretizedContinuousScipyDistribution(Distribution, Generic[DType]):
 
 @dataclass
 class ScipyDiscreteDistribution(Distribution):
+    """A wrapper to create discrete samples from a scipy discrete distribution."""
+
     rv: rv_discrete_frozen
+    """The discrete scipy distribution to use."""
+
     _max_density: float
+    """The maximum density of the distribution."""
+
     lower_vectorized: f64
+    """The lower bound of the vectorized space."""
+
     upper_vectorized: f64
+    """The upper bound of the vectorized space."""
 
     def sample_vector(
         self,
@@ -543,13 +756,23 @@ class ScipyDiscreteDistribution(Distribution):
         *,
         seed: RandomState | None = None,
     ) -> Array[f64]:
+        """Sample `n` values from the distribution."""
         return self.rv.rvs(size=n, random_state=seed).astype(f64)  # type: ignore
 
     def max_density(self) -> float:
+        """Return the maximum density of the distribution."""
         return float(self._max_density)
 
     def pdf_vector(self, vector: Array[f64]) -> Array[f64]:
-        # By definition, we don't allow NaNs in the pdf
+        """Calculate the probability density function (pdf) of all elements in `vector`.
+
+        Args:
+            vector: The vectorized values to calculate the pdf for.
+
+        Returns:
+            The pdf of all elements in `vector`. If an element is outside the bounds
+            defined by `lower_vectorized` and `upper_vectorized`, the pdf is `0`.
+        """
         pdf = self.rv.pmf(vector)
         return np.nan_to_num(pdf, nan=0)  # type: ignore
 
@@ -569,7 +792,10 @@ class ScipyDiscreteDistribution(Distribution):
 
 @dataclass
 class UniformIntegerNormalizedDistribution(Distribution):
+    """A uniform over (0, 1) that is quantized to provide `size` different bins."""
+
     size: int
+    """The number of steps to discretize the distribution into."""
 
     def __post_init__(self) -> None:
         if self.size < 1:
@@ -583,14 +809,26 @@ class UniformIntegerNormalizedDistribution(Distribution):
         *,
         seed: RandomState | None = None,
     ) -> Array[f64]:
+        """Sample `n` values from the distribution."""
         seed = np.random.RandomState() if seed is None else seed
         ints = seed.randint(low=0, high=self.size, size=n, dtype=i64)
         return np.true_divide(ints, (self.size - 1), dtype=f64)
 
     def max_density(self) -> float:
+        """Return the maximum density of the distribution."""
         return 1 / self.size
 
     def pdf_vector(self, vector: Array[f64]) -> Array[f64]:
+        """Calculate the probability density function (pdf) of all elements in `vector`.
+
+        Args:
+            vector: The vectorized values to calculate the pdf for.
+
+        Returns:
+            The pdf of all elements in `vector`. If an element is outside the bounds
+            of `(0, 1)`, or does not fall onto one of the quantized bins,
+            the `pdf` is `0`.
+        """
         valid_mask = (
             (vector >= self.lower_vectorized)
             & (vector <= self.upper_vectorized)
@@ -608,6 +846,7 @@ class UniformIntegerNormalizedDistribution(Distribution):
         n_retries: int = NEIGHBOR_GENERATOR_N_RETRIES,
         sample_multiplier: int = NEIGHBOR_GENERATOR_SAMPLE_MULTIPLIER,
     ) -> Array[f64]:
+        """Please see [`quantized_neighborhood`][configspace.hyperparameters._distributions.quantized_neighborhood]."""  # noqa: E501
         return quantized_neighborhood(
             vector,
             n,
@@ -623,10 +862,16 @@ class UniformIntegerNormalizedDistribution(Distribution):
 
 @dataclass
 class UnitUniformContinuousDistribution(Distribution):
+    """A uniform distribution over the unit interval (0, 1)."""
+
     lower_vectorized: f64 = field(init=False)
+    """The lower bound of the vectorized space. In this case always 0."""
+
     upper_vectorized: f64 = field(init=False)
+    """The upper bound of the vectorized space. In this case always 1."""
 
     pdf_max_density: float
+    """The maximum density of the distribution provided by the consumer of this"""
 
     def __post_init__(self) -> None:
         self.lower_vectorized = f64(0.0)
@@ -638,14 +883,25 @@ class UnitUniformContinuousDistribution(Distribution):
         *,
         seed: RandomState | None = None,
     ) -> Array[f64]:
+        """Sample `n` values from the distribution."""
         seed = np.random.RandomState() if seed is None else seed
         return seed.uniform(self.lower_vectorized, self.upper_vectorized, size=n)
 
     def max_density(self) -> float:
+        """Return the maximum density of the distribution."""
         return self.pdf_max_density
 
     def pdf_vector(self, vector: Array[f64]) -> Array[f64]:
         # By definition, we don't allow NaNs in the pdf
+        """Calculate the probability density function (pdf) of all elements in `vector`.
+
+        Args:
+            vector: The vectorized values to calculate the pdf for.
+
+        Returns:
+            The pdf of all elements in `vector`. If an element is outside the bounds
+            defined by `(0, 1)` the pdf is 0.
+        """
         return np.where(
             (vector >= self.lower_vectorized) & (vector <= self.upper_vectorized),
             self.pdf_max_density,
@@ -662,6 +918,7 @@ class UnitUniformContinuousDistribution(Distribution):
         n_retries: int = NEIGHBOR_GENERATOR_N_RETRIES,
         sample_multiplier: int = NEIGHBOR_GENERATOR_SAMPLE_MULTIPLIER,
     ) -> Array[f64]:
+        """Please see [`continuous_neighborhood`][configspace.hyperparameters._distributions.continuous_neighborhood]."""  # noqa: E501
         return continuous_neighborhood(
             vector,
             n,
@@ -676,10 +933,16 @@ class UnitUniformContinuousDistribution(Distribution):
 
 @dataclass
 class UniformIntegerDistribution(Distribution):
+    """A uniform distribution over the integers in the range `[0, size - 1]`."""
+
     size: int
+    """The number of steps to discretize the distribution into."""
 
     lower_vectorized: f64 = field(init=False)
+    """The lower bound of the vectorized space. In this case always 0."""
+
     upper_vectorized: f64 = field(init=False)
+    """The upper bound of the vectorized space. In this case `size - 1`."""
 
     def __post_init__(self) -> None:
         self.lower_vectorized = f64(0)
@@ -691,14 +954,26 @@ class UniformIntegerDistribution(Distribution):
         *,
         seed: RandomState | None = None,
     ) -> Array[f64]:
+        """Sample `n` values from the distribution."""
         seed = np.random.RandomState() if seed is None else seed
         ints = seed.randint(low=0, high=self.size, size=n, dtype=i64)
         return ints.astype(f64)
 
     def max_density(self) -> float:
+        """Return the maximum density of the distribution."""
         return 1 / self.size
 
     def pdf_vector(self, vector: Array[f64]) -> Array[f64]:
+        """Calculate the probability density function (pdf) of all elements in `vector`.
+
+        Args:
+            vector: The vectorized values to calculate the pdf for.
+
+        Returns:
+            The pdf of all elements in `vector`. If an element is outside the bounds
+            defined by `(0, size - 1)` the pdf is 0. If the element is not close to
+            an integer, the pdf is 0.
+        """
         # By definition, we don't allow NaNs in the pdf
         valid_mask = (
             (vector >= self.lower_vectorized)
@@ -717,6 +992,44 @@ class UniformIntegerDistribution(Distribution):
         n_retries: int = NEIGHBOR_GENERATOR_N_RETRIES,
         sample_multiplier: int = NEIGHBOR_GENERATOR_SAMPLE_MULTIPLIER,
     ) -> Array[f64]:
+        """Create a neighborhood of `n` neighbors around `vector` with a normal distribution.
+
+        The neighborhood is created by sampling from a normal distribution centered around
+        `vector` with a standard deviation of `std`. The samples are then quantized to the
+        range `[lower, upper]` with `bins` bins. The number of samples is `n`.
+
+        !!! warning
+
+            If there are not enough unique neighbors to sample from, the function will
+            return less than `n` neighbors.
+
+        Args:
+            vector: The center of the neighborhood.
+            n: The number of neighbors to generate.
+            lower: The lower bound of the quantized range.
+            upper: The upper bound of the quantized range.
+            bins: The number of bins to quantize the samples into.
+            std: The standard deviation of the normal distribution. If `None` will use
+                [`DEFAULT_VECTORIZED_NUMERIC_STD`][configspace.hyperparameters._distributions.DEFAULT_VECTORIZED_NUMERIC_STD].
+            seed: The random seed to use.
+            n_retries:
+                The number of retries to attempt to generate unique neighbors.
+                Each retry increases the standard deviation of the normal distribution to prevent
+                rejection sampling from failing.
+            sample_multiplier:
+                A multiplier which multiplies by `n` to determine the number of samples to
+                generate for try. By oversampling, we prevent having to repeated calls to
+                both sampling and unique checking.
+
+                However, oversampling makes a tradeoff when the `std` is not high enough to
+                generate `n` unique neighbors, effectively sampling more of the same duplicates.
+
+                Tuning this may be beneficial in unique circumstances, however we advise leaving
+                this as a default.
+
+        Returns:
+            An array of `n` neighbors around `vector`.
+        """  # noqa: E501
         # Different than other neighborhoods as it's unnormalized and
         # the quantization is directly integers.
         if std is None:
@@ -801,12 +1114,25 @@ class UniformIntegerDistribution(Distribution):
 
 @dataclass
 class WeightedIntegerDiscreteDistribution(Distribution):
+    """A discrete distribution over integers with weights to each.
+
+    This can be primarily used for defining a weighted distribution over a set
+    of choices, like a `Categorical`.
+    """
+
     size: int
+    """The number of steps to discretize the distribution into."""
+
     probabilities: Array[f64]
+    """The probabilities of each integer in the range `[0, size - 1]`."""
+
+    lower_vectorized: f64 = field(init=False)
+    """The lower bound of the vectorized space. In this case always 0."""
+
+    upper_vectorized: f64 = field(init=False)
+    """The upper bound of the vectorized space. In this case `size - 1`."""
 
     _max_density: float = field(init=False)
-    lower_vectorized: f64 = field(init=False)
-    upper_vectorized: f64 = field(init=False)
 
     def __post_init__(self) -> None:
         self._max_density = float(self.probabilities.max())
@@ -819,6 +1145,7 @@ class WeightedIntegerDiscreteDistribution(Distribution):
         *,
         seed: RandomState | None = None,
     ) -> Array[f64]:
+        """Sample `n` values from the distribution."""
         seed = np.random.RandomState() if seed is None else seed
         return seed.choice(
             self.size,
@@ -828,9 +1155,23 @@ class WeightedIntegerDiscreteDistribution(Distribution):
         )  # type: ignore
 
     def max_density(self) -> float:
+        """Return the maximum density of the distribution.
+
+        In this case, it will be the maximum probability provided.
+        """
         return float(self._max_density)
 
     def pdf_vector(self, vector: Array[f64]) -> Array[f64]:
+        """Calculate the probability density function (pdf) of all elements in `vector`.
+
+        Args:
+            vector: The vectorized values to calculate the pdf for.
+
+        Returns:
+            The pdf of all elements in `vector`. If an element is outside the bounds
+            defined by `(0, size - 1)` the pdf is 0. If the element is not close to
+            an integer, the pdf is 0.
+        """
         # By definition, we don't allow NaNs in the pdf
         valid_mask = (
             (vector >= self.lower_vectorized)
@@ -844,29 +1185,20 @@ class WeightedIntegerDiscreteDistribution(Distribution):
         pdf = self.probabilities[xx]
         return np.where(valid_mask, pdf, 0)
 
-    def neighborhood(
-        self,
-        vector: f64,
-        n: int,
-        *,
-        std: float | None = None,  # noqa: ARG002
-        seed: RandomState | None = None,
-    ) -> Array[f64]:
-        seed = np.random.RandomState() if seed is None else seed
-        pivot = int(np.rint(vector))
-        bot = np.arange(0, pivot)
-        top = np.arange(pivot + 1, self.size)
-        choices = np.concatenate((bot, top)).astype(f64)
-        seed.shuffle(choices)
-        return choices[:n]  # type: ignore
-
 
 @dataclass
 class ScipyContinuousDistribution(Distribution):
+    """A wrapper to create continuous samples from a scipy continuous distribution."""
+
     rv: rv_continuous_frozen
+    """The continuous scipy distribution to use."""
 
     lower_vectorized: f64
+    """The lower bound of the vectorized space."""
+
     upper_vectorized: f64
+    """The upper bound of the vectorized space."""
+
     _max_density: float
     _pdf_norm: float = 1
 
@@ -876,12 +1208,23 @@ class ScipyContinuousDistribution(Distribution):
         *,
         seed: RandomState | None = None,
     ) -> Array[f64]:
+        """Sample `n` values from the distribution."""
         return self.rv.rvs(size=n, random_state=seed).astype(f64)  # type: ignore
 
     def max_density(self) -> float:
+        """Return the maximum density of the distribution."""
         return float(self._max_density)
 
     def pdf_vector(self, vector: Array[f64]) -> Array[f64]:
+        """Calculate the probability density function (pdf) of all elements in `vector`.
+
+        Args:
+            vector: The vectorized values to calculate the pdf for.
+
+        Returns:
+            The pdf of all elements in `vector`. If an element is outside the bounds
+            defined by `lower_vectorized` and `upper_vectorized`, the pdf is `0`.
+        """
         pdf = self.rv.pdf(vector) / self._pdf_norm
 
         # By definition, we don't allow NaNs in the pdf
@@ -897,6 +1240,7 @@ class ScipyContinuousDistribution(Distribution):
         n_retries: int = NEIGHBOR_GENERATOR_N_RETRIES,
         sample_multiplier: int = NEIGHBOR_GENERATOR_SAMPLE_MULTIPLIER,
     ) -> Array[f64]:
+        """Please see [`continuous_neighborhood`][configspace.hyperparameters._distributions.continuous_neighborhood]."""  # noqa: E501
         return continuous_neighborhood(
             vector,
             n,
@@ -924,7 +1268,10 @@ class ScipyContinuousDistribution(Distribution):
 
 @dataclass
 class ConstantVectorDistribution(Distribution):
+    """A distribution that always returns the same constant value."""
+
     vector_value: f64
+    """The constant vector value to return."""
 
     def __post_init__(self) -> None:
         if not np.isfinite(self.vector_value):
@@ -933,6 +1280,10 @@ class ConstantVectorDistribution(Distribution):
         self.upper_vectorized = self.vector_value
 
     def max_density(self) -> float:
+        """Return the maximum density of the distribution.
+
+        Always 1.0 as the density is always 1 at the constant value.
+        """
         return 1.0
 
     def sample_vector(
@@ -941,7 +1292,17 @@ class ConstantVectorDistribution(Distribution):
         *,
         seed: RandomState | None = None,  # noqa: ARG002
     ) -> Array[f64]:
+        """Sample `n` values from the distribution."""
         return np.full((n,), self.vector_value, dtype=f64)
 
     def pdf_vector(self, vector: Array[f64]) -> Array[f64]:
+        """Calculate the probability density function (pdf) of all elements in `vector`.
+
+        Args:
+            vector: The vectorized values to calculate the pdf for.
+
+        Returns:
+            The pdf of all elements in `vector`. If an element is not equal to the
+            constant value, the pdf is `0`.
+        """
         return (vector == self.vector_value).astype(f64)  # type: ignore

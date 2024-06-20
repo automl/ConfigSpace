@@ -209,7 +209,7 @@ class ForbiddenEqualsClause(ForbiddenClause):
     """A ForbiddenEqualsClause.
 
     It forbids a value from the value range of a hyperparameter to be
-    *equal to* ``value``.
+    *equal to* `value`.
 
     Forbids the value 2 for the hyperparameter *a*
 
@@ -278,7 +278,7 @@ class ForbiddenInClause(ForbiddenClause):
         """A ForbiddenInClause.
 
         It forbids a value from the value range of a hyperparameter to be
-        *in* a collection of ``values``.
+        *in* a collection of `values`.
 
         Forbids the values 2, 3 for the hyperparameter *a*
 
@@ -289,7 +289,7 @@ class ForbiddenInClause(ForbiddenClause):
         >>> cs.add(forbidden_clause_a)
         Forbidden: a in {2, 3}
 
-        Note
+        Note:
         ----
         The forbidden values have to be a subset of the hyperparameter's values.
 

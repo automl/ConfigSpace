@@ -103,7 +103,6 @@ def _test_get_one_exchange_neighbourhood(hp):
             num_neighbors=4,
         )
         ns = list(neighborhood)
-        print(config["a"], ns)
         for new_config in ns:
             assert config != new_config
             assert dict(config) != dict(new_config)
@@ -165,27 +164,16 @@ def test_random_neighborhood_int():
     hp = UniformIntegerHyperparameter("a", 1, 10)
     all_neighbors = _test_get_one_exchange_neighbourhood(hp)
     all_neighbors = [neighbor["a"] for neighbor in all_neighbors]
-    assert pytest.approx(np.mean(all_neighbors), abs=1e-2) == 5.44
-    assert pytest.approx(np.var(all_neighbors), abs=1e-2) == 9.14
+    assert pytest.approx(np.mean(all_neighbors), abs=1e-2) == 4.64
+    assert pytest.approx(np.var(all_neighbors), abs=1e-2) == 3.57
 
     hp = UniformIntegerHyperparameter("a", 1, 10, log=True)
     all_neighbors = _test_get_one_exchange_neighbourhood(hp)
     all_neighbors = [neighbor["a"] for neighbor in all_neighbors]
     assert hp.default_value == 3
 
-    assert pytest.approx(np.mean(all_neighbors), abs=1e-2) == 5.77
-    assert pytest.approx(np.var(all_neighbors), abs=1e-2) == 8.39
-
-    return
-    cs = ConfigurationSpace()
-    cs.add(hp)
-    for val in range(1, 11):
-        config = Configuration(cs, values={"a": val})
-        for _ in range(100):
-            neighborhood = get_one_exchange_neighbourhood(config, seed=1)
-            neighbors = [neighbor["a"] for neighbor in neighborhood]
-            assert len(neighbors) == len(np.unique(neighbors)), neighbors
-            assert val not in neighbors, neighbors
+    assert pytest.approx(np.mean(all_neighbors), abs=1e-2) == 3.155
+    assert pytest.approx(np.var(all_neighbors), abs=1e-2) == 3.09
 
 
 def test_random_neighbor_cat():

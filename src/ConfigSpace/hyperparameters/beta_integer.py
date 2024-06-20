@@ -16,23 +16,56 @@ from ConfigSpace.hyperparameters.integer_hyperparameter import IntegerHyperparam
 from ConfigSpace.types import f64, i64
 
 if TYPE_CHECKING:
+    from ConfigSpace.hyperparameters.beta_float import BetaFloatHyperparameter
     from ConfigSpace.types import Number
 
 
 @dataclass(init=False)
 class BetaIntegerHyperparameter(IntegerHyperparameter):
+    r"""A beta distributed integer hyperparameter. The 'lower' and 'upper'
+    parameters move the distribution from the `[0, 1]`-range and scale it
+    appropriately, but the shape of the distribution is preserved as if it were in
+    `[0, 1]`-range.
+
+    Its values are sampled from a beta distribution `Beta(alpha, beta)`.
+
+    ```python exec="True" result="python" source="material-block"
+    from ConfigSpace import BetaIntegerHyperparameter
+
+    b = BetaIntegerHyperparameter('b', alpha=3, beta=2, lower=1, upper=4, log=False)
+    print(b)
+    ```
+    """
+
     ORDERABLE: ClassVar[bool] = True
 
     alpha: float
+    """Alpha parameter of the normalized beta distribution."""
+
     beta: float
+    """Beta parameter of the normalized beta distribution."""
+
     lower: int
+    """Lower bound of a range of values from which the hyperparameter represents."""
+
     upper: int
+    """Upper bound of a range of values from which the hyperparameter represents."""
+
     log: bool
+    """If `True` the values of the hyperparameter will be sampled on a log-scale."""
 
     name: str
+    """Name of the hyperparameter, with which it can be accessed."""
+
     default_value: int
+    """The default value of this hyperparameter."""
+
     meta: Mapping[Hashable, Any] | None
+    """Field for holding meta data provided by the user. Not used by ConfigSpace."""
+
     size: int
+    """Size of the hyperparameter. This is the number of possible values the
+    hyperparameter can take on within the specified range."""
 
     def __init__(
         self,
@@ -45,19 +78,7 @@ class BetaIntegerHyperparameter(IntegerHyperparameter):
         log: bool = False,
         meta: Mapping[Hashable, Any] | None = None,
     ) -> None:
-        r"""A beta distributed integer hyperparameter. The 'lower' and 'upper'
-        parameters move the distribution from the [0, 1]-range and scale it
-        appropriately, but the shape of the distribution is preserved as if it were in
-        [0, 1]-range.
-
-        Its values are sampled from a beta distribution
-        :math:`Beta(\alpha, \beta)`.
-
-        >>> from ConfigSpace import BetaIntegerHyperparameter
-        >>>
-        >>> BetaIntegerHyperparameter('b', alpha=3, beta=2, lower=1, upper=4, log=False)
-        b, Type: BetaInteger, Alpha: 3.0 Beta: 2.0, Range: [1, 4], Default: 3
-
+        """Initialize a beta distributed integer hyperparameter.
 
         Args:
             name:
@@ -99,13 +120,13 @@ class BetaIntegerHyperparameter(IntegerHyperparameter):
         except ValueError as e:
             raise ValueError(f"Hyperparameter '{name}' has illegal settings") from e
 
-        if (self.alpha > 1) or (self.beta > 1):
-            vectorized_mode = (self.alpha - 1) / (self.alpha + self.beta - 2)
-        else:
-            # If both alpha and beta are 1, we have a uniform distribution.
-            vectorized_mode = 0.5
-
         if default_value is None:
+            if (self.alpha > 1) or (self.beta > 1):
+                vectorized_mode = (self.alpha - 1) / (self.alpha + self.beta - 2)
+            else:
+                # If both alpha and beta are 1, we have a uniform distribution.
+                vectorized_mode = 0.5
+
             _default_value = np.rint(
                 scaler.to_value(np.array([vectorized_mode]))[0],
             ).astype(i64)
@@ -136,6 +157,30 @@ class BetaIntegerHyperparameter(IntegerHyperparameter):
             neighborhood=vector_dist.neighborhood,
             neighborhood_size=self._integer_neighborhood_size,
             value_cast=int,
+        )
+
+    def to_float(self) -> BetaFloatHyperparameter:
+        """Converts the beta integer hyperparameter to a beta float hyperparameter.
+
+        !!! warning
+
+            `meta` information is not transferred to the new hyperparameter and
+            must be transferred manually.
+
+        Returns:
+            A beta integer hyperparameter.
+        """
+        from ConfigSpace.hyperparameters.beta_float import BetaFloatHyperparameter
+
+        return BetaFloatHyperparameter(
+            name=self.name,
+            lower=self.lower,
+            upper=self.upper,
+            default_value=self.default_value,
+            log=self.log,
+            meta=None,
+            alpha=self.alpha,
+            beta=self.beta,
         )
 
     def __str__(self) -> str:

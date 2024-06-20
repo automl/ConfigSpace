@@ -38,7 +38,7 @@ def center_range(
     step: int = 1
         The step size
 
-    Returns
+    Returns:
     -------
     Iterator[int]
     """
@@ -74,7 +74,7 @@ def arange_chunked(
     step: int = 1
         The step size
 
-    Returns
+    Returns:
     -------
     Iterator[np.ndarray]
     """
@@ -122,7 +122,7 @@ def linspace_chunked(
         If True, stop is the last sample. Otherwise, it is not included.
         Simliar to `np.linspace`
 
-    Returns
+    Returns:
     -------
     Iterator[np.ndarray]
     """
@@ -159,7 +159,7 @@ def split_arange(frm: int, to: int, *, pivot: int) -> Array[i64]:
     pivot:
         The pivot point, ommited from the output
 
-    Returns
+    Returns:
     -------
         The concatenated ranges
     """
@@ -195,7 +195,7 @@ def quantize_log(
     bins:
         The number of bins to quantize to
 
-    Returns
+    Returns:
     -------
         The quantized values
     """
@@ -263,7 +263,7 @@ def quantize(
         bins: int
             The number of bins
 
-    Returns
+    Returns:
     -------
         np.NDArray[f64]
     """  # noqa: E501
@@ -296,7 +296,7 @@ def scale(
     to:
         The new range
 
-    Returns
+    Returns:
     -------
         The scaled values
     """
@@ -321,7 +321,7 @@ def normalize(
     bounds:
         The bounds of the range
 
-    Returns
+    Returns:
     -------
         The normalized values
     """
@@ -352,7 +352,7 @@ def rescale(
     to:
         The new range
 
-    Returns
+    Returns:
     -------
         The rescaled values
     """
@@ -403,7 +403,7 @@ def is_close_to_integer(
     rtol:
         The relative tolerance
 
-    Returns
+    Returns:
     -------
         Whether the value is close to an integer
     """
@@ -434,7 +434,7 @@ def is_close_to_integer_single(
     rtol:
         The relative tolerance
 
-    Returns
+    Returns:
     -------
         Whether the value is close to an integer
     """
@@ -460,7 +460,7 @@ def walk_subclasses(
     seen:
         The set of seen classes
 
-    Returns
+    Returns:
     -------
         An iterator of subclasses
     """

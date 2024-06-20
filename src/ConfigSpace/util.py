@@ -62,9 +62,9 @@ def impute_inactive_values(
 ) -> Configuration:
     """Impute inactive parameters.
 
-    Iterate through the hyperparameters of a ``Configuration`` and set the
+    Iterate through the hyperparameters of a `Configuration` and set the
     values of the inactive hyperparamters to their default values if the choosen
-    ``strategy`` is 'default'. Otherwise ``strategy`` contains a float number.
+    `strategy` is 'default'. Otherwise `strategy` contains a float number.
     Set the hyperparameters' value to this number.
 
 
@@ -78,7 +78,7 @@ def impute_inactive_values(
         If float, replace inactive parameters by the given float value,
         which should be able to be splitted apart by a tree-based model.
 
-    Returns
+    Returns:
     -------
     :class:`~ConfigSpace.configuration_space.Configuration`
         A new configuration with the imputed values.
@@ -125,7 +125,7 @@ def get_one_exchange_neighbourhood(
     Parameters
     ----------
     configuration : :class:`~ConfigSpace.configuration_space.Configuration`
-        for this Configuration object ``num_neighbors`` neighbors are computed
+        for this Configuration object `num_neighbors` neighbors are computed
     seed : int
         Sets the random seed to a fixed value
     num_neighbors : (int, optional)
@@ -136,7 +136,7 @@ def get_one_exchange_neighbourhood(
         :class:`~ConfigSpace.hyperparameters.UniformFloatHyperparameter` and
         :class:`~ConfigSpace.hyperparameters.UniformIntegerHyperparameter`.
 
-    Returns
+    Returns:
     -------
     Iterator
          It contains configurations, with values being situated around
@@ -381,7 +381,7 @@ def get_random_neighbor(configuration: Configuration, seed: int) -> Configuratio
     seed : int
         Used to generate a random state.
 
-    Returns
+    Returns:
     -------
     :class:`~ConfigSpace.configuration_space.Configuration`
         The new neighbor
@@ -463,11 +463,11 @@ def deactivate_inactive_hyperparameters(
         hyperparameters by iterating through the conditions of the
         configuration space.
     vector : (np.ndarray, optional)
-        Efficient represantation of a configuration. Either ``configuration`` or
-        ``vector`` must be specified. If both are specified only
-        ``configuration`` will be used.
+        Efficient represantation of a configuration. Either `configuration` or
+        `vector` must be specified. If both are specified only
+        `configuration` will be used.
 
-    Returns
+    Returns:
     -------
     :class:`~ConfigSpace.configuration_space.Configuration`
         A configuration that is equivalent to the given configuration, except
@@ -544,7 +544,7 @@ def fix_types(
     configuration_space : :class:`~ConfigSpace.configuration_space.ConfigurationSpace`
         Configuration space which knows the types for all parameter values
 
-    Returns
+    Returns:
     -------
     dict
         configuration with fixed types of parameter values
@@ -683,7 +683,7 @@ def generate_grid(
         of the corresponding Hyperparameters and the values should be the number of
         points to divide the grid side formed by the corresponding Hyperparameter in to.
 
-    Returns
+    Returns:
     -------
     list
         List containing Configurations. It is a cartesian product of tuples of
@@ -710,7 +710,7 @@ def generate_grid(
         hp_name: str
             Hyperparameter name
 
-        Returns
+        Returns:
         -------
         tuple
             Holds grid values for the given hyperparameter
@@ -804,7 +804,7 @@ def generate_grid(
         hp_names: list of strs
             List of hyperparameter names
 
-        Returns
+        Returns:
         -------
         list of dicts
             List of configuration dicts

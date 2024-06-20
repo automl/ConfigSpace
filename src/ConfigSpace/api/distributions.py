@@ -17,13 +17,9 @@ class Uniform(Distribution):
 class Normal(Distribution):
     """Represents a normal distribution.
 
-    Parameters
-    ----------
-    mu: float
-        The mean of the distribution
-
-    sigma: float
-        The standard deviation of the float
+    Attributes:
+        mu: The mean of the distribution
+        sigma: The standard deviation of the float
     """
 
     mu: float
@@ -34,13 +30,9 @@ class Normal(Distribution):
 class Beta(Distribution):
     """Represents a beta distribution.
 
-    Parameters
-    ----------
-    alpha: float
-        The alpha parameter of a beta distribution
-
-    beta: float
-        The beta parameter of a beta distribution
+    Attributes:
+        alpha: The alpha parameter of a beta distribution
+        beta: The beta parameter of a beta distribution
     """
 
     alpha: float

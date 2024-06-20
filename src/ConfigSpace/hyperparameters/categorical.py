@@ -4,7 +4,7 @@ from collections import Counter
 from collections.abc import Hashable, Mapping, Sequence
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, ClassVar, Set
-from typing_extensions import deprecated
+from typing_extensions import deprecated, override
 
 import numpy as np
 
@@ -24,12 +24,29 @@ if TYPE_CHECKING:
 # the arange generation, which can be a bit slow for neighbor
 # generation, as both halves need to be created and then concatenated.
 CACHE_NEIGHBORS_CATEGORICAL_SIZE = 5
+"""For sizes smaller than this, we cache the possible neighbors for faster
+neighbor generation."""
+
 CACHE_ARANGE_CATEGORICAL_SIZE = 25
+"""For sizes smaller than this, we cache the arange for faster neighbor
+generation."""
 
 
 @dataclass
 class NeighborhoodCat(_Neighborhood):
+    """Neighborhood for categorical hyperparameters.
+
+    !!! note
+
+        For
+        [`CategoricalHyperparameter`][configspace.hyperparameters.CategoricalHyperparameter],
+        all values are considered equally distant from each other. Thus, the
+        possible neighbors is all other values except the current one.
+    """
+
     size: int
+    """The number of possible values for the categorical hyperparameter."""
+
     _cached_arange: Array[f64] | None = None
     _cached_neighbors: list[Array[f64]] | None = None
 
@@ -46,12 +63,13 @@ class NeighborhoodCat(_Neighborhood):
         elif self.size <= CACHE_ARANGE_CATEGORICAL_SIZE:
             self._cached_arange = np.arange(0, self.size, dtype=f64)
 
+    @override
     def __call__(
         self,
         vector: f64,
         n: int,
         *,
-        std: float | None = None,  # noqa: ARG002
+        std: float | None = None,
         seed: np.random.RandomState | None = None,
     ) -> Array[f64]:
         seed = np.random.RandomState() if seed is None else seed
@@ -75,16 +93,40 @@ class NeighborhoodCat(_Neighborhood):
 
 @dataclass(init=False)
 class CategoricalHyperparameter(Hyperparameter[Any, Any]):
+    """A hyperparameter that can take on one of a fixed set of values.
+
+    It is assumed there is no inherent order between the choices. If you
+    know an order exists, use the
+    [`OrdinalHyperparameter`][configspace.hyperparameters.OrdinalHyperparameter]
+    instead.
+
+    The values are sampled uniformly by default, but can be weighted using the
+    `weights` parameter. The `weights` parameter is a list of floats, one for
+    each choice, that determines the probability of each choice being sampled.
+    The probabilities are normalized to sum to 1.
+    """
+
     ORDERABLE: ClassVar[bool] = False
 
     choices: Sequence[Any]
+    """The possible values the hyperparameter can take on."""
+
     weights: tuple[float, ...] | None
-    probabilities: Array[f64] = field(repr=False)
+    """The weights of the choices. If `None`, the choices are sampled uniformly."""
 
     name: str
+    """Name of the hyperparameter, with which it can be accessed."""
+
     default_value: Any
+    """The default value of this hyperparameter."""
+
     meta: Mapping[Hashable, Any] | None
+    """Field for holding meta data provided by the user. Not used by ConfigSpace."""
+
     size: int
+    """The number of possible values for the categorical hyperparameter."""
+
+    probabilities: Array[f64] = field(repr=False)
 
     def __init__(
         self,
@@ -94,6 +136,25 @@ class CategoricalHyperparameter(Hyperparameter[Any, Any]):
         meta: Mapping[Hashable, Any] | None = None,
         weights: Sequence[float] | Array[np.number] | None = None,
     ) -> None:
+        """Initialize a categorical hyperparameter.
+
+        Args:
+            name:
+                Name of the hyperparameter, with which it can be accessed.
+            choices:
+                The possible values the hyperparameter can take on.
+            default_value:
+                The default value of this hyperparameter. If `None`, the first
+                choice is used.
+            meta:
+                Field for holding meta data provided by the user. Not used by
+                ConfigSpace.
+            weights:
+                The weights of the choices. If `None`, the choices are sampled
+                uniformly. If given, the probabilities are normalized to sum to 1.
+                The length of the weights has to be the same as the length of the
+                choices.
+        """
         # TODO: We can allow for None but we need to be sure it doesn't break
         # anything elsewhere.
         if any(choice is None for choice in choices):
@@ -206,6 +267,7 @@ class CategoricalHyperparameter(Hyperparameter[Any, Any]):
         )
 
     def to_uniform(self) -> CategoricalHyperparameter:
+        """Converts this hyperparameter to have uniform weights."""
         return CategoricalHyperparameter(
             name=self.name,
             choices=self.choices,
