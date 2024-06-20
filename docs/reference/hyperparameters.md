@@ -104,7 +104,7 @@ cs = ConfigurationSpace()
 
 cs.add(
     Integer("a", (0, 10), log=False),
-    Integer("b", (0, 10), log=False, distribution=Uniform, default=5),
+    Integer("b", (0, 10), log=False, distribution=Uniform(), default=5),
     Integer("c", (0, 1000), log=True, distribution=Normal(mu=200, sigma=200)),
 )
 print(cs)
@@ -130,7 +130,7 @@ cs = ConfigurationSpace()
 
 cs.add(
     Float("a", (0, 10), log=False),
-    Float("b", (0, 10), log=False, distribution=Uniform, default=5),
+    Float("b", (0, 10), log=False, distribution=Uniform(), default=5),
     Float("c", (0, 1000), log=True, distribution=Normal(mu=200, sigma=200)),
 )
 print(cs)
