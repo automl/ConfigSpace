@@ -289,5 +289,4 @@ def is_aperiodic(G):
         level += 1
     if len(levels) == len(G):  # All nodes in tree
         return g == 1
-    else:
-        return g == 1 and ConfigSpace.nx.is_aperiodic(G.subgraph(set(G) - set(levels)))
+    return g == 1 and ConfigSpace.nx.is_aperiodic(G.subgraph(set(G) - set(levels)))
