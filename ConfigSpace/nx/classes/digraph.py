@@ -899,10 +899,9 @@ class DiGraph(Graph):
         >>> list(G.in_degree([0,1]).values())
         [0, 1]
         """
-        if nbunch in self:  # return a single node
+        if nbunch in self:
             return next(self.in_degree_iter(nbunch, weight))[1]
-        else:  # return a dict
-            return dict(self.in_degree_iter(nbunch, weight))
+        return dict(self.in_degree_iter(nbunch, weight))
 
     def out_degree(self, nbunch=None, weight=None):
         """Return the out-degree of a node or nodes.
@@ -939,10 +938,9 @@ class DiGraph(Graph):
 
 
         """
-        if nbunch in self:  # return a single node
+        if nbunch in self:
             return next(self.out_degree_iter(nbunch, weight))[1]
-        else:  # return a dict
-            return dict(self.out_degree_iter(nbunch, weight))
+        return dict(self.out_degree_iter(nbunch, weight))
 
     def clear(self):
         """Remove all nodes and edges from the graph.

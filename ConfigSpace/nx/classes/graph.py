@@ -1235,10 +1235,9 @@ class Graph:
         [1, 2]
 
         """
-        if nbunch in self:  # return a single node
+        if nbunch in self:
             return next(self.degree_iter(nbunch, weight))[1]
-        else:  # return a dict
-            return dict(self.degree_iter(nbunch, weight))
+        return dict(self.degree_iter(nbunch, weight))
 
     def degree_iter(self, nbunch=None, weight=None):
         """Return an iterator for (node, degree).
@@ -1555,8 +1554,7 @@ class Graph:
         """
         if data:
             return [(n, n, nbrs[n]) for n, nbrs in self.adj.items() if n in nbrs]
-        else:
-            return [(n, n) for n, nbrs in self.adj.items() if n in nbrs]
+        return [(n, n) for n, nbrs in self.adj.items() if n in nbrs]
 
     def number_of_selfloops(self):
         """Return the number of selfloop edges.
@@ -1616,10 +1614,7 @@ class Graph:
         6.0
         """
         s = sum(self.degree(weight=weight).values()) / 2
-        if weight is None:
-            return int(s)
-        else:
-            return float(s)
+        return int(s) if weight is None else float(s)
 
     def number_of_edges(self, u=None, v=None):
         """Return the number of edges between two nodes.
@@ -1656,8 +1651,7 @@ class Graph:
             return int(self.size())
         if v in self.adj[u]:
             return 1
-        else:
-            return 0
+        return 0
 
     def add_star(self, nodes, **attr):
         """Add a star.
