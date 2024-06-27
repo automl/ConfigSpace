@@ -21,26 +21,20 @@ def center_range(
 ) -> Iterator[int]:
     """Get a range centered around a value.
 
-    >>> list(center_range(5, 0, 10))
-    [4, 6, 3, 7, 2, 8, 1, 9, 0, 10]
+    ```python exec="true", source="material-block" result="python"
+    from ConfigSpace.functional import center_range
 
-    Parameters
-    ----------
-    center: int
-        The center of the range
+    print(list(center_range(5, 0, 10)))
+    ```
 
-    low: int
-        The low end of the range
-
-    high: int
-        The high end of the range
-
-    step: int = 1
-        The step size
+    Args:
+        center: The center of the range
+        low: The low end of the range
+        high: The high end of the range
+        step: The step size
 
     Returns:
-    -------
-    Iterator[int]
+        An iterator of ints around a center point
     """
     assert low <= center <= high
     above_center = range(center + step, high + 1, step)
@@ -57,26 +51,20 @@ def arange_chunked(
 ) -> Iterator[np.ndarray]:
     """Get np.arange in a chunked fashion.
 
-    >>> list(arange_chunked(0, 10, 3))
-    [array([0, 1, 2]), array([3, 4, 5]), array([6, 7, 8]), array([9])]
+    ```python exec="true", source="material-block" result="python"
+    from ConfigSpace.functional import arange_chunked
 
-    Parameters
-    ----------
-    start: int
-        The start of the range
+    print(list(arange_chunked(0, 10, chunk_size=3)))
+    ```
 
-    stop: int
-        The stop of the range
-
-    chunk_size: int
-        The size of the chunks
-
-    step: int = 1
-        The step size
+    Args:
+        start: The start of the range
+        stop: The stop of the range
+        chunk_size: The size of the chunks
+        step: The step size
 
     Returns:
-    -------
-    Iterator[np.ndarray]
+        An iterator of np.ndarrays
     """
     assert step > 0
     assert chunk_size > 0
@@ -101,30 +89,23 @@ def linspace_chunked(
 ) -> Iterator[np.ndarray]:
     """Get np.linspace in a chunked fashion.
 
-    >>> list(linspace_chunked(0, 10, 11, chunk_size=3, endpoint=True))
-    [array([0., 1., 2.]), array([3., 4., 5.]), array([6., 7., 8.]), array([ 9., 10.])]
+    ```python exec="true", source="material-block" result="python"
+    from ConfigSpace.functional import linspace_chunked
 
-    Parameters
-    ----------
-    start:
-        The start of the range
+    print(list(linspace_chunked(0, 10, 11, chunk_size=3, endpoint=True)))
+    ```
 
-    stop:
-        The stop of the range
-
-    num:
-        The number of samples to generate
-
-    chunk_size:
-        The size of the chunks
-
-    endpoint:
-        If True, stop is the last sample. Otherwise, it is not included.
-        Simliar to `np.linspace`
+    Args:
+        start: The start of the range
+        stop: The stop of the range
+        num: The number of samples to generate
+        chunk_size: The size of the chunks
+        endpoint:
+            If True, stop is the last sample. Otherwise, it is not included.
+            Simliar to `np.linspace`
 
     Returns:
-    -------
-    Iterator[np.ndarray]
+        An iterator of np.ndarrays
     """
     assert num > 0
     assert chunk_size > 0
@@ -145,23 +126,19 @@ NPDType = TypeVar("NPDType", bound=np.generic)
 def split_arange(frm: int, to: int, *, pivot: int) -> Array[i64]:
     """Split an arange into multiple ranges.
 
-    >>> split_arange(0, 10, pivot=5)
-    [0, 1, 3, 4, 6, 7, 8, 9]
+    ```python exec="true", source="material-block" result="python"
+    from ConfigSpace.functional import split_arange
 
-    Parameters
-    ----------
-    frm:
-        Start of range
+    print(split_arange(0, 10, pivot=5))
+    ```
 
-    to:
-        End of range
-
-    pivot:
-        The pivot point, ommited from the output
+    Args:
+        frm: Start of range
+        to: End of range
+        pivot: The pivot point, ommited from the output
 
     Returns:
-    -------
-        The concatenated ranges
+        The concatenated ranges without the pivot
     """
     bot = np.arange(frm, pivot)
     top = np.arange(pivot + 1, to)
@@ -181,22 +158,13 @@ def quantize_log(
     (scale_slice), exponentiate back to linear scale and then perform quantization.
     Gives back the values in provided scale (bounds).
 
-    Parameters
-    ----------
-    x:
-        The values to quantize
-
-    bounds:
-        The bounds on which the values live on
-
-    scale_slice:
-        The specific slice of the log scale they were logged from.
-
-    bins:
-        The number of bins to quantize to
+    Args:
+        x: The values to quantize
+        bounds: The bounds on which the values live on
+        scale_slice: The specific slice of the log scale they were logged from.
+        bins: The number of bins to quantize to
 
     Returns:
-    -------
         The quantized values
     """
     if scale_slice is None:
@@ -250,22 +218,20 @@ def quantize(
     Similar to `np.histogram` but returns the same length as the input array, where each
     element is assigned to their integer bin.
 
-    >>> quantize(np.array([0.0, 0.32, 0.33, 0.34, 0.65, 0.66, 0.67, 0.99, 1.0]), bounds=(0, 1), bins=3)
-    array([0, 0, 0, 0.5, 0.5, 0.5, 1, 1, 1])
+    ```python exec="true", source="material-block" result="python"
+    import numpy as np
+    from ConfigSpace.functional import quantize
+
+    print(quantize(np.array([0.0, 0.32, 0.33, 0.34, 0.65, 0.66, 0.67, 0.99, 1.0]), bounds=(0, 1), bins=3))
+    ```
 
     Args:
-        x: np.NDArray[f64]
-            The values to discretize
-
-        bounds: tuple[int, int]
-            The bounds of the range
-
-        bins: int
-            The number of bins
+        x: The values to discretize
+        bounds: The bounds of the range
+        bins: The number of bins
 
     Returns:
-    -------
-        np.NDArray[f64]
+        The discretized values
     """  # noqa: E501
     # Shortcut out if we have unit norm already
     l, u = bounds  # noqa: E741
@@ -285,19 +251,18 @@ def scale(
 ) -> Array[f64]:
     """Scale values from unit range to a new range.
 
-    >>> scale(np.array([0.0, 0.5, 1.0]), to=(0, 10))
-    array([ 0.,  5., 10.])
+    ```python exec="true", source="material-block" result="python"
+    import numpy as np
+    from ConfigSpace.functional import scale
 
-    Parameters
-    ----------
-    unit_xs:
-        The values to scale
+    print(scale(np.array([0.0, 0.5, 1.0]), to=(0, 10)))
+    ```
 
-    to:
-        The new range
+    Args:
+        unit_xs: The values to scale
+        to: The new range
 
     Returns:
-    -------
         The scaled values
     """
     return unit_xs * (to[1] - to[0]) + to[0]  # type: ignore
@@ -310,19 +275,18 @@ def normalize(
 ) -> Array[f64]:
     """Normalize values to the unit range.
 
-    >>> normalize(np.array([0.0, 5.0, 10.0]), bounds=(0, 10))
-    array([0. , 0.5, 1. ])
+    ```python exec="true", source="material-block" result="python"
+    import numpy as np
+    from ConfigSpace.functional import normalize
 
-    Parameters
-    ----------
-    x:
-        The values to normalize
+    print(normalize(np.array([0.0, 5.0, 10.0]), bounds=(0, 10)))
+    ```
 
-    bounds:
-        The bounds of the range
+    Args:
+        x: The values to normalize
+        bounds: The bounds of the range
 
     Returns:
-    -------
         The normalized values
     """
     if bounds == (0, 1):
@@ -338,22 +302,19 @@ def rescale(
 ) -> Array[f64]:
     """Rescale values from one range to another.
 
-    >>> rescale(np.array([0, 10, 20]), frm=(0, 100), to=(0, 10))
-    array([0, 1, 2])
+    ```python exec="true", source="material-block" result="python"
+    import numpy as np
+    from ConfigSpace.functional import rescale
 
-    Parameters
-    ----------
-    x:
-        The values to rescale
+    print(rescale(np.array([0, 10, 20]), frm=(0, 100), to=(0, 10)))
+    ```
 
-    frm:
-        The original range
-
-    to:
-        The new range
+    Args:
+        x: The values to rescale
+        frm: The original range
+        to: The new range
 
     Returns:
-    -------
         The rescaled values
     """
     if frm == to:
@@ -392,19 +353,12 @@ def is_close_to_integer(
     This implements the same logic as `np.isclose` but removes
     a lot of the overhead.
 
-    Parameters
-    ----------
-    value:
-        The value to check
-
-    atol:
-        The absolute tolerance
-
-    rtol:
-        The relative tolerance
+    Args:
+        value: The value to check
+        atol: The absolute tolerance
+        rtol: The relative tolerance
 
     Returns:
-    -------
         Whether the value is close to an integer
     """
     a = np.asarray(value)
@@ -423,19 +377,12 @@ def is_close_to_integer_single(
     This implements the same logic as `np.isclose` but removes
     a lot of the overhead.
 
-    Parameters
-    ----------
-    value:
-        The value to check
-
-    atol:
-        The absolute tolerance
-
-    rtol:
-        The relative tolerance
+    Args:
+        value: The value to check
+        atol: The absolute tolerance
+        rtol: The relative tolerance
 
     Returns:
-    -------
         Whether the value is close to an integer
     """
     a = value
@@ -452,16 +399,11 @@ def walk_subclasses(
 ) -> Iterator[type[T]]:
     """Walk all subclasses of a class.
 
-    Parameters
-    ----------
-    cls:
-        The class to walk
-
-    seen:
-        The set of seen classes
+    Args:
+        cls: The class to walk
+        seen: The set of seen classes
 
     Returns:
-    -------
         An iterator of subclasses
     """
     seen = set() if seen is None else seen

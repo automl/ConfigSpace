@@ -19,5 +19,5 @@ or the API docs below:
 ### Relational Clauses
 * [ForbiddenLessThenRelation][ConfigSpace.forbidden.ForbiddenLessThanRelation]
 * [ForbiddenGreaterThanRelation][ConfigSpace.forbidden.ForbiddenGreaterThanRelation]
-* [ForbiddenEqualConjunction][ConfigSpace.forbidden.ForbiddenEqualConjunction]
+* [ForbiddenEqualsRelation][ConfigSpace.forbidden.ForbiddenEqualsRelation]
 

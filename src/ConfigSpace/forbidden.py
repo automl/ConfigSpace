@@ -87,9 +87,9 @@ class ForbiddenRelation(ABC):
 
     def __init__(self, left: Hyperparameter, right: Hyperparameter):
         if not isinstance(left, Hyperparameter):
-            raise TypeError("Argument 'left' is not of type %s." % Hyperparameter)
+            raise TypeError(f"Argument 'left' is not of type {Hyperparameter}.")
         if not isinstance(right, Hyperparameter):
-            raise TypeError("Argument 'right' is not of type %s." % Hyperparameter)
+            raise TypeError(f"Argument 'right' is not of type {Hyperparameter}.")
 
         self.left = left
         self.right = right
@@ -213,19 +213,18 @@ class ForbiddenEqualsClause(ForbiddenClause):
 
     Forbids the value 2 for the hyperparameter *a*
 
-    >>> from ConfigSpace import ConfigurationSpace, ForbiddenEqualsClause
-    >>>
-    >>> cs = ConfigurationSpace({"a": [1, 2, 3]})
-    >>> forbidden_clause_a = ForbiddenEqualsClause(cs["a"], 2)
-    >>> cs.add(forbidden_clause_a)
-    Forbidden: a == 2
+    ```python exec="true", source="material-block" result="python"
+    from ConfigSpace import ConfigurationSpace, ForbiddenEqualsClause
 
-    Parameters
-    ----------
-    hyperparameter : :ref:`Hyperparameters`
-        Methods on which a restriction will be made
-    value : Any
-        forbidden value
+    cs = ConfigurationSpace({"a": [1, 2, 3]})
+    forbidden_clause_a = ForbiddenEqualsClause(cs["a"], 2)
+    cs.add(forbidden_clause_a)
+    print(cs)
+    ```
+
+    Args:
+        hyperparameter: Methods on which a restriction will be made
+        value: forbidden value
     """
 
     def __init__(self, hyperparameter: Hyperparameter, value: Any) -> None:
@@ -282,24 +281,22 @@ class ForbiddenInClause(ForbiddenClause):
 
         Forbids the values 2, 3 for the hyperparameter *a*
 
-        >>> from ConfigSpace import ConfigurationSpace, ForbiddenInClause
-        >>>
-        >>> cs = ConfigurationSpace({"a": [1, 2, 3]})
-        >>> forbidden_clause_a = ForbiddenInClause(cs['a'], [2, 3])
-        >>> cs.add(forbidden_clause_a)
-        Forbidden: a in {2, 3}
+        ```python exec="true", source="material-block" result="python"
+        from ConfigSpace import ConfigurationSpace, ForbiddenInClause
 
-        Note:
-        ----
-        The forbidden values have to be a subset of the hyperparameter's values.
+        cs = ConfigurationSpace({"a": [1, 2, 3]})
+        forbidden_clause_a = ForbiddenInClause(cs['a'], [2, 3])
+        cs.add(forbidden_clause_a)
+        print(cs)
+        ```
 
-        Parameters
-        ----------
-        hyperparameter : (:ref:`Hyperparameters`, dict)
-            Hyperparameter on which a restriction will be made
+        !!! note
 
-        values : Any
-            Collection of forbidden values
+            The forbidden values have to be a subset of the hyperparameter's values.
+
+        Args:
+            hyperparameter: Hyperparameter on which a restriction will be made
+            values: Collection of forbidden values
         """
         values = tuple(values)
         for v in values:
@@ -357,28 +354,27 @@ class ForbiddenAndConjunction(ForbiddenConjunction):
     The ForbiddenAndConjunction combines forbidden-clauses, which allows to
     build powerful constraints.
 
-    >>> from ConfigSpace import (
-    ...     ConfigurationSpace,
-    ...     ForbiddenEqualsClause,
-    ...     ForbiddenInClause,
-    ...     ForbiddenAndConjunction
-    ... )
-    >>>
-    >>> cs = ConfigurationSpace({"a": [1, 2, 3], "b": [2, 5, 6]})
-    >>>
-    >>> forbidden_clause_a = ForbiddenEqualsClause(cs["a"], 2)
-    >>> forbidden_clause_b = ForbiddenInClause(cs["b"], [2])
-    >>>
-    >>> forbidden_clause = ForbiddenAndConjunction(forbidden_clause_a, forbidden_clause_b)
-    >>>
-    >>> cs.add(forbidden_clause)
-    (Forbidden: a == 2 && Forbidden: b in {2})
+    ```python exec="true", source="material-block" result="python"
+    from ConfigSpace import (
+        ConfigurationSpace,
+        ForbiddenEqualsClause,
+        ForbiddenInClause,
+        ForbiddenAndConjunction
+    )
 
-    Parameters
-    ----------
-    *args : list(:ref:`Forbidden clauses`)
-        forbidden clauses, which should be combined
-    """  # noqa: E501
+    cs = ConfigurationSpace({"a": [1, 2, 3], "b": [2, 5, 6]})
+    forbidden_clause_a = ForbiddenEqualsClause(cs["a"], 2)
+    forbidden_clause_b = ForbiddenInClause(cs["b"], [2])
+
+    forbidden_clause = ForbiddenAndConjunction(forbidden_clause_a, forbidden_clause_b)
+
+    cs.add(forbidden_clause)
+    print(cs)
+    ```
+
+    Args:
+        *args: forbidden clauses, which should be combined
+    """
 
     def __repr__(self) -> str:
         retval = io.StringIO()
@@ -422,27 +418,25 @@ class ForbiddenLessThanRelation(ForbiddenRelation):
 
     The ForbiddenLessThan compares the values of two hyperparameters.
 
-    >>> from ConfigSpace import ConfigurationSpace, ForbiddenLessThanRelation
-    >>>
-    >>> cs = ConfigurationSpace({"a": [1, 2, 3], "b": [2, 5, 6]})
-    >>>
-    >>> forbidden_clause = ForbiddenLessThanRelation(cs['a'], cs['b'])
-    >>> cs.add(forbidden_clause)
-    Forbidden: a < b
+    ```python exec="true", source="material-block" result="python"
+    from ConfigSpace import ConfigurationSpace, ForbiddenLessThanRelation
 
-    Note:
-    ----
-    If the values of the both hyperparameters are not comparible
-    (e.g. comparing int and str), a TypeError is raised. For OrdinalHyperparameters
-    the actual values are used for comparison **not** their ordinal value.
+    cs = ConfigurationSpace({"a": [10, 2, 3], "b": [2, 5, 6]})
 
-    Parameters
-    ----------
-     left : :ref:`Hyperparameters`
-         left side of the comparison
+    forbidden_clause = ForbiddenLessThanRelation(cs['a'], cs['b'])
+    cs.add(forbidden_clause)
+    print(cs)
+    ```
 
-     right : :ref:`Hyperparameters`
-         right side of the comparison
+    !!! note
+
+        If the values of the both hyperparameters are not comparible
+        (e.g. comparing int and str), a TypeError is raised. For OrdinalHyperparameters
+        the actual values are used for comparison **not** their ordinal value.
+
+    Args:
+        left: left side of the comparison
+        right: right side of the comparison
     """
 
     _RELATION_STR = "LESS"
@@ -479,26 +473,25 @@ class ForbiddenEqualsRelation(ForbiddenRelation):
 
     The ForbiddenEquals compares the values of two hyperparameters.
 
-    >>> from ConfigSpace import ConfigurationSpace, ForbiddenEqualsRelation
-    >>>
-    >>> cs = ConfigurationSpace({"a": [1, 2, 3], "b": [2, 5, 6]})
-    >>>
-    >>> forbidden_clause = ForbiddenEqualsRelation(cs['a'], cs['b'])
-    >>> cs.add(forbidden_clause)
-    Forbidden: a == b
+    ```python exec="true", source="material-block" result="python"
+    from ConfigSpace import ConfigurationSpace, ForbiddenEqualsRelation
 
-    Note:
-    ----
-    If the values of the both hyperparameters are not comparible
-    (e.g. comparing int and str), a TypeError is raised. For OrdinalHyperparameters
-    the actual values are used for comparison **not** their ordinal value.
+    cs = ConfigurationSpace({"a": [1, 2, 3], "b": [2, 5, 6]})
 
-    Parameters
-    ----------
-     left : :ref:`Hyperparameters`
-         left side of the comparison
-     right : :ref:`Hyperparameters`
-         right side of the comparison
+    forbidden_clause = ForbiddenEqualsRelation(cs['a'], cs['b'])
+    cs.add(forbidden_clause)
+    print(cs)
+    ```
+
+    !!! note
+
+        If the values of the both hyperparameters are not comparible
+        (e.g. comparing int and str), a TypeError is raised. For OrdinalHyperparameters
+        the actual values are used for comparison **not** their ordinal value.
+
+    Args:
+        left: left side of the comparison
+        right: right side of the comparison
     """
 
     _RELATION_STR = "EQUALS"
@@ -534,26 +527,24 @@ class ForbiddenGreaterThanRelation(ForbiddenRelation):
 
     The ForbiddenGreaterThan compares the values of two hyperparameters.
 
-    >>> from ConfigSpace import ConfigurationSpace, ForbiddenGreaterThanRelation
-    >>>
-    >>> cs = ConfigurationSpace({"a": [1, 2, 3], "b": [2, 5, 6]})
-    >>> forbidden_clause = ForbiddenGreaterThanRelation(cs['a'], cs['b'])
-    >>>
-    >>> cs.add(forbidden_clause)
-    Forbidden: a > b
+    ```python exec="true", source="material-block" result="python"
+    from ConfigSpace import ConfigurationSpace, ForbiddenGreaterThanRelation
 
-    Note:
-    ----
-    If the values of the both hyperparameters are not comparible
-    (e.g. comparing int and str), a TypeError is raised. For OrdinalHyperparameters
-    the actual values are used for comparison **not** their ordinal value.
+    cs = ConfigurationSpace({"a": [1, 2, 3], "b": [2, 5, 6]})
+    forbidden_clause = ForbiddenGreaterThanRelation(cs['a'], cs['b'])
 
-    Parameters
-    ----------
-     left : :ref:`Hyperparameters`
-         left side of the comparison
-     right : :ref:`Hyperparameters`
-         right side of the comparison
+    cs.add(forbidden_clause)
+    ```
+
+    !!! note
+
+        If the values of the both hyperparameters are not comparible
+        (e.g. comparing int and str), a TypeError is raised. For OrdinalHyperparameters
+        the actual values are used for comparison **not** their ordinal value.
+
+    Args:
+        left: left side of the comparison
+        right: right side of the comparison
     """
 
     _RELATION_STR = "GREATER"

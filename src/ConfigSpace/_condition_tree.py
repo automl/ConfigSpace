@@ -3,7 +3,7 @@ of a [`ConfigurationSpace`][ConfigSpace.configuration_space.ConfigurationSpace].
 
 There is a lot of logic dedicated to caching structures that aid in:
 * Sampling
-* Neighbourhood generation
+* Neighborhood generation
 * Validating
 
 Modify at your own risk, however please try to benchmark any changes made.

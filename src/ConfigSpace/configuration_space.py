@@ -150,30 +150,33 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
             ]
         ) = None,
     ) -> None:
-        """Parameters
-        ----------
-        name : str | dict, optional
-            Name of the configuration space. If a dict is passed, this is considered the
-            same as the `space` arg.
-        seed : int, optional
-            Random seed
-        meta : dict, optional
-            Field for holding meta data provided by the user.
-            Not used by the configuration space.
-        space:
-            A simple configuration space to use:
+        """Initialize a configuration space.
 
-            ```python
-            ConfigurationSpace(
-                name="myspace",
-                space={
-                    "uniform_integer": (1, 10),
-                    "uniform_float": (1.0, 10.0),
-                    "categorical": ["a", "b", "c"],
-                    "constant": 1337,
-                }
-            )
-            ```
+        Args:
+            name:
+                Name of the configuration space. If a dict is passed,
+                this is considered the same as the `space=` arg.
+            seed:
+                Random seed
+            meta:
+                Field for holding meta data provided by the user.
+                Not used by the configuration space.
+            space:
+                A simple configuration space to use:
+
+                ```python exec="true" result="python" source="material-block"
+                from ConfigSpace import ConfigurationSpace
+
+                ConfigurationSpace(
+                    name="myspace",
+                    space={
+                        "uniform_integer": (1, 10),
+                        "uniform_float": (1.0, 10.0),
+                        "categorical": ["a", "b", "c"],
+                        "constant": 1337,
+                    }
+                )
+                ```
 
         """
         # If first arg is a dict, we assume this to be `space`
@@ -186,7 +189,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         self.name = _name
         self.meta = meta
         self.random = np.random.RandomState(seed)
-        self.dag = DAG()
+        self._dag = DAG()
         self._len = 0
 
         if space is not None:
@@ -196,52 +199,81 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
     @property
     def index_of(self) -> Mapping[str, int]:
         """The index of hyperparameters by their name."""
-        return self.dag.index_of
+        return self._dag.index_of
 
     @property
     def at(self) -> Sequence[str]:
         """The hyperparameters by their index."""
-        return self.dag.at
+        return self._dag.at
 
     @property
     def conditions(self) -> Sequence[ConditionLike]:
         """All conditions from the configuration space."""
-        return self.dag.conditions
+        return self._dag.conditions
 
     @property
     def forbidden_clauses(self) -> Sequence[ForbiddenLike]:
-        return self.dag.forbiddens
+        """All forbidden clauses from the configuration space."""
+        return self._dag.forbiddens
 
     @property
     def conditional_hyperparameters(self) -> Sequence[str]:
         """Names of all conditional hyperparameters.
 
         Returns:
-        -------
-        set[:ref:`Hyperparameters`]
-            Set with all conditional hyperparameter
+            Set with all hyperparameter names which are only active under certain
+            conditions
         """
-        return list(self.dag.non_roots)
+        return list(self._dag.non_roots)
 
     @property
     def unconditional_hyperparameters(self) -> Sequence[str]:
-        return list(self.dag.roots)
+        """Names of all unconditional hyperparameters.
+
+        Returns:
+            Set of all hyperparameter names which are always active
+        """
+        return list(self._dag.roots)
 
     @property
     def children_of(self) -> Mapping[str, Sequence[Hyperparameter]]:
-        return self.dag.children_of
+        """Children of a hyperparameter.
+
+        Returns:
+            Mapping from a parent hyperparameter name to all hyperparameters which
+            are activate, depending on the value of the parent.
+        """
+        return self._dag.children_of
 
     @property
     def parents_of(self) -> Mapping[str, Sequence[Hyperparameter]]:
-        return self.dag.parents_of
+        """Parents of a hyperparameter.
+
+        Returns:
+            Mapping from a child hyperparameter name to all hyperparameters which
+            activate the child, depending on their values.
+        """
+        return self._dag.parents_of
 
     @property
     def child_conditions_of(self) -> Mapping[str, Sequence[ConditionLike]]:
-        return self.dag.child_conditions_of
+        """Conditions of a hyperparameter.
+
+        Returns:
+            Mapping from a parent hyperparameter name to all conditions which
+            check the value of the parent.
+        """
+        return self._dag.child_conditions_of
 
     @property
     def parent_conditions_of(self) -> Mapping[str, Sequence[ConditionLike]]:
-        return self.dag.parent_conditions_of
+        """Conditions of a hyperparameter.
+
+        Returns:
+            Mapping from a child hyperparameter name to all conditions which
+            need to be check to activate the child.
+        """
+        return self._dag.parent_conditions_of
 
     def add(
         self,
@@ -255,10 +287,15 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         """Add a hyperparameter, condition or forbidden clause to the configuration
         space.
 
-        Parameters
-        ----------
-        args : :ref:`Hyperparameters`, :ref:`Conditions`, :ref:`Forbidden clauses`
-            Hyperparameter, condition or forbidden clause to add
+        !!! note
+
+            If adding multiple hyperparameters, conditions or forbidden clauses, it
+            is better to add them all at once with one call to `add()`, as we
+            rebuilt a cache after each call to `add()`.
+
+        Args:
+            args:
+                Hyperparameter, condition or forbidden clause to add
         """
         # First turn everything into one large iterable
         hps = []
@@ -289,17 +326,17 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         for a in args:
             _put_to_list(a)
 
-        with self.dag.update():
+        with self._dag.update():
             for hp in hps:
-                self.dag.add(hp)
+                self._dag.add(hp)
 
             for condition in conditions:
-                self.dag.add_condition(condition)
+                self._dag.add_condition(condition)
 
             for forbidden in forbiddens:
-                self.dag.add_forbidden(forbidden)
+                self._dag.add_forbidden(forbidden)
 
-        self._len = len(self.dag.nodes)
+        self._len = len(self._dag.nodes)
         self._check_default_configuration()
 
     def add_configuration_space(
@@ -328,7 +365,6 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
                 active when `parent` is equal to `value`
 
         Returns:
-        -------
             The configuration space, which was added.
         """
         prefix_delim = f"{prefix}{delimiter}"
@@ -402,17 +438,14 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
 
     def generate_all_continuous_from_bounds(
         self,
-        bounds: list[tuple[float, float]],
+        bounds: Iterable[tuple[float, float]],
     ) -> None:
-        """Generate :class:`~ConfigSpace.hyperparameters.UniformFloatHyperparameter`
-        from a list containing lists with lower and upper bounds.
+        """Fill a ConfigurationSpace from a list of bounded numericals.
 
         The generated hyperparameters are added to the configuration space.
 
-        Parameters
-        ----------
-        bounds : list[tuple([float, float])]
-            List containing lists with two elements: lower and upper bound
+        Args:
+            bounds: List containing lists with two elements: lower and upper bound
         """
         self.add(
             UniformFloatHyperparameter(name=f"x{i}", lower=lower, upper=upper)
@@ -423,50 +456,39 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         """Configuration containing hyperparameters with default values.
 
         Returns:
-        -------
-        :class:`~ConfigSpace.configuration_space.Configuration`
             Configuration with the set default values
-
         """
         return self._check_default_configuration()
 
     # For backward compatibility
+    @deprecated("Please call `configuration.is_valid_configuration()` instead.")
     def check_configuration(self, configuration: Configuration) -> None:
         """Check if a configuration is legal. Raises an error if not.
 
-        Parameters
-        ----------
-        configuration : :class:`~ConfigSpace.configuration_space.Configuration`
-            Configuration to check
+        Args:
+            configuration: Configuration to check
         """
-        ConfigSpace.util.check_configuration(self, configuration.get_array(), False)
+        ConfigSpace.util.check_configuration(self, configuration.get_array())
 
     def check_configuration_vector_representation(self, vector: Array[f64]) -> None:
         """Raise error if configuration in vector representation is not legal.
 
-        Parameters
-        ----------
-        vector:
-            Configuration in vector representation
+        Args:
+            vector: configuration in vector representation
         """
-        ConfigSpace.util.check_configuration(self, vector, False)
+        ConfigSpace.util.check_configuration(self, vector)
 
     def get_active_hyperparameters(
         self,
         configuration: Configuration | Array[f64],
     ) -> set[str]:
-        """Set of active hyperparameter for a given configuration.
+        """Set of active hyperparameter names for a given configuration.
 
-        Parameters
-        ----------
-        configuration:
-            Configuration for which the active hyperparameter are returned
+        Args:
+            configuration: Configuration to get active hyperparameters of
 
         Returns:
-        -------
-        set(:class:`~ConfigSpace.configuration_space.Configuration`)
-            The set of all active hyperparameter
-
+            The set of names of all active hyperparameter
         """
         vector = (
             configuration.get_array()
@@ -515,15 +537,11 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
     ) -> Configuration | list[Configuration]:
         """Sample `size` configurations from the configuration space object.
 
-        Parameters
-        ----------
-        size : int, optional
-            Number of configurations to sample. Default to 1
+        Args:
+            size: Number of configurations to sample. Default (`None`) is to
+                sample a single configuration.
 
         Returns:
-        -------
-        :class:`~ConfigSpace.configuration_space.Configuration`,
-            list[:class:`~ConfigSpace.configuration_space.Configuration`]:
             A single configuration if `size` 1 else a list of Configurations
         """
         if len(self) == 0:
@@ -537,7 +555,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         if size == 1:
             warnings.warn(
                 "Please leave at default or explicitly set `size=None`."
-                " In the future, specifying a size will always retunr a list, even if"
+                " In the future, specifying a size will always return a list, even if"
                 " 1",
                 DeprecationWarning,
                 stacklevel=2,
@@ -579,19 +597,19 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
             # We treat this as an OR, i.e. if any of the forbidden clauses are
             # forbidden, the entire configuration (row) is forbidden
             uncond_forbidden: Mask = np.zeros(sample_size, dtype=np.bool_)
-            for clause in self.dag.unconditional_forbiddens:
+            for clause in self._dag.unconditional_forbiddens:
                 uncond_forbidden |= clause.is_forbidden_vector_array(config_matrix)
 
             valid_configs = config_matrix[:, ~uncond_forbidden]
 
-            for cnode in self.dag.minimum_conditions:
+            for cnode in self._dag.minimum_conditions:
                 condition = cnode.condition
                 satisfied = condition.satisfied_by_vector_array(valid_configs)
                 valid_configs[np.ix_(cnode.children_indices, ~satisfied)] = np.nan
 
             # Now we apply the forbiddens that depend on conditionals
             cond_forbidden: Mask = np.zeros(valid_configs.shape[1], dtype=np.bool_)
-            for clause in self.dag.conditional_forbiddens:
+            for clause in self._dag.conditional_forbiddens:
                 cond_forbidden |= clause.is_forbidden_vector_array(valid_configs)
 
             valid_configs = valid_configs[:, ~cond_forbidden]
@@ -610,10 +628,8 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
     def seed(self, seed: int) -> None:
         """Set the random seed to a number.
 
-        Parameters
-        ----------
-        seed : int
-            The random seed
+        Args:
+            seed: The random seed
         """
         self.random = np.random.RandomState(seed)
 
@@ -624,8 +640,6 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         CategoricalHyperparameters with weights have their weights removed.
 
         Returns:
-        -------
-        :class:`~ConfigSpace.configuration_space.ConfigurationSpace`
             The resulting configuration space, without priors on the hyperparameters
         """
         uniform_config_space = ConfigurationSpace(
@@ -652,12 +666,15 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         """Estimate the number of unique configurations.
 
         This is `np.inf` in case if there is a single hyperparameter of size `np.inf`
-        (i.e. a :class:`~ConfigSpace.hyperparameters.UniformFloatHyperparameter`),
+        (i.e. a `UniformFloatParameter`),
         otherwise it is the product of the size of all hyperparameters. The function
         correctly guesses the number of unique configurations if there are no condition
         and forbidden statements in the configuration spaces. Otherwise, this is an
-        upper bound. Use :func:`~ConfigSpace.util.generate_grid` to generate all
-        valid configurations if required.
+        upper bound. Use [`generate_grid()`][ConfigSpace.util.generate_grid] to generate
+        all valid configurations if required.
+
+        Returns:
+            The estimated number of unique configurations
         """
         sizes = [hp.size for hp in self.values()]
 
@@ -672,24 +689,22 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
 
     @staticmethod
     def substitute_hyperparameters_in_conditions(
-        conditions: Iterable[Condition | Conjunction],
+        conditions: Iterable[ConditionLike],
         new_configspace: ConfigurationSpace,
-    ) -> list[Condition | Conjunction]:
+    ) -> list[ConditionLike]:
         """Takes a set of conditions and generates a new set of conditions with the same
         structure, where each hyperparameter is replaced with its namesake in
         new_configspace. As such, the set of conditions remain unchanged, but the
         included hyperparameters are changed to match those types that exist in
         new_configspace.
 
-        Parameters
-        ----------
-        new_configspace: ConfigurationSpace
-            A ConfigurationSpace containing hyperparameters with the same names as those
-            in the conditions.
+        Args:
+            conditions: The conditions to adjust
+            new_configspace:
+                A ConfigurationSpace containing hyperparameters with the same names
+                as those in the conditions.
 
         Returns:
-        -------
-        list[Condition | Conjunction]:
             The list of conditions, adjusted to fit the new ConfigurationSpace
         """
         new_conditions: list[ConditionLike] = []
@@ -734,17 +749,13 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         As such, the set of forbidden clauses remain unchanged, but the included
         hyperparameters are changed to match those types that exist in new_configspace.
 
-        Parameters
-        ----------
-        forbiddens: Iterable[ForbiddenLike]
-            An iterable of forbiddens
-        new_configspace: ConfigurationSpace
-            A ConfigurationSpace containing hyperparameters with the same names as those
-            in the forbidden clauses.
+        Args:
+            forbiddens: An iterable of forbiddens
+            new_configspace: ConfigurationSpace
+                A ConfigurationSpace containing hyperparameters with the same
+                names as those in the forbidden clauses.
 
         Returns:
-        -------
-        list[ForbiddenLike]:
             The list of forbidden clauses, adjusted to fit the new ConfigurationSpace
         """
         new_forbiddens: list[ForbiddenLike] = []
@@ -849,14 +860,15 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         return retval.getvalue()
 
     def __getitem__(self, key: str) -> Hyperparameter:
-        return self.dag.nodes[key].hp
+        return self._dag.nodes[key].hp
 
     def __iter__(self) -> Iterator[str]:
         """Iterate over the hyperparameter names in the right order."""
-        return iter(self.dag.nodes.keys())
+        return iter(self._dag.nodes.keys())
 
     def items(self) -> ItemsView[str, Hyperparameter]:
-        return {name: node.hp for name, node in self.dag.nodes.items()}.items()
+        """Return an items view of the hyperparameters, same as `dict.items()`."""  # noqa: D402
+        return {name: node.hp for name, node in self._dag.nodes.items()}.items()
 
     def __len__(self) -> int:
         """Return the number of hyperparameters."""
@@ -899,7 +911,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         vector = configuration.get_array()
         active_hyperparameters = self.get_active_hyperparameters(configuration)
 
-        for hp_name, node in self.dag.nodes.items():
+        for hp_name, node in self._dag.nodes.items():
             hyperparameter = node.hp
             hp_vector = vector[self.index_of[hp_name]]
             active = hp_name in active_hyperparameters
@@ -930,6 +942,18 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         self,
         encoders: Mapping[type, tuple[str, _Encoder]] | None = None,
     ) -> dict[str, Any]:
+        """Serialize the configuration space to a dictionary.
+
+        Please see the [serialization reference](../../reference/serialization.md) for more
+
+        Args:
+            encoders:
+                A mapping from types to a tuple of the type name and an encoder
+                function. If not provided, the default encoders will be used.
+
+        Returns:
+            A dictionary containing the serialized configuration space
+        """
         # NOTE: Used to be called JSON format
         SERIALIZATION_FORMAT_VERSION = 0.4
 
@@ -977,6 +1001,20 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
             | None
         ) = None,
     ) -> ConfigurationSpace:
+        """Decode a serialized configuration space from a dictionary.
+
+        Please see the [serialization reference](../../reference/serialization.md) for more
+
+        Args:
+            d: The serialized configuration space
+            decoders:
+                A mapping from one of the kinds of things that can be decoded
+                to a dictionary of type names to a decoder that will be used.
+                Anything not specified will fall back to the default decoders.
+
+        Returns:
+            The decoded configuration space
+        """
         user_decoders = decoders or {}
 
         def get_decoder(_decoders: Mapping[str, _Decoder]) -> _Decoder:
@@ -1036,6 +1074,17 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         encoders: Mapping[type, tuple[str, _Encoder]] | None = None,
         **kwargs: Any,
     ) -> None:
+        """Serialize the configuration space to a JSON file.
+
+        Please see the [serialization reference](../../reference/serialization.md) for more
+
+        Args:
+            path: Path to the file or a file object to write to
+            encoders:
+                A mapping from types to a tuple of the type name and an encoder
+                function. If not provided, the default encoders will be used.
+            **kwargs: Additional arguments to pass to `json.dump`
+        """
         serialized = self.to_serialized_dict(encoders=encoders)
         if isinstance(path, (str, Path)):
             with open(path, "w") as f:
@@ -1057,8 +1106,25 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         ) = None,
         **kwargs: Any,
     ) -> ConfigurationSpace:
+        """Decode a serialized configuration space from a json file.
+
+        Please see the [serialization reference](../../reference/serialization.md) for
+        more
+
+        Args:
+            path: Path to the serialized configuration space
+            decoders:
+                A mapping from one of the kinds of things that can be decoded
+                to a dictionary of type names to a decoder that will be used.
+                Anything not specified will fall back to the default decoders.
+            **kwargs: Any additional arguments to pass to `json.load`
+
+        Returns:
+            The decoded configuration space
+        """
         if isinstance(path, (str, Path)):
-            with open(path) as f:
+            p = Path(path)
+            with p.open("r") as f:
                 d = json.load(f, **kwargs)
         else:
             d = json.load(path, **kwargs)
@@ -1072,6 +1138,17 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         encoders: Mapping[type, tuple[str, _Encoder]] | None = None,
         **kwargs: Any,
     ) -> None:
+        """Serialize the configuration space to a JSON file.
+
+        Please see the [serialization reference](../../reference/serialization.md) for more
+
+        Args:
+            path: Path to the file or a file object to write to
+            encoders:
+                A mapping from types to a tuple of the type name and an encoder
+                function. If not provided, the default encoders will be used.
+            **kwargs: Additional arguments to pass to `json.dump`
+        """
         import yaml
 
         serialized = self.to_serialized_dict(encoders=encoders)
@@ -1095,10 +1172,26 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         ) = None,
         **kwargs: Any,
     ) -> ConfigurationSpace:
+        """Decode a serialized configuration space from a yaml file.
+
+        Please see the [serialization reference](../../reference/serialization.md) for more
+
+        Args:
+            path: Path to the serialized configuration space
+            decoders:
+                A mapping from one of the kinds of things that can be decoded
+                to a dictionary of type names to a decoder that will be used.
+                Anything not specified will fall back to the default decoders.
+            **kwargs: Any additional arguments to pass to `yaml.safe_load`
+
+        Returns:
+            The decoded configuration space
+        """
         import yaml
 
         if isinstance(path, (str, Path)):
-            with open(path, "w") as f:
+            p = Path(path)
+            with p.open("r") as f:
                 d = yaml.safe_load(f, **kwargs)
         else:
             d = yaml.safe_load(path, **kwargs)
@@ -1111,19 +1204,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
     # * Search `Marked Deprecated` to find others
 
     @deprecated("Please use `space[name]`")
-    def get_hyperparameter(self, name: str) -> Hyperparameter:
-        """Hyperparameter from the space with a given name.
-
-        Parameters
-        ----------
-        name : str
-            Name of the searched hyperparameter
-
-        Returns:
-        -------
-        :ref:`Hyperparameters`
-            Hyperparameter with the name `name`
-        """
+    def get_hyperparameter(self, name: str) -> Hyperparameter:  # noqa: D102
         return self[name]
 
     @property
@@ -1145,36 +1226,15 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         return self.index_of
 
     @deprecated("Please use `list(space.values())`")
-    def get_hyperparameters(self) -> list[Hyperparameter]:
-        """All hyperparameters in the space.
-
-        Returns:
-        -------
-        list(:ref:`Hyperparameters`)
-            A list with all hyperparameters stored in the configuration space object
-        """
+    def get_hyperparameters(self) -> list[Hyperparameter]:  # noqa: D102
         return list(self.values())
 
     @deprecated("Please use `dict(space)`")
-    def get_hyperparameters_dict(self) -> dict[str, Hyperparameter]:
-        """All the `(name, Hyperparameter)` contained in the space.
-
-        Returns:
-        -------
-        dict(str, :ref:`Hyperparameters`)
-            An dict of names and hyperparameters
-        """
+    def get_hyperparameters_dict(self) -> dict[str, Hyperparameter]:  # noqa: D102
         return dict(self)
 
     @deprecated("Please use `list(space.keys())`")
-    def get_hyperparameter_names(self) -> list[str]:
-        """Names of all the hyperparameter in the space.
-
-        Returns:
-        -------
-        list(str)
-            List of hyperparameter names
-        """
+    def get_hyperparameter_names(self) -> list[str]:  # noqa: D102
         return list(self.keys())
 
     @deprecated("Please use `list(space.keys())`")
@@ -1187,17 +1247,6 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
 
     @deprecated("Please use `space.parents_of[name]`")
     def _get_parents_of(self, name: str) -> Sequence[Hyperparameter]:
-        """The parents hyperparameters of a given hyperparameter.
-
-        Parameters
-        ----------
-        name : str
-
-        Returns:
-        -------
-        list
-            List with all parent hyperparameters
-        """
         return self.parents_of[name]
 
     @deprecated("Please use `space.child_conditions_of[name]`")
@@ -1206,18 +1255,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
 
     @deprecated("Please use `space.add(hyperparameter)`")
     def add_hyperparameter(self, hyperparameter: Hyperparameter) -> Hyperparameter:
-        """Add a hyperparameter to the configuration space.
-
-        Parameters
-        ----------
-        hyperparameter : :ref:`Hyperparameters`
-            The hyperparameter to add
-
-        Returns:
-        -------
-        :ref:`Hyperparameters`
-            The added hyperparameter
-        """
+        """Deprecated. Please use [`space.add()`][ConfigSpace.configuration_space.ConfigurationSpace.add]."""  # noqa: E501
         self.add(hyperparameter)
         return hyperparameter
 
@@ -1226,18 +1264,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         self,
         hyperparameters: Iterable[Hyperparameter],
     ) -> list[Hyperparameter]:
-        """Add hyperparameters to the configuration space.
-
-        Parameters
-        ----------
-        hyperparameters : Iterable(:ref:`Hyperparameters`)
-            Collection of hyperparameters to add
-
-        Returns:
-        -------
-        list(:ref:`Hyperparameters`)
-            List of added hyperparameters (same as input)
-        """
+        """Deprecated. Please use [`space.add()`][ConfigSpace.configuration_space.ConfigurationSpace.add]."""  # noqa: E501
         warnings.warn(
             "Please use public function `add()` instead",
             DeprecationWarning,
@@ -1249,64 +1276,19 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
 
     @deprecated("Please use `space.add(condition)`")
     def add_condition(self, condition: ConditionLike) -> ConditionLike:
-        """Add a condition to the configuration space.
-
-        Check if adding the condition is legal:
-
-        - The parent in a condition statement must exist
-        - The condition must add no cycles
-
-        The internal array keeps track of all edges which must be
-        added to the DiGraph; if the checks don't raise any Exception,
-        these edges are finally added at the end of the function.
-
-        Parameters
-        ----------
-        condition : :ref:`Conditions`
-            Condition to add
-
-        Returns:
-        -------
-        :ref:`Conditions`
-            Same condition as input
-        """
+        """Deprecated. Please use [`space.add()`][ConfigSpace.configuration_space.ConfigurationSpace.add]."""  # noqa: E501
         self.add(condition)
         return condition
 
     @deprecated("Please use `space.add(conditions)`")
     def add_conditions(self, conditions: list[ConditionLike]) -> list[ConditionLike]:
-        """Add a list of conditions to the configuration space.
-
-        They must be legal. Take a look at
-        :meth:`~ConfigSpace.configuration_space.ConfigurationSpace.add_condition`.
-
-        Parameters
-        ----------
-        conditions : list(:ref:`Conditions`)
-            collection of conditions to add
-
-        Returns:
-        -------
-        list(:ref:`Conditions`)
-            Same as input conditions
-        """
+        """Deprecated. Please use [`space.add()`][ConfigSpace.configuration_space.ConfigurationSpace.add]."""  # noqa: E501
         self.add(conditions)
         return conditions
 
     @deprecated("Please use `space.add(clause)`")
     def add_forbidden_clause(self, clause: ForbiddenLike) -> ForbiddenLike:
-        """Add a forbidden clause to the configuration space.
-
-        Parameters
-        ----------
-        clause : :ref:`Forbidden clauses`
-            Forbidden clause to add
-
-        Returns:
-        -------
-        :ref:`Forbidden clauses`
-            Same as input forbidden clause
-        """
+        """Deprecated. Please use [`space.add()`][ConfigSpace.configuration_space.ConfigurationSpace.add]."""  # noqa: E501
         self.add(clause)
         return clause
 
@@ -1315,122 +1297,49 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         self,
         clauses: list[ForbiddenLike],
     ) -> list[ForbiddenLike]:
-        """Add a list of forbidden clauses to the configuration space.
-
-        Parameters
-        ----------
-        clauses : list(:ref:`Forbidden clauses`)
-            Collection of forbidden clauses to add
-
-        Returns:
-        -------
-        list(:ref:`Forbidden clauses`)
-            Same as input clauses
-        """
+        """Deprecated. Please use [`space.add()`][ConfigSpace.configuration_space.ConfigurationSpace.add]."""  # noqa: E501
         self.add(clauses)
         return clauses
 
     @deprecated("Please use `space.index_of[name]`")
     def get_idx_by_hyperparameter_name(self, name: str) -> int:
-        """The id of a hyperparameter by its `name`.
-
-        Parameters
-        ----------
-        name : str
-            Name of a hyperparameter
-
-        Returns:
-        -------
-        int
-            Id of the hyperparameter with name `name`
-        """
+        """Deprecated. Please use [`space.index_of[name]`][ConfigSpace.configuration_space.ConfigurationSpace.index_of]."""  # noqa: E501
         return self.index_of[name]
 
     @deprecated("Please use `space.at[idx]`")
     def get_hyperparameter_by_idx(self, idx: int) -> str:
-        """Name of a hyperparameter from the space given its id.
-
-        Parameters
-        ----------
-        idx : int
-            Id of a hyperparameter
-
-        Returns:
-        -------
-        str
-            Name of the hyperparameter
-        """
+        """Deprecated. Please use [`space.at[idx]`][ConfigSpace.configuration_space.ConfigurationSpace.at]."""  # noqa: E501
         return self.at[idx]
 
     @deprecated("Please use `space.conditions`")
     def get_conditions(self) -> Sequence[ConditionLike]:
-        """All conditions from the configuration space.
-
-        Returns:
-        -------
-        list(:ref:`Conditions`)
-            Conditions of the configuration space
-        """
+        """Deprecated. Please use [`space.conditions`][ConfigSpace.configuration_space.ConfigurationSpace.conditions]."""  # noqa: E501
         return self.conditions
 
     @deprecated("Please use `space.forbidden_clauses`")
     def get_forbiddens(self) -> Sequence[ForbiddenLike]:
-        """All forbidden clauses from the configuration space.
-
-        Returns:
-        -------
-        list(:ref:`Forbidden clauses`)
-            List with the forbidden clauses
-        """
+        """Deprecated. Please use [`space.forbidden_clauses`][ConfigSpace.configuration_space.ConfigurationSpace.forbidden_clauses]."""  # noqa: E501
         return self.forbidden_clauses
 
     @deprecated("Please use `space.conditional_hyperparameters`")
     def get_all_conditional_hyperparameters(self) -> Sequence[str]:
+        """Deprecated. Please use [`space.conditional_hyperparameters`][ConfigSpace.configuration_space.ConfigurationSpace.conditional_hyperparameters]."""  # noqa: E501
         return self.conditional_hyperparameters
 
     @deprecated("Please use `space.uncoditional_hyperparameters`")
     def get_all_unconditional_hyperparameters(self) -> Sequence[str]:
-        """Names of unconditional hyperparameters.
-
-        Returns:
-        -------
-        list[str]
-            List with all parent hyperparameters, which are not part of a condition
-        """
+        """Deprecated. Please use [`space.unconditional_hyperparameters`][ConfigSpace.configuration_space.ConfigurationSpace.unconditional_hyperparameters]."""  # noqa: E501
         return self.unconditional_hyperparameters
 
     @deprecated("Please use `space.children_of[hyperparameter.name]`")
     def get_children_of(self, name: str | Hyperparameter) -> Sequence[Hyperparameter]:
-        """Return a list with all children of a given hyperparameter.
-
-        Parameters
-        ----------
-        name : str, :ref:`Hyperparameters`
-            Hyperparameter or its name, for which all children are requested
-
-        Returns:
-        -------
-        list(:ref:`Hyperparameters`)
-            Children of the hyperparameter
-        """
+        """Deprecated. Please use [`space.children_of[name]`][ConfigSpace.configuration_space.ConfigurationSpace.children_of]."""  # noqa: E501
         _name = name.name if isinstance(name, Hyperparameter) else name
         return self.children_of[_name]
 
     @deprecated("Please use `space.parents_of[hyperparameter.name]`")
     def get_parents_of(self, name: str | Hyperparameter) -> Sequence[Hyperparameter]:
-        """The parents hyperparameters of a given hyperparameter.
-
-        Parameters
-        ----------
-        name : str, :ref:`Hyperparameters`
-            Can either be the name of a hyperparameter or the hyperparameter
-            object.
-
-        Returns:
-        -------
-        list[:ref:`Conditions`]
-            List with all parent hyperparameters
-        """
+        """Deprecated. Please use [`space.parents_of[name]`][ConfigSpace.configuration_space.ConfigurationSpace.parents_of]."""  # noqa: E501
         _name = name.name if isinstance(name, Hyperparameter) else name
         return self.parents_of[_name]
 
@@ -1439,19 +1348,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         self,
         name: str | Hyperparameter,
     ) -> Sequence[ConditionLike]:
-        """Return a list with conditions of all children of a given
-        hyperparameter referenced by its `name`.
-
-        Parameters
-        ----------
-        name : str, :ref:`Hyperparameters`
-            Hyperparameter or its name, for which conditions are requested
-
-        Returns:
-        -------
-        Sequence(:ref:`Conditions`)
-            List with the conditions on the children of the given hyperparameter
-        """
+        """Deprecated. Please use [`space.child_conditions_of[name]`][ConfigSpace.configuration_space.ConfigurationSpace.child_conditions_of]."""  # noqa: E501
         _name = name.name if isinstance(name, Hyperparameter) else name
         return self.child_conditions_of[_name]
 
@@ -1460,19 +1357,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         self,
         name: str | Hyperparameter,
     ) -> Sequence[Condition | Conjunction]:
-        """The conditions of all parents of a given hyperparameter.
-
-        Parameters
-        ----------
-        name : str, :ref:`Hyperparameters`
-            Can either be the name of a hyperparameter or the hyperparameter
-            object
-
-        Returns:
-        -------
-        list[:ref:`Conditions`]
-            List with all conditions on parent hyperparameters
-        """
+        """Deprecated. Please use [`space.parent_conditions_of[name]`][ConfigSpace.configuration_space.ConfigurationSpace.parent_conditions_of]."""  # noqa: E501
         _name = name.name if isinstance(name, Hyperparameter) else name
         return self.parent_conditions_of[_name]
 

@@ -122,7 +122,7 @@ def build_categorical(param: CategoricalHyperparameter) -> str:
     if param.weights is not None:
         raise ValueError(
             "The pcs format does not support categorical hyperparameters with "
-            "assigned weights (for hyperparameter %s)" % param.name,
+            f"assigned weights (for hyperparameter {param.name})",
         )
     cat_template = "%s {%s} [%s]"
     return cat_template % (
@@ -177,9 +177,9 @@ def build_condition(condition: Condition | Conjunction) -> str:
 
     # Check if SMAC can handle the condition
     if isinstance(condition, OrConjunction):
-        raise NotImplementedError("SMAC cannot handle OR conditions: %s" % (condition))
+        raise NotImplementedError(f"SMAC cannot handle OR conditions: {condition}")
     if isinstance(condition, NotEqualsCondition):
-        raise NotImplementedError("SMAC cannot handle != conditions: %s" % (condition))
+        raise NotImplementedError(f"SMAC cannot handle != conditions: {condition}")
 
     # Now handle the conditions SMAC can handle
     condition_template = "%s | %s in {%s}"
@@ -239,7 +239,7 @@ def build_forbidden(clause: ForbiddenLike) -> str:
     " or `space.to_yaml` instead",
 )
 def read(pcs_string: Iterable[str]) -> ConfigurationSpace:
-    """Read in a :py:class:`~ConfigSpace.configuration_space.ConfigurationSpace`
+    """Read in a [ConfigurationSpace][ConfigSpace.configuration_space.ConfigurationSpace]
     definition from a pcs file.
 
 
@@ -255,14 +255,10 @@ def read(pcs_string: Iterable[str]) -> ConfigurationSpace:
         deserialized_conf = pcs.read(f)
     ```
 
-    Parameters
-    ----------
-    pcs_string : Iterable[str]
-        ConfigSpace definition in pcs format as an iterable of strings
+    Args:
+        pcs_string: ConfigSpace definition in pcs format as an iterable of strings
 
     Returns:
-    -------
-    :py:class:`~ConfigSpace.configuration_space.ConfigurationSpace`
         The deserialized ConfigurationSpace object
     """
     if isinstance(pcs_string, str):
@@ -358,7 +354,7 @@ def read(pcs_string: Iterable[str]) -> ConfigurationSpace:
             pass
 
         if param is None:
-            raise NotImplementedError("Could not parse: %s" % line)
+            raise NotImplementedError(f"Could not parse: {line}")
 
         hp_params_to_add.append(param)
 
@@ -436,7 +432,7 @@ def read(pcs_string: Iterable[str]) -> ConfigurationSpace:
 )
 def write(configuration_space: ConfigurationSpace) -> str:
     """Create a string representation of a
-    :class:`~ConfigSpace.configuration_space.ConfigurationSpace` in pcs format.
+    [ConfigurationSpace][ConfigSpace.configuration_space.ConfigurationSpace] in pcs format.
     This string can be written to file.
 
     ```python
@@ -449,14 +445,10 @@ def write(configuration_space: ConfigurationSpace) -> str:
         fh.write(pcs.write(cs))
     ```
 
-    Parameters
-    ----------
-    configuration_space:
-        a configuration space
+    Args:
+        configuration_space: a configuration space
 
     Returns:
-    -------
-    str
         The string representation of the configuration space
 
     """

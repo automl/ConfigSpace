@@ -8,12 +8,12 @@ from typing_extensions import deprecated, override
 
 import numpy as np
 
-from ConfigSpace.hyperparameters._distributions import (
+from ConfigSpace.hyperparameters.distributions import (
     Distribution,
     UniformIntegerDistribution,
     WeightedIntegerDiscreteDistribution,
 )
-from ConfigSpace.hyperparameters._hp_components import TransformerSeq, _Neighborhood
+from ConfigSpace.hyperparameters.hp_components import Neighborhood, TransformerSeq
 from ConfigSpace.hyperparameters.hyperparameter import Hyperparameter
 from ConfigSpace.types import Array, f64
 
@@ -33,13 +33,13 @@ generation."""
 
 
 @dataclass
-class NeighborhoodCat(_Neighborhood):
+class NeighborhoodCat(Neighborhood):
     """Neighborhood for categorical hyperparameters.
 
     !!! note
 
         For
-        [`CategoricalHyperparameter`][configspace.hyperparameters.CategoricalHyperparameter],
+        [`CategoricalHyperparameter`][ConfigSpace.hyperparameters.CategoricalHyperparameter],
         all values are considered equally distant from each other. Thus, the
         possible neighbors is all other values except the current one.
     """
@@ -97,7 +97,7 @@ class CategoricalHyperparameter(Hyperparameter[Any, Any]):
 
     It is assumed there is no inherent order between the choices. If you
     know an order exists, use the
-    [`OrdinalHyperparameter`][configspace.hyperparameters.OrdinalHyperparameter]
+    [`OrdinalHyperparameter`][ConfigSpace.hyperparameters.OrdinalHyperparameter]
     instead.
 
     The values are sampled uniformly by default, but can be weighted using the
@@ -250,6 +250,20 @@ class CategoricalHyperparameter(Hyperparameter[Any, Any]):
         ):
             seq_choices = np.asarray(choices, dtype=object)
 
+        # We also want to see about value casting, i.e. if our numpy array
+        # does not contain objects, then we should include a `value_cast`
+        # to transformting `to_value` for a single object type
+        if seq_choices.dtype.kind == "b":
+            value_cast = bool
+        elif seq_choices.dtype.kind in {"i", "u"}:
+            value_cast = int
+        elif seq_choices.dtype.kind == "f":
+            value_cast = float
+        elif seq_choices.dtype.kind in {"U", "S"}:
+            value_cast = str
+        else:
+            value_cast = None
+
         self.probabilities = probabilities
         self.choices = choices
         self.weights = tupled_weights
@@ -263,7 +277,7 @@ class CategoricalHyperparameter(Hyperparameter[Any, Any]):
             neighborhood=NeighborhoodCat(size=size),
             neighborhood_size=self._categorical_neighborhood_size,
             meta=meta,
-            value_cast=None,
+            value_cast=value_cast,
         )
 
     def to_uniform(self) -> CategoricalHyperparameter:

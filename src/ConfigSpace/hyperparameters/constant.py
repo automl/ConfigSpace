@@ -6,8 +6,8 @@ from typing import Any, ClassVar
 
 import numpy as np
 
-from ConfigSpace.hyperparameters._distributions import ConstantVectorDistribution
-from ConfigSpace.hyperparameters._hp_components import TransformerConstant
+from ConfigSpace.hyperparameters.distributions import ConstantVectorDistribution
+from ConfigSpace.hyperparameters.hp_components import TransformerConstant
 from ConfigSpace.hyperparameters.hyperparameter import Hyperparameter
 from ConfigSpace.types import Array, f64
 

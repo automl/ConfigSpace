@@ -7,11 +7,11 @@ from typing import TYPE_CHECKING, Any, ClassVar
 import numpy as np
 from scipy.stats import beta as spbeta
 
-from ConfigSpace.hyperparameters._distributions import (
+from ConfigSpace.hyperparameters.distributions import (
     ScipyContinuousDistribution,
 )
-from ConfigSpace.hyperparameters._hp_components import ROUND_PLACES, UnitScaler
 from ConfigSpace.hyperparameters.float_hyperparameter import FloatHyperparameter
+from ConfigSpace.hyperparameters.hp_components import ROUND_PLACES, UnitScaler
 from ConfigSpace.types import f64
 
 if TYPE_CHECKING:

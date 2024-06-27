@@ -8,10 +8,10 @@ import numpy as np
 from scipy.stats import beta as spbeta
 
 from ConfigSpace.functional import is_close_to_integer_single
-from ConfigSpace.hyperparameters._distributions import (
+from ConfigSpace.hyperparameters.distributions import (
     DiscretizedContinuousScipyDistribution,
 )
-from ConfigSpace.hyperparameters._hp_components import ATOL, UnitScaler
+from ConfigSpace.hyperparameters.hp_components import ATOL, UnitScaler
 from ConfigSpace.hyperparameters.integer_hyperparameter import IntegerHyperparameter
 from ConfigSpace.types import f64, i64
 

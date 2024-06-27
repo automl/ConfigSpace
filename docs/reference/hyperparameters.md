@@ -9,7 +9,7 @@ using ConfigSpace as a dependency.
 
 * Directly when constructing the [`ConfigurationSpace`][ConfigSpace.configuration_space.ConfigurationSpace] object,
 we call these **inferred** hyperparameters. **Use these if you have a simple search space or are doing rapid prototyping.**
-```python exec="True" result="python" source="material-block"
+```python exec="True" result="python" source="tabbed-left"
 from ConfigSpace import ConfigurationSpace
 
 cs = ConfigurationSpace(
@@ -19,10 +19,11 @@ cs = ConfigurationSpace(
         "c": (0.0, 1.0),  # Float from 0.0 to 1.0
     }
 )
+print(cs)
 ```
 * Using functions to create them for you. We call these **simple** hyperparameters and they should
 satisfy most use cases. **Use these if you just want to create a searchspace required by another library.**
-```python exec="True" result="python" source="material-block"
+```python exec="True" result="python" source="tabbed-left"
 from ConfigSpace import ConfigurationSpace, Integer, Categorical, Float, Normal
 
 cs = ConfigurationSpace(
@@ -38,12 +39,13 @@ print(cs)
 * Using the types directly. We call these **direct** hyperparameters. These are the real types used
 throughout ConfigSpace and offer the most customizability.
 **Use these if you are building a library the utilizes ConfigSpace.**
-```python exec="True" result="python" source="material-block"
+```python exec="True" result="python" source="tabbed-left"
 from ConfigSpace import (
     ConfigurationSpace,
     UniformIntegerHyperparameter,
     CategoricalHyperparameter,
     UniformFloatHyperparameter,
+    NormalFloatHyperparameter,
     OrdinalHyperparameter
 )
 
@@ -51,9 +53,9 @@ cs = ConfigurationSpace(
     {
         "a": UniformIntegerHyperparameter("a", lower=0, upper=10, log=False),    # Integer from 0 to 10
         "b": CategoricalHyperparameter("b", choices=["cat", "dog"], default_value="dog"),  # Ordered categorical with choices "cat" and "dog"
-        "c": Float("c", lower=1e-5, upper=1e2, log=True),  # Float from 0.0 to 1.0, log scaled
+        "c": UniformFloatHyperparameter("c", lower=1e-5, upper=1e2, log=True),  # Float from 0.0 to 1.0, log scaled
         "d": NormalFloatHyperparameter("d", lower=10, upper=20, mu=15, sigma=2),  # Float from 10 to 20, normal distribution
-        "e": OrdinalHyperparameter("e", choices=["s", "m", "l"], default="s"),  # Ordered categorical
+        "e": OrdinalHyperparameter("e", sequence=["s", "m", "l"], default_value="s"),  # Ordered categorical
     }
 )
 print(cs)
@@ -94,18 +96,18 @@ Most of the time, you just require the ability to create hyperparameters and pas
 To make this is as possible, we parametrize building the various **direct** hyperparameters that exist.
 
 ### Integer
-The [`Integer()`][Configspace.api.types.Integer] **function** samples an `int` uniformly
+The [`Integer()`][ConfigSpace.api.types.integer.Integer] **function** samples an `int` uniformly
 from the range `(lower, upper)`, with options to define them as being on a `log=` scale or
 that you prefer the sampling to be done under a different `distribution=`.
 ```python exec="True" result="python" source="material-block"
-from ConfigSpace import Integer, ConfigurationSpace
+from ConfigSpace import Integer, ConfigurationSpace, Uniform, Normal
 
 cs = ConfigurationSpace()
 
 cs.add(
     Integer("a", (0, 10), log=False),
     Integer("b", (0, 10), log=False, distribution=Uniform(), default=5),
-    Integer("c", (0, 1000), log=True, distribution=Normal(mu=200, sigma=200)),
+    Integer("c", (1, 1000), log=True, distribution=Normal(mu=200, sigma=200)),
 )
 print(cs)
 print(cs["a"].sample_value(size=5))
@@ -116,22 +118,22 @@ distributions.
 
 !!! warning "Not a type"
     Please be aware that `Integer` is a convenience **function** that returns
-    one of the **direct** hyperparameter classes. Please see the [direct types](#direct-types) if you need to
+    one of the **direct** hyperparameter classes. Please see the [direct hyperparameters](#direct-hyperparameters) if you need to
     access the underlying classes.
 
 ### Float
-The [`Float()`][Configspace.api.types.Float] **function** samples a `float` uniformly from the range `(lower, upper)`,
+The [`Float()`][ConfigSpace.api.types.float.Float] **function** samples a `float` uniformly from the range `(lower, upper)`,
 with options to define them as being on a `log=` scale or
 that you prefer the sampling to be done under a different `distribution=`.
 ```python exec="True" result="python" source="material-block"
-from ConfigSpace import Float, ConfigurationSpace
+from ConfigSpace import Float, ConfigurationSpace, Uniform, Normal
 
 cs = ConfigurationSpace()
 
 cs.add(
     Float("a", (0, 10), log=False),
     Float("b", (0, 10), log=False, distribution=Uniform(), default=5),
-    Float("c", (0, 1000), log=True, distribution=Normal(mu=200, sigma=200)),
+    Float("c", (1, 1000), log=True, distribution=Normal(mu=200, sigma=200)),
 )
 print(cs)
 print(cs["a"].sample_value(size=5))
@@ -142,11 +144,11 @@ distributions.
 
 !!! warning "Not a type"
     Please be aware that `Float` is a convenience **function** that returns
-    one of the **direct** hyperparameter classes. Please see the [direct types](#direct-types) if you need to
+    one of the **direct** hyperparameter classes. Please see the [direct hyperparameters](#direct-hyperparameters) if you need to
     access the underlying classes.
 
 ### Categorical
-The [`Categorical()`][Configspace.api.types.Categorical] **function** samples a value from the `choices=` provided.
+The [`Categorical()`][ConfigSpace.api.types.categorical.Categorical] **function** samples a value from the `choices=` provided.
 optionally giving them `weights=`, influencing the distribution of the sampling. You may also define them
 as `ordered=` if there is an inherent order to the choices.
 ```python exec="True" result="python" source="material-block"
@@ -165,7 +167,7 @@ print(cs["c"].sample_value(size=5))
 
 !!! warning "Not a type"
     Please be aware that `Categorical` is a convenience **function** that returns
-    one of the **direct** hyperparameter classes. Please see the [direct types](#direct-types) if you need to
+    one of the **direct** hyperparameter classes. Please see the [direct hyperparameters](#direct-hyperparameters) if you need to
     access the underlying classes.
 
 ## Direct Hyperparameters
@@ -200,8 +202,8 @@ two important components to consider:
 
 What makes a hyperparameter the hyperparameter it is then:
 
-1. How we sample from the vectorized space, defined by a [`Distribution`][ConfigSpace.hyperparameters._distributions.Distribution].
-2. How we map to and from the vectorized space to the value space, defined by a [`_Transformer`][ConfigSpace.hyperparameters._hp_components._Transformer].
+1. How we sample from the vectorized space, defined by a [`Distribution`][ConfigSpace.hyperparameters.distributions.Distribution].
+2. How we map to and from the vectorized space to the value space, defined by a [`Transformer`][ConfigSpace.hyperparameters.hp_components.Transformer].
 
 ??? tip "Why a vectorized space?"
 
@@ -230,9 +232,9 @@ What makes a hyperparameter the hyperparameter it is then:
     ```
 
     What this is showing is that we will use
-    [`UniformIntegerDistribution`][ConfigSpace.hyperparameters._distributions.UniformIntegerDistribution], which
+    [`UniformIntegerDistribution`][ConfigSpace.hyperparameters.distributions.UniformIntegerDistribution], which
     samples integers uniformly from `0` to `len(choices) - 1`, and then we use a
-    [`TransformerSeq`][ConfigSpace.hyperparameters._hp_components.TransformerSeq] to map these integers to the
+    [`TransformerSeq`][ConfigSpace.hyperparameters.hp_components.TransformerSeq] to map these integers to the
     corresponding choices provided by the users.
 
     Internally in `ConfigSpace`, we will primarily work with the vectorized space for efficiency purposes,
@@ -247,8 +249,9 @@ Using just these two components alone, we can provide the following functionalit
 Samples a vectorized value and transforms it back to the value space.
 * [`to_value()`][ConfigSpace.hyperparameters.Hyperparameter.to_value]: Transforms a vectorized value to the value space.
 * [`to_vector()`][ConfigSpace.hyperparameters.Hyperparameter.to_vector]: Transforms a value space value to the vectorized space.
-* [`pdf_value()`][ConfigSpace.hyperparameters.Hyperparameter.pdf_value]: Transforms a value space value to the vectorized space.
 * [`pdf_vector()`][ConfigSpace.hyperparameters.Hyperparameter.pdf_vector]: The probability density function of a vectorized value.
+* [`pdf_values()`][ConfigSpace.hyperparameters.Hyperparameter.pdf_values]: The probability density function of a value,
+  by transforming it to the vectorized space and then calculating the pdf.
 * [`legal_value()`][ConfigSpace.hyperparameters.Hyperparameter.legal_value]: Check if a value is legal.
 * [`legal_vector()`][ConfigSpace.hyperparameters.Hyperparameter.legal_vector]: Check if a vectorized value is legal.
 * [`.lower_vectorized`][ConfigSpace.hyperparameters.Hyperparameter.lower_vectorized]: The lower bound in vectorized space.
@@ -258,12 +261,12 @@ Samples a vectorized value and transforms it back to the value space.
 Please note that most of these methods support individual values or numpy arrays of values, either as input or output.
 Refer to the [API documentation][ConfigSpace.hyperparameters.Hyperparameter] for more information on the available methods.
 
-### Neighbourhoods
+### Neighborhoods
 One utility `ConfigSpace` provides to library developers is the ability to define a neighbourhood around a value.
 This is often important for optimizers who require a neighbourhood to explore around a particular configuration or value.
 
 A class inheriting from [`Hyperparameter`][ConfigSpace.hyperparameters.Hyperparameter] must also provide
-a [`_Neighbourhood`][ConfigSpace.hyperparameters._hp_components._Neighbourhood], which is something that can be called
+a [`Neighborhood`][ConfigSpace.hyperparameters.hp_components.Neighborhood], which is something that can be called
 with a vectorized value and provide values around that point.
 
 The expected signature is rather straight forward, given a `vector` value and a `n` number of samples to return,
@@ -319,56 +322,60 @@ need the following for a [`BetaIntegerHyperparameter`][ConfigSpace.hyperparamete
 
 #### Vectorized Space
 For our purposes, we will mostly rely on scipys `beta` distribution to sample from a **vectorized space**.
-Here is how you would sample from it in `scipy`:
-```python exec="True" source="material-block" results="python"
+Here is how you would sample from it in `scipy:`
+
+```python exec="True" source="material-block" result="python"
 from scipy.stats import beta as spbeta
-beta_rv = spbeta(alpha=3, beta=2)
-print(beta_rv.rvs(size=5))
+
+alpha, beta = 3, 2
+beta_rv = spbeta(alpha, beta)
+samples = beta_rv.rvs(size=5)
+print(samples)
 ```
 
 The problem however is that scipy only offers a contiuous version of this distribution, however we
 need to sample integers. To solve this, we will use the
-[`DiscretizedContinuousScipyDistribution`][ConfigSpace.hyperparameters._distributions.DiscretizedContinuousScipyDistribution]
+[`DiscretizedContinuousScipyDistribution`][ConfigSpace.hyperparameters.distributions.DiscretizedContinuousScipyDistribution]
 
-```python exec="True" source="material-block" results="python"
+```python exec="True" source="material-block" result="python"
+import numpy as np
 from scipy.stats import beta as spbeta
-from ConfigSpace.hyperparameters._distributions import DiscretizedContinuousScipyDistribution
+from ConfigSpace.hyperparameters.distributions import DiscretizedContinuousScipyDistribution
 
-# We will transform the vectorized space to the value space
-# Where possible, it is usually preferable to have vectorized bounds from (0, 1)
-# We also require all vectorized values to be np.float64, even if they represent integers
-vectorized_bounds = (np.float64(0), np.float64(1))
+# As before
+alpha, beta = 3, 2
+beta_rv = spbeta(alpha, beta)
 
+
+# Declare our value space bounds and how many discrete steps there
+# are between them.
 value_bounds = (1, 5)
-size = value_bounds[1] - value_bounds[0] + 1
-beta_rv = spbeta(alpha=3, beta=2)
+discrete_steps = value_bounds[1] - value_bounds[0] + 1
 
 # Creates a distribution which can discretize the continuous range
 # into `size` number of steps, such that we can map the discretized
 # vector values into integers in the range that was requested.
-# 0.0 -> 1
-# 0.25 -> 2
-# 0.50 -> 3
-# 0.75 -> 4
-# 1.0 -> 5
+
+# Where possible, it is usually preferable to have vectorized bounds from (0, 1)
+# We also require all vectorized values to be np.float64, even if they represent integers
 vector_distribution = DiscretizedContinuousScipyDistribution(
-    beta_rv,
-    steps=size,
-    lower_vectorized=vectorized_bounds[0],
-    upper_vectorized=vectorized_bounds[1],
+    rv=beta_rv,
+    steps=discrete_steps,
+    lower_vectorized=np.float64(0),
+    upper_vectorized=np.float64(1),
 )
-print(vector_distribution.sample_vector(size=5))
+print(vector_distribution.sample_vector(n=5))
 ```
 
 !!! tip
 
-    To support `scipy` distributions we implement various optimized [`Distribution`][ConfigSpace.hyperparameters._distributions.Distribution]s
+    To support `scipy` distributions we implement various optimized [`Distribution`][ConfigSpace.hyperparameters.distributions.Distribution]s
 
-    * [`ScipyContinuousDistribution`][ConfigSpace.hyperparameters._distributions.ScipyContinuousDistribution]:
+    * [`ScipyContinuousDistribution`][ConfigSpace.hyperparameters.distributions.ScipyContinuousDistribution]:
     Samples from a continuous scipy distribution.
-    * [`ScipyDiscreteDistribution`][ConfigSpace.hyperparameters._distributions.ScipyDiscreteDistribution]:
+    * [`ScipyDiscreteDistribution`][ConfigSpace.hyperparameters.distributions.ScipyDiscreteDistribution]:
     Samples from a discrete scipy distribution.
-    * [`DiscretizedContinuousScipyDistribution`][ConfigSpace.hyperparameters._distributions.DiscretizedContinuousScipyDistribution]:
+    * [`DiscretizedContinuousScipyDistribution`][ConfigSpace.hyperparameters.distributions.DiscretizedContinuousScipyDistribution]:
     Samples from a continuous scipy distribution, but discretizes the output efficiently.
 
     The also often provide a `neighborhood` method to sample around a point that can be used, as well as a
@@ -377,46 +384,46 @@ print(vector_distribution.sample_vector(size=5))
 
 ### Transforming from Vectorized Space to Value Space
 To convert from the vectorized space to the value space, we will need to implement a
-[`_Transformer`][ConfigSpace.hyperparameters._hp_components._Transformer] that can map the vectorized space to the
+[`Transformer`][ConfigSpace.hyperparameters.hp_components.Transformer] that can map the vectorized space to the
 value space, e.g. `(0.0, 1.0)` to `(1, 5)`.
 
-To do this, we provide a convenience class called [`UnitScaler`][ConfigSpace.hyperparameters._hp_components.UnitScaler],
+To do this, we provide a convenience class called [`UnitScaler`][ConfigSpace.hyperparameters.hp_components.UnitScaler],
 which also allows for a `log=` scale transformation.
 
-```python exec="True" source="material-block" results="python"
+```python exec="True" source="material-block" result="python"
+import numpy as np
 from scipy.stats import beta as spbeta
-from ConfigSpace.hyperparameters._distributions import DiscretizedContinuousScipyDistribution
-from ConfigSpace.hyperparameters._hp_components import UnitScaler
+from ConfigSpace.hyperparameters.distributions import DiscretizedContinuousScipyDistribution
+from ConfigSpace.hyperparameters.hp_components import UnitScaler
 
-vectorized_bounds = (np.float64(0), np.float64(1))
-value_bounds = (1, 5)
-size = value_bounds[1] - value_bounds[0] + 1
-beta_rv = spbeta(alpha=3, beta=2)
-
+# Define the distribution sampler
+alpha, beta = 3, 2
 vector_distribution = DiscretizedContinuousScipyDistribution(
-    beta_rv,
-    steps=size,
-    lower_vectorized=vectorized_bounds[0],
-    upper_vectorized=vectorized_bounds[1],
+    rv=spbeta(alpha, beta),
+    steps=5,
+    lower_vectorized=np.float64(0),
+    upper_vectorized=np.float64(1),
 )
+vector_samples = vector_distribution.sample_vector(n=5)
+print(vector_samples)
+
+# Define the transformer from the samplers range to the range we care about
 transformer = UnitScaler(
-    lower_value=np.int64(value_bounds[0]),
-    upper_value=np.int64(value_bounds[1]),
+    lower_value=np.int64(1),
+    upper_value=np.int64(5),
     dtype=np.int64,  # We want integers in value space
     log=False,
 )
-
-vector_samples = vector_distribution.sample_vector(size=5)
-print(vector_samples)
 integer_values = transformer.to_value(vector_samples)
 print(integer_values)
+
 back_to_vector = transformer.to_vector(integer_values)
 print(back_to_vector)
 ```
 
-You are of course free to implement your own [`_Transformer`][ConfigSpace.hyperparameters._hp_components._Transformer]
+You are of course free to implement your own [`Transformer`][ConfigSpace.hyperparameters.hp_components.Transformer]
 if you require a more complex transformation, however where possible, the
-[`UnitScaler`][ConfigSpace.hyperparameters._hp_components.UnitScaler] is preffered as it handles some edge cases
+[`UnitScaler`][ConfigSpace.hyperparameters.hp_components.UnitScaler] is preffered as it handles some edge cases
 and performs some optimized routines while remaining fully within the expected API.
 
 ### Creating the BetaIntegerHyperparameter class
@@ -434,11 +441,12 @@ of hyperparameters should be able to utilize these.
 ```python
 from typing import TypeAlias, Union, Mapping, Hashable, Any
 import numpy as np
-from ConfigSpace.hyperparameters import IntegerHyperparameter
-from ConfigSpace.hyperparameters._distributions import DiscretizedContinuousScipyDistribution
-from ConfigSpace.hyperparameters._hp_components import UnitScaler
-from ConfigSpace.functional import is_close_to_integer_single
 from scipy.stats import beta as spbeta
+
+from ConfigSpace.hyperparameters import IntegerHyperparameter
+from ConfigSpace.hyperparameters.distributions import DiscretizedContinuousScipyDistribution
+from ConfigSpace.hyperparameters.hp_components import UnitScaler
+from ConfigSpace.functional import is_close_to_integer_single
 
 i64 = np.int64
 f64 = np.float64

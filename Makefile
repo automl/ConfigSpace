@@ -6,12 +6,13 @@
 
 .PHONY: help install-dev install-test install-docs pre-commit clean clean-doc clean-build build docs links publish test clean-test
 
+A_DIFFERENT_CHANGE
+
 help:
 	@echo "Makefile ConfigSpace"
 	@echo "* install-dev      to install all dev requirements and install pre-commit"
-	@echo "* pre-commit       to run the pre-commit check"
+	@echo "* check            to run the pre-commit check"
 	@echo "* docs             to generate and view the html files"
-	@echo "* linkcheck        to check the documentation links"
 	@echo "* publish          to help publish the current branch to pypi"
 	@echo "* test             to run the tests"
 
@@ -39,48 +40,20 @@ install-dev:
 	$(PIP) install -e ".[dev]"
 	pre-commit install
 
-install-test:
-	$(PIP) install -e ".[test]"
-
-install-docs:
-	$(PIP) install -e ".[docs]"
-
 check:
 	$(PRECOMMIT) run --all-files
-
-check-types:
-	mypy ConfigSpace
 
 fix:
 	black --quiet ConfigSpace test
 	ruff --silent --exit-zero --no-cache --fix ConfigSpace test
 
-build:
-	python -m build
-
 test:
 	$(PYTEST) test
-
-clean-build:
-	rm -rf ${BUILD}
-
-clean-docs:
-	$(MAKE) -C ${DOCDIR} clean
-
-clean: clean-build clean-docs
-
-clean-test: clean-build build test
 
 # Running build before making docs is needed all be it very slow.
 # Without doing a full build, the doctests seem to use docstrings from the last compiled build
 docs: clean build
-	$(MAKE) -C ${DOCDIR} html
-	@echo
-	@echo "View docs at:"
-	@echo ${INDEX_HTML}
-
-links:
-	$(MAKE) -C ${DOCDIR} linkcheck
+	mkdocs serve
 
 # Publish to testpypi
 # Will echo the commands to actually publish to be run to publish to actual PyPi

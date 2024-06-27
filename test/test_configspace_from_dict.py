@@ -1,5 +1,5 @@
 """This file tests the easy api to create configspaces
-Configspace({
+ConfigurationSpace({
     "constant": "hello",
     "depth": (1, 10),
     "lr": (0.1, 1.0),

@@ -1,80 +1,71 @@
-Quickstart
-==========
-
-A :class:`~ConfigSpace.configuration_space.ConfigurationSpace`
+## Quickstart
+A [ConfigurationSpace][ConfigSpace.configuration_space.ConfigurationSpace]
 is a data structure to describe the configuration space of an algorithm to tune.
 Possible hyperparameter types are numerical, categorical, conditional and ordinal hyperparameters.
 
-AutoML tools, such as `SMAC3`_ and `BOHB`_ are using the configuration space
+AutoML tools, such as [`SMAC3`](https://github.com/automl/SMAC3) and [`BOHB`](https://github.com/automl/HpBandSter) are using the configuration space
 module to sample hyperparameter configurations.
-Also, `auto-sklearn`_, an automated machine learning toolkit, which frees the
+Also, [`auto-sklearn`](https://github.com/automl/auto-sklearn), an automated machine learning toolkit, which frees the
 machine learning user from algorithm selection and hyperparameter tuning,
 makes heavy use of the ConfigSpace package.
 
 This simple quickstart tutorial will show you, how to set up your own
-:class:`~ConfigSpace.configuration_space.ConfigurationSpace`, and will demonstrate
-what you can realize with it. This :ref:`Basic Usage` will include the following:
+[ConfigurationSpace][ConfigSpace.configuration_space.ConfigurationSpace], and will demonstrate
+what you can realize with it. This [Basic Usage](#basic-usage) will include the following:
 
-- Create a :class:`~ConfigSpace.configuration_space.ConfigurationSpace`
-- Define a simple :ref:`hyperparameter <Hyperparameters>` and its range
-- Change its :ref:`distributions <Distributions>`.
+- Create a [ConfigurationSpace][ConfigSpace.configuration_space.ConfigurationSpace]
+- Define a simple [hyperparameter](./reference/hyperparameters.md) with a float value
 
-The :ref:`Advanced Usage` will cover:
+The [Advanced Usage](#advanced-usage) will cover:
 
-- Creating two sets of possible model configs, using :ref:`Conditions`
-- Create two subspaces from these and add them to a parent :class:`~ConfigSpace.configuration_space.ConfigurationSpace`
+- Creating two sets of possible model configs, using [Conditions](./reference/conditions.md).
+- Use a different distirbution for one of the hyperparameters.
+- Create two subspaces from these and add them to a parent [ConfigurationSpace][ConfigSpace.configuration_space.ConfigurationSpace]
 - Turn these configs into actual models!
 
-These will not show the following and you should refer to the :doc:`user guide <guide>` for more:
+These will not show the following and you should refer to the [user guide](./guide.md) for more:
 
-- Add :ref:`Forbidden clauses`
-- Add :ref:`Conditions` to the :class:`~ConfigSpace.configuration_space.ConfigurationSpace`
-- :ref:`Serialize <Serialization>` the :class:`~ConfigSpace.configuration_space.ConfigurationSpace`
+- Add [Forbidden clauses](./reference/forbiddens.md)
+- Add [Conditions](./reference/conditions.md)
+- [Serialize](./reference/configuration.md)
 
 
-.. _Basic Usage:
-
-Basic Usage
------------
+### Basic Usage
 
 We take a look at a simple
-`ridge regression <http://scikit-learn.org/stable/modules/generated/sklearn.linear_model.Ridge.html>`_,
-which has only one floating hyperparameter :math:`\alpha`.
+[ridge regression](http://scikit-learn.org/stable/modules/generated/sklearn.linear_model.Ridge.html),
+which has only one floating hyperparameter `alpha`.
 
 The first step is always to create a
-:class:`~ConfigSpace.configuration_space.ConfigurationSpace` object. All the
+[ConfigurationSpace][ConfigSpace.configuration_space.ConfigurationSpace] object. All the
 hyperparameters and constraints will be added to this object.
 
->>> from ConfigSpace import ConfigurationSpace, Float
->>>
->>> cs = ConfigurationSpace(
-...     seed=1234,
-...     space={ "alpha": (0.0, 1.0) }
-... )
+```python exec="true", source="material-block" result="python" session="quickstart-basic"
+from ConfigSpace import ConfigurationSpace, Float
 
-The hyperparameter :math:`\alpha` is chosen to have floating point values from 0 to 1.
-For demonstration purpose, we sample a configuration from the :class:`~ConfigSpace.configuration_space.ConfigurationSpace` object.
+cs = ConfigurationSpace(space={"alpha": (0.0, 1.0)}, seed=1234)
+print(cs)
+```
 
->>> config = cs.sample_configuration()
->>> print(config)
-Configuration(values={
-  'alpha': 0.1915194503788923,
-})
-<BLANKLINE>
+The hyperparameter `alpha` is chosen to have floating point values from `0` to `1`.
+For demonstration purpose, we sample a configuration from the [ConfigurationSpace][ConfigSpace.configuration_space.ConfigurationSpace] object.
+
+```python exec="true", source="material-block" result="python" session="quickstart-basic"
+config = cs.sample_configuration()
+print(config)
+```
 
 You can use this configuration just like you would a regular old python dictionary!
 
->>> for key, value in config.items():
-...     print(key, value)
-alpha 0.1915194503788923
+```python exec="true", source="material-block" result="python" session="quickstart-basic"
+for key, value in config.items():
+    print(key, value)
+```
 
 And that's it!
 
 
-.. _Advanced Usage:
-
-Advanced Usage
---------------
+### Advanced Usage
 Lets create a more complex example where we have two models, model `A` and model `B`.
 Model `B` is some kernel based algorithm and `A` just needs a simple float hyperparamter.
 
@@ -82,57 +73,52 @@ Model `B` is some kernel based algorithm and `A` just needs a simple float hyper
 We're going to create a config space that will let us correctly build a randomly selected model.
 
 
-```python
+```python exec="true", source="material-block" result="python" session="quickstart-advanced"
+from typing import Literal
+from dataclasses import dataclass
+
+@dataclass
 class ModelA:
+    alpha: float
+    """Some value between 0 and 1"""
 
-    def __init__(self, alpha: float):
-        """
-        Parameters
-        ----------
-        alpha: float
-            Some value between 0 and 1
-        """
-        ...
-
+@dataclass
 class ModelB:
+    kernel: Literal["rbf", "flooper"]
+    """Kernel type."""
 
-   def __init__(self, kernel: str, kernel_floops: int | None = None):
-       """
-       Parameters
-       ----------
-       kernel: "rbf" or "flooper"
-           If the kernel is set to "flooper", kernel_floops must be set.
-
-       kernel_floops: int | None = None
-           Floop factor of the kernel
-       """
-       ...
+    kernel_floops: int | None = None
+    """Number of floops for the flooper kernel, only used if kernel == "flooper"."""
 ```
 
 
 First, lets start with building the two individual subspaces where for `A`, we want to sample alpha from a normal distribution and for `B` we have the conditioned parameter and we slightly weight one kernel over another.
 
-```python
-from ConfigSpace import ConfigSpace, Categorical, Integer, Float, Normal
+```python exec="true", source="material-block" result="python" session="quickstart-advanced"
+from typing import Literal
+from ConfigSpace import ConfigurationSpace, Categorical, Integer, Float, Normal, EqualsCondition
 
+@dataclass
 class ModelA:
-
-    def __init__(self, alpha: float):
-        ...
+    alpha: float
+    """Some value between 0 and 1"""
 
     @staticmethod
-    def space(self) -> ConfigSpace:
+    def space() -> ConfigurationSpace:
         return ConfigurationSpace({
-            "alpha": Float("alpha", bounds=(0, 1), distribution=Normal(mu=0.5, sigma=0.2)
+            "alpha": Float("alpha", bounds=(0, 1), distribution=Normal(mu=0.5, sigma=0.2))
         })
 
+@dataclass
 class ModelB:
+    kernel: Literal["rbf", "flooper"]
+    """Kernel type."""
 
-    def __init__(self, kernel: str, kernel_floops: int | None = None):
-        ...
+    kernel_floops: int | None = None
+    """Number of floops for the flooper kernel, only used if kernel == "flooper"."""
 
     @staticmethod
-    def space(self) -> ConfigSpace:
+    def space() -> ConfigurationSpace:
         cs = ConfigurationSpace(
             {
                 "kernel": Categorical("kernel", ["rbf", "flooper"], default="rbf", weights=[.75, .25]),
@@ -141,7 +127,7 @@ class ModelB:
         )
 
         # We have to make sure "kernel_floops" is only active when the kernel is "floops"
-        cs.add(EqualsCondition(cs_B["kernel_floops"], cs_B["kernel"], "flooper"))
+        cs.add(EqualsCondition(cs["kernel_floops"], cs["kernel"], "flooper"))
 
         return cs
 ```
@@ -150,9 +136,11 @@ class ModelB:
 Finally, we need add these two a parent space where we condition each subspace to only be active depending on a **parent**.
 We'll have the default configuration be `A` but we put more emphasis when sampling on `B`
 
-```python
+```python exec="true", source="material-block" result="python" session="quickstart-advanced"
+from ConfigSpace import ConfigurationSpace, Categorical
+
 cs = ConfigurationSpace(
-    seed=1234,
+    seed=123456,
     space={
         "model": Categorical("model", ["A", "B"], default="A", weights=[1, 2]),
     }
@@ -170,37 +158,19 @@ cs.add_configuration_space(
 cs.add_configuration_space(
     prefix="",
     delimiter="",
-    configuration_space=modelB.space(),
+    configuration_space=ModelB.space(),
     parent_hyperparameter={"parent": cs["model"], "value": "B"}
 )
+print(cs)
 ```
 
 And that's it!
 
 However for completness, lets examine how this works by first sampling from our config space.
 
-```python
+```python exec="true", source="material-block" result="python" session="quickstart-advanced"
 configs = cs.sample_configuration(4)
 print(configs)
-
-# [Configuration(values={
-#  'model': 'A',
-#  'alpha': 0.7799758081188035,
-# })
-# , Configuration(values={
-#   'model': 'B',
-#   'kernel': 'flooper',
-#   'kernel_floops': 8,
-# })
-# , Configuration(values={
-#   'model': 'B',
-#   'kernel': 'rbf',
-# })
-# , Configuration(values={
-#   'model': 'B',
-#   'kernel': 'rbf',
-# })
-# ]
 ```
 
 We can see the three different kinds of models we have, our basic `A` model as well as our `B` model
@@ -209,22 +179,21 @@ with the two kernels.
 Next, we do some processing of these configs to generate valid params to pass to these models
 
 
-```python
+```python exec="true", source="material-block" result="python" session="quickstart-advanced"
 models = []
 
 for config in configs:
-  model_type = config.pop("model")
+    config_as_dict = dict(config)
+    model_type = config_as_dict.pop("model")
 
-  model = ModelA(**config) if model_type == "A" else ModelB(**config)
+    model = ModelA(**config_as_dict) if model_type == "A" else ModelB(**config_as_dict)
 
-  models.append(model)
+    models.append(model)
+
+print(models)
 ```
 
 
-To continue reading, visit the :doc:`user guide <guide>` section. There are
+To continue reading, visit the [user guide](./guide.md) section. There are
 more information about hyperparameters, as well as an introduction to the
-powerful concepts of :ref:`Conditions` and :ref:`Forbidden clauses`.
-
-.. _SMAC3: https://github.com/automl/SMAC3
-.. _BOHB: https://github.com/automl/HpBandSter
-.. _auto-sklearn: https://github.com/automl/auto-sklearn
+powerful concepts of [Conditions](./reference/conditions.md) and [Forbidden clauses](./reference/forbiddens.md).

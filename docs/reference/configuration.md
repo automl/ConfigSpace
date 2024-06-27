@@ -3,6 +3,8 @@ A [`Configuration`][ConfigSpace.configuration.Configuration] is an dict-like obj
 going from the name of selected hyperparameters to the values.
 
 ```python exec="True" result="python"
+from ConfigSpace import ConfigurationSpace
+
 cs = ConfigurationSpace(
     {
         "a": (0, 10),

@@ -65,9 +65,23 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["mypy", "pre-commit", "ruff", "types-pyyaml"]
+dev = ["ConfigSpace[test, tooling, docs]"]
 test = ["pytest>=7", "pytest-cov", "pytest_cases"]
-docs = ["automl_sphinx_theme>=0.1.11"]
+tooling = ["mypy", "pre-commit", "ruff", "types-pyyaml"]
+docs = [
+  "mkdocs",
+  "mkdocs-material",
+  "mkdocs-autorefs",
+  "mkdocs-gen-files",
+  "mkdocs-literate-nav",
+  "mkdocs-glightbox",
+  "mkdocstrings[python]",
+  "markdown-exec[ansi]",
+  "mike",
+  "pillow",
+  "cairosvg",
+  "black",                # This allows mkdocstrings to format signatures in the docs
+]
 
 [tool.pytest.ini_options]
 testpaths = ["test"]

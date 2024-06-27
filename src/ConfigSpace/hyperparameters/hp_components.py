@@ -26,7 +26,7 @@ ATOL = 1e-9
 T_contra = TypeVar("T_contra", contravariant=True)
 
 
-class _Transformer(Protocol[DType]):
+class Transformer(Protocol[DType]):
     """Protocol for a transformer.
 
     This protocol defines how to move from **vectorized** representation to
@@ -34,9 +34,9 @@ class _Transformer(Protocol[DType]):
     a value or vector is legal.
 
     With this it also include
-    [`.lower_vectorized`][`ConfigSpace._hp_components._Transformer.lower_vectorized`]
+    [`.lower_vectorized`][`ConfigSpace.hp_components.Transformer.lower_vectorized`]
     and
-    [`.upper_vectorized`][`ConfigSpace._hp_components._Transformer.upper_vectorized`]
+    [`.upper_vectorized`][`ConfigSpace.hp_components.Transformer.upper_vectorized`]
     which defines the upper and lower bounds of the vectorized representation.
 
     !!! note
@@ -85,7 +85,7 @@ class _Transformer(Protocol[DType]):
         ...
 
 
-class _Neighborhood(Protocol):
+class Neighborhood(Protocol):
     """Protocol for a neighborhood function.
 
     This protocol defines how to get the neighborhood of a value in a
@@ -114,7 +114,7 @@ class _Neighborhood(Protocol):
 
 
 @dataclass
-class TransformerSeq(_Transformer[Any]):
+class TransformerSeq(Transformer[Any]):
     """Implmentation of a transformer for a sequence of values.
 
     This uses an integer range from 0 to `len(seq) - 1` to represent the
@@ -197,6 +197,8 @@ class TransformerSeq(_Transformer[Any]):
 
     @override
     def legal_value_single(self, value: Any) -> bool:
+        if self._lookup is not None:
+            return value in self._lookup
         return value in self.seq
 
     @override
@@ -209,7 +211,7 @@ class TransformerSeq(_Transformer[Any]):
 
 
 @dataclass
-class UnitScaler(_Transformer[DType]):
+class UnitScaler(Transformer[DType]):
     """Implementation of a transformer from a vectorized continuous range `(0, 1)`
     to another specified range in value space.
 
@@ -443,7 +445,7 @@ def ordinal_neighborhood(
 
 
 @dataclass
-class TransformerConstant(_Transformer[DType]):
+class TransformerConstant(Transformer[DType]):
     """Implementation of a transformer for a constant value."""
 
     value: DType

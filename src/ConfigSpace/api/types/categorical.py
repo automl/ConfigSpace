@@ -82,7 +82,7 @@ def Categorical(
     c = Categorical("animals", ["cat", "dog", "mouse"], meta={"use": "Favourite Animal"})
     ```
 
-    !!! note:
+    !!! note
 
         `Categorical` is actually a function, please use the corresponding return types if
         doing an `isinstance(param, type)` check with either

@@ -20,7 +20,7 @@ def write(
     encoders: Mapping[type, tuple[str, _Encoder]] | None = None,
 ) -> str:
     """Create a string representation of a
-    :class:`~ConfigSpace.configuration_space.ConfigurationSpace` in json format.
+    [ConfigurationSpace][ConfigSpace.configuration_space.ConfigurationSpace] in json format.
     This string can be written to file.
 
     ```python
@@ -33,23 +33,17 @@ def write(
         f.write(cs_json.write(cs))
     ```
 
-    Parameters
-    ----------
-    configuration_space : :class:`~ConfigSpace.configuration_space.ConfigurationSpace`
-        a configuration space, which should be written to file.
-    indent : int
-        number of whitespaces to use as indent
-    encoders: dict[type, tuple[str, Callable[[Any, encoders], dict]]]
-        Additional encoders to include where they key is a type to which the encoder
-        applies to and the value is a tuple, where the first element is the type name
-        to include in the dictionary and the second element is the encoder function
-        which gives back a serializable dictionary.
+    Args:
+        space: A configuration space, which should be written to file.
+        indent: number of whitespaces to use as indent
+        encoders:
+            Additional encoders to include where they key is a type to which the encoder
+            applies to and the value is a tuple, where the first element is the type name
+            to include in the dictionary and the second element is the encoder function
+            which gives back a serializable dictionary.
 
     Returns:
-    -------
-    str
-        String representation of the configuration space,
-        which can be written to file
+        String representation of the configuration space, which can be written to file
     """
     buffer = StringIO()
     with buffer as f:
@@ -87,14 +81,10 @@ def read(
     ```
 
 
-    Parameters
-    ----------
-    jason_string : str
-        A json string representing a configuration space definition
+    Args:
+        jason_string: A json string representing a configuration space definition
 
     Returns:
-    -------
-    :class:`~ConfigSpace.configuration_space.ConfigurationSpace`
         The deserialized ConfigurationSpace object
     """
     return ConfigurationSpace.from_json(StringIO(jason_string), decoders=decoders)

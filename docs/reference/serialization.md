@@ -34,18 +34,19 @@ For example, all serializing methods accept an `encoders=` parameter, which is a
 `type: (type_name_as_str, encoder)` pairs.
 
 For example:
-```python
+```python exec="True" source="material-block" result="python"
+from typing import Any, Callable
 from ConfigSpace import ConfigurationSpace, CategoricalHyperparameter
 
-cs = ConfigurationSpace({"a": (0, 10), "b": ["cat", "dog"]})
+cs = ConfigurationSpace({"a": ["cat", "dog"]})
 
 def my_custom_encoder(
     hp: CategoricalHyperparameter,
     encoder: Callable[[Any], dict],
 ) -> dict:
     return {
-        "name": hyperparameter.name,
-        "choices": [f"!{c}!" for c in hyperparameter.choices],
+        "name": hp.name,
+        "choices": [f"!{c}!" for c in hp.choices],
     }
 
 without_custom_encoder = cs.to_serialized_dict()
@@ -56,6 +57,7 @@ with_custom_encoder = cs.to_serialized_dict(
     }
 )
 print(without_custom_encoder)
+print("--------")
 print(with_custom_encoder)
 ```
 

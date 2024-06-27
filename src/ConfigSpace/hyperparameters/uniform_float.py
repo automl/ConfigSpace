@@ -7,8 +7,8 @@ from typing import TYPE_CHECKING, Any, ClassVar
 
 import numpy as np
 
-from ConfigSpace.hyperparameters._distributions import UnitUniformContinuousDistribution
-from ConfigSpace.hyperparameters._hp_components import ROUND_PLACES, UnitScaler
+from ConfigSpace.hyperparameters.distributions import UnitUniformContinuousDistribution
+from ConfigSpace.hyperparameters.hp_components import ROUND_PLACES, UnitScaler
 from ConfigSpace.hyperparameters.hyperparameter import FloatHyperparameter
 from ConfigSpace.types import f64
 

@@ -17,7 +17,29 @@ if TYPE_CHECKING:
 
 
 class Configuration(Mapping[str, Any]):
-    # TODO: Document public attributes
+    """Class for a single configuration.
+
+    The [`Configuration`][ConfigSpace.configuration_space.Configuration] object
+    holds for all active hyperparameters a value. While the
+    [`ConfigurationSpace`][ConfigSpace.configuration_space.ConfigurationSpace]
+    stores the definitions for the hyperparameters (value ranges, constraints,...),
+    a [`Configuration`][ConfigSpace.configuration_space.Configuration] object is
+    more an instance of it. Parameters of a
+    [`Configuration`][ConfigSpace.configuration_space.Configuration] object can be
+    accessed and modified similar to python dictionaries
+    (c.f. [user guilde](../../guide.md)).
+    """
+
+    config_space: ConfigurationSpace
+    """The space this configuration is in."""
+
+    origin: Any | None
+    """The origin of the Configuration, sometimes used by tools working with
+    ConfigSpace."""
+
+    config_id: int | None
+    """The configuration id of the Configuration, sometimes used by tools working with
+    ConfigSpace."""
 
     def __init__(
         self,
@@ -28,17 +50,7 @@ class Configuration(Mapping[str, Any]):
         origin: Any | None = None,
         config_id: int | None = None,
     ) -> None:
-        """Class for a single configuration.
-
-        The :class:`~ConfigSpace.configuration_space.Configuration` object holds
-        for all active hyperparameters a value. While the
-        :class:`~ConfigSpace.configuration_space.ConfigurationSpace` stores the
-        definitions for the hyperparameters (value ranges, constraints,...), a
-        :class:`~ConfigSpace.configuration_space.Configuration` object is
-        more an instance of it. Parameters of a
-        :class:`~ConfigSpace.configuration_space.Configuration` object can be
-        accessed and modified similar to python dictionaries
-        (c.f. :ref:`Guide<1st_Example>`).
+        """Create a new configuration.
 
         Args:
             configuration_space:
@@ -141,8 +153,7 @@ class Configuration(Mapping[str, Any]):
         """Check if the object is a valid.
 
         Raises:
-        ------
-        ValueError: If configuration is not valid.
+            ValueError: If configuration is not valid.
         """
         from ConfigSpace.util import check_configuration
 
@@ -158,8 +169,6 @@ class Configuration(Mapping[str, Any]):
         All continuous values are scaled between zero and one.
 
         Returns:
-        -------
-        numpy.ndarray
             The vector representation of the configuration
         """
         return self._vector
@@ -265,10 +274,13 @@ class Configuration(Mapping[str, Any]):
         " or use it as a dictionary directly if needed.",
     )
     def get_dictionary(self) -> dict[str, Any]:
-        """A representation of the `ConfigSpace.configuration_space.Configuration`
-        in dictionary form.
+        """A representation of the `Configuration` in dictionary form.
 
-        Retuns:
+        !!! warning "Deprecated"
+            Please use `dict(config)` instead of `config.get_dictionary()`
+            or use it as a dictionary directly if needed.,
+
+        Returns:
             Configuration as dictionary
         """
         return dict(self)

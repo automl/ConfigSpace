@@ -14,6 +14,7 @@ For now, please refer to the individual API docs for these classes:
 * [InCondition][ConfigSpace.conditions.InCondition]
 
 To combine conditions, you can use the following classes:
+
 * [AndConjunction][ConfigSpace.conditions.AndConjunction]
 * [OrConjunction][ConfigSpace.conditions.OrConjunction]
 

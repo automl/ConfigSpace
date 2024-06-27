@@ -4,18 +4,18 @@ description of an algorithm's configurable parameters, their possible values, as
 as any parameter dependencies. There exist an old and a new version.
 
 The new PCS format is part of the
-`Algorithm Configuration Library 2.0 <https://bitbucket.org/mlindauer/aclib2/src/master/>`_.
+[Algorithm Configuration Library 2.0](https://bitbucket.org/mlindauer/aclib2/src/master/).
 A detailed description of the **new** format can be found in the
-`ACLIB 2.0 docs <https://bitbucket.org/mlindauer/aclib2/src/aclib2/AClib_Format.md>`_,
-in the `SMACv2 docs <https://www.cs.ubc.ca/labs/beta/Projects/SMAC/v2.10.03/manual.pdf>`_
+[ACLIB 2.0 docs](https://bitbucket.org/mlindauer/aclib2/src/aclib2/AClib_Format.md),
+in the [SMACv2 docs](https://www.cs.ubc.ca/labs/beta/Projects/SMAC/v2.10.03/manual.pdf)
 and further examples are provided in the
-`pysmac docs <https://pysmac.readthedocs.io/en/latest/pcs.html>`_
+[pysmac docs](https://pysmac.readthedocs.io/en/latest/pcs.html)
 
-.. note::
+!!! warning
 
     The PCS format definition has changed in the year 2016 and is supported by
-    AClib 2.0, as well as SMAC (v2 and v3). To write or to read the **old** version of
-    pcs, please use the :class:`~ConfigSpace.read_and_write.pcs` module.
+    AClib 2.0, as well as SMAC (v2 and v3). Please check the
+    [serialization guide](../../../reference/serialization.md) for more information.
 """
 
 from __future__ import annotations
@@ -182,7 +182,7 @@ def build_categorical(param: CategoricalHyperparameter) -> str:
     if param.weights is not None:
         raise ValueError(
             "The pcs format does not support categorical hyperparameters with "
-            "assigned weights (for hyperparameter %s)" % param.name,
+            f"assigned weights (for hyperparameter {param.name})",
         )
     cat_template = "%s categorical {%s} [%s]"
     return cat_template % (
@@ -408,7 +408,7 @@ def condition_specification(
             raise ValueError(
                 "The parent of a conditional hyperparameter "
                 "must be either a float, int or ordinal "
-                "hyperparameter, but is %s." % type(parent),
+                f"hyperparameter, but is {type(parent)}.",
             )
 
         if operation == "<":
@@ -417,7 +417,7 @@ def condition_specification(
             cond = GreaterThanCondition(child, parent, value=restriction)  # type: ignore
         else:
             raise NotImplementedError(
-                "Could not parse condition: %s" % condition,
+                f"Could not parse condition: {condition}",
             )
 
     return cond
@@ -428,37 +428,30 @@ def condition_specification(
     " or `space.to_yaml` instead",
 )
 def read(pcs_string: Iterable[str]) -> ConfigurationSpace:
-    """Read in a :py:class:`~ConfigSpace.configuration_space.ConfigurationSpace`
+    """Read a [ConfigurationSpace][ConfigSpace.configuration_space.ConfigurationSpace]
     definition from a pcs file.
 
-    Example:
-    -------
-    .. testsetup:: pcs_new_test
 
-        from ConfigSpace import ConfigurationSpace
-        import ConfigSpace.hyperparameters as CSH
-        from ConfigSpace.read_and_write import pcs_new
-        cs = ConfigurationSpace()
-        cs.add(CSH.CategoricalHyperparameter('a', choices=[1, 2, 3]))
-        with open('configspace.pcs_new', 'w') as f:
-             f.write(pcs_new.write(cs))
+    ```python exec="true", source="material-block" result="python"
+    from ConfigSpace import ConfigurationSpace
 
-    .. doctest:: pcs_new_test
+    from ConfigSpace.read_and_write import pcs_new
+    cs = ConfigurationSpace({"a": [1,2,3]})
 
-        >>> from ConfigSpace.read_and_write import pcs_new
-        >>> with open('configspace.pcs_new', 'r') as fh:
-        ...     deserialized_conf = pcs_new.read(fh)
+    with open('configspace.pcs_new', 'w') as f:
+         f.write(pcs_new.write(cs))
 
-    Parameters
-    ----------
-    pcs_string : Iterable[str]
-        ConfigSpace definition in pcs format
+    with open('configspace.pcs_new', 'r') as fh:
+        deserialized_conf = pcs_new.read(fh)
+
+    print(deserialized_conf)
+    ```
+
+    Args:
+        pcs_string: ConfigSpace definition in pcs format
 
     Returns:
-    -------
-    :py:class:`~ConfigSpace.configuration_space.ConfigurationSpace`
         The deserialized ConfigurationSpace object
-
     """
     configuration_space = ConfigurationSpace()
     forbidden_to_add = []
@@ -575,7 +568,7 @@ def read(pcs_string: Iterable[str]) -> ConfigurationSpace:
             pass
 
         if param is None:
-            raise NotImplementedError("Could not parse: %s" % line)
+            raise NotImplementedError(f"Could not parse: {line}")
 
         configuration_space.add(param)
 
@@ -739,35 +732,23 @@ def read(pcs_string: Iterable[str]) -> ConfigurationSpace:
 )
 def write(configuration_space: ConfigurationSpace) -> str:
     """Create a string representation of a
-    :class:`~ConfigSpace.configuration_space.ConfigurationSpace`
+    [ConfigurationSpace][ConfigSpace.configuration_space.ConfigurationSpace]
     in pcs_new format. This string can be written to file.
 
-    Example:
-    -------
-    .. doctest::
+    ```python exec="true", source="material-block" result="python"
+    from ConfigSpace import ConfigurationSpace
+    from ConfigSpace.read_and_write import pcs_new
+    cs = ConfigurationSpace({"a": [1,2,3]})
 
-        >>> import ConfigSpace as CS
-        >>> import ConfigSpace.hyperparameters as CSH
-        >>> from ConfigSpace.read_and_write import pcs_new
-        >>> cs = CS.ConfigurationSpace()
-        >>> cs.add(CSH.CategoricalHyperparameter('a', choices=[1, 2, 3]))
-        a, Type: Categorical, Choices: {1, 2, 3}, Default: 1
+    with open('configspace.pcs_new', 'w') as fh:
+        fh.write(pcs_new.write(cs))
+    ```
 
-        <BLANKLINE>
-        >>> with open('configspace.pcs_new', 'w') as fh:
-        ...     fh.write(pcs_new.write(cs))
-        27
-
-    Parameters
-    ----------
-    configuration_space:
-        A configuration space
+    Args:
+        configuration_space: A configuration space
 
     Returns:
-    -------
-    str
         The string representation of the configuration space
-
     """
     if not isinstance(configuration_space, ConfigurationSpace):
         raise TypeError(

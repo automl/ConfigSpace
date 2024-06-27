@@ -9,8 +9,8 @@ for a support vector machine.
 Assume that we want to use a support vector machine (=SVM) for classification
 tasks and therefore, we want to optimize its hyperparameters:
 
-- $\mathcal{C}$: regularization constant  with $\mathcal{C} \in \mathbb{R}$.
-- `max_iter`: the maximum number of iterations within the solver with $max\_iter \in \mathbb{N}$.
+- `C`: regularization constant  with `C` being a float value.
+- `max_iter`: the maximum number of iterations within the solver with `max_iter` being a positive integer.
 
 The implementation of the classifier is out of scope and thus not shown.
 But for further reading about support vector machines and the meaning of its hyperparameter,
@@ -19,11 +19,11 @@ in the [scikit-learn documentation](http://scikit-learn.org/stable/modules/gener
 
 The first step is always to create a
 [`ConfigurationSpace`][ConfigSpace.configuration_space.ConfigurationSpace] with the
-hyperparameters $\mathcal{C}$ and `max_iter`.
+hyperparameters `C` and `max_iter`.
 
-To restrict the search space, we choose $\mathcal{C}$ to be a
-[`Float`][ConfigSpace.api.types.Float] between -1 and 1.
-Furthermore, we choose `max_iter` to be an [`Integer`][ConfigSpace.api.types.Integer].
+To restrict the search space, we choose `C` to be a
+[`Float`][ConfigSpace.api.types.float.Float] between -1 and 1.
+Furthermore, we choose `max_iter` to be an [`Integer`][ConfigSpace.api.types.integer.Integer].
 
 ```python exec="True" source="material-block" result="python" session="example_one"
 from ConfigSpace import ConfigurationSpace
@@ -39,7 +39,7 @@ print(cs)
 ```
 
 Now, the [`ConfigurationSpace`][ConfigSpace.configuration_space.ConfigurationSpace] object *cs*
-contains definitions of the hyperparameters $\mathcal{C}$ and `max_iter` with their
+contains definitions of the hyperparameters `C` and `max_iter` with their
 value-ranges.
 
 For demonstration purpose, we sample a configuration from it.
@@ -66,7 +66,7 @@ print(config["C"])
 The scikit-learn SVM supports different kernels, such as an RBF, a sigmoid,
 a linear or a polynomial kernel. We want to include them in the configuration space.
 Since this new hyperparameter has a finite number of values, we use a
-[`Categorical`][`ConfigSpace.api.types.Categorical`].
+[`Categorical`][`ConfigSpace.api.types.categorical.Categorical`].
 
 - `kernel_type` in `#!python ['linear', 'poly', 'rbf', 'sigmoid']`.
 
@@ -80,7 +80,7 @@ As well as the hyperparameter `gamma` for the kernel types `'rbf'`, `'poly'` and
 - `gamma`: Kernel coefficient for `'rbf'`, `'poly'` and `'sigmoid'`.
 
 To realize the different hyperparameter for the kernels, we use **Conditionals**.
-Please refer to their [reference page](../reference/conditions.md) for more.
+Please refer to their [reference page](./reference/conditions.md) for more.
 
 Even in simple examples, the configuration space grows easily very fast and
 with it the number of possible configurations.
@@ -143,7 +143,7 @@ print(cs)
 !!! note
 
     ConfigSpace offers a lot of different condition types.
-    Please check out the [conditions reference page](../reference/conditions.md) for more.
+    Please check out the [conditions reference page](./reference/conditions.md) for more.
 
 !!! warning
  
@@ -175,6 +175,8 @@ First, we add these three new hyperparameters to the configuration space.
 
 ```python exec="True" source="material-block" result="python" session="example_three"
 from ConfigSpace import ConfigurationSpace, Categorical, Constant
+
+cs = ConfigurationSpace()
 
 penalty = Categorical("penalty", ["l1", "l2"], default="l2")
 loss = Categorical("loss", ["hinge", "squared_hinge"], default="squared_hinge")
@@ -218,14 +220,16 @@ print(cs)
 ### 4th Example Serialization
 To serialize the `ConfigurationSpace` object, we can choose between different output formats, such as
 as plain-type dictionary, directly to `.yaml` or `.json` and if required for backwards compatiblity `pcs`.
-Plese see the [serialization reference page](../reference/serialization.md) for more.
+Plese see the [serialization reference page](./reference/serialization.md) for more.
 
 In this example, we want to store the [`ConfigurationSpace`][ConfigSpace.configuration_space.ConfigurationSpace]
 object as a `.yaml` file.
 
-```python exec="True" source="material-block" result="python" session="example_four"
+```python exec="True" source="material-block" result="yaml" session="example_four"
+from pathlib import Path
 from ConfigSpace import ConfigurationSpace
 
+path = Path("configspace.yaml")
 cs = ConfigurationSpace(
     space={
         "C": (-1.0, 1.0),  # Note the decimal to make it a float
@@ -233,13 +237,16 @@ cs = ConfigurationSpace(
     },
     seed=1234,
 )
-cs.to_yaml("configspace.yaml")
-loaded_cs = ConfigurationSpace.from_yaml("configspace.yaml")
-print(loaded_cs)
+cs.to_yaml(path)
+loaded_cs = ConfigurationSpace.from_yaml(path)
+
+with path.open() as f:
+    print(f.read())
+path.unlink()  # markdown-exec: hide
 ```
 
 If you require custom encoding or decoding or parameters, please refer to the
-[serialization reference page](../reference/serialization.md) for more.
+[serialization reference page](./reference/serialization.md) for more.
 
 ### 5th Example: Placing priors on the hyperparameters
 If you want to conduct black-box optimization in [SMAC](https://arxiv.org/abs/2109.09831),
@@ -262,7 +269,7 @@ and the optimal activation function to be ReLU about 80% of the time.
 
 This can be represented accordingly:
 
-```python
+```python exec="True" source="material-block" result="python" session="example_five"
 import numpy as np
 from ConfigSpace import ConfigurationSpace, Float, Categorical, Beta, Normal
 
@@ -273,7 +280,7 @@ cs = ConfigurationSpace(
             bounds=(1e-5, 1e-1),
             default=1e-3,
             log=True,
-            distribution=Normal(1e-3, 1e-2)
+            distribution=Normal(1e-3, 1e-1)
         ),
         "dropout": Float(
             'dropout',
@@ -293,11 +300,11 @@ print(cs)
 ```
 
 To check that your prior makes sense for each hyperparameter,
-you can easily do so with the [`pdf_value()`][ConfigSpace.hyperparameters.Hyperparameter.pdf_value] method.
+you can easily do so with the [`pdf_values()`][ConfigSpace.hyperparameters.Hyperparameter.pdf_values] method.
 There, you will see that the probability of the optimal learning rate peaks at
 10^-3, and decays as we go further away from it:
 
-```python
+```python exec="True" source="material-block" result="python" session="example_five"
 test_points = np.logspace(-5, -1, 5)
 print(test_points)
 print(cs['lr'].pdf_values(test_points))

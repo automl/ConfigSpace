@@ -8,11 +8,11 @@ import numpy as np
 from scipy.stats import uniform
 
 from ConfigSpace.functional import is_close_to_integer
-from ConfigSpace.hyperparameters._distributions import (
+from ConfigSpace.hyperparameters.distributions import (
     DiscretizedContinuousScipyDistribution,
     UniformIntegerNormalizedDistribution,
 )
-from ConfigSpace.hyperparameters._hp_components import ATOL, UnitScaler
+from ConfigSpace.hyperparameters.hp_components import ATOL, UnitScaler
 from ConfigSpace.hyperparameters.integer_hyperparameter import IntegerHyperparameter
 from ConfigSpace.types import Number, f64, i64
 

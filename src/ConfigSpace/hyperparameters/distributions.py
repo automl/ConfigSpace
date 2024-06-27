@@ -12,7 +12,7 @@ from ConfigSpace.functional import (
     quantize,
     quantize_log,
 )
-from ConfigSpace.hyperparameters._hp_components import ATOL, _Transformer
+from ConfigSpace.hyperparameters.hp_components import ATOL, Transformer
 from ConfigSpace.types import DType, f64, i64
 
 if TYPE_CHECKING:
@@ -96,7 +96,7 @@ def quantized_neighborhood(
         upper: The upper bound of the quantized range.
         bins: The number of bins to quantize the samples into.
         std: The standard deviation of the normal distribution. If `None` will use
-            [`DEFAULT_VECTORIZED_NUMERIC_STD`][configspace.hyperparameters._distributions.DEFAULT_VECTORIZED_NUMERIC_STD].
+            [`DEFAULT_VECTORIZED_NUMERIC_STD`][ConfigSpace.hyperparameters.distributions.DEFAULT_VECTORIZED_NUMERIC_STD].
         seed: The random seed to use.
         n_retries:
             The number of retries to attempt to generate unique neighbors.
@@ -226,9 +226,8 @@ def continuous_neighborhood(
         n: The number of neighbors to generate.
         lower: The lower bound of the quantized range.
         upper: The upper bound of the quantized range.
-        bins: The number of bins to quantize the samples into.
         std: The standard deviation of the normal distribution. If `None` will use
-            [`DEFAULT_VECTORIZED_NUMERIC_STD`][configspace.hyperparameters._distributions.DEFAULT_VECTORIZED_NUMERIC_STD].
+            [`DEFAULT_VECTORIZED_NUMERIC_STD`][ConfigSpace.hyperparameters.distributions.DEFAULT_VECTORIZED_NUMERIC_STD].
         seed: The random seed to use.
         n_retries:
             The number of retries to attempt to generate unique neighbors.
@@ -360,7 +359,7 @@ class DiscretizedContinuousScipyDistribution(Distribution, Generic[DType]):
     can be distributed on a log scale over the distributrion.
 
     !!! note
-        If providing `log=True`, you must also provide the `_Transformer` which
+        If providing `log=True`, you must also provide the `Transformer` which
         will be used to transform from vectorized space to the value space.
     """
 
@@ -380,7 +379,7 @@ class DiscretizedContinuousScipyDistribution(Distribution, Generic[DType]):
     """Whether the distribution is on a log scale."""
 
     # NOTE: Only required if you require log scaled quantization
-    transformer: _Transformer[DType] | None = None
+    transformer: Transformer[DType] | None = None
     """The transformer to use for log-scaled distributions.
 
     Only required if `log_scale=True`.
@@ -595,11 +594,8 @@ class DiscretizedContinuousScipyDistribution(Distribution, Generic[DType]):
         Args:
             vector: The center of the neighborhood.
             n: The number of neighbors to generate.
-            lower: The lower bound of the quantized range.
-            upper: The upper bound of the quantized range.
-            bins: The number of bins to quantize the samples into.
             std: The standard deviation of the normal distribution. If `None` will use
-                [`DEFAULT_VECTORIZED_NUMERIC_STD`][configspace.hyperparameters._distributions.DEFAULT_VECTORIZED_NUMERIC_STD].
+                [`DEFAULT_VECTORIZED_NUMERIC_STD`][ConfigSpace.hyperparameters.distributions.DEFAULT_VECTORIZED_NUMERIC_STD].
             seed: The random seed to use.
             n_retries:
                 The number of retries to attempt to generate unique neighbors.
@@ -846,7 +842,7 @@ class UniformIntegerNormalizedDistribution(Distribution):
         n_retries: int = NEIGHBOR_GENERATOR_N_RETRIES,
         sample_multiplier: int = NEIGHBOR_GENERATOR_SAMPLE_MULTIPLIER,
     ) -> Array[f64]:
-        """Please see [`quantized_neighborhood`][configspace.hyperparameters._distributions.quantized_neighborhood]."""  # noqa: E501
+        """Please see [`quantized_neighborhood`][ConfigSpace.hyperparameters.distributions.quantized_neighborhood]."""  # noqa: E501
         return quantized_neighborhood(
             vector,
             n,
@@ -918,7 +914,7 @@ class UnitUniformContinuousDistribution(Distribution):
         n_retries: int = NEIGHBOR_GENERATOR_N_RETRIES,
         sample_multiplier: int = NEIGHBOR_GENERATOR_SAMPLE_MULTIPLIER,
     ) -> Array[f64]:
-        """Please see [`continuous_neighborhood`][configspace.hyperparameters._distributions.continuous_neighborhood]."""  # noqa: E501
+        """Please see [`continuous_neighborhood`][ConfigSpace.hyperparameters.distributions.continuous_neighborhood]."""  # noqa: E501
         return continuous_neighborhood(
             vector,
             n,
@@ -1006,11 +1002,8 @@ class UniformIntegerDistribution(Distribution):
         Args:
             vector: The center of the neighborhood.
             n: The number of neighbors to generate.
-            lower: The lower bound of the quantized range.
-            upper: The upper bound of the quantized range.
-            bins: The number of bins to quantize the samples into.
             std: The standard deviation of the normal distribution. If `None` will use
-                [`DEFAULT_VECTORIZED_NUMERIC_STD`][configspace.hyperparameters._distributions.DEFAULT_VECTORIZED_NUMERIC_STD].
+                [`DEFAULT_VECTORIZED_NUMERIC_STD`][ConfigSpace.hyperparameters.distributions.DEFAULT_VECTORIZED_NUMERIC_STD].
             seed: The random seed to use.
             n_retries:
                 The number of retries to attempt to generate unique neighbors.
@@ -1240,7 +1233,7 @@ class ScipyContinuousDistribution(Distribution):
         n_retries: int = NEIGHBOR_GENERATOR_N_RETRIES,
         sample_multiplier: int = NEIGHBOR_GENERATOR_SAMPLE_MULTIPLIER,
     ) -> Array[f64]:
-        """Please see [`continuous_neighborhood`][configspace.hyperparameters._distributions.continuous_neighborhood]."""  # noqa: E501
+        """Please see [`continuous_neighborhood`][ConfigSpace.hyperparameters.distributions.continuous_neighborhood]."""  # noqa: E501
         return continuous_neighborhood(
             vector,
             n,

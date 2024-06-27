@@ -12,7 +12,7 @@ To read more about our group and projects, visit our homepage [AutoML.org](https
 
 This documentation explains how to use ConfigSpace and demonstrates its features.
 In the [quickstart](./quickstart.md), you will see how to set up a
-[`ConfiguratonSpace`][ConfigSpace.configuration_space.ConfigurationSapce]
+[`ConfiguratonSpace`][ConfigSpace.configuration_space.ConfigurationSpace]
 and add hyperparameters of different types to it.
 Besides containing hyperparameters, `ConfigurationSpace` can contain constraints such as conditions and forbidden clauses.
 Those are introduced in the [user guide](./guide.md)
@@ -57,9 +57,9 @@ print(configs)
 ```
 
 
-Use [`Float`](ConfigSpace.api.types.Float),
-[`Integer`](ConfigSpace.api.types.integer),
-and [`Categorical`](ConfigSpace.api.types.categorical) to define hyperparameters
+Use [`Float`][ConfigSpace.api.types.float.Float],
+[`Integer`][ConfigSpace.api.types.integer.Integer],
+and [`Categorical`][ConfigSpace.api.types.categorical.Categorical] to define hyperparameters
 and define how sampling is done.
 
 ```python exec="True" result="python" source="material-block"

@@ -20,8 +20,8 @@ import numpy as np
 from ConfigSpace.types import DType, Number, ValueT, f64, i64
 
 if TYPE_CHECKING:
-    from ConfigSpace.hyperparameters._distributions import Distribution
-    from ConfigSpace.hyperparameters._hp_components import _Neighborhood, _Transformer
+    from ConfigSpace.hyperparameters.distributions import Distribution
+    from ConfigSpace.hyperparameters.hp_components import Neighborhood, Transformer
     from ConfigSpace.hyperparameters.uniform_float import UniformFloatHyperparameter
     from ConfigSpace.hyperparameters.uniform_integer import UniformIntegerHyperparameter
     from ConfigSpace.types import Array, Mask
@@ -31,7 +31,7 @@ if TYPE_CHECKING:
 class Hyperparameter(ABC, Generic[ValueT, DType]):
     """Base class for all hyperparameters in the configuration space.
 
-    Please see the [reference page](../../reference/hyperparameters.md) for more.
+    Please see the [reference page](../../../reference/hyperparameters.md) for more.
     """
 
     ORDERABLE: ClassVar[bool] = False
@@ -61,8 +61,8 @@ class Hyperparameter(ABC, Generic[ValueT, DType]):
 
     _vector_dist: Distribution = field(repr=False)
     _normalized_default_value: f64 = field(repr=False)
-    _transformer: _Transformer[DType] = field(repr=False)
-    _neighborhood: _Neighborhood = field(repr=False, compare=False)
+    _transformer: Transformer[DType] = field(repr=False)
+    _neighborhood: Neighborhood = field(repr=False, compare=False)
     _value_cast: Callable[[DType], ValueT] | None = field(repr=False, compare=False)
     _neighborhood_size: float | Callable[[ValueT | DType | None], int | float] = field(
         repr=False,
@@ -74,8 +74,8 @@ class Hyperparameter(ABC, Generic[ValueT, DType]):
         name: str,
         default_value: ValueT,
         vector_dist: Distribution,
-        transformer: _Transformer[DType],
-        neighborhood: _Neighborhood,
+        transformer: Transformer[DType],
+        neighborhood: Neighborhood,
         size: int | float,
         neighborhood_size: float | int | Callable[[DType | ValueT | None], int | float],
         value_cast: Callable[[DType], ValueT] | None,
@@ -418,9 +418,9 @@ class Hyperparameter(ABC, Generic[ValueT, DType]):
 
                     Hyperparameter subclasses are under no obligation to use
                     this if it does not make sense, i.e. for an
-                    [`OrdinalHyperparameter`][configspace.hyperparameters.OrdinalHyperparameter]
+                    [`OrdinalHyperparameter`][ConfigSpace.hyperparameters.OrdinalHyperparameter]
                     or a
-                    [`CategoricalHyperparameter`][configspace.hyperparameters.CategoricalHyperparameter].
+                    [`CategoricalHyperparameter`][ConfigSpace.hyperparameters.CategoricalHyperparameter].
 
             seed:
                 The random state to use for sampling. If `None` the global
@@ -472,9 +472,9 @@ class Hyperparameter(ABC, Generic[ValueT, DType]):
 
                     Hyperparameter subclasses are under no obligation to use
                     this if it does not make sense, i.e. for an
-                    [`OrdinalHyperparameter`][configspace.hyperparameters.OrdinalHyperparameter]
+                    [`OrdinalHyperparameter`][ConfigSpace.hyperparameters.OrdinalHyperparameter]
                     or a
-                    [`CategoricalHyperparameter`][configspace.hyperparameters.CategoricalHyperparameter].
+                    [`CategoricalHyperparameter`][ConfigSpace.hyperparameters.CategoricalHyperparameter].
 
             seed:
                 The random state to use for sampling. If `None` the global
@@ -595,7 +595,7 @@ class Hyperparameter(ABC, Generic[ValueT, DType]):
 
         return self.sample_vector(size=size, seed=rs)
 
-    @deprecated("Please use `pdf_value(value)` instead.")
+    @deprecated("Please use `pdf_values(value)` instead.")
     def pdf(
         self,
         vector: DType | Array[DType],  # NOTE: New convention this should be value
@@ -693,9 +693,9 @@ class NumericalHyperparameter(Hyperparameter[NumberT, DType]):
     """Base class for numerical hyperparameters in the configuration space.
 
     Should likely not be used directly and instead inherit from
-    [`IntegerHyperparameter`][configspace.hyperparameters.IntegerHyperparameter]
+    [`IntegerHyperparameter`][ConfigSpace.hyperparameters.IntegerHyperparameter]
     or
-    [`FloatHyperparameter`][configspace.hyperparameters.FloatHyperparameter].
+    [`FloatHyperparameter`][ConfigSpace.hyperparameters.FloatHyperparameter].
     """
 
     LEGAL_VALUE_TYPES: ClassVar[tuple[type, ...]] = (int, float, np.number)

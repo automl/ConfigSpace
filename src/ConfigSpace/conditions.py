@@ -113,7 +113,9 @@ class Condition(ABC):
         pass
 
 
-class _BinaryOpCondition(Condition):
+class BinaryOpCondition(Condition):
+    """This is a base class for conditions that are based on a binary operations."""
+
     _OP_STR: ClassVar[str]
     _REQUIRES_ORDERABLE_PARENT: ClassVar[bool]
     _OP: ClassVar[Callable[[Any, Any], bool]]
@@ -190,31 +192,25 @@ class _BinaryOpCondition(Condition):
         }
 
 
-class EqualsCondition(_BinaryOpCondition):
+class EqualsCondition(BinaryOpCondition):
     """Hyperparameter `child` is conditional on the `parent` hyperparameter
     being *equal* to `value`.
 
     Make *b* an active hyperparameter if *a* has the value 1
 
-    >>> from ConfigSpace import ConfigurationSpace, EqualsCondition
-    >>>
-    >>> cs = ConfigurationSpace({
-    ...     "a": [1, 2, 3],
-    ...     "b": (1.0, 8.0)
-    ... })
-    >>> cond = EqualsCondition(cs['b'], cs['a'], 1)
-    >>> cs.add(cond)
-    b | a == 1
+    ```python exec="true", source="material-block" result="python"
+    from ConfigSpace import ConfigurationSpace, EqualsCondition
+    cs = ConfigurationSpace({ "a": [1, 2, 3], "b": (1.0, 8.0)})
+    cond = EqualsCondition(cs['b'], cs['a'], 1)
+    cs.add(cond)
+    print(cs)
+    ```
 
-    Parameters
-    ----------
-    child : :ref:`Hyperparameters`
-        This hyperparameter will be sampled in the configspace
-        if the *equal condition* is satisfied
-    parent : :ref:`Hyperparameters`
-        The hyperparameter, which has to satisfy the *equal condition*
-    value : str, float, int
-        Value, which the parent is compared to
+    Args:
+        child: This hyperparameter will be sampled in the configspace
+            if the *equal condition* is satisfied
+        parent: The hyperparameter, which has to satisfy the *equal condition*
+        value: Value, which the parent is compared to
     """
 
     _OP_STR = "=="
@@ -223,32 +219,27 @@ class EqualsCondition(_BinaryOpCondition):
     _VECTOR_OP = operator.eq
 
 
-class NotEqualsCondition(_BinaryOpCondition):
+class NotEqualsCondition(BinaryOpCondition):
     """Hyperparameter `child` is conditional on the `parent` hyperparameter
     being *not equal* to `value`.
 
     Make *b* an active hyperparameter if *a* has **not** the value 1
 
-    >>> from ConfigSpace import ConfigurationSpace, NotEqualsCondition
-    >>>
-    >>> cs = ConfigurationSpace({
-    ...     "a": [1, 2, 3],
-    ...     "b": (1.0, 8.0)
-    ... })
-    >>> cond = NotEqualsCondition(cs['b'], cs['a'], 1)
-    >>> cs.add(cond)
-    b | a != 1
+    ```python exec="true", source="material-block" result="python"
+    from ConfigSpace import ConfigurationSpace, NotEqualsCondition
 
-    Parameters
-    ----------
-    child : :ref:`Hyperparameters`
-        This hyperparameter will be sampled in the configspace
-        if the not-equals condition is satisfied
-    parent : :ref:`Hyperparameters`
-        The hyperparameter, which has to satisfy the
-        *not equal condition*
-    value : str, float, int
-        Value, which the parent is compared to
+    cs = ConfigurationSpace({ "a": [1, 2, 3], "b": (1.0, 8.0) })
+    cond = NotEqualsCondition(cs['b'], cs['a'], 1)
+    cs.add(cond)
+    print(cs)
+    ```
+
+    Args:
+        child:
+            This hyperparameter will be sampled in the configspace
+            if the not-equals condition is satisfied
+        parent: The hyperparameter, which has to satisfy the *not equal condition*
+        value: Value, which the parent is compared to
     """
 
     _OP_STR = "!="
@@ -257,31 +248,27 @@ class NotEqualsCondition(_BinaryOpCondition):
     _VECTOR_OP = operator.ne
 
 
-class LessThanCondition(_BinaryOpCondition):
+class LessThanCondition(BinaryOpCondition):
     """Hyperparameter `child` is conditional on the `parent` hyperparameter
     being *less than* `value`.
 
     Make *b* an active hyperparameter if *a* is less than 5
 
-    >>> from ConfigSpace import ConfigurationSpace, LessThanCondition
-    >>>
-    >>> cs = ConfigurationSpace({
-    ...    "a": (0, 10),
-    ...    "b": (1.0, 8.0)
-    ... })
-    >>> cond = LessThanCondition(cs['b'], cs['a'], 5)
-    >>> cs.add(cond)
-    b | a < 5
+    ```python exec="true", source="material-block" result="python"
+    from ConfigSpace import ConfigurationSpace, LessThanCondition
 
-    Parameters
-    ----------
-    child : :ref:`Hyperparameters`
-        This hyperparameter will be sampled in the configspace,
-        if the *LessThanCondition* is satisfied
-    parent : :ref:`Hyperparameters`
-        The hyperparameter, which has to satisfy the *LessThanCondition*
-    value : str, float, int
-        Value, which the parent is compared to
+    cs = ConfigurationSpace({ "a": (0, 10), "b": (1.0, 8.0) })
+    cond = LessThanCondition(cs['b'], cs['a'], 5)
+    cs.add(cond)
+    print(cs)
+    ```
+
+    Args:
+        child:
+            This hyperparameter will be sampled in the configspace,
+            if the *LessThanCondition* is satisfied
+        parent: The hyperparameter, which has to satisfy the *LessThanCondition*
+        value: Value, which the parent is compared to
     """
 
     _OP_STR = "<"
@@ -290,31 +277,26 @@ class LessThanCondition(_BinaryOpCondition):
     _VECTOR_OP = operator.lt
 
 
-class GreaterThanCondition(_BinaryOpCondition):
+class GreaterThanCondition(BinaryOpCondition):
     """Hyperparameter `child` is conditional on the `parent` hyperparameter
     being *greater than* `value`.
 
     Make *b* an active hyperparameter if *a* is greater than 5
 
-    >>> from ConfigSpace import ConfigurationSpace, GreaterThanCondition
-    >>>
-    >>> cs = ConfigurationSpace({
-    ...     "a": (0, 10),
-    ...     "b": (1.0, 8.0)
-    ... })
-    >>> cond = GreaterThanCondition(cs['b'], cs['a'], 5)
-    >>> cs.add(cond)
-    b | a > 5
+    from ConfigSpace import ConfigurationSpace, GreaterThanCondition
 
-    Parameters
-    ----------
-    child : :ref:`Hyperparameters`
-        This hyperparameter will be sampled in the configspace,
-        if the *GreaterThanCondition* is satisfied
-    parent : :ref:`Hyperparameters`
-        The hyperparameter, which has to satisfy the *GreaterThanCondition*
-    value : str, float, int
-        Value, which the parent is compared to
+    cs = ConfigurationSpace({ "a": (0, 10), "b": (1.0, 8.0) })
+    cond = GreaterThanCondition(cs['b'], cs['a'], 5)
+    cs.add(cond)
+    print(cs)
+    ```
+
+    Args:
+        child:
+            This hyperparameter will be sampled in the configspace,
+            if the *GreaterThanCondition* is satisfied
+        parent: The hyperparameter, which has to satisfy the *GreaterThanCondition*
+        value: Value, which the parent is compared to
     """
 
     _OP_STR = ">"
@@ -329,25 +311,20 @@ class InCondition(Condition):
 
     make *b* an active hyperparameter if *a* is in the set [1, 2, 3, 4]
 
-    >>> from ConfigSpace import ConfigurationSpace, InCondition
-    >>>
-    >>> cs = ConfigurationSpace({
-    ...     "a": (0, 10),
-    ...     "b": (1.0, 8.0)
-    ... })
-    >>> cond = InCondition(cs['b'], cs['a'], [1, 2, 3, 4])
-    >>> cs.add(cond)
-    b | a in {1, 2, 3, 4}
+    ```python exec="true", source="material-block" result="python"
+    from ConfigSpace import ConfigurationSpace, InCondition
+    cs = ConfigurationSpace({ "a": (0, 10), "b": (1.0, 8.0) })
+    cond = InCondition(cs['b'], cs['a'], [1, 2, 3, 4])
+    cs.add(cond)
+    print(cs)
+    ```
 
-    Parameters
-    ----------
-    child : :ref:`Hyperparameters`
-        This hyperparameter will be sampled in the configspace,
-        if the *InCondition* is satisfied
-    parent : :ref:`Hyperparameters`
-        The hyperparameter, which has to satisfy the *InCondition*
-    values : list(str, float, int)
-        Collection of values, which the parent is compared to
+    Args:
+        child:
+            This hyperparameter will be sampled in the configspace,
+            if the *InCondition* is satisfied
+        parent: The hyperparameter, which has to satisfy the *InCondition*
+        values: Collection of values, which the parent is compared to
     """
 
     def __init__(
@@ -529,27 +506,25 @@ class AndConjunction(Conjunction):
         The following example shows how two constraints with an *AndConjunction*
         can be combined.
 
-        >>> from ConfigSpace import (
-        ...     ConfigurationSpace,
-        ...     LessThanCondition,
-        ...     GreaterThanCondition,
-        ...     AndConjunction
-        ... )
-        >>>
-        >>> cs = ConfigurationSpace({
-        ...     "a": (5, 15),
-        ...     "b": (0, 10),
-        ...     "c": (0.0, 1.0)
-        ... })
-        >>> less_cond = LessThanCondition(cs['c'], cs['a'], 10)
-        >>> greater_cond = GreaterThanCondition(cs['c'], cs['b'], 5)
-        >>> cs.add(AndConjunction(less_cond, greater_cond))
-        (c | a < 10 && c | b > 5)
+        ```python exec="true", source="material-block" result="python"
+        from ConfigSpace import (
+            ConfigurationSpace,
+            LessThanCondition,
+            GreaterThanCondition,
+            AndConjunction
+        )
 
-        Parameters
-        ----------
-        *args : :ref:`Conditions`
-            conditions, which will be combined with an *AndConjunction*
+        cs = ConfigurationSpace({ "a": (5, 15), "b": (0, 10), "c": (0.0, 1.0) })
+
+        less_cond = LessThanCondition(cs['c'], cs['a'], 10)
+        greater_cond = GreaterThanCondition(cs['c'], cs['b'], 5)
+        cs.add(AndConjunction(less_cond, greater_cond))
+
+        print(cs)
+        ```
+
+        Args:
+            *args: conditions, which will be combined with an *AndConjunction*
         """
         if len(args) < 2:
             raise ValueError("AndConjunction must at least have two Conditions.")
@@ -590,31 +565,32 @@ class AndConjunction(Conjunction):
 
 
 class OrConjunction(Conjunction):
-    def __init__(self, *args: Condition | Conjunction) -> None:
-        """Similar to the *AndConjunction*, constraints can be combined by
-        using the *OrConjunction*.
+    """Similar to the [AndConjunction][ConfigSpace.conditions.AndConjunction],
+    constraints can be combined by using the *OrConjunction*.
 
-        >>> from ConfigSpace import (
-        ...     ConfigurationSpace,
-        ...     LessThanCondition,
-        ...     GreaterThanCondition,
-        ...     OrConjunction
-        ... )
-        >>>
-        >>> cs = ConfigurationSpace({
-        ...     "a": (5, 15),
-        ...     "b": (0, 10),
-        ...     "c": (0.0, 1.0)
-        ... })
-        >>> less_cond = LessThanCondition(cs['c'], cs['a'], 10)
-        >>> greater_cond = GreaterThanCondition(cs['c'], cs['b'], 5)
-        >>> cs.add(OrConjunction(less_cond, greater_cond))
-        (c | a < 10 || c | b > 5)
+    ```python exec="true", source="material-block" result="python"
+    from ConfigSpace import (
+        ConfigurationSpace,
+        LessThanCondition,
+        GreaterThanCondition,
+        OrConjunction
+    )
 
-        Parameters
-        ----------
-        *args : :ref:`Conditions`
-            conditions, which will be combined with an *OrConjunction*
+    cs = ConfigurationSpace({ "a": (5, 15), "b": (0, 10), "c": (0.0, 1.0) })
+
+    less_cond = LessThanCondition(cs['c'], cs['a'], 10)
+    greater_cond = GreaterThanCondition(cs['c'], cs['b'], 5)
+    cs.add(OrConjunction(less_cond, greater_cond))
+
+    print(cs)
+    ```
+    """
+
+    def __init__(self, *args: ConditionLike) -> None:
+        """Initialize the *OrConjunction*.
+
+        Args:
+            *args: conditions, which will be combined with an *OrConjunction*.
         """
         if len(args) < 2:
             raise ValueError("OrConjunction must at least have two Conditions.")

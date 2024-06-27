@@ -8,8 +8,8 @@ from typing_extensions import deprecated
 
 import numpy as np
 
-from ConfigSpace.hyperparameters._distributions import UniformIntegerDistribution
-from ConfigSpace.hyperparameters._hp_components import (
+from ConfigSpace.hyperparameters.distributions import UniformIntegerDistribution
+from ConfigSpace.hyperparameters.hp_components import (
     TransformerSeq,
     ordinal_neighborhood,
 )
