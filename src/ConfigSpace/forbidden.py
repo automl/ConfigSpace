@@ -31,7 +31,7 @@ import io
 from abc import ABC, abstractmethod
 from copy import copy
 from typing import TYPE_CHECKING, Any, ClassVar, Iterable, Mapping, Union
-from typing_extensions import Self, deprecated
+from typing_extensions import Self, deprecated, override
 
 import numpy as np
 from more_itertools import unique_everseen
@@ -46,11 +46,25 @@ _SENTINEL = object()
 
 
 class ForbiddenClause(ABC):
+    """Base class for forbidden clauses."""
+
+    hyperparameter: Hyperparameter
+    """Hyperparameter on which a restriction will be made."""
+
+    vector_id: np.intp | None
+    """Index of the hyperparameter in the vector representation."""
+
     def __init__(self, hyperparameter: Hyperparameter) -> None:
+        """Initialize a ForbiddenClause.
+
+        Args:
+            hyperparameter: Hyperparameter on which a restriction will be made
+        """
         self.hyperparameter = hyperparameter
         self.vector_id: np.intp | None = None
 
     def set_vector_idx(self, hyperparameter_to_idx: Mapping[str, Any]) -> None:
+        """Set the vector index of the hyperparameter."""
         self.vector_id = np.intp(hyperparameter_to_idx[self.hyperparameter.name])
 
     @abstractmethod
@@ -59,15 +73,42 @@ class ForbiddenClause(ABC):
 
     @abstractmethod
     def is_forbidden_value(self, values: dict[str, Any]) -> bool:
-        pass
+        """Check if a value is forbidden.
+
+        Args:
+            values: A dictionary of hyperparameter names to values
+
+        Returns:
+            bool: True if the value is forbidden, False otherwise
+        """
 
     @abstractmethod
     def is_forbidden_vector(self, vector: Array[f64]) -> bool:
-        pass
+        """Check if a vector is forbidden.
+
+        Will use [`.vector_id`][ConfigSpace.forbidden.ForbiddenClause.vector_id] to
+        index the vector.
+
+        Args:
+            vector: A vector representation of the hyperparameters
+
+        Returns:
+            bool: True if the vector is forbidden, False otherwise
+        """
 
     @abstractmethod
     def is_forbidden_vector_array(self, arr: Array[f64]) -> Mask:
-        pass
+        """Check if an array of vectors is forbidden.
+
+        Will use [`.vector_id`][ConfigSpace.forbidden.ForbiddenClause.vector_id] to
+        index the array.
+
+        Args:
+            arr: An array of vector representations of the hyperparameters
+
+        Returns:
+            Mask: A boolean mask of the forbidden vectors
+        """
 
     @abstractmethod
     def __copy__(self) -> Self:
@@ -79,13 +120,40 @@ class ForbiddenClause(ABC):
 
     @abstractmethod
     def to_dict(self) -> dict[str, Any]:
-        pass
+        """Convert the forbidden clause to a dictionary representation."""
 
 
 class ForbiddenRelation(ABC):
+    """Base class for forbidden relations between hyperparameters."""
+
     _RELATION_STR: ClassVar[str]
 
+    left: Hyperparameter
+    """Left side of the comparison."""
+
+    right: Hyperparameter
+    """Right side of the comparison."""
+
+    vector_ids: tuple[None, None] | tuple[np.intp, np.intp]
+    """Indices of the hyperparameters in the vector representation."""
+
     def __init__(self, left: Hyperparameter, right: Hyperparameter):
+        """Initialize a ForbiddenRelation.
+
+        Args:
+            left: left side of the comparison
+            right: right side of the comparison
+
+        Raises:
+            TypeError: If `left` or `right` are not instances of `Hyperparameter`
+
+        !!! note
+
+            If the values of the both hyperparameters are not comparible
+            (e.g. comparing int and str), a TypeError is raised. For
+            OrdinalHyperparameters the actual values are used for comparison **not**
+            their ordinal value.
+        """
         if not isinstance(left, Hyperparameter):
             raise TypeError(f"Argument 'left' is not of type {Hyperparameter}.")
         if not isinstance(right, Hyperparameter):
@@ -104,6 +172,7 @@ class ForbiddenRelation(ABC):
         return self.__class__(left=copy(self.left), right=copy(self.right))
 
     def set_vector_idx(self, hyperparameter_to_idx: Mapping[str, int]) -> None:
+        """Set the vector index of the hyperparameters."""
         self.vector_ids = (
             np.intp(hyperparameter_to_idx[self.left.name]),
             np.intp(hyperparameter_to_idx[self.right.name]),
@@ -115,17 +184,18 @@ class ForbiddenRelation(ABC):
 
     @abstractmethod
     def is_forbidden_value(self, values: dict[str, Any]) -> bool:
-        pass
+        """Check if a value is forbidden."""
 
     @abstractmethod
     def is_forbidden_vector(self, vector: Array[f64]) -> bool:
-        pass
+        """Check if a vector is forbidden."""
 
     @abstractmethod
     def is_forbidden_vector_array(self, arr: Array[f64]) -> Mask:
-        pass
+        """Check if an array of vectors is forbidden."""
 
     def to_dict(self) -> dict[str, Any]:
+        """Convert the forbidden relation to a dictionary representation."""
         return {
             "left": self.left.name,
             "right": self.right.name,
@@ -135,10 +205,30 @@ class ForbiddenRelation(ABC):
 
 
 class ForbiddenConjunction(ABC):
+    """Base class for forbidden conjunctions."""
+
+    components: tuple[ForbiddenClause | ForbiddenConjunction | ForbiddenRelation, ...]
+    """Components of the conjunction."""
+
+    dlcs: tuple[ForbiddenClause | ForbiddenRelation, ...]
+    """Descendant literal clauses of the conjunction.
+
+    These are the base forbidden clauses/relations that are part of conjunctions.
+
+    !!! note
+
+        This will only store a unique set of the descendant clauses, no duplicates.
+    """
+
     def __init__(
         self,
         *args: ForbiddenClause | ForbiddenConjunction | ForbiddenRelation,
     ) -> None:
+        """Initialize a ForbiddenConjunction.
+
+        Args:
+            *args: forbidden clauses, which should be combined
+        """
         # Test the classes
         acceptable = (ForbiddenClause, ForbiddenConjunction, ForbiddenRelation)
         for idx, component in enumerate(args):
@@ -175,6 +265,7 @@ class ForbiddenConjunction(ABC):
         )
 
     def set_vector_idx(self, hyperparameter_to_idx: Mapping[str, int]) -> None:
+        """Set vector index of hyperparameters in each element of the conjunction."""
         for component in self.components:
             component.set_vector_idx(hyperparameter_to_idx)
 
@@ -182,6 +273,12 @@ class ForbiddenConjunction(ABC):
     def get_descendant_literal_clauses(
         self,
     ) -> tuple[ForbiddenClause | ForbiddenRelation, ...]:
+        """Get the descendant literal clauses of the conjunction.
+
+        !!! note "Deprecated"
+
+            Please use the `.dlcs` attribute instead.
+        """
         return self.dlcs
 
     @abstractmethod
@@ -190,19 +287,19 @@ class ForbiddenConjunction(ABC):
 
     @abstractmethod
     def is_forbidden_value(self, values: dict[str, Any]) -> bool:
-        pass
+        """Check if a value is forbidden."""
 
     @abstractmethod
     def is_forbidden_vector(self, vector: Array[f64]) -> bool:
-        pass
+        """Check if a vector is forbidden."""
 
     @abstractmethod
     def is_forbidden_vector_array(self, arr: Array[f64]) -> Mask:
-        pass
+        """Check if an array of vectors is forbidden."""
 
     @abstractmethod
     def to_dict(self) -> dict[str, Any]:
-        pass
+        """Convert the forbidden conjunction to a dictionary representation."""
 
 
 class ForbiddenEqualsClause(ForbiddenClause):
@@ -227,13 +324,25 @@ class ForbiddenEqualsClause(ForbiddenClause):
         value: forbidden value
     """
 
+    hyperparameter: Hyperparameter
+    """Hyperparameter on which a restriction will be made."""
+
+    value: Any
+    """Forbidden value."""
+
     def __init__(self, hyperparameter: Hyperparameter, value: Any) -> None:
+        """Initialize a ForbiddenEqualsClause.
+
+        Args:
+            hyperparameter: Hyperparameter on which a restriction will be made
+            value: forbidden value
         if not hyperparameter.legal_value(value):
             raise ValueError(
                 "Forbidden clause must be instantiated with a "
                 f"legal hyperparameter value for '{hyperparameter}', but got "
                 f"'{value!s}'",
             )
+        """
         super().__init__(hyperparameter)
         self.value = value
 
@@ -253,17 +362,21 @@ class ForbiddenEqualsClause(ForbiddenClause):
     def __copy__(self) -> Self:
         return self.__class__(hyperparameter=self.hyperparameter, value=self.value)
 
+    @override
     def is_forbidden_value(self, values: dict[str, Any]) -> bool:
         return (  # type: ignore
             values.get(self.hyperparameter.name, _SENTINEL) == self.value
         )
 
+    @override
     def is_forbidden_vector(self, vector: Array[f64]) -> bool:
         return vector[self.vector_id] == self.vector_value  # type: ignore
 
+    @override
     def is_forbidden_vector_array(self, arr: Array[f64]) -> Mask:
         return np.equal(arr[self.vector_id], self.vector_value, dtype=np.bool_)
 
+    @override
     def to_dict(self) -> dict[str, Any]:
         return {
             "name": self.hyperparameter.name,
@@ -273,26 +386,36 @@ class ForbiddenEqualsClause(ForbiddenClause):
 
 
 class ForbiddenInClause(ForbiddenClause):
+    """A ForbiddenInClause.
+
+    It forbids a value from the value range of a hyperparameter to be
+    *in* a collection of `values`.
+
+    Forbids the values 2, 3 for the hyperparameter *a*
+
+    ```python exec="true", source="material-block" result="python"
+    from ConfigSpace import ConfigurationSpace, ForbiddenInClause
+
+    cs = ConfigurationSpace({"a": [1, 2, 3]})
+    forbidden_clause_a = ForbiddenInClause(cs['a'], [2, 3])
+    cs.add(forbidden_clause_a)
+    print(cs)
+    ```
+
+    !!! note
+
+        The forbidden values have to be a subset of the hyperparameter's values.
+
+    """
+
+    hyperparameter: Hyperparameter
+    """Hyperparameter on which a restriction will be made."""
+
+    values: tuple[Any, ...]
+    """Collection of forbidden values."""
+
     def __init__(self, hyperparameter: Hyperparameter, values: Iterable[Any]) -> None:
-        """A ForbiddenInClause.
-
-        It forbids a value from the value range of a hyperparameter to be
-        *in* a collection of `values`.
-
-        Forbids the values 2, 3 for the hyperparameter *a*
-
-        ```python exec="true", source="material-block" result="python"
-        from ConfigSpace import ConfigurationSpace, ForbiddenInClause
-
-        cs = ConfigurationSpace({"a": [1, 2, 3]})
-        forbidden_clause_a = ForbiddenInClause(cs['a'], [2, 3])
-        cs.add(forbidden_clause_a)
-        print(cs)
-        ```
-
-        !!! note
-
-            The forbidden values have to be a subset of the hyperparameter's values.
+        """Initialize a ForbiddenInClause.
 
         Args:
             hyperparameter: Hyperparameter on which a restriction will be made
@@ -331,15 +454,19 @@ class ForbiddenInClause(ForbiddenClause):
     def __copy__(self) -> Self:
         return self.__class__(hyperparameter=self.hyperparameter, values=self.values)
 
+    @override
     def is_forbidden_value(self, values: dict[str, Any]) -> bool:
         return values.get(self.hyperparameter.name, _SENTINEL) in self.values
 
+    @override
     def is_forbidden_vector(self, vector: Array[f64]) -> bool:
         return vector[self.vector_id] in self.vector_values
 
+    @override
     def is_forbidden_vector_array(self, arr: Array[f64]) -> Mask:
         return np.isin(arr[self.vector_id], self.vector_values)
 
+    @override
     def to_dict(self) -> dict[str, Any]:
         return {
             "name": self.hyperparameter.name,
@@ -359,7 +486,7 @@ class ForbiddenAndConjunction(ForbiddenConjunction):
         ConfigurationSpace,
         ForbiddenEqualsClause,
         ForbiddenInClause,
-        ForbiddenAndConjunction
+        ForbiddenAndConjunction,
     )
 
     cs = ConfigurationSpace({"a": [1, 2, 3], "b": [2, 5, 6]})
@@ -376,6 +503,19 @@ class ForbiddenAndConjunction(ForbiddenConjunction):
         *args: forbidden clauses, which should be combined
     """
 
+    components: tuple[ForbiddenClause | ForbiddenConjunction | ForbiddenRelation, ...]
+    """Components of the conjunction."""
+
+    dlcs: tuple[ForbiddenClause | ForbiddenRelation, ...]
+    """Descendant literal clauses of the conjunction.
+
+    These are the base forbidden clauses/relations that are part of conjunctions.
+
+    !!! note
+
+        This will only store a unique set of the descendant clauses, no duplicates.
+    """
+
     def __repr__(self) -> str:
         retval = io.StringIO()
         retval.write("(")
@@ -386,6 +526,7 @@ class ForbiddenAndConjunction(ForbiddenConjunction):
         retval.write(")")
         return retval.getvalue()
 
+    @override
     def is_forbidden_value(self, values: dict[str, Any]) -> bool:
         for forbidden in self.components:
             if not forbidden.is_forbidden_value(values):
@@ -393,11 +534,13 @@ class ForbiddenAndConjunction(ForbiddenConjunction):
 
         return True
 
+    @override
     def is_forbidden_vector(self, vector: Array[f64]) -> bool:
         return all(
             forbidden.is_forbidden_vector(vector) for forbidden in self.components
         )
 
+    @override
     def is_forbidden_vector_array(self, arr: Array[f64]) -> Mask:
         forbidden_mask: Mask = np.ones(shape=arr.shape[1], dtype=np.bool_)
         for forbidden in self.components:
@@ -405,9 +548,9 @@ class ForbiddenAndConjunction(ForbiddenConjunction):
 
         return forbidden_mask
 
+    @override
     def to_dict(self) -> dict[str, Any]:
         return {
-            # name:
             "type": "AND",
             "clauses": [component.to_dict() for component in self.components],
         }
@@ -441,9 +584,19 @@ class ForbiddenLessThanRelation(ForbiddenRelation):
 
     _RELATION_STR = "LESS"
 
+    left: Hyperparameter
+    """Left side of the comparison."""
+
+    right: Hyperparameter
+    """Right side of the comparison."""
+
+    vector_ids: tuple[None, None] | tuple[np.intp, np.intp]
+    """Indices of the hyperparameters in the vector representation."""
+
     def __repr__(self) -> str:
         return f"Forbidden: {self.left.name} < {self.right.name}"
 
+    @override
     def is_forbidden_value(self, values: dict[str, Any]) -> bool:
         # Relation is always evaluated against actual value and not vector rep
         left = values.get(self.left.name, _SENTINEL)
@@ -456,12 +609,14 @@ class ForbiddenLessThanRelation(ForbiddenRelation):
 
         return left < right  # type: ignore
 
+    @override
     def is_forbidden_vector(self, vector: Array[f64]) -> bool:
         # Relation is always evaluated against actual value and not vector rep
         left: f64 = vector[self.vector_ids[0]]  # type: ignore
         right: f64 = vector[self.vector_ids[1]]  # type: ignore
         return self.left.to_value(left) < self.right.to_value(right)  # type: ignore
 
+    @override
     def is_forbidden_vector_array(self, arr: Array[f64]) -> Mask:
         left = arr[self.vector_ids[0]]
         right = arr[self.vector_ids[1]]
@@ -494,11 +649,21 @@ class ForbiddenEqualsRelation(ForbiddenRelation):
         right: right side of the comparison
     """
 
+    left: Hyperparameter
+    """Left side of the comparison."""
+
+    right: Hyperparameter
+    """Right side of the comparison."""
+
+    vector_ids: tuple[None, None] | tuple[np.intp, np.intp]
+    """Indices of the hyperparameters in the vector representation."""
+
     _RELATION_STR = "EQUALS"
 
     def __repr__(self) -> str:
         return f"Forbidden: {self.left.name} == {self.right.name}"
 
+    @override
     def is_forbidden_value(self, values: dict[str, Any]) -> bool:
         left = values.get(self.left.name, _SENTINEL)
         if left is _SENTINEL:
@@ -510,12 +675,14 @@ class ForbiddenEqualsRelation(ForbiddenRelation):
 
         return left == right  # type: ignore
 
+    @override
     def is_forbidden_vector(self, vector: Array[f64]) -> bool:
         # Relation is always evaluated against actual value and not vector rep
         left = vector[self.vector_ids[0]]
         right = vector[self.vector_ids[1]]
         return self.left.to_value(left) == self.right.to_value(right)  # type: ignore
 
+    @override
     def is_forbidden_vector_array(self, arr: Array[f64]) -> Mask:
         left = arr[self.vector_ids[0]]
         right = arr[self.vector_ids[1]]
@@ -547,11 +714,21 @@ class ForbiddenGreaterThanRelation(ForbiddenRelation):
         right: right side of the comparison
     """
 
+    left: Hyperparameter
+    """Left side of the comparison."""
+
+    right: Hyperparameter
+    """Right side of the comparison."""
+
+    vector_ids: tuple[None, None] | tuple[np.intp, np.intp]
+    """Indices of the hyperparameters in the vector representation."""
+
     _RELATION_STR = "GREATER"
 
     def __repr__(self) -> str:
         return f"Forbidden: {self.left.name} > {self.right.name}"
 
+    @override
     def is_forbidden_value(self, values: dict[str, Any]) -> bool:
         left = values.get(self.left.name, _SENTINEL)
         if left is _SENTINEL:
@@ -563,12 +740,14 @@ class ForbiddenGreaterThanRelation(ForbiddenRelation):
 
         return left > right  # type: ignore
 
+    @override
     def is_forbidden_vector(self, vector: Array[f64]) -> bool:
         # Relation is always evaluated against actual value and not vector rep
         left: f64 = vector[self.vector_ids[0]]  # type: ignore
         right: f64 = vector[self.vector_ids[1]]  # type: ignore
         return self.left.to_value(left) > self.right.to_value(right)  # type: ignore
 
+    @override
     def is_forbidden_vector_array(self, arr: Array[f64]) -> Mask:
         left = arr[self.vector_ids[0]]
         right = arr[self.vector_ids[1]]
@@ -580,3 +759,4 @@ ForbiddenLike = Union[
     ForbiddenConjunction,
     ForbiddenRelation,
 ]
+"""Type alias for forbidden clauses, conjunctions, and relations."""
