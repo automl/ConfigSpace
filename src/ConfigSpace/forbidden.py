@@ -336,13 +336,13 @@ class ForbiddenEqualsClause(ForbiddenClause):
         Args:
             hyperparameter: Hyperparameter on which a restriction will be made
             value: forbidden value
+        """
         if not hyperparameter.legal_value(value):
             raise ValueError(
                 "Forbidden clause must be instantiated with a "
                 f"legal hyperparameter value for '{hyperparameter}', but got "
                 f"'{value!s}'",
             )
-        """
         super().__init__(hyperparameter)
         self.value = value
 
