@@ -1112,7 +1112,7 @@ def test_uniformfloat_transform():
         value = OrderedDict(sorted(config.items()))
         string = json.dumps(value)
         saved_value = json.loads(string)
-        saved_value = OrderedDict(sorted(_byteify(saved_value).items()))
+        saved_value = OrderedDict(sorted(byteify(saved_value).items()))
         assert repr(value) == repr(saved_value)
 
     # Next, test whether the truncation also works when initializing the
@@ -1125,7 +1125,7 @@ def test_uniformfloat_transform():
         config = Configuration(cs, values=values_dict)
         string = json.dumps(dict(config))
         saved_value = json.loads(string)
-        saved_value = _byteify(saved_value)
+        saved_value = byteify(saved_value)
         assert values_dict == saved_value
 
 
