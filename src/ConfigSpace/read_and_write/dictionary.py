@@ -47,13 +47,20 @@ if TYPE_CHECKING:
     """Type alias for the encoder function signature."""
 
 
-def _pop_q(item: dict[str, Any]) -> dict[str, Any]:
+def _backwards_compat(item: dict[str, Any]) -> dict[str, Any]:
     if item.pop("q", None) is not None:
         warnings.warn(
             "The field 'q' was removed! Please update your serialized format as needed!"
             f"\nFound in item {item}",
             stacklevel=3,
         )
+    if (default := item.pop("default", None)) is not None:
+        warnings.warn(
+            "The field 'default' should be 'default_value' !" f"\nFound in item {item}",
+            stacklevel=3,
+        )
+        item["default_value"] = default
+
     return item
 
 
@@ -62,7 +69,7 @@ def _decode_uniform_float(
     cs: ConfigurationSpace,  # noqa: ARG001
     decode: _Decoder,  # noqa: ARG001
 ) -> UniformFloatHyperparameter:
-    item = _pop_q(item)
+    item = _backwards_compat(item)
     return UniformFloatHyperparameter(**item)
 
 
@@ -71,7 +78,7 @@ def _decode_uniform_int(
     cs: ConfigurationSpace,  # noqa: ARG001
     decode: _Decoder,  # noqa: ARG001
 ) -> UniformIntegerHyperparameter:
-    item = _pop_q(item)
+    item = _backwards_compat(item)
     return UniformIntegerHyperparameter(**item)
 
 
@@ -80,7 +87,7 @@ def _decode_normal_int(
     cs: ConfigurationSpace,  # noqa: ARG001
     decode: _Decoder,  # noqa: ARG001
 ) -> NormalIntegerHyperparameter:
-    item = _pop_q(item)
+    item = _backwards_compat(item)
     return NormalIntegerHyperparameter(**item)
 
 
@@ -89,7 +96,7 @@ def _decode_normal_float(
     cs: ConfigurationSpace,  # noqa: ARG001
     decode: _Decoder,  # noqa: ARG001
 ) -> NormalFloatHyperparameter:
-    item = _pop_q(item)
+    item = _backwards_compat(item)
     return NormalFloatHyperparameter(**item)
 
 
@@ -98,7 +105,7 @@ def _decode_beta_int(
     cs: ConfigurationSpace,  # noqa: ARG001
     decode: _Decoder,  # noqa: ARG001
 ) -> BetaIntegerHyperparameter:
-    item = _pop_q(item)
+    item = _backwards_compat(item)
     return BetaIntegerHyperparameter(**item)
 
 
@@ -107,7 +114,7 @@ def _decode_beta_float(
     cs: ConfigurationSpace,  # noqa: ARG001
     decode: _Decoder,  # noqa: ARG001
 ) -> BetaFloatHyperparameter:
-    item = _pop_q(item)
+    item = _backwards_compat(item)
     return BetaFloatHyperparameter(**item)
 
 
