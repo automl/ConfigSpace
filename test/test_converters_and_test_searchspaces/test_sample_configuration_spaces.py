@@ -69,7 +69,7 @@ def test_autosklearn_space(pcs_file: Path):
         )
 
         for shuffle, n in enumerate(neighborhood):
-            n.is_valid_configuration()
+            n.check_valid_configuration()
             cs._check_configuration_rigorous(n)
             if shuffle == 10:
                 break
@@ -78,7 +78,7 @@ def test_autosklearn_space(pcs_file: Path):
     for i in range(10):
         cs.seed(i)
         for c in cs.sample_configuration(size=5):
-            c.is_valid_configuration()
+            c.check_valid_configuration()
             cs._check_configuration_rigorous(c)
             neighborhood = ConfigSpace.util.get_one_exchange_neighbourhood(
                 c,
@@ -86,7 +86,7 @@ def test_autosklearn_space(pcs_file: Path):
             )
 
             for shuffle, n in enumerate(neighborhood):
-                n.is_valid_configuration()
+                n.check_valid_configuration()
                 cs._check_configuration_rigorous(n)
                 if shuffle == 20:
                     break

@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 
 
 @deprecated(
-    "Please use `configuration.is_valid_configuration()`"
+    "Please use `configuration.check_valid_configuration()`"
     " or `space.check_configuration_vector_representation(configuration)` instead.",
 )
 def check_forbidden(

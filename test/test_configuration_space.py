@@ -611,7 +611,7 @@ def test_check_configuration2():
     configuration = Configuration(cs, {"classifier": "extra_trees"})
 
     # check backward compatibility with checking configurations instead of vectors
-    cs.check_configuration(configuration)
+    configuration.check_valid_configuration()
 
 
 def test_check_forbidden_with_sampled_vector_configuration():
@@ -665,9 +665,7 @@ def test_repr():
     hp1 = CategoricalHyperparameter("parent", [0, 1])
     cs1.add(hp1)
     retval = cs1.__str__()
-    assert (
-        "Configuration space object:\n  Hyperparameters:\n    %s\n" % str(hp1) == retval
-    )
+    assert f"Configuration space object:\n  Hyperparameters:\n    {hp1!s}\n" == retval
 
     hp2 = UniformIntegerHyperparameter("child", 0, 10)
     cond1 = EqualsCondition(hp2, hp1, 0)
@@ -1114,7 +1112,7 @@ def test_uniformfloat_transform():
         value = OrderedDict(sorted(config.items()))
         string = json.dumps(value)
         saved_value = json.loads(string)
-        saved_value = OrderedDict(sorted(byteify(saved_value).items()))
+        saved_value = OrderedDict(sorted(_byteify(saved_value).items()))
         assert repr(value) == repr(saved_value)
 
     # Next, test whether the truncation also works when initializing the
@@ -1127,7 +1125,7 @@ def test_uniformfloat_transform():
         config = Configuration(cs, values=values_dict)
         string = json.dumps(dict(config))
         saved_value = json.loads(string)
-        saved_value = byteify(saved_value)
+        saved_value = _byteify(saved_value)
         assert values_dict == saved_value
 
 

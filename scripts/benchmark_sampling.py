@@ -38,7 +38,7 @@ def run_test(configuration_space_path):
         end_time = time.time()
         sampling_time.append(end_time - start_time)
         for c in configurations:
-            c.is_valid_configuration()
+            c.check_valid_configuration()
 
         for j, c in enumerate(configurations):
             if i > 10:
@@ -52,7 +52,7 @@ def run_test(configuration_space_path):
                 validation_time = []
                 for _shuffle, n in enumerate(neighborhood):
                     v_start_time = time.time()
-                    n.is_valid_configuration()
+                    n.check_valid_configuration()
                     v_end_time = time.time()
                     validation_time.append(v_end_time - v_start_time)
                 end_time = time.time()

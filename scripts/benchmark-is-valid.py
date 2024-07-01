@@ -36,7 +36,7 @@ def run_test(configuration_space_path):
 
     for c in configs:
         t0 = time.time()
-        c.is_valid_configuration()
+        c.check_valid_configuration()
         t1 = time.time()
         times.append(t1 - t0)
 

@@ -123,7 +123,7 @@ class Configuration(Mapping[str, Any]):
                 self._values[key] = value
                 self._vector[i] = hp.to_vector(value)  # type: ignore
 
-            self.is_valid_configuration()
+            self.check_valid_configuration()
 
         elif vector is not None:
             if not isinstance(vector, np.ndarray):
@@ -149,7 +149,7 @@ class Configuration(Mapping[str, Any]):
 
             self._vector = _vector
 
-    def is_valid_configuration(self) -> None:
+    def check_valid_configuration(self) -> None:
         """Check if the object is a valid.
 
         Raises:

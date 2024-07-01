@@ -33,7 +33,7 @@ def run_test(configuration_space_path):
         rs = np.random.RandomState(i)
         configurations = cs.sample_configuration(size=n_configs)
         for c in configurations:
-            c.is_valid_configuration()
+            c.check_valid_configuration()
 
         for _j, c in enumerate(configurations):
             start_time = time.time()

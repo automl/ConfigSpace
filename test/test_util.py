@@ -307,7 +307,7 @@ def test_deactivate_inactive_hyperparameters():
     b = UniformIntegerHyperparameter("b", 0, 10)
     plain.add([a, b])
     c = deactivate_inactive_hyperparameters({"a": 5, "b": 6}, plain)
-    plain.check_configuration(c)
+    c.check_valid_configuration()
 
 
 def test_check_neighbouring_config_diamond():

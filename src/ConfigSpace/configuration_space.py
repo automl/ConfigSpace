@@ -461,7 +461,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         return self._check_default_configuration()
 
     # For backward compatibility
-    @deprecated("Please call `configuration.is_valid_configuration()` instead.")
+    @deprecated("Please call `configuration.check_valid_configuration()` instead.")
     def check_configuration(self, configuration: Configuration) -> None:
         """Check if a configuration is legal. Raises an error if not.
 
