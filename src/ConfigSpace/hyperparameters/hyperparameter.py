@@ -565,13 +565,6 @@ class Hyperparameter(ABC, Generic[ValueT, DType]):
         """Deprecated."""
         return self.get_num_neighbors() > 0
 
-    @deprecated("Please use `to_vector(value)` instead.")
-    def _inverse_transform(
-        self,
-        value: ValueT | DType | Array[DType],
-    ) -> f64 | Array[f64]:
-        return self.to_vector(value)
-
     @deprecated("Please use `sample_value(seed=rs)` instead.")
     def sample(self, rs: np.random.RandomState) -> ValueT:
         """Deprecated."""
@@ -631,13 +624,6 @@ class Hyperparameter(ABC, Generic[ValueT, DType]):
         """Deprecated."""
         return self.legal_vector(value)
 
-    @deprecated("Please use `to_value(vector)` instead.")
-    def _transform(
-        self,
-        vector: f64 | Array[f64],
-    ) -> ValueT | Array[DType]:
-        return self.to_value(vector)
-
     @property
     @deprecated("Please use `.upper_vectorized` instead.")
     def _upper(self) -> f64:
@@ -680,6 +666,30 @@ class Hyperparameter(ABC, Generic[ValueT, DType]):
             number = 4
 
         return self.neighbors_vectorized(value, number, std=std, seed=rs)
+
+    @deprecated("Please use `hp.to_value(v)` instead.")
+    def _transform_scalar(self, value: f64) -> ValueT:
+        """Deprecated."""
+        return self.to_value(value)
+
+    @deprecated("Please use `hp.to_value(vector)` instead.")
+    def _transform_vector(self, vector: Array[f64]) -> Array[DType]:
+        """Deprecated."""
+        return self.to_value(vector)
+
+    @deprecated("Please use `hp.to_vector(value)` instead.")
+    def _inverse_transform(
+        self,
+        value: ValueT | DType | Array[DType],
+    ) -> f64 | Array[f64]:
+        return self.to_vector(value)
+
+    @deprecated("Please use `hp.to_value(vector)` instead.")
+    def _transform(
+        self,
+        vector: f64 | Array[f64],
+    ) -> ValueT | Array[DType]:
+        return self.to_value(vector)
 
 
 NumberT = TypeVar("NumberT", int, float)
