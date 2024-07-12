@@ -1,6 +1,6 @@
 # ConfigSpace
 
-A simple Python/Cython module implementing a domain specific language to manage 
+A simple Python module implementing a domain specific language to manage 
 configuration spaces for algorithm configuration and hyperparameter optimization tasks.  
 Distributed under BSD 3-clause, see LICENSE except all files in the directory
 ConfigSpace.nx, which are copied from the networkx package and licensed

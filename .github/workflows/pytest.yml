@@ -1,4 +1,7 @@
 name: Tests
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 on:
   # Allow to manually trigger through github API
@@ -8,13 +11,11 @@ on:
   push:
     branches:
       - main
-      - development
 
   # Triggers with push to a pr aimed at master
   pull_request:
     branches:
       - main
-      - development
 
   schedule:
     # Every day at 7AM UTC
@@ -31,21 +32,9 @@ env:
     --durations=20
     -v
 
-  # Version to run code-cov on
-  # NOTE: These are only acessible inside a jobs **steps** and not in the job setup,
-  #   Hence, some of these varialbes are copied and are just here for reference
-  #
-  code-cov-active: true  # Copied in job setup
-  code-cov-os: ubuntu-latest  # Copied in job setup
-  code-cov-python-version: "3.8"
-  code-cov-args: >-
-    --cov=ConfigSpace
-    --cov-report=xml
-
 jobs:
+  test:
 
-  # General unit tests
-  source-test:
     name: ${{ matrix.python-version }}-${{ matrix.os }}
 
     runs-on: ${{ matrix.os }}
@@ -56,153 +45,24 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.7", "3.8", "3.9", "3.10", "3.11"]
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
         os: ["ubuntu-latest", "macos-latest", "windows-latest"]
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
 
     - name: Setup Python
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
+        cache: pip
+        cache-dependency-path: pyproject.toml
 
     - name: Install ${{ env.package-name }}
       run: |
-        python -m pip install --upgrade pip
-        python -m pip install -e ".${{ env.extra-requires }}"
-
-    - name: Store git status
-      id: status-before
-      shell: bash
-      run: |
-        echo "::set-output name=BEFORE::$(git status --porcelain -b)"
-
-    - name: Tests
-      timeout-minutes: 45
-      run: |
-        pytest ${{ env.pytest-args }} ${{ env.test-dir }}
-
-    - name: Check for files left behind by test
-      run: |
-        before="${{ steps.status-before.outputs.BEFORE }}"
-        after="$(git status --porcelain -b)"
-        if [[ "$before" != "$after" ]]; then
-            echo "git status from before: $before"
-            echo "git status from after: $after"
-            echo "Not all generated files have been deleted!"
-            exit 1
-        fi
-
-  # Testing with conda
-  conda-tests:
-    name: conda-${{ matrix.python-version }}-${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    defaults:
-      run:
-        shell: bash -l {0}  # Default to using bash on all and load (-l) .bashrc which miniconda uses
-
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version: ["3.7", "3.8", "3.9", "3.10", "3.11"]
-        os: ["ubuntu-latest", "macos-latest", "windows-latest"]
-
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v2
-
-    - name: Conda install
-      uses: conda-incubator/setup-miniconda@v2
-      with:
-        auto-update-conda: true
-        python-version: ${{ matrix.python-version }}
-
-    - name: Install ${{ env.package-name }}
-      run: |
-        python -V
-        python -m pip install --upgrade pip
-        python -m pip install wheel
         python -m pip install -e ".${{ env.extra-requires }}"
 
     - name: Tests
-      timeout-minutes: 45
       run: |
-          pytest ${{ env.pytest-args }} ${{ env.test-dir }}
-          #
-  # Testing a dist install
-  dist-test:
-    name: dist-${{ matrix.python-version }}-${{ matrix.os }}
-
-    runs-on: ${{ matrix.os }}
-    defaults:
-      run:
-        shell: bash
-
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version: ["3.7", "3.8", "3.9", "3.10", "3.11"]
-        os: ["ubuntu-latest", "macos-latest", "windows-latest"]
-
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v2
-
-    - name: Setup Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: ${{ matrix.python-version }}
-
-    - name: Create sdist
-      id: sdist
-      run: |
-        python -m pip install --upgrade pip build
-        python -m build --sdist
-        echo "sdist_name=$(ls -t dist/${{ env.package-name }}-*.tar.gz | head -n 1)" >> "$GITHUB_ENV"
-
-    - name: Install ${{ env.package-name }}
-      run: |
-        python -m pip install ${{ env.sdist_name }}${{ env.extra-requires }}
-
-    - name: Tests
-      timeout-minutes: 45
-      run: |
-        pytest ${{ env.pytest-args }} ${{ env.test-dir }}
-
-
-  # Testing with codecov coverage uploaded
-  codecov-test:
-    name: codecov-test
-
-    runs-on: "ubuntu-latest"
-    defaults:
-      run:
-        shell: bash
-
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v2
-
-    - name: Setup Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: ${{ env.code-cov-python-version }}
-
-    - name: Install ${{ env.package-name }}
-      run: |
-        python -m pip install --upgrade pip
-        python -m pip install wheel
-        python -m pip install -e ".${{ env.extra-requires }}"
-
-    - name: Tests
-      timeout-minutes: 45
-      run: |
-        pytest ${{ env.pytest-args }} ${{ env.code-cov-args }} ${{ env.test-dir }}
-
-    - name: Upload coverage
-      uses: codecov/codecov-action@v2
-      with:
-        fail_ci_if_error: true
-        verbose: true
+        pytest ${{ env.test-dir }}

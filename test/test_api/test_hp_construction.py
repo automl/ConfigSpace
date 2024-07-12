@@ -2,6 +2,7 @@
 
 These are intentionally verbose and using all parameters to ensure they maintain equality.
 """
+
 from __future__ import annotations
 
 from ConfigSpace import Beta, Categorical, Float, Integer, Normal, Uniform
@@ -18,8 +19,7 @@ from ConfigSpace.hyperparameters import (
 
 
 def test_uniform_int() -> None:
-    """
-    Expects
+    """Expects.
     -------
     * Should create an identical UniformIntegerHyperparameter.
     """
@@ -28,7 +28,6 @@ def test_uniform_int() -> None:
         lower=2,
         upper=10,
         default_value=5,
-        q=2,
         log=True,
         meta={"a": "b"},
     )
@@ -38,7 +37,6 @@ def test_uniform_int() -> None:
         bounds=(2, 10),
         default=5,
         distribution=Uniform(),
-        q=2,
         log=True,
         meta={"a": "b"},
     )
@@ -47,8 +45,7 @@ def test_uniform_int() -> None:
 
 
 def test_normal_int() -> None:
-    """
-    Expects
+    """Expects.
     -------
     * Should create an identical NormalIntegerHyperparameter with Normal distribution.
     """
@@ -57,7 +54,6 @@ def test_normal_int() -> None:
         lower=2,
         upper=10,
         default_value=5,
-        q=2,
         mu=5,
         sigma=1,
         log=True,
@@ -69,7 +65,6 @@ def test_normal_int() -> None:
         bounds=(2, 10),
         distribution=Normal(mu=5, sigma=1),
         default=5,
-        q=2,
         log=True,
         meta={"a": "b"},
     )
@@ -79,8 +74,7 @@ def test_normal_int() -> None:
 
 
 def test_beta_int() -> None:
-    """
-    Expects
+    """Expects.
     -------
     * Should create an identical BetaIntegerHyperparameter with a BetaDistribution.
     """
@@ -91,7 +85,6 @@ def test_beta_int() -> None:
         alpha=1,
         beta=2,
         default_value=5,
-        q=2,
         log=True,
         meta={"a": "b"},
     )
@@ -101,7 +94,6 @@ def test_beta_int() -> None:
         bounds=(2, 10),
         distribution=Beta(alpha=1, beta=2),
         default=5,
-        q=2,
         log=True,
         meta={"a": "b"},
     )
@@ -111,8 +103,7 @@ def test_beta_int() -> None:
 
 
 def test_uniform_float() -> None:
-    """
-    Expects
+    """Expects.
     -------
     * Should create an identical UniformFloatHyperparameter with a UniformDistribution.
     """
@@ -121,7 +112,6 @@ def test_uniform_float() -> None:
         lower=2,
         upper=10,
         default_value=5,
-        q=2,
         log=True,
         meta={"a": "b"},
     )
@@ -131,7 +121,6 @@ def test_uniform_float() -> None:
         bounds=(2, 10),
         default=5,
         distribution=Uniform(),
-        q=2,
         log=True,
         meta={"a": "b"},
     )
@@ -141,8 +130,7 @@ def test_uniform_float() -> None:
 
 
 def test_normal_float() -> None:
-    """
-    Expects
+    """Expects.
     -------
     * Should create an identical NormalFloatHyperparameter with a Normal distribution.
     """
@@ -153,7 +141,6 @@ def test_normal_float() -> None:
         mu=5,
         sigma=2,
         default_value=5,
-        q=2,
         log=True,
         meta={"a": "b"},
     )
@@ -163,7 +150,6 @@ def test_normal_float() -> None:
         bounds=(2, 10),
         default=5,
         distribution=Normal(mu=5, sigma=2),
-        q=2,
         log=True,
         meta={"a": "b"},
     )
@@ -173,8 +159,7 @@ def test_normal_float() -> None:
 
 
 def test_beta_float() -> None:
-    """
-    Expects
+    """Expects.
     -------
     * Should create an identical BetaFloatHyperparameter with a BetaDistribution.
     """
@@ -203,8 +188,7 @@ def test_beta_float() -> None:
 
 
 def test_categorical() -> None:
-    """
-    Expects
+    """Expects.
     -------
     * Should create an identical CategoricalHyperparameter.
     """
@@ -230,8 +214,7 @@ def test_categorical() -> None:
 
 
 def test_ordinal() -> None:
-    """
-    Expects
+    """Expects.
     -------
     * Should create an identical CategoricalHyperparameter.
     """
