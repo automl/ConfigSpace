@@ -88,7 +88,7 @@ markdown_extensions:
       repo_url_shortener: true
       repo_url_shorthand: true
       user: automl
-      repo: amltk
+      repo: ConfigSpace
   - pymdownx.highlight
   - pymdownx.inlinehilite
   - pymdownx.snippets
@@ -116,8 +116,6 @@ plugins:
   - search
   - autorefs
   - glightbox
-  - offline:
-      enabled: !ENV [AMLTK_DOCS_OFFLINE, false]
   - markdown-exec
   - mike:
       version_selector: true
