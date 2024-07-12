@@ -49,10 +49,6 @@ from ConfigSpace.hyperparameters import (
 from ConfigSpace.hyperparameters.hyperparameter import Hyperparameter
 
 
-def some_new_function():
-    pass
-
-
 # TODO: return only copies of the objects!
 def test_equals_condition():
     hp1 = CategoricalHyperparameter("parent", [0, 1])
