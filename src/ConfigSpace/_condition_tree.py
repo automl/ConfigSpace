@@ -332,9 +332,10 @@ class DAG:
     if choice != A:
         then A:x, A:y, A:z are inactive
 
-    # NOTE: I'm fairly sure this assumption still leads to a diamond OR condition
-    # problem where we de-activate a hyperparameter when we shouldn't.
-    # This shold be revisisted and fixed.
+    !!! todo
+        TODO: I'm fairly sure this assumption still leads to a diamond OR
+        condition problem where we de-activate a hyperparameter when we
+        shouldn't. This shold be revisisted and fixed.
     """
 
     change_hp_lookup: dict[str, list[ConditionNode]] = field(
