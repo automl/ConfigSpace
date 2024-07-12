@@ -182,13 +182,9 @@ class HPNode:
     forbiddens: list[ForbiddenLike] = field(default_factory=list)
     """A list of forbidden clauses that prevent this hyperparameter from being active."""
 
-    # NOTE: We have the restriction that a hyperparameter can only have one parent
-    # condition but multiple parents from which these relationshops are dervied
-    # This is to prevent ambiguity between AND and OR, in other words, what
-    # do we do with the current Node if the condition for one parent is satisfied
-    # but not the other.
-    # * A useful assertion to make is that all nodes in `parents` will have the same
-    #   parent condition, also accessible via `parent_condition`
+    # NOTE: We have the restriction that a hyperparameter can only have **one** parent,
+    # although multiple conditions can be made on this **one** parent using AND
+    # or OR conjunctions.
     parents: dict[str, tuple[HPNode, ConditionLike]] = field(
         default_factory=dict,
         # We explicitly don't compare parents to prevent recursion
