@@ -1,0 +1,2519 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="../../guide/">
+      
+      
+        <link rel="next" href="../configuration_space/">
+      
+      
+      <link rel="icon" href="../../assets/logo.png">
+      <meta name="generator" content="mkdocs-1.6.0, mkdocs-material-9.5.27">
+    
+    
+      
+        <title>Hyperparameters - ConfigSpace</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.6543a935.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/_markdown_exec_pyodide.css">
+    
+      <link rel="stylesheet" href="../../assets/_markdown_exec_ansi.css">
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+   <link href="../../assets/stylesheets/glightbox.min.css" rel="stylesheet"/><style>
+    html.glightbox-open { overflow: initial; height: 100%; }
+    .gslide-title { margin-top: 0px; user-select: text; }
+    .gslide-desc { color: #666; user-select: text; }
+    .gslide-image img { background: white; }
+    .gscrollbar-fixer { padding-right: 15px; }
+    .gdesc-inner { font-size: 0.75rem; }
+    body[data-md-color-scheme="slate"] .gdesc-inner { background: var(--md-default-bg-color);}
+    body[data-md-color-scheme="slate"] .gslide-title { color: var(--md-default-fg-color);}
+    body[data-md-color-scheme="slate"] .gslide-desc { color: var(--md-default-fg-color);}</style> <script src="../../assets/javascripts/glightbox.min.js"></script></head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="deep-purple">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#hyperparameters" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="ConfigSpace" class="md-header__button md-logo" aria-label="ConfigSpace" data-md-component="logo">
+      
+  <img src="../../assets/logo.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            ConfigSpace
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Hyperparameters
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="deep-purple"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 9a3 3 0 0 1 3 3 3 3 0 0 1-3 3 3 3 0 0 1-3-3 3 3 0 0 1 3-3m0-4.5c5 0 9.27 3.11 11 7.5-1.73 4.39-6 7.5-11 7.5S2.73 16.39 1 12c1.73-4.39 6-7.5 11-7.5M3.18 12a9.821 9.821 0 0 0 17.64 0 9.821 9.821 0 0 0-17.64 0Z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="deep-purple"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0 8a5 5 0 0 1-5-5 5 5 0 0 1 5-5 5 5 0 0 1 5 5 5 5 0 0 1-5 5m0-12.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5Z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7 0-.24-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91 1.61 0 2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08Z"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/automl/ConfigSpace/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.5.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    automl/ConfigSpace
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../quickstart/" class="md-tabs__link">
+        
+  
+    
+  
+  Quickstart
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../guide/" class="md-tabs__link">
+        
+  
+    
+  
+  Guide
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="./" class="md-tabs__link">
+          
+  
+  Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+    
+      
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../api/ConfigSpace/c_util/" class="md-tabs__link">
+          
+  
+  API
+
+        </a>
+      </li>
+    
+  
+
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="ConfigSpace" class="md-nav__button md-logo" aria-label="ConfigSpace" data-md-component="logo">
+      
+  <img src="../../assets/logo.png" alt="logo">
+
+    </a>
+    ConfigSpace
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/automl/ConfigSpace/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.5.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    automl/ConfigSpace
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Home
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../quickstart/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Quickstart
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Guide
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  <span class="md-ellipsis">
+    Reference
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            Reference
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Hyperparameters
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    Hyperparameters
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#hyperparameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      Hyperparameters
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#inferred-hyperparameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      Inferred Hyperparameters
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#simple-hyperparameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      Simple Hyperparameters
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Simple Hyperparameters">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#integer" class="md-nav__link">
+    <span class="md-ellipsis">
+      Integer
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#float" class="md-nav__link">
+    <span class="md-ellipsis">
+      Float
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#categorical" class="md-nav__link">
+    <span class="md-ellipsis">
+      Categorical
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#direct-hyperparameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      Direct Hyperparameters
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#structure-of-a-hyperparameter" class="md-nav__link">
+    <span class="md-ellipsis">
+      Structure of a Hyperparameter
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Structure of a Hyperparameter">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#neighborhoods" class="md-nav__link">
+    <span class="md-ellipsis">
+      Neighborhoods
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-implementing-the-betaintegerhyperparameter" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example: Implementing the BetaIntegerHyperparameter
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Example: Implementing the BetaIntegerHyperparameter">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#defining-the-betaintegerhyperparameter" class="md-nav__link">
+    <span class="md-ellipsis">
+      Defining the BetaintegerHyperparameter
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#vectorized-space" class="md-nav__link">
+    <span class="md-ellipsis">
+      Vectorized Space
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#transforming-from-vectorized-space-to-value-space" class="md-nav__link">
+    <span class="md-ellipsis">
+      Transforming from Vectorized Space to Value Space
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#creating-the-betaintegerhyperparameter-class" class="md-nav__link">
+    <span class="md-ellipsis">
+      Creating the BetaIntegerHyperparameter class
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../configuration_space/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Configuration Space
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../configuration/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Configuration
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../conditions/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Conditions
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../forbiddens/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Forbidden Clauses
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../serialization/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Serialization
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../utils/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Util
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    API
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            API
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_5_1" id="__nav_5_1_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    ConfigSpace
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_1">
+            <span class="md-nav__icon md-icon"></span>
+            ConfigSpace
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/ConfigSpace/c_util/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    C util
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/ConfigSpace/conditions/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Conditions
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/ConfigSpace/configuration/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Configuration
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/ConfigSpace/configuration_space/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Configuration space
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/ConfigSpace/exceptions/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Exceptions
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/ConfigSpace/forbidden/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Forbidden
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/ConfigSpace/functional/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Functional
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/ConfigSpace/types/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Types
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/ConfigSpace/util/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Util
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_1_10" >
+        
+          
+          <label class="md-nav__link" for="__nav_5_1_10" id="__nav_5_1_10_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Api
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_5_1_10_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_1_10">
+            <span class="md-nav__icon md-icon"></span>
+            Api
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/ConfigSpace/api/distributions/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Distributions
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_1_10_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_5_1_10_2" id="__nav_5_1_10_2_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Types
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="4" aria-labelledby="__nav_5_1_10_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_1_10_2">
+            <span class="md-nav__icon md-icon"></span>
+            Types
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/ConfigSpace/api/types/categorical/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Categorical
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/ConfigSpace/api/types/float/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Float
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/ConfigSpace/api/types/integer/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Integer
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_1_11" >
+        
+          
+          <label class="md-nav__link" for="__nav_5_1_11" id="__nav_5_1_11_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Hyperparameters
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_5_1_11_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_1_11">
+            <span class="md-nav__icon md-icon"></span>
+            Hyperparameters
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/ConfigSpace/hyperparameters/beta_float/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Beta float
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/ConfigSpace/hyperparameters/beta_integer/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Beta integer
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/ConfigSpace/hyperparameters/categorical/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Categorical
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/ConfigSpace/hyperparameters/constant/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Constant
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/ConfigSpace/hyperparameters/distributions/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Distributions
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/ConfigSpace/hyperparameters/float_hyperparameter/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Float hyperparameter
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/ConfigSpace/hyperparameters/hp_components/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Hp components
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/ConfigSpace/hyperparameters/hyperparameter/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Hyperparameter
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/ConfigSpace/hyperparameters/integer_hyperparameter/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Integer hyperparameter
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/ConfigSpace/hyperparameters/normal_float/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Normal float
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/ConfigSpace/hyperparameters/normal_integer/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Normal integer
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/ConfigSpace/hyperparameters/numerical_hyperparameter/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Numerical hyperparameter
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/ConfigSpace/hyperparameters/ordinal/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Ordinal
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/ConfigSpace/hyperparameters/uniform_float/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Uniform float
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/ConfigSpace/hyperparameters/uniform_integer/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Uniform integer
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_1_12" >
+        
+          
+          <label class="md-nav__link" for="__nav_5_1_12" id="__nav_5_1_12_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Read and write
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_5_1_12_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_1_12">
+            <span class="md-nav__icon md-icon"></span>
+            Read and write
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/ConfigSpace/read_and_write/dictionary/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Dictionary
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/ConfigSpace/read_and_write/json/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Json
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/ConfigSpace/read_and_write/pcs/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Pcs
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/ConfigSpace/read_and_write/pcs_new/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Pcs new
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  
+  
+
+
+  <h1>Hyperparameters</h1>
+
+<h2 id="hyperparameters">Hyperparameters<a class="headerlink" href="#hyperparameters" title="Permanent link">#</a></h2>
+<p>ConfigSpace contains three ways to define hyperparameters, each offering more customizabilty than the last.
+We first demonstrate the three different ways to define hyperparameters, <strong>inferred</strong>, <strong>simple</strong>, and <strong>direct</strong>.</p>
+<p>Later, we will show how to directly use the hyperparameters if required, however this is mostly for library developers
+using ConfigSpace as a dependency.</p>
+<hr />
+<ul>
+<li>Directly when constructing the <a class="autorefs autorefs-internal" href="../../api/ConfigSpace/configuration_space/#ConfigSpace.configuration_space.ConfigurationSpace"><code>ConfigurationSpace</code></a> object,
+we call these <strong>inferred</strong> hyperparameters. <strong>Use these if you have a simple search space or are doing rapid prototyping.</strong>
+<div class="tabbed-set tabbed-alternate" data-tabs="1:2"><input checked="checked" id="exec-54--__tabbed_1_1" name="exec-54--__tabbed_1" type="radio" /><input id="exec-54--__tabbed_1_2" name="exec-54--__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="exec-54--__tabbed_1_1">Source</label><label for="exec-54--__tabbed_1_2">Result</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span> <span class="nn">ConfigSpace</span> <span class="kn">import</span> <span class="n">ConfigurationSpace</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="n">cs</span> <span class="o">=</span> <span class="n">ConfigurationSpace</span><span class="p">(</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="p">{</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>        <span class="s2">&quot;a&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span>    <span class="c1"># Integer from 0 to 10</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>        <span class="s2">&quot;b&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;cat&quot;</span><span class="p">,</span> <span class="s2">&quot;dog&quot;</span><span class="p">],</span>  <span class="c1"># Categorical with choices &quot;cat&quot; and &quot;dog&quot;</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>        <span class="s2">&quot;c&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span>  <span class="c1"># Float from 0.0 to 1.0</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>    <span class="p">}</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="p">)</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="nb">print</span><span class="p">(</span><span class="n">cs</span><span class="p">)</span>
+</code></pre></div>
+</div>
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">Configuration</span> <span class="n">space</span> <span class="nb">object</span><span class="p">:</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>  <span class="n">Hyperparameters</span><span class="p">:</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>    <span class="n">a</span><span class="p">,</span> <span class="n">Type</span><span class="p">:</span> <span class="n">UniformInteger</span><span class="p">,</span> <span class="n">Range</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">],</span> <span class="n">Default</span><span class="p">:</span> <span class="mi">5</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>    <span class="n">b</span><span class="p">,</span> <span class="n">Type</span><span class="p">:</span> <span class="n">Categorical</span><span class="p">,</span> <span class="n">Choices</span><span class="p">:</span> <span class="p">{</span><span class="n">cat</span><span class="p">,</span> <span class="n">dog</span><span class="p">},</span> <span class="n">Default</span><span class="p">:</span> <span class="n">cat</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>    <span class="n">c</span><span class="p">,</span> <span class="n">Type</span><span class="p">:</span> <span class="n">UniformFloat</span><span class="p">,</span> <span class="n">Range</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span> <span class="n">Default</span><span class="p">:</span> <span class="mf">0.5</span>
+</code></pre></div>
+</div>
+</div>
+</div></li>
+<li>Using functions to create them for you. We call these <strong>simple</strong> hyperparameters and they should
+satisfy most use cases. <strong>Use these if you just want to create a searchspace required by another library.</strong>
+<div class="tabbed-set tabbed-alternate" data-tabs="1:2"><input checked="checked" id="exec-55--__tabbed_1_1" name="exec-55--__tabbed_1" type="radio" /><input id="exec-55--__tabbed_1_2" name="exec-55--__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="exec-55--__tabbed_1_1">Source</label><label for="exec-55--__tabbed_1_2">Result</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span> <span class="nn">ConfigSpace</span> <span class="kn">import</span> <span class="n">ConfigurationSpace</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">Categorical</span><span class="p">,</span> <span class="n">Float</span><span class="p">,</span> <span class="n">Normal</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="n">cs</span> <span class="o">=</span> <span class="n">ConfigurationSpace</span><span class="p">(</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="p">{</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>        <span class="s2">&quot;a&quot;</span><span class="p">:</span> <span class="n">Integer</span><span class="p">(</span><span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span> <span class="n">log</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>    <span class="c1"># Integer from 0 to 10</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>        <span class="s2">&quot;b&quot;</span><span class="p">:</span> <span class="n">Categorical</span><span class="p">(</span><span class="s2">&quot;b&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;cat&quot;</span><span class="p">,</span> <span class="s2">&quot;dog&quot;</span><span class="p">],</span> <span class="n">ordered</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>  <span class="c1"># Ordered categorical with choices &quot;cat&quot; and &quot;dog&quot;</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>        <span class="s2">&quot;c&quot;</span><span class="p">:</span> <span class="n">Float</span><span class="p">(</span><span class="s2">&quot;c&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mf">1e-5</span><span class="p">,</span> <span class="mf">1e2</span><span class="p">),</span> <span class="n">log</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>  <span class="c1"># Float from 0.0 to 1.0, log scaled</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>        <span class="s2">&quot;d&quot;</span><span class="p">:</span> <span class="n">Float</span><span class="p">(</span><span class="s2">&quot;d&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">),</span> <span class="n">distribution</span><span class="o">=</span><span class="n">Normal</span><span class="p">(</span><span class="mi">15</span><span class="p">,</span> <span class="mi">2</span><span class="p">)),</span>  <span class="c1"># Float from 10 to 20, normal distribution</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>    <span class="p">}</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="p">)</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="nb">print</span><span class="p">(</span><span class="n">cs</span><span class="p">)</span>
+</code></pre></div>
+</div>
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">Configuration</span> <span class="n">space</span> <span class="nb">object</span><span class="p">:</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>  <span class="n">Hyperparameters</span><span class="p">:</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>    <span class="n">a</span><span class="p">,</span> <span class="n">Type</span><span class="p">:</span> <span class="n">UniformInteger</span><span class="p">,</span> <span class="n">Range</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">],</span> <span class="n">Default</span><span class="p">:</span> <span class="mi">5</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>    <span class="n">b</span><span class="p">,</span> <span class="n">Type</span><span class="p">:</span> <span class="n">Ordinal</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">:</span> <span class="p">{</span><span class="n">cat</span><span class="p">,</span> <span class="n">dog</span><span class="p">},</span> <span class="n">Default</span><span class="p">:</span> <span class="n">cat</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>    <span class="n">c</span><span class="p">,</span> <span class="n">Type</span><span class="p">:</span> <span class="n">UniformFloat</span><span class="p">,</span> <span class="n">Range</span><span class="p">:</span> <span class="p">[</span><span class="mf">1e-05</span><span class="p">,</span> <span class="mf">100.0</span><span class="p">],</span> <span class="n">Default</span><span class="p">:</span> <span class="mf">0.031622777</span><span class="p">,</span> <span class="n">on</span> <span class="n">log</span><span class="o">-</span><span class="n">scale</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>    <span class="n">d</span><span class="p">,</span> <span class="n">Type</span><span class="p">:</span> <span class="n">NormalFloat</span><span class="p">,</span> <span class="n">Mu</span><span class="p">:</span> <span class="mf">15.0</span><span class="p">,</span> <span class="n">Sigma</span><span class="p">:</span> <span class="mf">2.0</span><span class="p">,</span> <span class="n">Range</span><span class="p">:</span> <span class="p">[</span><span class="mf">10.0</span><span class="p">,</span> <span class="mf">20.0</span><span class="p">],</span> <span class="n">Default</span><span class="p">:</span> <span class="mf">15.0</span>
+</code></pre></div>
+</div>
+</div>
+</div></li>
+<li>Using the types directly. We call these <strong>direct</strong> hyperparameters. These are the real types used
+throughout ConfigSpace and offer the most customizability.
+<strong>Use these if you are building a library the utilizes ConfigSpace.</strong>
+<div class="tabbed-set tabbed-alternate" data-tabs="1:2"><input checked="checked" id="exec-56--__tabbed_1_1" name="exec-56--__tabbed_1" type="radio" /><input id="exec-56--__tabbed_1_2" name="exec-56--__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="exec-56--__tabbed_1_1">Source</label><label for="exec-56--__tabbed_1_2">Result</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span> <span class="nn">ConfigSpace</span> <span class="kn">import</span> <span class="p">(</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">ConfigurationSpace</span><span class="p">,</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">UniformIntegerHyperparameter</span><span class="p">,</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">CategoricalHyperparameter</span><span class="p">,</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n">UniformFloatHyperparameter</span><span class="p">,</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="n">NormalFloatHyperparameter</span><span class="p">,</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    <span class="n">OrdinalHyperparameter</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="p">)</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="n">cs</span> <span class="o">=</span> <span class="n">ConfigurationSpace</span><span class="p">(</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>    <span class="p">{</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>        <span class="s2">&quot;a&quot;</span><span class="p">:</span> <span class="n">UniformIntegerHyperparameter</span><span class="p">(</span><span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">log</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>    <span class="c1"># Integer from 0 to 10</span>
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>        <span class="s2">&quot;b&quot;</span><span class="p">:</span> <span class="n">CategoricalHyperparameter</span><span class="p">(</span><span class="s2">&quot;b&quot;</span><span class="p">,</span> <span class="n">choices</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;cat&quot;</span><span class="p">,</span> <span class="s2">&quot;dog&quot;</span><span class="p">],</span> <span class="n">default_value</span><span class="o">=</span><span class="s2">&quot;dog&quot;</span><span class="p">),</span>  <span class="c1"># Ordered categorical with choices &quot;cat&quot; and &quot;dog&quot;</span>
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>        <span class="s2">&quot;c&quot;</span><span class="p">:</span> <span class="n">UniformFloatHyperparameter</span><span class="p">(</span><span class="s2">&quot;c&quot;</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="mf">1e2</span><span class="p">,</span> <span class="n">log</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>  <span class="c1"># Float from 0.0 to 1.0, log scaled</span>
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>        <span class="s2">&quot;d&quot;</span><span class="p">:</span> <span class="n">NormalFloatHyperparameter</span><span class="p">(</span><span class="s2">&quot;d&quot;</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">mu</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="mi">2</span><span class="p">),</span>  <span class="c1"># Float from 10 to 20, normal distribution</span>
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>        <span class="s2">&quot;e&quot;</span><span class="p">:</span> <span class="n">OrdinalHyperparameter</span><span class="p">(</span><span class="s2">&quot;e&quot;</span><span class="p">,</span> <span class="n">sequence</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;s&quot;</span><span class="p">,</span> <span class="s2">&quot;m&quot;</span><span class="p">,</span> <span class="s2">&quot;l&quot;</span><span class="p">],</span> <span class="n">default_value</span><span class="o">=</span><span class="s2">&quot;s&quot;</span><span class="p">),</span>  <span class="c1"># Ordered categorical</span>
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>    <span class="p">}</span>
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a><span class="p">)</span>
+<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a><span class="nb">print</span><span class="p">(</span><span class="n">cs</span><span class="p">)</span>
+</code></pre></div>
+</div>
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">Configuration</span> <span class="n">space</span> <span class="nb">object</span><span class="p">:</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>  <span class="n">Hyperparameters</span><span class="p">:</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>    <span class="n">a</span><span class="p">,</span> <span class="n">Type</span><span class="p">:</span> <span class="n">UniformInteger</span><span class="p">,</span> <span class="n">Range</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">],</span> <span class="n">Default</span><span class="p">:</span> <span class="mi">5</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>    <span class="n">b</span><span class="p">,</span> <span class="n">Type</span><span class="p">:</span> <span class="n">Categorical</span><span class="p">,</span> <span class="n">Choices</span><span class="p">:</span> <span class="p">{</span><span class="n">cat</span><span class="p">,</span> <span class="n">dog</span><span class="p">},</span> <span class="n">Default</span><span class="p">:</span> <span class="n">dog</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>    <span class="n">c</span><span class="p">,</span> <span class="n">Type</span><span class="p">:</span> <span class="n">UniformFloat</span><span class="p">,</span> <span class="n">Range</span><span class="p">:</span> <span class="p">[</span><span class="mf">1e-05</span><span class="p">,</span> <span class="mf">100.0</span><span class="p">],</span> <span class="n">Default</span><span class="p">:</span> <span class="mf">0.031622777</span><span class="p">,</span> <span class="n">on</span> <span class="n">log</span><span class="o">-</span><span class="n">scale</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>    <span class="n">d</span><span class="p">,</span> <span class="n">Type</span><span class="p">:</span> <span class="n">NormalFloat</span><span class="p">,</span> <span class="n">Mu</span><span class="p">:</span> <span class="mf">15.0</span><span class="p">,</span> <span class="n">Sigma</span><span class="p">:</span> <span class="mf">2.0</span><span class="p">,</span> <span class="n">Range</span><span class="p">:</span> <span class="p">[</span><span class="mf">10.0</span><span class="p">,</span> <span class="mf">20.0</span><span class="p">],</span> <span class="n">Default</span><span class="p">:</span> <span class="mf">15.0</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>    <span class="n">e</span><span class="p">,</span> <span class="n">Type</span><span class="p">:</span> <span class="n">Ordinal</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">:</span> <span class="p">{</span><span class="n">s</span><span class="p">,</span> <span class="n">m</span><span class="p">,</span> <span class="n">l</span><span class="p">},</span> <span class="n">Default</span><span class="p">:</span> <span class="n">s</span>
+</code></pre></div>
+</div>
+</div>
+</div></li>
+</ul>
+<h2 id="inferred-hyperparameters">Inferred Hyperparameters<a class="headerlink" href="#inferred-hyperparameters" title="Permanent link">#</a></h2>
+<p>When creating hyperparameters directly in the <a class="autorefs autorefs-internal" href="../../api/ConfigSpace/configuration_space/#ConfigSpace.configuration_space.ConfigurationSpace"><code>ConfigurationSpace</code></a> object,
+you can create three different kinds of hyperparameters. This can be useful for simple testing or quick prototyping.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span> <span class="nn">ConfigSpace</span> <span class="kn">import</span> <span class="n">ConfigurationSpace</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="n">cs</span> <span class="o">=</span> <span class="n">ConfigurationSpace</span><span class="p">(</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="p">{</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>        <span class="s2">&quot;a&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span>    <span class="c1"># Integer from 0 to 10</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>        <span class="s2">&quot;b&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;cat&quot;</span><span class="p">,</span> <span class="s2">&quot;dog&quot;</span><span class="p">],</span>  <span class="c1"># Categorical with choices &quot;cat&quot; and &quot;dog&quot;</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>        <span class="s2">&quot;c&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>  <span class="c1"># Float from 0.0 to 1.0</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>    <span class="p">}</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="p">)</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="nb">print</span><span class="p">(</span><span class="n">cs</span><span class="p">)</span>
+</code></pre></div>
+<div class="result">
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">Configuration</span> <span class="n">space</span> <span class="nb">object</span><span class="p">:</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>  <span class="n">Hyperparameters</span><span class="p">:</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>    <span class="n">a</span><span class="p">,</span> <span class="n">Type</span><span class="p">:</span> <span class="n">UniformInteger</span><span class="p">,</span> <span class="n">Range</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">],</span> <span class="n">Default</span><span class="p">:</span> <span class="mi">5</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>    <span class="n">b</span><span class="p">,</span> <span class="n">Type</span><span class="p">:</span> <span class="n">Categorical</span><span class="p">,</span> <span class="n">Choices</span><span class="p">:</span> <span class="p">{</span><span class="n">cat</span><span class="p">,</span> <span class="n">dog</span><span class="p">},</span> <span class="n">Default</span><span class="p">:</span> <span class="n">cat</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>    <span class="n">c</span><span class="p">,</span> <span class="n">Type</span><span class="p">:</span> <span class="n">UniformFloat</span><span class="p">,</span> <span class="n">Range</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span> <span class="n">Default</span><span class="p">:</span> <span class="mf">0.5</span>
+</code></pre></div>
+</div>
+<p>The rules are as follows:</p>
+<ul>
+<li>If the value is a tuple, with <code>int</code>s, then it is considered an integer hyperparameter with a <strong>uniform</strong> distribution.</li>
+<li>If the value is a tuple, with <code>float</code>s, then it is considered a float hyperparameter with a <strong>uniform</strong> distribution.</li>
+<li>If the value is a list, then each element is considered a choice for a categorical hyperparameter, with no inherit
+order.</li>
+</ul>
+<div class="admonition warning">
+<p class="admonition-title">Mixed types in a tuple</p>
+<p>If you use an <code>int</code> and a <code>float</code> in the same tuple, it will infer the type using the <strong>first</strong> element.
+For example, <code>(0, 1.0)</code> will be inferred as an integer hyperparameter, while <code>(1.0, 10)</code> will
+be inferred as a float hyperparameter.</p>
+</div>
+<h2 id="simple-hyperparameters">Simple Hyperparameters<a class="headerlink" href="#simple-hyperparameters" title="Permanent link">#</a></h2>
+<p>Most of the time, you just require the ability to create hyperparameters and pass them to some other library.
+To make this is as possible, we parametrize building the various <strong>direct</strong> hyperparameters that exist.</p>
+<h3 id="integer">Integer<a class="headerlink" href="#integer" title="Permanent link">#</a></h3>
+<p>The <a class="autorefs autorefs-internal" href="../../api/ConfigSpace/api/types/integer/#ConfigSpace.api.types.integer.Integer"><code>Integer()</code></a> <strong>function</strong> samples an <code>int</code> uniformly
+from the range <code>(lower, upper)</code>, with options to define them as being on a <code>log=</code> scale or
+that you prefer the sampling to be done under a different <code>distribution=</code>.
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span> <span class="nn">ConfigSpace</span> <span class="kn">import</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">ConfigurationSpace</span><span class="p">,</span> <span class="n">Uniform</span><span class="p">,</span> <span class="n">Normal</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="n">cs</span> <span class="o">=</span> <span class="n">ConfigurationSpace</span><span class="p">()</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="n">cs</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="n">Integer</span><span class="p">(</span><span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span> <span class="n">log</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    <span class="n">Integer</span><span class="p">(</span><span class="s2">&quot;b&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span> <span class="n">log</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">distribution</span><span class="o">=</span><span class="n">Uniform</span><span class="p">(),</span> <span class="n">default</span><span class="o">=</span><span class="mi">5</span><span class="p">),</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>    <span class="n">Integer</span><span class="p">(</span><span class="s2">&quot;c&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1000</span><span class="p">),</span> <span class="n">log</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">distribution</span><span class="o">=</span><span class="n">Normal</span><span class="p">(</span><span class="n">mu</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="mi">200</span><span class="p">)),</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="p">)</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="nb">print</span><span class="p">(</span><span class="n">cs</span><span class="p">)</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="nb">print</span><span class="p">(</span><span class="n">cs</span><span class="p">[</span><span class="s2">&quot;a&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">sample_value</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mi">5</span><span class="p">))</span>
+</code></pre></div>
+<div class="result">
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">Configuration</span> <span class="n">space</span> <span class="nb">object</span><span class="p">:</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>  <span class="n">Hyperparameters</span><span class="p">:</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>    <span class="n">a</span><span class="p">,</span> <span class="n">Type</span><span class="p">:</span> <span class="n">UniformInteger</span><span class="p">,</span> <span class="n">Range</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">],</span> <span class="n">Default</span><span class="p">:</span> <span class="mi">5</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>    <span class="n">b</span><span class="p">,</span> <span class="n">Type</span><span class="p">:</span> <span class="n">UniformInteger</span><span class="p">,</span> <span class="n">Range</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">],</span> <span class="n">Default</span><span class="p">:</span> <span class="mi">5</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>    <span class="n">c</span><span class="p">,</span> <span class="n">Type</span><span class="p">:</span> <span class="n">NormalInteger</span><span class="p">,</span> <span class="n">Mu</span><span class="p">:</span> <span class="mf">200.0</span><span class="p">,</span> <span class="n">Sigma</span><span class="p">:</span> <span class="mf">200.0</span><span class="p">,</span> <span class="n">Range</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1000</span><span class="p">],</span> <span class="n">Default</span><span class="p">:</span> <span class="mi">200</span><span class="p">,</span> <span class="n">on</span> <span class="n">log</span><span class="o">-</span><span class="n">scale</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="p">[</span> <span class="mi">4</span> <span class="mi">10</span>  <span class="mi">1</span>  <span class="mi">0</span>  <span class="mi">8</span><span class="p">]</span>
+</code></pre></div>
+</div></p>
+<p>Please check out the <a class="autorefs autorefs-internal" href="../../api/ConfigSpace/api/distributions/#ConfigSpace.api.distributions.Distribution">distributions API</a> for more information on the available
+distributions.</p>
+<div class="admonition warning">
+<p class="admonition-title">Not a type</p>
+<p>Please be aware that <code>Integer</code> is a convenience <strong>function</strong> that returns
+one of the <strong>direct</strong> hyperparameter classes. Please see the <a href="#direct-hyperparameters">direct hyperparameters</a> if you need to
+access the underlying classes.</p>
+</div>
+<h3 id="float">Float<a class="headerlink" href="#float" title="Permanent link">#</a></h3>
+<p>The <a class="autorefs autorefs-internal" href="../../api/ConfigSpace/api/types/float/#ConfigSpace.api.types.float.Float"><code>Float()</code></a> <strong>function</strong> samples a <code>float</code> uniformly from the range <code>(lower, upper)</code>,
+with options to define them as being on a <code>log=</code> scale or
+that you prefer the sampling to be done under a different <code>distribution=</code>.
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span> <span class="nn">ConfigSpace</span> <span class="kn">import</span> <span class="n">Float</span><span class="p">,</span> <span class="n">ConfigurationSpace</span><span class="p">,</span> <span class="n">Uniform</span><span class="p">,</span> <span class="n">Normal</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="n">cs</span> <span class="o">=</span> <span class="n">ConfigurationSpace</span><span class="p">()</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="n">cs</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="n">Float</span><span class="p">(</span><span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span> <span class="n">log</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    <span class="n">Float</span><span class="p">(</span><span class="s2">&quot;b&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span> <span class="n">log</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">distribution</span><span class="o">=</span><span class="n">Uniform</span><span class="p">(),</span> <span class="n">default</span><span class="o">=</span><span class="mi">5</span><span class="p">),</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>    <span class="n">Float</span><span class="p">(</span><span class="s2">&quot;c&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1000</span><span class="p">),</span> <span class="n">log</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">distribution</span><span class="o">=</span><span class="n">Normal</span><span class="p">(</span><span class="n">mu</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="mi">200</span><span class="p">)),</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="p">)</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="nb">print</span><span class="p">(</span><span class="n">cs</span><span class="p">)</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="nb">print</span><span class="p">(</span><span class="n">cs</span><span class="p">[</span><span class="s2">&quot;a&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">sample_value</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mi">5</span><span class="p">))</span>
+</code></pre></div>
+<div class="result">
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">Configuration</span> <span class="n">space</span> <span class="nb">object</span><span class="p">:</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>  <span class="n">Hyperparameters</span><span class="p">:</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>    <span class="n">a</span><span class="p">,</span> <span class="n">Type</span><span class="p">:</span> <span class="n">UniformFloat</span><span class="p">,</span> <span class="n">Range</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">10.0</span><span class="p">],</span> <span class="n">Default</span><span class="p">:</span> <span class="mf">5.0</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>    <span class="n">b</span><span class="p">,</span> <span class="n">Type</span><span class="p">:</span> <span class="n">UniformFloat</span><span class="p">,</span> <span class="n">Range</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">10.0</span><span class="p">],</span> <span class="n">Default</span><span class="p">:</span> <span class="mf">5.0</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>    <span class="n">c</span><span class="p">,</span> <span class="n">Type</span><span class="p">:</span> <span class="n">NormalFloat</span><span class="p">,</span> <span class="n">Mu</span><span class="p">:</span> <span class="mf">200.0</span><span class="p">,</span> <span class="n">Sigma</span><span class="p">:</span> <span class="mf">200.0</span><span class="p">,</span> <span class="n">Range</span><span class="p">:</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1000.0</span><span class="p">],</span> <span class="n">Default</span><span class="p">:</span> <span class="mf">200.0</span><span class="p">,</span> <span class="n">on</span> <span class="n">log</span><span class="o">-</span><span class="n">scale</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="p">[</span><span class="mf">0.21014292</span> <span class="mf">3.98603538</span> <span class="mf">0.88758578</span> <span class="mf">0.31617973</span> <span class="mf">5.72290504</span><span class="p">]</span>
+</code></pre></div>
+</div></p>
+<p>Please check out the <a class="autorefs autorefs-internal" href="../../api/ConfigSpace/api/distributions/#ConfigSpace.api.distributions.Distribution">distributions API</a> for more information on the available
+distributions.</p>
+<div class="admonition warning">
+<p class="admonition-title">Not a type</p>
+<p>Please be aware that <code>Float</code> is a convenience <strong>function</strong> that returns
+one of the <strong>direct</strong> hyperparameter classes. Please see the <a href="#direct-hyperparameters">direct hyperparameters</a> if you need to
+access the underlying classes.</p>
+</div>
+<h3 id="categorical">Categorical<a class="headerlink" href="#categorical" title="Permanent link">#</a></h3>
+<p>The <a class="autorefs autorefs-internal" href="../../api/ConfigSpace/api/types/categorical/#ConfigSpace.api.types.categorical.Categorical"><code>Categorical()</code></a> <strong>function</strong> samples a value from the <code>choices=</code> provided.
+optionally giving them <code>weights=</code>, influencing the distribution of the sampling. You may also define them
+as <code>ordered=</code> if there is an inherent order to the choices.
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span> <span class="nn">ConfigSpace</span> <span class="kn">import</span> <span class="n">Categorical</span><span class="p">,</span> <span class="n">ConfigurationSpace</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="n">cs</span> <span class="o">=</span> <span class="n">ConfigurationSpace</span><span class="p">()</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="n">cs</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="n">Categorical</span><span class="p">(</span><span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;cat&quot;</span><span class="p">,</span> <span class="s2">&quot;dog&quot;</span><span class="p">,</span> <span class="s2">&quot;mouse&quot;</span><span class="p">],</span> <span class="n">default</span><span class="o">=</span><span class="s2">&quot;dog&quot;</span><span class="p">),</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    <span class="n">Categorical</span><span class="p">(</span><span class="s2">&quot;b&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;small&quot;</span><span class="p">,</span> <span class="s2">&quot;medium&quot;</span><span class="p">,</span> <span class="s2">&quot;large&quot;</span><span class="p">],</span> <span class="n">ordered</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s2">&quot;medium&quot;</span><span class="p">),</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>    <span class="n">Categorical</span><span class="p">(</span><span class="s2">&quot;c&quot;</span><span class="p">,</span> <span class="p">[</span><span class="kc">True</span><span class="p">,</span> <span class="kc">False</span><span class="p">],</span> <span class="n">weights</span><span class="o">=</span><span class="p">[</span><span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.8</span><span class="p">]),</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="p">)</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="nb">print</span><span class="p">(</span><span class="n">cs</span><span class="p">)</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="nb">print</span><span class="p">(</span><span class="n">cs</span><span class="p">[</span><span class="s2">&quot;c&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">sample_value</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mi">5</span><span class="p">))</span>
+</code></pre></div>
+<div class="result">
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">Configuration</span> <span class="n">space</span> <span class="nb">object</span><span class="p">:</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>  <span class="n">Hyperparameters</span><span class="p">:</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>    <span class="n">a</span><span class="p">,</span> <span class="n">Type</span><span class="p">:</span> <span class="n">Categorical</span><span class="p">,</span> <span class="n">Choices</span><span class="p">:</span> <span class="p">{</span><span class="n">cat</span><span class="p">,</span> <span class="n">dog</span><span class="p">,</span> <span class="n">mouse</span><span class="p">},</span> <span class="n">Default</span><span class="p">:</span> <span class="n">dog</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>    <span class="n">b</span><span class="p">,</span> <span class="n">Type</span><span class="p">:</span> <span class="n">Ordinal</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">:</span> <span class="p">{</span><span class="n">small</span><span class="p">,</span> <span class="n">medium</span><span class="p">,</span> <span class="n">large</span><span class="p">},</span> <span class="n">Default</span><span class="p">:</span> <span class="n">medium</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>    <span class="n">c</span><span class="p">,</span> <span class="n">Type</span><span class="p">:</span> <span class="n">Categorical</span><span class="p">,</span> <span class="n">Choices</span><span class="p">:</span> <span class="p">{</span><span class="kc">True</span><span class="p">,</span> <span class="kc">False</span><span class="p">},</span> <span class="n">Default</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="n">Probabilities</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.2</span> <span class="mf">0.8</span><span class="p">]</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="p">[</span> <span class="kc">True</span> <span class="kc">False</span> <span class="kc">False</span> <span class="kc">False</span> <span class="kc">False</span><span class="p">]</span>
+</code></pre></div>
+</div></p>
+<div class="admonition warning">
+<p class="admonition-title">Not a type</p>
+<p>Please be aware that <code>Categorical</code> is a convenience <strong>function</strong> that returns
+one of the <strong>direct</strong> hyperparameter classes. Please see the <a href="#direct-hyperparameters">direct hyperparameters</a> if you need to
+access the underlying classes.</p>
+</div>
+<h2 id="direct-hyperparameters">Direct Hyperparameters<a class="headerlink" href="#direct-hyperparameters" title="Permanent link">#</a></h2>
+<p>All of the methods for constructing hyperparameters above will result in one of the following types.</p>
+<p><strong>Integer Hyperparameter</strong></p>
+<ul>
+<li><a class="autorefs autorefs-internal" href="../../api/ConfigSpace/hyperparameters/uniform_integer/#ConfigSpace.hyperparameters.uniform_integer.UniformIntegerHyperparameter"><code>UniformIntegerHyperparameter</code></a></li>
+<li><a class="autorefs autorefs-internal" href="../../api/ConfigSpace/hyperparameters/normal_integer/#ConfigSpace.hyperparameters.normal_integer.NormalIntegerHyperparameter"><code>NormalIntegerHyperparameter</code></a></li>
+<li><a class="autorefs autorefs-internal" href="../../api/ConfigSpace/hyperparameters/beta_integer/#ConfigSpace.hyperparameters.beta_integer.BetaIntegerHyperparameter"><code>BetaIntegerHyperparameter</code></a></li>
+</ul>
+<p><strong>Float Hyperparameter</strong></p>
+<ul>
+<li><a class="autorefs autorefs-internal" href="../../api/ConfigSpace/hyperparameters/uniform_float/#ConfigSpace.hyperparameters.uniform_float.UniformFloatHyperparameter"><code>UniformFloatHyperparameter</code></a></li>
+<li><a class="autorefs autorefs-internal" href="../../api/ConfigSpace/hyperparameters/normal_float/#ConfigSpace.hyperparameters.normal_float.NormalFloatHyperparameter"><code>NormalFloatHyperparameter</code></a></li>
+<li><a class="autorefs autorefs-internal" href="../../api/ConfigSpace/hyperparameters/beta_float/#ConfigSpace.hyperparameters.beta_float.BetaFloatHyperparameter"><code>BetaFloatHyperparameter</code></a></li>
+</ul>
+<p><strong>Categorical Hyperparameter</strong></p>
+<ul>
+<li><a class="autorefs autorefs-internal" href="../../api/ConfigSpace/hyperparameters/categorical/#ConfigSpace.hyperparameters.categorical.CategoricalHyperparameter"><code>CategoricalHyperparameter</code></a></li>
+<li><a class="autorefs autorefs-internal" href="../../api/ConfigSpace/hyperparameters/ordinal/#ConfigSpace.hyperparameters.ordinal.OrdinalHyperparameter"><code>OrdinalHyperparameter</code></a></li>
+</ul>
+<p>You can utilize these types in your code as required for <code>isinstance</code> checks or allow your own code to create
+them as required. If developing a library, please see below to understand a bit more about the <a href="#structure-of-a-hyperparameter">structure of a Hyperparameter</a>.</p>
+<h2 id="structure-of-a-hyperparameter">Structure of a Hyperparameter<a class="headerlink" href="#structure-of-a-hyperparameter" title="Permanent link">#</a></h2>
+<p>All hyperparameters inherit from the <a class="autorefs autorefs-internal" href="../../api/ConfigSpace/hyperparameters/hyperparameter/#ConfigSpace.hyperparameters.hyperparameter.Hyperparameter"><code>Hyperparameter</code></a> base class, with
+two important components to consider:</p>
+<ol>
+<li><strong>vectorized space</strong>: This defines some underlying numeric range along with a procedure to sample from it.</li>
+<li><strong>value space</strong>: These are the values that are given back to the user, <em>e.g.</em> <code>["cat", "dog"]</code>.</li>
+</ol>
+<p>What makes a hyperparameter the hyperparameter it is then:</p>
+<ol>
+<li>How we sample from the vectorized space, defined by a <a class="autorefs autorefs-internal" href="../../api/ConfigSpace/hyperparameters/distributions/#ConfigSpace.hyperparameters.distributions.Distribution"><code>Distribution</code></a>.</li>
+<li>How we map to and from the vectorized space to the value space, defined by a <a class="autorefs autorefs-internal" href="../../api/ConfigSpace/hyperparameters/hp_components/#ConfigSpace.hyperparameters.hp_components.Transformer"><code>Transformer</code></a>.</li>
+</ol>
+<details class="tip">
+<summary>Why a vectorized space?</summary>
+<p>Most optimizers requires some kind of bounds and a pure numeric space from which to optimize over, i.e.
+it would be hard to optimize over a hyperparameter space of <code>["cat", "dog"]</code> directly.</p>
+<p>This also lets use share implementation details and optimization across various kinds of hyperparameters
+if they share the same underlying vectorized space.</p>
+</details>
+<div class="admonition example">
+<p class="admonition-title">CategoricalHyperparameter</p>
+<p>Inside of the <code>__init__</code> method of a <code>CategoricalHyperparameter</code>, you will find something along the lines
+of the following:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">class</span> <span class="nc">CategoricalHyperparameter</span><span class="p">(</span><span class="n">Hyperparameter</span><span class="p">):</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="o">...</span><span class="p">):</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>        <span class="c1"># ...</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>            <span class="n">vector_dist</span><span class="o">=</span><span class="n">UniformIntegerDistribution</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">choices</span><span class="p">)),</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>            <span class="n">transformer</span><span class="o">=</span><span class="n">TransformerSeq</span><span class="p">(</span><span class="n">seq</span><span class="o">=</span><span class="n">choices</span><span class="p">),</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>            <span class="o">...</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>        <span class="p">)</span>
+</code></pre></div>
+<p>What this is showing is that we will use
+<a class="autorefs autorefs-internal" href="../../api/ConfigSpace/hyperparameters/distributions/#ConfigSpace.hyperparameters.distributions.UniformIntegerDistribution"><code>UniformIntegerDistribution</code></a>, which
+samples integers uniformly from <code>0</code> to <code>len(choices) - 1</code>, and then we use a
+<a class="autorefs autorefs-internal" href="../../api/ConfigSpace/hyperparameters/hp_components/#ConfigSpace.hyperparameters.hp_components.TransformerSeq"><code>TransformerSeq</code></a> to map these integers to the
+corresponding choices provided by the users.</p>
+<p>Internally in <code>ConfigSpace</code>, we will primarily work with the vectorized space for efficiency purposes,
+but when providing values back to the user, either from the
+<a class="autorefs autorefs-internal" href="../../api/ConfigSpace/configuration/#ConfigSpace.configuration.Configuration"><code>Configuration</code></a> or other means, we will use the <code>transformer=</code> to
+map the vectorized space back to the value space.</p>
+</div>
+<p>Using just these two components alone, we can provide the following functionality from the <a class="autorefs autorefs-internal" href="../../api/ConfigSpace/hyperparameters/hyperparameter/#ConfigSpace.hyperparameters.hyperparameter.Hyperparameter"><code>Hyperparameter</code></a> base class:</p>
+<ul>
+<li><a class="autorefs autorefs-internal" href="../../api/ConfigSpace/hyperparameters/hyperparameter/#ConfigSpace.hyperparameters.hyperparameter.Hyperparameter.sample_vector"><code>sample_vector()</code></a>: Samples a vectorized value</li>
+<li><a class="autorefs autorefs-internal" href="../../api/ConfigSpace/hyperparameters/hyperparameter/#ConfigSpace.hyperparameters.hyperparameter.Hyperparameter.sample_value"><code>sample_value()</code></a>:
+Samples a vectorized value and transforms it back to the value space.</li>
+<li><a class="autorefs autorefs-internal" href="../../api/ConfigSpace/hyperparameters/hyperparameter/#ConfigSpace.hyperparameters.hyperparameter.Hyperparameter.to_value"><code>to_value()</code></a>: Transforms a vectorized value to the value space.</li>
+<li><a class="autorefs autorefs-internal" href="../../api/ConfigSpace/hyperparameters/hyperparameter/#ConfigSpace.hyperparameters.hyperparameter.Hyperparameter.to_vector"><code>to_vector()</code></a>: Transforms a value space value to the vectorized space.</li>
+<li><a class="autorefs autorefs-internal" href="../../api/ConfigSpace/hyperparameters/hyperparameter/#ConfigSpace.hyperparameters.hyperparameter.Hyperparameter.pdf_vector"><code>pdf_vector()</code></a>: The probability density function of a vectorized value.</li>
+<li><a class="autorefs autorefs-internal" href="../../api/ConfigSpace/hyperparameters/hyperparameter/#ConfigSpace.hyperparameters.hyperparameter.Hyperparameter.pdf_values"><code>pdf_values()</code></a>: The probability density function of a value,
+  by transforming it to the vectorized space and then calculating the pdf.</li>
+<li><a class="autorefs autorefs-internal" href="../../api/ConfigSpace/hyperparameters/hyperparameter/#ConfigSpace.hyperparameters.hyperparameter.Hyperparameter.legal_value"><code>legal_value()</code></a>: Check if a value is legal.</li>
+<li><a class="autorefs autorefs-internal" href="../../api/ConfigSpace/hyperparameters/hyperparameter/#ConfigSpace.hyperparameters.hyperparameter.Hyperparameter.legal_vector"><code>legal_vector()</code></a>: Check if a vectorized value is legal.</li>
+<li><a class="autorefs autorefs-internal" href="../../api/ConfigSpace/hyperparameters/hyperparameter/#ConfigSpace.hyperparameters.hyperparameter.Hyperparameter.lower_vectorized"><code>.lower_vectorized</code></a>: The lower bound in vectorized space.</li>
+<li><a class="autorefs autorefs-internal" href="../../api/ConfigSpace/hyperparameters/hyperparameter/#ConfigSpace.hyperparameters.hyperparameter.Hyperparameter.upper_vectorized"><code>.upper_vectorized</code></a>: The upper bound in vectorized space.</li>
+</ul>
+<p>Please note that most of these methods support individual values or numpy arrays of values, either as input or output.
+Refer to the <a class="autorefs autorefs-internal" href="../../api/ConfigSpace/hyperparameters/hyperparameter/#ConfigSpace.hyperparameters.hyperparameter.Hyperparameter">API documentation</a> for more information on the available methods.</p>
+<h3 id="neighborhoods">Neighborhoods<a class="headerlink" href="#neighborhoods" title="Permanent link">#</a></h3>
+<p>One utility <code>ConfigSpace</code> provides to library developers is the ability to define a neighbourhood around a value.
+This is often important for optimizers who require a neighbourhood to explore around a particular configuration or value.</p>
+<p>A class inheriting from <a class="autorefs autorefs-internal" href="../../api/ConfigSpace/hyperparameters/hyperparameter/#ConfigSpace.hyperparameters.hyperparameter.Hyperparameter"><code>Hyperparameter</code></a> must also provide
+a <a class="autorefs autorefs-internal" href="../../api/ConfigSpace/hyperparameters/hp_components/#ConfigSpace.hyperparameters.hp_components.Neighborhood"><code>Neighborhood</code></a>, which is something that can be called
+with a vectorized value and provide values around that point.</p>
+<p>The expected signature is rather straight forward, given a <code>vector</code> value and a <code>n</code> number of samples to return,
+it should return a numpy array of <strong>up to</strong> <code>n</code> <strong>unique</strong> samples.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>    <span class="bp">self</span><span class="p">,</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>    <span class="n">vector</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">,</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>    <span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>    <span class="o">*</span><span class="p">,</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>    <span class="n">std</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>    <span class="n">seed</span><span class="p">:</span> <span class="n">RandomState</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]:</span> <span class="o">...</span>
+</code></pre></div>
+<p>They must also provide a <code>_neighbourhood_size</code>, either <code>np.inf</code> if
+unbounded or a method that returns the maximum possible neighbors that are possible around a given value.</p>
+<p>By subclasses providing this through the <code>__init__</code> method, we can then provide the following functionality:</p>
+<ul>
+<li><a class="autorefs autorefs-internal" href="../../api/ConfigSpace/hyperparameters/hyperparameter/#ConfigSpace.hyperparameters.hyperparameter.Hyperparameter.get_num_neighbors"><code>get_num_neighbors()</code></a>: Get the number of neighbours around a value.</li>
+<li><a class="autorefs autorefs-internal" href="../../api/ConfigSpace/hyperparameters/hyperparameter/#ConfigSpace.hyperparameters.hyperparameter.Hyperparameter.neighbors_vectorized"><code>neighbors_vectorized()</code></a>: Get neighbors around a
+point in vectorized space.</li>
+<li><a class="autorefs autorefs-internal" href="../../api/ConfigSpace/hyperparameters/hyperparameter/#ConfigSpace.hyperparameters.hyperparameter.Hyperparameter.neighbors_values"><code>neighbors_values()</code></a>: Get neighbors around a
+point in value space.</li>
+</ul>
+<p>Please refer to the source code definition of existing hyperparameters for more information on how to implement this.
+Most of this is defined in the <code>__init__</code> method of the hyperparameter.</p>
+<h3 id="example-implementing-the-betaintegerhyperparameter">Example: Implementing the BetaIntegerHyperparameter<a class="headerlink" href="#example-implementing-the-betaintegerhyperparameter" title="Permanent link">#</a></h3>
+<p>For implementing your own hyperparameter type, it's useful to look at a case study of implementing an existing
+hyperparameter and to see what functionality can be re-used in the library.
+Please refer to this article on Wikipedia for more information on the <a href="https://en.wikipedia.org/wiki/Beta_distribution">Beta distribution</a>
+for more on the distribution.</p>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>Be aware the <code>ConfigSpace</code> is heavily optimized towards performance using profiling, and where possible, it
+would be good to use pre-existing components to build your hyperparameter. You'd be surprised how much milliseconds
+add up when sampling thousands of configurations both globally and using neighborhoods.</p>
+</div>
+<hr />
+<h4 id="defining-the-betaintegerhyperparameter">Defining the BetaintegerHyperparameter<a class="headerlink" href="#defining-the-betaintegerhyperparameter" title="Permanent link">#</a></h4>
+<p>First, we need to define the <code>__init__</code> method of the <code>BetaIntegerHyperparameter</code>, where we're going to
+need the following for a <a class="autorefs autorefs-internal" href="../../api/ConfigSpace/hyperparameters/hyperparameter/#ConfigSpace.hyperparameters.hyperparameter.IntegerHyperparameter"><code>BetaIntegerHyperparameter</code></a>:</p>
+<ul>
+<li><code>name=</code>: The name of the hyperparameter, required for all kinds of hyperparameters</li>
+<li><code>lower=</code>, <code>upper=</code>: The bounds the user would like in value space, i.e. <code>(1, 5)</code></li>
+<li><code>default_value=</code>: The default value of the hyperparameter.</li>
+<li><code>alpha=</code>, <code>beta=</code>: The parameters of the beta distribution itself.</li>
+</ul>
+<h4 id="vectorized-space">Vectorized Space<a class="headerlink" href="#vectorized-space" title="Permanent link">#</a></h4>
+<p>For our purposes, we will mostly rely on scipys <code>beta</code> distribution to sample from a <strong>vectorized space</strong>.
+Here is how you would sample from it in <code>scipy:</code></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span> <span class="nn">scipy.stats</span> <span class="kn">import</span> <span class="n">beta</span> <span class="k">as</span> <span class="n">spbeta</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="n">alpha</span><span class="p">,</span> <span class="n">beta</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">2</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="n">beta_rv</span> <span class="o">=</span> <span class="n">spbeta</span><span class="p">(</span><span class="n">alpha</span><span class="p">,</span> <span class="n">beta</span><span class="p">)</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="n">samples</span> <span class="o">=</span> <span class="n">beta_rv</span><span class="o">.</span><span class="n">rvs</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="nb">print</span><span class="p">(</span><span class="n">samples</span><span class="p">)</span>
+</code></pre></div>
+<div class="result">
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="p">[</span><span class="mf">0.37788422</span> <span class="mf">0.66895868</span> <span class="mf">0.55708601</span> <span class="mf">0.52798982</span> <span class="mf">0.69004761</span><span class="p">]</span>
+</code></pre></div>
+</div>
+<p>The problem however is that scipy only offers a contiuous version of this distribution, however we
+need to sample integers. To solve this, we will use the
+<a class="autorefs autorefs-internal" href="../../api/ConfigSpace/hyperparameters/distributions/#ConfigSpace.hyperparameters.distributions.DiscretizedContinuousScipyDistribution"><code>DiscretizedContinuousScipyDistribution</code></a></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="kn">from</span> <span class="nn">scipy.stats</span> <span class="kn">import</span> <span class="n">beta</span> <span class="k">as</span> <span class="n">spbeta</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="kn">from</span> <span class="nn">ConfigSpace.hyperparameters.distributions</span> <span class="kn">import</span> <span class="n">DiscretizedContinuousScipyDistribution</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="c1"># As before</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="n">alpha</span><span class="p">,</span> <span class="n">beta</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">2</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="n">beta_rv</span> <span class="o">=</span> <span class="n">spbeta</span><span class="p">(</span><span class="n">alpha</span><span class="p">,</span> <span class="n">beta</span><span class="p">)</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="c1"># Declare our value space bounds and how many discrete steps there</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="c1"># are between them.</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="n">value_bounds</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="n">discrete_steps</span> <span class="o">=</span> <span class="n">value_bounds</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">value_bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span>
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="c1"># Creates a distribution which can discretize the continuous range</span>
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="c1"># into `size` number of steps, such that we can map the discretized</span>
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="c1"># vector values into integers in the range that was requested.</span>
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>
+<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a><span class="c1"># Where possible, it is usually preferable to have vectorized bounds from (0, 1)</span>
+<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a><span class="c1"># We also require all vectorized values to be np.float64, even if they represent integers</span>
+<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a><span class="n">vector_distribution</span> <span class="o">=</span> <span class="n">DiscretizedContinuousScipyDistribution</span><span class="p">(</span>
+<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>    <span class="n">rv</span><span class="o">=</span><span class="n">beta_rv</span><span class="p">,</span>
+<a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>    <span class="n">steps</span><span class="o">=</span><span class="n">discrete_steps</span><span class="p">,</span>
+<a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>    <span class="n">lower_vectorized</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span>
+<a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>    <span class="n">upper_vectorized</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span>
+<a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a><span class="p">)</span>
+<a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a><span class="nb">print</span><span class="p">(</span><span class="n">vector_distribution</span><span class="o">.</span><span class="n">sample_vector</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="mi">5</span><span class="p">))</span>
+</code></pre></div>
+<div class="result">
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="p">[</span><span class="mf">0.75</span> <span class="mf">1.</span>   <span class="mf">1.</span>   <span class="mf">0.5</span>  <span class="mf">0.75</span><span class="p">]</span>
+</code></pre></div>
+</div>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>To support <code>scipy</code> distributions we implement various optimized <a class="autorefs autorefs-internal" href="../../api/ConfigSpace/hyperparameters/distributions/#ConfigSpace.hyperparameters.distributions.Distribution"><code>Distribution</code></a>s</p>
+<ul>
+<li><a class="autorefs autorefs-internal" href="../../api/ConfigSpace/hyperparameters/distributions/#ConfigSpace.hyperparameters.distributions.ScipyContinuousDistribution"><code>ScipyContinuousDistribution</code></a>:
+Samples from a continuous scipy distribution.</li>
+<li><a class="autorefs autorefs-internal" href="../../api/ConfigSpace/hyperparameters/distributions/#ConfigSpace.hyperparameters.distributions.ScipyDiscreteDistribution"><code>ScipyDiscreteDistribution</code></a>:
+Samples from a discrete scipy distribution.</li>
+<li><a class="autorefs autorefs-internal" href="../../api/ConfigSpace/hyperparameters/distributions/#ConfigSpace.hyperparameters.distributions.DiscretizedContinuousScipyDistribution"><code>DiscretizedContinuousScipyDistribution</code></a>:
+Samples from a continuous scipy distribution, but discretizes the output efficiently.</li>
+</ul>
+<p>The also often provide a <code>neighborhood</code> method to sample around a point that can be used, as well as a
+<code>pdf</code> method, which can do so efficiently in both memory and time.
+Please refer to their individual API documentation for more information on how to create and use them.</p>
+</div>
+<h3 id="transforming-from-vectorized-space-to-value-space">Transforming from Vectorized Space to Value Space<a class="headerlink" href="#transforming-from-vectorized-space-to-value-space" title="Permanent link">#</a></h3>
+<p>To convert from the vectorized space to the value space, we will need to implement a
+<a class="autorefs autorefs-internal" href="../../api/ConfigSpace/hyperparameters/hp_components/#ConfigSpace.hyperparameters.hp_components.Transformer"><code>Transformer</code></a> that can map the vectorized space to the
+value space, e.g. <code>(0.0, 1.0)</code> to <code>(1, 5)</code>.</p>
+<p>To do this, we provide a convenience class called <a class="autorefs autorefs-internal" href="../../api/ConfigSpace/hyperparameters/hp_components/#ConfigSpace.hyperparameters.hp_components.UnitScaler"><code>UnitScaler</code></a>,
+which also allows for a <code>log=</code> scale transformation.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="kn">from</span> <span class="nn">scipy.stats</span> <span class="kn">import</span> <span class="n">beta</span> <span class="k">as</span> <span class="n">spbeta</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="kn">from</span> <span class="nn">ConfigSpace.hyperparameters.distributions</span> <span class="kn">import</span> <span class="n">DiscretizedContinuousScipyDistribution</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="kn">from</span> <span class="nn">ConfigSpace.hyperparameters.hp_components</span> <span class="kn">import</span> <span class="n">UnitScaler</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="c1"># Define the distribution sampler</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="n">alpha</span><span class="p">,</span> <span class="n">beta</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">2</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="n">vector_distribution</span> <span class="o">=</span> <span class="n">DiscretizedContinuousScipyDistribution</span><span class="p">(</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>    <span class="n">rv</span><span class="o">=</span><span class="n">spbeta</span><span class="p">(</span><span class="n">alpha</span><span class="p">,</span> <span class="n">beta</span><span class="p">),</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>    <span class="n">steps</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>    <span class="n">lower_vectorized</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>    <span class="n">upper_vectorized</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span>
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="p">)</span>
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="n">vector_samples</span> <span class="o">=</span> <span class="n">vector_distribution</span><span class="o">.</span><span class="n">sample_vector</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="nb">print</span><span class="p">(</span><span class="n">vector_samples</span><span class="p">)</span>
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="c1"># Define the transformer from the samplers range to the range we care about</span>
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a><span class="n">transformer</span> <span class="o">=</span> <span class="n">UnitScaler</span><span class="p">(</span>
+<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>    <span class="n">lower_value</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span>
+<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>    <span class="n">upper_value</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">(</span><span class="mi">5</span><span class="p">),</span>
+<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>    <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">,</span>  <span class="c1"># We want integers in value space</span>
+<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>    <span class="n">log</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a><span class="p">)</span>
+<a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a><span class="n">integer_values</span> <span class="o">=</span> <span class="n">transformer</span><span class="o">.</span><span class="n">to_value</span><span class="p">(</span><span class="n">vector_samples</span><span class="p">)</span>
+<a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a><span class="nb">print</span><span class="p">(</span><span class="n">integer_values</span><span class="p">)</span>
+<a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>
+<a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a><span class="n">back_to_vector</span> <span class="o">=</span> <span class="n">transformer</span><span class="o">.</span><span class="n">to_vector</span><span class="p">(</span><span class="n">integer_values</span><span class="p">)</span>
+<a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a><span class="nb">print</span><span class="p">(</span><span class="n">back_to_vector</span><span class="p">)</span>
+</code></pre></div>
+<div class="result">
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="p">[</span><span class="mf">0.25</span> <span class="mf">0.75</span> <span class="mf">0.75</span> <span class="mf">0.5</span>  <span class="mf">0.5</span> <span class="p">]</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="p">[</span><span class="mi">2</span> <span class="mi">4</span> <span class="mi">4</span> <span class="mi">3</span> <span class="mi">3</span><span class="p">]</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="p">[</span><span class="mf">0.25</span> <span class="mf">0.75</span> <span class="mf">0.75</span> <span class="mf">0.5</span>  <span class="mf">0.5</span> <span class="p">]</span>
+</code></pre></div>
+</div>
+<p>You are of course free to implement your own <a class="autorefs autorefs-internal" href="../../api/ConfigSpace/hyperparameters/hp_components/#ConfigSpace.hyperparameters.hp_components.Transformer"><code>Transformer</code></a>
+if you require a more complex transformation, however where possible, the
+<a class="autorefs autorefs-internal" href="../../api/ConfigSpace/hyperparameters/hp_components/#ConfigSpace.hyperparameters.hp_components.UnitScaler"><code>UnitScaler</code></a> is preffered as it handles some edge cases
+and performs some optimized routines while remaining fully within the expected API.</p>
+<h3 id="creating-the-betaintegerhyperparameter-class">Creating the BetaIntegerHyperparameter class<a class="headerlink" href="#creating-the-betaintegerhyperparameter-class" title="Permanent link">#</a></h3>
+<p>Below we provide what is essentially the entire <code>BetaIntegerHyperparameter</code> in <code>ConfigSpace</code>.
+Nothing else is required and you can hotswap this out with other kinds of distributions if you require
+new kinds of <code>Hyperparameters</code>. Most libraries using <code>ConfigSpace</code> who do not require explicit kinds
+of hyperparameters should be able to utilize these.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>We use dataclasses in ConfigSpace, which means that inherting classes should also be a
+dataclass. This is not a strict requirement, but it is recommended to keep the API consistent.</p>
+</div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">TypeAlias</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">Hashable</span><span class="p">,</span> <span class="n">Any</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="kn">from</span> <span class="nn">scipy.stats</span> <span class="kn">import</span> <span class="n">beta</span> <span class="k">as</span> <span class="n">spbeta</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="kn">from</span> <span class="nn">ConfigSpace.hyperparameters</span> <span class="kn">import</span> <span class="n">IntegerHyperparameter</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="kn">from</span> <span class="nn">ConfigSpace.hyperparameters.distributions</span> <span class="kn">import</span> <span class="n">DiscretizedContinuousScipyDistribution</span>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="kn">from</span> <span class="nn">ConfigSpace.hyperparameters.hp_components</span> <span class="kn">import</span> <span class="n">UnitScaler</span>
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="kn">from</span> <span class="nn">ConfigSpace.functional</span> <span class="kn">import</span> <span class="n">is_close_to_integer_single</span>
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>
+<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="n">i64</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">int64</span>
+<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="n">f64</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span>
+<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a>
+<a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="c1"># We allow any kind of number to be used, we will cast as required</span>
+<a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a><span class="n">Number</span><span class="p">:</span> <span class="n">TypeAlias</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">number</span><span class="p">]</span>
+<a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a>
+<a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a><span class="nd">@dataclass</span><span class="p">(</span><span class="n">init</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>  <span class="c1"># We provide our own init</span>
+<a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a><span class="k">class</span> <span class="nc">BetaIntegerHyperparamter</span><span class="p">(</span><span class="n">IntegerHyperparameter</span><span class="p">):</span>
+<a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a>    <span class="n">ORDERABLE</span><span class="p">:</span> <span class="n">ClassVar</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>  <span class="c1"># Let ConfigSpace know there is an order to the values</span>
+<a id="__codelineno-2-19" name="__codelineno-2-19" href="#__codelineno-2-19"></a>
+<a id="__codelineno-2-20" name="__codelineno-2-20" href="#__codelineno-2-20"></a>    <span class="n">alpha</span><span class="p">:</span> <span class="nb">float</span>
+<a id="__codelineno-2-21" name="__codelineno-2-21" href="#__codelineno-2-21"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Some docstring decsription of this attribute.&quot;&quot;&quot;</span>
+<a id="__codelineno-2-22" name="__codelineno-2-22" href="#__codelineno-2-22"></a>
+<a id="__codelineno-2-23" name="__codelineno-2-23" href="#__codelineno-2-23"></a>    <span class="n">beta</span><span class="p">:</span> <span class="nb">float</span>
+<a id="__codelineno-2-24" name="__codelineno-2-24" href="#__codelineno-2-24"></a>    <span class="n">lower</span><span class="p">:</span> <span class="nb">float</span>
+<a id="__codelineno-2-25" name="__codelineno-2-25" href="#__codelineno-2-25"></a>    <span class="n">upper</span><span class="p">:</span> <span class="nb">float</span>
+<a id="__codelineno-2-26" name="__codelineno-2-26" href="#__codelineno-2-26"></a>    <span class="n">log</span><span class="p">:</span> <span class="nb">bool</span>
+<a id="__codelineno-2-27" name="__codelineno-2-27" href="#__codelineno-2-27"></a>    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
+<a id="__codelineno-2-28" name="__codelineno-2-28" href="#__codelineno-2-28"></a>    <span class="n">default_value</span><span class="p">:</span> <span class="nb">float</span>
+<a id="__codelineno-2-29" name="__codelineno-2-29" href="#__codelineno-2-29"></a>    <span class="n">meta</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="n">Hashable</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span>
+<a id="__codelineno-2-30" name="__codelineno-2-30" href="#__codelineno-2-30"></a>
+<a id="__codelineno-2-31" name="__codelineno-2-31" href="#__codelineno-2-31"></a>    <span class="n">size</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">init</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>  <span class="c1"># This will be calculated</span>
+<a id="__codelineno-2-32" name="__codelineno-2-32" href="#__codelineno-2-32"></a>
+<a id="__codelineno-2-33" name="__codelineno-2-33" href="#__codelineno-2-33"></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+<a id="__codelineno-2-34" name="__codelineno-2-34" href="#__codelineno-2-34"></a>        <span class="bp">self</span><span class="p">,</span>
+<a id="__codelineno-2-35" name="__codelineno-2-35" href="#__codelineno-2-35"></a>        <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+<a id="__codelineno-2-36" name="__codelineno-2-36" href="#__codelineno-2-36"></a>        <span class="n">alpha</span><span class="p">:</span> <span class="n">Number</span><span class="p">,</span>
+<a id="__codelineno-2-37" name="__codelineno-2-37" href="#__codelineno-2-37"></a>        <span class="n">beta</span><span class="p">:</span> <span class="n">Number</span><span class="p">,</span>
+<a id="__codelineno-2-38" name="__codelineno-2-38" href="#__codelineno-2-38"></a>        <span class="n">lower</span><span class="p">:</span> <span class="n">Number</span><span class="p">,</span>
+<a id="__codelineno-2-39" name="__codelineno-2-39" href="#__codelineno-2-39"></a>        <span class="n">upper</span><span class="p">:</span> <span class="n">Number</span><span class="p">,</span>
+<a id="__codelineno-2-40" name="__codelineno-2-40" href="#__codelineno-2-40"></a>        <span class="n">default_value</span><span class="p">:</span> <span class="n">Number</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-2-41" name="__codelineno-2-41" href="#__codelineno-2-41"></a>        <span class="n">log</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+<a id="__codelineno-2-42" name="__codelineno-2-42" href="#__codelineno-2-42"></a>        <span class="n">meta</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="n">Hashable</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-2-43" name="__codelineno-2-43" href="#__codelineno-2-43"></a>    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-2-44" name="__codelineno-2-44" href="#__codelineno-2-44"></a>        <span class="k">if</span> <span class="p">(</span><span class="n">alpha</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">beta</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">):</span>
+<a id="__codelineno-2-45" name="__codelineno-2-45" href="#__codelineno-2-45"></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+<a id="__codelineno-2-46" name="__codelineno-2-46" href="#__codelineno-2-46"></a>                <span class="s2">&quot;Please provide values of alpha and beta larger than or equal to&quot;</span>
+<a id="__codelineno-2-47" name="__codelineno-2-47" href="#__codelineno-2-47"></a>                <span class="s2">&quot;1 so that the probability density is finite.&quot;</span><span class="p">,</span>
+<a id="__codelineno-2-48" name="__codelineno-2-48" href="#__codelineno-2-48"></a>            <span class="p">)</span>
+<a id="__codelineno-2-49" name="__codelineno-2-49" href="#__codelineno-2-49"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">alpha</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">alpha</span><span class="p">)</span>
+<a id="__codelineno-2-50" name="__codelineno-2-50" href="#__codelineno-2-50"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">beta</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">beta</span><span class="p">)</span>
+<a id="__codelineno-2-51" name="__codelineno-2-51" href="#__codelineno-2-51"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">lower</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">rint</span><span class="p">(</span><span class="n">lower</span><span class="p">))</span>
+<a id="__codelineno-2-52" name="__codelineno-2-52" href="#__codelineno-2-52"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">upper</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">rint</span><span class="p">(</span><span class="n">upper</span><span class="p">))</span>
+<a id="__codelineno-2-53" name="__codelineno-2-53" href="#__codelineno-2-53"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">log</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="n">log</span><span class="p">)</span>
+<a id="__codelineno-2-54" name="__codelineno-2-54" href="#__codelineno-2-54"></a>
+<a id="__codelineno-2-55" name="__codelineno-2-55" href="#__codelineno-2-55"></a>        <span class="c1"># Create the transformer</span>
+<a id="__codelineno-2-56" name="__codelineno-2-56" href="#__codelineno-2-56"></a>        <span class="k">try</span><span class="p">:</span>
+<a id="__codelineno-2-57" name="__codelineno-2-57" href="#__codelineno-2-57"></a>            <span class="n">scaler</span> <span class="o">=</span> <span class="n">UnitScaler</span><span class="p">(</span><span class="n">i64</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lower</span><span class="p">),</span> <span class="n">i64</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">upper</span><span class="p">),</span> <span class="n">log</span><span class="o">=</span><span class="n">log</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">i64</span><span class="p">)</span>
+<a id="__codelineno-2-58" name="__codelineno-2-58" href="#__codelineno-2-58"></a>        <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+<a id="__codelineno-2-59" name="__codelineno-2-59" href="#__codelineno-2-59"></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Hyperparameter &#39;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&#39; has illegal settings&quot;</span><span class="p">)</span> <span class="kn">from</span> <span class="nn">e</span>
+<a id="__codelineno-2-60" name="__codelineno-2-60" href="#__codelineno-2-60"></a>
+<a id="__codelineno-2-61" name="__codelineno-2-61" href="#__codelineno-2-61"></a>
+<a id="__codelineno-2-62" name="__codelineno-2-62" href="#__codelineno-2-62"></a>        <span class="k">if</span> <span class="n">default_value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-2-63" name="__codelineno-2-63" href="#__codelineno-2-63"></a>            <span class="c1"># Get the mode of the distribution for setting a default</span>
+<a id="__codelineno-2-64" name="__codelineno-2-64" href="#__codelineno-2-64"></a>            <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">alpha</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">beta</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">):</span>
+<a id="__codelineno-2-65" name="__codelineno-2-65" href="#__codelineno-2-65"></a>                <span class="n">vectorized_mode</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">alpha</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">alpha</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">beta</span> <span class="o">-</span> <span class="mi">2</span><span class="p">)</span>
+<a id="__codelineno-2-66" name="__codelineno-2-66" href="#__codelineno-2-66"></a>            <span class="k">else</span><span class="p">:</span>
+<a id="__codelineno-2-67" name="__codelineno-2-67" href="#__codelineno-2-67"></a>                <span class="c1"># If both alpha and beta are 1, we have a uniform distribution.</span>
+<a id="__codelineno-2-68" name="__codelineno-2-68" href="#__codelineno-2-68"></a>                <span class="n">vectorized_mode</span> <span class="o">=</span> <span class="mf">0.5</span>
+<a id="__codelineno-2-69" name="__codelineno-2-69" href="#__codelineno-2-69"></a>
+<a id="__codelineno-2-70" name="__codelineno-2-70" href="#__codelineno-2-70"></a>            <span class="n">_default_value</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">rint</span><span class="p">(</span>
+<a id="__codelineno-2-71" name="__codelineno-2-71" href="#__codelineno-2-71"></a>                <span class="n">scaler</span><span class="o">.</span><span class="n">to_value</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">vectorized_mode</span><span class="p">]))[</span><span class="mi">0</span><span class="p">],</span>
+<a id="__codelineno-2-72" name="__codelineno-2-72" href="#__codelineno-2-72"></a>            <span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">i64</span><span class="p">)</span>
+<a id="__codelineno-2-73" name="__codelineno-2-73" href="#__codelineno-2-73"></a>        <span class="k">else</span><span class="p">:</span>
+<a id="__codelineno-2-74" name="__codelineno-2-74" href="#__codelineno-2-74"></a>            <span class="k">if</span> <span class="ow">not</span> <span class="n">is_close_to_integer_single</span><span class="p">(</span><span class="n">default_value</span><span class="p">):</span>
+<a id="__codelineno-2-75" name="__codelineno-2-75" href="#__codelineno-2-75"></a>                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+<a id="__codelineno-2-76" name="__codelineno-2-76" href="#__codelineno-2-76"></a>                    <span class="sa">f</span><span class="s2">&quot;`default_value` for hyperparameter &#39;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&#39; must be an integer.&quot;</span>
+<a id="__codelineno-2-77" name="__codelineno-2-77" href="#__codelineno-2-77"></a>                    <span class="sa">f</span><span class="s2">&quot; Got &#39;</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">default_value</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">&#39; for </span><span class="si">{</span><span class="n">default_value</span><span class="si">=}</span><span class="s2">.&quot;</span><span class="p">,</span>
+<a id="__codelineno-2-78" name="__codelineno-2-78" href="#__codelineno-2-78"></a>                <span class="p">)</span>
+<a id="__codelineno-2-79" name="__codelineno-2-79" href="#__codelineno-2-79"></a>
+<a id="__codelineno-2-80" name="__codelineno-2-80" href="#__codelineno-2-80"></a>            <span class="n">_default_value</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">rint</span><span class="p">(</span><span class="n">default_value</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">i64</span><span class="p">)</span>
+<a id="__codelineno-2-81" name="__codelineno-2-81" href="#__codelineno-2-81"></a>
+<a id="__codelineno-2-82" name="__codelineno-2-82" href="#__codelineno-2-82"></a>        <span class="n">size</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">upper</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">lower</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+<a id="__codelineno-2-83" name="__codelineno-2-83" href="#__codelineno-2-83"></a>        <span class="n">vector_dist</span> <span class="o">=</span> <span class="n">DiscretizedContinuousScipyDistribution</span><span class="p">(</span>
+<a id="__codelineno-2-84" name="__codelineno-2-84" href="#__codelineno-2-84"></a>            <span class="n">rv</span><span class="o">=</span><span class="n">spbeta</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">alpha</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">beta</span><span class="p">),</span>  <span class="c1"># type: ignore</span>
+<a id="__codelineno-2-85" name="__codelineno-2-85" href="#__codelineno-2-85"></a>            <span class="n">steps</span><span class="o">=</span><span class="n">size</span><span class="p">,</span>
+<a id="__codelineno-2-86" name="__codelineno-2-86" href="#__codelineno-2-86"></a>            <span class="n">lower_vectorized</span><span class="o">=</span><span class="n">f64</span><span class="p">(</span><span class="mf">0.0</span><span class="p">),</span>
+<a id="__codelineno-2-87" name="__codelineno-2-87" href="#__codelineno-2-87"></a>            <span class="n">upper_vectorized</span><span class="o">=</span><span class="n">f64</span><span class="p">(</span><span class="mf">1.0</span><span class="p">),</span>
+<a id="__codelineno-2-88" name="__codelineno-2-88" href="#__codelineno-2-88"></a>        <span class="p">)</span>
+<a id="__codelineno-2-89" name="__codelineno-2-89" href="#__codelineno-2-89"></a>
+<a id="__codelineno-2-90" name="__codelineno-2-90" href="#__codelineno-2-90"></a>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+<a id="__codelineno-2-91" name="__codelineno-2-91" href="#__codelineno-2-91"></a>            <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
+<a id="__codelineno-2-92" name="__codelineno-2-92" href="#__codelineno-2-92"></a>            <span class="n">size</span><span class="o">=</span><span class="n">size</span><span class="p">,</span>
+<a id="__codelineno-2-93" name="__codelineno-2-93" href="#__codelineno-2-93"></a>            <span class="n">default_value</span><span class="o">=</span><span class="n">_default_value</span><span class="p">,</span>
+<a id="__codelineno-2-94" name="__codelineno-2-94" href="#__codelineno-2-94"></a>            <span class="n">meta</span><span class="o">=</span><span class="n">meta</span><span class="p">,</span>
+<a id="__codelineno-2-95" name="__codelineno-2-95" href="#__codelineno-2-95"></a>            <span class="n">transformer</span><span class="o">=</span><span class="n">scaler</span><span class="p">,</span>
+<a id="__codelineno-2-96" name="__codelineno-2-96" href="#__codelineno-2-96"></a>            <span class="n">vector_dist</span><span class="o">=</span><span class="n">vector_dist</span><span class="p">,</span>
+<a id="__codelineno-2-97" name="__codelineno-2-97" href="#__codelineno-2-97"></a>            <span class="n">neighborhood</span><span class="o">=</span><span class="n">vector_dist</span><span class="o">.</span><span class="n">neighborhood</span><span class="p">,</span>
+<a id="__codelineno-2-98" name="__codelineno-2-98" href="#__codelineno-2-98"></a>            <span class="c1"># Tell ConfigSpace we expect an `int` when giving back a single value</span>
+<a id="__codelineno-2-99" name="__codelineno-2-99" href="#__codelineno-2-99"></a>            <span class="c1"># For a np.ndarray of values, this will be `np.int64`</span>
+<a id="__codelineno-2-100" name="__codelineno-2-100" href="#__codelineno-2-100"></a>            <span class="n">value_cast</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
+<a id="__codelineno-2-101" name="__codelineno-2-101" href="#__codelineno-2-101"></a>            <span class="c1"># This method comes from the IntegerHyperparameter</span>
+<a id="__codelineno-2-102" name="__codelineno-2-102" href="#__codelineno-2-102"></a>            <span class="c1"># you can implement this you self if you&#39;d like</span>
+<a id="__codelineno-2-103" name="__codelineno-2-103" href="#__codelineno-2-103"></a>            <span class="n">neighborhood_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_integer_neighborhood_size</span><span class="p">,</span>
+<a id="__codelineno-2-104" name="__codelineno-2-104" href="#__codelineno-2-104"></a>        <span class="p">)</span>
+</code></pre></div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../../guide/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Guide">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Guide
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../configuration_space/" class="md-footer__link md-footer__link--next" aria-label="Next: Configuration Space">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Configuration Space
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4Z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        <div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/automl" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.5.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://twitter.com/automl_org" target="_blank" rel="noopener" title="twitter.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.5.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M459.37 151.716c.325 4.548.325 9.097.325 13.645 0 138.72-105.583 298.558-298.558 298.558-59.452 0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055 0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421 0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391 0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04 0-57.828 46.782-104.934 104.934-104.934 30.213 0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": "../..", "features": ["content.code.annotate", "content.code.copy", "navigation.footer", "navigation.sections", "toc.follow", "toc.integrate", "navigation.tabs", "navigation.tabs.sticky", "header.autohide", "search.suggest", "search.highlight", "search.share"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.ad660dcc.min.js"></script>
+      
+        <script src="../../assets/_markdown_exec_pyodide.js"></script>
+      
+    
+  <script id="init-glightbox">const lightbox = GLightbox({"touchNavigation": true, "loop": false, "zoomable": true, "draggable": true, "openEffect": "zoom", "closeEffect": "zoom", "slideEffect": "slide"});
+document$.subscribe(() => { lightbox.reload() });
+</script></body>
+</html>
