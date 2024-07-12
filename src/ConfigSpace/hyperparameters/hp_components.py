@@ -287,6 +287,8 @@ class UnitScaler(Transformer[DType]):
         )
 
     def _unsafe_to_value_single(self, vector: f64) -> f64:
+        # NOTE: Unsafe as it does not check boundaries, clip or integer'ness
+        # linear (0-1) space to log scaling (0-1)
         if self.log:
             _l = np.log(self.lower_value)
             _u = np.log(self.upper_value)
