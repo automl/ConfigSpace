@@ -212,20 +212,11 @@ def continuous_neighborhood(
 ) -> Array[f64]:
     """Create a neighborhood of `n` neighbors around `vector` with a normal distribution.
 
-    The neighborhood is created by sampling from a normal distribution centered around
-    `vector` with a standard deviation of `std`. The samples are then quantized to the
-    range `[lower, upper]` with `bins` bins. The number of samples is `n`.
-
-    !!! warning
-
-        If there are not enough unique neighbors to sample from, the function will
-        return less than `n` neighbors.
-
     Args:
         vector: The center of the neighborhood.
         n: The number of neighbors to generate.
-        lower: The lower bound of the quantized range.
-        upper: The upper bound of the quantized range.
+        lower: The lower bound of the neighborhood range.
+        upper: The upper bound of the neighborhood range.
         std: The standard deviation of the normal distribution. If `None` will use
             [`DEFAULT_VECTORIZED_NUMERIC_STD`][ConfigSpace.hyperparameters.distributions.DEFAULT_VECTORIZED_NUMERIC_STD].
         seed: The random seed to use.
