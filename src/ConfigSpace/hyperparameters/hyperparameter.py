@@ -489,7 +489,7 @@ class Hyperparameter(ABC, Generic[ValueT, DType]):
         )
 
     def pdf_vector(self, vector: Array[f64]) -> Array[f64]:
-        """Get the probability density of an array vectorized values.
+        """Get the probability density of an array of vectorized values.
 
         Args:
             vector:
