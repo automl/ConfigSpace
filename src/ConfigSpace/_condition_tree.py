@@ -1,4 +1,4 @@
-r"""This module is considered private an houses most of the algorithmic structure
+r"""This module is considered private and houses most of the algorithmic structure
 of a [`ConfigurationSpace`][ConfigSpace.configuration_space.ConfigurationSpace].
 
 There is a lot of logic dedicated to caching structures that aid in:
