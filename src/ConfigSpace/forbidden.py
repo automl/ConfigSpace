@@ -686,7 +686,7 @@ class ForbiddenEqualsRelation(ForbiddenRelation):
     def is_forbidden_vector_array(self, arr: Array[f64]) -> Mask:
         left = arr[self.vector_ids[0]]
         right = arr[self.vector_ids[1]]
-        return self.left.to_value(left) < self.right.to_value(right)  # type: ignore
+        return self.left.to_value(left) == self.right.to_value(right)  # type: ignore
 
 
 class ForbiddenGreaterThanRelation(ForbiddenRelation):
