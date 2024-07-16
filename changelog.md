@@ -1,3 +1,11 @@
+# Version 1.0.1
+
+* FIX #373: Fix `ForbiddenEqualsRelation` when evaluating on vectors of values.
+
+# Version 1.0.0
+
+* REFACTOR #346: Please see PR [#346](https://github.com/automl/ConfigSpace/pull/346) for a full log of changes
+
 # Version 0.7.2
 
 *  MAINT #671465e2: Make loading json files from earlier versions backwards compatible
