@@ -64,13 +64,6 @@ class Constant(Hyperparameter[Any, Any]):
                 Field for holding meta data provided by the user.
                 Not used by the configuration space.
         """
-        # TODO: This should be changed and allowed...
-        if not isinstance(value, (int, float, str)) or isinstance(value, bool):
-            raise TypeError(
-                f"Constant hyperparameter '{name}' must be of type int, float or str, "
-                f"but got {type(value).__name__}.",
-            )
-
         self.value = value
 
         super().__init__(
