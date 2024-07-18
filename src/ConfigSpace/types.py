@@ -27,6 +27,9 @@ for example a `np.int64`.
 Array: TypeAlias = npt.NDArray[DType]
 """Array, a numpy array of a specific dtype."""
 
+ObjectArray: TypeAlias = npt.NDArray[np.object_]
+"""Object array, a numpy array of objects."""
+
 f64: TypeAlias = np.float64
 """64-bit floating point number."""
 
