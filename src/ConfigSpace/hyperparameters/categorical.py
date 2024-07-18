@@ -16,7 +16,7 @@ from ConfigSpace.hyperparameters.distributions import (
 )
 from ConfigSpace.hyperparameters.hp_components import Neighborhood, TransformerSeq
 from ConfigSpace.hyperparameters.hyperparameter import Hyperparameter
-from ConfigSpace.types import Array, NotSet, _NotSet, f64
+from ConfigSpace.types import Array, Mask, NotSet, _NotSet, f64
 
 if TYPE_CHECKING:
     from ConfigSpace.types import Array

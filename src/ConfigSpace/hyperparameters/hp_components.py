@@ -503,11 +503,10 @@ class TransformerConstant(Transformer[Any]):
 
     @override
     def to_vector(self, value: ObjectArray) -> Array[f64]:
-        return np.where(
-            value == self.value,
-            self.vector_value_yes,
-            self.vector_value_no,
-        )
+        if isinstance(self.value, np.ndarray):
+            return np.flatnonzero(np.equal(self.value, value)).astype(f64)
+
+        return np.array([v == self.value for v in value], dtype=f64)
 
     @override
     def to_value(self, vector: Array[f64]) -> ObjectArray:
@@ -515,7 +514,7 @@ class TransformerConstant(Transformer[Any]):
 
     @override
     def legal_value(self, value: ObjectArray) -> Mask:
-        return value == self.value  # type: ignore
+        return np.array([v == self.value for v in value], dtype=np.bool_)
 
     @override
     def legal_vector(self, vector: Array[f64]) -> Mask:

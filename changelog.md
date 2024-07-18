@@ -1,3 +1,9 @@
+# Version 1.1.0
+
+* FEAT #376: Allow arbitrary values for `Categorical`, `Ordinal`, and `Constant` hyperparameters.
+* FIX #375: Use `object` dtype for `Constant` np.array of values to prevent numpy type conversions of values.
+
+
 # Version 1.0.1
 
 * FIX #373: Fix `ForbiddenEqualsRelation` when evaluating on vectors of values.
@@ -92,7 +98,7 @@
 
 # Version 0.4.15
 
-* Add `pyproject.toml` to support wheel installation as required in 
+* Add `pyproject.toml` to support wheel installation as required in
   [PEP518](https://medium.com/@grassfedcode/pep-517-and-518-in-plain-english-47208ca8b7a6)
 
 # Version 0.4.14
@@ -120,7 +126,7 @@
 * ADD #135: Add weights to the sampling of categorical hyperparameters.
 * MAINT #129: Performance improvements for the generation of neighbor configurations.
 * MAINT #130: Test the installability of a distribution on travis-ci.
-* FIX #140: Fixes a bug which led to samples lower than the lower bound of 
+* FIX #140: Fixes a bug which led to samples lower than the lower bound of
   `UniformFloatHyperparemeter` if the lower bound was larger than zero and quantization was used.
 * FIX # 138: Fixes a bug in which the readme wasn't read correctly on systems not using UTF8 as
   their default encoding.
@@ -145,7 +151,7 @@
 
 # Version 0.4.9
 
-* Fixes an issue where adding a new forbidden for an unknown hyperparameter 
+* Fixes an issue where adding a new forbidden for an unknown hyperparameter
   did not result in an immediate exception.
 * Add a new argument `vector` to `util.deactivate_inactive_hyperparameters`
 * Make the number of categories a public variable for categorical and
@@ -153,21 +159,21 @@
 
 # Version 0.4.8
 
-* Fixes an issue which made serialization of `ForbiddenInCondition` to json 
+* Fixes an issue which made serialization of `ForbiddenInCondition` to json
   fail.
-* MAINT #101: Improved error message on setting illegal value in a 
+* MAINT #101: Improved error message on setting illegal value in a
   configuration.
 * DOC #91: Added a documentation to automl.github.io/ConfigSpace
 
 # Version 0.4.7
 
 * Tests Python3.7.
-* Fixes #87: better handling of Conjunctions when adding them to the 
+* Fixes #87: better handling of Conjunctions when adding them to the
   configuration space.
 * MAINT: Improved type annotation in `util.py` which results in improved
   performance (due to better Cython optimization).
-* MAINT: `util.get_one_exchange_neighborhood` now accepts two arguments 
-  `num_neighbors` and `stdev` which govern the neighborhood creation behaviour 
+* MAINT: `util.get_one_exchange_neighborhood` now accepts two arguments
+  `num_neighbors` and `stdev` which govern the neighborhood creation behaviour
   of several continuous hyperparameters.
 * NEW #85: Add function to obtain active hyperparameters
 * NEW #84: Add field for meta-data to the configuration space object.
@@ -291,21 +297,21 @@
 
 # Version 0.2.1
 
-* FIX: bug which changed order of hyperparameters when adding new 
-  hyperparameter. This was non-deterministic due to the use of dict instead 
+* FIX: bug which changed order of hyperparameters when adding new
+  hyperparameter. This was non-deterministic due to the use of dict instead
   of OrderedDict.
 * FIX: compare configurations with == instead of numpy.allclose.
 * FIX: issue 2, syntax error no longer present during installation
 * FIX: json serialization of configurations and their hyperparameters can now
-       be deserialized by json and still compare equal 
+       be deserialized by json and still compare equal
 
 # Version 0.2
 
-* FIX: bug which made integer values have different float values in the 
+* FIX: bug which made integer values have different float values in the
   underlying vector representation.
-* FIX: bug which could make two configuration spaces compare unequal due to 
+* FIX: bug which could make two configuration spaces compare unequal due to
   the use of defaultdict
-* FEATURE: new feature add_configuration_space, which allows to add a whole 
+* FEATURE: new feature add_configuration_space, which allows to add a whole
   configuration space into an existing configuration space
 * FEATURE: python3.5 support
 * FIX: add function get_parent() to Conjunctions (issue #1)

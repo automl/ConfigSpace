@@ -110,9 +110,9 @@ def _parse_hyperparameters_from_dict(
                 raise ValueError(f"Can't have empty list for categorical {name}")
 
             yield CategoricalHyperparameter(name, hp)
-
-        # It's a constant
-        yield Constant(name, hp)
+        else:
+            # It's a constant
+            yield Constant(name, hp)
 
 
 class ConfigurationSpace(Mapping[str, Hyperparameter]):

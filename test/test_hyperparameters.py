@@ -60,6 +60,10 @@ META_DATA: Mapping[Hashable, Any] = {
 }
 
 
+def f() -> None:
+    pass
+
+
 def test_constant():
     # Test construction
     c1 = Constant("value", 1)
@@ -67,10 +71,15 @@ def test_constant():
     c3 = Constant("value", 2)
     c4 = Constant("valuee", 1)
     c5 = Constant("valueee", 2)
+    c6 = Constant("valueee", [1, 2])
+    _c6 = Constant("valueee", [1, 2])
+    c7 = Constant("valueee", f)
+    c8 = Constant("valueee", Path("path"))
 
     # Test attributes are accessible
     assert c5.name == "valueee"
     assert c5.value == 2
+    assert c7.value == f
 
     # Test the string representation
     assert str(c1) == "value, Type: Constant, Value: 1"
@@ -81,26 +90,18 @@ def test_constant():
     assert c1 != c3
     assert c1 != c4
     assert c1 != c5
-
-    # Test that only string, integers and floats are allowed
-    # TODO: This should be changed and allowed...
-    v: Any
-    for v in [{}, None, True]:
-        with pytest.raises(TypeError):
-            Constant("value", v)
-
-    # Test that only string names are allowed
-    for name in [1, {}, None, True]:
-        with pytest.raises(TypeError):
-            Constant(name, "value")
+    assert c6 == _c6
 
     # test that meta-data is stored correctly
     c1_meta = Constant("value", 1, meta=dict(META_DATA))
     assert c1_meta.meta == META_DATA
 
     # Test getting the size
-    for constant in (c1, c2, c3, c4, c5, c1_meta):
+    for constant in (c1, c2, c3, c4, c5, c1_meta, c6, c7, c8):
         assert constant.size == 1
+
+    with pytest.raises(ValueError):
+        _ = Constant("value", np.array([1, 2]))
 
 
 def test_constant_pdf():
@@ -145,6 +146,14 @@ def test_constant_pdf():
         match="Method pdf expects a one-dimensional numpy array",
     ):
         c1.pdf_values(wrong_shape_3)
+
+    c3 = Constant("valueee", [1, 2])
+    c4 = Constant("valueee", f)
+    c5 = Constant("valueee", Path("path"))
+
+    assert c3.pdf_values([[1, 2]]) == np.array(1.0)
+    assert c4.pdf_values([f]) == np.array(1.0)
+    assert c5.pdf_values([Path("path")]) == np.array(1.0)
 
 
 def test_constant__pdf():
