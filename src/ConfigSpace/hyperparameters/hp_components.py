@@ -20,8 +20,11 @@ if TYPE_CHECKING:
 RandomState = np.random.RandomState
 
 CONSTANT_VECTOR_VALUE = i64(0)
-ROUND_PLACES = 9
-ATOL = 1e-9
+
+# NOTE: Beyond this point, tests start to fail on equality checks
+# due to transforms. This seems to be a relatively stable point
+ROUND_PLACES = 13
+ATOL = 1e-13
 
 T_contra = TypeVar("T_contra", contravariant=True)
 

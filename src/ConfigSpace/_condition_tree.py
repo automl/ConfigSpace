@@ -648,7 +648,7 @@ class DAG:
         existing = self.nodes.get(hp.name, None)
         if existing is not None:
             raise HyperparameterAlreadyExistsError(
-                f"Hyperparameter {existing.name} already exists in space."
+                f"Hyperparameter '{existing.name}' already exists in space."
                 f"\nExisting: {existing.hp}"
                 f"\nNew one: {hp}",
             )

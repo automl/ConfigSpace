@@ -1123,10 +1123,11 @@ def test_uniformfloat_transform():
         value_b = b.sample_value(seed=rs)
         values_dict = {"a": value_a, "b": value_b}
         config = Configuration(cs, values=values_dict)
-        string = json.dumps(dict(config))
+        values = dict(config)
+        string = json.dumps(values)
         saved_value = json.loads(string)
         saved_value = byteify(saved_value)
-        assert values_dict == saved_value
+        assert values == saved_value
 
 
 def test_setitem():
