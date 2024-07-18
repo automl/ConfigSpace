@@ -90,8 +90,8 @@ class UniformFloatHyperparameter(FloatHyperparameter):
                 Field for holding meta data provided by the user. Not used by
                 ConfigSpace.
         """
-        self.lower = float(lower)
-        self.upper = float(upper)
+        self.lower = float(np.round(lower, ROUND_PLACES))
+        self.upper = float(np.round(upper, ROUND_PLACES))
         self.log = log
 
         try:
