@@ -5,6 +5,7 @@ from typing import Literal, Union, overload
 from typing_extensions import TypeAlias
 
 from ConfigSpace.hyperparameters import CategoricalHyperparameter, OrdinalHyperparameter
+from ConfigSpace.types import NotSet, _NotSet
 
 # We only accept these types in `items`
 T: TypeAlias = Union[str, int, float]
@@ -16,7 +17,7 @@ def Categorical(
     name: str,
     items: Sequence[T],
     *,
-    default: T | None = None,
+    default: T | _NotSet = NotSet,
     weights: Sequence[float] | None = None,
     ordered: Literal[False],
     meta: dict | None = None,
@@ -29,7 +30,7 @@ def Categorical(
     name: str,
     items: Sequence[T],
     *,
-    default: T | None = None,
+    default: T | _NotSet = NotSet,
     weights: Sequence[float] | None = None,
     ordered: Literal[True],
     meta: dict | None = None,
@@ -42,7 +43,7 @@ def Categorical(
     name: str,
     items: Sequence[T],
     *,
-    default: T | None = None,
+    default: T | _NotSet = NotSet,
     weights: Sequence[float] | None = None,
     ordered: bool = ...,
     meta: dict | None = None,
@@ -53,7 +54,7 @@ def Categorical(
     name: str,
     items: Sequence[T],
     *,
-    default: T | None = None,
+    default: T | _NotSet = NotSet,
     weights: Sequence[float] | None = None,
     ordered: bool = False,
     meta: dict | None = None,

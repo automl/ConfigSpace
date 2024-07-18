@@ -26,6 +26,28 @@ Those are introduced in the [user guide](./guide.md)
     * You can now use your editor to jump to definition and see the source code.
     * Contribute more easily!
 
+    There is no also better support in Categorical, Ordinal and Constant hyperparameters,
+    for arbitrary values, for example:
+
+    ```python
+    from dataclasses import dataclass
+    from ConfigSpace import ConfigurationSpace, Constant
+
+    @dataclass
+    class A:
+        a: int
+
+    def f() -> None:
+        return None
+
+    cs = ConfigurationSpace({
+        "cat": [True, False, None],
+        "othercat": [A(1), f],
+        "constant": Constant("constant": (24, 25)),
+    })
+    ```
+
+
     With this, we have also deprecated many of the previous functions, simplifying the API
     where possible or improving it's clarity. We have tried hard to keep everything backwards
     compatible, and also recommend the new functionality to use!

@@ -1,15 +1,16 @@
 from __future__ import annotations
 
-from collections.abc import Hashable, Mapping
+from collections.abc import Hashable, Mapping, Sequence
 from dataclasses import dataclass
 from typing import Any, ClassVar
+from typing_extensions import override
 
 import numpy as np
 
 from ConfigSpace.hyperparameters.distributions import ConstantVectorDistribution
 from ConfigSpace.hyperparameters.hp_components import TransformerConstant
 from ConfigSpace.hyperparameters.hyperparameter import Hyperparameter
-from ConfigSpace.types import Array, f64
+from ConfigSpace.types import Array, Mask, f64
 
 CONSTANT_VECTOR_VALUE_YES = f64(1)
 """Vectorized value for constant when set."""
@@ -44,6 +45,8 @@ class Constant(Hyperparameter[Any, Any]):
     size: int
     """Size of the hyperparameter, which is always 1 for a constant hyperparameter."""
 
+    _contains_sequence_as_value: bool = False
+
     def __init__(
         self,
         name: str,
@@ -64,14 +67,15 @@ class Constant(Hyperparameter[Any, Any]):
                 Field for holding meta data provided by the user.
                 Not used by the configuration space.
         """
-        # TODO: This should be changed and allowed...
-        if not isinstance(value, (int, float, str)) or isinstance(value, bool):
-            raise TypeError(
-                f"Constant hyperparameter '{name}' must be of type int, float or str, "
-                f"but got {type(value).__name__}.",
+        if isinstance(value, np.ndarray):
+            raise ValueError(
+                "Constant hyperparameter does not support numpy arrays as values",
             )
-
         self.value = value
+        self._contains_sequence_as_value = isinstance(
+            value,
+            Sequence,
+        ) and not isinstance(value, str)
 
         super().__init__(
             name=name,
@@ -99,6 +103,76 @@ class Constant(Hyperparameter[Any, Any]):
         ]
 
         return ", ".join(parts)
+
+    @override
+    def legal_value(self, value: Any | Sequence[Any] | Array[Any]) -> bool | Mask:
+        if isinstance(value, np.ndarray):
+            return self._transformer.legal_value(value)
+
+        if isinstance(value, str):
+            return self._transformer.legal_value(np.array([value]))[0]
+
+        # Got a sequence of things, could be a list of stuff or a single value which is
+        # itself a list, e.g. a tuple (1, 2) indicating a single value
+        # If we could have single values which are sequences, we need to do some
+        # magic to get it into an array without numpy flattening it down
+        if isinstance(value, Sequence):
+            if self._contains_sequence_as_value:
+                # https://stackoverflow.com/a/47389566/5332072
+                _v = np.empty(1, dtype=object)
+                _v[0] = value
+                return self._transformer.legal_value(_v)[0]
+
+            # A sequence of things containing different values
+            return self._transformer.legal_value(np.asarray(value))
+
+        # Single value that is not a sequence
+        return self._transformer.legal_value(np.array([value]))[0]
+
+    @override
+    def pdf_values(self, values: Sequence[Any] | Array[Any]) -> Array[f64]:
+        if isinstance(values, np.ndarray):
+            if values.ndim != 1:
+                raise ValueError("Method pdf expects a one-dimensional numpy array")
+
+            vector = self.to_vector(values)  # type: ignore
+            return self.pdf_vector(vector)
+
+        if self._contains_sequence_as_value:
+            # We have to convert it into a numpy array of objects carefully
+            # https://stackoverflow.com/a/47389566/5332072
+            _v = np.empty(len(values), dtype=object)
+            _v[:] = values
+            _vector: Array[f64] = self.to_vector(_v)  # type: ignore
+            return self.pdf_vector(_vector)
+
+        vector: Array[f64] = self.to_vector(values)  # type: ignore
+        return self.pdf_vector(vector)
+
+    @override
+    def to_vector(self, value: Any | Sequence[Any] | Array[Any]) -> f64 | Array[f64]:
+        if isinstance(value, np.ndarray):
+            return self._transformer.to_vector(value)
+
+        if isinstance(value, str):
+            return self._transformer.to_vector(np.array([value]))[0]
+
+        # Got a sequence of things, could be a list of stuff or a single value which is
+        # itself a list, e.g. a tuple (1, 2) indicating a single value
+        # If we could have single values which are sequences, we need to do some
+        # magic to get it into an array without numpy flattening it down
+        if isinstance(value, Sequence):
+            if self._contains_sequence_as_value:
+                # https://stackoverflow.com/a/47389566/5332072
+                _v = np.empty(1, dtype=object)
+                _v[0] = value
+                return self._transformer.to_vector(_v)[0]
+
+            # A sequence of things containing different values
+            return self._transformer.to_vector(np.asarray(value))
+
+        # Single value that is not a sequence
+        return self._transformer.to_vector(np.array([value]))[0]
 
 
 UnParametrizedHyperparameter = Constant  # Legacy
