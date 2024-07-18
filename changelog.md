@@ -1,5 +1,8 @@
 # Version 1.1.0
 
+* FIX #377: Make rounding a constant value of `13` decimal places for floats and their boundaries.
+    * Previously this was different in arbitrary places.
+    * Why `13`? This was relatively stable across our test suite and allowed json to serialize/deserialize without loss of precision.
 * FEAT #376: Allow arbitrary values for `Categorical`, `Ordinal`, and `Constant` hyperparameters.
 * FIX #375: Use `object` dtype for `Constant` np.array of values to prevent numpy type conversions of values.
 

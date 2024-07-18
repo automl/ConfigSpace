@@ -17,9 +17,9 @@ and add hyperparameters of different types to it.
 Besides containing hyperparameters, `ConfigurationSpace` can contain constraints such as conditions and forbidden clauses.
 Those are introduced in the [user guide](./guide.md)
 
-!!! tip "New in 1.0!"
+!!! tip "New in 1.1!"
 
-    In ConfigSpace 1.0, we have removed the dependancy on `Cython` while even improving
+    In ConfigSpace 1.1, we have removed the dependancy on `Cython` while even improving
     the performance!
 
     * Should now install anywhere.
