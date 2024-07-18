@@ -108,10 +108,10 @@ class BetaFloatHyperparameter(FloatHyperparameter):
                 " 1 so that the probability density is finite.",
             )
 
-        self.alpha = float(alpha)
-        self.beta = float(beta)
-        self.lower = float(lower)
-        self.upper = float(upper)
+        self.alpha = float(np.round(alpha, ROUND_PLACES))
+        self.beta = float(np.round(beta, ROUND_PLACES))
+        self.lower = float(np.round(lower, ROUND_PLACES))
+        self.upper = float(np.round(upper, ROUND_PLACES))
         self.log = bool(log)
 
         try:

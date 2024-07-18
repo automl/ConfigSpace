@@ -8,6 +8,7 @@ import numpy as np
 
 from ConfigSpace.exceptions import IllegalValueError
 from ConfigSpace.hyperparameters import FloatHyperparameter
+from ConfigSpace.hyperparameters.hp_components import ROUND_PLACES
 from ConfigSpace.types import NotSet, f64
 
 if TYPE_CHECKING:
@@ -115,9 +116,9 @@ class Configuration(Mapping[str, Any]):
                 if not hp.legal_value(value):
                     raise IllegalValueError(hp, value)
 
-                # Truncate the float to be of constant length for a python version
+                # Truncate the float to be of constant lengt
                 if isinstance(hp, FloatHyperparameter):
-                    value = float(np.round(value, 16))  # type: ignore
+                    value = float(np.round(value, ROUND_PLACES))  # type: ignore
 
                 self._values[key] = value
                 self._vector[i] = hp.to_vector(value)  # type: ignore
@@ -226,7 +227,7 @@ class Configuration(Mapping[str, Any]):
 
         # Truncate float to be of constant length for a python version
         if isinstance(hyperparameter, FloatHyperparameter):
-            value = float(np.round(value, 16))  # type: ignore
+            value = float(np.round(value, ROUND_PLACES))  # type: ignore
 
         if self._values is None:
             self._values = {}
