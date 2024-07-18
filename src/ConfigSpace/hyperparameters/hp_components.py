@@ -126,7 +126,7 @@ class TransformerSeq(Transformer[Any]):
         seq: The sequence of values to transform.
     """
 
-    seq: Array[Any]
+    seq: Array[Any] | list[Any]  # If `list`, assumed to contain sequence objects
     """The original sequence of values."""
 
     lower_vectorized: f64 = field(init=False)
@@ -172,20 +172,40 @@ class TransformerSeq(Transformer[Any]):
                 f" representation into a value in {self.seq}."
                 f"Expected integers but got {vector} (dtype: {vector.dtype})",
             )
-        indices: Array[np.intp] = np.rint(vector).astype(np.intp)
-        return self.seq[indices]  # type: ignore
+
+        if isinstance(self.seq, np.ndarray):
+            indices = np.rint(vector).astype(i64)
+            return self.seq[indices]
+
+        items = [self.seq[int(np.rint(i))] for i in vector]
+        if isinstance(self.seq, list):
+            # We have to convert it into a numpy array of objects carefully
+            # https://stackoverflow.com/a/47389566/5332072
+            _v = np.empty(len(items), dtype=object)
+            _v[:] = items
+            return _v
+
+        return np.array(items, dtype=object)
 
     @override
     def to_vector(self, value: Array[Any]) -> Array[f64]:
         if self._lookup is not None:
             return np.array([self._lookup[v] for v in value], dtype=f64)
-        return np.flatnonzero(np.isin(self.seq, value)).astype(f64)
+
+        if isinstance(self.seq, np.ndarray):
+            return np.flatnonzero(np.isin(self.seq, value)).astype(f64)
+
+        return np.array([self.seq.index(v) for v in value], dtype=f64)
 
     @override
     def legal_value(self, value: Array[Any]) -> Mask:
         if self._lookup is not None:
             return np.array([v in self._lookup for v in value], dtype=np.bool_)
-        return np.isin(value, self.seq)
+
+        if isinstance(self.seq, np.ndarray):
+            return np.isin(value, self.seq)
+
+        return np.array([v in self.seq for v in value], dtype=np.bool_)
 
     @override
     def legal_vector(self, vector: Array[f64]) -> Mask:

@@ -6,10 +6,9 @@ from typing_extensions import deprecated
 
 import numpy as np
 
-from ConfigSpace.conditions import NotSet
 from ConfigSpace.exceptions import IllegalValueError
 from ConfigSpace.hyperparameters import FloatHyperparameter
-from ConfigSpace.types import f64
+from ConfigSpace.types import NotSet, f64
 
 if TYPE_CHECKING:
     from ConfigSpace.configuration_space import ConfigurationSpace

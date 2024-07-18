@@ -17,7 +17,7 @@ from typing_extensions import Self, deprecated
 
 import numpy as np
 
-from ConfigSpace.types import DType, Number, ValueT, f64, i64
+from ConfigSpace.types import DType, NotSet, Number, ValueT, _NotSet, f64, i64
 
 if TYPE_CHECKING:
     from ConfigSpace.hyperparameters.distributions import Distribution
@@ -64,7 +64,9 @@ class Hyperparameter(ABC, Generic[ValueT, DType]):
     _transformer: Transformer[DType] = field(repr=False)
     _neighborhood: Neighborhood = field(repr=False, compare=False)
     _value_cast: Callable[[DType], ValueT] | None = field(repr=False, compare=False)
-    _neighborhood_size: float | Callable[[ValueT | DType | None], int | float] = field(
+    _neighborhood_size: (
+        float | Callable[[ValueT | DType | _NotSet | None], int | float]
+    ) = field(
         repr=False,
         compare=False,
     )
@@ -367,7 +369,7 @@ class Hyperparameter(ABC, Generic[ValueT, DType]):
     ) -> Array[f64]: ...
 
     @overload
-    def to_vector(self, value: ValueT | DType) -> f64: ...
+    def to_vector(self, value: ValueT | DType | Sequence[ValueT | DType]) -> f64: ...
 
     def to_vector(
         self,
@@ -516,15 +518,10 @@ class Hyperparameter(ABC, Generic[ValueT, DType]):
             The probability density of the values. Where values are not legal,
             the probability density is zero.
         """
-        # TODO(eddiebergman): Backwards compatible restriction, why this restriction?
-        _values = np.asarray(values)
-        if _values.ndim != 1:
-            raise ValueError(
-                "Method pdf expects a one-dimensional numpy array but got"
-                f" {_values.ndim} dimensions."
-                f"\n{_values}",
-            )
-        vector = self.to_vector(_values)
+        if isinstance(values, np.ndarray) and values.ndim != 1:
+            raise ValueError("Method pdf expects a one-dimensional numpy array")
+
+        vector = self.to_vector(values)
         return self.pdf_vector(vector)
 
     def copy(self, **kwargs: Any) -> Self:
@@ -542,7 +539,10 @@ class Hyperparameter(ABC, Generic[ValueT, DType]):
         # overwrite this.
         return replace(self, **kwargs)  # type: ignore
 
-    def get_num_neighbors(self, value: ValueT | DType | None = None) -> int | float:
+    def get_num_neighbors(
+        self,
+        value: ValueT | DType | _NotSet = NotSet,
+    ) -> int | float:
         """Get the number of neighbors to sample for a given value.
 
         Args:
@@ -729,11 +729,11 @@ class NumericalHyperparameter(Hyperparameter[NumberT, DType]):
 class IntegerHyperparameter(NumericalHyperparameter[int, i64]):
     """Base class for integer hyperparameters in the configuration space."""
 
-    def _integer_neighborhood_size(self, value: int | i64 | None) -> int:
-        if value is None:
+    def _integer_neighborhood_size(self, value: int | i64 | _NotSet) -> int:
+        if value is NotSet:
             return int(self.size)
 
-        if self.lower <= value <= self.upper:
+        if self.lower <= value <= self.upper:  # type: ignore
             return int(self.size) - 1
 
         return int(self.size)

@@ -37,19 +37,11 @@ from typing_extensions import Self, deprecated, override
 import numpy as np
 from more_itertools import all_equal, unique_everseen
 
-from ConfigSpace.types import f64
+from ConfigSpace.types import NotSet, f64
 
 if TYPE_CHECKING:
     from ConfigSpace.hyperparameters.hyperparameter import Hyperparameter
     from ConfigSpace.types import Array, Mask
-
-
-class _NotSet:
-    def __repr__(self) -> str:
-        return "ValueNotSetObject"
-
-
-NotSet = _NotSet()  # Sentinal value for unset values
 
 
 class Condition(ABC):
