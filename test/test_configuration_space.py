@@ -1233,6 +1233,9 @@ def test_configuration_acts_as_mapping(simple_cs: ConfigurationSpace):
     # Test indexing
     assert config["parent"] == values_dict["parent"]
     assert config["child"] == values_dict["child"]
+    for name in names:
+        assert name in config
+    assert "mouse" not in config
 
     # Test dict methods
     assert set(config.keys()) == set(names)

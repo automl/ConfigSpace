@@ -173,11 +173,11 @@ class Configuration(Mapping[str, Any]):
         """
         return self._vector
 
-    def __contains__(self, item: object) -> bool:
-        if not isinstance(item, str):
+    def __contains__(self, key: object) -> bool:
+        if not isinstance(key, str):
             return False
 
-        return item in self
+        return key in self.config_space
 
     def __setitem__(self, key: str, value: Any) -> None:
         param = self.config_space[key]
