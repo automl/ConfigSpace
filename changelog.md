@@ -1,3 +1,7 @@
+# Version 1.1.1
+
+* FIX #ebb89f4: Prevent infinite recursion when checking `"key" in Configuration`.
+
 # Version 1.1.0
 
 * FIX #377: Make rounding a constant value of `13` decimal places for floats and their boundaries.
