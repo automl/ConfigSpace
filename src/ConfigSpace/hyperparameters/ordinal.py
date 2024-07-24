@@ -94,6 +94,8 @@ class OrdinalHyperparameter(Hyperparameter[Any, Any]):
             # This can fail with a ValueError if the choices contain arbitrary objects
             # that are list like.
             seq_choices = np.asarray(sequence)
+            if seq_choices.ndim != 1:
+                raise ValueError
 
             # NOTE: Unfortunatly, numpy will promote number types to str
             # if there are string types in the array, where we'd rather
@@ -228,7 +230,7 @@ class OrdinalHyperparameter(Hyperparameter[Any, Any]):
             if values.ndim != 1:
                 raise ValueError("Method pdf expects a one-dimensional numpy array")
 
-            vector = self.to_vector(values)
+            vector = self.to_vector(values)  # type: ignore
             return self.pdf_vector(vector)
 
         if self._contains_sequence_as_value:

@@ -99,6 +99,7 @@ def test_constant():
     # Test getting the size
     for constant in (c1, c2, c3, c4, c5, c1_meta, c6, c7, c8):
         assert constant.size == 1
+        _ = str(constant)  # Ensure str repr works
 
     with pytest.raises(ValueError):
         _ = Constant("value", np.array([1, 2]))
@@ -268,6 +269,7 @@ def test_uniformfloat():
     # Test get_size
     for float_hp in (f1, f3, f4, f5):
         assert np.isinf(float_hp.size)
+        _ = str(float_hp)  # Ensure str repr works
 
 
 def test_uniformfloat_to_integer():
@@ -575,6 +577,7 @@ def test_normalfloat():
     # Test get_size
     for float_hp in (f1, f2, f6):
         assert np.isinf(float_hp.size)
+        _ = str(float_hp)  # Ensure str repr works
 
     with pytest.raises(ValueError):
         _ = NormalFloatHyperparameter(
@@ -2147,6 +2150,11 @@ def test_categorical():
     assert f5.size == 1000
     assert f6.size == 2
 
+    fn = CategoricalHyperparameter("param", [("a", "b"), [0, 1]])
+    assert fn.default_value == ("a", "b")
+    assert fn.legal_value(("a", "b"))
+    _ = str(fn)
+
 
 def test_cat_equal():
     # Test that weights are properly normalized and compared
@@ -2754,6 +2762,14 @@ def test_ordinal_is_legal():
     assert f1.legal_vector(3)
     assert not f1.legal_vector(-0.1)
     assert not f1.legal_vector("Hahaha")  # type: ignore
+
+
+def test_ordinal_nested_lists_prints_correctly():
+    f1 = OrdinalHyperparameter(
+        "temp",
+        [["freezing", "cold", "warm", "hot"], ["a", "b"]],
+    )
+    _ = str(f1)
 
 
 def test_ordinal_check_order():
