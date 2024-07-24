@@ -203,8 +203,6 @@ class TransformerSeq(Transformer[Any]):
 
     @override
     def legal_value(self, value: Array[Any]) -> Mask:
-        print(value)
-        print(value, self.seq)
         if self._lookup is not None:
             return np.array([v in self._lookup for v in value], dtype=np.bool_)
 

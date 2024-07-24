@@ -258,7 +258,6 @@ class CategoricalHyperparameter(Hyperparameter[Any, Any]):
             # NOTE: Unfortunatly, numpy will promote number types to str
             # if there are string types in the array, where we'd rather
             # stick to object type in that case. Hence the manual...
-            print(seq_choices)
             if seq_choices.dtype.kind in {"U", "S"} and not all(
                 isinstance(choice, str) for choice in choices
             ):
