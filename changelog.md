@@ -1,3 +1,7 @@
+# Version 1.1.3
+
+* FIX #63c963b: Remove stray `print` statements
+
 # Version 1.1.2
 
 * FIX #382: Fix `to_value` of `Cateogorical`, `Constant` and `Ordinal` hyperparameters when
