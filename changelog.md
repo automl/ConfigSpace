@@ -1,3 +1,8 @@
+# Version 1.1.2
+
+* FIX #382: Fix `to_value` of `Cateogorical`, `Constant` and `Ordinal` hyperparameters when
+    they contain nested objects.
+
 # Version 1.1.1
 
 * FIX #ebb89f4: Prevent infinite recursion when checking `"key" in Configuration`.
