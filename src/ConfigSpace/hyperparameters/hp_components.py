@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, Protocol, TypeVar
 from typing_extensions import override
@@ -202,6 +203,8 @@ class TransformerSeq(Transformer[Any]):
 
     @override
     def legal_value(self, value: Array[Any]) -> Mask:
+        print(value)
+        print(value, self.seq)
         if self._lookup is not None:
             return np.array([v in self._lookup for v in value], dtype=np.bool_)
 
@@ -513,6 +516,12 @@ class TransformerConstant(Transformer[Any]):
 
     @override
     def to_value(self, vector: Array[f64]) -> ObjectArray:
+        if isinstance(self.value, Sequence) and not isinstance(self.value, str):
+            # We have to convert it into a numpy array of objects carefully
+            # https://stackoverflow.com/a/47389566/5332072
+            _v = np.empty(len(vector), dtype=object)
+            _v[:] = [self.value] * len(vector)
+            return _v
         return np.full_like(vector, self.value, dtype=object)
 
     @override

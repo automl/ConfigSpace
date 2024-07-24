@@ -126,7 +126,7 @@ class Hyperparameter(ABC, Generic[ValueT, DType]):
         self._vector_dist = vector_dist
         self._transformer = transformer
         self._neighborhood = neighborhood
-        self._neighborhood_size = neighborhood_size
+        self._neighborhood_size = neighborhood_size  # type: ignore
         self._value_cast = value_cast
 
         if not self.legal_value(self.default_value):
