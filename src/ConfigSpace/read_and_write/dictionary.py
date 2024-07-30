@@ -123,6 +123,14 @@ def _decode_categorical(
     cs: ConfigurationSpace,  # noqa: ARG001
     decode: _Decoder,  # noqa: ARG001
 ) -> CategoricalHyperparameter:
+    item = _backwards_compat(item)
+    if item.pop("probabilities", None) is not None:
+        warnings.warn(
+            "The field 'probabilities' was removed and is called 'weights'!"
+            "\nPlease update your serialized format as needed!"
+            f"\nFound in item {item}",
+            stacklevel=3,
+        )
     return CategoricalHyperparameter(**item)
 
 
@@ -131,6 +139,7 @@ def _decode_ordinal(
     cs: ConfigurationSpace,  # noqa: ARG001
     decode: _Decoder,  # noqa: ARG001
 ) -> OrdinalHyperparameter:
+    item = _backwards_compat(item)
     return OrdinalHyperparameter(**item)
 
 
@@ -139,6 +148,7 @@ def _decode_constant(
     cs: ConfigurationSpace,  # noqa: ARG001
     decode: _Decoder,  # noqa: ARG001
 ) -> Constant:
+    item = _backwards_compat(item)
     return Constant(**item)
 
 
