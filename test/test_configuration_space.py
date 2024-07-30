@@ -48,6 +48,8 @@ from ConfigSpace import (
     OrConjunction,
     UniformIntegerHyperparameter,
 )
+from ConfigSpace.api.types.float import Float
+from ConfigSpace.api.types.integer import Integer
 from ConfigSpace.exceptions import (
     AmbiguousConditionError,
     ChildNotFoundError,
@@ -1326,3 +1328,13 @@ def test_repr_roundtrip():
     repr = repr.replace("})", "}, configuration_space=cs)")
     config = eval(repr)  # noqa: S307
     assert default == config
+
+
+def test_configuration_space_can_be_made_with_sequence_of_hyperparameters() -> None:
+    cs = ConfigurationSpace(
+        name="myspace",
+        space=[Float("a", (1.0, 10.0)), Integer("b", (1, 10))],
+    )
+    assert len(cs) == 2
+    assert "a" in cs
+    assert "b" in cs

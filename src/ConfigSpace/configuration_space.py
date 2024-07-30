@@ -144,6 +144,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
                 | str
                 | Hyperparameter,
             ]
+            | Sequence[Hyperparameter]
         ) = None,
     ) -> None:
         """Initialize a configuration space.
@@ -174,9 +175,20 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
                 )
                 ```
 
+                You can also use a sequence of hyperparameters:
+
+                ```python exec="true" result="python" source="material-block"
+                from ConfigSpace import ConfigurationSpace, Float, Integer
+
+                ConfigurationSpace(
+                    name="myspace",
+                    space=[Float("a", (1.0, 10.0)), Integer("b", (1, 10))]
+                )
+                ```
+
         """
         # If first arg is a dict, we assume this to be `space`
-        if isinstance(name, Mapping):
+        if isinstance(name, (Mapping, Sequence)) and not isinstance(name, str):
             space = name
             _name = None
         else:
@@ -189,7 +201,10 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         self._len = 0
 
         if space is not None:
-            hyperparameters = list(_parse_hyperparameters_from_dict(space))
+            if isinstance(space, Mapping):
+                hyperparameters = list(_parse_hyperparameters_from_dict(space))
+            elif isinstance(space, Sequence):
+                hyperparameters = list(space)
             self.add(hyperparameters)
 
     @property
