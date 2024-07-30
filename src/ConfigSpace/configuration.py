@@ -177,7 +177,11 @@ class Configuration(Mapping[str, Any]):
         if not isinstance(key, str):
             return False
 
-        return key in self.config_space
+        try:
+            self.__getitem__(key)
+            return True
+        except KeyError:
+            return False
 
     def __setitem__(self, key: str, value: Any) -> None:
         param = self.config_space[key]
