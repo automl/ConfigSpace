@@ -1,3 +1,8 @@
+# Version 1.1.4
+
+* FIX #386: Fix `__contains__` of `Configuration` to check if a value could be retrieved from a `Configuration`.
+* FIX #385: Make `Categorical` and `Ordinal` more backwards compatible!
+
 # Version 1.1.3
 
 * FIX #63c963b: Remove stray `print` statements
