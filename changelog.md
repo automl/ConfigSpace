@@ -1,3 +1,7 @@
+# Version 1.2.0
+
+* FEAT #388: Allow `Sequence` of `Hyperparameter` to instantiate a `ConfigurationSpace`.
+
 # Version 1.1.4
 
 * FIX #386: Fix `__contains__` of `Configuration` to check if a value could be retrieved from a `Configuration`.
