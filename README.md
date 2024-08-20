@@ -1,14 +1,14 @@
 # ConfigSpace
 
-A simple Python module implementing a domain specific language to manage 
+A simple Python module implementing a domain specific language to manage
 configuration spaces for algorithm configuration and hyperparameter optimization tasks.  
 Distributed under BSD 3-clause, see LICENSE except all files in the directory
 ConfigSpace.nx, which are copied from the networkx package and licensed
 under a BSD license.
 
-The documentation can be found at [https://automl.github.io/ConfigSpace/main/](https://automl.github.io/ConfigSpace/main/).
+The documentation can be found
+at [https://automl.github.io/ConfigSpace/latest/](https://automl.github.io/ConfigSpace/latest/).
 Further examples can be found in the [SMAC documentation](https://automl.github.io/SMAC3/main/examples/index.html).
-
 
 ## Minimum Example
 
@@ -26,7 +26,6 @@ cs = ConfigurationSpace(
 
 configs = cs.sample_configuration(2)
 ```
-
 
 ## Citing the ConfigSpace
 
