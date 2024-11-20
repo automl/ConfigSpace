@@ -622,9 +622,9 @@ class ForbiddenLessThanRelation(ForbiddenRelation):
     def is_forbidden_vector_array(self, arr: Array[f64]) -> Mask:
         left = arr[self.vector_ids[0]]
         right = arr[self.vector_ids[1]]
-        mask = ~(np.isnan(left) | np.isnan(right))
-        out = np.zeros_like(mask)
-        out[mask] = self.left.to_value(left[mask]) < self.right.to_value(right[mask])
+        valid = ~(np.isnan(left) | np.isnan(right))
+        out = np.zeros_like(valid)
+        out[valid] = self.left.to_value(left[valid]) < self.right.to_value(right[valid])
         return out
 
 
@@ -693,9 +693,9 @@ class ForbiddenEqualsRelation(ForbiddenRelation):
     def is_forbidden_vector_array(self, arr: Array[f64]) -> Mask:
         left = arr[self.vector_ids[0]]
         right = arr[self.vector_ids[1]]
-        mask = ~(np.isnan(left) | np.isnan(right))
-        out = np.zeros_like(mask)
-        out[mask] = self.left.to_value(left[mask]) == self.right.to_value(right[mask])
+        valid = ~(np.isnan(left) | np.isnan(right))
+        out = np.zeros_like(valid)
+        out[valid] = self.left.to_value(left[valid]) == self.right.to_value(right[valid])
         return out  # type: ignore
 
 
@@ -763,9 +763,9 @@ class ForbiddenGreaterThanRelation(ForbiddenRelation):
     def is_forbidden_vector_array(self, arr: Array[f64]) -> Mask:
         left = arr[self.vector_ids[0]]
         right = arr[self.vector_ids[1]]
-        mask = ~(np.isnan(left) | np.isnan(right))
-        out = np.zeros_like(mask)
-        out[mask] = self.left.to_value(left[mask]) > self.right.to_value(right[mask])
+        valid = ~(np.isnan(left) | np.isnan(right))
+        out = np.zeros_like(valid)
+        out[valid] = self.left.to_value(left[valid]) > self.right.to_value(right[valid])
         return out
 
 
