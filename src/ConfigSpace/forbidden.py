@@ -614,6 +614,8 @@ class ForbiddenLessThanRelation(ForbiddenRelation):
         # Relation is always evaluated against actual value and not vector rep
         left: f64 = vector[self.vector_ids[0]]  # type: ignore
         right: f64 = vector[self.vector_ids[1]]  # type: ignore
+        if np.isnan(left) or np.isnan(right):
+            return False
         return self.left.to_value(left) < self.right.to_value(right)  # type: ignore
 
     @override
@@ -683,6 +685,8 @@ class ForbiddenEqualsRelation(ForbiddenRelation):
         # Relation is always evaluated against actual value and not vector rep
         left = vector[self.vector_ids[0]]
         right = vector[self.vector_ids[1]]
+        if np.isnan(left) or np.isnan(right):
+            return False
         return self.left.to_value(left) == self.right.to_value(right)  # type: ignore
 
     @override
@@ -751,6 +755,8 @@ class ForbiddenGreaterThanRelation(ForbiddenRelation):
         # Relation is always evaluated against actual value and not vector rep
         left: f64 = vector[self.vector_ids[0]]  # type: ignore
         right: f64 = vector[self.vector_ids[1]]  # type: ignore
+        if np.isnan(left) or np.isnan(right):
+            return False
         return self.left.to_value(left) > self.right.to_value(right)  # type: ignore
 
     @override

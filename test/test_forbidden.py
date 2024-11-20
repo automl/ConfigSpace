@@ -291,3 +291,18 @@ def test_relation():
     assert forb.is_forbidden_value(
         {"water_temperature": "hot", "water_temperature2": "cold"},
     )
+
+
+def test_relation_conditioned():
+    from ConfigSpace import EqualsCondition, ConfigurationSpace
+    a = OrdinalHyperparameter('a', [2, 5, 10])
+    enable_a = CategoricalHyperparameter('enable_a', [False, True])
+    cond_a = EqualsCondition(a, enable_a, True)
+
+    b = OrdinalHyperparameter('b', [5, 10, 15])
+    forbid_a_b = ForbiddenEqualsRelation(a, b)
+    # forbid_a = ForbiddenEqualsClause(enable_a, True)
+    # forbid_a_b = ForbiddenAndConjunction(forbid_a, forbid_a_b)
+
+    cs = ConfigurationSpace()
+    cs.add([a, enable_a, cond_a, b, forbid_a_b])
