@@ -301,8 +301,9 @@ def test_relation_conditioned():
     cond_a = EqualsCondition(a, enable_a, True)
 
     b = OrdinalHyperparameter('b', [5, 10, 15])
-    forbid_a_b = ForbiddenEqualsRelation(a, b)
+    for forbid in ForbiddenEqualsRelation, ForbiddenGreaterThanRelation, ForbiddenLessThanRelation:
+        forbid_a_b = forbid(a, b)
 
-    cs = ConfigurationSpace()
-    cs.add([a, enable_a, cond_a, b, forbid_a_b])
-    cs.sample_configuration(100)
+        cs = ConfigurationSpace()
+        cs.add([a, enable_a, cond_a, b, forbid_a_b])
+        cs.sample_configuration(100)
