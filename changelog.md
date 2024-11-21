@@ -1,3 +1,7 @@
+# Version 1.2.1
+
+* FEAT #397: Fix issue with forbidden check with disabled parameters.
+
 # Version 1.2.0
 
 * FEAT #388: Allow `Sequence` of `Hyperparameter` to instantiate a `ConfigurationSpace`.
