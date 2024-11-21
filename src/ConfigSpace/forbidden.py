@@ -614,13 +614,18 @@ class ForbiddenLessThanRelation(ForbiddenRelation):
         # Relation is always evaluated against actual value and not vector rep
         left: f64 = vector[self.vector_ids[0]]  # type: ignore
         right: f64 = vector[self.vector_ids[1]]  # type: ignore
+        if np.isnan(left) or np.isnan(right):
+            return False
         return self.left.to_value(left) < self.right.to_value(right)  # type: ignore
 
     @override
     def is_forbidden_vector_array(self, arr: Array[f64]) -> Mask:
         left = arr[self.vector_ids[0]]
         right = arr[self.vector_ids[1]]
-        return self.left.to_value(left) < self.right.to_value(right)
+        valid = ~(np.isnan(left) | np.isnan(right))
+        out = np.zeros_like(valid)
+        out[valid] = self.left.to_value(left[valid]) < self.right.to_value(right[valid])
+        return out
 
 
 class ForbiddenEqualsRelation(ForbiddenRelation):
@@ -680,13 +685,19 @@ class ForbiddenEqualsRelation(ForbiddenRelation):
         # Relation is always evaluated against actual value and not vector rep
         left = vector[self.vector_ids[0]]
         right = vector[self.vector_ids[1]]
+        if np.isnan(left) or np.isnan(right):
+            return False
         return self.left.to_value(left) == self.right.to_value(right)  # type: ignore
 
     @override
     def is_forbidden_vector_array(self, arr: Array[f64]) -> Mask:
         left = arr[self.vector_ids[0]]
         right = arr[self.vector_ids[1]]
-        return self.left.to_value(left) == self.right.to_value(right)  # type: ignore
+        valid = ~(np.isnan(left) | np.isnan(right))
+        tmp = self.left.to_value(left[valid]) == self.right.to_value(right[valid])
+        out = np.zeros_like(valid)
+        out[valid] = tmp
+        return out  # type: ignore
 
 
 class ForbiddenGreaterThanRelation(ForbiddenRelation):
@@ -745,13 +756,18 @@ class ForbiddenGreaterThanRelation(ForbiddenRelation):
         # Relation is always evaluated against actual value and not vector rep
         left: f64 = vector[self.vector_ids[0]]  # type: ignore
         right: f64 = vector[self.vector_ids[1]]  # type: ignore
+        if np.isnan(left) or np.isnan(right):
+            return False
         return self.left.to_value(left) > self.right.to_value(right)  # type: ignore
 
     @override
     def is_forbidden_vector_array(self, arr: Array[f64]) -> Mask:
         left = arr[self.vector_ids[0]]
         right = arr[self.vector_ids[1]]
-        return self.left.to_value(left) > self.right.to_value(right)
+        valid = ~(np.isnan(left) | np.isnan(right))
+        out = np.zeros_like(valid)
+        out[valid] = self.left.to_value(left[valid]) > self.right.to_value(right[valid])
+        return out
 
 
 ForbiddenLike = Union[
