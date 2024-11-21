@@ -294,7 +294,7 @@ def test_relation():
 
 
 def test_relation_conditioned():
-    from ConfigSpace import EqualsCondition, ConfigurationSpace
+    from ConfigSpace import ConfigurationSpace, EqualsCondition
 
     a = OrdinalHyperparameter("a", [2, 5, 10])
     enable_a = CategoricalHyperparameter("enable_a", [False, True], weights=[99999, 1])
