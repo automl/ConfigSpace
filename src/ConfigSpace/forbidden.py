@@ -694,8 +694,9 @@ class ForbiddenEqualsRelation(ForbiddenRelation):
         left = arr[self.vector_ids[0]]
         right = arr[self.vector_ids[1]]
         valid = ~(np.isnan(left) | np.isnan(right))
+        tmp = self.left.to_value(left[valid]) == self.right.to_value(right[valid])
         out = np.zeros_like(valid)
-        out[valid] = self.left.to_value(left[valid]) == self.right.to_value(right[valid])
+        out[valid] = tmp
         return out  # type: ignore
 
 
