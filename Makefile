@@ -6,8 +6,6 @@
 
 .PHONY: help install-dev install-test install-docs pre-commit clean clean-doc clean-build build docs links publish test clean-test
 
-A_DIFFERENT_CHANGE
-
 help:
 	@echo "Makefile ConfigSpace"
 	@echo "* install-dev      to install all dev requirements and install pre-commit"
