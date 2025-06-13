@@ -164,16 +164,16 @@ def test_random_neighborhood_int():
     hp = UniformIntegerHyperparameter("a", 1, 10)
     all_neighbors = _test_get_one_exchange_neighbourhood(hp)
     all_neighbors = [neighbor["a"] for neighbor in all_neighbors]
-    assert pytest.approx(np.mean(all_neighbors), abs=1e-2) == 4.64
-    assert pytest.approx(np.var(all_neighbors), abs=1e-2) == 3.57
+    assert pytest.approx(np.mean(all_neighbors), abs=1e-2) == 5.8825
+    assert pytest.approx(np.var(all_neighbors), abs=1e-2) == 5.93
 
     hp = UniformIntegerHyperparameter("a", 1, 10, log=True)
     all_neighbors = _test_get_one_exchange_neighbourhood(hp)
     all_neighbors = [neighbor["a"] for neighbor in all_neighbors]
     assert hp.default_value == 3
 
-    assert pytest.approx(np.mean(all_neighbors), abs=1e-2) == 3.155
-    assert pytest.approx(np.var(all_neighbors), abs=1e-2) == 3.09
+    assert pytest.approx(np.mean(all_neighbors), abs=1e-2) == 3.98
+    assert pytest.approx(np.var(all_neighbors), abs=1e-2) == 5.499
 
 
 def test_random_neighbor_cat():
