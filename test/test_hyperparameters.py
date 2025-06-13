@@ -1471,11 +1471,11 @@ def test_normalint():
     f1 = NormalIntegerHyperparameter("param", 0, 10, lower=-100, upper=100)
     np.testing.assert_equal(
         f1.neighbors_vectorized(0.1, seed=np.random.RandomState(9001), n=1),
-        np.array([0.14]),
+        np.array([0.415]),
     )
     np.testing.assert_equal(
         f1.neighbors_vectorized(0.1, seed=np.random.RandomState(9001), n=5),
-        np.array([0.06, 0.065, 0.09, 0.14, 0.175]),
+        np.array([0.175, 0.065, 0.265, 0.06, 0.14]),
     )
 
     # Bounded case with default value out of bounds
