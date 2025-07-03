@@ -36,7 +36,7 @@ from typing_extensions import Self, deprecated, override
 import numpy as np
 from more_itertools import unique_everseen
 
-from ConfigSpace.hyperparameters import Hyperparameter
+from ConfigSpace.hyperparameters import Hyperparameter, OrdinalHyperparameter
 from ConfigSpace.types import Array, Mask, f64
 
 if TYPE_CHECKING:
@@ -475,6 +475,361 @@ class ForbiddenInClause(ForbiddenClause):
         }
 
 
+class ForbiddenGreaterThanClause(ForbiddenClause):
+    """A ForbiddenGreaterThanClause.
+
+    It forbids a value from the value range of a hyperparameter to be
+    *greater than* `value`.
+
+    Forbids the value of the hyperparameter *a* to be greater than 2
+
+    Args:
+        hyperparameter: Methods on which a restriction will be made
+        value: forbidden value
+    """
+
+    hyperparameter: Hyperparameter
+    """Hyperparameter on which a restriction will be made."""
+
+    value: Any
+    """Forbidden value."""
+
+    def __init__(self, hyperparameter: Hyperparameter, value: Any) -> None:
+        """Initialize a ForbiddenGreaterThanClause.
+
+        Args:
+            hyperparameter: Hyperparameter on which a restriction will be made
+            value: forbidden value
+        """
+        if not hyperparameter.legal_value(value):
+            raise ValueError(
+                "Forbidden clause must be instantiated with a "
+                f"legal hyperparameter value for '{hyperparameter}', but got "
+                f"'{value!s}'",
+            )
+        if not hyperparameter.ORDERABLE:
+            raise ValueError(
+                "Forbidden greater clause must be instantiated with an orderable "
+                f"hyperparameter, but got '{type(hyperparameter).__name__}'",
+            )
+        super().__init__(hyperparameter)
+        self.value = value
+        if isinstance(self.hyperparameter, OrdinalHyperparameter):
+            self._value = self.hyperparameter.get_order(value)
+        # OPTIM: Since forbiddens are used in sampling which converts everything to
+        # f64, we pre-convert the value here to make the comparison check faster
+        self.vector_value = f64(self.hyperparameter.to_vector(self.value))
+
+    def __eq__(self, other: Any) -> bool:
+        if not isinstance(other, self.__class__):
+            return False
+
+        return self.hyperparameter == other.hyperparameter and self.value == other.value
+
+    def __repr__(self: ForbiddenGreaterThanClause) -> str:
+        """Return a string representation of the ForbiddenGreaterThanClause."""
+        return f"Forbidden: {self.hyperparameter.name} > {self.value!r}"
+
+    def __copy__(self) -> Self:
+        return self.__class__(hyperparameter=self.hyperparameter, value=self.value)
+
+    @override
+    def is_forbidden_value(self: ForbiddenGreaterThanClause,
+                           values: dict[str, Any]) -> bool:
+        """Check if the value is forbidden."""
+        if isinstance(self.hyperparameter, OrdinalHyperparameter):
+            return self.hyperparameter.get_order(values.get(self.hyperparameter.name, self.value)) > self._value
+        return (  # type: ignore
+            values.get(self.hyperparameter.name, self.value) > self.value
+        )
+
+    @override
+    def is_forbidden_vector(self: ForbiddenGreaterThanClause,
+                            vector: Array[f64]) -> bool:
+        """Check if the vector is forbidden."""
+        return vector[self.vector_id] > self.vector_value  # type: ignore
+
+    @override
+    def is_forbidden_vector_array(self: ForbiddenGreaterThanClause,
+                                  arr: Array[f64]) -> Mask:
+        """Check if the vector array is forbidden."""
+        return np.greater(arr[self.vector_id], self.vector_value, dtype=np.bool_)
+
+    @override
+    def to_dict(self: ForbiddenGreaterThanClause) -> dict[str, Any]:
+        """Convert the ForbiddenGreaterThanClause to a dictionary."""
+        return {
+            "name": self.hyperparameter.name,
+            "type": "GREATER",
+            "value": self.value,
+        }
+
+
+class ForbiddenGreaterEqualsClause(ForbiddenClause):
+    """A ForbiddenGreaterEqualsClause.
+
+    It forbids a value from the value range of a hyperparameter to be
+    *greater or equal to* `value`.
+
+    Forbids the value of the hyperparameter *a* to be greater or equal to 2
+
+    Args:
+        hyperparameter: Methods on which a restriction will be made
+        value: forbidden value
+    """
+
+    hyperparameter: Hyperparameter
+    """Hyperparameter on which a restriction will be made."""
+
+    value: Any
+    """Forbidden value."""
+
+    def __init__(self, hyperparameter: Hyperparameter, value: Any) -> None:
+        """Initialize a ForbiddenGreaterThanClause.
+
+        Args:
+            hyperparameter: Hyperparameter on which a restriction will be made
+            value: forbidden value
+        """
+        if not hyperparameter.legal_value(value):
+            raise ValueError(
+                "Forbidden clause must be instantiated with a "
+                f"legal hyperparameter value for '{hyperparameter}', but got "
+                f"'{value!s}'",
+            )
+        if not hyperparameter.ORDERABLE:
+            raise ValueError(
+                "Forbidden greater clause must be instantiated with an orderable "
+                f"hyperparameter, but got '{type(hyperparameter).__name__}'",
+            )
+        super().__init__(hyperparameter)
+        self.value = value
+        if isinstance(self.hyperparameter, OrdinalHyperparameter):
+            self._value = self.hyperparameter.get_order(value)
+        # OPTIM: Since forbiddens are used in sampling which converts everything to
+        # f64, we pre-convert the value here to make the comparison check faster
+        self.vector_value = f64(self.hyperparameter.to_vector(self.value))
+
+    def __eq__(self, other: Any) -> bool:
+        if not isinstance(other, self.__class__):
+            return False
+
+        return self.hyperparameter == other.hyperparameter and self.value == other.value
+
+    def __repr__(self: ForbiddenGreaterEqualsClause) -> str:
+        """Return a string representation of the ForbiddenGreaterEqualsClause."""
+        return f"Forbidden: {self.hyperparameter.name} >= {self.value!r}"
+
+    def __copy__(self) -> Self:
+        return self.__class__(hyperparameter=self.hyperparameter, value=self.value)
+
+    @override
+    def is_forbidden_value(self: ForbiddenGreaterEqualsClause,
+                           values: dict[str, Any]) -> bool:
+        """Check if the value is forbidden."""
+        if isinstance(self.hyperparameter, OrdinalHyperparameter):
+            return self.hyperparameter.get_order(values.get(self.hyperparameter.name, self.value)) >= self._value
+        return (  # type: ignore
+            values.get(self.hyperparameter.name, self.value - 1) >= self.value
+        )
+
+    @override
+    def is_forbidden_vector(self: ForbiddenGreaterEqualsClause,
+                            vector: Array[f64]) -> bool:
+        """Check if the vector is forbidden."""
+        return vector[self.vector_id] >= self.vector_value  # type: ignore
+
+    @override
+    def is_forbidden_vector_array(self: ForbiddenGreaterEqualsClause,
+                                  arr: Array[f64]) -> Mask:
+        """Check if the vector array is forbidden."""
+        return np.greater_equal(arr[self.vector_id], self.vector_value, dtype=np.bool_)
+
+    @override
+    def to_dict(self: ForbiddenGreaterEqualsClause) -> dict[str, Any]:
+        """Convert the ForbiddenGreaterEqualsClause to a dictionary."""
+        return {
+            "name": self.hyperparameter.name,
+            "type": "GREATEREQUAL",
+            "value": self.value,
+        }
+
+
+class ForbiddenLessThanClause(ForbiddenClause):
+    """A ForbiddenLessThanClause.
+
+    It forbids a value from the value range of a hyperparameter to be
+    *less than* `value`.
+
+    Args:
+        hyperparameter: Methods on which a restriction will be made
+        value: forbidden value
+    """
+
+    hyperparameter: Hyperparameter
+    """Hyperparameter on which a restriction will be made."""
+
+    value: Any
+    """Forbidden value."""
+
+    def __init__(self, hyperparameter: Hyperparameter, value: Any) -> None:
+        """Initialize a ForbiddenLessThanClause.
+
+        Args:
+            hyperparameter: Hyperparameter on which a restriction will be made
+            value: forbidden value
+        """
+        if not hyperparameter.legal_value(value):
+            raise ValueError(
+                "Forbidden clause must be instantiated with a "
+                f"legal hyperparameter value for '{hyperparameter}', but got "
+                f"'{value!s}'",
+            )
+        if not hyperparameter.ORDERABLE:
+            raise ValueError(
+                "Forbidden less clause must be instantiated with an orderable "
+                f"hyperparameter, but got '{type(hyperparameter).__name__}'",
+            )
+        super().__init__(hyperparameter)
+        self.value = value
+        if isinstance(self.hyperparameter, OrdinalHyperparameter):
+            self._value = self.hyperparameter.get_order(value)
+        # OPTIM: Since forbiddens are used in sampling which converts everything to
+        # f64, we pre-convert the value here to make the comparison check faster
+        self.vector_value = f64(self.hyperparameter.to_vector(self.value))
+
+    def __eq__(self, other: Any) -> bool:
+        if not isinstance(other, self.__class__):
+            return False
+
+        return self.hyperparameter == other.hyperparameter and self.value == other.value
+
+    def __repr__(self: ForbiddenLessThanClause) -> str:
+        """Return a string representation of the ForbiddenLessThanClause."""
+        return f"Forbidden: {self.hyperparameter.name} < {self.value!r}"
+
+    def __copy__(self) -> Self:
+        return self.__class__(hyperparameter=self.hyperparameter, value=self.value)
+
+    @override
+    def is_forbidden_value(self: ForbiddenLessThanClause,
+                           values: dict[str, Any]) -> bool:
+        """Check if the value is forbidden."""
+        if isinstance(self.hyperparameter, OrdinalHyperparameter):
+            return self.hyperparameter.get_order(values.get(self.hyperparameter.name, self.value)) < self._value
+        return (  # type: ignore
+            values.get(self.hyperparameter.name, self.value) < self.value
+        )
+
+    @override
+    def is_forbidden_vector(self: ForbiddenLessThanClause, vector: Array[f64]) -> bool:
+        """Check if the vector is forbidden."""
+        print("vectorised: ", self.value, self.hyperparameter.to_vector(self.value))
+        return vector[self.vector_id] < self.vector_value  # type: ignore
+
+    @override
+    def is_forbidden_vector_array(self: ForbiddenLessThanClause,
+                                  arr: Array[f64]) -> Mask:
+        """Check if the vector array is forbidden."""
+        return np.less(arr[self.vector_id], self.vector_value, dtype=np.bool_)
+
+    @override
+    def to_dict(self: ForbiddenLessThanClause) -> dict[str, Any]:
+        """Convert the ForbiddenLessThanClause to a dictionary."""
+        return {
+            "name": self.hyperparameter.name,
+            "type": "LESS",
+            "value": self.value,
+        }
+
+
+class ForbiddenLessEqualsClause(ForbiddenClause):
+    """A ForbiddenLessEqualsClause.
+
+    It forbids a value from the value range of a hyperparameter to be
+    *less or equal to* `value`.
+
+    Args:
+        hyperparameter: Methods on which a restriction will be made
+        value: forbidden value
+    """
+
+    hyperparameter: Hyperparameter
+    """Hyperparameter on which a restriction will be made."""
+
+    value: Any
+    """Forbidden value."""
+
+    def __init__(self, hyperparameter: Hyperparameter, value: Any) -> None:
+        """Initialize a ForbiddenLessThanClause.
+
+        Args:
+            hyperparameter: Hyperparameter on which a restriction will be made
+            value: forbidden value
+        """
+        if not hyperparameter.legal_value(value):
+            raise ValueError(
+                "Forbidden clause must be instantiated with a "
+                f"legal hyperparameter value for '{hyperparameter}', but got "
+                f"'{value!s}'",
+            )
+        if not hyperparameter.ORDERABLE:
+            raise ValueError(
+                "Forbidden less clause must be instantiated with an orderable "
+                f"hyperparameter, but got '{type(hyperparameter).__name__}'",
+            )
+        super().__init__(hyperparameter)
+        self.value = value
+        if isinstance(self.hyperparameter, OrdinalHyperparameter):
+            self._value = self.hyperparameter.get_order(value)
+        # OPTIM: Since forbiddens are used in sampling which converts everything to
+        # f64, we pre-convert the value here to make the comparison check faster
+        self.vector_value = f64(self.hyperparameter.to_vector(self.value))
+
+    def __eq__(self, other: Any) -> bool:
+        if not isinstance(other, self.__class__):
+            return False
+
+        return self.hyperparameter == other.hyperparameter and self.value == other.value
+
+    def __repr__(self: ForbiddenLessEqualsClause) -> str:
+        """Return a string representation of the ForbiddenLessEqualsClause."""
+        return f"Forbidden: {self.hyperparameter.name} <= {self.value!r}"
+
+    def __copy__(self) -> Self:
+        return self.__class__(hyperparameter=self.hyperparameter, value=self.value)
+
+    @override
+    def is_forbidden_value(self: ForbiddenLessEqualsClause,
+                           values: dict[str, Any]) -> bool:
+        """Check if the value is forbidden."""
+        if isinstance(self.hyperparameter, OrdinalHyperparameter):
+            return self.hyperparameter.get_order(values.get(self.hyperparameter.name, self.value)) <= self._value
+        return (  # type: ignore
+            values.get(self.hyperparameter.name, self.value + 1) <= self.value
+        )
+
+    @override
+    def is_forbidden_vector(self: ForbiddenLessEqualsClause, vector: Array[f64]) -> bool:
+        """Check if the vector is forbidden."""
+        return vector[self.vector_id] <= self.vector_value  # type: ignore
+
+    @override
+    def is_forbidden_vector_array(self: ForbiddenLessEqualsClause,
+                                  arr: Array[f64]) -> Mask:
+        """Check if the vector array is forbidden."""
+        return np.greater_equal(arr[self.vector_id], self.vector_value, dtype=np.bool_)
+
+    @override
+    def to_dict(self: ForbiddenLessEqualsClause) -> dict[str, Any]:
+        """Convert the ForbiddenLessEqualsClause to a dictionary."""
+        return {
+            "name": self.hyperparameter.name,
+            "type": "LESSEQUAL",
+            "value": self.value,
+        }
+
+
 class ForbiddenAndConjunction(ForbiddenConjunction):
     """A ForbiddenAndConjunction.
 
@@ -552,6 +907,82 @@ class ForbiddenAndConjunction(ForbiddenConjunction):
     def to_dict(self) -> dict[str, Any]:
         return {
             "type": "AND",
+            "clauses": [component.to_dict() for component in self.components],
+        }
+
+
+class ForbiddenOrConjunction(ForbiddenConjunction):
+    """A ForbiddenOrConjunction.
+
+    The ForbiddenOrConjunction combines forbidden-clauses, which allows to
+    build powerful constraints.
+
+    ```python exec="true", source="material-block" result="python"
+    from ConfigSpace import (
+        ConfigurationSpace,
+        ForbiddenEqualsClause,
+        ForbiddenInClause,
+    )
+    from sparkle.tools.configspace import ForbiddenOrConjunction
+
+    cs = ConfigurationSpace({"a": [1, 2, 3], "b": [2, 5, 6]})
+    forbidden_clause_a = ForbiddenEqualsClause(cs["a"], 2)
+    forbidden_clause_b = ForbiddenInClause(cs["b"], [2])
+
+    forbidden_clause = ForbiddenOrConjunction(forbidden_clause_a, forbidden_clause_b)
+
+    cs.add(forbidden_clause)
+    print(cs)
+    ```
+
+    Args:
+        *args: forbidden clauses, which should be combined
+    """
+
+    components: tuple[ForbiddenClause | ForbiddenConjunction | ForbiddenRelation, ...]
+    """Components of the conjunction."""
+
+    dlcs: tuple[ForbiddenClause | ForbiddenRelation, ...]
+    """Descendant literal clauses of the conjunction.
+
+    These are the base forbidden clauses/relations that are part of conjunctions.
+
+    !!! note
+
+        This will only store a unique set of the descendant clauses, no duplicates.
+    """
+
+    def __repr__(self: ForbiddenOrConjunction) -> str:
+        """Return a string representation of the ForbiddenOrConjunction."""
+        return "(" + " || ".join([str(c) for c in self.components]) + ")"
+
+    @override
+    def is_forbidden_value(self: ForbiddenOrConjunction, values: dict[str, Any]) -> bool:
+        """Check if the value is forbidden."""
+        return any([forbidden.is_forbidden_value(values)
+                    for forbidden in self.components])
+
+    @override
+    def is_forbidden_vector(self: ForbiddenOrConjunction, vector: Array[f64]) -> bool:
+        """Check if the vector is forbidden."""
+        return any(
+            forbidden.is_forbidden_vector(vector) for forbidden in self.components
+        )
+
+    @override
+    def is_forbidden_vector_array(self: ForbiddenOrConjunction, arr: Array[f64]) -> Mask:
+        """Check if the vector array is forbidden."""
+        forbidden_mask: Mask = np.zeros(shape=arr.shape[1], dtype=np.bool_)
+        for forbidden in self.components:
+            forbidden_mask |= forbidden.is_forbidden_vector_array(arr)
+
+        return forbidden_mask
+
+    @override
+    def to_dict(self: ForbiddenOrConjunction) -> dict[str, Any]:
+        """Convert the ForbiddenOrConjunction to a dictionary."""
+        return {
+            "type": "OR",
             "clauses": [component.to_dict() for component in self.components],
         }
 
@@ -767,6 +1198,99 @@ class ForbiddenGreaterThanRelation(ForbiddenRelation):
         valid = ~(np.isnan(left) | np.isnan(right))
         out = np.zeros_like(valid)
         out[valid] = self.left.to_value(left[valid]) > self.right.to_value(right[valid])
+        return out
+
+
+class ForbiddenLessThanEqualsRelation(ForbiddenLessThanRelation):
+    """A ForbiddenLessThanEquals relation between two hyperparameters."""
+
+    _RELATION_STR = "LESSEQUAL"
+
+    def __repr__(self: ForbiddenLessThanEqualsRelation) -> str:
+        """Return a string representation of the ForbiddenLessThanEqualsRelation."""
+        return f"Forbidden: {self.left.name} <= {self.right.name}"
+
+    @override
+    def is_forbidden_value(self: ForbiddenLessThanEqualsRelation,
+                           values: dict[str, Any]) -> bool:
+        """Check if the value is forbidden."""
+        # Relation is always evaluated against actual value and not vector rep
+        left = values.get(self.left.name, _SENTINEL)
+        if left is _SENTINEL:
+            return False
+
+        right = values.get(self.right.name, _SENTINEL)
+        if right is _SENTINEL:
+            return False
+
+        return left <= right  # type: ignore
+
+    @override
+    def is_forbidden_vector(self: ForbiddenLessThanEqualsRelation,
+                            vector: Array[f64]) -> bool:
+        """Check if the vector is forbidden."""
+        # Relation is always evaluated against actual value and not vector rep
+        left: f64 = vector[self.vector_ids[0]]  # type: ignore
+        right: f64 = vector[self.vector_ids[1]]  # type: ignore
+        if np.isnan(left) or np.isnan(right):
+            return False
+        return self.left.to_value(left) <= self.right.to_value(right)  # type: ignore
+
+    @override
+    def is_forbidden_vector_array(self: ForbiddenLessThanEqualsRelation,
+                                  arr: Array[f64]) -> Mask:
+        """Check if the vector array is forbidden."""
+        left = arr[self.vector_ids[0]]
+        right = arr[self.vector_ids[1]]
+        valid = ~(np.isnan(left) | np.isnan(right))
+        out = np.zeros_like(valid)
+        out[valid] = self.left.to_value(left[valid]) <= self.right.to_value(right[valid])
+        return out
+
+
+class ForbiddenGreaterThanEqualsRelation(ForbiddenGreaterThanRelation):
+    """A ForbiddenGreaterThanEquals relation between two hyperparameters."""
+
+    _RELATION_STR = "GREATEREQUAL"
+
+    def __repr__(self: ForbiddenGreaterThanEqualsRelation) -> str:
+        """Return a string representation of the ForbiddenGreaterThanEqualsRelation."""
+        return f"Forbidden: {self.left.name} >= {self.right.name}"
+
+    @override
+    def is_forbidden_value(self: ForbiddenGreaterThanEqualsRelation,
+                           values: dict[str, Any]) -> bool:
+        """Check if the value is forbidden."""
+        left = values.get(self.left.name, _SENTINEL)
+        if left is _SENTINEL:
+            return False
+
+        right = values.get(self.right.name, _SENTINEL)
+        if right is _SENTINEL:
+            return False
+
+        return left >= right  # type: ignore
+
+    @override
+    def is_forbidden_vector(self: ForbiddenGreaterThanEqualsRelation,
+                            vector: Array[f64]) -> bool:
+        """Check if the vector is forbidden."""
+        # Relation is always evaluated against actual value and not vector rep
+        left: f64 = vector[self.vector_ids[0]]  # type: ignore
+        right: f64 = vector[self.vector_ids[1]]  # type: ignore
+        if np.isnan(left) or np.isnan(right):
+            return False
+        return self.left.to_value(left) >= self.right.to_value(right)  # type: ignore
+
+    @override
+    def is_forbidden_vector_array(self: ForbiddenGreaterThanEqualsRelation,
+                                  arr: Array[f64]) -> Mask:
+        """Check if the vector array is forbidden."""
+        left = arr[self.vector_ids[0]]
+        right = arr[self.vector_ids[1]]
+        valid = ~(np.isnan(left) | np.isnan(right))
+        out = np.zeros_like(valid)
+        out[valid] = self.left.to_value(left[valid]) >= self.right.to_value(right[valid])
         return out
 
 

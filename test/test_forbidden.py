@@ -35,7 +35,12 @@ import pytest
 from ConfigSpace import OrdinalHyperparameter
 from ConfigSpace.forbidden import (
     ForbiddenAndConjunction,
+    ForbiddenOrConjunction,
     ForbiddenEqualsClause,
+    ForbiddenGreaterThanClause,
+    ForbiddenGreaterEqualsClause,
+    ForbiddenLessThanClause,
+    ForbiddenLessEqualsClause,
     ForbiddenEqualsRelation,
     ForbiddenGreaterThanRelation,
     ForbiddenInClause,
@@ -82,6 +87,198 @@ def test_forbidden_equals_clause():
     assert not forb1.is_forbidden_vector(np.array([np.nan, np.nan]))
     assert not forb1.is_forbidden_vector(np.array([0.0, np.nan]))
     assert forb1.is_forbidden_vector(np.array([1.0, np.nan]))
+
+
+def test_forbidden_greater_than_clause():
+    hp1 = UniformFloatHyperparameter("parent", 0.0, 1.0)
+    hp2 = UniformIntegerHyperparameter("child", 0, 10)
+    hp3 = OrdinalHyperparameter("grandchild", ["hot", "lukewarm", "cold"])
+
+    with pytest.raises(ValueError):  # Cannot create clause with invalid value
+        ForbiddenGreaterThanClause(hp2, 12)
+
+    with pytest.raises(ValueError):  # Cannot create clause for categorical
+        hp_wrong = CategoricalHyperparameter("grandchild", ["hot", "lukewarm", "cold"])
+        ForbiddenGreaterThanClause(hp_wrong, "hot")
+
+    forb1 = ForbiddenGreaterThanClause(hp1, 0.99)
+    forb1_ = ForbiddenGreaterThanClause(hp1, 0.99)
+    forb1__ = ForbiddenGreaterThanClause(hp1, 0.01)
+    forb2 = ForbiddenGreaterThanClause(hp2, 9)
+    forb3 = ForbiddenGreaterThanClause(hp3, "lukewarm")
+    forb3_ = ForbiddenGreaterThanClause(hp3, "lukewarm")
+
+    assert forb3 == forb3_
+    assert forb1 == forb1_
+    assert forb1 != "forb1"
+    assert forb1 != forb2
+    assert forb1__ != forb1
+    assert str(forb1) == "Forbidden: parent > 0.99"
+    assert str(forb2) == "Forbidden: child > 9"
+    assert str(forb3) == "Forbidden: grandchild > 'lukewarm'"
+
+    assert not forb1.is_forbidden_value({"child": 1})
+    assert forb1.is_forbidden_value({"parent": 1.0})
+    assert not forb3.is_forbidden_value({"grandchild": "hot"})
+    assert not forb3.is_forbidden_value({"grandchild": "lukewarm"})
+    assert forb3.is_forbidden_value({"grandchild": "cold"})
+
+    # Test forbidden on vector values
+    hyperparameter_idx = {hp1.name: 0, hp2.name: 1}
+    forb1.set_vector_idx(hyperparameter_idx)
+    forb2.set_vector_idx(hyperparameter_idx)
+    assert not forb1.is_forbidden_vector(np.array([np.nan, np.nan]))
+    assert not forb1.is_forbidden_vector(np.array([0.0, np.nan]))
+    assert forb1.is_forbidden_vector(np.array([1.0, np.nan]))
+    assert forb1.is_forbidden_vector(np.array([0.991, 8]))
+    assert not forb1.is_forbidden_vector(np.array([0.99, 10]))
+    assert forb2.is_forbidden_vector(np.array([0.99, 10]))
+
+
+def test_forbidden_greater_than_equals_clause():
+    hp1 = UniformFloatHyperparameter("parent", 0.0, 1.0)
+    hp2 = UniformIntegerHyperparameter("child", 0, 10)
+    hp3 = OrdinalHyperparameter("grandchild", ["hot", "lukewarm", "cold"])
+
+    with pytest.raises(ValueError):  # Cannot create clause with invalid value
+        ForbiddenGreaterEqualsClause(hp2, 12)
+
+    with pytest.raises(ValueError):  # Cannot create clause for categorical
+        hp_wrong = CategoricalHyperparameter("grandchild", ["hot", "lukewarm", "cold"])
+        ForbiddenGreaterEqualsClause(hp_wrong, "hot")
+
+    forb1 = ForbiddenGreaterEqualsClause(hp1, 0.99)
+    forb1_ = ForbiddenGreaterEqualsClause(hp1, 0.99)
+    forb1__ = ForbiddenGreaterEqualsClause(hp1, 0.01)
+    forb2 = ForbiddenGreaterEqualsClause(hp2, 9)
+    forb3 = ForbiddenGreaterEqualsClause(hp3, "lukewarm")
+    forb3_ = ForbiddenGreaterEqualsClause(hp3, "lukewarm")
+
+    assert forb3 == forb3_
+    assert forb1 == forb1_
+    assert forb1 != "forb1"
+    assert forb1 != forb2
+    assert forb1__ != forb1
+    assert str(forb1) == "Forbidden: parent >= 0.99"
+    assert str(forb2) == "Forbidden: child >= 9"
+    assert str(forb3) == "Forbidden: grandchild >= 'lukewarm'"
+
+    assert not forb1.is_forbidden_value({"child": 1})
+    assert forb1.is_forbidden_value({"parent": 1.0})
+    assert forb1.is_forbidden_value({"parent": 0.99})
+    assert not forb1.is_forbidden_value({"parent": 0.98})
+    assert not forb3.is_forbidden_value({"grandchild": "hot"})
+    assert not forb3.is_forbidden_value({"grandchild": "lukewarm"})
+    assert forb3.is_forbidden_value({"grandchild": "cold"})
+
+    # Test forbidden on vector values
+    hyperparameter_idx = {hp1.name: 0, hp2.name: 1}
+    forb1.set_vector_idx(hyperparameter_idx)
+    forb2.set_vector_idx(hyperparameter_idx)
+    assert not forb1.is_forbidden_vector(np.array([np.nan, np.nan]))
+    assert not forb1.is_forbidden_vector(np.array([0.0, np.nan]))
+    assert forb1.is_forbidden_vector(np.array([1.0, np.nan]))
+    assert forb1.is_forbidden_vector(np.array([0.991, 8]))
+    assert not forb1.is_forbidden_vector(np.array([0.98, 10]))
+    assert forb2.is_forbidden_vector(np.array([0.99, 10]))
+    assert forb2.is_forbidden_vector(np.array([0.99, 9]))
+
+
+def test_forbidden_less_than_clause():
+    hp1 = UniformFloatHyperparameter("parent", 0.0, 1.0)
+    hp2 = UniformIntegerHyperparameter("child", 0, 10)
+    hp3 = OrdinalHyperparameter("grandchild", ["hot", "lukewarm", "cold"])
+
+    with pytest.raises(ValueError):  # Cannot create clause with invalid value
+        ForbiddenLessThanClause(hp2, 12)
+
+    with pytest.raises(ValueError):  # Cannot create clause for categorical
+        hp_wrong = CategoricalHyperparameter("grandchild", ["hot", "lukewarm", "cold"])
+        ForbiddenLessThanClause(hp_wrong, "hot")
+
+    forb1 = ForbiddenLessThanClause(hp1, 0.01)
+    forb1_ = ForbiddenLessThanClause(hp1, 0.01)
+    forb1__ = ForbiddenLessThanClause(hp1, 0.99)
+    forb2 = ForbiddenLessThanClause(hp2, 2)
+    forb3 = ForbiddenLessThanClause(hp3, "lukewarm")
+    forb3_ = ForbiddenLessThanClause(hp3, "lukewarm")
+
+    assert forb3 == forb3_
+    assert forb1 == forb1_
+    assert forb1 != "forb1"
+    assert forb1 != forb2
+    assert forb1__ != forb1
+    assert str(forb1) == "Forbidden: parent < 0.01"
+    assert str(forb2) == "Forbidden: child < 2"
+    assert str(forb3) == "Forbidden: grandchild < 'lukewarm'"
+
+    assert not forb1.is_forbidden_value({"child": 1})
+    assert not forb1.is_forbidden_value({"parent": 1.0})
+    assert forb1.is_forbidden_value({"parent": 0.0})
+    assert forb3.is_forbidden_value({"grandchild": "hot"})
+    assert not forb3.is_forbidden_value({"grandchild": "lukewarm"})
+    assert not forb3.is_forbidden_value({"grandchild": "cold"})
+
+    # Test forbidden on vector values
+    hyperparameter_idx = {hp1.name: 0, hp2.name: 1}
+    forb1.set_vector_idx(hyperparameter_idx)
+    forb2.set_vector_idx(hyperparameter_idx)
+    assert not forb1.is_forbidden_vector(np.array([np.nan, np.nan]))
+    assert not forb1.is_forbidden_vector(np.array([1.0, np.nan]))
+    assert forb1.is_forbidden_vector(np.array([0.0, np.nan]))
+    assert forb1.is_forbidden_vector(np.array([0.00001, 36]))
+    assert not forb1.is_forbidden_vector(np.array([0.99, 10]))
+    assert forb2.is_forbidden_vector(np.array([0.5, 1]))
+
+
+def test_forbidden_less_equals_clause():
+    hp1 = UniformFloatHyperparameter("parent", 0.0, 1.0)
+    hp2 = UniformIntegerHyperparameter("child", 0, 10)
+    hp3 = OrdinalHyperparameter("grandchild", ["hot", "lukewarm", "cold"])
+
+    with pytest.raises(ValueError):  # Cannot create clause with invalid value
+        ForbiddenLessEqualsClause(hp2, 12)
+
+    with pytest.raises(ValueError):  # Cannot create clause for categorical
+        hp_wrong = CategoricalHyperparameter("grandchild", ["hot", "lukewarm", "cold"])
+        ForbiddenLessEqualsClause(hp_wrong, "hot")
+
+    forb1 = ForbiddenLessEqualsClause(hp1, 0.33)
+    forb1_ = ForbiddenLessEqualsClause(hp1, 0.33)
+    forb1__ = ForbiddenLessEqualsClause(hp1, 0.67)
+    forb2 = ForbiddenLessEqualsClause(hp2, 5)
+    forb3 = ForbiddenLessEqualsClause(hp3, "lukewarm")
+    forb3_ = ForbiddenLessEqualsClause(hp3, "lukewarm")
+
+    assert forb3 == forb3_
+    assert forb1 == forb1_
+    assert forb1 != "forb1"
+    assert forb1 != forb2
+    assert forb1__ != forb1
+    assert str(forb1) == "Forbidden: parent <= 0.33"
+    assert str(forb2) == "Forbidden: child <= 5"
+    assert str(forb3) == "Forbidden: grandchild <= 'lukewarm'"
+
+    assert not forb1.is_forbidden_value({"child": 1})
+    assert forb1.is_forbidden_value({"parent": 0.15})
+    assert forb1.is_forbidden_value({"parent": 0.329999})
+    assert not forb1.is_forbidden_value({"parent": 0.98})
+    assert forb3.is_forbidden_value({"grandchild": "hot"})
+    assert forb3.is_forbidden_value({"grandchild": "lukewarm"})
+    assert not forb3.is_forbidden_value({"grandchild": "cold"})
+
+    # Test forbidden on vector values
+    hyperparameter_idx = {hp1.name: 0, hp2.name: 1}
+    forb1.set_vector_idx(hyperparameter_idx)
+    forb2.set_vector_idx(hyperparameter_idx)
+    assert not forb1.is_forbidden_vector(np.array([np.nan, np.nan]))
+    assert not forb1.is_forbidden_vector(np.array([1.0, np.nan]))
+    assert forb1.is_forbidden_vector(np.array([0.33, np.nan]))
+    assert forb1.is_forbidden_vector(np.array([0.001, 8]))
+    assert not forb1.is_forbidden_vector(np.array([0.98, 10]))
+    assert not forb2.is_forbidden_vector(np.array([0.5, 6]))
+    assert forb2.is_forbidden_vector(np.array([0.5, 5]))
+    assert forb2.is_forbidden_vector(np.array([0.99, 4]))
 
 
 def test_in_condition():
@@ -150,62 +347,7 @@ def test_and_conjunction():
         == "((Forbidden: parent == 1 && Forbidden: child in {2}) && (Forbidden: parent == 1 && Forbidden: child2 in {2}) && (Forbidden: parent == 1 && Forbidden: child3 in {2}))"
     )
 
-    results = [
-        False,
-        False,
-        False,
-        False,
-        False,
-        False,
-        False,
-        False,
-        False,
-        False,
-        False,
-        False,
-        False,
-        False,
-        False,
-        False,
-        False,
-        False,
-        False,
-        False,
-        False,
-        False,
-        False,
-        False,
-        False,
-        False,
-        False,
-        False,
-        False,
-        False,
-        False,
-        False,
-        False,
-        False,
-        False,
-        False,
-        False,
-        False,
-        False,
-        False,
-        False,
-        False,
-        False,
-        False,
-        False,
-        False,
-        False,
-        False,
-        False,
-        False,
-        False,
-        False,
-        False,
-        True,
-    ]
+    results = [False] * 53 + [True]
 
     for i, values in enumerate(product(range(2), range(3), range(3), range(3))):
         is_forbidden = total_and.is_forbidden_value(
@@ -221,6 +363,41 @@ def test_and_conjunction():
 
         assert not total_and.is_forbidden_value({})
 
+
+def test_or_conjunction():
+    hp1 = CategoricalHyperparameter("parent", [0, 1])
+    hp2 = UniformIntegerHyperparameter("child", 0, 2)
+    hp3 = UniformIntegerHyperparameter("child2", 0, 2)
+    hp4 = UniformIntegerHyperparameter("child3", 0, 2)
+
+    forb2 = ForbiddenEqualsClause(hp1, 1)
+    forb3 = ForbiddenInClause(hp2, range(2, 3))
+    forb4 = ForbiddenInClause(hp3, range(2, 3))
+    forb5 = ForbiddenInClause(hp4, range(2, 3))
+
+    or1 = ForbiddenOrConjunction(forb2, forb3)
+    or2 = ForbiddenOrConjunction(forb2, forb4)
+    or3 = ForbiddenOrConjunction(forb2, forb5)
+
+    total_or = ForbiddenOrConjunction(or1, or2, or3)
+    assert (
+        str(total_or)
+        == "((Forbidden: parent == 1 || Forbidden: child in {2}) || (Forbidden: parent == 1 || Forbidden: child2 in {2}) || (Forbidden: parent == 1 || Forbidden: child3 in {2}))"
+    )
+
+    results = [False] * 2 + [True] + [False] * 2 + [True] * 4 + [False] * 2 + [True] + [False] * 2 + [True] * 40
+    for i, values in enumerate(product(range(2), range(3), range(3), range(3))):
+        is_forbidden = total_or.is_forbidden_value(
+            {
+                "parent": values[0],
+                "child": values[1],
+                "child2": values[2],
+                "child3": values[3],
+            },
+        )
+        assert results[i] == is_forbidden
+
+        assert not total_or.is_forbidden_value({})
 
 def test_relation():
     hp1 = CategoricalHyperparameter("cat_int", [0, 1])
