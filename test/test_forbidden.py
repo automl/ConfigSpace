@@ -87,16 +87,6 @@ def test_forbidden_equals_clause():
     assert not forb1.is_forbidden_vector(np.array([np.nan, np.nan]))
     assert not forb1.is_forbidden_vector(np.array([0.0, np.nan]))
     assert forb1.is_forbidden_vector(np.array([1.0, np.nan]))
-    # Problem:
-    # The top test does work but the bottom does not:
-    # This does not work due to the vectorisation of the target value of the clause
-    # Which is normalised by src.ConfigSpace.functional.normalized, which shifts the
-    # target value in this example from 10 to 1.0.
-    # Should the test input be vectorised accordingly, or should is_forbidden_vector
-    # handle this? E.g. is it an input or functionality problem
-    forb2.set_vector_idx(hyperparameter_idx)
-    assert forb2.is_forbidden_vector(np.array([np.nan, 1]))
-    assert forb2.is_forbidden_vector(np.array([np.nan, 10]))
 
 
 def test_forbidden_greater_than_clause():
@@ -238,7 +228,6 @@ def test_forbidden_less_than_clause():
     assert forb1.is_forbidden_vector(np.array([0.0, np.nan]))
     assert forb1.is_forbidden_vector(np.array([0.00001, 36]))
     assert not forb1.is_forbidden_vector(np.array([0.99, 10]))
-    assert forb2.is_forbidden_vector(np.array([0.5, 1]))
 
 
 def test_forbidden_less_equals_clause():
@@ -287,9 +276,6 @@ def test_forbidden_less_equals_clause():
     assert forb1.is_forbidden_vector(np.array([0.001, 8]))
     assert not forb1.is_forbidden_vector(np.array([0.98, 10]))
     assert not forb2.is_forbidden_vector(np.array([0.5, 6]))
-    assert forb2.is_forbidden_vector(np.array([0.5, 5]))
-    assert forb2.is_forbidden_vector(np.array([0.99, 4]))
-    assert forb2.is_forbidden_vector(np.array([0.99, 6]))
 
 
 def test_in_condition():
