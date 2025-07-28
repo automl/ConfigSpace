@@ -181,6 +181,11 @@ def quantized_neighborhood(
         uniq = np.unique(candidates_quantized)
         new_uniq = np.setdiff1d(uniq, neighbors[:offset], assume_unique=True)
 
+        # Unfortunately, uniq sorts the values, so we lose the "centered"'ness, and
+        # `uniq` and `new_uniq` are now left-biased samples. We thus need to undo this
+        # sort operation.
+        seed.shuffle(new_uniq)
+
         n_new_unique = len(new_uniq)
         neighbors[offset : offset + n_new_unique] = new_uniq
         offset += n_new_unique
@@ -703,6 +708,10 @@ class DiscretizedContinuousScipyDistribution(Distribution, Generic[DType]):
             uniq = np.unique(candidates_quantized)
             new_uniq = np.setdiff1d(uniq, neighbors[:offset], assume_unique=True)
 
+            # Unfortunately, uniq sorts the values, so we lose the "centered"'ness'
+            # Shuffle the new_uniq to ensure we have a random distribution
+            seed.shuffle(new_uniq)
+
             n_new_unique = len(new_uniq)
             neighbors[offset : offset + n_new_unique] = new_uniq
             offset += n_new_unique
@@ -1077,6 +1086,10 @@ class UniformIntegerDistribution(Distribution):
 
             uniq = np.unique(candidates_quantized)
             new_uniq = np.setdiff1d(uniq, neighbors[:offset], assume_unique=True)
+
+            # Unfortunately, uniq sorts the values, so we lose the "centered"'ness'
+            # Shuffle the new_uniq to ensure we have a random distribution
+            seed.shuffle(new_uniq)
 
             n_new_unique = len(new_uniq)
             neighbors[offset : offset + n_new_unique] = new_uniq
