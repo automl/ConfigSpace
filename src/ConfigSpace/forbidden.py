@@ -905,8 +905,8 @@ class ForbiddenOrConjunction(ForbiddenConjunction):
     )
 
     cs = ConfigurationSpace({"a": [1, 2, 3], "b": [2, 5, 6]})
-    forbidden_clause_a = ForbiddenEqualsClause(cs["a"], 2)
-    forbidden_clause_b = ForbiddenInClause(cs["b"], [2])
+    forbidden_clause_a = ForbiddenEqualsClause(cs["a"], 3)
+    forbidden_clause_b = ForbiddenInClause(cs["b"], [6])
 
     forbidden_clause = ForbiddenOrConjunction(forbidden_clause_a, forbidden_clause_b)
 
