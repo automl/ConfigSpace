@@ -901,8 +901,8 @@ class ForbiddenOrConjunction(ForbiddenConjunction):
         ConfigurationSpace,
         ForbiddenEqualsClause,
         ForbiddenInClause,
+        ForbiddenOrConjunction,
     )
-    from sparkle.tools.configspace import ForbiddenOrConjunction
 
     cs = ConfigurationSpace({"a": [1, 2, 3], "b": [2, 5, 6]})
     forbidden_clause_a = ForbiddenEqualsClause(cs["a"], 2)
