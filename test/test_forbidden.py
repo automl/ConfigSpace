@@ -35,16 +35,16 @@ import pytest
 from ConfigSpace import OrdinalHyperparameter
 from ConfigSpace.forbidden import (
     ForbiddenAndConjunction,
-    ForbiddenOrConjunction,
     ForbiddenEqualsClause,
-    ForbiddenGreaterThanClause,
-    ForbiddenGreaterEqualsClause,
-    ForbiddenLessThanClause,
-    ForbiddenLessEqualsClause,
     ForbiddenEqualsRelation,
+    ForbiddenGreaterEqualsClause,
+    ForbiddenGreaterThanClause,
     ForbiddenGreaterThanRelation,
     ForbiddenInClause,
+    ForbiddenLessEqualsClause,
+    ForbiddenLessThanClause,
     ForbiddenLessThanRelation,
+    ForbiddenOrConjunction,
 )
 from ConfigSpace.hyperparameters import (
     CategoricalHyperparameter,

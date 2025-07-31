@@ -2538,9 +2538,9 @@ def test_sample_CategoricalHyperparameter_with_weights():
             value = hp.sample_value(seed=rs)
             counts_per_bin[value] += 1
 
-        assert {0: 1003, 2: 2061, "Bla": 2994, "Blub": 3942} == dict(
+        assert dict(
             counts_per_bin.items(),
-        )
+        ) == {0: 1003, 2: 2061, "Bla": 2994, "Blub": 3942}
         return counts_per_bin
 
     assert actual_test() == actual_test()

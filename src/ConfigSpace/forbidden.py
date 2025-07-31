@@ -936,8 +936,8 @@ class ForbiddenOrConjunction(ForbiddenConjunction):
 
     @override
     def is_forbidden_value(self: ForbiddenOrConjunction, values: dict[str, Any]) -> bool:
-        return any([forbidden.is_forbidden_value(values)
-                    for forbidden in self.components])
+        return any(forbidden.is_forbidden_value(values)
+                    for forbidden in self.components)
 
     @override
     def is_forbidden_vector(self: ForbiddenOrConjunction, vector: Array[f64]) -> bool:

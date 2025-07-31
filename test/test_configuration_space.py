@@ -423,7 +423,7 @@ def test_get_conditions():
     cs.add(hp1)
     hp2 = UniformIntegerHyperparameter("child", 0, 10)
     cs.add(hp2)
-    assert [] == cs.conditions
+    assert cs.conditions == []
     cond1 = EqualsCondition(hp2, hp1, 0)
     cs.add(cond1)
     assert [cond1] == cs.conditions
