@@ -382,7 +382,16 @@ def test_or_conjunction():
         == "((Forbidden: parent == 1 || Forbidden: child in {2}) || (Forbidden: parent == 1 || Forbidden: child2 in {2}) || (Forbidden: parent == 1 || Forbidden: child3 in {2}))"
     )
 
-    results = [False] * 2 + [True] + [False] * 2 + [True] * 4 + [False] * 2 + [True] + [False] * 2 + [True] * 40
+    results = (
+        [False] * 2
+        + [True]
+        + [False] * 2
+        + [True] * 4
+        + [False] * 2
+        + [True]
+        + [False] * 2
+        + [True] * 40
+    )
     for i, values in enumerate(product(range(2), range(3), range(3), range(3))):
         is_forbidden = total_or.is_forbidden_value(
             {
@@ -395,6 +404,7 @@ def test_or_conjunction():
         assert results[i] == is_forbidden
 
         assert not total_or.is_forbidden_value({})
+
 
 def test_relation():
     hp1 = CategoricalHyperparameter("cat_int", [0, 1])
