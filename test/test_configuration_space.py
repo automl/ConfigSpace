@@ -121,7 +121,6 @@ def test_remove():
 
     # Set up forbidden relation, the relation should also be removed
     forb = ForbiddenEqualsClause(hp3, "snowy")
-    #cs.add(hp3)
     cs.add(forb)
     cs.remove(hp3)
     assert len(cs) == 1
