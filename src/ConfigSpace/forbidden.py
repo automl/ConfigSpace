@@ -486,7 +486,7 @@ class ForbiddenGreaterThanClause(ForbiddenClause):
     ```python exec="true", source="material-block" result="python"
     from ConfigSpace import ConfigurationSpace, ForbiddenGreaterThanClause
 
-    cs = ConfigurationSpace({"a": [1, 2, 3]})
+    cs = ConfigurationSpace({"a": (1, 10)})
     forbidden_clause_a = ForbiddenGreaterThanClause(cs['a'], 2)
     cs.add(forbidden_clause_a)
     print(cs)
@@ -580,7 +580,7 @@ class ForbiddenGreaterEqualsClause(ForbiddenClause):
     ```python exec="true", source="material-block" result="python"
     from ConfigSpace import ConfigurationSpace, ForbiddenGreaterEqualsClause
 
-    cs = ConfigurationSpace({"a": [1, 2, 3]})
+    cs = ConfigurationSpace({"a": (1, 10)})
     forbidden_clause_a = ForbiddenGreaterEqualsClause(cs['a'], 2)
     cs.add(forbidden_clause_a)
     print(cs)
@@ -674,7 +674,7 @@ class ForbiddenLessThanClause(ForbiddenClause):
     ```python exec="true", source="material-block" result="python"
     from ConfigSpace import ConfigurationSpace, ForbiddenLessThanClause
 
-    cs = ConfigurationSpace({"a": [1, 2, 3]})
+    cs = ConfigurationSpace({"a": (1, 10)})
     forbidden_clause_a = ForbiddenLessThanClause(cs['a'], 2)
     cs.add(forbidden_clause_a)
     print(cs)
@@ -767,7 +767,7 @@ class ForbiddenLessEqualsClause(ForbiddenClause):
     ```python exec="true", source="material-block" result="python"
     from ConfigSpace import ConfigurationSpace, ForbiddenLessEqualsClause
 
-    cs = ConfigurationSpace({"a": [1, 2, 3]})
+    cs = ConfigurationSpace({"a": (1, 10)})
     forbidden_clause_a = ForbiddenLessEqualsClause(cs['a'], 2)
     cs.add(forbidden_clause_a)
     print(cs)
@@ -785,7 +785,7 @@ class ForbiddenLessEqualsClause(ForbiddenClause):
     """Forbidden value."""
 
     def __init__(self, hyperparameter: Hyperparameter, value: Any) -> None:
-        """Initialize a ForbiddenLessThanClause.
+        """Initialize a ForbiddenLessEqualsClause.
 
         Args:
             hyperparameter: Hyperparameter on which a restriction will be made
