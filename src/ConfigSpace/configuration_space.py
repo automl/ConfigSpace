@@ -350,6 +350,38 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         self._len = len(self._dag.nodes)
         self._check_default_configuration()
 
+    def remove(
+        self,
+        *args: Hyperparameter,
+    ) -> None:
+        """Remove a hyperparameter from the configuration space.
+
+        If the hyperparameter has children, the children are also removed.
+        This includes defined conditions and conjunctions! 
+
+        !!! note
+
+        If removing multiple hyperparameters, it is better to remove them all
+        at once with one call to `remove()`, as we rebuilt a cache after each
+        call to `remove()`.
+
+        Args:
+            args: Hyperparameter(s) to remove
+        """
+        hps = []
+        for arg in args:
+            if isinstance(arg, Hyperparameter):
+                hps.append(arg)
+            else:
+                raise TypeError(f"Unknown type {type(arg)}")
+
+        with self._dag.update():
+            for hp in hps:
+                self._dag.remove(hp)
+
+        self._len = len(self._dag.nodes)
+        self._check_default_configuration()
+
     def add_configuration_space(
         self,
         prefix: str,
