@@ -172,6 +172,7 @@ select = [
 
 ignore = [
   "T201",    # TODO: Remove
+  "COM812",  # Causes issues with ruff formatter
   "D100",
   "D104",    # Missing docstring in public package
   "D105",    # Missing docstring in magic mthod
