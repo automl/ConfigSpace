@@ -483,6 +483,15 @@ class ForbiddenGreaterThanClause(ForbiddenClause):
 
     Forbids the value of the hyperparameter *a* to be greater than 2
 
+    ```python exec="true", source="material-block" result="python"
+    from ConfigSpace import ConfigurationSpace, ForbiddenGreaterThanClause
+
+    cs = ConfigurationSpace({"a": [1, 2, 3]})
+    forbidden_clause_a = ForbiddenGreaterThanClause(cs['a'], 2)
+    cs.add(forbidden_clause_a)
+    print(cs)
+    ```
+
     Args:
         hyperparameter: Methods on which a restriction will be made
         value: forbidden value
@@ -568,6 +577,15 @@ class ForbiddenGreaterEqualsClause(ForbiddenClause):
 
     Forbids the value of the hyperparameter *a* to be greater or equal to 2
 
+    ```python exec="true", source="material-block" result="python"
+    from ConfigSpace import ConfigurationSpace, ForbiddenGreaterThanClause
+
+    cs = ConfigurationSpace({"a": [1, 2, 3]})
+    forbidden_clause_a = ForbiddenGreaterThanClause(cs['a'], 2)
+    cs.add(forbidden_clause_a)
+    print(cs)
+    ```
+
     Args:
         hyperparameter: Methods on which a restriction will be made
         value: forbidden value
@@ -651,6 +669,17 @@ class ForbiddenLessThanClause(ForbiddenClause):
     It forbids a value from the value range of a hyperparameter to be
     *less than* `value`.
 
+    Forbids the value of the hyperparameter *a* to be less than 2
+
+    ```python exec="true", source="material-block" result="python"
+    from ConfigSpace import ConfigurationSpace, ForbiddenGreaterThanClause
+
+    cs = ConfigurationSpace({"a": [1, 2, 3]})
+    forbidden_clause_a = ForbiddenGreaterThanClause(cs['a'], 2)
+    cs.add(forbidden_clause_a)
+    print(cs)
+    ```
+
     Args:
         hyperparameter: Methods on which a restriction will be made
         value: forbidden value
@@ -732,6 +761,17 @@ class ForbiddenLessEqualsClause(ForbiddenClause):
 
     It forbids a value from the value range of a hyperparameter to be
     *less or equal to* `value`.
+
+    Forbids the value of the hyperparameter *a* to be less or equal to 2
+
+    ```python exec="true", source="material-block" result="python"
+    from ConfigSpace import ConfigurationSpace, ForbiddenGreaterThanClause
+
+    cs = ConfigurationSpace({"a": [1, 2, 3]})
+    forbidden_clause_a = ForbiddenGreaterThanClause(cs['a'], 2)
+    cs.add(forbidden_clause_a)
+    print(cs)
+    ```
 
     Args:
         hyperparameter: Methods on which a restriction will be made
