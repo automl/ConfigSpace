@@ -357,7 +357,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         """Remove a hyperparameter from the configuration space.
 
         If the hyperparameter has children, the children are also removed.
-        This includes defined conditions and conjunctions! 
+        This includes defined conditions and conjunctions!
 
         !!! note
 
@@ -910,7 +910,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         return iter(self._dag.nodes.keys())
 
     def items(self) -> ItemsView[str, Hyperparameter]:
-        """Return an items view of the hyperparameters, same as `dict.items()`."""  # noqa: D402
+        """Return an items view of the hyperparameters, same as `dict.items()`."""
         return {name: node.hp for name, node in self._dag.nodes.items()}.items()
 
     def __len__(self) -> int:
