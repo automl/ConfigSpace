@@ -495,3 +495,35 @@ def test_relation_conditioned():
         cs = ConfigurationSpace()
         cs.add([a, enable_a, cond_a, b, forbid_a_b])
         cs.sample_configuration(100)
+
+
+def test_forbidden_serialisation_deserialisation():
+    from ConfigSpace import ConfigurationSpace
+    from ConfigSpace.read_and_write.dictionary import (
+        FORBIDDEN_DECODERS,
+        FORBIDDEN_ENCODERS,
+    )
+
+    hp1 = UniformIntegerHyperparameter("a", 0, 10, default_value=1)
+    hp2 = UniformIntegerHyperparameter("b", 0, 10, default_value=1)
+    cs = ConfigurationSpace()
+    cs.add([hp1, hp2])
+
+    for forbidden_type in (ForbiddenInClause,):
+        forbidden_value = 5 if forbidden_type != ForbiddenInClause else [4, 5]
+        forbidden = forbidden_type(hp1, forbidden_value)
+        decoder_id, encoder = FORBIDDEN_ENCODERS[forbidden_type]
+        decoder = FORBIDDEN_DECODERS[decoder_id]
+        encoded = encoder(forbidden, {})
+        assert decoder(encoded, cs, {}) == forbidden
+
+    for forbidden_type in (
+        ForbiddenEqualsRelation,
+        ForbiddenGreaterThanRelation,
+        ForbiddenLessThanRelation,
+    ):
+        forbidden = forbidden_type(hp1, hp2)
+        decoder_id, encoder = FORBIDDEN_ENCODERS[forbidden_type]
+        decoder = FORBIDDEN_DECODERS[decoder_id]
+        encoded = encoder(forbidden, {})
+        assert decoder(encoded, cs, {}) == forbidden
