@@ -24,7 +24,7 @@ __all__ = [
     "NormalIntegerHyperparameter",
     "NumericalHyperparameter",
     "OrdinalHyperparameter",
+    "UnParametrizedHyperparameter",
     "UniformFloatHyperparameter",
     "UniformIntegerHyperparameter",
-    "UnParametrizedHyperparameter",
 ]
