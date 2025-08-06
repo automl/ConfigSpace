@@ -41,8 +41,7 @@ from typing_extensions import Self
 import numpy as np
 from more_itertools import unique_everseen
 
-from ConfigSpace.hyperparameters import Hyperparameter
-from ConfigSpace.conditions import Condition, Conjunction, ConditionLike
+from ConfigSpace.conditions import Condition, ConditionLike, Conjunction
 from ConfigSpace.exceptions import (
     AmbiguousConditionError,
     ChildNotFoundError,
@@ -63,6 +62,7 @@ from ConfigSpace.forbidden import (
 from ConfigSpace.types import f64
 
 if TYPE_CHECKING:
+    from ConfigSpace.hyperparameters import Hyperparameter
     from ConfigSpace.types import Array
 
 
@@ -665,7 +665,7 @@ class DAG:
                 "Cannot remove hyperparameters outside of transaction."
                 "Please use `remove` inside `with dag.transaction():`",
             )
-    
+
         existing = self.nodes.get(value.name, None)
         if existing is None:
             raise HyperparameterNotFoundError(
@@ -674,11 +674,11 @@ class DAG:
 
         # Update each condition containing this hyperparameter
         def remove_hyperparameter_from_condition(target: Conjunction | Condition | ForbiddenRelation | ForbiddenClause) -> Conjunction | Condition | ForbiddenClause | ForbiddenRelation | ForbiddenConjunction | None:
-            if isinstance(target, ForbiddenRelation) and (target.left == value or target.right == value):
+            if isinstance(target, ForbiddenRelation) and (value in (target.left, target.right)):
                 return None
             if isinstance(target, ForbiddenClause) and target.hyperparameter == value:
                 return None
-            if isinstance(target, Condition) and (target.parent == value or target.child == value):
+            if isinstance(target, Condition) and (value in (target.parent, target.child)):
                 return None
             if isinstance(target, (Conjunction, ForbiddenConjunction)):
                 new_components = []
@@ -688,7 +688,7 @@ class DAG:
                         new_components.append(new_component)
                 if len(new_components) >= 2:  # Can create a conjunction
                     return type(target)(*new_components)
-                elif len(new_components) == 1:  # Only one component remains
+                if len(new_components) == 1:  # Only one component remains
                     return new_components[0]
                 return None  # No components remain
             return target # Nothing to change
@@ -737,7 +737,7 @@ class DAG:
                     remove.append(node_name)
             for node_name in remove:
                 marked_nodes.remove(node_name)
-        
+
 
     def add_condition(self, condition: ConditionLike) -> None:
         """Add a condition to the DAG."""

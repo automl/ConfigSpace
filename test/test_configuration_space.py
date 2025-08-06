@@ -125,7 +125,7 @@ def test_remove():
     cs.remove(hp3)
     assert len(cs) == 1
     assert cs.forbidden_clauses == []
-    
+
     # And now for more complicated conditions
     cs = ConfigurationSpace()
     hp1 = CategoricalHyperparameter("input1", [0, 1])
@@ -177,7 +177,7 @@ def test_remove():
     assert len(cs.forbidden_clauses) == 2
     assert str(cs.forbidden_clauses[0]) == "(Forbidden: input1 == 1 && Forbidden: input2 == 1)"
     assert str(cs.forbidden_clauses[1]) == "Forbidden: input4 == 1"
-    
+
 
 
 def test_add_non_hyperparameter():
@@ -521,7 +521,7 @@ def test_get_conditions():
     cs.add(hp1)
     hp2 = UniformIntegerHyperparameter("child", 0, 10)
     cs.add(hp2)
-    assert [] == cs.conditions
+    assert cs.conditions == []
     cond1 = EqualsCondition(hp2, hp1, 0)
     cs.add(cond1)
     assert [cond1] == cs.conditions
