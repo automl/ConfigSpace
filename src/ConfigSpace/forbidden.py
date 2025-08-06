@@ -481,13 +481,13 @@ class ForbiddenGreaterThanClause(ForbiddenClause):
     It forbids a value from the value range of a hyperparameter to be
     *greater than* `value`.
 
-    Forbids the value of the hyperparameter *a* to be greater than 2
+    Forbids the value of the hyperparameter *a* to be greater than 8
 
     ```python exec="true", source="material-block" result="python"
     from ConfigSpace import ConfigurationSpace, ForbiddenGreaterThanClause
 
     cs = ConfigurationSpace({"a": (1, 10)})
-    forbidden_clause_a = ForbiddenGreaterThanClause(cs['a'], 2)
+    forbidden_clause_a = ForbiddenGreaterThanClause(cs['a'], 8)
     cs.add(forbidden_clause_a)
     print(cs)
     ```
@@ -575,13 +575,13 @@ class ForbiddenGreaterEqualsClause(ForbiddenClause):
     It forbids a value from the value range of a hyperparameter to be
     *greater or equal to* `value`.
 
-    Forbids the value of the hyperparameter *a* to be greater or equal to 2
+    Forbids the value of the hyperparameter *a* to be greater or equal to 8
 
     ```python exec="true", source="material-block" result="python"
     from ConfigSpace import ConfigurationSpace, ForbiddenGreaterEqualsClause
 
     cs = ConfigurationSpace({"a": (1, 10)})
-    forbidden_clause_a = ForbiddenGreaterEqualsClause(cs['a'], 2)
+    forbidden_clause_a = ForbiddenGreaterEqualsClause(cs['a'], 8)
     cs.add(forbidden_clause_a)
     print(cs)
     ```
@@ -598,7 +598,7 @@ class ForbiddenGreaterEqualsClause(ForbiddenClause):
     """Forbidden value."""
 
     def __init__(self, hyperparameter: Hyperparameter, value: Any) -> None:
-        """Initialize a ForbiddenGreaterThanClause.
+        """Initialize a ForbiddenGreaterEqualsClause.
 
         Args:
             hyperparameter: Hyperparameter on which a restriction will be made
