@@ -311,9 +311,9 @@ for more on the distribution.
 
 ---
 
-#### Defining the BetaintegerHyperparameter
+#### Defining the BetaIntegerHyperparameter
 First, we need to define the `__init__` method of the `BetaIntegerHyperparameter`, where we're going to
-need the following for a [`BetaIntegerHyperparameter`][ConfigSpace.hyperparameters.IntegerHyperparameter]:
+need the following for a [`BetaIntegerHyperparameter`][ConfigSpace.hyperparameters.integer_hyperparameter.IntegerHyperparameter]:
 
 * `name=`: The name of the hyperparameter, required for all kinds of hyperparameters
 * `lower=`, `upper=`: The bounds the user would like in value space, i.e. `(1, 5)`
