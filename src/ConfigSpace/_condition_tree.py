@@ -557,7 +557,7 @@ class DAG:
         conditions = []
         for node in self.nodes.values():
             if node.parent_condition is not None:
-                #print(node.name)
+                # print(node.name)
                 conditions.append(node.parent_condition)
 
         self.conditions = list(unique_everseen(conditions, key=str))
@@ -673,12 +673,25 @@ class DAG:
             )
 
         # Update each condition containing this hyperparameter
-        def remove_hyperparameter_from_condition(target: Conjunction | Condition | ForbiddenRelation | ForbiddenClause) -> Conjunction | Condition | ForbiddenClause | ForbiddenRelation | ForbiddenConjunction | None:
-            if isinstance(target, ForbiddenRelation) and (value in (target.left, target.right)):
+        def remove_hyperparameter_from_condition(
+            target: Conjunction | Condition | ForbiddenRelation | ForbiddenClause,
+        ) -> (
+            Conjunction
+            | Condition
+            | ForbiddenClause
+            | ForbiddenRelation
+            | ForbiddenConjunction
+            | None
+        ):
+            if isinstance(target, ForbiddenRelation) and (
+                value in (target.left, target.right)
+            ):
                 return None
             if isinstance(target, ForbiddenClause) and target.hyperparameter == value:
                 return None
-            if isinstance(target, Condition) and (value in (target.parent, target.child)):
+            if isinstance(target, Condition) and (
+                value in (target.parent, target.child)
+            ):
                 return None
             if isinstance(target, (Conjunction, ForbiddenConjunction)):
                 new_components = []
@@ -691,21 +704,31 @@ class DAG:
                 if len(new_components) == 1:  # Only one component remains
                     return new_components[0]
                 return None  # No components remain
-            return target # Nothing to change
+            return target  # Nothing to change
 
         # Update each of the forbiddens containing this hyperparameter
         for findex, forbidden in enumerate(self.unconditional_forbiddens):
-            self.unconditional_forbiddens[findex] = remove_hyperparameter_from_condition(forbidden)
+            self.unconditional_forbiddens[findex] = (
+                remove_hyperparameter_from_condition(forbidden)
+            )
         for findex, forbidden in enumerate(self.conditional_forbiddens):
-            self.conditional_forbiddens[findex] = remove_hyperparameter_from_condition(forbidden)
+            self.conditional_forbiddens[findex] = remove_hyperparameter_from_condition(
+                forbidden
+            )
         # Filter None values from the forbiddens
-        self.unconditional_forbiddens = [f for f in self.unconditional_forbiddens if f is not None]
-        self.conditional_forbiddens = [f for f in self.conditional_forbiddens if f is not None]
+        self.unconditional_forbiddens = [
+            f for f in self.unconditional_forbiddens if f is not None
+        ]
+        self.conditional_forbiddens = [
+            f for f in self.conditional_forbiddens if f is not None
+        ]
 
         for node in self.nodes.values():
             if node.parent_condition is None:
                 continue
-            node.parent_condition = remove_hyperparameter_from_condition(node.parent_condition)
+            node.parent_condition = remove_hyperparameter_from_condition(
+                node.parent_condition
+            )
 
         self.nodes.pop(value.name)
         for child, _ in existing.children.values():
@@ -725,19 +748,18 @@ class DAG:
             for node_name in marked_nodes:
                 node = self.nodes.get(node_name)
                 if not node.parents:
-                    #print("Parentless node:", node.name)
+                    # print("Parentless node:", node.name)
                     node.maximum_depth = 0
                     remove.append(node_name)
                 elif all(p.name not in marked_nodes for p, _ in node.parents.values()):
-                    #print("New maximum depth node:", node.name, node.parents)
-                    node.maximum_depth = max(
-                        parent.maximum_depth
-                        for parent, _ in node.parents.values()
-                    ) + 1
+                    # print("New maximum depth node:", node.name, node.parents)
+                    node.maximum_depth = (
+                        max(parent.maximum_depth for parent, _ in node.parents.values())
+                        + 1
+                    )
                     remove.append(node_name)
             for node_name in remove:
                 marked_nodes.remove(node_name)
-
 
     def add_condition(self, condition: ConditionLike) -> None:
         """Add a condition to the DAG."""
@@ -865,7 +887,7 @@ class DAG:
         for node in self.nodes.values():
             # This node has no parent as is a root
             if node.parent_condition is None:
-                #print(self.roots.keys())
+                # print(self.roots.keys())
                 assert node.name in self.roots
                 continue
 

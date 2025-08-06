@@ -86,8 +86,9 @@ def test_remove():
     cs = ConfigurationSpace()
     hp = UniformIntegerHyperparameter("name", 0, 10)
     hp2 = UniformFloatHyperparameter("name2", 0, 10)
-    hp3 = CategoricalHyperparameter("weather", ["dry", "rainy", "snowy"],
-                                    default_value="dry")
+    hp3 = CategoricalHyperparameter(
+        "weather", ["dry", "rainy", "snowy"], default_value="dry"
+    )
     cs.add(hp, hp2, hp3)
     cs.remove(hp)
     assert len(cs) == 2
@@ -158,7 +159,10 @@ def test_remove():
     assert len(cs.conditional_hyperparameters) == 1
     assert len(cs.conditions) == 1
     # Test the exact value
-    assert str(cs.conditions[0]) == "((constant1 | input1 == 1 && constant1 | input2 != 1) && constant1 | input4 == 1 && constant1 | input5 == 1)"
+    assert (
+        str(cs.conditions[0])
+        == "((constant1 | input1 == 1 && constant1 | input2 != 1) && constant1 | input4 == 1 && constant1 | input5 == 1)"
+    )
 
     # Now more complicated forbiddens
     cs = ConfigurationSpace()
@@ -175,9 +179,11 @@ def test_remove():
     cs.remove(hp3)
     assert len(cs) == 5
     assert len(cs.forbidden_clauses) == 2
-    assert str(cs.forbidden_clauses[0]) == "(Forbidden: input1 == 1 && Forbidden: input2 == 1)"
+    assert (
+        str(cs.forbidden_clauses[0])
+        == "(Forbidden: input1 == 1 && Forbidden: input2 == 1)"
+    )
     assert str(cs.forbidden_clauses[1]) == "Forbidden: input4 == 1"
-
 
 
 def test_add_non_hyperparameter():

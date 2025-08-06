@@ -56,7 +56,7 @@ def _backwards_compat(item: dict[str, Any]) -> dict[str, Any]:
         )
     if (default := item.pop("default", None)) is not None:
         warnings.warn(
-            "The field 'default' should be 'default_value' !" f"\nFound in item {item}",
+            f"The field 'default' should be 'default_value' !\nFound in item {item}",
             stacklevel=3,
         )
         item["default_value"] = default
