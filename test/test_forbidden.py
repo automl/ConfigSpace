@@ -137,53 +137,63 @@ def test_forbidden_greater_than_clause():
     assert forb2.is_forbidden_vector(np.array([0.99, 10]))
 
 
-def test_forbidden_greater_than_equals_clause():
-    hp1 = UniformFloatHyperparameter("parent", 0.0, 1.0)
-    hp2 = UniformIntegerHyperparameter("child", 0, 10)
-    hp3 = OrdinalHyperparameter("grandchild", ["hot", "lukewarm", "cold"])
-
+def test_forbidden_greater_than_equals_clause_invalid_value():
     with pytest.raises(ValueError):  # Cannot create clause with invalid value
-        ForbiddenGreaterThanEqualsClause(hp2, 12)
+        hp_wrong = UniformIntegerHyperparameter("child", 0, 10)
+        ForbiddenGreaterThanEqualsClause(hp_wrong, 12)
 
     with pytest.raises(ValueError):  # Cannot create clause for categorical
         hp_wrong = CategoricalHyperparameter("grandchild", ["hot", "lukewarm", "cold"])
         ForbiddenGreaterThanEqualsClause(hp_wrong, "hot")
 
-    forb1 = ForbiddenGreaterThanEqualsClause(hp1, 0.99)
-    forb1_ = ForbiddenGreaterThanEqualsClause(hp1, 0.99)
-    forb1__ = ForbiddenGreaterThanEqualsClause(hp1, 0.01)
-    forb2 = ForbiddenGreaterThanEqualsClause(hp2, 9)
-    forb3 = ForbiddenGreaterThanEqualsClause(hp3, "lukewarm")
-    forb3_ = ForbiddenGreaterThanEqualsClause(hp3, "lukewarm")
 
-    assert forb3 == forb3_
-    assert forb1 == forb1_
-    assert forb1 != "forb1"
-    assert forb1 != forb2
-    assert forb1__ != forb1
-    assert str(forb1) == "Forbidden: parent >= 0.99"
-    assert str(forb2) == "Forbidden: child >= 9"
-    assert str(forb3) == "Forbidden: grandchild >= 'lukewarm'"
+@pytest.mark.parametrize(
+    "hyperparameter,value,valid_values,invalid_values",
+    [
+        (
+            UniformFloatHyperparameter("parent", 0.0, 1.0),
+            0.99,
+            [0.98, 0.98999999999],
+            [0.99, 1.0],
+        ),
+        (UniformIntegerHyperparameter("child", 0, 10), 9, [6, 7, 8], [9, 10]),
+        (
+            OrdinalHyperparameter("grandchild", ["hot", "lukewarm", "cold"]),
+            "lukewarm",
+            ["hot"],
+            ["lukewarm", "cold"],
+        ),
+    ],
+)
+def test_forbidden_greater_than_equals_clause(
+    hyperparameter,
+    value,
+    valid_values,
+    invalid_values,
+):
+    forb = ForbiddenGreaterThanEqualsClause(hyperparameter, value)
+    forb_ = ForbiddenGreaterThanEqualsClause(hyperparameter, value)
 
-    assert not forb1.is_forbidden_value({"child": 1})
-    assert forb1.is_forbidden_value({"parent": 1.0})
-    assert forb1.is_forbidden_value({"parent": 0.99})
-    assert not forb1.is_forbidden_value({"parent": 0.98})
-    assert not forb3.is_forbidden_value({"grandchild": "hot"})
-    assert forb3.is_forbidden_value({"grandchild": "lukewarm"})
-    assert forb3.is_forbidden_value({"grandchild": "cold"})
+    # Basic properties
+    assert forb == forb_
+    str_value = "'" + value + "'" if isinstance(value, str) else value
+    assert str(forb) == f"Forbidden: {hyperparameter.name} >= {str_value}"
 
-    # Test forbidden on vector values
-    hyperparameter_idx = {hp1.name: 0, hp2.name: 1}
-    forb1.set_vector_idx(hyperparameter_idx)
-    forb2.set_vector_idx(hyperparameter_idx)
-    assert not forb1.is_forbidden_vector(np.array([np.nan, np.nan]))
-    assert not forb1.is_forbidden_vector(np.array([0.0, np.nan]))
-    assert forb1.is_forbidden_vector(np.array([1.0, np.nan]))
-    assert forb1.is_forbidden_vector(np.array([0.991, 8]))
-    assert not forb1.is_forbidden_vector(np.array([0.98, 10]))
-    assert forb2.is_forbidden_vector(np.array([0.99, 10]))
-    assert forb2.is_forbidden_vector(np.array([0.99, 9]))
+    # Test values
+    for valid_value in valid_values:
+        assert not forb.is_forbidden_value({hyperparameter.name: valid_value})
+    for invalid_value in invalid_values:
+        assert forb.is_forbidden_value({hyperparameter.name: invalid_value})
+
+    # Test vectors
+    hyperparameter_idx = {hyperparameter.name: 0, "dummy_var": 1}
+    forb.set_vector_idx(hyperparameter_idx)
+    for valid_value in valid_values:
+        valid_value_vector = hyperparameter.to_vector(valid_value)
+        assert not forb.is_forbidden_vector(np.array([valid_value_vector, np.nan]))
+    for invalid_value in invalid_values:
+        invalid_value_vector = hyperparameter.to_vector(invalid_value)
+        assert forb.is_forbidden_vector(np.array([invalid_value_vector, np.nan]))
 
 
 def test_forbidden_less_than_clause():

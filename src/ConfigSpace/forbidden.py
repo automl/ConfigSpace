@@ -662,6 +662,7 @@ class ForbiddenGreaterThanEqualsClause(ForbiddenClause):
     def is_forbidden_vector(
         self: ForbiddenGreaterThanEqualsClause, vector: Array[f64]
     ) -> bool:
+        print(vector, self.vector_id, self.vector_value)
         return vector[self.vector_id] >= self.vector_value  # type: ignore
 
     @override
