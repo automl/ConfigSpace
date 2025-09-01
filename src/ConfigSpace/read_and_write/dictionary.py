@@ -20,9 +20,13 @@ from ConfigSpace.forbidden import (
     ForbiddenEqualsRelation,
     ForbiddenGreaterThanRelation,
     ForbiddenGreaterThanEqualsRelation,
+    ForbiddenGreaterThanClause,
+    ForbiddenGreaterThanEqualsClause,
     ForbiddenInClause,
     ForbiddenLessThanRelation,
     ForbiddenLessThanEqualsRelation,
+    ForbiddenLessThanClause,
+    ForbiddenLessThanEqualsClause,
     ForbiddenRelation,
 )
 from ConfigSpace.hyperparameters import (
@@ -59,7 +63,7 @@ def _backwards_compat(item: dict[str, Any]) -> dict[str, Any]:
         )
     if (default := item.pop("default", None)) is not None:
         warnings.warn(
-            "The field 'default' should be 'default_value' !" f"\nFound in item {item}",
+            f"The field 'default' should be 'default_value' !\nFound in item {item}",
             stacklevel=3,
         )
         item["default_value"] = default
@@ -284,6 +288,54 @@ def _decode_relation_legacy(
     raise ValueError(f"Unknown lambda {_lambda}")
 
 
+def _decode_forbidden_less_than_clause(
+    item: dict[str, Any],
+    cs: ConfigurationSpace,
+    decode: _Decoder,  # noqa: ARG001
+) -> ForbiddenLessThanClause:
+    return ForbiddenLessThanClause(hyperparameter=cs[item["name"]], value=item["value"])
+
+
+def _decode_forbidden_less_than_equals_clause(
+    item: dict[str, Any],
+    cs: ConfigurationSpace,
+    decode: _Decoder,  # noqa: ARG001
+) -> ForbiddenLessThanEqualsClause:
+    return ForbiddenLessThanEqualsClause(
+        hyperparameter=cs[item["name"]], value=item["value"]
+    )
+
+
+def _decode_forbidden_greater_than_clause(
+    item: dict[str, Any],
+    cs: ConfigurationSpace,
+    decode: _Decoder,  # noqa: ARG001
+) -> ForbiddenGreaterThanClause:
+    return ForbiddenGreaterThanClause(
+        hyperparameter=cs[item["name"]], value=item["value"]
+    )
+
+
+def _decode_forbidden_greater_than_equals_clause(
+    item: dict[str, Any],
+    cs: ConfigurationSpace,
+    decode: _Decoder,  # noqa: ARG001
+) -> ForbiddenGreaterThanEqualsClause:
+    return ForbiddenGreaterThanEqualsClause(
+        hyperparameter=cs[item["name"]], value=item["value"]
+    )
+
+
+def _decode_forbidden_less_than_equals_relation(
+    item: dict[str, Any],
+    cs: ConfigurationSpace,
+    decode: _Decoder,  # noqa: ARG001
+) -> ForbiddenLessThanEqualsRelation:
+    return ForbiddenLessThanEqualsRelation(
+        left=cs[item["left"]], right=cs[item["right"]]
+    )
+
+
 def _decode_forbidden_equals_relation(
     item: dict[str, Any],
     cs: ConfigurationSpace,
@@ -305,7 +357,9 @@ def _decode_forbidden_less_than_equals_relation(
     cs: ConfigurationSpace,
     decode: _Decoder,  # noqa: ARG001
 ) -> ForbiddenLessThanEqualsRelation:
-    return ForbiddenLessThanEqualsRelation(left=cs[item["left"]], right=cs[item["right"]])
+    return ForbiddenLessThanEqualsRelation(
+        left=cs[item["left"]], right=cs[item["right"]]
+    )
 
 
 def _decode_forbidden_greater_than_equals_relation(
@@ -313,7 +367,29 @@ def _decode_forbidden_greater_than_equals_relation(
     cs: ConfigurationSpace,
     decode: _Decoder,  # noqa: ARG001
 ) -> ForbiddenGreaterThanEqualsRelation:
-    return ForbiddenGreaterThanEqualsRelation(left=cs[item["left"]], right=cs[item["right"]])
+    return ForbiddenGreaterThanEqualsRelation(
+        left=cs[item["left"]], right=cs[item["right"]]
+    )
+
+
+def _decode_forbidden_greater_than_equals_clause(
+    item: dict[str, Any],
+    cs: ConfigurationSpace,
+    decode: _Decoder,  # noqa: ARG001
+) -> ForbiddenGreaterThanEqualsClause:
+    return ForbiddenGreaterThanEqualsClause(
+        hyperparameter=cs[item["name"]], value=item["value"]
+    )
+
+
+def _decode_forbidden_less_than_equals_clause(
+    item: dict[str, Any],
+    cs: ConfigurationSpace,
+    decode: _Decoder,  # noqa: ARG001
+) -> ForbiddenLessThanEqualsClause:
+    return ForbiddenLessThanEqualsClause(
+        hyperparameter=cs[item["name"]], value=item["value"]
+    )
 
 
 def _decode_forbidden_greater_than_relation(
@@ -350,6 +426,10 @@ FORBIDDEN_DECODERS: dict[str, _Decoder] = {
     "IN": _decode_forbidden_in,
     "AND": _decode_forbidden_and,
     "OR": _decode_forbidden_or,
+    "CLAUSE_LT": _decode_forbidden_less_than_clause,
+    "CLAUSE_LE": _decode_forbidden_less_than_equals_clause,
+    "CLAUSE_GT": _decode_forbidden_greater_than_clause,
+    "CLAUSE_GE": _decode_forbidden_greater_than_equals_clause,
     "RELATION_LT": _decode_forbidden_less_than_relation,
     "RELATION_LE": _decode_forbidden_less_than_equals_relation,
     "RELATION_EQ": _decode_forbidden_equals_relation,
@@ -557,6 +637,34 @@ def _encode_forbidden_equals(
     return {"name": cond.hyperparameter.name, "value": cond.value}
 
 
+def _encode_forbidden_clause_greater_than(
+    cond: ForbiddenGreaterThanClause,
+    encode: _Encoder,  # noqa: ARG001
+) -> dict[str, Any]:
+    return {"name": cond.hyperparameter.name, "value": cond.value}
+
+
+def _encode_forbidden_clause_greater_than_equals(
+    cond: ForbiddenGreaterThanEqualsClause,
+    encode: _Encoder,  # noqa: ARG001
+) -> dict[str, Any]:
+    return {"name": cond.hyperparameter.name, "value": cond.value}
+
+
+def _encode_forbidden_clause_less_than(
+    cond: ForbiddenLessThanClause,
+    encode: _Encoder,  # noqa: ARG001
+) -> dict[str, Any]:
+    return {"name": cond.hyperparameter.name, "value": cond.value}
+
+
+def _encode_forbidden_clause_less_than_equals(
+    cond: ForbiddenLessThanEqualsClause,
+    encode: _Encoder,  # noqa: ARG001
+) -> dict[str, Any]:
+    return {"name": cond.hyperparameter.name, "value": cond.value}
+
+
 def _encode_forbidden_in(
     cond: ForbiddenInClause,
     encode: _Encoder,  # noqa: ARG001
@@ -640,8 +748,21 @@ FORBIDDEN_ENCODERS: dict[type, tuple[str, _Encoder]] = {
     ForbiddenInClause: ("IN", _encode_forbidden_in),
     ForbiddenAndConjunction: ("AND", _encode_forbidden_and),
     ForbiddenOrConjunction: ("OR", _encode_forbidden_or),
+    ForbiddenLessThanClause: ("CLAUSE_LT", _encode_forbidden_clause_less_than),
+    ForbiddenLessThanEqualsClause: (
+        "CLAUSE_LE",
+        _encode_forbidden_clause_less_than_equals,
+    ),
+    ForbiddenGreaterThanClause: ("CLAUSE_GT", _encode_forbidden_clause_greater_than),
+    ForbiddenGreaterThanEqualsClause: (
+        "CLAUSE_GE",
+        _encode_forbidden_clause_greater_than_equals,
+    ),
     ForbiddenLessThanRelation: ("RELATION_LT", _encode_forbidden_relation_less_than),
-    ForbiddenLessThanEqualsRelation: ("RELATION_LE", _encode_forbidden_relation_less_than_equals),
+    ForbiddenLessThanEqualsRelation: (
+        "RELATION_LE",
+        _encode_forbidden_relation_less_than_equals,
+    ),
     ForbiddenEqualsRelation: ("RELATION_EQ", _encode_forbidden_relation_equals),
     ForbiddenGreaterThanRelation: (
         "RELATION_GT",

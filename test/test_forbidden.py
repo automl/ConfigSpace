@@ -37,12 +37,14 @@ from ConfigSpace.forbidden import (
     ForbiddenAndConjunction,
     ForbiddenEqualsClause,
     ForbiddenEqualsRelation,
-    ForbiddenGreaterEqualsClause,
     ForbiddenGreaterThanClause,
+    ForbiddenGreaterThanEqualsClause,
+    ForbiddenGreaterThanEqualsRelation,
     ForbiddenGreaterThanRelation,
     ForbiddenInClause,
-    ForbiddenLessEqualsClause,
     ForbiddenLessThanClause,
+    ForbiddenLessThanEqualsClause,
+    ForbiddenLessThanEqualsRelation,
     ForbiddenLessThanRelation,
     ForbiddenOrConjunction,
 )
@@ -141,18 +143,18 @@ def test_forbidden_greater_than_equals_clause():
     hp3 = OrdinalHyperparameter("grandchild", ["hot", "lukewarm", "cold"])
 
     with pytest.raises(ValueError):  # Cannot create clause with invalid value
-        ForbiddenGreaterEqualsClause(hp2, 12)
+        ForbiddenGreaterThanEqualsClause(hp2, 12)
 
     with pytest.raises(ValueError):  # Cannot create clause for categorical
         hp_wrong = CategoricalHyperparameter("grandchild", ["hot", "lukewarm", "cold"])
-        ForbiddenGreaterEqualsClause(hp_wrong, "hot")
+        ForbiddenGreaterThanEqualsClause(hp_wrong, "hot")
 
-    forb1 = ForbiddenGreaterEqualsClause(hp1, 0.99)
-    forb1_ = ForbiddenGreaterEqualsClause(hp1, 0.99)
-    forb1__ = ForbiddenGreaterEqualsClause(hp1, 0.01)
-    forb2 = ForbiddenGreaterEqualsClause(hp2, 9)
-    forb3 = ForbiddenGreaterEqualsClause(hp3, "lukewarm")
-    forb3_ = ForbiddenGreaterEqualsClause(hp3, "lukewarm")
+    forb1 = ForbiddenGreaterThanEqualsClause(hp1, 0.99)
+    forb1_ = ForbiddenGreaterThanEqualsClause(hp1, 0.99)
+    forb1__ = ForbiddenGreaterThanEqualsClause(hp1, 0.01)
+    forb2 = ForbiddenGreaterThanEqualsClause(hp2, 9)
+    forb3 = ForbiddenGreaterThanEqualsClause(hp3, "lukewarm")
+    forb3_ = ForbiddenGreaterThanEqualsClause(hp3, "lukewarm")
 
     assert forb3 == forb3_
     assert forb1 == forb1_
@@ -236,18 +238,18 @@ def test_forbidden_less_equals_clause():
     hp3 = OrdinalHyperparameter("grandchild", ["hot", "lukewarm", "cold"])
 
     with pytest.raises(ValueError):  # Cannot create clause with invalid value
-        ForbiddenLessEqualsClause(hp2, 12)
+        ForbiddenLessThanEqualsClause(hp2, 12)
 
     with pytest.raises(ValueError):  # Cannot create clause for categorical
         hp_wrong = CategoricalHyperparameter("grandchild", ["hot", "lukewarm", "cold"])
-        ForbiddenLessEqualsClause(hp_wrong, "hot")
+        ForbiddenLessThanEqualsClause(hp_wrong, "hot")
 
-    forb1 = ForbiddenLessEqualsClause(hp1, 0.33)
-    forb1_ = ForbiddenLessEqualsClause(hp1, 0.33)
-    forb1__ = ForbiddenLessEqualsClause(hp1, 0.67)
-    forb2 = ForbiddenLessEqualsClause(hp2, 5)
-    forb3 = ForbiddenLessEqualsClause(hp3, "lukewarm")
-    forb3_ = ForbiddenLessEqualsClause(hp3, "lukewarm")
+    forb1 = ForbiddenLessThanEqualsClause(hp1, 0.33)
+    forb1_ = ForbiddenLessThanEqualsClause(hp1, 0.33)
+    forb1__ = ForbiddenLessThanEqualsClause(hp1, 0.67)
+    forb2 = ForbiddenLessThanEqualsClause(hp2, 5)
+    forb3 = ForbiddenLessThanEqualsClause(hp3, "lukewarm")
+    forb3_ = ForbiddenLessThanEqualsClause(hp3, "lukewarm")
 
     assert forb3 == forb3_
     assert forb1 == forb1_
@@ -509,7 +511,13 @@ def test_forbidden_serialisation_deserialisation():
     cs = ConfigurationSpace()
     cs.add([hp1, hp2])
 
-    for forbidden_type in (ForbiddenInClause,):
+    for forbidden_type in (
+        ForbiddenInClause,
+        ForbiddenLessThanClause,
+        ForbiddenLessThanEqualsClause,
+        ForbiddenGreaterThanClause,
+        ForbiddenGreaterThanEqualsClause,
+    ):
         forbidden_value = 5 if forbidden_type != ForbiddenInClause else [4, 5]
         forbidden = forbidden_type(hp1, forbidden_value)
         decoder_id, encoder = FORBIDDEN_ENCODERS[forbidden_type]
@@ -520,7 +528,9 @@ def test_forbidden_serialisation_deserialisation():
     for forbidden_type in (
         ForbiddenEqualsRelation,
         ForbiddenGreaterThanRelation,
+        ForbiddenGreaterThanEqualsRelation,
         ForbiddenLessThanRelation,
+        ForbiddenLessThanEqualsRelation,
     ):
         forbidden = forbidden_type(hp1, hp2)
         decoder_id, encoder = FORBIDDEN_ENCODERS[forbidden_type]
