@@ -25,6 +25,7 @@ maintainers = [
   { name = "Matthias Feurer", email = "feurerm@informatik.uni-freiburg.de" },
   { name = "Eddie Bergman", email = "eddiebergmanhs@gmail.com" },
   { name = "Arjun Krishnakumar", email = "arjunkrishnakumarmec@gmail.com" },
+  { name = "Thijs Snelleman", email = "snelleman@aim.rwth-aachen.de" },
 ]
 keywords = [
   "algorithm",
