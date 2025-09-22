@@ -59,6 +59,7 @@ with warnings.catch_warnings():
 from ConfigSpace.util import (
     change_hp_value,
     deactivate_inactive_hyperparameters,
+    expression_to_configspace,
     fix_types,
     generate_grid,
     get_one_exchange_neighbourhood,
@@ -658,3 +659,55 @@ def test_generate_grid():
     assert dict(generated_grid[1]) == {"cat1": "F", "ord1": "2"}
     assert dict(generated_grid[2]) == {"cat1": "T", "ord1": "1", "int1": 0}
     assert dict(generated_grid[-1]) == {"cat1": "T", "ord1": "3", "int1": 1000}
+
+
+def test_expression_to_configspace():
+    cs = ConfigurationSpace(
+        {
+            "a": (0, 10),
+            "b": (0, 10),
+            "c": (0, 10),
+            "d": (0, 10),
+            "e": (0, 10),
+            "cat1": ["cat", "dog"],
+            "cat2": ["sun", "rain", "snow", "fog"],
+            "float1": (0.0, 1.0),
+            "float2": (0.0, 1.0),
+        },
+    )
+    from ConfigSpace.conditions import LessThanCondition
+    from ConfigSpace.forbidden import (
+        ForbiddenAndConjunction,
+        ForbiddenEqualsClause,
+        ForbiddenGreaterThanEqualsClause,
+        ForbiddenGreaterThanRelation,
+        ForbiddenLessThanClause,
+    )
+
+    wrong_expression = "a >!> b"
+    with pytest.raises(ValueError):
+        expression_to_configspace(wrong_expression, cs)
+
+    simple_expression = "a > b"
+    cs_expression = expression_to_configspace(simple_expression, cs)
+    assert cs_expression == ForbiddenGreaterThanRelation(cs["a"], cs["b"])
+
+    simple_expression = "a < 5"
+    cs_expression = expression_to_configspace(simple_expression, cs)
+    assert cs_expression == ForbiddenLessThanClause(cs["a"], 5)
+    cs_expression = expression_to_configspace(
+        simple_expression,
+        cs,
+        target_parameter=cs["e"],
+    )
+    assert cs_expression == LessThanCondition(cs["e"], cs["a"], 5)
+
+    complex_expression = "a > b && c > d && e < 5 && cat1 == dog && float1 >= 0.5"
+    cs_expression = expression_to_configspace(complex_expression, cs)
+    assert cs_expression == ForbiddenAndConjunction(
+        ForbiddenGreaterThanRelation(cs["a"], cs["b"]),
+        ForbiddenGreaterThanRelation(cs["c"], cs["d"]),
+        ForbiddenLessThanClause(cs["e"], 5),
+        ForbiddenEqualsClause(cs["cat1"], "dog"),
+        ForbiddenGreaterThanEqualsClause(cs["float1"], 0.5),
+    )
