@@ -43,6 +43,12 @@ from ConfigSpace import (
     EqualsCondition,
     ForbiddenAndConjunction,
     ForbiddenEqualsClause,
+    ForbiddenGreaterThanClause,
+    ForbiddenGreaterThanEqualsClause,
+    ForbiddenGreaterThanRelation,
+    ForbiddenInClause,
+    ForbiddenLessThanClause,
+    ForbiddenOrConjunction,
     GreaterThanCondition,
     LessThanCondition,
     OrConjunction,
@@ -674,17 +680,6 @@ def test_expression_to_configspace():
             "float1": (0.0, 1.0),
             "float2": (0.0, 1.0),
         },
-    )
-    from ConfigSpace.conditions import LessThanCondition
-    from ConfigSpace.forbidden import (
-        ForbiddenAndConjunction,
-        ForbiddenEqualsClause,
-        ForbiddenGreaterThanClause,
-        ForbiddenGreaterThanEqualsClause,
-        ForbiddenGreaterThanRelation,
-        ForbiddenInClause,
-        ForbiddenLessThanClause,
-        ForbiddenOrConjunction,
     )
 
     wrong_expression = "a >!> b"

@@ -31,7 +31,7 @@ import ast
 import copy
 from collections import deque
 from collections.abc import Iterator, Sequence
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any, cast, Iterable
 
 import numpy as np
 
@@ -52,9 +52,29 @@ from ConfigSpace.hyperparameters import (
     UniformIntegerHyperparameter,
 )
 
-from ConfigSpace.conditions import *
-from ConfigSpace.forbidden import *
-
+from ConfigSpace.conditions import (
+    Condition,
+    AndConjunction,
+    OrConjunction,
+    EqualsCondition,
+    GreaterThanCondition,
+    LessThanCondition,
+    NotEqualsCondition,
+    InCondition,
+)
+from ConfigSpace.forbidden import (
+    ForbiddenClause,
+    ForbiddenAndConjunction,
+    ForbiddenOrConjunction,
+    ForbiddenEqualsClause,
+    ForbiddenGreaterThanClause,
+    ForbiddenGreaterThanEqualsClause,
+    ForbiddenInClause,
+    ForbiddenLessThanClause,
+    ForbiddenLessThanEqualsClause,
+    ForbiddenGreaterThanRelation,
+    ForbiddenLessThanRelation,
+)
 
 from ConfigSpace.types import NotSet
 
