@@ -952,7 +952,7 @@ def recursive_conversion(
         elif not isinstance(right, Hyperparameter):
             raise ValueError(
                 "Only hyperparameter comparisons allowed. Neither side is recognised as a hyperparameter in: "
-                f"{ast.unparse(item)}"
+                f"{left} {operator} {right}"
             )
 
         is_relation = isinstance(left, Hyperparameter) and isinstance(right, Hyperparameter)
