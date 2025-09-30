@@ -941,6 +941,7 @@ def recursive_conversion(
         left = recursive_conversion(item.left, configspace, target_parameter)
         right = recursive_conversion(item.comparators, configspace, target_parameter)
         operator = item.ops[0]
+
         if isinstance(left, Hyperparameter):  # Convert to HP type
             if isinstance(right, Iterable) and not isinstance(right, str):
                 right = [type(left.default_value)(v) for v in right]
@@ -948,6 +949,11 @@ def recursive_conversion(
                     right = right[0]
             elif isinstance(right, int):
                 right = type(left.default_value)(right)
+        elif not isinstance(right, Hyperparameter):
+            raise ValueError(
+                "Only hyperparameter comparisons allowed. Neither side is recognised as a hyperparameter in: "
+                f"{ast.unparse(item)}"
+            )
 
         is_relation = isinstance(left, Hyperparameter) and isinstance(right, Hyperparameter)
         if is_relation and target_parameter:
