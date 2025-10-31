@@ -557,7 +557,6 @@ class DAG:
         conditions = []
         for node in self.nodes.values():
             if node.parent_condition is not None:
-                # print(node.name)
                 conditions.append(node.parent_condition)
 
         self.conditions = list(unique_everseen(conditions, key=str))
@@ -748,11 +747,9 @@ class DAG:
             for node_name in marked_nodes:
                 node = self.nodes.get(node_name)
                 if not node.parents:
-                    # print("Parentless node:", node.name)
                     node.maximum_depth = 0
                     remove.append(node_name)
                 elif all(p.name not in marked_nodes for p, _ in node.parents.values()):
-                    # print("New maximum depth node:", node.name, node.parents)
                     node.maximum_depth = (
                         max(parent.maximum_depth for parent, _ in node.parents.values())
                         + 1
@@ -885,9 +882,7 @@ class DAG:
         # i.e. two hyperparameters both rely on algorithm == "A"
         base_conditions: dict[int, ConditionNode] = {}
         for node in self.nodes.values():
-            # This node has no parent as is a root
-            if node.parent_condition is None:
-                # print(self.roots.keys())
+            if node.parent_condition is None:  # This node has no parent as it is a root node
                 assert node.name in self.roots
                 continue
 
