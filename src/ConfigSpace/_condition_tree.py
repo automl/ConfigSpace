@@ -672,7 +672,7 @@ class DAG:
             )
 
         # Update each condition containing this hyperparameter
-        def remove_hyperparameter_from_condition(
+        def remove_hyperparameter_from_conjunction(
             target: Conjunction | Condition | ForbiddenRelation | ForbiddenClause,
         ) -> (
             Conjunction
@@ -683,19 +683,19 @@ class DAG:
             | None
         ):
             if isinstance(target, ForbiddenRelation) and (
-                value in (target.left, target.right)
+                value.name in (target.left.name, target.right.name)
             ):
                 return None
-            if isinstance(target, ForbiddenClause) and target.hyperparameter == value:
+            if isinstance(target, ForbiddenClause) and target.hyperparameter.name == value.name:
                 return None
             if isinstance(target, Condition) and (
-                value in (target.parent, target.child)
+                value.name in (target.parent.name, target.child.name)
             ):
                 return None
             if isinstance(target, (Conjunction, ForbiddenConjunction)):
                 new_components = []
                 for component in target.components:
-                    new_component = remove_hyperparameter_from_condition(component)
+                    new_component = remove_hyperparameter_from_conjunction(component)
                     if new_component is not None:
                         new_components.append(new_component)
                 if len(new_components) >= 2:  # Can create a conjunction
@@ -708,10 +708,10 @@ class DAG:
         # Update each of the forbiddens containing this hyperparameter
         for findex, forbidden in enumerate(self.unconditional_forbiddens):
             self.unconditional_forbiddens[findex] = (
-                remove_hyperparameter_from_condition(forbidden)
+                remove_hyperparameter_from_conjunction(forbidden)
             )
         for findex, forbidden in enumerate(self.conditional_forbiddens):
-            self.conditional_forbiddens[findex] = remove_hyperparameter_from_condition(
+            self.conditional_forbiddens[findex] = remove_hyperparameter_from_conjunction(
                 forbidden
             )
         # Filter None values from the forbiddens
@@ -725,7 +725,7 @@ class DAG:
         for node in self.nodes.values():
             if node.parent_condition is None:
                 continue
-            node.parent_condition = remove_hyperparameter_from_condition(
+            node.parent_condition = remove_hyperparameter_from_conjunction(
                 node.parent_condition
             )
 
