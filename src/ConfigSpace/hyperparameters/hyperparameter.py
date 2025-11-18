@@ -132,7 +132,7 @@ class Hyperparameter(ABC, Generic[ValueT, DType]):
         if not self.legal_value(self.default_value):
             raise ValueError(
                 f"Illegal default value {self.default_value} for"
-                f" hyperparamter '{self.name}'.",
+                f" hyperparameter '{self.name}'.",
             )
 
         self._normalized_default_value = self.to_vector(self.default_value)
