@@ -162,6 +162,72 @@ class UniformIntegerHyperparameter(IntegerHyperparameter):
             meta=self.meta,
         )
 
+    def __setattr__(self, name: str, value: Any) -> None:
+        if hasattr(self, name):  # Post init, as the value was already set, thus an update
+            if name == "upper" and value != self.upper or name == "lower" and value != self.lower:  # Update sampling scales
+                value = int(np.rint(value))
+                if name == "upper":
+                    if value < self.default_value or value < self.lower:
+                        raise ValueError(
+                            f"Upper bound {value} is smaller than the lower bound or default value [{self.lower}, {self.default_value}]"
+                        )
+                    size = value - self.lower + 1
+                    try:
+                        scaler = UnitScaler(i64(self.lower), i64(value), log=self.log, dtype=i64)
+                    except ValueError as e:
+                        raise ValueError(f"Hyperparameter '{name}' has illegal settings") from e
+                else:
+                    if value > self.default_value or value > self.upper:
+                        raise ValueError(
+                            f"Lower bound {value} is greater than the upper bound or default value [{self.lower}, {self.default_value}]"
+                        )
+                    size = self.upper - value + 1
+                    try:
+                        scaler = UnitScaler(i64(value), i64(self.upper), log=self.log, dtype=i64)
+                    except ValueError as e:
+                        raise ValueError(f"Hyperparameter '{name}' has illegal settings") from e
+                
+                # Properties to update
+                if not self.log:
+                    vector_dist = UniformIntegerNormalizedDistribution(size=int(size))
+                else:
+                    vector_dist = DiscretizedContinuousScipyDistribution(
+                        rv=uniform(),  # type: ignore
+                        steps=int(size),
+                        _max_density=float(1 / size),
+                        _pdf_norm=float(size),
+                        lower_vectorized=f64(0.0),
+                        upper_vectorized=f64(1.0),
+                        log_scale=self.log,
+                        transformer=scaler,
+                    )
+                self._vector_dist = vector_dist
+                self._transformer = scaler
+                self._neighborhood = vector_dist.neighborhood
+                self._neighborhood_size = self._integer_neighborhood_size
+                self.size = size
+            elif name == "default_value" and (not hasattr(self, name) or value != self.default_value):
+                value = int(np.rint(value))
+                if value is not None and not is_close_to_integer(
+                    f64(value),
+                    atol=ATOL,
+                ):
+                    raise TypeError(
+                        f"`{name}` for hyperparameter '{self.name}' must be an integer."
+                        f" Got '{type(value).__name__}' for {name}={value}.",
+                    )
+                if not self.legal_value(self.default_value):
+                    raise ValueError(
+                        f"Illegal default value {self.default_value} for"
+                        f" hyperparameter '{self.name}'.",
+                    )
+                if value < self.lower or value > self.upper:
+                    raise ValueError(
+                        f"Default value {value} is out of range [{self.lower}, {self.upper}]"
+                    )
+                self._normalized_default_value = self.to_vector(value)
+        return super().__setattr__(name, value)
+
     def __str__(self) -> str:
         parts = [
             self.name,

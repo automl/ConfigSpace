@@ -3080,3 +3080,47 @@ def test_arbitrary_object_allowed_in_categorical_ordinal(
             list(get_one_exchange_neighbourhood(sample, seed=1))  # no raise
             for n in ns:
                 n.check_valid_configuration()  # no raise
+
+
+def test_update_hyperparameters():
+    space = ConfigurationSpace()
+    space.add(
+        [
+            UniformIntegerHyperparameter("a", 0, 100),
+            UniformFloatHyperparameter("b", -1.0, 1.0),
+            CategoricalHyperparameter("c", [1, 2, 3]),
+            OrdinalHyperparameter("d", [1, 2, 3]),
+        ],
+    )
+    # Test updating numerical HP min/max values
+    space["a"].upper = 51
+    assert space["a"].upper == 51
+    space["a"].lower = 49
+    assert space["a"].lower == 49
+
+    # Sample the space to verify it does not sample OOD
+    sample = space.sample_configuration(size=10)
+    for value in sample:
+        assert 49 <= value["a"] <= 51
+
+    # Test updating default values
+    space["a"].lower = 1  # Update first to avoid error
+    space["a"].default_value = 5
+    assert space["a"].default_value == 5
+
+    with pytest.raises(ValueError):  # Test that it cannot change to an illegal value
+        space["a"].upper = 0  # lower than lower
+
+    # Test Float
+    space["b"].upper = 0.9
+    assert space["b"].upper == 0.9
+    space["b"].lower = -0.9
+    assert space["b"].lower == -0.9
+
+    # TODO: Test updating categorical values
+    # TODO: Test updating ordinal values
+    # TODO: Test changing HP type int -> float
+    # TODO: Test changing HP type float -> int
+    # TODO: Test changing HP type categorical -> ordinal
+    # TODO: Test changing HP type ordinal -> categorical
+    # TODO: Check that HP type cannot change between float/int and categorical/ordinal
