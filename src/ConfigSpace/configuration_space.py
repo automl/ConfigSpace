@@ -512,17 +512,6 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
 
             active = True
             for condition in conditions:
-                parent_vector_idx: np.intp | Array[np.intp]
-                if isinstance(condition, Conjunction):
-                    assert condition.parent_vector_ids is not None
-                    parent_vector_idx = condition.parent_vector_ids
-                else:
-                    parent_vector_idx = np.asarray(condition.parent_vector_id)
-
-                if np.isnan(vector[parent_vector_idx]).any():
-                    active = False
-                    break
-
                 if not condition.satisfied_by_vector(vector):
                     active = False
                     break
@@ -921,7 +910,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
     ) -> None:
         vector = configuration.get_array()
         active_hyperparameters = self.get_active_hyperparameters(configuration)
-
+        print(active_hyperparameters)
         for hp_name, node in self._dag.nodes.items():
             hyperparameter = node.hp
             hp_vector = vector[self.index_of[hp_name]]
