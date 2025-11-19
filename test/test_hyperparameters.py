@@ -3099,7 +3099,7 @@ def test_update_hyperparameters():
     assert space["a"].lower == 49
 
     # Sample the space to verify it does not sample OOD
-    sample = space.sample_configuration(size=10)
+    sample = space.sample_configuration(size=25)
     for value in sample:
         assert 49 <= value["a"] <= 51
 
@@ -3108,17 +3108,64 @@ def test_update_hyperparameters():
     space["a"].default_value = 5
     assert space["a"].default_value == 5
 
-    with pytest.raises(ValueError):  # Test that it cannot change to an illegal value
+    # Test that it cannot change to an illegal value
+    with pytest.raises(ValueError):
         space["a"].upper = 0  # lower than lower
+    with pytest.raises(ValueError):
+        space["a"].lower = 100  # higher than upper
+    with pytest.raises(ValueError):
+        space["a"].default_value = 1000  # Out of bounds
 
     # Test Float
-    space["b"].upper = 0.9
-    assert space["b"].upper == 0.9
-    space["b"].lower = -0.9
-    assert space["b"].lower == -0.9
+    space["b"].upper = 0.1
+    assert space["b"].upper == 0.1
+    space["b"].lower = -0.1
+    assert space["b"].lower == -0.1
 
-    # TODO: Test updating categorical values
-    # TODO: Test updating ordinal values
+    # Check sampling
+    sample = space.sample_configuration(size=25)
+    for value in sample:
+        assert -0.1 <= value["b"] <= 0.1
+
+    # Test illegal changes
+    with pytest.raises(ValueError):
+        space["b"].upper = -0.11  # lower than lower
+    with pytest.raises(ValueError):
+        space["b"].lower = 0.11  # higher than upper
+    with pytest.raises(ValueError):
+        space["b"].default_value = -10.0  # Out of bounds
+
+    # Test categorical HP
+    space["c"].choices = [1, 2, 3, 4]  # Change range
+    assert space["c"].choices == (1, 2, 3, 4)
+
+    space["c"].default_value = 4  # Change default value
+    assert space["c"].default_value == 4
+
+    space["c"].weights = [0.1, 0.4, 0.1, 0.4]  # Change weights
+    assert space["c"].weights == (0.1, 0.4, 0.1, 0.4)
+
+    # Test sampling
+    sample_count = {1: 0, 2: 0, 3: 0, 4: 0}
+    sample = space.sample_configuration(size=25)
+    for value in sample:
+        sample_count[value["c"]] += 1
+    assert sample_count[2] > sample_count[1]
+    assert sample_count[2] > sample_count[3]
+    assert sample_count[4] > sample_count[1]
+    assert sample_count[4] > sample_count[3]
+
+    # Test ordinal HP
+    space["d"].sequence = [1, 2, 3, 4]  # Change range
+    assert space["d"].sequence == (1, 2, 3, 4)
+
+    space["d"].default_value = 4  # Change default value
+    assert space["d"].default_value == 4
+
+    # Test sampling
+    sample = space.sample_configuration(size=25)
+    assert 4 in [s["d"] for s in sample]
+
     # TODO: Test changing HP type int -> float
     # TODO: Test changing HP type float -> int
     # TODO: Test changing HP type categorical -> ordinal
