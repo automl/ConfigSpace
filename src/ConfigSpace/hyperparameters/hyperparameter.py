@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import inspect
 import warnings
 from abc import ABC, abstractmethod
 from collections.abc import Callable, Hashable, Mapping, Sequence
@@ -136,6 +137,23 @@ class Hyperparameter(ABC, Generic[ValueT, DType]):
             )
 
         self._normalized_default_value = self.to_vector(self.default_value)
+
+    def __setattr__(self, name: str, value: Any):
+        """Check if attribute can be set on HP, and reinitialises the class if so."""
+        #if hasattr(self, name):  # Class has been initialised, value change post init
+        if inspect.stack()[1][3] != '__init__':  # This should be only executed on update, not init
+            # Extract all editable attributes
+            init_params: tuple[str] = self.__init__.__code__.co_varnames[:self.__init__.__code__.co_argcount]
+
+            if name not in init_params or not hasattr(self, name):
+                raise ValueError("Can't set attribute {name}, must be one passed to init.") # Something better error message than this
+
+            init_params = {key: self.__dict__[key] for key in init_params if hasattr(self, key)}  # This will break if the parameter is not saved under its passed name
+            init_params[name] = value  # Place the update value
+
+            self.__init__(**init_params)  # Reinitialise
+        else:
+            super().__setattr__(name, value)
 
     @property
     def lower_vectorized(self) -> f64:
