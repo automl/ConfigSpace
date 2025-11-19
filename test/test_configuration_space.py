@@ -644,9 +644,8 @@ def test_check_configuration3():
     assert cs.check_configuration(sample) is None  # Base sample should pass
 
     # Parameter A has no conditions; check if the configuration fails if a > 10
-    sample["a"] = 101
     with pytest.raises(IllegalValueError):
-        cs.check_configuration(sample)
+        sample["a"] = 101
 
 
 def test_check_forbidden_with_sampled_vector_configuration():
