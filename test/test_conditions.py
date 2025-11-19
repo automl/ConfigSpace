@@ -418,5 +418,4 @@ def test_active_hyperparameter():
     # Check that parameter age_weight_ratio:log_ratio is active according to the default configuration
     # This should be the case, as saturation_algorithm is set to "lrs" (which is NOT "inst_gen") in default.
     default = cs.get_default_configuration()
-    print(default)
     cs._check_configuration_rigorous(default)
