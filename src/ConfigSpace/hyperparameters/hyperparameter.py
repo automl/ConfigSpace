@@ -140,7 +140,7 @@ class Hyperparameter(ABC, Generic[ValueT, DType]):
 
     def __setattr__(self, name: str, value: Any):
         """Check if attribute can be set on HP, and reinitialises the class if so."""
-        #if hasattr(self, name):  # Class has been initialised, value change post init
+        # NOTE: The following check is 'ugly', but it works...
         if inspect.stack()[1][3] != '__init__':  # This should be only executed on update, not init
             # Extract all editable attributes
             init_params: tuple[str] = self.__init__.__code__.co_varnames[:self.__init__.__code__.co_argcount]
