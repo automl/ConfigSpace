@@ -641,7 +641,7 @@ def test_check_configuration3():
         ),
     )
     sample = cs.sample_configuration()
-    assert cs.check_configuration(sample) is None  # Base sample should pass
+    assert sample.check_valid_configuration() is None  # Base sample should pass
 
     # Parameter A has no conditions; check if the configuration fails if a > 10
     with pytest.raises(IllegalValueError):
