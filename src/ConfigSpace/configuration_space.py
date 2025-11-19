@@ -508,8 +508,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         )
         active_hyperparameters = set()
         for hp_name in self.keys():
-            active = any(not condition.satisfied_by_vector(vector) for condition in self.parent_conditions_of[hp_name])
-
+            active = all(condition.satisfied_by_vector(vector) for condition in self.parent_conditions_of[hp_name])
             if active:
                 active_hyperparameters.add(hp_name)
 
@@ -904,6 +903,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
     ) -> None:
         vector = configuration.get_array()
         active_hyperparameters = self.get_active_hyperparameters(configuration)
+        print(active_hyperparameters)
         for hp_name, node in self._dag.nodes.items():
             hyperparameter = node.hp
             hp_vector = vector[self.index_of[hp_name]]
