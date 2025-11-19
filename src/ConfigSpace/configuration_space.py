@@ -508,13 +508,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         )
         active_hyperparameters = set()
         for hp_name in self.keys():
-            conditions = self.parent_conditions_of[hp_name]
-
-            active = True
-            for condition in conditions:
-                if not condition.satisfied_by_vector(vector):
-                    active = False
-                    break
+            active = any(not condition.satisfied_by_vector(vector) for condition in self.parent_conditions_of[hp_name])
 
             if active:
                 active_hyperparameters.add(hp_name)
