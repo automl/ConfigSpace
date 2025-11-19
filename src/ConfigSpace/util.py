@@ -572,6 +572,15 @@ def check_configuration(  # noqa: D103
     vector: np.ndarray,
     allow_inactive_with_values: bool = False,
 ) -> None:
+    """Checks whether a given parameter vector is valid according to the conditionals and forbiddens.
+
+    Raises an Exception if the vector is not valid.
+
+    Args:
+        space: Configuration space
+        vector: Parameter vector
+        allow_inactive_with_values: If True, inactive parameters are allowed to have values in the vector.
+    """
     activated = np.isfinite(vector)
 
     # Make sure the roots are all good
