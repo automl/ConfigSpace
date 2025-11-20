@@ -3123,7 +3123,7 @@ def test_update_hyperparameters():
     assert space["b"].lower == -0.1
 
     # Check sampling
-    sample = space.sample_configuration(size=25)
+    sample = space.sample_configuration(size=100)
     for value in sample:
         assert -0.1 <= value["b"] <= 0.1
 
@@ -3147,7 +3147,7 @@ def test_update_hyperparameters():
 
     # Test sampling
     sample_count = {1: 0, 2: 0, 3: 0, 4: 0}
-    sample = space.sample_configuration(size=25)
+    sample = space.sample_configuration(size=100)
     for value in sample:
         sample_count[value["c"]] += 1
     assert sample_count[2] > sample_count[1]
@@ -3163,7 +3163,7 @@ def test_update_hyperparameters():
     assert space["d"].default_value == 4
 
     # Test sampling
-    sample = space.sample_configuration(size=25)
+    sample = space.sample_configuration(size=100)
     assert 4 in [s["d"] for s in sample]
 
     # TODO: Test changing HP type int -> float
