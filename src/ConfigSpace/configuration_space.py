@@ -903,7 +903,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
     ) -> None:
         vector = configuration.get_array()
         active_hyperparameters = self.get_active_hyperparameters(configuration)
-        print(active_hyperparameters)
+
         for hp_name, node in self._dag.nodes.items():
             hyperparameter = node.hp
             hp_vector = vector[self.index_of[hp_name]]
