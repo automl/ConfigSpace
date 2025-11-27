@@ -643,9 +643,13 @@ def test_check_configuration3():
     sample = cs.sample_configuration()
     assert sample.check_valid_configuration() is None  # Base sample should pass
 
-    # Parameter A has no conditions; check if the configuration fails if a > 10
-    with pytest.raises(IllegalValueError):
-        sample["a"] = 101
+    # Parameter A has no conditions; check if the configuration fails if a is out of bounds
+    sample["a"] = 10
+    # NOTE: This test currently does not work as adaptive updating of bounds is not merged yet see PR414
+    cs["a"].upper = 9  # Adapt upper bound afterwards
+
+    with pytest.raises(IllegalValueError):  # Check should fail now
+        sample.check_valid_configuration()
 
 
 def test_check_forbidden_with_sampled_vector_configuration():
