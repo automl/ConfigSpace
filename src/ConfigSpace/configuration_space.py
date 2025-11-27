@@ -508,25 +508,11 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         )
         active_hyperparameters = set()
         for hp_name in self.keys():
-            conditions = self.parent_conditions_of[hp_name]
-
-            active = True
-            for condition in conditions:
-                parent_vector_idx: np.intp | Array[np.intp]
-                if isinstance(condition, Conjunction):
-                    assert condition.parent_vector_ids is not None
-                    parent_vector_idx = condition.parent_vector_ids
-                else:
-                    parent_vector_idx = np.asarray(condition.parent_vector_id)
-
-                if np.isnan(vector[parent_vector_idx]).any():
-                    active = False
-                    break
-
-                if not condition.satisfied_by_vector(vector):
-                    active = False
-                    break
-
+            # NOTE: There could be a performance improvement possible here;
+            # We currently check all conditions, however as a condition with only AND (no OR) can never evaluate to be True
+            # if the vector contains any NaNs. This would have to be a property of the condition, pre-calculated
+            # and could then be used here to reduce the number of checks.
+            active = all(condition.satisfied_by_vector(vector) for condition in self.parent_conditions_of[hp_name])
             if active:
                 active_hyperparameters.add(hp_name)
 

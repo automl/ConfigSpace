@@ -30,6 +30,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
+from ConfigSpace import ConfigurationSpace
 from ConfigSpace.conditions import (
     AndConjunction,
     EqualsCondition,
@@ -378,3 +379,43 @@ def test_get_parents() -> None:
     condition2 = InCondition(counter, _1_0_restarts, ["F", "D", "L", "x", "+"])
     conjunction = AndConjunction(condition, condition2)
     assert [_1_S_countercond, _1_0_restarts] == conjunction.parents
+
+
+def test_active_hyperparameter():
+    cs = ConfigurationSpace(
+        [
+            UniformFloatHyperparameter("age_weight_ratio:log_ratio", -10.0, 3.0, 0.0),
+            CategoricalHyperparameter(
+                "saturation_algorithm",
+                ["discount", "fmb", "inst_gen", "lrs", "otter", "z3"],
+                "lrs",
+            ),
+            CategoricalHyperparameter("inst_gen_with_resolution", ["off", "on"], "off"),
+        ],
+    )
+    cs.add(
+        OrConjunction(
+            NotEqualsCondition(
+                cs["age_weight_ratio:log_ratio"],
+                cs["saturation_algorithm"],
+                "inst_gen",
+            ),
+            EqualsCondition(
+                cs["age_weight_ratio:log_ratio"],
+                cs["inst_gen_with_resolution"],
+                "on",
+            ),
+        ),
+    )
+    cs.add(
+        EqualsCondition(
+            cs["inst_gen_with_resolution"],
+            cs["saturation_algorithm"],
+            "inst_gen",
+        ),
+    )
+
+    # Check that parameter age_weight_ratio:log_ratio is active according to the default configuration
+    # This should be the case, as saturation_algorithm is set to "lrs" (which is NOT "inst_gen") in default.
+    default = cs.get_default_configuration()
+    cs._check_configuration_rigorous(default)
