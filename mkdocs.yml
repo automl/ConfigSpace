@@ -133,14 +133,6 @@ plugins:
       handlers:
         python:
           paths: [src]
-          # Extra objects which allow for linking to external docs
-          import:
-            - 'https://docs.python.org/3/objects.inv'
-            - 'https://numpy.org/doc/stable/objects.inv'
-            - 'https://scikit-learn.org/stable/objects.inv'
-          # Please do not try to change these without having
-          # looked at all of the documentation and seeing if it
-          # causes the API docs to look weird anywhere.
           options:  # https://mkdocstrings.github.io/python/usage/
             docstring_section_style: spacy
             docstring_options:

@@ -3,6 +3,7 @@
 # Documentation
 docs/build/*
 docs/examples/*
+site/*
 
 *.py[cod]
 
