@@ -1,6 +1,6 @@
 [project]
 name = "ConfigSpace"
-version = "1.2.1"
+version = "1.2.2"
 description = """\
     Creation and manipulation of parameter configuration spaces for \
     automated algorithm configuration and hyperparameter tuning. \
@@ -20,6 +20,7 @@ authors = [
   { name = "Jorn Tuyls" },
   { name = "Eddie Bergman" },
   { name = "Arjun Krishnakumar" },
+  { name = "Thijs Snelleman" },
 ]
 maintainers = [
   { name = "Matthias Feurer", email = "feurerm@informatik.uni-freiburg.de" },

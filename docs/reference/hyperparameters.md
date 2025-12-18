@@ -244,18 +244,18 @@ What makes a hyperparameter the hyperparameter it is then:
 
 Using just these two components alone, we can provide the following functionality from the [`Hyperparameter`][ConfigSpace.hyperparameters.Hyperparameter] base class:
 
-* [`sample_vector()`][ConfigSpace.hyperparameters.Hyperparameter.sample_vector]: Samples a vectorized value
-* [`sample_value()`][ConfigSpace.hyperparameters.Hyperparameter.sample_value]:
+* [`sample_vector()`][ConfigSpace.hyperparameters.hyperparameter.Hyperparameter.sample_vector]: Samples a vectorized value
+* [`sample_value()`][ConfigSpace.hyperparameters.hyperparameter.Hyperparameter.sample_value]:
 Samples a vectorized value and transforms it back to the value space.
-* [`to_value()`][ConfigSpace.hyperparameters.Hyperparameter.to_value]: Transforms a vectorized value to the value space.
-* [`to_vector()`][ConfigSpace.hyperparameters.Hyperparameter.to_vector]: Transforms a value space value to the vectorized space.
-* [`pdf_vector()`][ConfigSpace.hyperparameters.Hyperparameter.pdf_vector]: The probability density function of a vectorized value.
-* [`pdf_values()`][ConfigSpace.hyperparameters.Hyperparameter.pdf_values]: The probability density function of a value,
+* [`to_value()`][ConfigSpace.hyperparameters.hyperparameter.Hyperparameter.to_value]: Transforms a vectorized value to the value space.
+* [`to_vector()`][ConfigSpace.hyperparameters.hyperparameter.Hyperparameter.to_vector]: Transforms a value space value to the vectorized space.
+* [`pdf_vector()`][ConfigSpace.hyperparameters.hyperparameter.Hyperparameter.pdf_vector]: The probability density function of a vectorized value.
+* [`pdf_values()`][ConfigSpace.hyperparameters.hyperparameter.Hyperparameter.pdf_values]: The probability density function of a value,
   by transforming it to the vectorized space and then calculating the pdf.
-* [`legal_value()`][ConfigSpace.hyperparameters.Hyperparameter.legal_value]: Check if a value is legal.
-* [`legal_vector()`][ConfigSpace.hyperparameters.Hyperparameter.legal_vector]: Check if a vectorized value is legal.
-* [`.lower_vectorized`][ConfigSpace.hyperparameters.Hyperparameter.lower_vectorized]: The lower bound in vectorized space.
-* [`.upper_vectorized`][ConfigSpace.hyperparameters.Hyperparameter.upper_vectorized]: The upper bound in vectorized space.
+* [`legal_value()`][ConfigSpace.hyperparameters.hyperparameter.Hyperparameter.legal_value]: Check if a value is legal.
+* [`legal_vector()`][ConfigSpace.hyperparameters.hyperparameter.Hyperparameter.legal_vector]: Check if a vectorized value is legal.
+* [`.lower_vectorized`][ConfigSpace.hyperparameters.hyperparameter.Hyperparameter.lower_vectorized]: The lower bound in vectorized space.
+* [`.upper_vectorized`][ConfigSpace.hyperparameters.hyperparameter.Hyperparameter.upper_vectorized]: The upper bound in vectorized space.
 
 
 Please note that most of these methods support individual values or numpy arrays of values, either as input or output.
@@ -288,10 +288,10 @@ unbounded or a method that returns the maximum possible neighbors that are possi
 
 By subclasses providing this through the `__init__` method, we can then provide the following functionality:
 
-* [`get_num_neighbors()`][ConfigSpace.hyperparameters.Hyperparameter.get_num_neighbors]: Get the number of neighbours around a value.
-* [`neighbors_vectorized()`][ConfigSpace.hyperparameters.Hyperparameter.neighbors_vectorized]: Get neighbors around a
+* [`get_num_neighbors()`][ConfigSpace.hyperparameters.hyperparameter.Hyperparameter.get_num_neighbors]: Get the number of neighbours around a value.
+* [`neighbors_vectorized()`][ConfigSpace.hyperparameters.hyperparameter.Hyperparameter.neighbors_vectorized]: Get neighbors around a
 point in vectorized space.
-* [`neighbors_values()`][ConfigSpace.hyperparameters.Hyperparameter.neighbors_values]: Get neighbors around a
+* [`neighbors_values()`][ConfigSpace.hyperparameters.hyperparameter.Hyperparameter.neighbors_values]: Get neighbors around a
 point in value space.
 
 Please refer to the source code definition of existing hyperparameters for more information on how to implement this.
