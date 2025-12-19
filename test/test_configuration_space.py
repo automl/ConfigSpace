@@ -616,6 +616,42 @@ def test_check_configuration2():
     configuration.check_valid_configuration()
 
 
+def test_check_configuration3():
+    # Test that hyperparameters that follow the conditions and forbiddens will still be rejected if out parameter bounds
+    cs = ConfigurationSpace(
+        space=[
+            NormalIntegerHyperparameter("a", mu=50, sigma=10, lower=1, upper=10),
+            UniformIntegerHyperparameter("b", lower=1, upper=100),
+            NormalFloatHyperparameter("c", lower=0, upper=1, mu=0.25, sigma=0.12),
+            UniformIntegerHyperparameter("d", lower=0, upper=1),
+            BetaFloatHyperparameter("e", lower=0, upper=1, alpha=1, beta=1),
+            CategoricalHyperparameter("f", ["Yes", "No", "Maybe"]),
+            OrdinalHyperparameter("g", ["Low", "Medium", "High"]),
+        ],
+    )
+    cs.add(
+        NotEqualsCondition(cs["b"], cs["a"], 10),
+        ForbiddenEqualsClause(cs["c"], 0),
+        ForbiddenEqualsClause(cs["d"], 1),
+        ForbiddenEqualsClause(cs["e"], 0),
+        ForbiddenEqualsClause(cs["e"], 1),
+        ForbiddenAndConjunction(
+            ForbiddenEqualsClause(cs["f"], "No"),
+            ForbiddenEqualsClause(cs["g"], "Low"),
+        ),
+    )
+    sample = cs.sample_configuration()
+    assert sample.check_valid_configuration() is None  # Base sample should pass
+
+    # Parameter A has no conditions; check if the configuration fails if a is out of bounds
+    sample["a"] = 10
+    # NOTE: This test currently does not work as adaptive updating of bounds is not merged yet see PR414
+    cs["a"].upper = 9  # Adapt upper bound afterwards
+
+    with pytest.raises(IllegalValueError):  # Check should fail now
+        sample.check_valid_configuration()
+
+
 def test_check_forbidden_with_sampled_vector_configuration():
     cs = ConfigurationSpace()
     metric = CategoricalHyperparameter("metric", ["minkowski", "other"])

@@ -157,6 +157,17 @@ class Configuration(Mapping[str, Any]):
         """
         from ConfigSpace.util import check_configuration
 
+        # Verify that the values are legal
+        for hyperparameter in self.config_space.get_hyperparameters():
+            value = self.get(hyperparameter.name, NotSet)
+            print(hyperparameter)
+            print(value)
+            print()
+            if value is not NotSet and not hyperparameter.legal_value(
+                value
+            ):
+                raise IllegalValueError(hyperparameter, value)
+
         check_configuration(
             self.config_space,
             self._vector,
