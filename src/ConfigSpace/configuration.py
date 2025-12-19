@@ -73,10 +73,10 @@ class Configuration(Mapping[str, Any]):
                 ConfigSpace package.
         """
         if (
-            values is not None
-            and vector is not None
-            or values is None
-            and vector is None
+            (values is not None
+            and vector is not None)
+            or (values is None
+            and vector is None)
         ):
             raise ValueError(
                 "Specify Configuration as either a dictionary or a vector.",

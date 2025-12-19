@@ -49,6 +49,7 @@ from ConfigSpace.conditions import (
 from ConfigSpace.configuration import Configuration, NotSet
 from ConfigSpace.exceptions import (
     ActiveHyperparameterNotSetError,
+    HyperparameterNotFoundError,
     ForbiddenValueError,
     IllegalVectorizedValueError,
     InactiveHyperparameterSetError,
@@ -344,6 +345,101 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
             for condition in conditions:
                 self._dag.add_condition(condition)
 
+            for forbidden in forbiddens:
+                self._dag.add_forbidden(forbidden)
+
+        self._len = len(self._dag.nodes)
+        self._check_default_configuration()
+
+    def remove(
+        self,
+        *args: Hyperparameter,
+    ) -> None:
+        """Remove a hyperparameter from the configuration space.
+
+        If the hyperparameter has children, the children are also removed.
+        This includes defined conditions and conjunctions!
+
+        !!! note
+
+        If removing multiple hyperparameters, it is better to remove them all
+        at once with one call to `remove()`, as we rebuilt a cache after each
+        call to `remove()`.
+
+        Args:
+            args: Hyperparameter(s) to remove
+        """
+        remove_hps = []
+        for arg in args:
+            if isinstance(arg, Hyperparameter):
+                if arg.name not in self._dag.nodes:
+                    raise HyperparameterNotFoundError(
+                        f"Hyperparameter '{arg.name}' does not exist in space.",
+                    )
+                remove_hps.append(arg)
+            else:
+                raise TypeError(f"Unknown type {type(arg)}")
+        remove_hps_names = [hp.name for hp in remove_hps]
+
+        # Filter HPs from the DAG
+        hps: list[Hyperparameter] = [node.hp for node in self._dag.nodes.values() if node.hp.name not in remove_hps_names]
+
+        def remove_hyperparameter_from_conjunction(
+            target: Conjunction | Condition | ForbiddenRelation | ForbiddenClause,
+        ) -> (
+            Conjunction
+            | Condition
+            | ForbiddenClause
+            | ForbiddenRelation
+            | ForbiddenConjunction
+            | None
+        ):
+            if isinstance(target, ForbiddenRelation) and (
+                target.left.name in remove_hps_names or target.right.name in remove_hps_names
+            ):
+                return None
+            if isinstance(target, ForbiddenClause) and target.hyperparameter.name in remove_hps_names:
+                return None
+            if isinstance(target, Condition) and (
+                target.parent.name in remove_hps_names or target.child.name in remove_hps_names
+            ):
+                return None
+            if isinstance(target, (Conjunction, ForbiddenConjunction)):
+                new_components = []
+                for component in target.components:
+                    new_component = remove_hyperparameter_from_conjunction(component)
+                    if new_component is not None:
+                        new_components.append(new_component)
+                if len(new_components) >= 2:  # Can create a conjunction
+                    return type(target)(*new_components)
+                if len(new_components) == 1:  # Only one component remains
+                    return new_components[0]
+                return None  # No components remain
+            return target  # Nothing to change
+
+        # Remove HPs from conditions
+        conditions = []
+        for condition in self._dag.conditions:
+            condition = remove_hyperparameter_from_conjunction(condition)
+            if condition is not None:  # If None, the conditional clause is empty and thus not added
+                conditions.append(condition)
+
+        # Remove HPs from Forbiddens
+        forbiddens = []
+        for forbidden in self._dag.forbiddens:
+            forbidden = remove_hyperparameter_from_conjunction(forbidden)
+            if forbidden is not None:  # If None, the forbidden clause is empty and is not added
+                forbiddens.append(
+                    remove_hyperparameter_from_conjunction(forbidden)
+                )
+        
+        # Rebuild the DAG
+        self._dag = DAG()
+        with self._dag.update():
+            for hp in hps:
+                self._dag.add(hp)
+            for condition in conditions:
+                self._dag.add_condition(condition)
             for forbidden in forbiddens:
                 self._dag.add_forbidden(forbidden)
 
@@ -864,7 +960,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         return iter(self._dag.nodes.keys())
 
     def items(self) -> ItemsView[str, Hyperparameter]:
-        """Return an items view of the hyperparameters, same as `dict.items()`."""  # noqa: D402
+        """Return an items view of the hyperparameters, same as `dict.items()`."""
         return {name: node.hp for name, node in self._dag.nodes.items()}.items()
 
     def __len__(self) -> int:

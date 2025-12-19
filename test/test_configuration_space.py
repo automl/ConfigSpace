@@ -82,6 +82,110 @@ def test_add():
     cs.add(hp)
 
 
+def test_remove():
+    cs = ConfigurationSpace()
+    hp = UniformIntegerHyperparameter("name", 0, 10)
+    hp2 = UniformFloatHyperparameter("name2", 0, 10)
+    hp3 = CategoricalHyperparameter(
+        "weather", ["dry", "rainy", "snowy"], default_value="dry"
+    )
+    cs.add(hp, hp2, hp3)
+    cs.remove(hp)
+    assert len(cs) == 2
+
+    # Test multi removal
+    cs.add(hp)
+    cs.remove(hp, hp2)
+    assert len(cs) == 1
+
+    # Test faulty input
+    with pytest.raises(TypeError):
+        cs.remove(object())
+
+    # Non existant HP
+    with pytest.raises(HyperparameterNotFoundError):
+        cs.remove(hp)
+
+    cs.add(hp, hp2)
+    # Test one correct one faulty, nothing should happen
+    with pytest.raises(TypeError):
+        cs.remove(hp, object())
+    assert len(cs) == 3
+
+    # Make hp2 a conditional parameter, the condition should also be removed when hp is removed
+    cond = EqualsCondition(hp, hp2, 1)
+    cs.add(cond)
+    cs.remove(hp)
+    assert len(cs) == 2
+    assert cs.conditional_hyperparameters == []
+    assert cs.conditions == []
+
+    # Set up forbidden relation, the relation should also be removed
+    forb = ForbiddenEqualsClause(hp3, "snowy")
+    cs.add(forb)
+    cs.remove(hp3)
+    assert len(cs) == 1
+    assert cs.forbidden_clauses == []
+
+    # And now for more complicated conditions
+    cs = ConfigurationSpace()
+    hp1 = CategoricalHyperparameter("input1", [0, 1])
+    cs.add(hp1)
+    hp2 = CategoricalHyperparameter("input2", [0, 1])
+    cs.add(hp2)
+    hp3 = CategoricalHyperparameter("input3", [0, 1])
+    cs.add(hp3)
+    hp4 = CategoricalHyperparameter("input4", [0, 1])
+    cs.add(hp4)
+    hp5 = CategoricalHyperparameter("input5", [0, 1])
+    cs.add(hp5)
+    hp6 = Constant("constant1", "True")
+    cs.add(hp6)
+
+    cond1 = EqualsCondition(hp6, hp1, 1)
+    cond2 = NotEqualsCondition(hp6, hp2, 1)
+    cond3 = InCondition(hp6, hp3, [1])
+    cond4 = EqualsCondition(hp6, hp4, 1)
+    cond5 = EqualsCondition(hp6, hp5, 1)
+
+    conj1 = AndConjunction(cond1, cond2)
+    conj2 = OrConjunction(conj1, cond3)
+    conj3 = AndConjunction(conj2, cond4, cond5)
+    cs.add(conj3)
+
+    cs.remove(hp3)
+    assert len(cs) == 5
+    # Only one part of the condition should be removed, not the entire condition
+    assert len(cs.conditional_hyperparameters) == 1
+    assert len(cs.conditions) == 1
+    # Test the exact value
+    assert (
+        str(cs.conditions[0])
+        == "((constant1 | input1 == 1 && constant1 | input2 != 1) && constant1 | input4 == 1 && constant1 | input5 == 1)"
+    )
+
+    # Now more complicated forbiddens
+    cs = ConfigurationSpace()
+    cs.add([hp1, hp2, hp3, hp4, hp5, hp6])
+    cs.add(conj3)
+
+    forb1 = ForbiddenEqualsClause(hp1, 1)
+    forb2 = ForbiddenAndConjunction(forb1, ForbiddenEqualsClause(hp2, 1))
+    forb3 = ForbiddenAndConjunction(forb2, ForbiddenEqualsClause(hp3, 1))
+    forb4 = ForbiddenEqualsClause(hp3, 1)
+    forb5 = ForbiddenEqualsClause(hp4, 1)
+    cs.add(forb3, forb4, forb5)
+
+    cs.remove(hp3)
+    assert len(cs) == 5
+    assert len(cs.forbidden_clauses) == 2
+    assert (
+        str(cs.forbidden_clauses[0])
+        == "(Forbidden: input1 == 1 && Forbidden: input2 == 1)"
+    )
+    assert str(cs.forbidden_clauses[1]) == "Forbidden: input4 == 1"
+
+
 def test_add_non_hyperparameter():
     cs = ConfigurationSpace()
     with pytest.raises(TypeError):
