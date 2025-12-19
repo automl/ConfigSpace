@@ -867,6 +867,21 @@ def expression_to_configspace(
 ) -> ForbiddenClause | Condition:
     """Convert a logic expression to ConfigSpace expression.
 
+    Given a logic expression, this function will return a ConfigSpace expression
+    that is equivalent to the logic expression. If a target parameter is provided,
+    will create a condition, otherwise a forbidden expression.
+
+    The created expression is **NOT** automatically added to the configuration space.
+
+    ```python exec="true", source="material-block" result="python"
+    from ConfigSpace.util import expression_to_configspace
+
+    cs = ConfigurationSpace({ "a": (0, 10), "b": (1.0, 8.0) })
+    cond = LessThanCondition(cs['b'], cs['a'], 5)
+    condition = expression_to_configspace("a < 5", cs, target_parameter=cs['b'])
+    print(condition)
+    ```
+
     Args:
         expression: The expression to convert.
         configspace: The ConfigSpace to use.
@@ -902,6 +917,8 @@ def recursive_conversion(
     target_parameter: Hyperparameter = None,
 ) -> ForbiddenClause | Condition:
     """Recursively parse the abstract syntax tree to a ConfigSpace expression.
+    
+    Should not be called directly, but rather through `expression_to_configspace`.
 
     Args:
         item: The item to parse.
