@@ -43,6 +43,12 @@ from ConfigSpace import (
     EqualsCondition,
     ForbiddenAndConjunction,
     ForbiddenEqualsClause,
+    ForbiddenGreaterThanClause,
+    ForbiddenGreaterThanEqualsClause,
+    ForbiddenGreaterThanRelation,
+    ForbiddenInClause,
+    ForbiddenLessThanClause,
+    ForbiddenOrConjunction,
     GreaterThanCondition,
     LessThanCondition,
     OrConjunction,
@@ -59,6 +65,7 @@ with warnings.catch_warnings():
 from ConfigSpace.util import (
     change_hp_value,
     deactivate_inactive_hyperparameters,
+    expression_to_configspace,
     fix_types,
     generate_grid,
     get_one_exchange_neighbourhood,
@@ -658,3 +665,83 @@ def test_generate_grid():
     assert dict(generated_grid[1]) == {"cat1": "F", "ord1": "2"}
     assert dict(generated_grid[2]) == {"cat1": "T", "ord1": "1", "int1": 0}
     assert dict(generated_grid[-1]) == {"cat1": "T", "ord1": "3", "int1": 1000}
+
+
+def test_expression_to_configspace():
+    cs = ConfigurationSpace(
+        {
+            "a": (0, 10),
+            "b": (0, 10),
+            "c": (0, 10),
+            "d": (0, 10),
+            "e": (0, 10),
+            "cat1": ["cat", "dog"],
+            "cat2": ["sun", "rain", "snow", "fog"],
+            "float1": (0.0, 1.0),
+            "float2": (0.0, 1.0),
+        },
+    )
+
+    wrong_expression = "a >!> b"
+    with pytest.raises(ValueError):
+        expression_to_configspace(wrong_expression, cs)
+
+    wrong_hp_name_expresion = "q <= 5"
+    with pytest.raises(ValueError):
+        cs_expression = expression_to_configspace(wrong_hp_name_expresion, cs)
+
+    wrong_hp_value_expression = "a > 11"
+    with pytest.raises(ValueError):
+        cs_expression = expression_to_configspace(wrong_hp_value_expression, cs)
+
+    wrong_hp_value_expression = "a == dog"
+    with pytest.raises(ValueError):
+        cs_expression = expression_to_configspace(wrong_hp_value_expression, cs)
+
+    odd_operator_expression = (
+        "a in [1, 2, 3]"  # This operator is accepted by ConfigSpace for Integer HP
+    )
+    cs_expression = expression_to_configspace(odd_operator_expression, cs)
+    assert cs_expression == ForbiddenInClause(cs["a"], [1, 2, 3])
+
+    simple_value_expression = "a > 9"
+    cs_expression = expression_to_configspace(simple_value_expression, cs)
+    assert cs_expression == ForbiddenGreaterThanClause(cs["a"], 9)
+
+    simple_expression = "a > b"
+    cs_expression = expression_to_configspace(simple_expression, cs)
+    assert cs_expression == ForbiddenGreaterThanRelation(cs["a"], cs["b"])
+
+    simple_expression = "a < 5"
+    cs_expression = expression_to_configspace(simple_expression, cs)
+    assert cs_expression == ForbiddenLessThanClause(cs["a"], 5)
+    cs_expression = expression_to_configspace(
+        simple_expression,
+        cs,
+        target_parameter=cs["e"],
+    )
+    assert cs_expression == LessThanCondition(cs["e"], cs["a"], 5)
+
+    complex_expression = "a > b || (c > d && e < 5 && cat1 == dog && float1 >= 0.5)"
+    cs_expression = expression_to_configspace(complex_expression, cs)
+    assert cs_expression == ForbiddenOrConjunction(
+        ForbiddenGreaterThanRelation(cs["a"], cs["b"]),
+        ForbiddenAndConjunction(
+            ForbiddenGreaterThanRelation(cs["c"], cs["d"]),
+            ForbiddenLessThanClause(cs["e"], 5),
+            ForbiddenEqualsClause(cs["cat1"], "dog"),
+            ForbiddenGreaterThanEqualsClause(cs["float1"], 0.5),
+        ),
+    )
+
+    complex_expression = (
+        "a >= 8 and (cat1 in ['cat', 'dog'] or cat2 in ['sun', 'rain'])"
+    )
+    cs_expression = expression_to_configspace(complex_expression, cs)
+    assert cs_expression == ForbiddenAndConjunction(
+        ForbiddenGreaterThanEqualsClause(cs["a"], 8),
+        ForbiddenOrConjunction(
+            ForbiddenInClause(cs["cat1"], ["cat", "dog"]),
+            ForbiddenInClause(cs["cat2"], ["sun", "rain"]),
+        ),
+    )
