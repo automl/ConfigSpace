@@ -648,6 +648,7 @@ def test_check_configuration3():
     # NOTE: This test currently does not work as adaptive updating of bounds is not merged yet see PR414
     cs["a"].upper = 9  # Adapt upper bound afterwards
 
+    # TODO: This test does not work as dynamic bound adapting has not been merged yet
     with pytest.raises(IllegalValueError):  # Check should fail now
         sample.check_valid_configuration()
 

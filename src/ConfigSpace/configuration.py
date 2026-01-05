@@ -160,9 +160,6 @@ class Configuration(Mapping[str, Any]):
         # Verify that the values are legal
         for hyperparameter in self.config_space.get_hyperparameters():
             value = self.get(hyperparameter.name, NotSet)
-            print(hyperparameter)
-            print(value)
-            print()
             if value is not NotSet and not hyperparameter.legal_value(
                 value
             ):
