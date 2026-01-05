@@ -916,7 +916,8 @@ def expression_to_configspace(
     expression = re.sub(r" != ", " = ", expression)
     expression = re.sub(r" (?<![<>!=])=(?<![=]) ", " == ", expression)
     try:
-        ast_expression = ast.parse(expression)
+        # Convert to abstract syntax tree, extract body of the expression
+        ast_expression = ast.parse(expression).body[0]
     except Exception as e:
         raise ValueError(f"Could not parse expression: '{expression}', {e}")
     return recursive_conversion(
