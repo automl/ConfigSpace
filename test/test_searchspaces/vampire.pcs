@@ -1,0 +1,6 @@
+age_weight_ratio:log_ratio real [-10.0, 3.0] [0.0]
+saturation_algorithm categorical {discount, fmb, inst_gen, lrs, otter, z3} [lrs]
+inst_gen_with_resolution categorical {off, on} [off]
+
+age_weight_ratio:log_ratio | saturation_algorithm != inst_gen || inst_gen_with_resolution == on
+inst_gen_with_resolution | saturation_algorithm == inst_gen
