@@ -881,7 +881,7 @@ def expression_to_configspace(
     from ConfigSpace.util import expression_to_configspace
 
     cs = ConfigurationSpace({ "a": (0, 10), "b": (1.0, 8.0) })
-    condition = expression_to_configspace("a < 5", cs, target_parameter=cs['b'])
+    condition = expression_to_configspace("a < 5", cs, target_hyperparameter=cs['b'])
     print(condition)
     ```
 
@@ -899,7 +899,7 @@ def expression_to_configspace(
     Args:
         expression: The expression to convert.
         configspace: The ConfigSpace to use.
-        target_parameter: For conditions, will parse the expression as a condition
+        target_hyperparameter: For conditions, will parse the expression as a condition
             underwhich the provided hyperparameter will be active.
 
     Returns:
@@ -937,7 +937,7 @@ def recursive_conversion(
     Args:
         item: The item to parse.
         configspace: The ConfigSpace to use.
-        target_parameter: For conditions, will parse the expression as a condition
+        target_hyperparameter: For conditions, will parse the expression as a condition
             underwhich the hyperparameter will be active.
 
     Returns:
