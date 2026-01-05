@@ -718,7 +718,7 @@ def test_expression_to_configspace():
     cs_expression = expression_to_configspace(
         simple_expression,
         cs,
-        target_parameter=cs["e"],
+        target_hyperparameter=cs["e"],
     )
     assert cs_expression == LessThanCondition(cs["e"], cs["a"], 5)
 

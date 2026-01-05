@@ -28,6 +28,7 @@
 from __future__ import annotations
 
 import ast
+import re
 import copy
 from collections import deque
 from collections.abc import Iterator, Sequence
@@ -861,10 +862,10 @@ def generate_grid(
 
 
 def expression_to_configspace(
-    expression: str | ast.Module,
+    expression: str,
     configspace: ConfigurationSpace,
-    target_parameter: Hyperparameter = None,
-) -> ForbiddenClause | Condition:
+    target_hyperparameter: Hyperparameter = None,
+) -> Condition | ForbiddenClause:
     """Convert a logic expression to ConfigSpace expression.
 
     Given a logic expression, this function will return a ConfigSpace expression
@@ -873,49 +874,61 @@ def expression_to_configspace(
 
     The created expression is **NOT** automatically added to the configuration space.
 
+    Example Condition expression parsing:
+
     ```python exec="true", source="material-block" result="python"
+    from ConfigSpace import ConfigurationSpace
     from ConfigSpace.util import expression_to_configspace
 
     cs = ConfigurationSpace({ "a": (0, 10), "b": (1.0, 8.0) })
-    cond = LessThanCondition(cs['b'], cs['a'], 5)
     condition = expression_to_configspace("a < 5", cs, target_parameter=cs['b'])
     print(condition)
+    ```
+
+    Example Forbidden Expression Parsing:
+
+    ```python exec="true", source="material-block" result="python"
+    from ConfigSpace import ConfigurationSpace
+    from ConfigSpace.util import expression_to_configspace
+
+    cs = ConfigurationSpace({ "a": (0, 10), "b": (1.0, 8.0) })
+    forbidden = expression_to_configspace("a >= 5", cs)
+    print(forbidden)
     ```
 
     Args:
         expression: The expression to convert.
         configspace: The ConfigSpace to use.
         target_parameter: For conditions, will parse the expression as a condition
-            underwhich the parameter will be active.
+            underwhich the provided hyperparameter will be active.
+
+    Returns:
+        A ConfigSpace Condition or ForbiddenClause.
     """
-    if isinstance(expression, str):
-        import re
-        # Format expression to match the ast module
-        # Format logical operators:
-        expression = re.sub(r" & ", " and ", expression)
-        expression = re.sub(r" && ", " and ", expression)
-        expression = re.sub(r" \| ", " or ", expression)
-        expression = re.sub(r" \|\| ", " or ", expression)
-        # Format (in)equality operators:
-        expression = re.sub(r" !== ", " != ", expression)
-        expression = re.sub(r" != ", " = ", expression)
-        expression = re.sub(r" (?<![<>!=])=(?<![=]) ", " == ", expression)
-        try:
-            expression = ast.parse(expression)
-        except Exception as e:
-            raise ValueError(f"Could not parse expression: '{expression}', {e}")
-    if isinstance(expression, ast.Module):
-        expression = expression.body[0]
+    # Format expression to match the ast module
+    # Format logical operators:
+    expression = re.sub(r" & ", " and ", expression)
+    expression = re.sub(r" && ", " and ", expression)
+    expression = re.sub(r" \| ", " or ", expression)
+    expression = re.sub(r" \|\| ", " or ", expression)
+    # Format (in)equality operators:
+    expression = re.sub(r" !== ", " != ", expression)
+    expression = re.sub(r" != ", " = ", expression)
+    expression = re.sub(r" (?<![<>!=])=(?<![=]) ", " == ", expression)
+    try:
+        ast_expression = ast.parse(expression)
+    except Exception as e:
+        raise ValueError(f"Could not parse expression: '{expression}', {e}")
     return recursive_conversion(
-        expression, configspace, target_parameter=target_parameter
+        ast_expression, configspace, target_hyperparameter=target_hyperparameter
     )
 
 
 def recursive_conversion(
     item: ast.mod,
     configspace: ConfigurationSpace,
-    target_parameter: Hyperparameter = None,
-) -> ForbiddenClause | Condition:
+    target_hyperparameter: Hyperparameter = None,
+) -> Condition | ForbiddenClause:
     """Recursively parse the abstract syntax tree to a ConfigSpace expression.
     
     Should not be called directly, but rather through `expression_to_configspace`.
@@ -924,17 +937,17 @@ def recursive_conversion(
         item: The item to parse.
         configspace: The ConfigSpace to use.
         target_parameter: For conditions, will parse the expression as a condition
-            underwhich the parameter will be active.
+            underwhich the hyperparameter will be active.
 
     Returns:
-        A ConfigSpace expression
+        A ConfigSpace Condition or ForbiddenClause
     """
     if isinstance(item, list):
         if len(item) > 1:
             raise ValueError(f"Can not parse list of elements: {item}.")
         item = item[0]
     if isinstance(item, ast.Expr):
-        return recursive_conversion(item.value, configspace, target_parameter)
+        return recursive_conversion(item.value, configspace, target_hyperparameter)
     if isinstance(item, ast.Name):  # Convert to hyperparameter
         hp = configspace.get(item.id)
         return hp if hp is not None else item.id
@@ -960,14 +973,14 @@ def recursive_conversion(
         raise NotImplementedError("Binary operations not supported by ConfigSpace.")
     if isinstance(item, ast.BoolOp):
         values = [
-            recursive_conversion(v, configspace, target_parameter) for v in item.values
+            recursive_conversion(v, configspace, target_hyperparameter) for v in item.values
         ]
         if isinstance(item.op, ast.Or):
-            if target_parameter:
+            if target_hyperparameter:
                 return OrConjunction(*values)
             return ForbiddenOrConjunction(*values)
         elif isinstance(item.op, ast.And):
-            if target_parameter:
+            if target_hyperparameter:
                 return AndConjunction(*values)
             return ForbiddenAndConjunction(*values)
         else:
@@ -975,8 +988,8 @@ def recursive_conversion(
     if isinstance(item, ast.Compare):
         if len(item.ops) > 1:
             raise ValueError(f"Only single comparisons allowed. Found: {item.ops}")
-        left = recursive_conversion(item.left, configspace, target_parameter)
-        right = recursive_conversion(item.comparators, configspace, target_parameter)
+        left = recursive_conversion(item.left, configspace, target_hyperparameter)
+        right = recursive_conversion(item.comparators, configspace, target_hyperparameter)
         operator = item.ops[0]
 
         if isinstance(left, Hyperparameter):  # Convert to HP type
@@ -993,48 +1006,48 @@ def recursive_conversion(
             )
 
         is_relation = isinstance(left, Hyperparameter) and isinstance(right, Hyperparameter)
-        if is_relation and target_parameter:
+        if is_relation and target_hyperparameter:
             raise ValueError("Hyperparameter relations not supported for conditions.")
 
         if isinstance(operator, ast.Lt):
-            if target_parameter:
-                return LessThanCondition(target_parameter, left, right)
+            if target_hyperparameter:
+                return LessThanCondition(target_hyperparameter, left, right)
             if is_relation:
                 return ForbiddenLessThanRelation(left=left, right=right)
             return ForbiddenLessThanClause(hyperparameter=left, value=right)
         if isinstance(operator, ast.LtE):
-            if target_parameter:
+            if target_hyperparameter:
                 raise ValueError("LessThanEquals not supported for conditions.")
             if is_relation:
                 return ForbiddenLessThanEqualsRelation(left=left, right=right)
             return ForbiddenLessThanEqualsClause(hyperparameter=left, value=right)
         if isinstance(operator, ast.Gt):
-            if target_parameter:
-                return GreaterThanCondition(target_parameter, left, right)
+            if target_hyperparameter:
+                return GreaterThanCondition(target_hyperparameter, left, right)
             if is_relation:
                 return ForbiddenGreaterThanRelation(left=left, right=right)
             return ForbiddenGreaterThanClause(hyperparameter=left, value=right)
         if isinstance(operator, ast.GtE):
-            if target_parameter:
+            if target_hyperparameter:
                 raise ValueError("GreaterThanEquals not supported for conditions.")
             if is_relation:
                 return ForbiddenGreaterThanEqualsRelation(left=left, right=right)
             return ForbiddenGreaterThanEqualsClause(hyperparameter=left, value=right)
         if isinstance(operator, ast.Eq):
-            if target_parameter:
-                return EqualsCondition(target_parameter, left, right)
+            if target_hyperparameter:
+                return EqualsCondition(target_hyperparameter, left, right)
             if is_relation:
                 return ForbiddenEqualsRelation(left=left, right=right)
             return ForbiddenEqualsClause(hyperparameter=left, value=right)
         if isinstance(operator, ast.In):
             if is_relation:
                 raise ValueError("In operator not supported for hyperparameter relations.")
-            if target_parameter:
-                return InCondition(target_parameter, left, right)
+            if target_hyperparameter:
+                return InCondition(target_hyperparameter, left, right)
             return ForbiddenInClause(hyperparameter=left, values=right)
         if isinstance(operator, ast.NotEq):
-            if target_parameter:
-                return NotEqualsCondition(target_parameter, left, right)
+            if target_hyperparameter:
+                return NotEqualsCondition(target_hyperparameter, left, right)
             raise ValueError("NotEq operator not supported for ForbiddenClauses.")
         # The following classes do not (yet?) exist in configspace
         if isinstance(operator, ast.NotIn):
