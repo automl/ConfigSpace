@@ -19,13 +19,13 @@ if TYPE_CHECKING:
 class Configuration(Mapping[str, Any]):
     """Class for a single configuration.
 
-    The [`Configuration`][ConfigSpace.configuration_space.Configuration] object
+    The [`Configuration`][ConfigSpace.configuration.Configuration] object
     holds for all active hyperparameters a value. While the
     [`ConfigurationSpace`][ConfigSpace.configuration_space.ConfigurationSpace]
     stores the definitions for the hyperparameters (value ranges, constraints,...),
-    a [`Configuration`][ConfigSpace.configuration_space.Configuration] object is
+    a [`Configuration`][ConfigSpace.configuration.Configuration] object is
     more an instance of it. Parameters of a
-    [`Configuration`][ConfigSpace.configuration_space.Configuration] object can be
+    [`Configuration`][ConfigSpace.configuration.Configuration] object can be
     accessed and modified similar to python dictionaries
     (c.f. [user guilde](../../guide.md)).
     """

@@ -122,7 +122,7 @@ print(cs)
 
 
 ### Installation
-ConfigSpace requires **Python 3.8** or higher
+ConfigSpace requires **Python 3.9** or higher
 and can be installed directly from the Python Package Index (PyPI) using `pip`.
 
 ```bash

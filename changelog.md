@@ -1,3 +1,12 @@
+# Version 1.2.2
+
+* MAINT #404: Added support for Python 3.13.
+* FIX #406: Fixed issue for shuffle to undo unique sort
+* FEAT #409: Added new Forbidden Clauses and Relations
+* FIX #410: Fixed docs compilation
+* FIX #415: Fix issue with checking conditional OR clauses.
+* MAINT #417: Added support for Python 3.14, dropped support for Python 3.8.
+
 # Version 1.2.1
 
 * FEAT #397: Fix issue with forbidden check with disabled parameters.
