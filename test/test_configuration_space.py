@@ -156,12 +156,22 @@ def test_remove():
     conj3 = AndConjunction(conj2, cond4, cond5)
     cs.add(conj3)
 
+    # Remove one hyperparameter that was part of the condition: only one part of the condition should be removed, not the entire condition
     cs.remove(hp3)
-    assert len(cs) == 5
-    # Removed one hyperparameter that was part of the condition: only one part of the condition should be removed, not the entire condition
+    assert hp3.name not in cs and len(cs) == 5  # Hp3 removed, five HPs remain
     assert len(cs.conditional_hyperparameters) == 1
     assert len(cs.conditions) == 1
-    # Test the exact value
+    assert isinstance(
+        cs.conditions[0], AndConjunction
+    )  # Check that the condition is still an and condition, only its clauses with HP3 have been removed
+
+    # Test the exact value: Only the conjunctions/conditions without hp3 should remain (i.e. conj2 has been removed but its child conj1 still exists)
+    for actual_condition, expected_condition in zip(
+        cs.conditions[0].components, [conj1, cond4, cond5]
+    ):
+        assert actual_condition == expected_condition
+
+    # Check that the output representation of the entire condition is as expected
     assert (
         str(cs.conditions[0])
         == "((constant1 | input1 == 1 && constant1 | input2 != 1) && constant1 | input4 == 1 && constant1 | input5 == 1)"
@@ -175,15 +185,29 @@ def test_remove():
     cs.add(conj3)
 
     forb1 = ForbiddenEqualsClause(hp1, 1)
-    forb2 = ForbiddenAndConjunction(forb1, ForbiddenEqualsClause(hp2, 1))
-    forb3 = ForbiddenAndConjunction(forb2, ForbiddenEqualsClause(hp3, 1))
+    forb2 = ForbiddenEqualsClause(hp2, 1)
+    forb3 = ForbiddenEqualsClause(hp3, 1)
+    forb_conj1 = ForbiddenAndConjunction(forb1, forb2)
+    forb_conj2 = ForbiddenAndConjunction(forb_conj1, forb3)
     forb4 = ForbiddenEqualsClause(hp3, 1)
     forb5 = ForbiddenEqualsClause(hp4, 1)
-    cs.add(forb3, forb4, forb5)
+    cs.add(forb_conj2, forb4, forb5)
 
+    # Remove hp3, test if structure afterwards is still correct
     cs.remove(hp3)
-    assert len(cs) == 5
+    assert hp3.name not in cs and len(cs) == 5  # hp3 removed, five remain
     assert len(cs.forbidden_clauses) == 2
+    assert isinstance(
+        cs.forbidden_clauses[0], ForbiddenAndConjunction
+    )  # Check that the conjunction is still as original
+
+    # Check that the clauses of the conjunction still contain the original values except for those containing hp3
+    for actual_clause, expected_clause in zip(
+        cs.forbidden_clauses[0].components, [forb1, forb2]
+    ):
+        assert actual_clause == expected_clause
+
+    # Check that the string representation is as expected
     assert (
         str(cs.forbidden_clauses[0])
         == "(Forbidden: input1 == 1 && Forbidden: input2 == 1)"
