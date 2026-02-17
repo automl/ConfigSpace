@@ -117,8 +117,8 @@ def test_remove():
     cs.add(cond)
     cs.remove(hp)
     assert len(cs) == 2
-    assert cs.conditional_hyperparameters == []
-    assert cs.conditions == []
+    assert len(cs.conditional_hyperparameters) == 0
+    assert len(cs.conditions) == 0
 
     # Set up forbidden relation, the relation should also be removed
     forb = ForbiddenEqualsClause(hp3, "snowy")
