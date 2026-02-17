@@ -398,7 +398,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
                 target.left.name in remove_hps_names or target.right.name in remove_hps_names
             ):
                 return None
-            if isinstance(target, ForbiddenClause) and target.hyperparameter.name in remove_hps_names:
+            elif isinstance(target, ForbiddenClause) and target.hyperparameter.name in remove_hps_names:
                 return None
             elif isinstance(target, Condition) and (
                 target.parent.name in remove_hps_names or target.child.name in remove_hps_names
