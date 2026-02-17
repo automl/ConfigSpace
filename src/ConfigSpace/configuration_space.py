@@ -357,8 +357,8 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
     ) -> None:
         """Remove a hyperparameter from the configuration space.
 
-        If the hyperparameter has children, the children are also removed.
-        This includes defined conditions and conjunctions!
+        If the provided hyperparameter(s) are the only hyperparamter(s) in a condition or forbidden, these are also removed.
+        Otherwise, they are replaced with a new conjuction/clause without the specified hyperparameter(s).
 
         !!! note
 
