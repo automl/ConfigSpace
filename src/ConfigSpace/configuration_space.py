@@ -412,7 +412,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
                         new_components.append(new_component)
                 if len(new_components) >= 2:  # Can create a conjunction
                     return type(target)(*new_components)
-                if len(new_components) == 1:  # Only one component remains
+                elif len(new_components) == 1:  # Only one component remains
                     return new_components[0]
                 return None  # No components remain
             return target  # Nothing to change
