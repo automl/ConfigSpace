@@ -127,7 +127,10 @@ def test_remove():
     assert len(cs) == 1
     assert cs.forbidden_clauses == []
 
-    # And now for more complicated conditions
+    # More complicated conditions
+    # Adding in five hyperparameters with five conditions and three conjunctions as:
+    # (((constant1 | input1 == 1 && constant1 | input2 != 1) || constant1 | input3 in {1}) && constant1 | input4 == 1 && constant1 | input5 == 1)
+    # to test that removing a hyperparameter will update the conjunctions accordingly, i.e. not dropping out complete conjunctions but instead removing the hyperparameter from the conjunction
     cs = ConfigurationSpace()
     hp1 = CategoricalHyperparameter("input1", [0, 1])
     cs.add(hp1)
@@ -155,7 +158,7 @@ def test_remove():
 
     cs.remove(hp3)
     assert len(cs) == 5
-    # Only one part of the condition should be removed, not the entire condition
+    # Removed one hyperparameter that was part of the condition: only one part of the condition should be removed, not the entire condition
     assert len(cs.conditional_hyperparameters) == 1
     assert len(cs.conditions) == 1
     # Test the exact value
@@ -165,6 +168,8 @@ def test_remove():
     )
 
     # Now more complicated forbiddens
+    # Adding in five hyperparameters with three forbidden clauses and two ForbiddenAndConjunctions
+    # Testing similar to the conditions to see that removing a hyperparameter will update the ForbiddenAndConjunctions accordingly
     cs = ConfigurationSpace()
     cs.add([hp1, hp2, hp3, hp4, hp5, hp6])
     cs.add(conj3)
