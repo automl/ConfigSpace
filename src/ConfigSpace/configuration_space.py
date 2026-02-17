@@ -49,8 +49,8 @@ from ConfigSpace.conditions import (
 from ConfigSpace.configuration import Configuration, NotSet
 from ConfigSpace.exceptions import (
     ActiveHyperparameterNotSetError,
-    HyperparameterNotFoundError,
     ForbiddenValueError,
+    HyperparameterNotFoundError,
     IllegalVectorizedValueError,
     InactiveHyperparameterSetError,
 )
@@ -394,17 +394,15 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
             | ForbiddenConjunction
             | None
         ):
-            if isinstance(target, ForbiddenRelation) and (
+            if (isinstance(target, ForbiddenRelation) and (
                 target.left.name in remove_hps_names or target.right.name in remove_hps_names
-            ):
+            )) or (isinstance(target, ForbiddenClause) and target.hyperparameter.name in remove_hps_names):
                 return None
-            elif isinstance(target, ForbiddenClause) and target.hyperparameter.name in remove_hps_names:
-                return None
-            elif isinstance(target, Condition) and (
+            if isinstance(target, Condition) and (
                 target.parent.name in remove_hps_names or target.child.name in remove_hps_names
             ):
                 return None
-            elif isinstance(target, (Conjunction, ForbiddenConjunction)):
+            if isinstance(target, (Conjunction, ForbiddenConjunction)):
                 new_components = []
                 for component in target.components:
                     new_component = remove_hyperparameter_from_conjunction(component)
@@ -412,7 +410,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
                         new_components.append(new_component)
                 if len(new_components) >= 2:  # Can create a conjunction
                     return type(target)(*new_components)
-                elif len(new_components) == 1:  # Only one component remains
+                if len(new_components) == 1:  # Only one component remains
                     return new_components[0]
                 return None  # No components remain
             return target  # Nothing to change
@@ -430,9 +428,9 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
             forbidden = remove_hyperparameter_from_conjunction(forbidden)
             if forbidden is not None:  # If None, the forbidden clause is empty and is not added
                 forbiddens.append(
-                    remove_hyperparameter_from_conjunction(forbidden)
+                    remove_hyperparameter_from_conjunction(forbidden),
                 )
-        
+
         # Rebuild the DAG
         self._dag = DAG()
         with self._dag.update():

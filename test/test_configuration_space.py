@@ -87,7 +87,9 @@ def test_remove():
     hp = UniformIntegerHyperparameter("name", 0, 10)
     hp2 = UniformFloatHyperparameter("name2", 0, 10)
     hp3 = CategoricalHyperparameter(
-        "weather", ["dry", "rainy", "snowy"], default_value="dry"
+        "weather",
+        ["dry", "rainy", "snowy"],
+        default_value="dry",
     )
     cs.add(hp, hp2, hp3)
     cs.remove(hp)
@@ -162,12 +164,14 @@ def test_remove():
     assert len(cs.conditional_hyperparameters) == 1
     assert len(cs.conditions) == 1
     assert isinstance(
-        cs.conditions[0], AndConjunction
+        cs.conditions[0],
+        AndConjunction,
     )  # Check that the condition is still an and condition, only its clauses with HP3 have been removed
 
     # Test the exact value: Only the conjunctions/conditions without hp3 should remain (i.e. conj2 has been removed but its child conj1 still exists)
     for actual_condition, expected_condition in zip(
-        cs.conditions[0].components, [conj1, cond4, cond5]
+        cs.conditions[0].components,
+        [conj1, cond4, cond5],
     ):
         assert actual_condition == expected_condition
 
@@ -198,12 +202,14 @@ def test_remove():
     assert hp3.name not in cs and len(cs) == 5  # hp3 removed, five remain
     assert len(cs.forbidden_clauses) == 2
     assert isinstance(
-        cs.forbidden_clauses[0], ForbiddenAndConjunction
+        cs.forbidden_clauses[0],
+        ForbiddenAndConjunction,
     )  # Check that the conjunction is still as original
 
     # Check that the clauses of the conjunction still contain the original values except for those containing hp3
     for actual_clause, expected_clause in zip(
-        cs.forbidden_clauses[0].components, [forb1, forb2]
+        cs.forbidden_clauses[0].components,
+        [forb1, forb2],
     ):
         assert actual_clause == expected_clause
 

@@ -603,8 +603,8 @@ def test_generate_grid():
     # This was having slight numerical instability (99.99999999999994 vs 100.0) and so
     # we manually do a pass over each value
     last_config = generated_grid[-1]
-    for k, expected_value in last_config.items():
-        generated_value = last_config[k]
+    for _k, expected_value in last_config.items():
+        generated_value = expected_value
         if isinstance(generated_value, float):
             assert generated_value == approx(expected_value)
         else:
