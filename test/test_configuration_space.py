@@ -167,7 +167,7 @@ def test_remove():
         == "((constant1 | input1 == 1 && constant1 | input2 != 1) && constant1 | input4 == 1 && constant1 | input5 == 1)"
     )
 
-    # Now more complicated forbiddens
+    # More complicated forbiddens
     # Adding in five hyperparameters with three forbidden clauses and two ForbiddenAndConjunctions
     # Testing similar to the conditions to see that removing a hyperparameter will update the ForbiddenAndConjunctions accordingly
     cs = ConfigurationSpace()
