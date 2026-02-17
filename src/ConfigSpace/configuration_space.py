@@ -404,7 +404,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
                 target.parent.name in remove_hps_names or target.child.name in remove_hps_names
             ):
                 return None
-            if isinstance(target, (Conjunction, ForbiddenConjunction)):
+            elif isinstance(target, (Conjunction, ForbiddenConjunction)):
                 new_components = []
                 for component in target.components:
                     new_component = remove_hyperparameter_from_conjunction(component)
