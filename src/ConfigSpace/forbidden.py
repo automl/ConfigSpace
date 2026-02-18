@@ -543,12 +543,12 @@ class ForbiddenGreaterThanClause(ForbiddenClause):
 
     @override
     def is_forbidden_value(
-        self: ForbiddenGreaterThanClause, values: dict[str, Any]
+        self: ForbiddenGreaterThanClause, values: dict[str, Any],
     ) -> bool:
         if isinstance(self.hyperparameter, OrdinalHyperparameter):
             return (
                 self.hyperparameter.get_order(
-                    values.get(self.hyperparameter.name, self.value)
+                    values.get(self.hyperparameter.name, self.value),
                 )
                 > self._value
             )
@@ -558,13 +558,13 @@ class ForbiddenGreaterThanClause(ForbiddenClause):
 
     @override
     def is_forbidden_vector(
-        self: ForbiddenGreaterThanClause, vector: Array[f64]
+        self: ForbiddenGreaterThanClause, vector: Array[f64],
     ) -> bool:
         return vector[self.vector_id] > self.vector_value  # type: ignore
 
     @override
     def is_forbidden_vector_array(
-        self: ForbiddenGreaterThanClause, arr: Array[f64]
+        self: ForbiddenGreaterThanClause, arr: Array[f64],
     ) -> Mask:
         return np.greater(arr[self.vector_id], self.vector_value, dtype=np.bool_)
 
@@ -645,12 +645,12 @@ class ForbiddenGreaterThanEqualsClause(ForbiddenClause):
 
     @override
     def is_forbidden_value(
-        self: ForbiddenGreaterThanEqualsClause, values: dict[str, Any]
+        self: ForbiddenGreaterThanEqualsClause, values: dict[str, Any],
     ) -> bool:
         if isinstance(self.hyperparameter, OrdinalHyperparameter):
             return (
                 self.hyperparameter.get_order(
-                    values.get(self.hyperparameter.name, self.value)
+                    values.get(self.hyperparameter.name, self.value),
                 )
                 >= self._value
             )
@@ -660,14 +660,13 @@ class ForbiddenGreaterThanEqualsClause(ForbiddenClause):
 
     @override
     def is_forbidden_vector(
-        self: ForbiddenGreaterThanEqualsClause, vector: Array[f64]
+        self: ForbiddenGreaterThanEqualsClause, vector: Array[f64],
     ) -> bool:
-        print(vector, self.vector_id, self.vector_value)
         return vector[self.vector_id] >= self.vector_value  # type: ignore
 
     @override
     def is_forbidden_vector_array(
-        self: ForbiddenGreaterThanEqualsClause, arr: Array[f64]
+        self: ForbiddenGreaterThanEqualsClause, arr: Array[f64],
     ) -> Mask:
         return np.greater_equal(arr[self.vector_id], self.vector_value, dtype=np.bool_)
 
@@ -748,12 +747,12 @@ class ForbiddenLessThanClause(ForbiddenClause):
 
     @override
     def is_forbidden_value(
-        self: ForbiddenLessThanClause, values: dict[str, Any]
+        self: ForbiddenLessThanClause, values: dict[str, Any],
     ) -> bool:
         if isinstance(self.hyperparameter, OrdinalHyperparameter):
             return (
                 self.hyperparameter.get_order(
-                    values.get(self.hyperparameter.name, self.value)
+                    values.get(self.hyperparameter.name, self.value),
                 )
                 < self._value
             )
@@ -767,7 +766,7 @@ class ForbiddenLessThanClause(ForbiddenClause):
 
     @override
     def is_forbidden_vector_array(
-        self: ForbiddenLessThanClause, arr: Array[f64]
+        self: ForbiddenLessThanClause, arr: Array[f64],
     ) -> Mask:
         return np.less(arr[self.vector_id], self.vector_value, dtype=np.bool_)
 
@@ -848,12 +847,12 @@ class ForbiddenLessThanEqualsClause(ForbiddenClause):
 
     @override
     def is_forbidden_value(
-        self: ForbiddenLessThanEqualsClause, values: dict[str, Any]
+        self: ForbiddenLessThanEqualsClause, values: dict[str, Any],
     ) -> bool:
         if isinstance(self.hyperparameter, OrdinalHyperparameter):
             return (
                 self.hyperparameter.get_order(
-                    values.get(self.hyperparameter.name, self.value)
+                    values.get(self.hyperparameter.name, self.value),
                 )
                 <= self._value
             )
@@ -863,13 +862,13 @@ class ForbiddenLessThanEqualsClause(ForbiddenClause):
 
     @override
     def is_forbidden_vector(
-        self: ForbiddenLessThanEqualsClause, vector: Array[f64]
+        self: ForbiddenLessThanEqualsClause, vector: Array[f64],
     ) -> bool:
         return vector[self.vector_id] <= self.vector_value  # type: ignore
 
     @override
     def is_forbidden_vector_array(
-        self: ForbiddenLessThanEqualsClause, arr: Array[f64]
+        self: ForbiddenLessThanEqualsClause, arr: Array[f64],
     ) -> Mask:
         return np.greater_equal(arr[self.vector_id], self.vector_value, dtype=np.bool_)
 
@@ -1009,7 +1008,7 @@ class ForbiddenOrConjunction(ForbiddenConjunction):
 
     @override
     def is_forbidden_value(
-        self: ForbiddenOrConjunction, values: dict[str, Any]
+        self: ForbiddenOrConjunction, values: dict[str, Any],
     ) -> bool:
         return any(
             forbidden.is_forbidden_value(values) for forbidden in self.components
@@ -1023,7 +1022,7 @@ class ForbiddenOrConjunction(ForbiddenConjunction):
 
     @override
     def is_forbidden_vector_array(
-        self: ForbiddenOrConjunction, arr: Array[f64]
+        self: ForbiddenOrConjunction, arr: Array[f64],
     ) -> Mask:
         forbidden_mask: Mask = np.zeros(shape=arr.shape[1], dtype=np.bool_)
         for forbidden in self.components:
@@ -1263,7 +1262,7 @@ class ForbiddenLessThanEqualsRelation(ForbiddenLessThanRelation):
 
     @override
     def is_forbidden_value(
-        self: ForbiddenLessThanEqualsRelation, values: dict[str, Any]
+        self: ForbiddenLessThanEqualsRelation, values: dict[str, Any],
     ) -> bool:
         # Relation is always evaluated against actual value and not vector rep
         left = values.get(self.left.name, _SENTINEL)
@@ -1278,7 +1277,7 @@ class ForbiddenLessThanEqualsRelation(ForbiddenLessThanRelation):
 
     @override
     def is_forbidden_vector(
-        self: ForbiddenLessThanEqualsRelation, vector: Array[f64]
+        self: ForbiddenLessThanEqualsRelation, vector: Array[f64],
     ) -> bool:
         # Relation is always evaluated against actual value and not vector rep
         left: f64 = vector[self.vector_ids[0]]  # type: ignore
@@ -1289,14 +1288,14 @@ class ForbiddenLessThanEqualsRelation(ForbiddenLessThanRelation):
 
     @override
     def is_forbidden_vector_array(
-        self: ForbiddenLessThanEqualsRelation, arr: Array[f64]
+        self: ForbiddenLessThanEqualsRelation, arr: Array[f64],
     ) -> Mask:
         left = arr[self.vector_ids[0]]
         right = arr[self.vector_ids[1]]
         valid = ~(np.isnan(left) | np.isnan(right))
         out = np.zeros_like(valid)
         out[valid] = self.left.to_value(left[valid]) <= self.right.to_value(
-            right[valid]
+            right[valid],
         )
         return out
 
@@ -1311,7 +1310,7 @@ class ForbiddenGreaterThanEqualsRelation(ForbiddenGreaterThanRelation):
 
     @override
     def is_forbidden_value(
-        self: ForbiddenGreaterThanEqualsRelation, values: dict[str, Any]
+        self: ForbiddenGreaterThanEqualsRelation, values: dict[str, Any],
     ) -> bool:
         left = values.get(self.left.name, _SENTINEL)
         if left is _SENTINEL:
@@ -1325,7 +1324,7 @@ class ForbiddenGreaterThanEqualsRelation(ForbiddenGreaterThanRelation):
 
     @override
     def is_forbidden_vector(
-        self: ForbiddenGreaterThanEqualsRelation, vector: Array[f64]
+        self: ForbiddenGreaterThanEqualsRelation, vector: Array[f64],
     ) -> bool:
         # Relation is always evaluated against actual value and not vector rep
         left: f64 = vector[self.vector_ids[0]]  # type: ignore
@@ -1336,14 +1335,14 @@ class ForbiddenGreaterThanEqualsRelation(ForbiddenGreaterThanRelation):
 
     @override
     def is_forbidden_vector_array(
-        self: ForbiddenGreaterThanEqualsRelation, arr: Array[f64]
+        self: ForbiddenGreaterThanEqualsRelation, arr: Array[f64],
     ) -> Mask:
         left = arr[self.vector_ids[0]]
         right = arr[self.vector_ids[1]]
         valid = ~(np.isnan(left) | np.isnan(right))
         out = np.zeros_like(valid)
         out[valid] = self.left.to_value(left[valid]) >= self.right.to_value(
-            right[valid]
+            right[valid],
         )
         return out
 

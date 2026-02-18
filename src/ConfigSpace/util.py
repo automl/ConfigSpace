@@ -702,10 +702,8 @@ def generate_grid(
                 grid_points = np.exp(grid_points)
 
             # Avoiding rounding off issues
-            if grid_points[0] < param.lower:
-                grid_points[0] = param.lower
-            if grid_points[-1] > param.upper:
-                grid_points[-1] = param.upper
+            grid_points[0] = max(grid_points[0], param.lower)
+            grid_points[-1] = min(grid_points[-1], param.upper)
 
             return tuple(grid_points)
 
@@ -730,10 +728,8 @@ def generate_grid(
             grid_points = np.round(grid_points).astype(int)
 
             # Avoiding rounding off issues
-            if grid_points[0] < param.lower:
-                grid_points[0] = param.lower
-            if grid_points[-1] > param.upper:
-                grid_points[-1] = param.upper
+            grid_points[0] = max(grid_points[0], param.lower)
+            grid_points[-1] = min(grid_points[-1], param.upper)
 
             return tuple(grid_points)
 
