@@ -158,6 +158,11 @@ def test_remove():
     conj3 = AndConjunction(conj2, cond4, cond5)
     cs.add(conj3)
 
+    # Verify that ConfigurationSpace has expected structure after construction
+    assert len(cs) == 6
+    assert len(cs.conditional_hyperparameters) == 1
+    assert len(cs.conditions) == 1
+
     # Remove one hyperparameter that was part of the condition: only one part of the condition should be removed, not the entire condition
     cs.remove(hp3)
     assert hp3.name not in cs and len(cs) == 5  # Hp3 removed, five HPs remain
