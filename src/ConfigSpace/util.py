@@ -674,10 +674,10 @@ def generate_grid(
     def _get_value_set(num_steps_dict: dict[str, int] | None, hp_name: str) -> tuple:
         param = configuration_space[hp_name]
         if isinstance(param, (CategoricalHyperparameter)):
-            return cast("tuple", param.choices)
+            return cast(tuple, param.choices)
 
         if isinstance(param, (OrdinalHyperparameter)):
-            return cast("tuple", param.sequence)
+            return cast(tuple, param.sequence)
 
         if isinstance(param, Constant):
             return (param.value,)
