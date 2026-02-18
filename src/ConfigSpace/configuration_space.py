@@ -427,9 +427,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         for forbidden in self._dag.forbiddens:
             forbidden = remove_hyperparameter_from_conjunction(forbidden)
             if forbidden is not None:  # If None, the forbidden clause is empty and is not added
-                forbiddens.append(
-                    remove_hyperparameter_from_conjunction(forbidden),
-                )
+                forbiddens.append(forbidden)
 
         # Rebuild the DAG
         self._dag = DAG()
