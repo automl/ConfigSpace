@@ -877,6 +877,18 @@ def test_sample_configuration():
             for j in range(100):
                 assert samples[-1][j] == samples[-2][j]
 
+    # Test that sample configuration to np.array works as expected
+    cs.seed(42)
+    for _ in range(5):
+        sample = cs.sample_configuration(2)
+        for configuration in sample:
+            array = np.array(configuration)
+            expected_array = configuration._vector
+            assert len(array) == len(expected_array)
+            for value, expected in zip(array, expected_array):
+                # Values are either equal in both arrays or both are np.nan
+                assert value == expected or (np.isnan(value) and np.isnan(expected))
+
 
 def test_sample_configuration_with_or_conjunction():
     cs = ConfigurationSpace(seed=1)
