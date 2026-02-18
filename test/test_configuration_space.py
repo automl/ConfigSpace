@@ -104,7 +104,7 @@ def test_remove():
     with pytest.raises(TypeError):
         cs.remove(object())
 
-    # Non existant HP
+    # Non existent HP
     with pytest.raises(HyperparameterNotFoundError):
         cs.remove(hp)
 
