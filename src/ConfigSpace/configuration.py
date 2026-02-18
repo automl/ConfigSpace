@@ -163,7 +163,7 @@ class Configuration(Mapping[str, Any]):
             allow_inactive_with_values=self.allow_inactive_with_values,
         )
 
-    def __array__(self, dtype=None, copy=False) -> Array[f64]:
+    def __array__(self, dtype: type[DType]=None, copy: bool=False) -> Array[f64]:
         """The internal vector representation of this config.
 
         All continuous values are scaled between zero and one.
