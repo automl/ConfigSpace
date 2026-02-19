@@ -51,7 +51,6 @@ from ConfigSpace import (
 from ConfigSpace.api.types.float import Float
 from ConfigSpace.api.types.integer import Integer
 from ConfigSpace.exceptions import (
-    AmbiguousConditionError,
     ChildNotFoundError,
     CyclicDependancyError,
     ForbiddenValueError,
@@ -341,6 +340,7 @@ def test_add_conjunction():
 
 
 def test_add_second_condition_wo_conjunction():
+    # Add a second condition to a hyperparameter
     hp1 = CategoricalHyperparameter("input1", [0, 1])
     hp2 = CategoricalHyperparameter("input2", [0, 1])
     hp3 = Constant("And", "True")
@@ -352,8 +352,56 @@ def test_add_second_condition_wo_conjunction():
     cs.add([hp1, hp2, hp3])
     cs.add(cond1)
 
-    with pytest.raises(AmbiguousConditionError):
-        cs.add(cond2)
+    # Original test, modified to now test that the conditions are correctly updated
+    cs.add(cond2)
+    assert len(cs.conditions) == 1
+    assert cs.conditions[0] == AndConjunction(cond1, cond2)
+
+    # Second test: example from https://github.com/automl/ConfigSpace/issues/380#issuecomment-3921050841
+    cs = ConfigurationSpace()
+    cs.add(Integer("x", (1, 10), default=1))
+    cs.add(Integer("y", (1, 10), default=1))
+    cs.add(Integer("z", (1, 10), default=1))
+
+    cond1 = EqualsCondition(cs["z"], cs["x"], 3)
+    cond2 = EqualsCondition(cs["z"], cs["y"], 3)
+    cs.add(cond1)
+    cs.add(cond2)
+    assert len(cs.conditions) == 1
+    assert cs.conditions[0] == AndConjunction(cond1, cond2)
+
+    # Third test: A larger, more complicated CS with various conditions and multiple updates
+    cs = ConfigurationSpace()
+    cs.add(Integer("q", (1, 10), default=1))
+    cs.add(Integer("w", (1, 10), default=1))
+    cs.add(Integer("x", (1, 10), default=1))
+    cs.add(Integer("y", (1, 10), default=1))
+    cs.add(Integer("z", (1, 10), default=1))
+
+    cond1 = AndConjunction(
+        EqualsCondition(cs["z"], cs["x"], 3),
+        EqualsCondition(cs["z"], cs["y"], 3),
+    )
+    cond2 = OrConjunction(
+        EqualsCondition(cs["z"], cs["y"], 3),
+        EqualsCondition(cs["z"], cs["w"], 3),
+    )
+    cond3 = OrConjunction(
+        EqualsCondition(cs["w"], cs["x"], 3),
+        EqualsCondition(cs["w"], cs["y"], 3),
+    )
+    cond4 = AndConjunction(
+        EqualsCondition(cs["w"], cs["y"], 3),
+        EqualsCondition(cs["w"], cs["q"], 3),
+    )
+    cs.add(cond1)
+    cs.add(cond2)
+    cs.add(cond3)
+    cs.add(cond4)
+    assert len(cs.conditions) == 2
+    # NOTE: The order of conditions gets reverted somewhere?
+    assert cs.conditions[1] == AndConjunction(cond1, cond2)
+    assert cs.conditions[0] == AndConjunction(cond3, cond4)
 
 
 def test_add_forbidden_clause():

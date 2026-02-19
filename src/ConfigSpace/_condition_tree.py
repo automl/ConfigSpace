@@ -41,7 +41,7 @@ from typing_extensions import Self
 import numpy as np
 from more_itertools import unique_everseen
 
-from ConfigSpace.conditions import Condition, ConditionLike, Conjunction
+from ConfigSpace.conditions import Condition, ConditionLike, Conjunction, AndConjunction
 from ConfigSpace.exceptions import (
     AmbiguousConditionError,
     ChildNotFoundError,
@@ -675,15 +675,17 @@ class DAG:
 
         # This stems from the fact all nodes can only have one parent condition,
         # as this prevent ambiguity. If a node can have two parents it depends on,
-        # is it inherently an AND or an OR condition? This
+        # it is inherently an AND condition: stating a list of conditions or rules implies that they all apply at the same time
+        # NOTE Option: allow the user to specify whether they want to add the condition as an AND or an OR?
+        combinator_flag = False
         if child.parent_condition is not None and condition != child.parent_condition:
-            raise AmbiguousConditionError(
-                "Adding a second parent condition for a for a hyperparameter"
-                " is ambiguous and therefore forbidden. Use an `OrConjunction`"
-                " or `AndConjunction` to combine conditions instead."
-                f"\nAlready inserted: {child.parent_condition}"
-                f"\nNew one: {condition}",
-            )
+            # 1. Merge the conditions with an AND operator
+            # NOTE: What if one of them already is an AND? Would it be better to merge them into eachother? What if they're both, do we synthesise their union?
+            condition = AndConjunction(child.parent_condition, condition)
+            # 2. Clean the existing HP condition from the DAG
+            child.parent_condition = None
+            # 3. Add the newly synthesised condition like normal, using the combinator flag to signal this for later checks
+            combinator_flag = True
 
         parent_names = (
             [dlc.parent.name for dlc in condition.dlcs]
@@ -701,7 +703,10 @@ class DAG:
             # Ensure there is no existing condition between the parent and the child
             _, existing = parent.children.get(child.name, (None, None))
             if existing is not None and condition != existing:
-                raise AmbiguousConditionError(existing, condition)
+                if combinator_flag:  # We are synthesising a new AND condition, so we pop the current condition
+                    parent.children.pop(child.name)
+                else:
+                    raise AmbiguousConditionError(existing, condition)
 
             # Now we are certain they exist and no existing condition between them,
             # update the nodes to point to each other
