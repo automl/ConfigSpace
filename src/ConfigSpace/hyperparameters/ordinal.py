@@ -8,7 +8,11 @@ from typing_extensions import deprecated, override
 
 import numpy as np
 
-from ConfigSpace.hyperparameters.distributions import UniformIntegerDistribution
+from ConfigSpace.hyperparameters.distributions import (
+    Distribution,
+    UniformIntegerDistribution,
+    WeightedIntegerDiscreteDistribution,
+)
 from ConfigSpace.hyperparameters.hp_components import (
     TransformerSeq,
     ordinal_neighborhood,
@@ -38,6 +42,9 @@ class OrdinalHyperparameter(Hyperparameter[Any, Any]):
     sequence: tuple[Any, ...]
     """Sequence of values the hyperparameter can take on."""
 
+    weights: tuple[float, ...] | None
+    """The weights of the choices. If `None`, the choices are sampled uniformly."""
+
     name: str
     """Name of the hyperparameter, with which it can be accessed."""
 
@@ -51,6 +58,7 @@ class OrdinalHyperparameter(Hyperparameter[Any, Any]):
     """Size of the hyperparameter, which is the number of possible values the
     hyperparameter can take on within the specified sequence."""
 
+    probabilities: Array[f64] = field(repr=False)
     _contains_sequence_as_value: bool
 
     def __init__(
@@ -59,6 +67,7 @@ class OrdinalHyperparameter(Hyperparameter[Any, Any]):
         sequence: Sequence[Any],
         default_value: Any | _NotSet = NotSet,
         meta: Mapping[Hashable, Any] | None = None,
+        weights: Sequence[float] | Array[np.number] | None = None,
     ) -> None:
         """Initialize an ordinal hyperparameter.
 
@@ -71,6 +80,11 @@ class OrdinalHyperparameter(Hyperparameter[Any, Any]):
                 Default value of the hyperparameter
             meta:
                 Field for holding meta data provided by the user
+            weights:
+                The weights of the choices. If `None`, the choices are sampled
+                uniformly. If given, the probabilities are normalized to sum to 1.
+                The length of the weights has to be the same as the length of the
+                choices.
         """
         # TODO: Maybe give some way to not check this, i.e. for large sequences
         # of int...
@@ -81,6 +95,13 @@ class OrdinalHyperparameter(Hyperparameter[Any, Any]):
                 f"Got {sequence} which does not fulfill this requirement.",
             )
 
+        if isinstance(weights, set):
+            raise TypeError(
+                "Using a set of weights is prohibited as it can result in "
+                "non-deterministic behavior. Please use a list or a tuple.",
+            )
+
+        # NOTE: Most of this is a direct copy from CategoricalHyperparameter. It would be better to factor this out to avoid duplicate code / tech debt.
         size = len(sequence)
         if default_value is NotSet:
             default_value = sequence[0]
@@ -89,6 +110,46 @@ class OrdinalHyperparameter(Hyperparameter[Any, Any]):
                 "The default value has to be one of the ordinal values. "
                 f"Got {default_value!r} which is not in {sequence}.",
             )
+
+        if isinstance(weights, Sequence):
+            if len(weights) != size:
+                raise ValueError(
+                    "The list of weights and the sequence are required to be"
+                    f" of same length. Gave {len(weights)} weights and"
+                    f" {size} sequence.",
+                )
+            if any(weight < 0 for weight in weights):
+                raise ValueError(
+                    f"Negative weights are not allowed. Got {weights}.",
+                )
+            if all(weight == 0 for weight in weights):
+                raise ValueError(
+                    "All weights are zero, at least one weight has to be strictly"
+                    " positive.",
+                )
+            tupled_weights = tuple(weights)
+        elif weights is not None:
+            raise TypeError(
+                f"The weights have to be a list, tuple or None. Got {weights!r}.",
+            )
+        else:
+            tupled_weights = None
+
+        if weights is None:
+            probabilities: Array[f64] = np.full(size, fill_value=1 / size, dtype=f64)
+        else:
+            _weights: Array[f64] = np.asarray(weights, dtype=f64)
+            probabilities = _weights / np.sum(_weights)
+
+        # We only need to pass probabilties is they are non-uniform...
+        vector_dist: Distribution
+        if weights is not None:
+            vector_dist = WeightedIntegerDiscreteDistribution(
+                size=size,
+                probabilities=np.asarray(probabilities),
+            )
+        else:
+            vector_dist = UniformIntegerDistribution(size=size)
 
         try:
             # This can fail with a ValueError if the choices contain arbitrary objects
@@ -108,7 +169,9 @@ class OrdinalHyperparameter(Hyperparameter[Any, Any]):
         except ValueError:
             seq_choices = list(sequence)
 
+        self.probabilities = probabilities
         self.sequence = tuple(sequence)
+        self.weights = tupled_weights
 
         # If the Hyperparameter recieves as a Sequence during legality checks or
         # conversions, we need to inform it that one of the values is a Sequence itself,
@@ -122,10 +185,10 @@ class OrdinalHyperparameter(Hyperparameter[Any, Any]):
             name=name,
             size=size,
             default_value=default_value,
+            vector_dist=vector_dist,
             meta=meta,
             transformer=TransformerSeq(seq=seq_choices),
             neighborhood=partial(ordinal_neighborhood, size=int(size)),
-            vector_dist=UniformIntegerDistribution(size=size),
             neighborhood_size=self._ordinal_neighborhood_size,
             value_cast=None,
         )
@@ -173,6 +236,16 @@ class OrdinalHyperparameter(Hyperparameter[Any, Any]):
             f"Default: {self.default_value}",
         ]
         return ", ".join(parts)
+
+    def to_uniform(self) -> OrdinalHyperparameter:
+        """Converts this hyperparameter to have uniform weights."""
+        return OrdinalHyperparameter(
+            name=self.name,
+            sequence=self.sequence,
+            default_value=self.default_value,
+            meta=self.meta,
+            weights=None,
+        )
 
     @override
     def to_vector(self, value: Any | Sequence[Any] | Array[Any]) -> f64 | Array[f64]:

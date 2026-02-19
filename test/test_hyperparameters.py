@@ -2792,9 +2792,35 @@ def test_ordinal_get_order():
     assert f1.get_order("freezing") != 3
 
 
-def test_ordinal_get_seq_order():
-    f1 = OrdinalHyperparameter("temp", ["freezing", "cold", "warm", "hot"])
+def test_ordinal_get_seq_order_and_weights():
+    f1 = OrdinalHyperparameter(
+        "temp",
+        ["freezing", "cold", "warm", "hot"],
+        weights=[1, 10, 20, 30],
+    )
     assert tuple(f1.get_seq_order()) == (0, 1, 2, 3)
+    assert f1.weights == (1, 10, 20, 30)
+    # Check that the weights are used to sample
+    cs = ConfigurationSpace()
+    cs.add(f1)
+    sample_counts = {
+        "freezing": 0,
+        "cold": 0,
+        "warm": 0,
+        "hot": 0,
+    }
+    samples = cs.sample_configuration(1000)
+    for sample in samples:
+        sample_counts[sample[f1.name]] += 1
+    print(
+        sample_counts["freezing"],
+        sample_counts["cold"],
+        sample_counts["warm"],
+        sample_counts["hot"],
+    )
+    assert sample_counts["freezing"] < sample_counts["cold"]
+    assert sample_counts["cold"] < sample_counts["warm"]
+    assert sample_counts["warm"] < sample_counts["hot"]
 
 
 def test_ordinal_get_neighbors():
