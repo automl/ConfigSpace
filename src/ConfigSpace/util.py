@@ -28,6 +28,7 @@
 from __future__ import annotations
 
 import copy
+import itertools
 from collections import deque
 from collections.abc import Iterator, Sequence
 from typing import TYPE_CHECKING, Any, cast
@@ -671,85 +672,46 @@ def generate_grid(
         is the same for the OrderedDict within the ConfigurationSpace.
     """
 
-    def _get_value_set(num_steps_dict: dict[str, int] | None, hp_name: str) -> tuple:
-        param = configuration_space[hp_name]
-        if isinstance(param, (CategoricalHyperparameter)):
-            return cast(tuple, param.choices)
-
-        if isinstance(param, (OrdinalHyperparameter)):
-            return cast(tuple, param.sequence)
-
-        if isinstance(param, Constant):
-            return (param.value,)
-
-        if isinstance(param, UniformFloatHyperparameter):
-            if param.log:
-                lower, upper = np.log([param.lower, param.upper])
-            else:
-                lower, upper = param.lower, param.upper
-
-            if num_steps_dict is not None and param.name in num_steps_dict:
-                num_steps = num_steps_dict[param.name]
-                grid_points = np.linspace(lower, upper, num_steps)
-            else:
+    def _get_value_set(num_steps_dict: dict[str, int] | None, hp: Hyperparameter) -> tuple:
+        if isinstance(hp, (CategoricalHyperparameter)):
+            return cast(tuple, hp.choices)
+        elif isinstance(hp, (OrdinalHyperparameter)):
+            return cast(tuple, hp.sequence)
+        elif isinstance(hp, Constant):
+            return (hp.value,)
+        elif isinstance(hp, (UniformFloatHyperparameter, UniformIntegerHyperparameter)):
+            if not num_steps_dict or hp.name not in num_steps_dict:
                 raise ValueError(
                     "num_steps_dict is None or doesn't contain the number of points"
-                    f" to divide {param.name} into. And its quantization factor "
+                    f" to divide {hp.name} into. And its quantization factor "
                     "is None. Please provide/set one of these values.",
                 )
-
-            if param.log:
-                grid_points = np.exp(grid_points)
-
-            # Avoiding rounding off issues
-            grid_points[0] = max(grid_points[0], param.lower)
-            grid_points[-1] = min(grid_points[-1], param.upper)
-
-            return tuple(grid_points)
-
-        if isinstance(param, UniformIntegerHyperparameter):
-            if param.log:
-                lower, upper = np.log([param.lower, param.upper])
+            num_steps = num_steps_dict[hp.name]
+            if hp.log:
+                lower, upper = np.log([hp.lower, hp.upper])
+                grid_points = np.exp(np.linspace(lower, upper, num_steps))
             else:
-                lower, upper = param.lower, param.upper
-
-            if num_steps_dict is not None and param.name in num_steps_dict:
-                num_steps = num_steps_dict[param.name]
+                lower, upper = hp.lower, hp.upper
                 grid_points = np.linspace(lower, upper, num_steps)
-            else:
-                raise ValueError(
-                    "num_steps_dict is None or doesn't contain the number of points "
-                    f"to divide {param.name} into. And its quantization factor "
-                    "is None. Please provide/set one of these values.",
-                )
 
-            if param.log:
-                grid_points = np.exp(grid_points)
-            grid_points = np.round(grid_points).astype(int)
-
+            if isinstance(hp, UniformIntegerHyperparameter):
+                grid_points = np.round(grid_points).astype(int)
             # Avoiding rounding off issues
-            grid_points[0] = max(grid_points[0], param.lower)
-            grid_points[-1] = min(grid_points[-1], param.upper)
-
+            grid_points[0] = max(grid_points[0], hp.lower)
+            grid_points[-1] = min(grid_points[-1], hp.upper)
             return tuple(grid_points)
 
-        raise TypeError(f"Unknown hyperparameter type {type(param)}")
+        raise TypeError(f"Unknown hyperparameter type {type(hp)}")
 
     def _get_cartesian_product(
         value_sets: list[tuple],
         hp_names: list[str],
     ) -> list[dict[str, Any]]:
-        import itertools
-
-        if len(value_sets) == 0:
-            # Edge case
-            return []
-
         grid = []
-        for element in itertools.product(*value_sets):
-            config_dict = dict(zip(hp_names, element))
-            grid.append(config_dict)
-
+        if len(value_sets) > 0:  # Edge case for empty value set
+            for element in itertools.product(*value_sets):
+                config_dict = dict(zip(hp_names, element))
+                grid.append(config_dict)
         return grid
 
     # Each tuple within is the grid values to be taken on by a Hyperparameter
@@ -759,7 +721,7 @@ def generate_grid(
     # Get HP names and allowed grid values they can take for the HPs at the top
     # level of ConfigSpace tree
     for hp_name in configuration_space.unconditional_hyperparameters:
-        value_sets.append(_get_value_set(num_steps_dict, hp_name))
+        value_sets.append(_get_value_set(num_steps_dict, configuration_space[hp_name]))
         hp_names.append(hp_name)
 
     # Create a Cartesian product of above allowed values for the HPs. Hold them in an
@@ -810,7 +772,7 @@ def generate_grid(
                             new_active_hp_names.append(new_hp_name)
 
             for hp_name in new_active_hp_names:
-                value_sets.append(_get_value_set(num_steps_dict, hp_name))
+                value_sets.append(_get_value_set(num_steps_dict, configuration_space[hp_name]))
                 hp_names.append(hp_name)
 
             # this check might not be needed, as there is always going to be a new
