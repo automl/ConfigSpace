@@ -29,9 +29,10 @@ from __future__ import annotations
 
 import copy
 import itertools
+import math
 from collections import deque
 from collections.abc import Iterator, Sequence
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any, cast, Generator
 
 import numpy as np
 
@@ -39,6 +40,7 @@ from ConfigSpace import Configuration
 from ConfigSpace.exceptions import (
     ActiveHyperparameterNotSetError,
     ForbiddenValueError,
+    IllegalValueError,
     IllegalVectorizedValueError,
     InactiveHyperparameterSetError,
     NoPossibleNeighborsError,
@@ -645,10 +647,10 @@ def change_hp_value(  # noqa: D103
     return arr
 
 
-def generate_grid(
+def grid_generator(
     configuration_space: ConfigurationSpace,
     num_steps_dict: dict[str, int] | None = None,
-) -> list[Configuration]:
+) -> Generator[Configuration, None, None]:
     """Generates a grid of Configurations for a given ConfigurationSpace.
     Can be used, for example, for grid search.
 
@@ -665,12 +667,23 @@ def generate_grid(
         points to divide the grid side formed by the corresponding Hyperparameter in to.
 
     Returns:
-        List containing Configurations. It is a cartesian product of tuples
-        of HyperParameter values.
-        Each tuple lists the possible values taken by the corresponding HyperParameter.
-        Within the cartesian product, in each element, the ordering of HyperParameters
-        is the same for the OrderedDict within the ConfigurationSpace.
+        A generator producing Configurations for a given ConfigurationSpace as a cartesian product of tuples of HyperParameter values.
+        It is a cartesian product of tuples, where each tuple lists the possible values taken by the corresponding HyperParameter.
+        Within the cartesian product, in each element, the ordering of HyperParameters is the same for the OrderedDict within the ConfigurationSpace.
     """
+
+    # TODO:
+    # Idea; we can perhaps create a generator for each HP, to avoid taking the entire grid into memory
+    # Then we can draw for each HP a value from each generator and test the yielded configuration (masking out the HP values that actually should be inactive)
+    # For each combination that **could** result in a duplicate (due to active vs inactive HPs), we need to store a light weight hash of the configuration
+    # That we can check each time s.t. we can quickly skip over combinations that are known to be duplicates
+    # 1. Build a generator(?) for each HP based on their min/max and step size
+    # 2. Make sure this generator allows us to build a 'cartesian product' generator s.t. all combinations are made (including inactive HPs?)
+    # 3. It would be best if we could make the HPs generate values for active HPs only when applicable but this is complicated due to not knowing the dependency order
+    # 4. ??
+    # 5. Profit
+
+    
 
     def _get_value_set(num_steps_dict: dict[str, int] | None, hp: Hyperparameter) -> tuple:
         if isinstance(hp, (CategoricalHyperparameter)):
@@ -714,79 +727,156 @@ def generate_grid(
                 grid.append(config_dict)
         return grid
 
-    # Each tuple within is the grid values to be taken on by a Hyperparameter
-    value_sets = []
-    hp_names = []
 
-    # Get HP names and allowed grid values they can take for the HPs at the top
-    # level of ConfigSpace tree
-    for hp_name in configuration_space.unconditional_hyperparameters:
-        value_sets.append(_get_value_set(num_steps_dict, configuration_space[hp_name]))
-        hp_names.append(hp_name)
+    def _hyperparameter_range(hp: Hyperparameter, num_steps: int) -> range | tuple | Generator:
+        """Constructs the range of the hyperparameter or tuple for categorical / ordinal hyperparameters and constants."""
+        
+        def frange(lower: float, upper: float, numsteps: int, log: bool=False, as_int: bool=False, conditional: bool=False) -> Generator[float, None, None]:
+            """For some reason this does not exist by default in Python, and Numpy returns arrays instead of generators."""
+            if log:
+                lower_source, upper_source = lower, upper
+                lower, upper = math.log(lower), math.log(upper)
+            x = lower  # Starting point
+            step_size = float((upper - lower) / (numsteps-1))
+            if not log:  # Determine precision
+                precision = len(str(step_size).split(".", maxsplit=1)[1])  # This is so ugly...
+            while x <= upper:
+                if log:  # Capping for float rounding errors
+                    # NOTE: What if the capping is now letting through a final value that was originally waaaaaay out of bounds? Should it not be rejected?
+                    value = min(max(math.exp(x), lower_source), upper_source)
+                    if as_int:
+                        value = round(value)
+                else:
+                    value = round(x) if as_int else x
+                yield value
+                x += step_size
+                if not log:  # Linear, thus we can make the precision to be the same as the step_size for accuracy purposes
+                    x = round(x, precision)
+            if conditional:
+                yield None  # Include the 'inactive' option
+
+        conditional_hp = hp.name in configuration_space.conditional_hyperparameters
+        if isinstance(hp, (CategoricalHyperparameter)):
+            return cast(tuple, list(hp.choices) + [None] if conditional_hp else hp.choices)
+        elif isinstance(hp, (OrdinalHyperparameter)):
+            return cast(tuple, list(hp.sequence) + [None] if conditional_hp else hp.sequence)
+        elif isinstance(hp, Constant):
+            return (hp.value, None) if conditional_hp else (hp.value,)
+        elif num_steps is None:  # The latter two hyperparameter require a number of steps, do a quick check if to see if we can proceed
+            raise ValueError(f"No number of steps provided for {hp.name} i.e. the number of points to divide {hp.name} into.")
+        elif isinstance(hp, UniformIntegerHyperparameter):
+            return frange(hp.lower, hp.upper, num_steps, log=hp.log, as_int=True, conditional=conditional_hp)
+        elif isinstance(hp, UniformFloatHyperparameter):
+            return frange(hp.lower, hp.upper, num_steps, log=hp.log, conditional=conditional_hp)
+        raise TypeError(f"Unknown hyperparameter type {type(hp)}")
+
+    def _cartesian_product_generator(hps: list[Hyperparameter]) -> Generator[tuple, None, None]:
+        """Constructs a generator that produces a cartesian product of the Hyperparameter values."""
+        hp_ranges = [_hyperparameter_range(hp, num_steps_dict.get(hp.name, None) if num_steps_dict else None) for hp in hps]
+        if not hp_ranges:
+            # Itertools.product returns an empty tuple if hp_ranges is empty, to prevent this we check if the list contains anything before unpacking
+            return itertools.product([])
+        return itertools.product(*hp_ranges)
+
+    # We record the hash of the configurations that we have seen so far?
+    duplicates_memory: set[int] = set()
+    hyperparameter_names = list(configuration_space.keys())
+    hyperparameters = configuration_space.values()
+    for configuration in _cartesian_product_generator(hyperparameters):
+        try:
+            # Zip the configuration in to a dictionary, filtering out the None values (inactive hyperparameters)
+            # TODO: Mask inactive hyperparameters?
+            configuration = {key: value for key, value in zip(hyperparameter_names, configuration) if value is not None}
+
+            grid_point = Configuration(
+                configuration_space,
+                values=configuration,
+            )
+            yield grid_point
+        except InactiveHyperparameterSetError as ex:
+            # The grid generator generates all possible combinations, thus also providing values for inactive hyperparameters
+            continue
+        except ActiveHyperparameterNotSetError as ex:
+            # The grid includes the 'None', e.g. empty, value for conditional parameters thus including combinations where active hyperparameters are NOT set
+            continue
+        except ForbiddenValueError as ex: 
+            # The grid generator generates all possible combinations, including illegal ones
+            continue
+        except IllegalValueError as ex:
+            # Should not occur
+            raise ex
+
+    # # Each tuple within is the grid values to be taken on by a Hyperparameter
+    # hp_names = list(configuration_space.unconditional_hyperparameters)  # Create a copy
+    # # Get HP names and allowed grid values they can take for the HPs at the top
+    # # level of ConfigSpace tree
+    # value_sets = [_get_value_set(num_steps_dict, configuration_space[hp_name])
+    #               for hp_name in hp_names]
 
     # Create a Cartesian product of above allowed values for the HPs. Hold them in an
     # "unchecked" deque because some of the conditionally dependent HPs may become
     # active for some of the elements of the Cartesian product and in these cases
     # creating a Configuration would throw an Error (see below).
     # Creates a deque of Configuration dicts
-    unchecked_grid_pts = deque(_get_cartesian_product(value_sets, hp_names))
-    checked_grid_pts = []
+    # unchecked_grid_pts = deque(_get_cartesian_product(value_sets, hp_names))
+    # checked_grid_pts = []
 
-    while len(unchecked_grid_pts) > 0:
-        try:
-            grid_point = Configuration(
-                configuration_space,
-                values=unchecked_grid_pts[0],
-            )
-            checked_grid_pts.append(grid_point)
+    # while len(unchecked_grid_pts) > 0:
+    #     try:
+    #         grid_point = Configuration(
+    #             configuration_space,
+    #             values=unchecked_grid_pts[0],
+    #         )
+    #         yield grid_point
+    #         #checked_grid_pts.append(grid_point)
 
-        # When creating a configuration that violates a forbidden clause, simply skip it
-        except ForbiddenValueError:
-            unchecked_grid_pts.popleft()
-            continue
+    #     # When creating a configuration that violates a forbidden clause, simply skip it
+    #     except ForbiddenValueError:
+    #         unchecked_grid_pts.popleft()
+    #         continue
+    #     # As we initially only created a grid for the unconditional HPs, we now need to create the grid for the now activated HPs
+    #     except ActiveHyperparameterNotSetError:
+    #         value_sets = []
+    #         hp_names = []
+    #         new_active_hp_names = []
 
-        except ActiveHyperparameterNotSetError:
-            value_sets = []
-            hp_names = []
-            new_active_hp_names = []
+    #         # "for" loop over currently active HP names
+    #         for hp_name in unchecked_grid_pts[0]:
+    #             value_sets.append((unchecked_grid_pts[0][hp_name],))
+    #             hp_names.append(hp_name)
+    #             # Checks if the conditionally dependent children of already active
+    #             # HPs are now active
+    #             # TODO: Shorten this
+    #             for new_hp_name in configuration_space._dag.nodes[hp_name].children:
+    #                 if (
+    #                     new_hp_name not in new_active_hp_names
+    #                     and new_hp_name not in unchecked_grid_pts[0]
+    #                 ):
+    #                     all_cond_ = True
+    #                     for cond in configuration_space.parent_conditions_of[
+    #                         new_hp_name
+    #                     ]:
+    #                         if not cond.satisfied_by_value(unchecked_grid_pts[0]):
+    #                             all_cond_ = False
+    #                     if all_cond_:
+    #                         new_active_hp_names.append(new_hp_name)
 
-            # "for" loop over currently active HP names
-            for hp_name in unchecked_grid_pts[0]:
-                value_sets.append((unchecked_grid_pts[0][hp_name],))
-                hp_names.append(hp_name)
-                # Checks if the conditionally dependent children of already active
-                # HPs are now active
-                # TODO: Shorten this
-                for new_hp_name in configuration_space._dag.nodes[hp_name].children:
-                    if (
-                        new_hp_name not in new_active_hp_names
-                        and new_hp_name not in unchecked_grid_pts[0]
-                    ):
-                        all_cond_ = True
-                        for cond in configuration_space.parent_conditions_of[
-                            new_hp_name
-                        ]:
-                            if not cond.satisfied_by_value(unchecked_grid_pts[0]):
-                                all_cond_ = False
-                        if all_cond_:
-                            new_active_hp_names.append(new_hp_name)
+    #         for hp_name in new_active_hp_names:
+    #             value_sets.append(_get_value_set(num_steps_dict, configuration_space[hp_name]))
+    #             hp_names.append(hp_name)
 
-            for hp_name in new_active_hp_names:
-                value_sets.append(_get_value_set(num_steps_dict, configuration_space[hp_name]))
-                hp_names.append(hp_name)
+    #         # this check might not be needed, as there is always going to be a new
+    #         # active HP when in this except block?
+    #         if len(new_active_hp_names) <= 0:
+    #             raise RuntimeError(
+    #                 "Unexpected error: There should have been a newly activated"
+    #                 " hyperparameter for the current configuration values:"
+    #                 f" {unchecked_grid_pts[0]!s}. Please contact the developers with"
+    #                 " the code you ran and the stack trace.",
+    #             ) from None
 
-            # this check might not be needed, as there is always going to be a new
-            # active HP when in this except block?
-            if len(new_active_hp_names) <= 0:
-                raise RuntimeError(
-                    "Unexpected error: There should have been a newly activated"
-                    " hyperparameter for the current configuration values:"
-                    f" {unchecked_grid_pts[0]!s}. Please contact the developers with"
-                    " the code you ran and the stack trace.",
-                ) from None
+    #         new_conditonal_grid = _get_cartesian_product(value_sets, hp_names)
+    #         unchecked_grid_pts += new_conditonal_grid
+    #     unchecked_grid_pts.popleft()
 
-            new_conditonal_grid = _get_cartesian_product(value_sets, hp_names)
-            unchecked_grid_pts += new_conditonal_grid
-        unchecked_grid_pts.popleft()
-
-    return checked_grid_pts
+    # return checked_grid_pts

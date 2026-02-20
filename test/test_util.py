@@ -60,9 +60,9 @@ from ConfigSpace.util import (
     change_hp_value,
     deactivate_inactive_hyperparameters,
     fix_types,
-    generate_grid,
     get_one_exchange_neighbourhood,
     get_random_neighbor,
+    grid_generator,
     impute_inactive_values,
 )
 
@@ -466,11 +466,24 @@ def test_generate_grid():
     cs.add([float1, int1, cat1, ord1, const1])
 
     num_steps_dict = {"float1": 11, "int1": 6}
-    generated_grid = generate_grid(cs, num_steps_dict)
+    generated_grid = list(grid_generator(cs, num_steps_dict))
+    # cat1 2
+    # const1 1
+    # float1 11
+    # int1 7
+    # ord1 3
 
     # Check randomly pre-selected values in the generated_grid
     # 2 * 1 * 11 * 6 * 3 total diff. possible configurations
-    assert len(generated_grid) == 396
+    # My output for int1:
+    # 10 10.000000000000002
+    # 14 14.677992676220699
+    # 21 21.544346900318843
+    # 31 31.622776601683803
+    # 46 46.41588833612781
+    # 68 68.12920690579618
+    # 100 100.00000000000004  # <- This one is new. Should this not be rounded to 100 and thus be accepted?
+    assert len(generated_grid) == 396, "Wrong number of generated configurations"
     # Check 1st and last generated configurations completely:
     first_expected_dict = {
         "cat1": "T",
@@ -507,7 +520,7 @@ def test_generate_grid():
     cs.add([float1, int1])
 
     num_steps_dict = {"float1": 11, "int1": 6}
-    generated_grid = generate_grid(cs, num_steps_dict)
+    generated_grid = list(grid_generator(cs, num_steps_dict))
 
     assert len(generated_grid) == 66
     # Check 1st and last generated configurations completely:
@@ -520,7 +533,7 @@ def test_generate_grid():
     cs = ConfigurationSpace(seed=1234)
     cs.add([cat1])
 
-    generated_grid = generate_grid(cs)
+    generated_grid = list(grid_generator(cs))
 
     assert len(generated_grid) == 2
     # Check 1st and last generated configurations completely:
@@ -531,7 +544,7 @@ def test_generate_grid():
     cs = ConfigurationSpace(seed=1234)
     cs.add([const1])
 
-    generated_grid = generate_grid(cs)
+    generated_grid = list(grid_generator(cs))
 
     assert len(generated_grid) == 1
     # Check 1st and only generated configuration completely:
@@ -540,8 +553,7 @@ def test_generate_grid():
     # Test: no hyperparameters yet
     cs = ConfigurationSpace(seed=1234)
 
-    generated_grid = generate_grid(cs, num_steps_dict)
-
+    generated_grid = list(grid_generator(cs, num_steps_dict))
     # For the case of no hyperparameters, in get_cartesian_product, itertools.product() returns
     # a single empty tuple element which leads to a single empty Configuration.
     assert len(generated_grid) == 0
@@ -585,7 +597,7 @@ def test_generate_grid():
     cond_3 = GreaterThanCondition(float2_cond, int2_cond, 50)
     cs2.add([cond_3])
     num_steps_dict1 = {"float1": 4, "int2_cond": 3, "float2_cond": 3, "int1": 3}
-    generated_grid = generate_grid(cs2, num_steps_dict1)
+    generated_grid = list(grid_generator(cs2, num_steps_dict1))
     assert len(generated_grid) == 18
 
     # RR: I manually generated the grid and verified the values were correct.
@@ -611,9 +623,14 @@ def test_generate_grid():
             assert generated_value == expected_value
     # Here, we test that a few randomly chosen values in the generated grid
     # correspond to the ones I checked.
+    # NOTE: Should we not check the full configuration instead?
     assert generated_grid[3]["int1"] == 1000
-    assert generated_grid[12]["cat1_cond"] == "orange"
-    assert generated_grid[-2]["float2_cond"] == pytest.approx(
+    assert (
+        generated_grid[8]["cat1_cond"] == "apple"
+    )  # NOTE: Was index 12, code changed order
+    assert generated_grid[5][
+        "float2_cond"
+    ] == pytest.approx(  # NOTE: Was index 5, code changed order
         31.622776601683803,
         abs=1e-3,
     )
@@ -624,16 +641,14 @@ def test_generate_grid():
     cs.add([float1])
 
     num_steps_dict = {"float1": 11}
-    try:
-        generated_grid = generate_grid(cs)
-    except ValueError as e:
-        assert (
-            str(e) == "num_steps_dict is None or doesn't contain "
-            "the number of points to divide float1 into. And its quantization "
-            "factor is None. Please provide/set one of these values."
-        )
+    with pytest.raises(ValueError) as e:
+        generated_grid = list(grid_generator(cs))
+    assert (
+        str(e.value)
+        == "No number of steps provided for float1 i.e. the number of points to divide float1 into."
+    )
 
-    generated_grid = generate_grid(cs, num_steps_dict)
+    generated_grid = list(grid_generator(cs, num_steps_dict))
 
     assert len(generated_grid) == 11
     # Check 1st and last generated configurations completely:
@@ -651,10 +666,16 @@ def test_generate_grid():
         ),
     )
 
-    generated_grid = generate_grid(cs, {"int1": 2})
+    generated_grid = list(grid_generator(cs, {"int1": 2}))
+    for i, c in enumerate(generated_grid):
+        print(i, c)
 
     assert len(generated_grid) == 8
-    assert dict(generated_grid[0]) == {"cat1": "F", "ord1": "1"}
-    assert dict(generated_grid[1]) == {"cat1": "F", "ord1": "2"}
-    assert dict(generated_grid[2]) == {"cat1": "T", "ord1": "1", "int1": 0}
-    assert dict(generated_grid[-1]) == {"cat1": "T", "ord1": "3", "int1": 1000}
+    assert dict(generated_grid[0]) == {"cat1": "T", "ord1": "1", "int1": 0}
+    assert dict(generated_grid[1]) == {"cat1": "T", "ord1": "1", "int1": 1000}
+    assert dict(generated_grid[2]) == {"cat1": "T", "ord1": "2", "int1": 0}
+    assert dict(generated_grid[3]) == {"cat1": "T", "ord1": "2", "int1": 1000}
+    assert dict(generated_grid[4]) == {"cat1": "T", "ord1": "3", "int1": 0}
+    assert dict(generated_grid[5]) == {"cat1": "T", "ord1": "3", "int1": 1000}
+    assert dict(generated_grid[6]) == {"cat1": "F", "ord1": "1"}
+    assert dict(generated_grid[7]) == {"cat1": "F", "ord1": "2"}
