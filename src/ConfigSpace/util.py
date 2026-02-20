@@ -786,7 +786,6 @@ def grid_generator(
         try:
             # Zip the configuration in to a dictionary, filtering out the None values (inactive hyperparameters)
             configuration = {key: value for key, value in zip(hyperparameter_names, configuration) if value is not None}
-
             grid_point = Configuration(
                 configuration_space,
                 values=configuration,
