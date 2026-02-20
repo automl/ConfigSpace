@@ -655,11 +655,11 @@ def grid_generator(
     Can be used, for example, for grid search.
 
     Args:
-    configuration_spac:
+    configuration_space:
         The Configuration space over which to create a grid of HyperParameter
         Configuration values. It knows the types for all parameter values.
 
-    num_steps_dic:
+    num_steps_dict:
         A dict containing the number of points to divide the grid side formed by
         Hyperparameters which are either of type UniformFloatHyperparameter or
         type UniformIntegerHyperparameter. The keys in the dict should be the names
