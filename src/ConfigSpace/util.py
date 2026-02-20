@@ -785,7 +785,6 @@ def grid_generator(
     for configuration in _cartesian_product_generator(hyperparameters):
         try:
             # Zip the configuration in to a dictionary, filtering out the None values (inactive hyperparameters)
-            # TODO: Mask inactive hyperparameters?
             configuration = {key: value for key, value in zip(hyperparameter_names, configuration) if value is not None}
 
             grid_point = Configuration(
@@ -793,15 +792,11 @@ def grid_generator(
                 values=configuration,
             )
             yield grid_point
-        except InactiveHyperparameterSetError as ex:
-            # The grid generator generates all possible combinations, thus also providing values for inactive hyperparameters
+        except InactiveHyperparameterSetError as ex:  # The grid generator generates all possible combinations, thus also providing values for inactive hyperparameters
             continue
-        except ActiveHyperparameterNotSetError as ex:
-            # The grid includes the 'None', e.g. empty, value for conditional parameters thus including combinations where active hyperparameters are NOT set
+        except ActiveHyperparameterNotSetError as ex:  # The grid includes the 'None', e.g. empty, value for conditional parameters thus including combinations where active hyperparameters are NOT set
             continue
-        except ForbiddenValueError as ex: 
-            # The grid generator generates all possible combinations, including illegal ones
+        except ForbiddenValueError as ex:  # The grid generator generates all possible combinations, including those violating the Forbidden rules
             continue
-        except IllegalValueError as ex:
-            # Should not occur
+        except IllegalValueError as ex:  # Should not occur: The grid should only generate legal values for each HP.
             raise ex
