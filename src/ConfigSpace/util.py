@@ -672,61 +672,15 @@ def grid_generator(
         Within the cartesian product, in each element, the ordering of HyperParameters is the same for the OrderedDict within the ConfigurationSpace.
     """
 
-    # TODO:
     # Idea; we can perhaps create a generator for each HP, to avoid taking the entire grid into memory
     # Then we can draw for each HP a value from each generator and test the yielded configuration (masking out the HP values that actually should be inactive)
     # For each combination that **could** result in a duplicate (due to active vs inactive HPs), we need to store a light weight hash of the configuration
     # That we can check each time s.t. we can quickly skip over combinations that are known to be duplicates
-    # 1. Build a generator(?) for each HP based on their min/max and step size
-    # 2. Make sure this generator allows us to build a 'cartesian product' generator s.t. all combinations are made (including inactive HPs?)
+    # 1. Build a generator for each HP based on their min/max and step size
+    # 2. This generator allows us to build a 'cartesian product' generator s.t. all combinations are made (including inactive HPs....)
     # 3. It would be best if we could make the HPs generate values for active HPs only when applicable but this is complicated due to not knowing the dependency order
     # 4. ??
     # 5. Profit
-
-    
-
-    def _get_value_set(num_steps_dict: dict[str, int] | None, hp: Hyperparameter) -> tuple:
-        if isinstance(hp, (CategoricalHyperparameter)):
-            return cast(tuple, hp.choices)
-        elif isinstance(hp, (OrdinalHyperparameter)):
-            return cast(tuple, hp.sequence)
-        elif isinstance(hp, Constant):
-            return (hp.value,)
-        elif isinstance(hp, (UniformFloatHyperparameter, UniformIntegerHyperparameter)):
-            if not num_steps_dict or hp.name not in num_steps_dict:
-                raise ValueError(
-                    "num_steps_dict is None or doesn't contain the number of points"
-                    f" to divide {hp.name} into. And its quantization factor "
-                    "is None. Please provide/set one of these values.",
-                )
-            num_steps = num_steps_dict[hp.name]
-            if hp.log:
-                lower, upper = np.log([hp.lower, hp.upper])
-                grid_points = np.exp(np.linspace(lower, upper, num_steps))
-            else:
-                lower, upper = hp.lower, hp.upper
-                grid_points = np.linspace(lower, upper, num_steps)
-
-            if isinstance(hp, UniformIntegerHyperparameter):
-                grid_points = np.round(grid_points).astype(int)
-            # Avoiding rounding off issues
-            grid_points[0] = max(grid_points[0], hp.lower)
-            grid_points[-1] = min(grid_points[-1], hp.upper)
-            return tuple(grid_points)
-
-        raise TypeError(f"Unknown hyperparameter type {type(hp)}")
-
-    def _get_cartesian_product(
-        value_sets: list[tuple],
-        hp_names: list[str],
-    ) -> list[dict[str, Any]]:
-        grid = []
-        if len(value_sets) > 0:  # Edge case for empty value set
-            for element in itertools.product(*value_sets):
-                config_dict = dict(zip(hp_names, element))
-                grid.append(config_dict)
-        return grid
-
 
     def _hyperparameter_range(hp: Hyperparameter, num_steps: int) -> range | tuple | Generator:
         """Constructs the range of the hyperparameter or tuple for categorical / ordinal hyperparameters and constants."""
