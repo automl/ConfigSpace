@@ -475,14 +475,6 @@ def test_generate_grid():
 
     # Check randomly pre-selected values in the generated_grid
     # 2 * 1 * 11 * 6 * 3 total diff. possible configurations
-    # My output for int1:
-    # 10 10.000000000000002
-    # 14 14.677992676220699
-    # 21 21.544346900318843
-    # 31 31.622776601683803
-    # 46 46.41588833612781
-    # 68 68.12920690579618
-    # 100 100.00000000000004  # <- This one is new. Should this not be rounded to 100 and thus be accepted?
     assert len(generated_grid) == 396, "Wrong number of generated configurations"
     # Check 1st and last generated configurations completely:
     first_expected_dict = {
