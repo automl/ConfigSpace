@@ -237,6 +237,29 @@ class OrdinalHyperparameter(Hyperparameter[Any, Any]):
         ]
         return ", ".join(parts)
 
+    def __eq__(self, other: Any) -> bool:
+        if (
+            not isinstance(other, self.__class__)
+            or self.name != other.name
+            or self.default_value != other.default_value
+            or len(self.sequence) != len(other.sequence)
+        ):
+            return False
+
+        # Longer check
+        for this_choice, this_prob in zip(
+            self.sequence,
+            self.probabilities,
+        ):
+            if this_choice not in other.sequence:
+                return False
+
+            index_of_choice_in_other = other.sequence.index(this_choice)
+            other_prob = other.probabilities[index_of_choice_in_other]
+            if this_prob != other_prob:
+                return False
+        return True
+
     def to_uniform(self) -> OrdinalHyperparameter:
         """Converts this hyperparameter to have uniform weights."""
         return OrdinalHyperparameter(

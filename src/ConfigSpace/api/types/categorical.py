@@ -111,14 +111,12 @@ def Categorical(
             Any additional meta information you would like to store along with the
             hyperparamter.
     """  # noqa: E501
-    if ordered and weights is not None:
-        raise ValueError("Can't apply `weights` to `ordered` Categorical")
-
     if ordered:
         return OrdinalHyperparameter(
             name=name,
             sequence=items,
             default_value=default,
+            weights=weights,
             meta=meta,
         )
 
