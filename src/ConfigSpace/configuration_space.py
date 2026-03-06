@@ -759,7 +759,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         otherwise it is the product of the size of all hyperparameters. The function
         correctly guesses the number of unique configurations if there are no condition
         and forbidden statements in the configuration spaces. Otherwise, this is an
-        upper bound. Use [`generate_grid()`][ConfigSpace.util.generate_grid] to generate
+        upper bound. Use [`grid_generator()`][ConfigSpace.util.grid_generator] to generate
         all valid configurations if required.
 
         Returns:
