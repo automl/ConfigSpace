@@ -452,7 +452,7 @@ def test_fix_types():
         assert fix_types(c_str, cs) == c
 
 
-def test_generate_grid():
+def test_grid_generator():
     """Test grid generation."""
     # Sub-test 1
     cs = ConfigurationSpace(seed=1234)
