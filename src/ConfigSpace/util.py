@@ -863,7 +863,7 @@ def generate_grid(
 def expression_to_configspace(
     expression: str,
     configspace: ConfigurationSpace,
-    target_hyperparameter: Hyperparameter = None,
+    target_hyperparameter: Hyperparameter | None = None,
 ) -> Condition | ForbiddenClause:
     """Convert a logic expression to ConfigSpace expression.
 
@@ -918,15 +918,15 @@ def expression_to_configspace(
         ast_expression = ast.parse(expression).body[0]
     except Exception as e:
         raise ValueError(f"Could not parse expression: '{expression}', {e}")
-    return recursive_conversion(
+    return _recursive_conversion(
         ast_expression, configspace, target_hyperparameter=target_hyperparameter
     )
 
 
-def recursive_conversion(
-    item: ast.mod,
+def _recursive_conversion(
+    item: ast.AST | list[ast.AST],
     configspace: ConfigurationSpace,
-    target_hyperparameter: Hyperparameter = None,
+    target_hyperparameter: Hyperparameter | None = None,
 ) -> Condition | ForbiddenClause:
     """Recursively parse the abstract syntax tree to a ConfigSpace expression.
     
@@ -946,7 +946,7 @@ def recursive_conversion(
             raise ValueError(f"Can not parse list of elements: {item}.")
         item = item[0]
     if isinstance(item, ast.Expr):
-        return recursive_conversion(item.value, configspace, target_hyperparameter)
+        return _recursive_conversion(item.value, configspace, target_hyperparameter)
     if isinstance(item, ast.Name):  # Convert to hyperparameter
         hp = configspace.get(item.id)
         return hp if hp is not None else item.id
@@ -962,7 +962,7 @@ def recursive_conversion(
             if isinstance(v, ast.Constant):
                 values.append(v.value)
             elif isinstance(v, ast.Name):  # Check if its a parameter
-                if v.id in list(configspace.values()):
+                if configspace.get(v.id) is not None:
                     raise ValueError(
                         f"Only constants allowed in tuples. Found: {item.elts}"
                     )
@@ -972,7 +972,7 @@ def recursive_conversion(
         raise NotImplementedError("Binary operations not supported by ConfigSpace.")
     if isinstance(item, ast.BoolOp):
         values = [
-            recursive_conversion(v, configspace, target_hyperparameter) for v in item.values
+            _recursive_conversion(v, configspace, target_hyperparameter) for v in item.values
         ]
         if isinstance(item.op, ast.Or):
             if target_hyperparameter:
@@ -987,8 +987,8 @@ def recursive_conversion(
     if isinstance(item, ast.Compare):
         if len(item.ops) > 1:
             raise ValueError(f"Only single comparisons allowed. Found: {item.ops}")
-        left = recursive_conversion(item.left, configspace, target_hyperparameter)
-        right = recursive_conversion(item.comparators, configspace, target_hyperparameter)
+        left = _recursive_conversion(item.left, configspace, target_hyperparameter)
+        right = _recursive_conversion(item.comparators, configspace, target_hyperparameter)
         operator = item.ops[0]
 
         # CoPilot: Ensure that if there is exactly one Hyperparameter involved in the comparison, it is always on the left-hand side. This is required
