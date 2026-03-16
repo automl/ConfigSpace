@@ -2,7 +2,7 @@
 
 ### Expression to Configspace
 
-In some cases we may have (highly) complex conditions or forbidden expressions that are already denoted as a regular expression. In that case, `ConfigSpace` can automatically convert them into a `ConfigSpace` expression using the [`expression_to_configspace`][ConfigSpace.utils.expression_to_configspace]`expression_to_configspace`. This function interprets the expression using the Python `Abstract Syntax Tree` parser and recursively converts it into the appropriate structure.
+In some cases we may have (highly) complex conditions or forbidden expressions that are already denoted as a regular expression. In that case, `ConfigSpace` can automatically convert them into a `ConfigSpace` expression using the [`expression_to_configspace`][ConfigSpace.util.expression_to_configspace]`expression_to_configspace`. This function interprets the expression using the Python `Abstract Syntax Tree` parser and recursively converts it into the appropriate structure.
 
 !!! note
     The converted expression is not added to ConfigSpace, only returned to the user.
