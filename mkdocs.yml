@@ -173,5 +173,5 @@ nav:
     - Conditions: "reference/conditions.md"
     - Forbidden Clauses: "reference/forbiddens.md"
     - Serialization: "reference/serialization.md"
-    - Util: "reference/utils.md"
+    - Util: "reference/util.md"
   - API: "api/"
