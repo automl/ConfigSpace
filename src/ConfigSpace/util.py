@@ -913,7 +913,6 @@ def expression_to_configspace(
     expression = re.sub(r" \|\| ", " or ", expression)
     # Format (in)equality operators:
     expression = re.sub(r" !== ", " != ", expression)
-    expression = re.sub(r" != ", " = ", expression)
     expression = re.sub(r" (?<![<>!=])=(?<![=]) ", " == ", expression)
     try:
         # Convert to abstract syntax tree, extract body of the expression
