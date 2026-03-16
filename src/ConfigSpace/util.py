@@ -991,38 +991,27 @@ def recursive_conversion(
         right = recursive_conversion(item.comparators, configspace, target_hyperparameter)
         operator = item.ops[0]
 
-        # Ensure that if there is exactly one Hyperparameter involved in the
-        # comparison, it is always on the left-hand side. This is required
-        # because the downstream Condition/Forbidden* constructors expect the
-        # hyperparameter to be passed as the "left" argument.
+        # CoPilot: Ensure that if there is exactly one Hyperparameter involved in the comparison, it is always on the left-hand side. This is required
+        # because the downstream Condition/Forbidden* constructors expect the hyperparameter to be passed as the "left" argument.
         if isinstance(right, Hyperparameter) and not isinstance(left, Hyperparameter):
-            # Normalize expressions like "5 < hp" into "hp > 5" by swapping
-            # sides and inverting asymmetric operators. For symmetric
-            # operators (==, !=), we can swap without changing the operator.
+            # Normalize expressions like "5 < hp" into "hp > 5" by swapping sides and inverting asymmetric operators.
+            left, right = right, left
             if isinstance(operator, ast.Lt):
-                left, right = right, left
                 operator = ast.Gt()
             elif isinstance(operator, ast.LtE):
-                left, right = right, left
                 operator = ast.GtE()
             elif isinstance(operator, ast.Gt):
-                left, right = right, left
                 operator = ast.Lt()
             elif isinstance(operator, ast.GtE):
-                left, right = right, left
                 operator = ast.LtE()
-            elif isinstance(operator, (ast.Eq, ast.NotEq)):
-                # Equality and inequality are symmetric; no operator change
-                left, right = right, left
             elif isinstance(operator, ast.In):
-                # Having a Hyperparameter only on the right-hand side of an
-                # "in" comparison (e.g. "[1, 2] in hp") is not supported.
+                # Having a Hyperparameter only on the right-hand side of an "in" comparison (e.g. "[1, 2] in hp") is not supported.
                 raise ValueError(
                     "Invalid comparison: 'in' operator requires a hyperparameter "
                     "on the left-hand side."
                 )
-            else:
-                # For any other unsupported operator shapes, fail fast.
+            elif not isinstance(operator, (ast.Eq, ast.NotEq)):  # Equality and inequality are symmetric; no operator change
+                # For any other unsupported operator shapes, fail.
                 raise ValueError(
                     f"Unsupported comparison between constant and hyperparameter: {left} {operator} {right}"
                 )

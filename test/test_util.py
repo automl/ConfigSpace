@@ -51,6 +51,7 @@ from ConfigSpace import (
     ForbiddenOrConjunction,
     GreaterThanCondition,
     LessThanCondition,
+    NotEqualsCondition,
     OrConjunction,
     OrdinalHyperparameter,
     UniformFloatHyperparameter,
@@ -698,10 +699,44 @@ def test_expression_to_configspace():
     with pytest.raises(ValueError):
         cs_expression = expression_to_configspace(wrong_hp_value_expression, cs)
 
-    odd_operator_expression = (
+    wrong_forbidden_expression = "a != 5"
+    with pytest.raises(ValueError):
+        expression_to_configspace(wrong_forbidden_expression, cs)
+
+    # In case the epxression is incorrecty ordered for ConfigSpace, the method fixes the ordering here where possible
+    wrong_order_expression = "5 < a"
+    assert expression_to_configspace(
+        wrong_order_expression,
+        cs,
+    ) == ForbiddenGreaterThanClause(cs["a"], 5)
+
+    wrong_order_expression = "5 > a"
+    assert expression_to_configspace(
+        wrong_order_expression,
+        cs,
+    ) == ForbiddenLessThanClause(cs["a"], 5)
+
+    wrong_order_expression = "5 == a"
+    assert expression_to_configspace(
+        wrong_order_expression,
+        cs,
+    ) == ForbiddenEqualsClause(cs["a"], 5)
+
+    wrong_order_expression = "5 != a"
+    assert expression_to_configspace(
+        wrong_order_expression,
+        cs,
+        target_hyperparameter=cs["e"],
+    ) == NotEqualsCondition(cs["e"], cs["a"], 5)
+
+    wrong_order_expression = "[1,2,5] in a"
+    with pytest.raises(ValueError):
+        expression_to_configspace(wrong_order_expression, cs)
+
+    in_operator_expression = (
         "a in [1, 2, 3]"  # This operator is accepted by ConfigSpace for Integer HP
     )
-    cs_expression = expression_to_configspace(odd_operator_expression, cs)
+    cs_expression = expression_to_configspace(in_operator_expression, cs)
     assert cs_expression == ForbiddenInClause(cs["a"], [1, 2, 3])
 
     simple_value_expression = "a > 9"
@@ -721,6 +756,14 @@ def test_expression_to_configspace():
         target_hyperparameter=cs["e"],
     )
     assert cs_expression == LessThanCondition(cs["e"], cs["a"], 5)
+
+    simple_expression_inequality = "a != 5"
+    cs_expression = expression_to_configspace(
+        simple_expression_inequality,
+        cs,
+        target_hyperparameter=cs["e"],
+    )
+    assert cs_expression == NotEqualsCondition(cs["e"], cs["a"], 5)
 
     complex_expression = "a > b || (c > d && e < 5 && cat1 == dog && float1 >= 0.5)"
     cs_expression = expression_to_configspace(complex_expression, cs)
