@@ -747,19 +747,15 @@ def grid_generator(
             return itertools.product([])
         return itertools.product(*hp_ranges)
 
-    # We record the hash of the configurations that we have seen so far?
-    duplicates_memory: set[int] = set()
     hyperparameter_names = list(configuration_space.keys())
-    hyperparameters = configuration_space.values()
+    regular_hyperparameters = [
+        hp
+        for hp in configuration_space.values()
+        if hp.name not in configuration_space.conditional_hyperparameters
+    ]
 
-    regular_hyperparameters = [hp for hp in configuration_space.values() if hp.name not in configuration_space.conditional_hyperparameters]
-    conditional_hyperparameters = [hp for hp in configuration_space.values() if hp.name in configuration_space.conditional_hyperparameters]
-    
     # hyperparameters = [hp for hp in configuration_space.values() if hp.name not in configuration_space.conditional_hyperparameters]
     # hyperparameter_names = [hp.name for hp in hyperparameters]
-    from ConfigSpace.hyperparameters import FloatHyperparameter
-    from ConfigSpace.types import Array, Mask, f64
-    from ConfigSpace.hyperparameters.hp_components import ROUND_PLACES
 
     def generate_with_conditionals(regular_configuration: dict[str, Any], active_conditionals: list[Hyperparameter]) -> Generator[Configuration, None, None]:
         """Recursively adds all conditional hyperparameters to some configuration of regular HPs."""
