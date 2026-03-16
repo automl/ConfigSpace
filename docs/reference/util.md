@@ -24,7 +24,7 @@ cs = ConfigurationSpace(
 print(cs)
 
 # Now we add a condition and forbidden using regular expressions
-condition = "b != cat && c >= 0.001"
+condition = "b != cat && c > 0.001"
 condition = expression_to_configspace(condition, cs, target_hyperparameter=cs["a"])  # We have to specify the conditional HP seperately here as the final argument
 
 print(condition)
