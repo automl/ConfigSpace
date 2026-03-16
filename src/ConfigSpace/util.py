@@ -75,6 +75,9 @@ from ConfigSpace.forbidden import (
     ForbiddenLessThanEqualsClause,
     ForbiddenGreaterThanRelation,
     ForbiddenLessThanRelation,
+    ForbiddenEqualsRelation,
+    ForbiddenGreaterThanEqualsRelation,
+    ForbiddenLessThanEqualsRelation,
 )
 
 from ConfigSpace.types import NotSet
