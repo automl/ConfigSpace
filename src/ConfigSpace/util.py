@@ -991,6 +991,42 @@ def recursive_conversion(
         right = recursive_conversion(item.comparators, configspace, target_hyperparameter)
         operator = item.ops[0]
 
+        # Ensure that if there is exactly one Hyperparameter involved in the
+        # comparison, it is always on the left-hand side. This is required
+        # because the downstream Condition/Forbidden* constructors expect the
+        # hyperparameter to be passed as the "left" argument.
+        if isinstance(right, Hyperparameter) and not isinstance(left, Hyperparameter):
+            # Normalize expressions like "5 < hp" into "hp > 5" by swapping
+            # sides and inverting asymmetric operators. For symmetric
+            # operators (==, !=), we can swap without changing the operator.
+            if isinstance(operator, ast.Lt):
+                left, right = right, left
+                operator = ast.Gt()
+            elif isinstance(operator, ast.LtE):
+                left, right = right, left
+                operator = ast.GtE()
+            elif isinstance(operator, ast.Gt):
+                left, right = right, left
+                operator = ast.Lt()
+            elif isinstance(operator, ast.GtE):
+                left, right = right, left
+                operator = ast.LtE()
+            elif isinstance(operator, (ast.Eq, ast.NotEq)):
+                # Equality and inequality are symmetric; no operator change
+                left, right = right, left
+            elif isinstance(operator, ast.In):
+                # Having a Hyperparameter only on the right-hand side of an
+                # "in" comparison (e.g. "[1, 2] in hp") is not supported.
+                raise ValueError(
+                    "Invalid comparison: 'in' operator requires a hyperparameter "
+                    "on the left-hand side."
+                )
+            else:
+                # For any other unsupported operator shapes, fail fast.
+                raise ValueError(
+                    f"Unsupported comparison between constant and hyperparameter: {left} {operator} {right}"
+                )
+
         if isinstance(left, Hyperparameter):  # Convert to HP type
             if isinstance(right, Iterable) and not isinstance(right, str):
                 right = [type(left.default_value)(v) for v in right]
