@@ -32,7 +32,7 @@ import itertools
 import math
 from collections import deque
 from collections.abc import Iterator, Sequence
-from typing import TYPE_CHECKING, Any, cast, Generator
+from typing import TYPE_CHECKING, Any, cast, Generator, Iterable
 
 import numpy as np
 
@@ -574,19 +574,14 @@ def check_configuration(  # noqa: D103
     space: ConfigurationSpace,
     vector: np.ndarray,
     allow_inactive_with_values: bool = False,
-    #yield_all_unset_active_hyperparameters: bool = False,
 ) -> None:
     activated = np.isfinite(vector)
-    #unset_active_hps: list[Hyperparameter] = []
 
     # Make sure the roots are all good
     for root in space._dag.roots.values():
         hp_idx = root.idx
         if not activated[hp_idx]:
-            #if not yield_all_unset_active_hyperparameters:
             raise ActiveHyperparameterNotSetError(root.hp)
-            #else:
-            #    unset_active_hps.append(hp)
 
     for cnode in space._dag.minimum_conditions:
         # Everything for the condition is satisfied, make sure active
@@ -598,10 +593,7 @@ def check_configuration(  # noqa: D103
                 idx: int = children_idxs[~active_mask][0]
                 hp_name = space.at[idx]
                 hp = space[hp_name]
-                #if not yield_all_unset_active_hyperparameters:
                 raise ActiveHyperparameterNotSetError(hp)
-                #else:
-                #    unset_active_hps.append(hp)                 
 
             for hp_idx, hp_node in cnode.unique_children.items():
                 # OPTIM: We bypass the larger safety checking of the hp and access
@@ -623,10 +615,6 @@ def check_configuration(  # noqa: D103
             raise ForbiddenValueError(
                 f"Given vector violates forbidden clause: {forbidden}",
             )
-
-    # All checks passed, except for possible plural ActiveHyperparameterNotSetError
-    #if unset_active_hps:
-    #    raise ActiveHyperparametersNotSetError(unset_active_hps)
 
 
 def change_hp_value(  # noqa: D103
@@ -663,8 +651,8 @@ def grid_generator(
     configuration_space: ConfigurationSpace,
     num_steps_dict: dict[str, int] | None = None,
 ) -> Generator[Configuration, None, None]:
-    """Generates a grid of Configurations for a given ConfigurationSpace.
-    Can be used, for example, for grid search.
+    """Creates a Generator for a grid of Configurations for a given ConfigurationSpace.
+    Can be used, for example, for grid search. 
 
     Args:
     configuration_space:
@@ -684,21 +672,13 @@ def grid_generator(
         Within the cartesian product, in each element, the ordering of HyperParameters is the same for the OrderedDict within the ConfigurationSpace.
     """
 
-    # Idea; we can perhaps create a generator for each HP, to avoid taking the entire grid into memory
-    # Then we can draw for each HP a value from each generator and test the yielded configuration (masking out the HP values that actually should be inactive)
-    # For each combination that **could** result in a duplicate (due to active vs inactive HPs), we need to store a light weight hash of the configuration
-    # That we can check each time s.t. we can quickly skip over combinations that are known to be duplicates
-    # 1. Build a generator for each HP based on their min/max and step size
-    # 2. This generator allows us to build a 'cartesian product' generator s.t. all combinations are made (including inactive HPs....)
-    # 3. It would be best if we could make the HPs generate values for active HPs only when applicable but this is complicated due to not knowing the dependency order
-    # 4. ??
-    # 5. Profit
-
-    def _hyperparameter_range(hp: Hyperparameter, num_steps: int) -> range | tuple | Generator:
+    def _hyperparameter_range(hp: Hyperparameter, num_steps: int | None) -> Iterable[Any]:
         """Constructs the range of the hyperparameter or tuple for categorical / ordinal hyperparameters and constants."""
         
-        def frange(lower: float, upper: float, numsteps: int, log: bool=False, as_int: bool=False, conditional: bool=False) -> Generator[float, None, None]:
-            """For some reason this does not exist by default in Python, and Numpy returns arrays instead of generators."""
+        def frange(lower: float, upper: float, numsteps: int, log: bool=False, as_int: bool=False) -> Generator[float, None, None]:
+            """Range function for floats. For some reason this does not exist by default in Python, and Numpy returns arrays instead of generators."""
+            if numsteps <= 1:
+                raise ValueError(f"Parameter numsteps must be a positive integer > 1, got {numsteps}")
             if log:
                 lower_source, upper_source = lower, upper
                 lower, upper = math.log(lower), math.log(upper)
@@ -718,25 +698,19 @@ def grid_generator(
                 x += step_size
                 if not log:  # Linear, thus we can make the precision to be the same as the step_size for accuracy purposes
                     x = round(x, precision)
-            #if conditional:
-            #    yield NotSet  # Include the 'inactive' option
 
-        conditional_hp = hp.name in configuration_space.conditional_hyperparameters
         if isinstance(hp, (CategoricalHyperparameter)):
-            #return cast(tuple, list(hp.choices) + [NotSet] if conditional_hp else hp.choices)
             return cast(tuple, hp.choices)
         elif isinstance(hp, (OrdinalHyperparameter)):
-            #return cast(tuple, list(hp.sequence) + [NotSet] if conditional_hp else hp.sequence)
             return cast(tuple, hp.sequence)
         elif isinstance(hp, Constant):
-            #return (hp.value, NotSet) if conditional_hp else (hp.value,)
             return (hp.value,)
-        elif num_steps is None:  # The latter two hyperparameter require a number of steps, do a quick check if to see if we can proceed
-            raise ValueError(f"No number of steps provided for {hp.name} i.e. the number of points to divide {hp.name} into.")
+        elif num_steps is None or num_steps <= 1:  # The latter two hyperparameter require a number of steps, do a quick check if to see if we can proceed
+            raise ValueError(f"No valid number of steps provided for {hp.name} i.e. the number of points to divide {hp.name} into (num_steps == {num_steps}).")
         elif isinstance(hp, UniformIntegerHyperparameter):
-            return frange(hp.lower, hp.upper, num_steps, log=hp.log, as_int=True, conditional=conditional_hp)
+            return frange(hp.lower, hp.upper, num_steps, log=hp.log, as_int=True)
         elif isinstance(hp, UniformFloatHyperparameter):
-            return frange(hp.lower, hp.upper, num_steps, log=hp.log, conditional=conditional_hp)
+            return frange(hp.lower, hp.upper, num_steps, log=hp.log)
         raise TypeError(f"Unknown hyperparameter type {type(hp)}")
 
     def _cartesian_product_generator(hps: list[Hyperparameter]) -> Generator[tuple, None, None]:
@@ -753,9 +727,6 @@ def grid_generator(
         for hp in configuration_space.values()
         if hp.name not in configuration_space.conditional_hyperparameters
     ]
-
-    # hyperparameters = [hp for hp in configuration_space.values() if hp.name not in configuration_space.conditional_hyperparameters]
-    # hyperparameter_names = [hp.name for hp in hyperparameters]
 
     def generate_with_conditionals(regular_configuration: dict[str, Any], active_conditionals: list[Hyperparameter]) -> Generator[Configuration, None, None]:
         """Recursively adds all conditional hyperparameters to some configuration of regular HPs."""
