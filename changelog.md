@@ -1,3 +1,7 @@
+# Version 1.3
+
+* FEAT #411: Allow `Hyperparameter` to be removed from `ConfigurationSpace`.
+
 # Version 1.2.2
 
 * MAINT #404: Added support for Python 3.13.

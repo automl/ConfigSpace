@@ -82,6 +82,150 @@ def test_add():
     cs.add(hp)
 
 
+def test_remove():
+    cs = ConfigurationSpace()
+    hp = UniformIntegerHyperparameter("name", 0, 10)
+    hp2 = UniformFloatHyperparameter("name2", 0, 10)
+    hp3 = CategoricalHyperparameter(
+        "weather",
+        ["dry", "rainy", "snowy"],
+        default_value="dry",
+    )
+    cs.add(hp, hp2, hp3)
+    cs.remove(hp)
+    assert len(cs) == 2
+
+    # Test multi removal
+    cs.add(hp)
+    cs.remove(hp, hp2)
+    assert len(cs) == 1
+
+    # Test faulty input
+    with pytest.raises(TypeError):
+        cs.remove(object())
+
+    # Non existent HP
+    with pytest.raises(HyperparameterNotFoundError):
+        cs.remove(hp)
+
+    cs.add(hp, hp2)
+    # Test one correct one faulty, nothing should happen
+    with pytest.raises(TypeError):
+        cs.remove(hp, object())
+    assert len(cs) == 3
+
+    # Make hp2 a conditional parameter, the condition should also be removed when hp is removed
+    cond = EqualsCondition(hp, hp2, 1)
+    cs.add(cond)
+    cs.remove(hp)
+    assert len(cs) == 2
+    assert len(cs.conditional_hyperparameters) == 0
+    assert len(cs.conditions) == 0
+
+    # Set up forbidden relation, the relation should also be removed
+    forb = ForbiddenEqualsClause(hp3, "snowy")
+    cs.add(forb)
+    cs.remove(hp3)
+    assert len(cs) == 1
+    assert cs.forbidden_clauses == []
+
+    # More complicated conditions
+    # Adding in five hyperparameters with five conditions and three conjunctions as:
+    # (((constant1 | input1 == 1 && constant1 | input2 != 1) || constant1 | input3 in {1}) && constant1 | input4 == 1 && constant1 | input5 == 1)
+    # to test that removing a hyperparameter will update the conjunctions accordingly, i.e. not dropping out complete conjunctions but instead removing the hyperparameter from the conjunction
+    cs = ConfigurationSpace()
+    hp1 = CategoricalHyperparameter("input1", [0, 1])
+    cs.add(hp1)
+    hp2 = CategoricalHyperparameter("input2", [0, 1])
+    cs.add(hp2)
+    hp3 = CategoricalHyperparameter("input3", [0, 1])
+    cs.add(hp3)
+    hp4 = CategoricalHyperparameter("input4", [0, 1])
+    cs.add(hp4)
+    hp5 = CategoricalHyperparameter("input5", [0, 1])
+    cs.add(hp5)
+    hp6 = Constant("constant1", "True")
+    cs.add(hp6)
+
+    cond1 = EqualsCondition(hp6, hp1, 1)
+    cond2 = NotEqualsCondition(hp6, hp2, 1)
+    cond3 = InCondition(hp6, hp3, [1])
+    cond4 = EqualsCondition(hp6, hp4, 1)
+    cond5 = EqualsCondition(hp6, hp5, 1)
+
+    conj1 = AndConjunction(cond1, cond2)
+    conj2 = OrConjunction(conj1, cond3)
+    conj3 = AndConjunction(conj2, cond4, cond5)
+    cs.add(conj3)
+
+    # Verify that ConfigurationSpace has expected structure after construction
+    assert len(cs) == 6
+    assert len(cs.conditional_hyperparameters) == 1
+    assert len(cs.conditions) == 1
+
+    # Remove one hyperparameter that was part of the condition: only one part of the condition should be removed, not the entire condition
+    cs.remove(hp3)
+    assert hp3.name not in cs and len(cs) == 5  # Hp3 removed, five HPs remain
+    assert len(cs.conditional_hyperparameters) == 1
+    assert len(cs.conditions) == 1
+    assert isinstance(
+        cs.conditions[0],
+        AndConjunction,
+    )  # Check that the condition is still an and condition, only its clauses with HP3 have been removed
+
+    # Test the exact value: Only the conjunctions/conditions without hp3 should remain (i.e. conj2 has been removed but its child conj1 still exists)
+    for actual_condition, expected_condition in zip(
+        cs.conditions[0].components,
+        [conj1, cond4, cond5],
+    ):
+        assert actual_condition == expected_condition
+
+    # Check that the output representation of the entire condition is as expected
+    assert (
+        str(cs.conditions[0])
+        == "((constant1 | input1 == 1 && constant1 | input2 != 1) && constant1 | input4 == 1 && constant1 | input5 == 1)"
+    )
+
+    # More complicated forbiddens
+    # Adding in five hyperparameters with three forbidden clauses and two ForbiddenAndConjunctions
+    # Testing similar to the conditions to see that removing a hyperparameter will update the ForbiddenAndConjunctions accordingly
+    cs = ConfigurationSpace()
+    cs.add([hp1, hp2, hp3, hp4, hp5, hp6])
+    cs.add(conj3)
+
+    forb1 = ForbiddenEqualsClause(hp1, 1)
+    forb2 = ForbiddenEqualsClause(hp2, 1)
+    forb3 = ForbiddenEqualsClause(hp3, 1)
+    forb_conj1 = ForbiddenAndConjunction(forb1, forb2)
+    forb_conj2 = ForbiddenAndConjunction(forb_conj1, forb3)
+    forb4 = ForbiddenEqualsClause(hp3, 1)
+    forb5 = ForbiddenEqualsClause(hp4, 1)
+    cs.add(forb_conj2, forb4, forb5)
+
+    # Remove hp3, test if structure afterwards is still correct
+    cs.remove(hp3)
+    assert hp3.name not in cs and len(cs) == 5  # hp3 removed, five remain
+    assert len(cs.forbidden_clauses) == 2
+    assert isinstance(
+        cs.forbidden_clauses[0],
+        ForbiddenAndConjunction,
+    )  # Check that the conjunction is still as original
+
+    # Check that the clauses of the conjunction still contain the original values except for those containing hp3
+    for actual_clause, expected_clause in zip(
+        cs.forbidden_clauses[0].components,
+        [forb1, forb2],
+    ):
+        assert actual_clause == expected_clause
+
+    # Check that the string representation is as expected
+    assert (
+        str(cs.forbidden_clauses[0])
+        == "(Forbidden: input1 == 1 && Forbidden: input2 == 1)"
+    )
+    assert str(cs.forbidden_clauses[1]) == "Forbidden: input4 == 1"
+
+
 def test_add_non_hyperparameter():
     cs = ConfigurationSpace()
     with pytest.raises(TypeError):
