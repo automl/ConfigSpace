@@ -659,8 +659,6 @@ def test_grid_generator():
     )
 
     generated_grid = list(grid_generator(cs, {"int1": 2}))
-    for i, c in enumerate(generated_grid):
-        print(i, c)
 
     assert len(generated_grid) == 8
     assert dict(generated_grid[0]) == {"cat1": "T", "ord1": "1", "int1": 0}
