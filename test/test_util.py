@@ -726,7 +726,7 @@ def test_expression_to_configspace():
     assert expression_to_configspace(
         wrong_order_expression,
         cs,
-        target_hyperparameter=cs["e"],
+        conditional_hyperparameter=cs["e"],
     ) == NotEqualsCondition(cs["e"], cs["a"], 5)
 
     wrong_order_expression = "[1,2,5] in a"
@@ -753,7 +753,7 @@ def test_expression_to_configspace():
     cs_expression = expression_to_configspace(
         simple_expression,
         cs,
-        target_hyperparameter=cs["e"],
+        conditional_hyperparameter=cs["e"],
     )
     assert cs_expression == LessThanCondition(cs["e"], cs["a"], 5)
 
@@ -761,7 +761,7 @@ def test_expression_to_configspace():
     cs_expression = expression_to_configspace(
         simple_expression_inequality,
         cs,
-        target_hyperparameter=cs["e"],
+        conditional_hyperparameter=cs["e"],
     )
     assert cs_expression == NotEqualsCondition(cs["e"], cs["a"], 5)
 
