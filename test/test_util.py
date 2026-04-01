@@ -720,6 +720,13 @@ def test_parse_expression_from_string_forbidden():
     ):
         parse_expression_from_string(wrong_forbidden_expression, cs)
 
+    wrong_forbidden_expression = "a != b"
+    with pytest.raises(
+        ValueError,
+        match="NotEq operator not supported for ForbiddenClauses.",
+    ):
+        parse_expression_from_string(wrong_forbidden_expression, cs)
+
     # In case the epxression is incorrecty ordered for ConfigSpace, the method fixes the ordering here where possible
     wrong_order_expression = "5 < a"
     assert parse_expression_from_string(
