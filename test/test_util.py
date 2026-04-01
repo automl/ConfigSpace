@@ -28,6 +28,7 @@
 from __future__ import annotations
 
 import os
+import re
 
 import numpy as np
 import pytest
@@ -684,23 +685,39 @@ def test_parse_expression_from_string():
     )
 
     wrong_expression = "a >!> b"
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="Could not parse expression: 'a >!> b'"):
         parse_expression_from_string(wrong_expression, cs)
 
     wrong_hp_name_expresion = "q <= 5"
-    with pytest.raises(ValueError):
+    with pytest.raises(
+        ValueError,
+        match="Only hyperparameter comparisons allowed. Neither side is recognised as a hyperparameter in: q <= 5",
+    ):
         cs_expression = parse_expression_from_string(wrong_hp_name_expresion, cs)
 
     wrong_hp_value_expression = "a > 11"
-    with pytest.raises(ValueError):
+    with pytest.raises(
+        ValueError,
+        match=re.escape(
+            "Forbidden clause must be instantiated with a legal hyperparameter value for 'a, Type: UniformInteger, Range: [0, 10], Default: 5', but got '11'",
+        ),
+    ):
         cs_expression = parse_expression_from_string(wrong_hp_value_expression, cs)
 
     wrong_hp_value_expression = "a == dog"
-    with pytest.raises(ValueError):
+    with pytest.raises(
+        ValueError,
+        match=re.escape(
+            "Forbidden clause must be instantiated with a legal hyperparameter value for 'a, Type: UniformInteger, Range: [0, 10], Default: 5', but got 'dog'",
+        ),
+    ):
         cs_expression = parse_expression_from_string(wrong_hp_value_expression, cs)
 
     wrong_forbidden_expression = "a != 5"
-    with pytest.raises(ValueError):
+    with pytest.raises(
+        ValueError,
+        match="NotEq operator not supported for ForbiddenClauses.",
+    ):
         parse_expression_from_string(wrong_forbidden_expression, cs)
 
     # In case the epxression is incorrecty ordered for ConfigSpace, the method fixes the ordering here where possible

@@ -1013,7 +1013,7 @@ def _recursive_conversion(
             elif not isinstance(operator, (ast.Eq, ast.NotEq)):  # Equality and inequality are symmetric; no operator change
                 # For any other unsupported operator shapes, fail.
                 raise ValueError(
-                    f"Unsupported comparison between constant and hyperparameter: {left} {operator} {right}"
+                    f"Unsupported comparison between constant and hyperparameter: {ast.unparse(item)}"
                 )
 
         if isinstance(left, Hyperparameter):  # Convert to HP type
@@ -1026,7 +1026,7 @@ def _recursive_conversion(
         elif not isinstance(right, Hyperparameter):
             raise ValueError(
                 "Only hyperparameter comparisons allowed. Neither side is recognised as a hyperparameter in: "
-                f"{left} {operator} {right}"
+                f"{ast.unparse(item)}"
             )
 
         is_relation = isinstance(left, Hyperparameter) and isinstance(right, Hyperparameter)
