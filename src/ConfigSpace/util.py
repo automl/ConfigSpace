@@ -860,7 +860,7 @@ def generate_grid(
     return checked_grid_pts
 
 
-def expression_to_configspace(
+def parse_expression_from_string(
     expression: str,
     configspace: ConfigurationSpace,
     conditional_hyperparameter: Hyperparameter | None = None,
@@ -877,10 +877,10 @@ def expression_to_configspace(
 
     ```python exec="true", source="material-block" result="python"
     from ConfigSpace import ConfigurationSpace
-    from ConfigSpace.util import expression_to_configspace
+    from ConfigSpace.util import parse_expression_from_string
 
     cs = ConfigurationSpace({ "a": (0, 10), "b": (1.0, 8.0) })
-    condition = expression_to_configspace("a < 5", cs, conditional_hyperparameter=cs['b'])
+    condition = parse_expression_from_string("a < 5", cs, conditional_hyperparameter=cs['b'])
     print(condition)
     ```
 
@@ -888,10 +888,10 @@ def expression_to_configspace(
 
     ```python exec="true", source="material-block" result="python"
     from ConfigSpace import ConfigurationSpace
-    from ConfigSpace.util import expression_to_configspace
+    from ConfigSpace.util import parse_expression_from_string
 
     cs = ConfigurationSpace({ "a": (0, 10), "b": (1.0, 8.0) })
-    forbidden = expression_to_configspace("a >= 5", cs)
+    forbidden = parse_expression_from_string("a >= 5", cs)
     print(forbidden)
     ```
 
@@ -930,7 +930,7 @@ def _recursive_conversion(
 ) -> Condition | ForbiddenClause:
     """Recursively parse the abstract syntax tree to a ConfigSpace expression.
     
-    Should not be called directly, but rather through `expression_to_configspace`.
+    Should not be called directly, but rather through `parse_expression_from_string`.
 
     Args:
         item: The item to parse.

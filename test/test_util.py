@@ -66,12 +66,12 @@ with warnings.catch_warnings():
 from ConfigSpace.util import (
     change_hp_value,
     deactivate_inactive_hyperparameters,
-    expression_to_configspace,
     fix_types,
     generate_grid,
     get_one_exchange_neighbourhood,
     get_random_neighbor,
     impute_inactive_values,
+    parse_expression_from_string,
 )
 
 
@@ -668,7 +668,7 @@ def test_generate_grid():
     assert dict(generated_grid[-1]) == {"cat1": "T", "ord1": "3", "int1": 1000}
 
 
-def test_expression_to_configspace():
+def test_parse_expression_from_string():
     cs = ConfigurationSpace(
         {
             "a": (0, 10),
@@ -685,45 +685,45 @@ def test_expression_to_configspace():
 
     wrong_expression = "a >!> b"
     with pytest.raises(ValueError):
-        expression_to_configspace(wrong_expression, cs)
+        parse_expression_from_string(wrong_expression, cs)
 
     wrong_hp_name_expresion = "q <= 5"
     with pytest.raises(ValueError):
-        cs_expression = expression_to_configspace(wrong_hp_name_expresion, cs)
+        cs_expression = parse_expression_from_string(wrong_hp_name_expresion, cs)
 
     wrong_hp_value_expression = "a > 11"
     with pytest.raises(ValueError):
-        cs_expression = expression_to_configspace(wrong_hp_value_expression, cs)
+        cs_expression = parse_expression_from_string(wrong_hp_value_expression, cs)
 
     wrong_hp_value_expression = "a == dog"
     with pytest.raises(ValueError):
-        cs_expression = expression_to_configspace(wrong_hp_value_expression, cs)
+        cs_expression = parse_expression_from_string(wrong_hp_value_expression, cs)
 
     wrong_forbidden_expression = "a != 5"
     with pytest.raises(ValueError):
-        expression_to_configspace(wrong_forbidden_expression, cs)
+        parse_expression_from_string(wrong_forbidden_expression, cs)
 
     # In case the epxression is incorrecty ordered for ConfigSpace, the method fixes the ordering here where possible
     wrong_order_expression = "5 < a"
-    assert expression_to_configspace(
+    assert parse_expression_from_string(
         wrong_order_expression,
         cs,
     ) == ForbiddenGreaterThanClause(cs["a"], 5)
 
     wrong_order_expression = "5 > a"
-    assert expression_to_configspace(
+    assert parse_expression_from_string(
         wrong_order_expression,
         cs,
     ) == ForbiddenLessThanClause(cs["a"], 5)
 
     wrong_order_expression = "5 == a"
-    assert expression_to_configspace(
+    assert parse_expression_from_string(
         wrong_order_expression,
         cs,
     ) == ForbiddenEqualsClause(cs["a"], 5)
 
     wrong_order_expression = "5 != a"
-    assert expression_to_configspace(
+    assert parse_expression_from_string(
         wrong_order_expression,
         cs,
         conditional_hyperparameter=cs["e"],
@@ -731,26 +731,26 @@ def test_expression_to_configspace():
 
     wrong_order_expression = "[1,2,5] in a"
     with pytest.raises(ValueError):
-        expression_to_configspace(wrong_order_expression, cs)
+        parse_expression_from_string(wrong_order_expression, cs)
 
     in_operator_expression = (
         "a in [1, 2, 3]"  # This operator is accepted by ConfigSpace for Integer HP
     )
-    cs_expression = expression_to_configspace(in_operator_expression, cs)
+    cs_expression = parse_expression_from_string(in_operator_expression, cs)
     assert cs_expression == ForbiddenInClause(cs["a"], [1, 2, 3])
 
     simple_value_expression = "a > 9"
-    cs_expression = expression_to_configspace(simple_value_expression, cs)
+    cs_expression = parse_expression_from_string(simple_value_expression, cs)
     assert cs_expression == ForbiddenGreaterThanClause(cs["a"], 9)
 
     simple_expression = "a > b"
-    cs_expression = expression_to_configspace(simple_expression, cs)
+    cs_expression = parse_expression_from_string(simple_expression, cs)
     assert cs_expression == ForbiddenGreaterThanRelation(cs["a"], cs["b"])
 
     simple_expression = "a < 5"
-    cs_expression = expression_to_configspace(simple_expression, cs)
+    cs_expression = parse_expression_from_string(simple_expression, cs)
     assert cs_expression == ForbiddenLessThanClause(cs["a"], 5)
-    cs_expression = expression_to_configspace(
+    cs_expression = parse_expression_from_string(
         simple_expression,
         cs,
         conditional_hyperparameter=cs["e"],
@@ -758,7 +758,7 @@ def test_expression_to_configspace():
     assert cs_expression == LessThanCondition(cs["e"], cs["a"], 5)
 
     simple_expression_inequality = "a != 5"
-    cs_expression = expression_to_configspace(
+    cs_expression = parse_expression_from_string(
         simple_expression_inequality,
         cs,
         conditional_hyperparameter=cs["e"],
@@ -766,7 +766,7 @@ def test_expression_to_configspace():
     assert cs_expression == NotEqualsCondition(cs["e"], cs["a"], 5)
 
     complex_expression = "a > b || (c > d && e < 5 && cat1 == dog && float1 >= 0.5)"
-    cs_expression = expression_to_configspace(complex_expression, cs)
+    cs_expression = parse_expression_from_string(complex_expression, cs)
     assert cs_expression == ForbiddenOrConjunction(
         ForbiddenGreaterThanRelation(cs["a"], cs["b"]),
         ForbiddenAndConjunction(
@@ -780,7 +780,7 @@ def test_expression_to_configspace():
     complex_expression = (
         "a >= 8 and (cat1 in ['cat', 'dog'] or cat2 in ['sun', 'rain'])"
     )
-    cs_expression = expression_to_configspace(complex_expression, cs)
+    cs_expression = parse_expression_from_string(complex_expression, cs)
     assert cs_expression == ForbiddenAndConjunction(
         ForbiddenGreaterThanEqualsClause(cs["a"], 8),
         ForbiddenOrConjunction(
