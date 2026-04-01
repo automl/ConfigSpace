@@ -868,7 +868,7 @@ def parse_expression_from_string(
     """Convert a logic expression to ConfigSpace expression.
 
     Given a logic expression, this function will return a ConfigSpace expression
-    that is equivalent to the logic expression. If a target parameter is provided,
+    that is equivalent to the logic expression. If a conditional parameter is provided,
     will create a condition, otherwise a forbidden expression.
 
     The created expression is **NOT** automatically added to the configuration space.
