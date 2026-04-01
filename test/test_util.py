@@ -669,7 +669,7 @@ def test_generate_grid():
     assert dict(generated_grid[-1]) == {"cat1": "T", "ord1": "3", "int1": 1000}
 
 
-def test_parse_expression_from_string():
+def test_parse_expression_from_string_forbidden():
     cs = ConfigurationSpace(
         {
             "a": (0, 10),
@@ -739,13 +739,6 @@ def test_parse_expression_from_string():
         cs,
     ) == ForbiddenEqualsClause(cs["a"], 5)
 
-    wrong_order_expression = "5 != a"
-    assert parse_expression_from_string(
-        wrong_order_expression,
-        cs,
-        conditional_hyperparameter=cs["e"],
-    ) == NotEqualsCondition(cs["e"], cs["a"], 5)
-
     wrong_order_expression = "[1,2,5] in a"
     with pytest.raises(ValueError):
         parse_expression_from_string(wrong_order_expression, cs)
@@ -767,20 +760,6 @@ def test_parse_expression_from_string():
     simple_expression = "a < 5"
     cs_expression = parse_expression_from_string(simple_expression, cs)
     assert cs_expression == ForbiddenLessThanClause(cs["a"], 5)
-    cs_expression = parse_expression_from_string(
-        simple_expression,
-        cs,
-        conditional_hyperparameter=cs["e"],
-    )
-    assert cs_expression == LessThanCondition(cs["e"], cs["a"], 5)
-
-    simple_expression_inequality = "a != 5"
-    cs_expression = parse_expression_from_string(
-        simple_expression_inequality,
-        cs,
-        conditional_hyperparameter=cs["e"],
-    )
-    assert cs_expression == NotEqualsCondition(cs["e"], cs["a"], 5)
 
     complex_expression = "a > b || (c > d && e < 5 && cat1 == dog && float1 >= 0.5)"
     cs_expression = parse_expression_from_string(complex_expression, cs)
@@ -805,3 +784,37 @@ def test_parse_expression_from_string():
             ForbiddenInClause(cs["cat2"], ["sun", "rain"]),
         ),
     )
+
+
+def test_parse_expression_from_string_condition():
+    cs = ConfigurationSpace(
+        {
+            "a": (0, 10),
+            "b": (0, 10),
+            "c": (0, 10),
+            "d": (0, 10),
+            "e": (0, 10),
+        },
+    )
+    simple_expression = "a < 5"
+    cs_expression = parse_expression_from_string(
+        simple_expression,
+        cs,
+        conditional_hyperparameter=cs["e"],
+    )
+    assert cs_expression == LessThanCondition(cs["e"], cs["a"], 5)
+
+    simple_expression_inequality = "a != 5"
+    cs_expression = parse_expression_from_string(
+        simple_expression_inequality,
+        cs,
+        conditional_hyperparameter=cs["e"],
+    )
+    assert cs_expression == NotEqualsCondition(cs["e"], cs["a"], 5)
+
+    wrong_order_expression = "5 != a"
+    assert parse_expression_from_string(
+        wrong_order_expression,
+        cs,
+        conditional_hyperparameter=cs["e"],
+    ) == NotEqualsCondition(cs["e"], cs["a"], 5)
