@@ -28,6 +28,7 @@
 from __future__ import annotations
 
 import os
+import re
 
 import numpy as np
 import pytest
@@ -43,8 +44,16 @@ from ConfigSpace import (
     EqualsCondition,
     ForbiddenAndConjunction,
     ForbiddenEqualsClause,
+    ForbiddenEqualsRelation,
+    ForbiddenGreaterThanClause,
+    ForbiddenGreaterThanEqualsClause,
+    ForbiddenGreaterThanRelation,
+    ForbiddenInClause,
+    ForbiddenLessThanClause,
+    ForbiddenOrConjunction,
     GreaterThanCondition,
     LessThanCondition,
+    NotEqualsCondition,
     OrConjunction,
     OrdinalHyperparameter,
     UniformFloatHyperparameter,
@@ -64,6 +73,7 @@ from ConfigSpace.util import (
     get_one_exchange_neighbourhood,
     get_random_neighbor,
     impute_inactive_values,
+    parse_expression_from_string,
 )
 
 
@@ -658,3 +668,196 @@ def test_generate_grid():
     assert dict(generated_grid[1]) == {"cat1": "F", "ord1": "2"}
     assert dict(generated_grid[2]) == {"cat1": "T", "ord1": "1", "int1": 0}
     assert dict(generated_grid[-1]) == {"cat1": "T", "ord1": "3", "int1": 1000}
+
+
+def test_parse_expression_from_string_forbidden():
+    cs = ConfigurationSpace(
+        {
+            "a": (0, 10),
+            "b": (0, 10),
+            "c": (0, 10),
+            "d": (0, 10),
+            "e": (0, 10),
+            "cat1": ["cat", "dog"],
+            "cat2": ["sun", "rain", "snow", "fog"],
+            "dog": ["small", "medium", "large", "cat", "dog"],
+            "float1": (0.0, 1.0),
+            "float2": (0.0, 1.0),
+        },
+    )
+
+    wrong_expression = "a >!> b"
+    with pytest.raises(ValueError, match="Could not parse expression: 'a >!> b'"):
+        parse_expression_from_string(wrong_expression, cs)
+
+    wrong_hp_name_expresion = "q <= 5"
+    with pytest.raises(
+        ValueError,
+        match="Unknown hyperparameter: q",
+    ):
+        cs_expression = parse_expression_from_string(wrong_hp_name_expresion, cs)
+
+    wrong_value_expresion = "'q' <= 5"
+    with pytest.raises(
+        ValueError,
+        match="Only hyperparameter comparisons allowed. Neither side is recognised as a hyperparameter in: 'q' <= 5",
+    ):
+        cs_expression = parse_expression_from_string(wrong_value_expresion, cs)
+
+    wrong_hp_value_expression = "a > 11"
+    with pytest.raises(
+        ValueError,
+        match=re.escape(
+            "Forbidden clause must be instantiated with a legal hyperparameter value for 'a, Type: UniformInteger, Range: [0, 10], Default: 5', but got '11'",
+        ),
+    ):
+        cs_expression = parse_expression_from_string(wrong_hp_value_expression, cs)
+
+    wrong_hp_value_expression = "a == 'cat'"
+    with pytest.raises(
+        ValueError,
+        match=re.escape(
+            "Forbidden clause must be instantiated with a legal hyperparameter value for 'a, Type: UniformInteger, Range: [0, 10], Default: 5', but got 'cat'",
+        ),
+    ):
+        cs_expression = parse_expression_from_string(wrong_hp_value_expression, cs)
+
+    wrong_forbidden_expression = "a != 5"
+    with pytest.raises(
+        ValueError,
+        match="NotEq operator not supported for ForbiddenClauses.",
+    ):
+        parse_expression_from_string(wrong_forbidden_expression, cs)
+
+    wrong_forbidden_expression = "a != b"
+    with pytest.raises(
+        ValueError,
+        match="NotEq operator not supported for ForbiddenClauses.",
+    ):
+        parse_expression_from_string(wrong_forbidden_expression, cs)
+
+    # In case the epxression is incorrecty ordered for ConfigSpace, the method fixes the ordering here where possible
+    wrong_order_expression = "5 < a"
+    assert parse_expression_from_string(
+        wrong_order_expression,
+        cs,
+    ) == ForbiddenGreaterThanClause(cs["a"], 5)
+
+    wrong_order_expression = "5 > a"
+    assert parse_expression_from_string(
+        wrong_order_expression,
+        cs,
+    ) == ForbiddenLessThanClause(cs["a"], 5)
+
+    wrong_order_expression = "5 == a"
+    assert parse_expression_from_string(
+        wrong_order_expression,
+        cs,
+    ) == ForbiddenEqualsClause(cs["a"], 5)
+
+    wrong_order_expression = "[1,2,5] in a"
+    with pytest.raises(ValueError):
+        parse_expression_from_string(wrong_order_expression, cs)
+
+    in_operator_expression = (
+        "a in [1, 2, 3]"  # This operator is accepted by ConfigSpace for Integer HP
+    )
+    cs_expression = parse_expression_from_string(in_operator_expression, cs)
+    assert cs_expression == ForbiddenInClause(cs["a"], [1, 2, 3])
+
+    simple_value_expression = "a > 9"
+    cs_expression = parse_expression_from_string(simple_value_expression, cs)
+    assert cs_expression == ForbiddenGreaterThanClause(cs["a"], 9)
+
+    simple_expression = "a > b"
+    cs_expression = parse_expression_from_string(simple_expression, cs)
+    assert cs_expression == ForbiddenGreaterThanRelation(cs["a"], cs["b"])
+
+    simple_expression = "a < 5"
+    cs_expression = parse_expression_from_string(simple_expression, cs)
+    assert cs_expression == ForbiddenLessThanClause(cs["a"], 5)
+
+    complex_expression = "a > b || (c > d && e < 5 && cat1 == 'dog' && float1 >= 0.5)"
+    cs_expression = parse_expression_from_string(complex_expression, cs)
+    assert cs_expression == ForbiddenOrConjunction(
+        ForbiddenGreaterThanRelation(cs["a"], cs["b"]),
+        ForbiddenAndConjunction(
+            ForbiddenGreaterThanRelation(cs["c"], cs["d"]),
+            ForbiddenLessThanClause(cs["e"], 5),
+            ForbiddenEqualsClause(cs["cat1"], "dog"),
+            ForbiddenGreaterThanEqualsClause(cs["float1"], 0.5),
+        ),
+    )
+
+    complex_expression = (
+        "a >= 8 and (cat1 in ['cat', 'dog'] or cat2 in ['sun', 'rain'])"
+    )
+    cs_expression = parse_expression_from_string(complex_expression, cs)
+    assert cs_expression == ForbiddenAndConjunction(
+        ForbiddenGreaterThanEqualsClause(cs["a"], 8),
+        ForbiddenOrConjunction(
+            ForbiddenInClause(cs["cat1"], ["cat", "dog"]),
+            ForbiddenInClause(cs["cat2"], ["sun", "rain"]),
+        ),
+    )
+
+    # Check if a hyperparameter name / categorical value mixup does not occur based on the quotation marks
+    semi_ambigous_expression = (
+        "cat1 == 'dog'"  # Here we are talking about the categorical value
+    )
+    assert parse_expression_from_string(
+        semi_ambigous_expression,
+        cs,
+    ) == ForbiddenEqualsClause(cs["cat1"], "dog")
+    semi_ambigous_expression = (
+        "cat1 == dog"  # Now we are referring to the Hyperparameter called dog
+    )
+    assert parse_expression_from_string(
+        semi_ambigous_expression,
+        cs,
+    ) == ForbiddenEqualsRelation(cs["cat1"], cs["dog"])
+    semi_ambigous_expression = (
+        "dog == 'dog'"  # The hyperparameter dog cannot have value 'dog'
+    )
+    assert parse_expression_from_string(
+        semi_ambigous_expression,
+        cs,
+    ) == ForbiddenEqualsClause(cs["dog"], "dog")
+
+    wrong_semi_ambigous_expression = "dog == medium"  # There is no variable called medium, only a constant; quotation marks are missing
+    with pytest.raises(ValueError, match="Unknown hyperparameter: medium"):
+        parse_expression_from_string(wrong_semi_ambigous_expression, cs)
+
+
+def test_parse_expression_from_string_condition():
+    cs = ConfigurationSpace(
+        {
+            "a": (0, 10),
+            "b": (0, 10),
+            "c": (0, 10),
+            "d": (0, 10),
+            "e": (0, 10),
+        },
+    )
+    simple_expression = "a < 5"
+    cs_expression = parse_expression_from_string(
+        simple_expression,
+        cs,
+        conditional_hyperparameter=cs["e"],
+    )
+    assert cs_expression == LessThanCondition(cs["e"], cs["a"], 5)
+
+    simple_expression_inequality = "a != 5"
+    cs_expression = parse_expression_from_string(
+        simple_expression_inequality,
+        cs,
+        conditional_hyperparameter=cs["e"],
+    )
+    assert cs_expression == NotEqualsCondition(cs["e"], cs["a"], 5)
+
+    wrong_order_expression = "5 != a"
+    assert parse_expression_from_string(
+        wrong_order_expression,
+        cs,
+        conditional_hyperparameter=cs["e"],
+    ) == NotEqualsCondition(cs["e"], cs["a"], 5)
