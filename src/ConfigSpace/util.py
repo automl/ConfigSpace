@@ -951,7 +951,7 @@ def _recursive_conversion(
         hp = configspace.get(item.id)
         if hp is None:
             raise ValueError(f"Unknown hyperparameter: {item.id}")
-        return hp #if hp is not None else item.id
+        return hp
     if isinstance(item, ast.Constant):  # ast.Constant are differentiated from ast.Name by integers/floats and quoted strings
         return item.value
     if (
