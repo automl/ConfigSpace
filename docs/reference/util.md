@@ -11,7 +11,7 @@ In some cases we may have (highly) complex conditions or forbidden expressions t
     If the expression contains illegal values, errors, or requires functionalities not available in `ConfigSpace`, appriopriate exceptions will be raised.
 
 !!! note
-    Expressions differentiate variables (Hyperparameter names) from constants (Categorical values) based on quotation marks; "a != b" implies variable a does not equal b, "a != 'b'" implies variable a does not equal categorical/ordinal value b.
+    Expressions differentiate variables (Hyperparameter names) from constants (Categorical values) based on quotation marks; "a != b" implies hyperparameter a does not equal hyperparameter b, "a != 'b'" implies hyperparameter a does not equal categorical/ordinal value b.
 
 #### Adding a condition
 
