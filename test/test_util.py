@@ -693,9 +693,16 @@ def test_parse_expression_from_string_forbidden():
     wrong_hp_name_expresion = "q <= 5"
     with pytest.raises(
         ValueError,
-        match="Only hyperparameter comparisons allowed. Neither side is recognised as a hyperparameter in: q <= 5",
+        match="Unknown hyperparameter: q",
     ):
         cs_expression = parse_expression_from_string(wrong_hp_name_expresion, cs)
+
+    wrong_value_expresion = "'q' <= 5"
+    with pytest.raises(
+        ValueError,
+        match="Only hyperparameter comparisons allowed. Neither side is recognised as a hyperparameter in: 'q' <= 5",
+    ):
+        cs_expression = parse_expression_from_string(wrong_value_expresion, cs)
 
     wrong_hp_value_expression = "a > 11"
     with pytest.raises(
@@ -706,7 +713,7 @@ def test_parse_expression_from_string_forbidden():
     ):
         cs_expression = parse_expression_from_string(wrong_hp_value_expression, cs)
 
-    wrong_hp_value_expression = "a == cat"
+    wrong_hp_value_expression = "a == 'cat'"
     with pytest.raises(
         ValueError,
         match=re.escape(
@@ -816,6 +823,10 @@ def test_parse_expression_from_string_forbidden():
         semi_ambigous_expression,
         cs,
     ) == ForbiddenEqualsClause(cs["dog"], "dog")
+
+    wrong_semi_ambigous_expression = "dog == medium"  # There is no variable called medium, only a constant; quotation marks are missing
+    with pytest.raises(ValueError, match="Unknown hyperparameter: medium"):
+        parse_expression_from_string(wrong_semi_ambigous_expression, cs)
 
 
 def test_parse_expression_from_string_condition():
