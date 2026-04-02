@@ -44,6 +44,7 @@ from ConfigSpace import (
     EqualsCondition,
     ForbiddenAndConjunction,
     ForbiddenEqualsClause,
+    ForbiddenEqualsRelation,
     ForbiddenGreaterThanClause,
     ForbiddenGreaterThanEqualsClause,
     ForbiddenGreaterThanRelation,
@@ -679,6 +680,7 @@ def test_parse_expression_from_string_forbidden():
             "e": (0, 10),
             "cat1": ["cat", "dog"],
             "cat2": ["sun", "rain", "snow", "fog"],
+            "dog": ["small", "medium", "large", "cat", "dog"],
             "float1": (0.0, 1.0),
             "float2": (0.0, 1.0),
         },
@@ -704,11 +706,11 @@ def test_parse_expression_from_string_forbidden():
     ):
         cs_expression = parse_expression_from_string(wrong_hp_value_expression, cs)
 
-    wrong_hp_value_expression = "a == dog"
+    wrong_hp_value_expression = "a == cat"
     with pytest.raises(
         ValueError,
         match=re.escape(
-            "Forbidden clause must be instantiated with a legal hyperparameter value for 'a, Type: UniformInteger, Range: [0, 10], Default: 5', but got 'dog'",
+            "Forbidden clause must be instantiated with a legal hyperparameter value for 'a, Type: UniformInteger, Range: [0, 10], Default: 5', but got 'cat'",
         ),
     ):
         cs_expression = parse_expression_from_string(wrong_hp_value_expression, cs)
@@ -768,7 +770,7 @@ def test_parse_expression_from_string_forbidden():
     cs_expression = parse_expression_from_string(simple_expression, cs)
     assert cs_expression == ForbiddenLessThanClause(cs["a"], 5)
 
-    complex_expression = "a > b || (c > d && e < 5 && cat1 == dog && float1 >= 0.5)"
+    complex_expression = "a > b || (c > d && e < 5 && cat1 == 'dog' && float1 >= 0.5)"
     cs_expression = parse_expression_from_string(complex_expression, cs)
     assert cs_expression == ForbiddenOrConjunction(
         ForbiddenGreaterThanRelation(cs["a"], cs["b"]),
@@ -791,6 +793,29 @@ def test_parse_expression_from_string_forbidden():
             ForbiddenInClause(cs["cat2"], ["sun", "rain"]),
         ),
     )
+
+    # Check if a hyperparameter name / categorical value mixup does not occur based on the quotation marks
+    semi_ambigous_expression = (
+        "cat1 == 'dog'"  # Here we are talking about the categorical value
+    )
+    assert parse_expression_from_string(
+        semi_ambigous_expression,
+        cs,
+    ) == ForbiddenEqualsClause(cs["cat1"], "dog")
+    semi_ambigous_expression = (
+        "cat1 == dog"  # Now we are referring to the Hyperparameter called dog
+    )
+    assert parse_expression_from_string(
+        semi_ambigous_expression,
+        cs,
+    ) == ForbiddenEqualsRelation(cs["cat1"], cs["dog"])
+    semi_ambigous_expression = (
+        "dog == 'dog'"  # The hyperparameter dog cannot have value 'dog'
+    )
+    assert parse_expression_from_string(
+        semi_ambigous_expression,
+        cs,
+    ) == ForbiddenEqualsClause(cs["dog"], "dog")
 
 
 def test_parse_expression_from_string_condition():
