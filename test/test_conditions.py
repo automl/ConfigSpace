@@ -27,10 +27,12 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 from __future__ import annotations
 
+import itertools
+
 import numpy as np
 import pytest
 
-from ConfigSpace import ConfigurationSpace
+from ConfigSpace import Configuration, ConfigurationSpace
 from ConfigSpace.conditions import (
     AndConjunction,
     EqualsCondition,
@@ -419,3 +421,138 @@ def test_active_hyperparameter():
     # This should be the case, as saturation_algorithm is set to "lrs" (which is NOT "inst_gen") in default.
     default = cs.get_default_configuration()
     cs._check_configuration_rigorous(default)
+
+
+def test_active_hyperparameter_nested():
+    # Based on: https://github.com/automl/ConfigSpace/issues/253
+    # Check that a nested condition does not incorrectly deactivate a parameter
+    cs = ConfigurationSpace()
+    x_top = CategoricalHyperparameter("x_top", [0, 1, 2, 3])
+
+    x_m0 = CategoricalHyperparameter("x_m0", [0, 1])
+    x_m1 = CategoricalHyperparameter("x_m1", [0, 1])
+    x_m2 = CategoricalHyperparameter("x_m2", [0, 1])
+
+    y = CategoricalHyperparameter("y", [0, 1])
+    x_b = CategoricalHyperparameter("x_b", [0, 1])
+
+    cm0 = EqualsCondition(x_m0, x_top, 0)
+    cm1 = EqualsCondition(x_m1, x_top, 1)
+    cm2 = EqualsCondition(x_m2, x_top, 2)
+
+    cb0 = EqualsCondition(x_b, x_top, 0)
+    cb1 = EqualsCondition(x_b, x_m1, 0)
+    cb2 = EqualsCondition(x_b, x_m2, 0)
+
+    # The resulting nested condition is:
+    # ((x_b | x_top == 0 || x_b | x_m1 == 0 || x_b | x_m2 == 0) && x_b | y == 0
+    # Meaning that, for x_b to be active we need:
+    # either x_top, x_m1 or x_m2 to be 0
+    # AND y to be 0
+    #
+    cor = OrConjunction(cb0, cb1, cb2)
+    cand = AndConjunction(
+        cor,
+        EqualsCondition(x_b, y, 0),
+    )
+
+    cs.add([x_top, x_m0, x_m1, x_b, x_m2, y])
+    cs.add([cm0, cm1, cm2])
+    cs.add(cand)
+
+    # Create an **illegal** configuration: x_top is equal to three so left side is false eventhough y is equal to 0 (True)
+    from ConfigSpace import InactiveHyperparameterSetError
+
+    cfg = {"y": 0, "x_top": 3, "x_b": 0}
+    with pytest.raises(InactiveHyperparameterSetError):
+        cfg = Configuration(cs, values=cfg)
+
+    # Now left side is true because x_top is equal to 0 but right side is false because y is equal to 1. Now x_m0 is active because x_top is equal to 0.
+    cfg = {"y": 1, "x_top": 0, "x_b": 0, "x_m0": 0}
+    with pytest.raises(InactiveHyperparameterSetError):
+        cfg = Configuration(cs, values=cfg)
+
+    # And now one where x_b is actually active
+    cfg = {"y": 0, "x_top": 0, "x_b": 0, "x_m0": 0}
+    cfg = Configuration(cs, values=cfg)
+    assert cfg.check_valid_configuration() is None
+
+    # Second test
+    # 3 categorical params a = (A, B), b = (C, D), c = (E, F)
+    # b is active if a == A
+    # c is active if b == C (and then of course inactive if b is inactive)
+    # The second condition (for activation of c) can be implemented in two ways:
+    # 1: Using an EqualsCondition on b == C
+    # 2: Using an AndConjuction combining the above with the condition a == A
+    cs = ConfigurationSpace(
+        name="cs1",
+        space={
+            "a": CategoricalHyperparameter("a", ["A", "B"]),
+            "b": CategoricalHyperparameter("b", ["C", "D"]),
+            "c": CategoricalHyperparameter("c", ["E", "F"]),
+        },
+    )
+    cs.add(
+        [
+            EqualsCondition(cs["b"], cs["a"], "A"),  # b is active if a == A
+            EqualsCondition(
+                cs["c"],
+                cs["b"],
+                "C",
+            ),  # c is active if b == C (and b is active)
+        ],
+    )
+
+    # Check that the active hyperparameters are correct
+    for x in itertools.product([0, 1], [0, 1], [0, 1]):
+        configuration = Configuration(
+            cs,
+            vector=np.array(x),
+            allow_inactive_with_values=True,
+        )
+        x_active = cs.get_active_hyperparameters(configuration)
+        x_active_should_be = (
+            {"a"} if x[0] == 1 else ({"a", "b"} if x[1] == 1 else {"a", "b", "c"})
+        )
+        try:
+            assert x_active == x_active_should_be
+        except AssertionError:
+            print(
+                f"{x} ({cs.name}): x_active = {x_active}, whereas it should be {x_active_should_be}",
+            )
+
+    # Second way of specifying nested conditions:
+    # Child conditions include all ancestors in their condition
+    cs = ConfigurationSpace(
+        name="cs2",
+        space={
+            "a": CategoricalHyperparameter("a", ["A", "B"]),
+            "b": CategoricalHyperparameter("b", ["C", "D"]),
+            "c": CategoricalHyperparameter("c", ["E", "F"]),
+        },
+    )
+    cs.add(
+        [
+            EqualsCondition(cs["b"], cs["a"], "A"),  # b is active if a == A
+            # c is active if b == C (and b is active)
+            AndConjunction(
+                EqualsCondition(cs["c"], cs["a"], "A"),
+                EqualsCondition(cs["c"], cs["b"], "C"),
+            ),
+        ],
+    )
+
+    # Check that the active hyperparameters are correct
+    for x in itertools.product([0, 1], [0, 1], [0, 1]):
+        x_active = cs.get_active_hyperparameters(
+            Configuration(cs, vector=np.array(x), allow_inactive_with_values=True),
+        )
+        x_active_should_be = (
+            {"a"} if x[0] == 1 else ({"a", "b"} if x[1] == 1 else {"a", "b", "c"})
+        )
+        try:
+            assert x_active == x_active_should_be
+        except AssertionError:
+            print(
+                f"{x} ({cs.name}): x_active = {x_active}, whereas it should be {x_active_should_be}",
+            )
