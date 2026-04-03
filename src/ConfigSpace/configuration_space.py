@@ -895,6 +895,19 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
 
         return new_forbiddens
 
+    def __copy__(self) -> ConfigurationSpace:
+        """Creates a copy of the ConfigurationSpace."""
+        cs_copy = ConfigurationSpace(
+            name=self.name,
+            meta=self.meta.copy(),            
+            space={hp.name: copy.copy(hp) for hp in self.values()},
+        )
+        for condition in self.conditions:
+            cs_copy.add(copy.copy(condition))
+        for forbidden in self.forbidden_clauses:
+            cs_copy.add(copy.copy(forbidden))
+        return cs_copy
+
     def __eq__(self, other: Any) -> bool:
         """Override the default Equals behavior."""
         if isinstance(other, self.__class__):

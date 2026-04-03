@@ -1482,3 +1482,30 @@ def test_configuration_space_can_be_made_with_sequence_of_hyperparameters() -> N
     assert len(cs) == 2
     assert "a" in cs
     assert "b" in cs
+
+
+def test_copy() -> None:
+    import copy
+
+    cs = ConfigurationSpace(
+        name="myspace",
+        meta={"hello": "world"},
+        space=[
+            Float("a", (1.0, 10.0)),
+            Integer("b", (1, 10)),
+            CategoricalHyperparameter("c", ["a", "b", "c"]),
+        ],
+    )
+    cs.add(EqualsCondition(cs["b"], cs["c"], "a"))
+    cs.add(ForbiddenEqualsClause(cs["a"], 4.2))
+
+    cs_copy = copy.copy(cs)
+    assert cs == cs_copy
+
+    # Verify that removing components from the copy
+    cs_copy.remove(cs["a"])
+    assert cs != cs_copy
+
+    # Re adding the hyperparameter will not bring forbidden back
+    cs_copy.add(cs["a"])
+    assert cs != cs_copy
