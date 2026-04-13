@@ -37,3 +37,8 @@ configs = cs.sample_configuration(2)
     date    = {2019},
 }
 ```
+
+## Sponsorship
+
+The maintenance and development of ConfigSpace is partially funded by the Alexander von Humboldt Foundation through an Alexander von Humboldt Professorship awarded to Prof. Holger H. Hoos.
+
