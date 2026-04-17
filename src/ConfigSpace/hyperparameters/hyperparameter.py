@@ -148,7 +148,10 @@ class Hyperparameter(ABC, Generic[ValueT, DType]):
             if name not in init_params or not hasattr(self, name):
                 raise ValueError(f"Can only set parameters passed to self.__init__. '{name}' is not one of: {init_params}")
 
-            init_params = {key: self.__dict__[key] for key in init_params if hasattr(self, key)}  # This will break if the parameter is not saved under its passed name
+            try:
+                init_params = {key: self.__dict__[key] for key in init_params if hasattr(self, key)}  # This will break if the parameter is not saved under its passed name
+            except KeyError as e:
+                raise KeyError(f"You are seeing this message because the class {self.__class__.__name__} does not define an instance attribute with the same name as the class constructor parameter. To update Hyperparameter attributes after initialization, either modify the __init__ function of the class to define the attribute with the same name or call hp_instance.__init__(**new_init_parameters) to reset the parameters") from e
             init_params[name] = value  # Place the update value
 
             self.__init__(**init_params)  # Reinitialise
