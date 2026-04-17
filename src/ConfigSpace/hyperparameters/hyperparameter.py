@@ -140,8 +140,12 @@ class Hyperparameter(ABC, Generic[ValueT, DType]):
 
     def __setattr__(self, name: str, value: Any):
         """Check if attribute can be set on HP, and reinitialises the class if so."""
-        # NOTE: The following check is 'ugly', but it works...
-        if inspect.stack()[1][3] != '__init__':  # This should be only executed on update, not init
+        # NOTE: Here we first verify if the object is being initialised by checking the call stack if the parent function is called "__init__"
+        # This is currently the best way to check as checking the caller class etc is too complex
+        # Alternatively, we could compare the __code__ objects/properties of the caller for self.__init__.__code__ but this would be more computationally expensive
+        if inspect.stack()[1][3] == '__init__':  # Init, normal __setattr__ control flow
+            super().__setattr__(name, value)
+        else:  # We are updating an existing attribute
             # Extract all editable attributes
             init_params: tuple[str] = self.__init__.__code__.co_varnames[:self.__init__.__code__.co_argcount]
 
@@ -155,8 +159,7 @@ class Hyperparameter(ABC, Generic[ValueT, DType]):
             init_params[name] = value  # Place the update value
 
             self.__init__(**init_params)  # Reinitialise
-        else:
-            super().__setattr__(name, value)
+            
 
     @property
     def lower_vectorized(self) -> f64:
