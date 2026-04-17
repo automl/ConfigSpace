@@ -110,7 +110,7 @@ class UniformIntegerHyperparameter(IntegerHyperparameter):
         try:
             scaler = UnitScaler(i64(self.lower), i64(self.upper), log=log, dtype=i64)
         except ValueError as e:
-            raise ValueError(f"Hyperparameter '{name}' has illegal settings") from e
+            raise ValueError(f"Illegal value(s) for Hyperparameter '{name}'") from e
 
         size = self.upper - self.lower + 1
         if not self.log:

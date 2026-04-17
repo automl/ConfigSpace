@@ -146,7 +146,7 @@ class Hyperparameter(ABC, Generic[ValueT, DType]):
             init_params: tuple[str] = self.__init__.__code__.co_varnames[:self.__init__.__code__.co_argcount]
 
             if name not in init_params or not hasattr(self, name):
-                raise ValueError(f"Can only set parameters passed to self.__init__  {name} is not one of: {init_params}")
+                raise ValueError(f"Can only set parameters passed to self.__init__. '{name}' is not one of: {init_params}")
 
             init_params = {key: self.__dict__[key] for key in init_params if hasattr(self, key)}  # This will break if the parameter is not saved under its passed name
             init_params[name] = value  # Place the update value

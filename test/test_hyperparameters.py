@@ -28,6 +28,7 @@
 from __future__ import annotations
 
 import copy
+import re
 from collections import defaultdict
 from collections.abc import Mapping
 from dataclasses import dataclass
@@ -60,7 +61,7 @@ META_DATA: Mapping[Hashable, Any] = {
 }
 
 
-def f() -> None:
+def f():
     pass
 
 
@@ -286,7 +287,7 @@ def test_uniformfloat_to_integer():
 def test_uniformfloat_illegal_bounds():
     with pytest.raises(
         ValueError,
-        match="Hyperparameter 'param' has illegal settings",
+        match=re.escape("Illegal value(s) for Hyperparameter 'param'"),
     ) as e:
         _ = UniformFloatHyperparameter("param", 0, 10, log=True)
 
@@ -298,7 +299,7 @@ def test_uniformfloat_illegal_bounds():
 
     with pytest.raises(
         ValueError,
-        match="Hyperparameter 'param' has illegal settings",
+        match=re.escape("Illegal value(s) for Hyperparameter 'param'"),
     ) as e:
         _ = UniformFloatHyperparameter("param", 1, 0)
 
@@ -1245,7 +1246,7 @@ def test_uniformint_legal_float_values():
 def test_uniformint_illegal_bounds():
     with pytest.raises(
         ValueError,
-        match="Hyperparameter 'param' has illegal settings",
+        match=re.escape("Illegal value(s) for Hyperparameter 'param'"),
     ) as e:
         UniformIntegerHyperparameter("param", 0, 10, log=True)
 
@@ -1257,7 +1258,7 @@ def test_uniformint_illegal_bounds():
 
     with pytest.raises(
         ValueError,
-        match="Hyperparameter 'param' has illegal settings",
+        match=re.escape("Illegal value(s) for Hyperparameter 'param'"),
     ) as e:
         _ = UniformIntegerHyperparameter("param", 1, 0)
 
@@ -3128,12 +3129,35 @@ def test_update_hyperparameters():
         assert -0.1 <= value["b"] <= 0.1
 
     # Test illegal changes
-    with pytest.raises(ValueError):
+    with pytest.raises(
+        ValueError,
+        match=re.escape("Illegal value(s) for Hyperparameter 'b'"),
+    ):
         space["b"].upper = -0.11  # lower than lower
-    with pytest.raises(ValueError):
+    with pytest.raises(
+        ValueError,
+        match=re.escape("Illegal value(s) for Hyperparameter 'b'"),
+    ):
         space["b"].lower = 0.11  # higher than upper
-    with pytest.raises(ValueError):
+    with pytest.raises(
+        ValueError,
+        match=re.escape("Illegal value(s) for Hyperparameter 'b'"),
+    ):
         space["b"].default_value = -10.0  # Out of bounds
+    with pytest.raises(
+        ValueError,
+        match=re.escape(
+            "Can only set parameters passed to self.__init__. 'size' is not one of: ('self', 'name', 'lower', 'upper', 'default_value', 'log', 'meta')",
+        ),
+    ):
+        space["b"].size = 1_000_000  # Not an init parameter
+    with pytest.raises(
+        ValueError,
+        match=re.escape(
+            "Can only set parameters passed to self.__init__. 'non_existiting_attribute' is not one of: ('self', 'name', 'lower', 'upper', 'default_value', 'log', 'meta')",
+        ),
+    ):
+        space["b"].non_existiting_attribute = "wrong"  # cannot add new attributes
 
     # Test categorical HP
     space["c"].choices = [1, 2, 3, 4]  # Change range
