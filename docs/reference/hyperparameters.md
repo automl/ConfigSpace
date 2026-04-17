@@ -214,6 +214,10 @@ What makes a hyperparameter the hyperparameter it is then:
     if they share the same underlying vectorized space.
 
 
+!!! tip Updating Hyperparameter properties
+
+    Creating your own hyperparameter class, it is important to note that its properties may be updated after creation, see [`__setattr__`][ConfigSpace.hyperparameters.Hyperparameter.__setattr__]. This method blocks any changes after initialisation to any attribute directly or the creation of new attributes. Attribute values can only be changed through the class constructor parameters (the arguments of `__init__` function), and is only possible when they share **the same name**. Take this into consideration when subclassing the `Hyperparameter` class.
+
 !!! example "CategoricalHyperparameter"
 
     Inside of the `__init__` method of a `CategoricalHyperparameter`, you will find something along the lines
