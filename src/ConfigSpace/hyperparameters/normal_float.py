@@ -102,11 +102,17 @@ class NormalFloatHyperparameter(FloatHyperparameter):
                 f"mu={mu} must be positive for log-scale.",
             )
 
-        self.lower = float(np.round(lower, ROUND_PLACES))
-        self.upper = float(np.round(upper, ROUND_PLACES))
-        self.mu = float(np.round(mu, ROUND_PLACES))
-        self.sigma = float(np.round(sigma, ROUND_PLACES))
-        self.log = bool(log)
+        lower = float(np.round(lower, ROUND_PLACES))
+        upper = float(np.round(upper, ROUND_PLACES))
+        mu = float(np.round(mu, ROUND_PLACES))
+        sigma = float(np.round(sigma, ROUND_PLACES))
+        log = bool(log)
+        object.__setattr__(self, "lower", lower)
+        object.__setattr__(self, "upper", upper)
+        object.__setattr__(self, "mu", mu)
+        object.__setattr__(self, "sigma", sigma)
+        object.__setattr__(self, "log", log)
+        
 
         try:
             scaler = UnitScaler(f64(self.lower), f64(self.upper), log=log, dtype=f64)

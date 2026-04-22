@@ -108,15 +108,16 @@ class OrdinalHyperparameter(Hyperparameter[Any, Any]):
         except ValueError:
             seq_choices = list(sequence)
 
-        self.sequence = tuple(sequence)
-
+        sequence = tuple(sequence)
+        object.__setattr__(self, "sequence", sequence)
         # If the Hyperparameter recieves as a Sequence during legality checks or
         # conversions, we need to inform it that one of the values is a Sequence itself,
         # i.e. we should treat it as a single value and not a list of multiple values
-        self._contains_sequence_as_value = any(
+        _contains_sequence_as_value = any(
             isinstance(item, Sequence) and not isinstance(item, str)
             for item in self.sequence
         )
+        object.__setattr__(self, "_contains_sequence_as_value", _contains_sequence_as_value)
 
         super().__init__(
             name=name,

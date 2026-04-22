@@ -108,11 +108,16 @@ class BetaFloatHyperparameter(FloatHyperparameter):
                 " 1 so that the probability density is finite.",
             )
 
-        self.alpha = float(np.round(alpha, ROUND_PLACES))
-        self.beta = float(np.round(beta, ROUND_PLACES))
-        self.lower = float(np.round(lower, ROUND_PLACES))
-        self.upper = float(np.round(upper, ROUND_PLACES))
-        self.log = bool(log)
+        alpha = float(np.round(alpha, ROUND_PLACES))
+        beta = float(np.round(beta, ROUND_PLACES))
+        lower = float(np.round(lower, ROUND_PLACES))
+        upper = float(np.round(upper, ROUND_PLACES))
+        log = bool(log)
+        object.__setattr__(self, "alpha", alpha)
+        object.__setattr__(self, "beta", beta)
+        object.__setattr__(self, "lower", lower)
+        object.__setattr__(self, "upper", upper)
+        object.__setattr__(self, "log", log)
 
         try:
             scaler = UnitScaler(f64(self.lower), f64(self.upper), log=log, dtype=f64)

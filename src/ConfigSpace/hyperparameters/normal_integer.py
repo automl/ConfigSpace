@@ -105,11 +105,16 @@ class NormalIntegerHyperparameter(IntegerHyperparameter):
                 f"mu={mu} must be positive for log-scale.",
             )
 
-        self.mu = float(mu)
-        self.sigma = float(sigma)
-        self.lower = int(np.rint(lower))
-        self.upper = int(np.rint(upper))
-        self.log = bool(log)
+        mu = float(mu)
+        sigma = float(sigma)
+        lower = int(np.rint(lower))
+        upper = int(np.rint(upper))
+        log = bool(log)
+        object.__setattr__(self, "mu", mu)
+        object.__setattr__(self, "sigma", sigma)
+        object.__setattr__(self, "lower", lower)
+        object.__setattr__(self, "upper", upper)
+        object.__setattr__(self, "log", log)
 
         try:
             scaler = UnitScaler(

@@ -71,11 +71,15 @@ class Constant(Hyperparameter[Any, Any]):
             raise ValueError(
                 "Constant hyperparameter does not support numpy arrays as values",
             )
-        self.value = value
-        self._contains_sequence_as_value = isinstance(
+        # self.value = value
+        _contains_sequence_as_value = isinstance(
             value,
             Sequence,
         ) and not isinstance(value, str)
+        
+        object.__setattr__(self, "_contains_sequence_as_value", _contains_sequence_as_value)
+        object.__setattr__(self, "value", value)
+
 
         super().__init__(
             name=name,

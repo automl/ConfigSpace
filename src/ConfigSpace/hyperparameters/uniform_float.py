@@ -90,9 +90,12 @@ class UniformFloatHyperparameter(FloatHyperparameter):
                 Field for holding meta data provided by the user. Not used by
                 ConfigSpace.
         """
-        self.lower = float(np.round(lower, ROUND_PLACES))
-        self.upper = float(np.round(upper, ROUND_PLACES))
-        self.log = log
+        lower = float(np.round(lower, ROUND_PLACES))
+        upper = float(np.round(upper, ROUND_PLACES))
+        log = log
+        object.__setattr__(self, "lower", lower)
+        object.__setattr__(self, "upper", upper)
+        object.__setattr__(self, "log", log)
 
         try:
             scaler = UnitScaler(f64(self.lower), f64(self.upper), log=log, dtype=f64)

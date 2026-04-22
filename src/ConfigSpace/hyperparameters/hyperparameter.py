@@ -119,16 +119,27 @@ class Hyperparameter(ABC, Generic[ValueT, DType]):
                 f"Name must be a string, got {name} ({type(name)})",
             )
 
-        self.name = name
-        self.default_value = default_value
-        self.meta = meta
-        self.size = size
+        # self.name = name
+        # self.default_value = default_value
+        # self.meta = meta
+        # self.size = size
 
-        self._vector_dist = vector_dist
-        self._transformer = transformer
-        self._neighborhood = neighborhood
-        self._neighborhood_size = neighborhood_size  # type: ignore
-        self._value_cast = value_cast
+        # self._vector_dist = vector_dist
+        # self._transformer = transformer
+        # self._neighborhood = neighborhood
+        # self._neighborhood_size = neighborhood_size  # type: ignore
+        # self._value_cast = value_cast
+        object.__setattr__(self, "name", name)
+        object.__setattr__(self, "default_value", default_value)
+        object.__setattr__(self, "meta", meta)
+        object.__setattr__(self, "size", size)
+
+        object.__setattr__(self, "_vector_dist", vector_dist)
+        object.__setattr__(self, "_transformer", transformer)
+        object.__setattr__(self, "_neighborhood", neighborhood)
+        object.__setattr__(self, "_neighborhood_size", neighborhood_size)
+        object.__setattr__(self, "_value_cast", value_cast)
+
 
         if not self.legal_value(self.default_value):
             raise ValueError(
@@ -136,29 +147,30 @@ class Hyperparameter(ABC, Generic[ValueT, DType]):
                 f" hyperparameter '{self.name}'.",
             )
 
-        self._normalized_default_value = self.to_vector(self.default_value)
+        _normalized_default_value = self.to_vector(self.default_value)
+        object.__setattr__(self, "_normalized_default_value", _normalized_default_value)
 
     def __setattr__(self, name: str, value: Any):
         """Check if attribute can be set on HP, and reinitialises the class if so."""
         # NOTE: Here we first verify if the object is being initialised by checking the call stack if the parent function is called "__init__"
         # This is currently the best way to check as checking the caller class etc is too complex
         # Alternatively, we could compare the __code__ objects/properties of the caller for self.__init__.__code__ but this would be more computationally expensive
-        if inspect.stack()[1][3] == '__init__':  # Init, normal __setattr__ control flow
-            super().__setattr__(name, value)
-        else:  # We are updating an existing attribute
-            # Extract all editable attributes
-            init_params: tuple[str] = self.__init__.__code__.co_varnames[:self.__init__.__code__.co_argcount]
+        # if inspect.stack()[1][3] == '__init__':  # Init, normal __setattr__ control flow
+        #     super().__setattr__(name, value)
+        # else:  # We are updating an existing attribute
+        # Extract all editable attributes
+        init_params: tuple[str] = self.__init__.__code__.co_varnames[:self.__init__.__code__.co_argcount]
 
-            if name not in init_params or not hasattr(self, name):
-                raise ValueError(f"Can only set parameters passed to self.__init__. '{name}' is not one of: {init_params}")
+        if name not in init_params or not hasattr(self, name):
+            raise ValueError(f"Can only set parameters passed to self.__init__. '{name}' is not one of: {init_params}")
 
-            try:
-                init_params = {key: self.__dict__[key] for key in init_params if hasattr(self, key)}  # This will break if the parameter is not saved under its passed name
-            except KeyError as e:
-                raise KeyError(f"You are seeing this message because the class {self.__class__.__name__} does not define an instance attribute with the same name as the class constructor parameter. To update Hyperparameter attributes after initialization, either modify the __init__ function of the class to define the attribute with the same name or call hp_instance.__init__(**new_init_parameters) to reset the parameters") from e
-            init_params[name] = value  # Place the update value
+        try:
+            init_params = {key: self.__dict__[key] for key in init_params if hasattr(self, key)}  # This will break if the parameter is not saved under its passed name
+        except KeyError as e:
+            raise KeyError(f"You are seeing this message because the class {self.__class__.__name__} does not define an instance attribute with the same name as the class constructor parameter. To update Hyperparameter attributes after initialization, either modify the __init__ function of the class to define the attribute with the same name or call hp_instance.__init__(**new_init_parameters) to reset the parameters") from e
+        init_params[name] = value  # Place the update value
 
-            self.__init__(**init_params)  # Reinitialise
+        self.__init__(**init_params)  # Reinitialise
             
 
     @property

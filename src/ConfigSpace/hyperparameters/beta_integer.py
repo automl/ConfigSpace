@@ -109,11 +109,16 @@ class BetaIntegerHyperparameter(IntegerHyperparameter):
                 "Please provide values of alpha and beta larger than or equal to"
                 "1 so that the probability density is finite.",
             )
-        self.alpha = float(alpha)
-        self.beta = float(beta)
-        self.lower = int(np.rint(lower))
-        self.upper = int(np.rint(upper))
-        self.log = bool(log)
+        alpha = float(alpha)
+        beta = float(beta)
+        lower = int(np.rint(lower))
+        upper = int(np.rint(upper))
+        log = bool(log)
+        object.__setattr__(self, "alpha", alpha)
+        object.__setattr__(self, "beta", beta)
+        object.__setattr__(self, "lower", lower)
+        object.__setattr__(self, "upper", upper)
+        object.__setattr__(self, "log", log)
 
         try:
             scaler = UnitScaler(i64(self.lower), i64(self.upper), log=log, dtype=i64)

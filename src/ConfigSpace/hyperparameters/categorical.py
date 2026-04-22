@@ -269,14 +269,20 @@ class CategoricalHyperparameter(Hyperparameter[Any, Any]):
         # If the Hyperparameter recieves as a Sequence during legality checks or
         # conversions, we need to inform it that one of the values is a Sequence itself,
         # i.e. we should treat it as a single value and not a list of multiple values
-        self._contains_sequence_as_value = any(
+        _contains_sequence_as_value = any(
             isinstance(choice, Sequence) and not isinstance(choice, str)
             for choice in choices
         )
 
-        self.probabilities = probabilities
-        self.choices = choices
-        self.weights = tupled_weights
+        # self.probabilities = probabilities
+        # self.choices = choices
+        # self.weights = tupled_weights
+        # self._contains_sequence_as_value = _contains_sequence_as_value
+
+        object.__setattr__(self, "_contains_sequence_as_value", _contains_sequence_as_value)
+        object.__setattr__(self, "probabilities", probabilities)
+        object.__setattr__(self, "choices", choices)
+        object.__setattr__(self, "weights", tupled_weights)
 
         super().__init__(
             name=name,

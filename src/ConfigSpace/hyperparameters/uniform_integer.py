@@ -94,9 +94,12 @@ class UniformIntegerHyperparameter(IntegerHyperparameter):
                 Field for holding meta data provided by the user. Not used by
                 ConfigSpace.
         """
-        self.lower = int(np.rint(lower))
-        self.upper = int(np.rint(upper))
-        self.log = bool(log)
+        # self.lower = int(np.rint(lower))
+        # self.upper = int(np.rint(upper))
+        # self.log = bool(log)
+        object.__setattr__(self, "lower", int(np.rint(lower)))
+        object.__setattr__(self, "upper", int(np.rint(upper)))
+        object.__setattr__(self, "log", bool(log))
 
         if default_value is not None and not is_close_to_integer(
             f64(default_value),
