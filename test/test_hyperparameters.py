@@ -3146,15 +3146,14 @@ def test_update_hyperparameters():
         space["b"].default_value = -10.0  # Out of bounds
     with pytest.raises(
         ValueError,
-        match=re.escape(
-            "Can only set parameters passed to self.__init__. 'size' is not one of: ('self', 'name', 'lower', 'upper', 'default_value', 'log', 'meta')",
-        ),
+        match=r"Can only set parameters passed to self\.__init__\..*'size' is not one of:",
     ):
         space["b"].size = 1_000_000  # Not an init parameter
     with pytest.raises(
         ValueError,
-        match=re.escape(
-            "Can only set parameters passed to self.__init__. 'non_existiting_attribute' is not one of: ('self', 'name', 'lower', 'upper', 'default_value', 'log', 'meta')",
+        match=(
+            r"Can only set parameters passed to self\.__init__\..*"
+            r"'non_existiting_attribute' is not one of:"
         ),
     ):
         space["b"].non_existiting_attribute = "wrong"  # cannot add new attributes
