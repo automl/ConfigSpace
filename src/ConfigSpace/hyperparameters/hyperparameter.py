@@ -158,9 +158,13 @@ class Hyperparameter(ABC, Generic[ValueT, DType]):
                 raise KeyError(f"You are seeing this message because the class {self.__class__.__name__} does not define an instance attribute with the same name as the class constructor parameter. To update Hyperparameter attributes after initialization, either modify the __init__ function of the class to define the attribute with the same name or call hp_instance.__init__(**new_init_parameters) to reset the parameters") from e
             init_params[name] = value  # Place the update value
 
-            self.__init__(**init_params)  # Reinitialise
-            
-
+            previous_state = self.__dict__.copy()
+            try:
+                self.__init__(**init_params)  # Reinitialise
+            except Exception:
+                self.__dict__.clear()
+                self.__dict__.update(previous_state)
+                raise
     @property
     def lower_vectorized(self) -> f64:
         """Lower bound of the hyperparameter in vector space."""
