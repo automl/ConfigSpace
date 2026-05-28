@@ -28,6 +28,7 @@
 from __future__ import annotations
 
 import json
+import re
 from collections import OrderedDict
 from itertools import product
 
@@ -44,6 +45,7 @@ from ConfigSpace import (
     ForbiddenAndConjunction,
     ForbiddenEqualsClause,
     InCondition,
+    LessThanCondition,
     NotEqualsCondition,
     OrConjunction,
     UniformIntegerHyperparameter,
@@ -747,7 +749,6 @@ def test_sample_configuration_with_or_conjunction():
     )
     cs.add(hp5, hp7, hp8, cond1, cond2)
 
-    # == print(cs.at)
     # hp8, hp5, hp7
     # hp8 (first index) always active
     # hp5 (second index) only active if hp8 (second index) is 0
@@ -1338,3 +1339,171 @@ def test_configuration_space_can_be_made_with_sequence_of_hyperparameters() -> N
     assert len(cs) == 2
     assert "a" in cs
     assert "b" in cs
+
+
+def test_update_hyperparameters():
+    space = ConfigurationSpace()
+    space.add(
+        [
+            UniformIntegerHyperparameter("a", 0, 100),
+            UniformFloatHyperparameter("b", -1.0, 1.0),
+            CategoricalHyperparameter("c", [1, 2, 3]),
+            OrdinalHyperparameter("d", [1, 2, 3]),
+            UniformFloatHyperparameter("e", 0.0, 1.0),
+        ],
+    )
+
+    # Verify that direct updates are not allowed
+    with pytest.raises(RuntimeError):
+        space["a"].lower = 1
+
+    # Test updating numerical HP min/max values
+    space.update(space["a"], 51, "upper")
+    assert space["a"].upper == 51
+    space.update(space["a"], 49, "lower")
+    assert space["a"].lower == 49
+
+    # Sample the space to verify it does not sample OOD
+    sample = space.sample_configuration(size=25)
+    for value in sample:
+        assert 49 <= value["a"] <= 51
+
+    # Test updating default values
+    space.update(
+        space["a"],
+        1,
+        "lower",
+    )  # ["a"].lower = 1  # Update first to avoid error
+    space.update(space["a"], 5, "default_value")
+    assert space["a"].default_value == 5
+
+    # Test that it cannot change to an illegal value
+    with pytest.raises(ValueError):
+        space.update(space["a"], 0, "upper")  # lower than lower
+    with pytest.raises(ValueError):
+        space.update(space["a"], 100, "lower")  # higher than upper
+    with pytest.raises(ValueError):
+        space.update(space["a"], 1000, "default_value")  # Out of bounds
+
+    # Test Float
+    space.update(space["b"], 0.1, "upper")
+    assert space["b"].upper == 0.1
+    space.update(space["b"], -0.1, "lower")
+    assert space["b"].lower == -0.1
+
+    # Check sampling
+    sample = space.sample_configuration(size=100)
+    for value in sample:
+        assert -0.1 <= value["b"] <= 0.1
+
+    # Test illegal changes
+    with pytest.raises(
+        ValueError,
+        match="Illegal default value 0.11 for hyperparameter 'b'.",
+    ):
+        space.update(space["b"], 0.11, "default_value")  # lower than lower
+    with pytest.raises(
+        ValueError,
+        match=re.escape("Illegal default value -0.11 for hyperparameter 'b'."),
+    ):
+        space.update(space["b"], -0.11, "default_value")  # lower than lower
+    with pytest.raises(
+        ValueError,
+        match="Illegal default value -10.0 for hyperparameter 'b'",
+    ):
+        space.update(space["b"], -10.0, "default_value")  # Out of bounds
+    with pytest.raises(
+        ValueError,
+        match=r"Can only set parameters passed to self\.__init__\..*'size' is not one of:",
+    ):
+        space.update(space["b"], 1_000_000, "size")  # Not an init parameter
+    with pytest.raises(
+        ValueError,
+        match=(
+            r"Can only set parameters passed to self\.__init__\..*"
+            r"'non_existiting_attribute' is not one of:"
+        ),
+    ):
+        space.update(
+            space["b"],
+            "wrong",
+            "non_existiting_attribute",
+        )  # cannot add new attributes
+
+    # Test categorical HP
+    space.update(space["c"], [1, 2, 3, 4], "choices")
+    assert space["c"].choices == (1, 2, 3, 4)
+
+    space.update(space["c"], 4, "default_value")  # Change default value
+    assert space["c"].default_value == 4
+
+    space.update(space["c"], [0.1, 0.4, 0.1, 0.4], "weights")  # Change weights
+    assert space["c"].weights == (0.1, 0.4, 0.1, 0.4)
+
+    # Test sampling
+    sample_count = {1: 0, 2: 0, 3: 0, 4: 0}
+    sample = space.sample_configuration(size=100)
+    for value in sample:
+        sample_count[value["c"]] += 1
+    assert sample_count[2] > sample_count[1]
+    assert sample_count[2] > sample_count[3]
+    assert sample_count[4] > sample_count[1]
+    assert sample_count[4] > sample_count[3]
+
+    # Test ordinal HP
+    space.update(space["d"], [1, 2, 3, 4], "sequence")  # Change sequence
+    assert space["d"].sequence == (1, 2, 3, 4)
+
+    space.update(space["d"], 4, "default_value")  # Change default value
+    assert space["d"].default_value == 4
+
+    # TODO: Test if updating hp's ranges/defaults translates correctly to forbiddens and conditionals
+    space = ConfigurationSpace()
+    space.add(
+        [
+            UniformIntegerHyperparameter("a", 0, 100),
+            UniformFloatHyperparameter("b", -1.0, 1.0),
+            CategoricalHyperparameter("c", [1, 2, 3]),
+            OrdinalHyperparameter("d", [1, 2, 3]),
+            UniformFloatHyperparameter("e", 0.0, 1.0),
+        ],
+    )
+    space.add(
+        AndConjunction(
+            LessThanCondition(space["d"], space["a"], 40),
+            EqualsCondition(space["d"], space["c"], 2),
+        ),
+    )
+    space.add(ForbiddenEqualsClause(space["e"], 0.125))
+
+    space.update(space["a"], 25, "lower")
+    space.update(space["e"], 0.66, "upper")
+    # Check that this is still a valid configuration
+    assert (
+        space._check_configuration_rigorous(
+            Configuration(space, values={"a": 25, "b": 0.0, "c": 1, "e": 0.66}),
+        )
+        is None
+    )
+    # Check that this is now out of bounds (a < 25)
+    with pytest.raises(
+        IllegalValueError,
+        match=re.escape(
+            "Value 0: (<class 'int'>) is not allowed for hyperparameter with name 'a'\na, Type: UniformInteger, Range: [25, 100], Default: 50",
+        ),
+    ):
+        space._check_configuration_rigorous(
+            Configuration(space, values={"a": 0, "b": 0.0, "c": 1, "e": 0.66}),
+        )
+
+    # Check that e still cannot be 0.125
+    print(space)
+    with pytest.raises(
+        ForbiddenValueError,
+        match=re.escape(
+            "Given vector violates forbidden clause: Forbidden: e == 0.125",
+        ),
+    ):
+        space._check_configuration_rigorous(
+            Configuration(space, values={"a": 50, "b": 0.0, "c": 1, "e": 0.125}),
+        )

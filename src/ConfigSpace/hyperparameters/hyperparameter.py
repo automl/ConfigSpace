@@ -143,9 +143,13 @@ class Hyperparameter(ABC, Generic[ValueT, DType]):
         # NOTE: Here we first verify if the object is being initialised by checking the call stack if the parent function is called "__init__"
         # This is currently the best way to check as checking the caller class etc is too complex
         # Alternatively, we could compare the __code__ objects/properties of the caller for self.__init__.__code__ but this would be more computationally expensive
-        if inspect.stack()[1][3] == '__init__':  # Init, normal __setattr__ control flow
+        stack = inspect.stack()  # NOTE: Calling stack is notoriously expensive, which could bottleneck the update function
+        
+        if stack[1][3] == '__init__':  # Init, normal __setattr__ control flow
             super().__setattr__(name, value)
-        else:  # We are updating an existing attribute
+        # We are updating an existing attribute
+        elif stack[1][3] == 'update':  # Called from ConfigSpace, hence legal
+            # NOTE: We could make the above check more protective -- using stack[2].frame.f_locals['space'] --- but this is a very convoluted check
             # Extract all editable attributes
             init_params: tuple[str] = self.__init__.__code__.co_varnames[:self.__init__.__code__.co_argcount]
 
@@ -161,10 +165,13 @@ class Hyperparameter(ABC, Generic[ValueT, DType]):
             previous_state = self.__dict__.copy()
             try:
                 self.__init__(**init_params)  # Reinitialise
-            except Exception:
+            except Exception as ex:
                 self.__dict__.clear()
                 self.__dict__.update(previous_state)
-                raise
+                raise ex
+        else:
+            raise RuntimeError(f"Can only update Hyperparameter attributes after initialization via Configspace.update. (Attempted to set: {self.name}.{name} = {value})")
+
     @property
     def lower_vectorized(self) -> f64:
         """Lower bound of the hyperparameter in vector space."""
