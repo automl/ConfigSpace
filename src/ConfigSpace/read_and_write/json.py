@@ -56,7 +56,7 @@ def write(
     " json string, pass it as `space.from_json(StringIO(jsn))`.",
 )
 def read(
-    jason_string: str,
+    json_string: str,
     decoders: Mapping[
         Literal["hyperparameters", "conditions", "forbiddens"],
         Mapping[str, _Decoder],
@@ -82,9 +82,9 @@ def read(
 
 
     Args:
-        jason_string: A json string representing a configuration space definition
+        json_string: A json string representing a configuration space definition
 
     Returns:
         The deserialized ConfigurationSpace object
     """
-    return ConfigurationSpace.from_json(StringIO(jason_string), decoders=decoders)
+    return ConfigurationSpace.from_json(StringIO(json_string), decoders=decoders)
