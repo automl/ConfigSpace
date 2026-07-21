@@ -144,11 +144,13 @@ class Hyperparameter(ABC, Generic[ValueT, DType]):
         # This is currently the best way to check as checking the caller class etc is too complex
         # Alternatively, we could compare the __code__ objects/properties of the caller for self.__init__.__code__ but this would be more computationally expensive
         stack = inspect.stack()  # NOTE: Calling stack is notoriously expensive, which could bottleneck the update function
-        
+        from ConfigSpace.configuration_space import ConfigurationSpace
+        configuration_space_file = inspect.getfile(ConfigurationSpace)
+
         if stack[1][3] == '__init__':  # Init, normal __setattr__ control flow
             super().__setattr__(name, value)
         # We are updating an existing attribute
-        elif stack[1][3] == 'update':  # Called from ConfigSpace, hence legal
+        elif stack[1].filename == configuration_space_file:  # Called from ConfigSpace, hence legal
             # NOTE: We could make the above check more protective -- using stack[2].frame.f_locals['space'] --- but this is a very convoluted check
             # Extract all editable attributes
             init_params: tuple[str] = self.__init__.__code__.co_varnames[:self.__init__.__code__.co_argcount]
