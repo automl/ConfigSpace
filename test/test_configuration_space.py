@@ -1641,7 +1641,6 @@ def test_update_hyperparameters():
         )
 
     # Check that e still cannot be 0.125
-    print(space)
     with pytest.raises(
         ForbiddenValueError,
         match=re.escape(
