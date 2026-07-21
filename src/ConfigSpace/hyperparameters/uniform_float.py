@@ -97,7 +97,7 @@ class UniformFloatHyperparameter(FloatHyperparameter):
         try:
             scaler = UnitScaler(f64(self.lower), f64(self.upper), log=log, dtype=f64)
         except ValueError as e:
-            raise ValueError(f"Hyperparameter '{name}' has illegal settings") from e
+            raise ValueError(f"Illegal value(s) for Hyperparameter '{name}'") from e
 
         vect_dist = UnitUniformContinuousDistribution(
             pdf_max_density=1 / float(self.upper - self.lower),

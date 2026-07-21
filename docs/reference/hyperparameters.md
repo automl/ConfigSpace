@@ -214,6 +214,10 @@ What makes a hyperparameter the hyperparameter it is then:
     if they share the same underlying vectorized space.
 
 
+!!! tip "Updating Hyperparameter properties"
+
+    Creating your own hyperparameter class, it is important to note that its properties may be updated after creation via the `Hyperparameter.__setattr__' method. This method blocks any changes after initialisation to any attribute directly or the creation of new attributes. Attribute values can only be changed through the class constructor parameters (the arguments of `__init__` function), and is only possible when they share **the same name**. Take this into consideration when subclassing the `Hyperparameter` class.
+
 !!! example "CategoricalHyperparameter"
 
     Inside of the `__init__` method of a `CategoricalHyperparameter`, you will find something along the lines
@@ -497,7 +501,7 @@ class BetaIntegerHyperparamter(IntegerHyperparameter):
         try:
             scaler = UnitScaler(i64(self.lower), i64(self.upper), log=log, dtype=i64)
         except ValueError as e:
-            raise ValueError(f"Hyperparameter '{name}' has illegal settings") from e
+            raise ValueError(f"Illegal value(s) for Hyperparameter '{name}'") from e
 
 
         if default_value is None:

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import inspect
 import warnings
 from abc import ABC, abstractmethod
 from collections.abc import Callable, Hashable, Mapping, Sequence
@@ -132,10 +133,46 @@ class Hyperparameter(ABC, Generic[ValueT, DType]):
         if not self.legal_value(self.default_value):
             raise ValueError(
                 f"Illegal default value {self.default_value} for"
-                f" hyperparamter '{self.name}'.",
+                f" hyperparameter '{self.name}'.",
             )
 
         self._normalized_default_value = self.to_vector(self.default_value)
+
+    def __setattr__(self, name: str, value: Any):
+        """Check if attribute can be set on HP, and reinitialises the class if so."""
+        # NOTE: Here we first verify if the object is being initialised by checking the call stack if the parent function is called "__init__"
+        # This is currently the best way to check as checking the caller class etc is too complex
+        # Alternatively, we could compare the __code__ objects/properties of the caller for self.__init__.__code__ but this would be more computationally expensive
+        stack = inspect.stack()  # NOTE: Calling stack is notoriously expensive, which could bottleneck the update function
+        from ConfigSpace.configuration_space import ConfigurationSpace
+        configuration_space_file = inspect.getfile(ConfigurationSpace)
+
+        if stack[1][3] == '__init__':  # Init, normal __setattr__ control flow
+            super().__setattr__(name, value)
+        # We are updating an existing attribute
+        elif stack[1].filename == configuration_space_file:  # Called from ConfigSpace, hence legal
+            # NOTE: We could make the above check more protective -- using stack[2].frame.f_locals['space'] --- but this is a very convoluted check
+            # Extract all editable attributes
+            init_params: tuple[str] = self.__init__.__code__.co_varnames[:self.__init__.__code__.co_argcount]
+
+            if name not in init_params or not hasattr(self, name):
+                raise ValueError(f"Can only set parameters passed to self.__init__. '{name}' is not one of: {init_params}")
+
+            try:
+                init_params = {key: self.__dict__[key] for key in init_params if hasattr(self, key)}  # This will break if the parameter is not saved under its passed name
+            except KeyError as e:
+                raise KeyError(f"You are seeing this message because the class {self.__class__.__name__} does not define an instance attribute with the same name as the class constructor parameter. To update Hyperparameter attributes after initialization, either modify the __init__ function of the class to define the attribute with the same name or call hp_instance.__init__(**new_init_parameters) to reset the parameters") from e
+            init_params[name] = value  # Place the update value
+
+            previous_state = self.__dict__.copy()
+            try:
+                self.__init__(**init_params)  # Reinitialise
+            except Exception as ex:
+                self.__dict__.clear()
+                self.__dict__.update(previous_state)
+                raise ex
+        else:
+            raise RuntimeError(f"Can only update Hyperparameter attributes after initialization via Configspace.update. (Attempted to set: {self.name}.{name} = {value})")
 
     @property
     def lower_vectorized(self) -> f64:
