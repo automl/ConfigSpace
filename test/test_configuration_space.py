@@ -1496,6 +1496,7 @@ def test_update_hyperparameters():
             Configuration(space, values={"a": 0, "b": 0.0, "c": 1, "e": 0.66}),
         )
 
+    # Test if updating the hyperparameters also updates the Forbiddens correctly
     # Check that e still cannot be 0.125
     with pytest.raises(
         ForbiddenValueError,
@@ -1506,3 +1507,11 @@ def test_update_hyperparameters():
         space._check_configuration_rigorous(
             Configuration(space, values={"a": 50, "b": 0.0, "c": 1, "e": 0.125}),
         )
+
+    # Check that D is still correctly activated
+    assert (
+        space._check_configuration_rigorous(
+            Configuration(space, values={"a": 39, "b": 0.0, "c": 2, "d": 2, "e": 0.66}),
+        )
+        is None
+    )

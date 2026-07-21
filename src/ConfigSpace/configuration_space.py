@@ -832,24 +832,24 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
             previous_vector = object._vector_dist
             self[object.name].__setattr__(attribute, value)
 
-            def _update_condition_vector(condition: [ConditionLike, ForbiddenLike]):
-                if isinstance(condition, (Conjunction, ForbiddenConjunction)):
-                    for dlc in condition.dlcs:
-                        _update_condition_vector(dlc)
+            def _update_clause_vector(clause: [ConditionLike, ForbiddenLike]):
+                if isinstance(clause, (Conjunction, ForbiddenConjunction)):
+                    for dlc in clause.dlcs:
+                        _update_clause_vector(dlc)
                 else:
-                    if (isinstance(condition, Condition) and condition.parent.name == object.name) or (isinstance(condition, ForbiddenClause) and condition.hyperparameter.name == object.name):
-                        if hasattr(condition, "vector_values"):  # Vectorised condition
-                            condition.vector_values = [object.to_vector(value) for value in condition.values]
-                        elif hasattr(condition, "vector_value"):  # Single value
-                            condition.vector_value = object.to_vector(condition.value)
+                    if (isinstance(clause, Condition) and clause.parent.name == object.name) or (isinstance(clause, ForbiddenClause) and clause.hyperparameter.name == object.name):
+                        if hasattr(clause, "vector_values"):  # Vectorised condition
+                            clause.vector_values = [object.to_vector(value) for value in clause.values]
+                        elif hasattr(clause, "vector_value"):  # Single value
+                            clause.vector_value = object.to_vector(clause.value)
 
             if previous_vector != object._vector_dist:  # Vector has changed, hence vectorised values must be updated
                 # 2. Update the conditions vector values
                 for condition in self.conditions:
-                    _update_condition_vector(condition)
+                    _update_clause_vector(condition)
                 # 3. Update the forbiddens vector values
                 for forbidden in self.forbidden_clauses:
-                    _update_condition_vector(forbidden)
+                    _update_clause_vector(forbidden)
         else:
             raise NotImplementedError("ConfigSpace.update is currently only available for Hyperparameter attributes.")
 
