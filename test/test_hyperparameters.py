@@ -677,9 +677,9 @@ def test_normalfloat_pdf():
     wrong_shape_3 = np.array([3, 5, 7]).reshape(-1, 1)
 
     assert c1.pdf_values(point_1)[0] == pytest.approx(2.138045617479014)
-    assert c2.pdf_values(point_1_log)[0] == pytest.approx(2.038104873599176)
+    assert c2.pdf_values(point_1_log)[0] == pytest.approx(2.138045617479014)
     assert c1.pdf_values(point_2)[0] == pytest.approx(0.00467695579850518)
-    assert c2.pdf_values(point_2_log)[0] == pytest.approx(0.009061204414610455)
+    assert c2.pdf_values(point_2_log)[0] == pytest.approx(0.004676955798505195)
     assert c3.pdf_values(point_3)[0] == c3.get_max_density()
     # TODO - change this once the is_legal support is there
     # but does not have an actual impact of now
@@ -699,7 +699,7 @@ def test_normalfloat_pdf():
     )
     np.testing.assert_almost_equal(
         array_results_log,
-        np.array([2.03810487359918, 0.00906120441461, 0.0]),
+        np.array([2.138045617479014, 0.004676955798505195, 0.0]),
         decimal=14,
     )
 
@@ -720,6 +720,30 @@ def test_normalfloat_pdf():
         c1.pdf_values(wrong_shape_3)
 
 
+def test_normalfloat_log_sigma_does_not_depend_on_the_lower_bound():
+    """On a log scale sigma is a factor: sigma=2 means a two-fold spread.
+
+    The lower bound says where the axis starts, not how wide the distribution
+    is, so the same sigma must give the same spread on any range. It used to be
+    added to sigma before the logarithm, which made the achieved spread grow
+    with the lower bound - a factor of 2 came out as 2.5 on [0.5, 5000] and as
+    12 on [10, 100000] - and collapsed the distribution entirely at
+    sigma = 1 - lower.
+    """
+    spreads = []
+    for lower, upper, mu in ((1e-6, 1e2, 1e-2), (0.5, 5e3, 50.0), (10.0, 1e5, 1e3)):
+        hp = NormalFloatHyperparameter(
+            "x", mu=mu, sigma=2.0, lower=lower, upper=upper, log=True,
+        )
+        space = ConfigurationSpace(seed=0)
+        space.add([hp])
+        drawn = np.array([c["x"] for c in space.sample_configuration(5000)])
+        spreads.append(np.exp(np.std(np.log(drawn))))
+
+    for spread in spreads:
+        assert spread == pytest.approx(2.0, rel=0.05)
+
+
 def test_normalfloat_get_max_density():
     c1 = NormalFloatHyperparameter("param", lower=0, upper=10, mu=3, sigma=2)
     c2 = NormalFloatHyperparameter(
@@ -732,7 +756,7 @@ def test_normalfloat_get_max_density():
     )
     c3 = NormalFloatHyperparameter("param", lower=0, upper=0.5, mu=-1, sigma=0.2)
     assert c1.get_max_density() == pytest.approx(2.138045617479014, abs=1e-9)
-    assert c2.get_max_density() == pytest.approx(2.038104873599176, abs=1e-9)
+    assert c2.get_max_density() == pytest.approx(2.138045617479014, abs=1e-9)
     assert c3.get_max_density() == pytest.approx(12.966261361167449, abs=1e-9)
 
 
@@ -1590,9 +1614,9 @@ def test_normalint_pdf():
     wrong_shape_3 = np.array([3, 5, 7]).reshape(-1, 1)
 
     assert c1.pdf_values(point_1)[0] == pytest.approx(0.18913087287205807)
-    assert c2.pdf_values(point_1_log)[0] == pytest.approx(0.0013829743550526114)
+    assert c2.pdf_values(point_1_log)[0] == pytest.approx(0.0014280640896083912)
     assert c1.pdf_values(point_2)[0] == pytest.approx(0.00041372210458180426)
-    assert c2.pdf_values(point_2_log)[0] == pytest.approx(0.0002698746029856508)
+    assert c2.pdf_values(point_2_log)[0] == pytest.approx(0.00022498968384673673)
     assert c3.pdf_values(point_3)[0] == pytest.approx(0.9834724443747417)
     # TODO - change this once the is_legal support is there
     # but does not have an actual impact of now
@@ -1613,7 +1637,7 @@ def test_normalint_pdf():
     )
     np.testing.assert_allclose(
         array_results_log,
-        np.array([0.0013829743550526114, 0.0002698746029856508, 0.0]),
+        np.array([0.0014280640896083912, 0.00022498968384673673, 0.0]),
     )
 
     with pytest.raises(
@@ -1645,7 +1669,7 @@ def test_normalint_get_max_density():
     )
     c3 = NormalIntegerHyperparameter("param", lower=0, upper=2, mu=-1.2, sigma=0.5)
     assert c1.get_max_density() == pytest.approx(2.118259218934877)
-    assert c2.get_max_density() == pytest.approx(1.4595513607866044)
+    assert c2.get_max_density() == pytest.approx(1.517783714997608)
     assert c3.get_max_density() == pytest.approx(10.927444887375877)
 
 

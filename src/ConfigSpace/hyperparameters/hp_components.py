@@ -351,7 +351,7 @@ class UnitScaler(Transformer[DType]):
         """
         if self.log:
             return np.abs(  # type: ignore
-                np.log(self._lower_value_f64 + size)
+                np.log(size)
                 / (np.log(self._upper_value_f64) - np.log(self._lower_value_f64)),
             )
 
