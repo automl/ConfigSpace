@@ -186,6 +186,25 @@ def test_random_neighborhood_int():
     assert pytest.approx(np.var(all_neighbors), abs=1e-2) == 5.499
 
 
+def test_one_exchange_neighbourhood_int_at_edge_with_all_but_one_neighbor():
+    """Requesting 8 of the 9 neighbors of an integer at its lower bound succeeds.
+
+    Seed 3426 exhausts the sampling retries, so the remaining neighbors have to come
+    from enumeration. Every returned value must be distinct and differ from the current one.
+    """
+    cs = ConfigurationSpace(seed=0)
+    cs.add(UniformIntegerHyperparameter("n", 1, 10, default_value=1))
+    config = Configuration(cs, values={"n": 1})
+
+    neighbors = list(
+        get_one_exchange_neighbourhood(config, seed=3426, stdev=0.025, num_neighbors=8),
+    )
+    values = [neighbor["n"] for neighbor in neighbors]
+    assert len(values) == 8
+    assert len(set(values)) == 8
+    assert set(values) <= set(range(2, 11))
+
+
 def test_random_neighbor_cat():
     hp = CategoricalHyperparameter("a", [5, 6, 7, 8])
     all_neighbors = _test_get_one_exchange_neighbourhood(hp)
