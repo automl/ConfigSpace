@@ -51,6 +51,7 @@ from ConfigSpace.hyperparameters import (
     UniformFloatHyperparameter,
     UniformIntegerHyperparameter,
 )
+from ConfigSpace.hyperparameters.distributions import quantized_neighborhood
 from ConfigSpace.util import get_one_exchange_neighbourhood
 
 META_DATA: Mapping[Hashable, Any] = {
@@ -1396,6 +1397,34 @@ def test_uniformint_get_neighbors():
             neighbors = c1.neighbors_values(i_value, n=i_upper, seed=rs)
             expected = set(range(i_upper + 1)) - {i_value}
             assert set(neighbors) == expected, f"{i_value=}"
+
+
+@pytest.mark.parametrize(
+    ("vector", "seed"),
+    [(0.0, s) for s in (3426, 4096, 4389, 15390, 22771)]
+    + [(1.0, s) for s in (8177, 10216, 10321, 15461, 18354)],
+)
+def test_quantized_neighborhood_falls_back_when_sampling_runs_out(vector, seed):
+    """Asking for all but one of the bins still returns `n` distinct neighbors.
+
+    With the center at an edge of the range and a small `std`, these seeds exhaust the
+    sampling retries before finding 8 of the 9 available neighbors. The result must
+    still be 8 distinct bins that exclude the center.
+    """
+    bins = 10
+    neighbors = quantized_neighborhood(
+        np.float64(vector),
+        8,
+        std=0.025,
+        seed=np.random.RandomState(seed),
+        lower=np.float64(0.0),
+        upper=np.float64(1.0),
+        bins=bins,
+    )
+    assert len(neighbors) == 8
+    assert len(np.unique(neighbors)) == 8
+    assert vector not in neighbors
+    assert np.isin(neighbors, np.arange(bins) / (bins - 1)).all()
 
 
 def test_normalint():

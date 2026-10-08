@@ -195,13 +195,19 @@ def quantized_neighborhood(
             # Ensure we don't include the initial value point
             return neighbors[1 : n + 1]
 
-    raise ValueError(
-        f"Failed to find enough neighbors with {n_retries} retries."
-        f" Given {n=} neighbors to generate, we only found {offset - 1}."
-        f" The normal's for sampling neighbors were Normal({vector}, {list(stds)})"
-        f" which were meant to find neighbors of {vector}. in the range"
-        f" ({lower}, {upper}).",
+    # Sampling can run out of retries when `n` is just below `n_available`, as it then
+    # has to hit nearly every bin, and more so when `vector` sits at the edge of the
+    # range where half of each batch falls outside the bounds. Since `n < n_available`,
+    # the request can always be satisfied, so we keep the neighbors found so far and
+    # fill the rest with randomly chosen bins that have not been found yet.
+    missing = np.setdiff1d(
+        np.arange(0, bins, dtype=f64) / (bins - 1),
+        neighbors[:offset],
+        assume_unique=True,
     )
+    seed.shuffle(missing)
+    n_missing = n - (offset - 1)
+    return np.concatenate((neighbors[1:offset], missing[:n_missing]))
 
 
 def continuous_neighborhood(
