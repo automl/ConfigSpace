@@ -245,7 +245,14 @@ class Configuration(Mapping[str, Any]):
         return NotImplemented
 
     def __hash__(self) -> int:
-        return hash(self.__repr__())
+        item_hashes = []
+        for key, value in self.items():
+            try:
+                item_hashes.append(hash((key, value)))
+            except TypeError:
+                # Unhashable categorical choices (e.g. lists) contribute only their name
+                item_hashes.append(hash(key))
+        return hash(tuple(item_hashes))
 
     def __str__(self) -> str:
         values = dict(self)
