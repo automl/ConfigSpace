@@ -1112,6 +1112,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
                 cs: ConfigurationSpace,
                 _dec: _Decoder,
             ) -> Any:
+                item = item.copy()
                 _type = item.pop("type", None)
                 if _type is None:
                     raise KeyError(
