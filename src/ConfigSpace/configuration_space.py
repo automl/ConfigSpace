@@ -829,7 +829,6 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         """
         if isinstance(object, Hyperparameter) and attribute is not None:
             # 1. Update hyperparameter attribute
-            previous_vector = object._vector_dist
             if attribute == "name":
                 raise ValueError("Renaming hyperparameters is not supported.")
             self[object.name].__setattr__(attribute, value)
@@ -838,14 +837,16 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
                 if isinstance(clause, (Conjunction, ForbiddenConjunction)):
                     for dlc in clause.dlcs:
                         _update_clause_vector(dlc)
-                else:
-                    if (isinstance(clause, Condition) and clause.parent.name == object.name) or (isinstance(clause, ForbiddenClause) and clause.hyperparameter.name == object.name):
+                elif (isinstance(clause, Condition) and clause.parent.name == object.name) or (isinstance(clause, ForbiddenClause) and clause.hyperparameter.name == object.name):
                         if hasattr(clause, "vector_values"):  # Vectorised condition
                             clause.vector_values = [object.to_vector(value) for value in clause.values]
                         elif hasattr(clause, "vector_value"):  # Single value
                             clause.vector_value = object.to_vector(clause.value)
 
-            # Value encoding can change independently of the distribution.
+            # 2. Value encoding can change independently of the distribution and must hence always be updated
+            # For example, reordering the possible values of an ordinal variable leaves the vector distribution unaffected, 
+            # but the meaning of the encoding has changed.
+            # NOTE: The unconditional update was suggested by CoPilot. I believe the AI was correct, but discussion might be warranted - T.S. 22-10-2026
             for condition in self.conditions:
                 _update_clause_vector(condition)
             for forbidden in self.forbidden_clauses:
