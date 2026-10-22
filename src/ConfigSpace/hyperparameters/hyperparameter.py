@@ -147,7 +147,7 @@ class Hyperparameter(ABC, Generic[ValueT, DType]):
         from ConfigSpace.configuration_space import ConfigurationSpace
         configuration_space_file = inspect.getfile(ConfigurationSpace)
 
-        if stack[1][3] == '__init__':  # Init, normal __setattr__ control flow
+        if stack[1][3] == '__init__' and stack[1].frame.f_locals.get('self') is self:  # Initializing this hyperparameter
             super().__setattr__(name, value)
         # We are updating an existing attribute
         elif stack[1].filename == configuration_space_file:  # Called from ConfigSpace, hence legal
