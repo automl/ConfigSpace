@@ -845,13 +845,11 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
                         elif hasattr(clause, "vector_value"):  # Single value
                             clause.vector_value = object.to_vector(clause.value)
 
-            if previous_vector != object._vector_dist:  # Vector has changed, hence vectorised values must be updated
-                # 2. Update the conditions vector values
-                for condition in self.conditions:
-                    _update_clause_vector(condition)
-                # 3. Update the forbiddens vector values
-                for forbidden in self.forbidden_clauses:
-                    _update_clause_vector(forbidden)
+            # Value encoding can change independently of the distribution.
+            for condition in self.conditions:
+                _update_clause_vector(condition)
+            for forbidden in self.forbidden_clauses:
+                _update_clause_vector(forbidden)
         else:
             raise NotImplementedError("ConfigSpace.update is currently only available for Hyperparameter attributes.")
 
