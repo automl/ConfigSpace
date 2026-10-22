@@ -830,6 +830,8 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         if isinstance(object, Hyperparameter) and attribute is not None:
             # 1. Update hyperparameter attribute
             previous_vector = object._vector_dist
+            if attribute == "name":
+                raise ValueError("Renaming hyperparameters is not supported.")
             self[object.name].__setattr__(attribute, value)
 
             def _update_clause_vector(clause: [ConditionLike, ForbiddenLike]):
