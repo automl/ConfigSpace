@@ -151,7 +151,6 @@ class Hyperparameter(ABC, Generic[ValueT, DType]):
             super().__setattr__(name, value)
         # We are updating an existing attribute
         elif stack[1].filename == configuration_space_file:  # Called from ConfigSpace, hence legal
-            # NOTE: We could make the above check more protective -- using stack[2].frame.f_locals['space'] --- but this is a very convoluted check
             # Extract all editable attributes
             init_params: tuple[str] = self.__init__.__code__.co_varnames[:self.__init__.__code__.co_argcount]
 

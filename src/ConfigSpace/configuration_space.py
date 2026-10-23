@@ -827,38 +827,68 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
             value: The value to update it by
             attribute: The attribute to update (optional)
         """
-        if isinstance(object, Hyperparameter) and attribute is not None:
-            # 1. Update hyperparameter attribute
-            if attribute == "name":
-                raise ValueError("Renaming hyperparameters is not supported.")
-            original_value = self[object.name].__getattribute__(attribute)
-            self[object.name].__setattr__(attribute, value)
-            try:
-                self.get_default_configuration()
-            except:
-                self[object.name].__setattr__(attribute, original_value)
-                raise ForbiddenValueError(f"Setting '{attribute}' of '{object}' to '{value}' invalidates the default configuration.")
-
-            def _update_clause_vector(clause: [ConditionLike, ForbiddenLike]):
-                if isinstance(clause, (Conjunction, ForbiddenConjunction)):
-                    for dlc in clause.dlcs:
-                        _update_clause_vector(dlc)
-                elif (isinstance(clause, Condition) and clause.parent.name == object.name) or (isinstance(clause, ForbiddenClause) and clause.hyperparameter.name == object.name):
-                        if hasattr(clause, "vector_values"):  # Vectorised condition
-                            clause.vector_values = [object.to_vector(value) for value in clause.values]
-                        elif hasattr(clause, "vector_value"):  # Single value
-                            clause.vector_value = object.to_vector(clause.value)
-
-            # 2. Value encoding can change independently of the distribution and must hence always be updated
-            # For example, reordering the possible values of an ordinal variable leaves the vector distribution unaffected, 
-            # but the meaning of the encoding has changed.
-            # NOTE: The unconditional update was suggested by CoPilot. I believe the AI was correct, but discussion might be warranted - T.S. 22-10-2026
-            for condition in self.conditions:
-                _update_clause_vector(condition)
-            for forbidden in self.forbidden_clauses:
-                _update_clause_vector(forbidden)
-        else:
+        if not isinstance(object, Hyperparameter):
             raise NotImplementedError("ConfigSpace.update is currently only available for Hyperparameter attributes.")
+        if attribute is None:
+            raise ValueError("Cannot set Hyperparameter attribute to None.")
+
+        if attribute == "name":
+            raise ValueError("Renaming hyperparameters is not supported.")
+
+        try:
+            original_value = self[object.name].__getattribute__(attribute)
+        except:
+            raise ValueError(f"The attribute '{attribute}' does not exist on Hyperparameter '{object.name}'.")
+        
+        # 1. Update hyperparameter attribute
+        self[object.name].__setattr__(attribute, value)
+        
+        try: # Verify that the default configuration is still correct
+            self.get_default_configuration()
+        except:
+            self[object.name].__setattr__(attribute, original_value)
+            raise ForbiddenValueError(f"Setting '{attribute}' of '{object}' to '{value}' invalidates the default configuration.")
+
+        def _update_clause_vector(clause: [ConditionLike, ForbiddenLike]):
+            if isinstance(clause, (Conjunction, ForbiddenConjunction)):
+                for dlc in clause.dlcs:
+                    _update_clause_vector(dlc)
+            elif (isinstance(clause, Condition) and clause.parent.name == object.name) or (isinstance(clause, ForbiddenClause) and clause.hyperparameter.name == object.name):
+                    if hasattr(clause, "vector_values"):  # Vectorised condition
+                        original_clause_values.append((clause, clause.vector_values))
+                        clause.vector_values = [object.to_vector(value) for value in clause.values]
+                    elif hasattr(clause, "vector_value"):  # Single value
+                        original_clause_values.append((clause, clause.vector_value))
+                        clause.vector_value = object.to_vector(clause.value)
+
+        def _rollback():
+            """Rollback Hyperparameter settings when an issue has been detected."""
+            self[object.name].__setattr__(attribute, original_value)
+            # Rollback the updated conditions
+            for clause, original in original_clause_values:
+                if hasattr(clause, "vector_values"):  # Vectorised condition
+                    clause.vector_values = original
+                else:
+                    clause.vector_value = original
+
+        # 2. Value encoding can change independently of the distribution and must hence always be updated
+        # For example, reordering the possible values of an ordinal variable leaves the vector distribution unaffected, 
+        # but the meaning of the encoding has changed.
+        # NOTE: The unconditional update was suggested by CoPilot. I believe the AI was correct, but discussion might be warranted - T.S. 22-10-2026
+        original_clause_values: list[tuple([ConditionLike, ForbiddenLike], Any)] = []
+        for condition in self.conditions:
+            try: # The update of a clause vector may fail if the vector for example references a hyperparameter value that is now unavailable
+                _update_clause_vector(condition)
+            except: # thus we must be prepared to do a rollback of the HP change upon failure
+                _rollback()
+                raise ValueError(f"Setting '{attribute}' of Hyperparameter '{object.name}' to '{value}' invalidates the following condition: {condition}.")
+        for forbidden in self.forbidden_clauses:
+            try: # The update of a clause vector may fail if the vector for example references a hyperparameter value that is now unavailable
+                _update_clause_vector(forbidden)
+            except:
+                _rollback()
+                raise ValueError(f"Setting '{attribute}' of Hyperparameter '{object.name}' to '{value}' invalidates the following forbidden: {forbidden}.")
+        
 
 
     def __eq__(self, other: Any) -> bool:

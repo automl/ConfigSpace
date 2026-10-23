@@ -1420,8 +1420,7 @@ def test_update_hyperparameters():
     with pytest.raises(
         ValueError,
         match=(
-            r"Can only set parameters passed to self\.__init__\..*"
-            r"'non_existiting_attribute' is not one of:"
+            r"The attribute 'non_existiting_attribute' does not exist on Hyperparameter 'b'."
         ),
     ):
         space.update(
@@ -1526,3 +1525,21 @@ def test_update_default_to_forbidden_value():
 
     with pytest.raises(ForbiddenValueError):
         space.update(space["a"], 0.75, "default_value")
+
+
+def test_update_failed_dependency_conversion_rolls_back():
+    space = ConfigurationSpace()
+    a = CategoricalHyperparameter("a", ["x", "y", "z"], default_value="x")
+    b = CategoricalHyperparameter("b", [1, 2])
+    c = CategoricalHyperparameter("c", [1, 2])
+    space.add(a, b, c, EqualsCondition(b, a, "z"), EqualsCondition(c, a, "y"))
+    z_condition = space.conditions[0]
+    z_vector = z_condition.vector_value
+
+    # Removing "y" is legal for the hyperparameter, but the condition on c references it
+    with pytest.raises(ValueError):
+        space.update(space["a"], ["x", "z"], "choices")
+
+    # A failed update must leave the space untouched
+    assert space["a"].choices == ("x", "y", "z")
+    assert z_condition.vector_value == z_vector
