@@ -835,6 +835,10 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         if attribute == "name":
             raise ValueError("Renaming hyperparameters is not supported.")
 
+        # NOTE: Resolve the stored instance: the caller may pass a copy or an equal hyperparameter,
+        # and the clause vectors must be re-encoded with the same object that gets updated.
+        # This change is based on the input of Copilot. - T.S. 23-10-2026
+        object = self[object.name]  
         try:
             original_value = self[object.name].__getattribute__(attribute)
         except:
