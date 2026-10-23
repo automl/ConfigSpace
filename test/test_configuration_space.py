@@ -1515,3 +1515,14 @@ def test_update_hyperparameters():
         )
         is None
     )
+
+
+def test_update_default_to_forbidden_value():
+    # Test that we cannot update the hyperparameter in such a way that the default configuration becomes illegal
+    space = ConfigurationSpace()
+    hp = UniformFloatHyperparameter("a", 0.0, 1.0, default_value=0.5)
+    space.add(hp)
+    space.add(ForbiddenEqualsClause(hp, 0.75))
+
+    with pytest.raises(ForbiddenValueError):
+        space.update(space["a"], 0.75, "default_value")

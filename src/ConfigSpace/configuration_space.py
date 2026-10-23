@@ -831,7 +831,13 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
             # 1. Update hyperparameter attribute
             if attribute == "name":
                 raise ValueError("Renaming hyperparameters is not supported.")
+            original_value = self[object.name].__getattribute__(attribute)
             self[object.name].__setattr__(attribute, value)
+            try:
+                self.get_default_configuration()
+            except:
+                self[object.name].__setattr__(attribute, original_value)
+                raise ForbiddenValueError(f"Setting '{attribute}' of '{object}' to '{value}' invalidates the default configuration.")
 
             def _update_clause_vector(clause: [ConditionLike, ForbiddenLike]):
                 if isinstance(clause, (Conjunction, ForbiddenConjunction)):
