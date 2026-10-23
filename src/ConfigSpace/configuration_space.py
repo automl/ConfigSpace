@@ -842,13 +842,6 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         
         # 1. Update hyperparameter attribute
         self[object.name].__setattr__(attribute, value)
-        
-        try: # Verify that the default configuration is still correct
-            self.get_default_configuration()
-        except:
-            self[object.name].__setattr__(attribute, original_value)
-            raise ForbiddenValueError(f"Setting '{attribute}' of '{object}' to '{value}' invalidates the default configuration.")
-
         def _update_clause_vector(clause: [ConditionLike, ForbiddenLike]):
             if isinstance(clause, (Conjunction, ForbiddenConjunction)):
                 for dlc in clause.dlcs:
@@ -876,18 +869,27 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         # but the meaning of the encoding has changed.
         # NOTE: The unconditional update was suggested by CoPilot. I believe the AI was correct, but discussion might be warranted - T.S. 22-10-2026
         original_clause_values: list[tuple([ConditionLike, ForbiddenLike], Any)] = []
+        # 2.A. Update the conditions
         for condition in self.conditions:
             try: # The update of a clause vector may fail if the vector for example references a hyperparameter value that is now unavailable
                 _update_clause_vector(condition)
             except: # thus we must be prepared to do a rollback of the HP change upon failure
                 _rollback()
                 raise ValueError(f"Setting '{attribute}' of Hyperparameter '{object.name}' to '{value}' invalidates the following condition: {condition}.")
+        # 2.B. Update the forbiddens
         for forbidden in self.forbidden_clauses:
             try: # The update of a clause vector may fail if the vector for example references a hyperparameter value that is now unavailable
                 _update_clause_vector(forbidden)
             except:
                 _rollback()
                 raise ValueError(f"Setting '{attribute}' of Hyperparameter '{object.name}' to '{value}' invalidates the following forbidden: {forbidden}.")
+    
+        # 3. Verify that the default configuration is still correct
+        try:
+            self.get_default_configuration()
+        except:
+            _rollback()
+            raise ForbiddenValueError(f"Setting '{attribute}' of '{object}' to '{value}' invalidates the default configuration.")
         
 
 

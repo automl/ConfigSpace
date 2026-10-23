@@ -1543,3 +1543,17 @@ def test_update_failed_dependency_conversion_rolls_back():
     # A failed update must leave the space untouched
     assert space["a"].choices == ("x", "y", "z")
     assert z_condition.vector_value == z_vector
+
+
+def test_update_reorder_choices_keeps_legal_default():
+    space = ConfigurationSpace()
+    a = CategoricalHyperparameter("a", ["x", "y", "z"], default_value="y")
+    space.add(a, ForbiddenEqualsClause(a, "x"))
+    forbidden = space.forbidden_clauses[0]
+
+    # Reordering changes the encoding, but the default "y" is still not forbidden
+    space.update(space["a"], ["y", "x", "z"], "choices")
+
+    assert space["a"].choices == ("y", "x", "z")
+    assert forbidden.vector_value == space["a"].to_vector("x")
+    assert space.get_default_configuration()["a"] == "y"
