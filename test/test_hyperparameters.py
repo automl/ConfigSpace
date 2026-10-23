@@ -28,6 +28,7 @@
 from __future__ import annotations
 
 import copy
+import re
 from collections import defaultdict
 from collections.abc import Mapping
 from dataclasses import dataclass
@@ -60,7 +61,7 @@ META_DATA: Mapping[Hashable, Any] = {
 }
 
 
-def f() -> None:
+def f():
     pass
 
 
@@ -286,7 +287,7 @@ def test_uniformfloat_to_integer():
 def test_uniformfloat_illegal_bounds():
     with pytest.raises(
         ValueError,
-        match="Hyperparameter 'param' has illegal settings",
+        match=re.escape("Illegal value(s) for Hyperparameter 'param'"),
     ) as e:
         _ = UniformFloatHyperparameter("param", 0, 10, log=True)
 
@@ -298,7 +299,7 @@ def test_uniformfloat_illegal_bounds():
 
     with pytest.raises(
         ValueError,
-        match="Hyperparameter 'param' has illegal settings",
+        match=re.escape("Illegal value(s) for Hyperparameter 'param'"),
     ) as e:
         _ = UniformFloatHyperparameter("param", 1, 0)
 
@@ -1245,7 +1246,7 @@ def test_uniformint_legal_float_values():
 def test_uniformint_illegal_bounds():
     with pytest.raises(
         ValueError,
-        match="Hyperparameter 'param' has illegal settings",
+        match=re.escape("Illegal value(s) for Hyperparameter 'param'"),
     ) as e:
         UniformIntegerHyperparameter("param", 0, 10, log=True)
 
@@ -1257,7 +1258,7 @@ def test_uniformint_illegal_bounds():
 
     with pytest.raises(
         ValueError,
-        match="Hyperparameter 'param' has illegal settings",
+        match=re.escape("Illegal value(s) for Hyperparameter 'param'"),
     ) as e:
         _ = UniformIntegerHyperparameter("param", 1, 0)
 
