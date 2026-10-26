@@ -245,7 +245,17 @@ class Configuration(Mapping[str, Any]):
         return NotImplemented
 
     def __hash__(self) -> int:
-        return hash(self.__repr__())
+        item_hashes = []
+        for key, value in self.items():
+            hp = self.config_space[key]
+            if isinstance(hp, CategoricalHyperparameter):
+                item_hashes.append(hash(key))
+            else:
+                try:
+                item_hashes.append(hash((key, value)))
+            except TypeError:
+                item_hashes.append(hash(key))
+        return hash(tuple(item_hashes))
 
     def __str__(self) -> str:
         values = dict(self)
