@@ -79,15 +79,13 @@ def test_sampled_configurations_hash_consistently_with_equality(
 
 def test_unequal_configurations_hash_differently(cs: ConfigurationSpace) -> None:
     """Configurations that differ in one value get different hashes.
-
-    Different hashes are not guaranteed in general, but for these small values a
-    collision would mean the value is being ignored by the hash.
     """
-    a = Configuration(cs, values={"n": 5, "x": 0.5, "c": "a"})
-    b = Configuration(cs, values={"n": 5, "x": 0.5, "c": "b"})
+    cs = ConfigurationSpace({"cat": ["A", "B"]})
+    c1 = Configuration(cs, {"cat": "A"})
+    c2 = Configuration(cs, {"cat": "B"})
 
-    assert a != b
-    assert hash(a) != hash(b)
+    assert c1 != c2
+    assert hash(c1) != hash(c2)
 
 
 def test_unhashable_categorical_choices_are_hashable_configurations() -> None:
