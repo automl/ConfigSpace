@@ -247,10 +247,13 @@ class Configuration(Mapping[str, Any]):
     def __hash__(self) -> int:
         item_hashes = []
         for key, value in self.items():
-            try:
+            hp = self.config_space[key]
+            if isinstance(hp, CategoricalHyperparameter):
+                item_hashes.append(hash(key))
+            else:
+                try:
                 item_hashes.append(hash((key, value)))
             except TypeError:
-                # Unhashable categorical choices (e.g. lists) contribute only their name
                 item_hashes.append(hash(key))
         return hash(tuple(item_hashes))
 
