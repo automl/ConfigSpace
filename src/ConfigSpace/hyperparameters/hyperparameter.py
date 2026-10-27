@@ -35,6 +35,7 @@ def dataclass_with_init_params(cls):
     original_init = cls.__dict__.get("__init__")
 
     if original_init is not None:
+
         @wraps(original_init)
         def wrapped_init(self, *args, **kwargs):
             # Ensure only the outermost call to __init__ sets the _init_args and _init_kwargs attributes.
@@ -53,6 +54,7 @@ def dataclass_with_init_params(cls):
         cls.__init__ = wrapped_init
 
     return cls
+
 
 @dataclass_with_init_params
 class Hyperparameter(ABC, Generic[ValueT, DType]):
@@ -170,10 +172,7 @@ class Hyperparameter(ABC, Generic[ValueT, DType]):
         bound = sig.bind(self, *self._init_args, **self._init_kwargs)
         bound.apply_defaults()
 
-        return {
-            k: v for k, v in bound.arguments.items()
-            if k != "self"
-        }
+        return {k: v for k, v in bound.arguments.items() if k != "self"}
 
     @property
     def lower_vectorized(self) -> f64:

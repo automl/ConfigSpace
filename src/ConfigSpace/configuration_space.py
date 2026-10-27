@@ -877,7 +877,9 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         # Re-creating the clauses re-validates and re-encodes their values, and the new
         # DAG recomputes all cached state (normalized defaults, merged forbiddens, ...).
         new_space = ConfigurationSpace()
-        new_space.add([new_hp if hp.name == old_hp.name else hp for hp in self.values()])
+        new_space.add(
+            [new_hp if hp.name == old_hp.name else hp for hp in self.values()]
+        )
         new_space.add(
             self.substitute_hyperparameters_in_conditions(self.conditions, new_space),
             self.substitute_hyperparameters_in_forbiddens(
@@ -889,7 +891,6 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         self._dag = new_space._dag
         self._len = new_space._len
         return new_hp
-
 
     def __eq__(self, other: Any) -> bool:
         """Override the default Equals behavior."""

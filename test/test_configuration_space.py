@@ -1657,8 +1657,14 @@ def test_update_refreshes_merged_forbidden_checks():
     b = UniformIntegerHyperparameter("b", 0, 10, default_value=0)
     space.add(a, b)
     space.add(
-        ForbiddenAndConjunction(ForbiddenEqualsClause(a, "p"), ForbiddenEqualsClause(b, 4)),
-        ForbiddenAndConjunction(ForbiddenEqualsClause(a, "p"), ForbiddenEqualsClause(b, 6)),
+        ForbiddenAndConjunction(
+            ForbiddenEqualsClause(a, "p"),
+            ForbiddenEqualsClause(b, 4),
+        ),
+        ForbiddenAndConjunction(
+            ForbiddenEqualsClause(a, "p"),
+            ForbiddenEqualsClause(b, 6),
+        ),
     )
 
     space.update(space["b"], 20, "upper")
