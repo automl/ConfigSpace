@@ -1353,9 +1353,8 @@ def test_update_hyperparameters():
         ],
     )
 
-    # Verify that direct updates are not allowed
-    with pytest.raises(RuntimeError):
-        space["a"].lower = 1
+    # NOTE: currently disabled as there is no blockade for HP.__setattr__ due to a conflict with ConfigSpace.add_configurationspace
+    # Hence we currently do not (yet?) verify that direct updates are not allowed
 
     # Test updating numerical HP min/max values
     space.update(space["a"], 51, "upper")

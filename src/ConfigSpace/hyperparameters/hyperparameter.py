@@ -138,19 +138,24 @@ class Hyperparameter(ABC, Generic[ValueT, DType]):
 
         self._normalized_default_value = self.to_vector(self.default_value)
 
-    def __setattr__(self, name: str, value: Any):
-        """Check if attribute can be set on HP, and reinitialises the class if so."""
-        # NOTE: Here we first verify if the object is being initialised by checking the call stack if the parent function is called "__init__"
-        # This is currently the best way to check as checking the caller class etc is too complex
-        # Alternatively, we could compare the __code__ objects/properties of the caller for self.__init__.__code__ but this would be more computationally expensive
-        stack = inspect.stack()  # NOTE: Calling stack is notoriously expensive, which could bottleneck the update function
+    # NOTE: Suggestion, we should probably block direct updating of HP values to avoid user error.
+    # However, this would require an update to ConfigurationSpace.add_configuration_space (updates the HP.name after copy)
+    # def __setattr__(self, name: str, value: Any) -> None:
+    #     if "_normalized_default_value" not in self.__dict__:  # NOTE: Hacky, but its the last parameter set in __init__, hence still inside __init__
+    #         super().__setattr__(name, value)
+    #         return
+    #     raise UserWarning(f"Can only update Hyperparameter attributes after initialization via Configspace.update. (Attempted to set: {self.name}.{name} = {value})")
+
+    def __update__(self, name: str, value: Any):
+        """Check if an attribute can be set on HP, and reinitialises the object if so."""
+        # NOTE: Calling stack is notoriously expensive, which could bottleneck the update function
+        # The alternative would be to refactor this code directly into ConfigSpace.update and remove this method entirely.
+        stack = inspect.stack()
         from ConfigSpace.configuration_space import ConfigurationSpace
         configuration_space_file = inspect.getfile(ConfigurationSpace)
 
-        if stack[1][3] == '__init__' and stack[1].frame.f_locals.get('self') is self:  # Initializing this hyperparameter
-            super().__setattr__(name, value)
         # We are updating an existing attribute
-        elif stack[1].filename == configuration_space_file:  # Called from ConfigSpace, hence legal
+        if stack[1].filename == configuration_space_file:  # Called from ConfigSpace, hence legal
             # Extract all editable attributes
             init_params: tuple[str] = self.__init__.__code__.co_varnames[:self.__init__.__code__.co_argcount]
 
@@ -171,7 +176,7 @@ class Hyperparameter(ABC, Generic[ValueT, DType]):
                 self.__dict__.update(previous_state)
                 raise ex
         else:
-            raise RuntimeError(f"Can only update Hyperparameter attributes after initialization via Configspace.update. (Attempted to set: {self.name}.{name} = {value})")
+            raise UserWarning(f"Can only update Hyperparameter attributes after initialization via Configspace.update. (Attempted to set: {self.name}.{name} = {value})")
 
     @property
     def lower_vectorized(self) -> f64:

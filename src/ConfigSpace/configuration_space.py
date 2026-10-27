@@ -845,7 +845,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
             raise ValueError(f"The attribute '{attribute}' does not exist on Hyperparameter '{object.name}'.")
         
         # 1. Update hyperparameter attribute
-        self[object.name].__setattr__(attribute, value)
+        self[object.name].__update__(attribute, value)
         def _update_clause_vector(clause: [ConditionLike, ForbiddenLike]):
             if isinstance(clause, (Conjunction, ForbiddenConjunction)):
                 for dlc in clause.dlcs:
@@ -860,7 +860,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
 
         def _rollback():
             """Rollback Hyperparameter settings when an issue has been detected."""
-            self[object.name].__setattr__(attribute, original_value)
+            self[object.name].__update__(attribute, original_value)  # Re-set value to the original
             # Rollback the updated conditions
             for clause, original in original_clause_values:
                 if hasattr(clause, "vector_values"):  # Vectorised condition
