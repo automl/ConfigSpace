@@ -101,7 +101,7 @@ class NormalIntegerHyperparameter(IntegerHyperparameter):
         """
         if mu <= 0 and log:
             raise ValueError(
-                f"Hyperparameter '{name}' has illegal settings: "
+                f"Illegal value for Hyperparameter '{name}': "
                 f"mu={mu} must be positive for log-scale.",
             )
 
@@ -119,7 +119,7 @@ class NormalIntegerHyperparameter(IntegerHyperparameter):
                 dtype=i64,
             )
         except ValueError as e:
-            raise ValueError(f"Hyperparameter '{name}' has illegal settings") from e
+            raise ValueError(f"Illegal value(s) for Hyperparameter '{name}'") from e
 
         if default_value is None:
             _default_value = int(np.rint(np.clip(self.mu, self.lower, self.upper)))
