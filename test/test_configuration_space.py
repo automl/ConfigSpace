@@ -44,6 +44,12 @@ from ConfigSpace import (
     EqualsCondition,
     ForbiddenAndConjunction,
     ForbiddenEqualsClause,
+    ForbiddenGreaterThanClause,
+    ForbiddenGreaterThanEqualsClause,
+    ForbiddenInClause,
+    ForbiddenLessThanClause,
+    ForbiddenLessThanEqualsClause,
+    ForbiddenOrConjunction,
     InCondition,
     LessThanCondition,
     NotEqualsCondition,
@@ -72,6 +78,7 @@ from ConfigSpace.hyperparameters import (
     OrdinalHyperparameter,
     UniformFloatHyperparameter,
 )
+from ConfigSpace.util import get_one_exchange_neighbourhood
 
 
 def byteify(input):
@@ -1600,10 +1607,12 @@ def test_update_hyperparameters():
     assert space["d"].default_value == 4
 
     # TODO: Test if updating hp's ranges/defaults translates correctly to forbiddens and conditionals
+    a_params = {"name": "a", "lower": 0, "upper": 100}
+    a_changes = {"lower": 25}
     space = ConfigurationSpace()
     space.add(
         [
-            UniformIntegerHyperparameter("a", 0, 100),
+            UniformIntegerHyperparameter(**a_params),
             UniformFloatHyperparameter("b", -1.0, 1.0),
             CategoricalHyperparameter("c", [1, 2, 3]),
             OrdinalHyperparameter("d", [1, 2, 3]),
@@ -1618,7 +1627,10 @@ def test_update_hyperparameters():
     )
     space.add(ForbiddenEqualsClause(space["e"], 0.125))
 
-    space.update(space["a"], 25, "lower")
+    space.update(space["a"], **a_changes)
+    # "a" has no explicit default, so it must match a freshly built hyperparameter
+    expected_a = UniformIntegerHyperparameter(**{**a_params, **a_changes})
+    assert space["a"] == expected_a
     space.update(space["e"], 0.66, "upper")
     # Check that this is still a valid configuration
     assert (
@@ -1631,7 +1643,7 @@ def test_update_hyperparameters():
     with pytest.raises(
         IllegalValueError,
         match=re.escape(
-            "Value 0: (<class 'int'>) is not allowed for hyperparameter with name 'a'\na, Type: UniformInteger, Range: [25, 100], Default: 50",
+            f"Value 0: (<class 'int'>) is not allowed for hyperparameter with name 'a'\n{expected_a}",
         ),
     ):
         space._check_configuration_rigorous(
@@ -1692,11 +1704,292 @@ def test_update_reorder_choices_keeps_legal_default():
     space = ConfigurationSpace()
     a = CategoricalHyperparameter("a", ["x", "y", "z"], default_value="y")
     space.add(a, ForbiddenEqualsClause(a, "x"))
-    forbidden = space.forbidden_clauses[0]
 
     # Reordering changes the encoding, but the default "y" is still not forbidden
     space.update(space["a"], ["y", "x", "z"], "choices")
 
+    # The update replaces the forbidden clauses, so they are read after the update
     assert space["a"].choices == ("y", "x", "z")
-    assert forbidden.vector_value == space["a"].to_vector("x")
+    assert space.forbidden_clauses[0].vector_value == space["a"].to_vector("x")
     assert space.get_default_configuration()["a"] == "y"
+
+
+@pytest.mark.parametrize(
+    "forbidden_type",
+    [
+        ForbiddenGreaterThanClause,
+        ForbiddenGreaterThanEqualsClause,
+        ForbiddenLessThanClause,
+        ForbiddenLessThanEqualsClause,
+    ],
+)
+def test_update_comparison_forbidden_clauses(forbidden_type):
+    space = ConfigurationSpace()
+    a = UniformIntegerHyperparameter("a", 0, 10, default_value=5)
+    value = 8 if "GreaterThan" in forbidden_type.__name__ else 2
+    space.add(a, forbidden_type(a, value))
+
+    space.update(space["a"], 20, "upper")
+
+    forbidden = space.forbidden_clauses[0]
+    assert type(forbidden) is forbidden_type
+    assert forbidden.value == value
+    assert forbidden.hyperparameter is space["a"]
+    assert forbidden.vector_value == space["a"].to_vector(value)
+    for config in space.sample_configuration(200):
+        assert not forbidden.is_forbidden_value(dict(config))
+
+    # remove_hyperparameter_priors substitutes the clauses the same way
+    uniform_space = space.remove_hyperparameter_priors()
+    assert type(uniform_space.forbidden_clauses[0]) is forbidden_type
+
+
+def test_update_forbidden_in_clause_reencoded():
+    space = ConfigurationSpace()
+    a = CategoricalHyperparameter("a", ["x", "y", "z"], default_value="y")
+    space.add(a, ForbiddenInClause(a, ["x", "z"]))
+
+    space.update(space["a"], ["z", "y", "x"], "choices")
+
+    forbidden = space.forbidden_clauses[0]
+    assert forbidden.values == ("x", "z")
+    assert forbidden.vector_values == (
+        space["a"].to_vector("x"),
+        space["a"].to_vector("z"),
+    )
+    for config in space.sample_configuration(100):
+        assert config["a"] == "y"
+
+
+@pytest.mark.parametrize(
+    ("forbidden_value", "upper"),
+    [(0.75, 0.5), (0.0, -1.0)],
+)
+def test_update_forbidden_value_out_of_new_range_rolls_back(forbidden_value, upper):
+    space = ConfigurationSpace()
+    a = UniformFloatHyperparameter("a", -2.0, 1.0, default_value=-1.5)
+    space.add(a, ForbiddenEqualsClause(a, forbidden_value))
+    old_hp = space["a"]
+    old_forbidden = space.forbidden_clauses[0]
+
+    with pytest.raises(ValueError, match="legal hyperparameter value"):
+        space.update(space["a"], upper, "upper")
+
+    assert space["a"] is old_hp
+    assert space["a"].upper == 1.0
+    assert space.forbidden_clauses[0] is old_forbidden
+
+
+def test_update_log_reencodes_forbidden():
+    space = ConfigurationSpace()
+    a = UniformFloatHyperparameter("a", 1.0, 100.0, default_value=2.0)
+    space.add(a, ForbiddenEqualsClause(a, 50.0))
+
+    # Toggling log only changes the transformer, not the vector distribution
+    space.update(space["a"], True, "log")
+
+    assert space.forbidden_clauses[0].vector_value == space["a"].to_vector(50.0)
+    with pytest.raises(ForbiddenValueError):
+        space._check_configuration_rigorous(Configuration(space, values={"a": 50.0}))
+
+
+def test_update_refreshes_merged_forbidden_checks():
+    # AND-forbiddens sharing their first part are merged by the DAG into a new
+    # ForbiddenInClause used for fast checks, e.g. during neighbourhood generation
+    space = ConfigurationSpace()
+    a = CategoricalHyperparameter("a", ["p", "q"], default_value="q")
+    b = UniformIntegerHyperparameter("b", 0, 10, default_value=0)
+    space.add(a, b)
+    space.add(
+        ForbiddenAndConjunction(ForbiddenEqualsClause(a, "p"), ForbiddenEqualsClause(b, 4)),
+        ForbiddenAndConjunction(ForbiddenEqualsClause(a, "p"), ForbiddenEqualsClause(b, 6)),
+    )
+
+    space.update(space["b"], 20, "upper")
+
+    b = space["b"]
+    merged_vector_values = [
+        dlc.vector_values
+        for forbidden in space._dag.fast_forbidden_checks
+        for dlc in forbidden.dlcs
+        if isinstance(dlc, ForbiddenInClause)
+    ]
+    assert merged_vector_values == [(b.to_vector(4), b.to_vector(6))]
+
+    for value in range(21):
+        config = Configuration(space, values={"a": "q", "b": value})
+        for neighbour in get_one_exchange_neighbourhood(config, seed=value):
+            assert not (neighbour["a"] == "p" and neighbour["b"] in (4, 6))
+
+
+def test_update_keeps_forbidden_relation():
+    space = ConfigurationSpace()
+    a = UniformIntegerHyperparameter("a", 0, 10, default_value=5)
+    b = UniformIntegerHyperparameter("b", 0, 10, default_value=5)
+    space.add(a, b, ForbiddenLessThanRelation(a, b))
+
+    space.update(space["a"], 20, "upper")
+
+    forbidden = space.forbidden_clauses[0]
+    assert isinstance(forbidden, ForbiddenLessThanRelation)
+    assert forbidden.left is space["a"]
+    assert forbidden.right is space["b"]
+    for config in space.sample_configuration(200):
+        assert not config["a"] < config["b"]
+
+
+def test_update_keeps_nested_forbidden_conjunction():
+    space = ConfigurationSpace()
+    a = CategoricalHyperparameter("a", ["p", "q"], default_value="q")
+    b = UniformIntegerHyperparameter("b", 0, 10, default_value=0)
+    space.add(a, b)
+    space.add(
+        ForbiddenAndConjunction(
+            ForbiddenEqualsClause(a, "p"),
+            ForbiddenOrConjunction(
+                ForbiddenEqualsClause(b, 4),
+                ForbiddenEqualsClause(b, 6),
+            ),
+        ),
+    )
+    before = str(space.forbidden_clauses[0])
+
+    space.update(space["b"], 20, "upper")
+
+    assert str(space.forbidden_clauses[0]) == before
+    for config in space.sample_configuration(300):
+        assert not (config["a"] == "p" and config["b"] in (4, 6))
+
+
+def test_update_forbidden_on_other_hyperparameter_unchanged():
+    space = ConfigurationSpace()
+    a = UniformIntegerHyperparameter("a", 0, 10, default_value=5)
+    b = CategoricalHyperparameter("b", ["x", "y"], default_value="y")
+    space.add(a, b, ForbiddenEqualsClause(b, "x"))
+
+    space.update(space["a"], 20, "upper")
+
+    forbidden = space.forbidden_clauses[0]
+    assert forbidden.hyperparameter is space["b"]
+    assert forbidden.vector_value == space["b"].to_vector("x")
+
+
+# (hyperparameter type, original constructor arguments, updated arguments)
+UPDATE_HYPERPARAMETER_CASES = [
+    # Derived defaults, sizes, probabilities and distributions
+    (UniformIntegerHyperparameter, {"lower": 0, "upper": 100}, {"lower": 25}),
+    (UniformIntegerHyperparameter, {"lower": 1, "upper": 100}, {"log": True}),
+    (UniformFloatHyperparameter, {"lower": 0.0, "upper": 1.0}, {"upper": 10.0}),
+    (UniformFloatHyperparameter, {"lower": 1.0, "upper": 100.0}, {"log": True}),
+    (
+        NormalFloatHyperparameter,
+        {"mu": 5, "sigma": 1, "lower": 0, "upper": 10},
+        {"mu": 2.0},
+    ),
+    (
+        NormalIntegerHyperparameter,
+        {"mu": 5, "sigma": 1, "lower": 0, "upper": 10},
+        {"mu": 8, "sigma": 3},
+    ),
+    (
+        BetaFloatHyperparameter,
+        {"alpha": 2, "beta": 3, "lower": 0, "upper": 1},
+        {"alpha": 5},
+    ),
+    (
+        BetaIntegerHyperparameter,
+        {"alpha": 2, "beta": 3, "lower": 0, "upper": 10},
+        {"upper": 20},
+    ),
+    (CategoricalHyperparameter, {"choices": ["x", "y", "z"]}, {"choices": ["z", "y"]}),
+    (
+        CategoricalHyperparameter,
+        {"choices": ["x", "y", "z"], "weights": [3, 1, 1]},
+        {"weights": [1, 1, 5]},
+    ),
+    (
+        CategoricalHyperparameter,
+        {"choices": [1, 2, 3], "weights": [1, 1, 1]},
+        {"choices": [1, 2, 3, 4], "weights": [1, 1, 1, 5]},
+    ),
+    (OrdinalHyperparameter, {"sequence": [1, 2, 3]}, {"sequence": [3, 2, 1, 0]}),
+    (Constant, {"value": 1}, {"value": "b"}),
+    # Explicit defaults are kept
+    (
+        UniformIntegerHyperparameter,
+        {"lower": 0, "upper": 100, "default_value": 70},
+        {"upper": 90},
+    ),
+    (
+        UniformFloatHyperparameter,
+        {"lower": 0.0, "upper": 1.0, "default_value": 0.25},
+        {"upper": 2.0},
+    ),
+    (
+        NormalFloatHyperparameter,
+        {"mu": 5, "sigma": 1, "lower": 0, "upper": 10, "default_value": 7.0},
+        {"mu": 2.0},
+    ),
+    (
+        CategoricalHyperparameter,
+        {"choices": ["x", "y", "z"], "default_value": "z"},
+        {"weights": [5, 1, 1]},
+    ),
+    (
+        OrdinalHyperparameter,
+        {"sequence": [1, 2, 3], "default_value": 2},
+        {"sequence": [3, 2, 1]},
+    ),
+    # Explicit defaults can be updated together with the arguments they depend on
+    (
+        UniformIntegerHyperparameter,
+        {"lower": 0, "upper": 100, "default_value": 70},
+        {"lower": 0, "upper": 50, "default_value": 10},
+    ),
+]
+
+
+@pytest.mark.parametrize(
+    ("hp_type", "original_params", "changes"),
+    UPDATE_HYPERPARAMETER_CASES,
+)
+def test_update_derives_quantities_like_constructor(hp_type, original_params, changes):
+    # Updating must give the same hyperparameter as building it from scratch with the
+    # updated arguments, i.e. everything derived by the constructor (defaults, sizes,
+    # probabilities, distributions, transformers) is derived again, while explicitly
+    # given arguments are kept.
+    space = ConfigurationSpace()
+    space.add(hp_type(name="a", **original_params))
+
+    updated = space.update(space["a"], **changes)
+    expected = hp_type(name="a", **{**original_params, **changes})
+
+    assert updated == expected
+    assert space["a"] is updated
+    assert updated.default_value == expected.default_value
+    assert updated.size == expected.size
+    assert updated._normalized_default_value == expected._normalized_default_value
+    if isinstance(expected, CategoricalHyperparameter):
+        np.testing.assert_array_equal(updated.probabilities, expected.probabilities)
+
+
+def test_update_refreshes_normalized_defaults_in_dag():
+    space = ConfigurationSpace()
+    p = CategoricalHyperparameter("p", ["x", "y"], default_value="x")
+    a = UniformIntegerHyperparameter("a", 0, 10, default_value=5)
+    space.add(p, a, EqualsCondition(a, p, "y"))
+
+    space.update(space["a"], 8, "default_value")
+
+    np.testing.assert_array_equal(
+        space._dag.normalized_defaults,
+        [hp._normalized_default_value for hp in space._dag.hyperparameters],
+    )
+    # Activating "a" in a neighbour fills in its (new) default
+    config = Configuration(space, values={"p": "x"})
+    activated = [
+        neighbour["a"]
+        for neighbour in get_one_exchange_neighbourhood(config, seed=1)
+        if neighbour["p"] == "y"
+    ]
+    assert activated == [space["a"].default_value]
