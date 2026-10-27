@@ -871,7 +871,7 @@ class ForbiddenLessThanEqualsClause(ForbiddenClause):
     def is_forbidden_vector_array(
         self: ForbiddenLessThanEqualsClause, arr: Array[f64]
     ) -> Mask:
-        return np.greater_equal(arr[self.vector_id], self.vector_value, dtype=np.bool_)
+        return np.less_equal(arr[self.vector_id], self.vector_value, dtype=np.bool_)
 
     @override
     def to_dict(self: ForbiddenLessThanEqualsClause) -> dict[str, Any]:
