@@ -5,6 +5,7 @@ import warnings
 from abc import ABC, abstractmethod
 from collections.abc import Callable, Hashable, Mapping, Sequence
 from dataclasses import dataclass, field, replace
+from functools import wraps
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -28,7 +29,33 @@ if TYPE_CHECKING:
     from ConfigSpace.types import Array, Mask
 
 
-@dataclass(init=False)
+def dataclass_with_init_params(cls):
+    cls = dataclass(init=False)(cls)
+
+    original_init = cls.__dict__.get("__init__")
+
+    if original_init is not None:
+        @wraps(original_init)
+        def wrapped_init(self, *args, **kwargs):
+            previous_args = getattr(self, "_init_args", None)
+            previous_kwargs = getattr(self, "_init_kwargs", None)
+
+            self._init_args = args
+            self._init_kwargs = kwargs.copy()
+
+            try:
+                original_init(self, *args, **kwargs)
+            finally:
+                # Restore the outer constructor's arguments.
+                if previous_args is not None:
+                    self._init_args = previous_args
+                    self._init_kwargs = previous_kwargs
+
+        cls.__init__ = wrapped_init
+
+    return cls
+
+@dataclass_with_init_params
 class Hyperparameter(ABC, Generic[ValueT, DType]):
     """Base class for all hyperparameters in the configuration space.
 
@@ -137,6 +164,17 @@ class Hyperparameter(ABC, Generic[ValueT, DType]):
             )
 
         self._normalized_default_value = self.to_vector(self.default_value)
+
+    @property
+    def init_params(self):
+        sig = inspect.signature(type(self).__init__)
+        bound = sig.bind(self, *self._init_args, **self._init_kwargs)
+        bound.apply_defaults()
+
+        return {
+            k: v for k, v in bound.arguments.items()
+            if k != "self"
+        }
 
     # NOTE: Suggestion, we should probably block direct updating of HP values to avoid user error.
     # However, this would require an update to ConfigurationSpace.add_configuration_space (updates the HP.name after copy)
@@ -739,7 +777,7 @@ for a numerical hyperparameter.
 """
 
 
-@dataclass(init=False)
+@dataclass_with_init_params
 class NumericalHyperparameter(Hyperparameter[NumberT, DType]):
     """Base class for numerical hyperparameters in the configuration space.
 
@@ -766,7 +804,7 @@ class NumericalHyperparameter(Hyperparameter[NumberT, DType]):
         ...
 
 
-@dataclass(init=False)
+@dataclass_with_init_params
 class IntegerHyperparameter(NumericalHyperparameter[int, i64]):
     """Base class for integer hyperparameters in the configuration space."""
 
@@ -799,7 +837,7 @@ class IntegerHyperparameter(NumericalHyperparameter[int, i64]):
         )
 
 
-@dataclass(init=False)
+@dataclass_with_init_params
 class FloatHyperparameter(NumericalHyperparameter[float, f64]):
     """Base class for float hyperparameters in the configuration space."""
 

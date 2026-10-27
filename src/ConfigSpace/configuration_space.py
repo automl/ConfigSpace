@@ -56,7 +56,6 @@ from ConfigSpace.exceptions import (
 from ConfigSpace.forbidden import (
     ForbiddenClause,
     ForbiddenConjunction,
-    ForbiddenEqualsClause,
     ForbiddenInClause,
     ForbiddenLike,
     ForbiddenRelation,
@@ -781,29 +780,24 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
                 substituted_conjunction = forbidden.__class__(*substituted_children)
                 new_forbiddens.append(substituted_conjunction)
 
+            elif isinstance(forbidden, ForbiddenInClause):
+                new_forbiddens.append(
+                    forbidden.__class__(
+                        hyperparameter=new_configspace[forbidden.hyperparameter.name],
+                        values=forbidden.values,
+                    ),
+                )
             elif isinstance(forbidden, ForbiddenClause):
-                if isinstance(forbidden, ForbiddenInClause):
-                    new_forbiddens.append(
-                        forbidden.__class__(
-                            hyperparameter=new_configspace[
-                                forbidden.hyperparameter.name
-                            ],
-                            values=forbidden.values,
-                        ),
-                    )
-                elif isinstance(forbidden, ForbiddenEqualsClause):
-                    new_forbiddens.append(
-                        forbidden.__class__(
-                            hyperparameter=new_configspace[
-                                forbidden.hyperparameter.name
-                            ],
-                            value=forbidden.value,
-                        ),
-                    )
-                else:
-                    raise TypeError(
-                        f"Forbidden of type '{type(forbidden)}' not recognized.",
-                    )
+                # All remaining single-value clauses share the (hyperparameter, value)
+                # signature: ForbiddenEqualsClause, ForbiddenGreaterThanClause,
+                # ForbiddenGreaterThanEqualsClause, ForbiddenLessThanClause and
+                # ForbiddenLessThanEqualsClause.
+                new_forbiddens.append(
+                    forbidden.__class__(
+                        hyperparameter=new_configspace[forbidden.hyperparameter.name],
+                        value=forbidden.value,
+                    ),
+                )
 
             elif isinstance(forbidden, ForbiddenRelation):
                 new_forbiddens.append(
@@ -817,84 +811,77 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
 
         return new_forbiddens
 
-    def update(self, object: [Hyperparameter, ConditionLike, ForbiddenLike],
-               value: Any, attribute: str = None) -> None:
-        """Update the configuration space by changing a hyperparameter, condition or
-        forbidden clause.
+    def update(
+        self,
+        target_object: Hyperparameter,
+        value: Any = NotSet,
+        attribute: str | None = None,
+        **changes: Any,
+    ) -> Hyperparameter:
+        """Replace a hyperparameter with a copy that has updated constructor arguments.
+
+        The hyperparameter is re-created from its original constructor arguments
+        (`Hyperparameter.init_params`), so values derived by the constructor, such as
+        an unspecified default, are derived again. The conditions, forbidden clauses
+        and all cached state of the space are then rebuilt around the new instance.
+        If the rebuild fails, the space is left unchanged.
+
+        Hyperparameter, condition and forbidden clause objects obtained from this
+        space before the update are not updated and should not be used with it.
 
         Args:
-            object: Hyperparameter, condition or forbidden clause to update
-            value: The value to update it by
-            attribute: The attribute to update (optional)
-        """
-        if not isinstance(object, Hyperparameter):
-            raise NotImplementedError("ConfigSpace.update is currently only available for Hyperparameter attributes.")
-        if attribute is None:
-            raise ValueError("Cannot set Hyperparameter attribute to None.")
+            target_object: The hyperparameter to update.
+            value: The new value for `attribute`.
+            attribute: The constructor argument to change.
+            **changes: Further constructor arguments to change in the same update,
+                e.g. `choices` and `weights` together.
 
-        if attribute == "name":
+        Returns:
+            The new hyperparameter instance, now also available as `space[name]`.
+        """
+        if not isinstance(target_object, Hyperparameter):
+            raise NotImplementedError(
+                "ConfigSpace.update is currently only available for Hyperparameters.",
+            )
+        if attribute is not None:
+            changes[attribute] = value
+        if "name" in changes:
             raise ValueError("Renaming hyperparameters is not supported.")
 
-        # NOTE: Resolve the stored instance: the caller may pass a copy or an equal hyperparameter,
-        # and the clause vectors must be re-encoded with the same object that gets updated.
-        # This change is based on the input of Copilot. - T.S. 23-10-2026
-        object = self[object.name]  
-        try:
-            original_value = self[object.name].__getattribute__(attribute)
-        except:
-            raise ValueError(f"The attribute '{attribute}' does not exist on Hyperparameter '{object.name}'.")
-        
-        # 1. Update hyperparameter attribute
-        self[object.name].__update__(attribute, value)
-        def _update_clause_vector(clause: [ConditionLike, ForbiddenLike]):
-            if isinstance(clause, (Conjunction, ForbiddenConjunction)):
-                for dlc in clause.dlcs:
-                    _update_clause_vector(dlc)
-            elif (isinstance(clause, Condition) and clause.parent.name == object.name) or (isinstance(clause, ForbiddenClause) and clause.hyperparameter.name == object.name):
-                    if hasattr(clause, "vector_values"):  # Vectorised condition
-                        original_clause_values.append((clause, clause.vector_values))
-                        clause.vector_values = [object.to_vector(value) for value in clause.values]
-                    elif hasattr(clause, "vector_value"):  # Single value
-                        original_clause_values.append((clause, clause.vector_value))
-                        clause.vector_value = object.to_vector(clause.value)
+        old_hp = self[target_object.name]
+        # The name may have been changed after construction, e.g. by
+        # `add_configuration_space`, so it is taken from the stored instance.
+        init_params = {**old_hp.init_params, "name": old_hp.name}
+        for key in changes:
+            if not hasattr(old_hp, key):
+                raise ValueError(
+                    f"The attribute '{key}' does not exist on Hyperparameter"
+                    f" '{old_hp.name}'.",
+                )
+            if key not in init_params:
+                raise ValueError(
+                    f"Can only set parameters passed to self.__init__. '{key}' is not"
+                    f" one of: {tuple(init_params)}",
+                )
 
-        def _rollback():
-            """Rollback Hyperparameter settings when an issue has been detected."""
-            self[object.name].__update__(attribute, original_value)  # Re-set value to the original
-            # Rollback the updated conditions
-            for clause, original in original_clause_values:
-                if hasattr(clause, "vector_values"):  # Vectorised condition
-                    clause.vector_values = original
-                else:
-                    clause.vector_value = original
+        new_hp = type(old_hp)(**{**init_params, **changes})
 
-        # 2. Value encoding can change independently of the distribution and must hence always be updated
-        # For example, reordering the possible values of an ordinal variable leaves the vector distribution unaffected, 
-        # but the meaning of the encoding has changed.
-        # NOTE: The unconditional update was suggested by CoPilot. I believe the AI was correct, but discussion might be warranted - T.S. 22-10-2026
-        original_clause_values: list[tuple([ConditionLike, ForbiddenLike], Any)] = []
-        # 2.A. Update the conditions
-        for condition in self.conditions:
-            try: # The update of a clause vector may fail if the vector for example references a hyperparameter value that is now unavailable
-                _update_clause_vector(condition)
-            except: # thus we must be prepared to do a rollback of the HP change upon failure
-                _rollback()
-                raise ValueError(f"Setting '{attribute}' of Hyperparameter '{object.name}' to '{value}' invalidates the following condition: {condition}.")
-        # 2.B. Update the forbiddens
-        for forbidden in self.forbidden_clauses:
-            try: # The update of a clause vector may fail if the vector for example references a hyperparameter value that is now unavailable
-                _update_clause_vector(forbidden)
-            except:
-                _rollback()
-                raise ValueError(f"Setting '{attribute}' of Hyperparameter '{object.name}' to '{value}' invalidates the following forbidden: {forbidden}.")
-    
-        # 3. Verify that the default configuration is still correct
-        try:
-            self.get_default_configuration()
-        except:
-            _rollback()
-            raise ForbiddenValueError(f"Setting '{attribute}' of '{object}' to '{value}' invalidates the default configuration.")
-        
+        # Build the updated space separately and only swap it in once it is valid.
+        # Re-creating the clauses re-validates and re-encodes their values, and the new
+        # DAG recomputes all cached state (normalized defaults, merged forbiddens, ...).
+        new_space = ConfigurationSpace()
+        new_space.add([new_hp if hp.name == old_hp.name else hp for hp in self.values()])
+        new_space.add(
+            self.substitute_hyperparameters_in_conditions(self.conditions, new_space),
+            self.substitute_hyperparameters_in_forbiddens(
+                self.forbidden_clauses,
+                new_space,
+            ),
+        )
+
+        self._dag = new_space._dag
+        self._len = new_space._len
+        return new_hp
 
 
     def __eq__(self, other: Any) -> bool:
