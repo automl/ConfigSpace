@@ -37,19 +37,18 @@ def dataclass_with_init_params(cls):
     if original_init is not None:
         @wraps(original_init)
         def wrapped_init(self, *args, **kwargs):
-            previous_args = getattr(self, "_init_args", None)
-            previous_kwargs = getattr(self, "_init_kwargs", None)
-
-            self._init_args = args
-            self._init_kwargs = kwargs.copy()
+            # Ensure only the outermost call to __init__ sets the _init_args and _init_kwargs attributes.
+            outermost = not self.__dict__.get("_initialising", False)
+            if outermost:
+                self._initialising = True
+                self._init_args = args
+                self._init_kwargs = kwargs.copy()
 
             try:
                 original_init(self, *args, **kwargs)
             finally:
-                # Restore the outer constructor's arguments.
-                if previous_args is not None:
-                    self._init_args = previous_args
-                    self._init_kwargs = previous_kwargs
+                if outermost:
+                    del self._initialising
 
         cls.__init__ = wrapped_init
 
@@ -175,46 +174,6 @@ class Hyperparameter(ABC, Generic[ValueT, DType]):
             k: v for k, v in bound.arguments.items()
             if k != "self"
         }
-
-    # NOTE: Suggestion, we should probably block direct updating of HP values to avoid user error.
-    # However, this would require an update to ConfigurationSpace.add_configuration_space (updates the HP.name after copy)
-    # def __setattr__(self, name: str, value: Any) -> None:
-    #     if "_normalized_default_value" not in self.__dict__:  # NOTE: Hacky, but its the last parameter set in __init__, hence still inside __init__
-    #         super().__setattr__(name, value)
-    #         return
-    #     raise UserWarning(f"Can only update Hyperparameter attributes after initialization via Configspace.update. (Attempted to set: {self.name}.{name} = {value})")
-
-    def __update__(self, name: str, value: Any):
-        """Check if an attribute can be set on HP, and reinitialises the object if so."""
-        # NOTE: Calling stack is notoriously expensive, which could bottleneck the update function
-        # The alternative would be to refactor this code directly into ConfigSpace.update and remove this method entirely.
-        stack = inspect.stack()
-        from ConfigSpace.configuration_space import ConfigurationSpace
-        configuration_space_file = inspect.getfile(ConfigurationSpace)
-
-        # We are updating an existing attribute
-        if stack[1].filename == configuration_space_file:  # Called from ConfigSpace, hence legal
-            # Extract all editable attributes
-            init_params: tuple[str] = self.__init__.__code__.co_varnames[:self.__init__.__code__.co_argcount]
-
-            if name not in init_params or not hasattr(self, name):
-                raise ValueError(f"Can only set parameters passed to self.__init__. '{name}' is not one of: {init_params}")
-
-            try:
-                init_params = {key: self.__dict__[key] for key in init_params if hasattr(self, key)}  # This will break if the parameter is not saved under its passed name
-            except KeyError as e:
-                raise KeyError(f"You are seeing this message because the class {self.__class__.__name__} does not define an instance attribute with the same name as the class constructor parameter. To update Hyperparameter attributes after initialization, either modify the __init__ function of the class to define the attribute with the same name or call hp_instance.__init__(**new_init_parameters) to reset the parameters") from e
-            init_params[name] = value  # Place the update value
-
-            previous_state = self.__dict__.copy()
-            try:
-                self.__init__(**init_params)  # Reinitialise
-            except Exception as ex:
-                self.__dict__.clear()
-                self.__dict__.update(previous_state)
-                raise ex
-        else:
-            raise UserWarning(f"Can only update Hyperparameter attributes after initialization via Configspace.update. (Attempted to set: {self.name}.{name} = {value})")
 
     @property
     def lower_vectorized(self) -> f64:
