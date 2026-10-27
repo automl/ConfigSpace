@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from collections.abc import Hashable, Mapping, Sequence
-from dataclasses import dataclass
 from typing import Any, ClassVar
 from typing_extensions import override
 
@@ -9,7 +8,10 @@ import numpy as np
 
 from ConfigSpace.hyperparameters.distributions import ConstantVectorDistribution
 from ConfigSpace.hyperparameters.hp_components import TransformerConstant
-from ConfigSpace.hyperparameters.hyperparameter import Hyperparameter
+from ConfigSpace.hyperparameters.hyperparameter import (
+    Hyperparameter,
+    dataclass_with_init_params,
+)
 from ConfigSpace.types import Array, Mask, f64
 
 CONSTANT_VECTOR_VALUE_YES = f64(1)
@@ -23,7 +25,7 @@ def _empty_neighborhood(*_: Any, **__: Any) -> Array[f64]:
     return np.ndarray([], dtype=f64)
 
 
-@dataclass(init=False)
+@dataclass_with_init_params
 class Constant(Hyperparameter[Any, Any]):
     """Representing a constant hyperparameter in the configuration space.
 

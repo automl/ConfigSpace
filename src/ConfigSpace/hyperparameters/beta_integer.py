@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from collections.abc import Hashable, Mapping
-from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, ClassVar
 
 import numpy as np
@@ -12,6 +11,7 @@ from ConfigSpace.hyperparameters.distributions import (
     DiscretizedContinuousScipyDistribution,
 )
 from ConfigSpace.hyperparameters.hp_components import ATOL, UnitScaler
+from ConfigSpace.hyperparameters.hyperparameter import dataclass_with_init_params
 from ConfigSpace.hyperparameters.integer_hyperparameter import IntegerHyperparameter
 from ConfigSpace.types import f64, i64
 
@@ -20,7 +20,7 @@ if TYPE_CHECKING:
     from ConfigSpace.types import Number
 
 
-@dataclass(init=False)
+@dataclass_with_init_params
 class BetaIntegerHyperparameter(IntegerHyperparameter):
     r"""A beta distributed integer hyperparameter. The 'lower' and 'upper'
     parameters move the distribution from the `[0, 1]`-range and scale it

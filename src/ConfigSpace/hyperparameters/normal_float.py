@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Hashable, Mapping
-from dataclasses import dataclass, field
+from dataclasses import field
 from typing import TYPE_CHECKING, Any, ClassVar
 
 import numpy as np
@@ -11,13 +11,14 @@ from scipy.stats._distn_infrastructure import rv_continuous_frozen
 from ConfigSpace.hyperparameters.distributions import ScipyContinuousDistribution
 from ConfigSpace.hyperparameters.float_hyperparameter import FloatHyperparameter
 from ConfigSpace.hyperparameters.hp_components import ROUND_PLACES, UnitScaler
+from ConfigSpace.hyperparameters.hyperparameter import dataclass_with_init_params
 from ConfigSpace.types import Number, f64
 
 if TYPE_CHECKING:
     from ConfigSpace.hyperparameters.normal_integer import NormalIntegerHyperparameter
 
 
-@dataclass(init=False)
+@dataclass_with_init_params
 class NormalFloatHyperparameter(FloatHyperparameter):
     """A normally distributed float hyperparameter.
 
