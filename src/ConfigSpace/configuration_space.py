@@ -721,7 +721,9 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         for condition in conditions:
             if isinstance(condition, Conjunction):
                 conjunction_type = type(condition)
-                children = condition.dlcs
+                # Use the direct components, instead of `dlcs`, which flattens nested
+                # conjunctions and would turn e.g. `(a || b) && c` into `a && b && c`
+                children = condition.components
                 substituted_children = (
                     ConfigurationSpace.substitute_hyperparameters_in_conditions(
                         children,
