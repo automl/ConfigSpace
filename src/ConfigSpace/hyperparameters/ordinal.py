@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Hashable, Mapping, Sequence
-from dataclasses import dataclass, field
+from dataclasses import field
 from functools import partial
 from typing import Any, ClassVar
 from typing_extensions import deprecated, override
@@ -13,11 +13,14 @@ from ConfigSpace.hyperparameters.hp_components import (
     TransformerSeq,
     ordinal_neighborhood,
 )
-from ConfigSpace.hyperparameters.hyperparameter import Hyperparameter
+from ConfigSpace.hyperparameters.hyperparameter import (
+    Hyperparameter,
+    dataclass_with_init_params,
+)
 from ConfigSpace.types import Array, Mask, NotSet, _NotSet, f64, i64
 
 
-@dataclass(init=False)
+@dataclass_with_init_params
 class OrdinalHyperparameter(Hyperparameter[Any, Any]):
     """Representing an ordinal hyperparameter in the configuration space.
 

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Hashable, Mapping
-from dataclasses import dataclass, field
+from dataclasses import field
 from typing import TYPE_CHECKING, Any, ClassVar
 
 import numpy as np
@@ -13,6 +13,7 @@ from ConfigSpace.hyperparameters.distributions import (
     UniformIntegerNormalizedDistribution,
 )
 from ConfigSpace.hyperparameters.hp_components import ATOL, UnitScaler
+from ConfigSpace.hyperparameters.hyperparameter import dataclass_with_init_params
 from ConfigSpace.hyperparameters.integer_hyperparameter import IntegerHyperparameter
 from ConfigSpace.types import Number, f64, i64
 
@@ -20,7 +21,7 @@ if TYPE_CHECKING:
     from ConfigSpace.hyperparameters.uniform_float import UniformFloatHyperparameter
 
 
-@dataclass(init=False)
+@dataclass_with_init_params
 class UniformIntegerHyperparameter(IntegerHyperparameter):
     """A uniformly distributed integer hyperparameter.
 
