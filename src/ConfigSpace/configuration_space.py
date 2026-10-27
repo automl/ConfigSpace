@@ -818,6 +818,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         target_object: Hyperparameter,
         value: Any = NotSet,
         attribute: str | None = None,
+        /,
         **changes: Any,
     ) -> Hyperparameter:
         """Replace a hyperparameter with a copy that has updated constructor arguments.
@@ -830,6 +831,10 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
 
         Hyperparameter, condition and forbidden clause objects obtained from this
         space before the update are not updated and should not be used with it.
+
+        `target_object`, `value` and `attribute` are positional-only, so constructor
+        arguments with the same names (e.g. `Constant(value=...)`) can still be passed
+        as keywords and end up in `changes`.
 
         Args:
             target_object: The hyperparameter to update.
