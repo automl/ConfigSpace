@@ -117,7 +117,7 @@ class BetaFloatHyperparameter(FloatHyperparameter):
         try:
             scaler = UnitScaler(f64(self.lower), f64(self.upper), log=log, dtype=f64)
         except ValueError as e:
-            raise ValueError(f"Hyperparameter '{name}' has illegal settings") from e
+            raise ValueError(f"Illegal value(s) for Hyperparameter '{name}'") from e
 
         if (self.alpha > 1) or (self.beta > 1):
             normalized_mode = (self.alpha - 1) / (self.alpha + self.beta - 2)

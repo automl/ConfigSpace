@@ -98,7 +98,7 @@ class NormalFloatHyperparameter(FloatHyperparameter):
         """
         if mu <= 0 and log:
             raise ValueError(
-                f"Hyperparameter '{name}' has illegal settings: "
+                f"Illegal value for Hyperparameter '{name}': "
                 f"mu={mu} must be positive for log-scale.",
             )
 
@@ -111,7 +111,7 @@ class NormalFloatHyperparameter(FloatHyperparameter):
         try:
             scaler = UnitScaler(f64(self.lower), f64(self.upper), log=log, dtype=f64)
         except ValueError as e:
-            raise ValueError(f"Hyperparameter '{name}' has illegal settings") from e
+            raise ValueError(f"Illegal value(s) for Hyperparameter '{name}'") from e
 
         if default_value is None:
             _default_value = np.clip(self.mu, self.lower, self.upper)
