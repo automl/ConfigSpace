@@ -15,7 +15,10 @@ from ConfigSpace.hyperparameters.distributions import (
     WeightedIntegerDiscreteDistribution,
 )
 from ConfigSpace.hyperparameters.hp_components import Neighborhood, TransformerSeq
-from ConfigSpace.hyperparameters.hyperparameter import Hyperparameter
+from ConfigSpace.hyperparameters.hyperparameter import (
+    Hyperparameter,
+    save_init_params,
+)
 from ConfigSpace.types import Array, Mask, NotSet, _NotSet, f64
 
 if TYPE_CHECKING:
@@ -92,6 +95,7 @@ class NeighborhoodCat(Neighborhood):
         return choices[:n]
 
 
+@save_init_params
 @dataclass(init=False)
 class CategoricalHyperparameter(Hyperparameter[Any, Any]):
     """A hyperparameter that can take on one of a fixed set of values.
