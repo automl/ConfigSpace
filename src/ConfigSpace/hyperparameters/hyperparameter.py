@@ -171,7 +171,11 @@ class Hyperparameter(ABC, Generic[ValueT, DType]):
         bound = sig.bind(self, *self._init_args, **self._init_kwargs)
         bound.apply_defaults()
 
-        return {k: v for k, v in bound.arguments.items() if k != "self"}
+        return {
+            k: NotSet if isinstance(v, _NotSet) else v
+            for k, v in bound.arguments.items()
+            if k != "self"
+        }
 
     @property
     def lower_vectorized(self) -> f64:
