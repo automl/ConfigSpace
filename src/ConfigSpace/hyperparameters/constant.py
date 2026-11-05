@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Hashable, Mapping, Sequence
+from dataclasses import dataclass
 from typing import Any, ClassVar
 from typing_extensions import override
 
@@ -10,7 +11,7 @@ from ConfigSpace.hyperparameters.distributions import ConstantVectorDistribution
 from ConfigSpace.hyperparameters.hp_components import TransformerConstant
 from ConfigSpace.hyperparameters.hyperparameter import (
     Hyperparameter,
-    dataclass_with_init_params,
+    save_init_params,
 )
 from ConfigSpace.types import Array, Mask, f64
 
@@ -25,7 +26,8 @@ def _empty_neighborhood(*_: Any, **__: Any) -> Array[f64]:
     return np.ndarray([], dtype=f64)
 
 
-@dataclass_with_init_params
+@save_init_params
+@dataclass(init=False)
 class Constant(Hyperparameter[Any, Any]):
     """Representing a constant hyperparameter in the configuration space.
 

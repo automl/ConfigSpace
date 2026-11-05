@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import math
 from collections.abc import Hashable, Mapping
-from dataclasses import field
+from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, ClassVar
 
 import numpy as np
@@ -11,7 +11,7 @@ from ConfigSpace.hyperparameters.distributions import UnitUniformContinuousDistr
 from ConfigSpace.hyperparameters.hp_components import ROUND_PLACES, UnitScaler
 from ConfigSpace.hyperparameters.hyperparameter import (
     FloatHyperparameter,
-    dataclass_with_init_params,
+    save_init_params,
 )
 from ConfigSpace.types import f64
 
@@ -20,7 +20,8 @@ if TYPE_CHECKING:
     from ConfigSpace.types import Number
 
 
-@dataclass_with_init_params
+@save_init_params
+@dataclass(init=False)
 class UniformFloatHyperparameter(FloatHyperparameter):
     """A uniformly distributed float hyperparameter.
 

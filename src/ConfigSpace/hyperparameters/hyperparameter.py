@@ -29,9 +29,7 @@ if TYPE_CHECKING:
     from ConfigSpace.types import Array, Mask
 
 
-def dataclass_with_init_params(cls):
-    cls = dataclass(init=False)(cls)
-
+def save_init_params(cls):
     original_init = cls.__dict__.get("__init__")
 
     if original_init is not None:
@@ -56,7 +54,8 @@ def dataclass_with_init_params(cls):
     return cls
 
 
-@dataclass_with_init_params
+@save_init_params
+@dataclass(init=False)
 class Hyperparameter(ABC, Generic[ValueT, DType]):
     """Base class for all hyperparameters in the configuration space.
 
@@ -735,7 +734,8 @@ for a numerical hyperparameter.
 """
 
 
-@dataclass_with_init_params
+@save_init_params
+@dataclass(init=False)
 class NumericalHyperparameter(Hyperparameter[NumberT, DType]):
     """Base class for numerical hyperparameters in the configuration space.
 
@@ -762,7 +762,8 @@ class NumericalHyperparameter(Hyperparameter[NumberT, DType]):
         ...
 
 
-@dataclass_with_init_params
+@save_init_params
+@dataclass(init=False)
 class IntegerHyperparameter(NumericalHyperparameter[int, i64]):
     """Base class for integer hyperparameters in the configuration space."""
 
@@ -795,7 +796,8 @@ class IntegerHyperparameter(NumericalHyperparameter[int, i64]):
         )
 
 
-@dataclass_with_init_params
+@save_init_params
+@dataclass(init=False)
 class FloatHyperparameter(NumericalHyperparameter[float, f64]):
     """Base class for float hyperparameters in the configuration space."""
 

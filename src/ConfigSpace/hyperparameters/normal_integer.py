@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Hashable, Mapping
-from dataclasses import field
+from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, ClassVar
 
 import numpy as np
@@ -14,7 +14,7 @@ from ConfigSpace.hyperparameters.distributions import (
 from ConfigSpace.hyperparameters.hp_components import ATOL, UnitScaler
 from ConfigSpace.hyperparameters.hyperparameter import (
     IntegerHyperparameter,
-    dataclass_with_init_params,
+    save_init_params,
 )
 from ConfigSpace.types import Number, f64, i64
 
@@ -22,7 +22,8 @@ if TYPE_CHECKING:
     from ConfigSpace.hyperparameters.normal_float import NormalFloatHyperparameter
 
 
-@dataclass_with_init_params
+@save_init_params
+@dataclass(init=False)
 class NormalIntegerHyperparameter(IntegerHyperparameter):
     """A normally distributed integer hyperparameter.
 

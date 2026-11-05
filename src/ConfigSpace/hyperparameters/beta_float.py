@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Hashable, Mapping
-from dataclasses import field
+from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, ClassVar
 
 import numpy as np
@@ -12,7 +12,7 @@ from ConfigSpace.hyperparameters.distributions import (
 )
 from ConfigSpace.hyperparameters.float_hyperparameter import FloatHyperparameter
 from ConfigSpace.hyperparameters.hp_components import ROUND_PLACES, UnitScaler
-from ConfigSpace.hyperparameters.hyperparameter import dataclass_with_init_params
+from ConfigSpace.hyperparameters.hyperparameter import save_init_params
 from ConfigSpace.types import f64
 
 if TYPE_CHECKING:
@@ -20,7 +20,8 @@ if TYPE_CHECKING:
     from ConfigSpace.types import Number
 
 
-@dataclass_with_init_params
+@save_init_params
+@dataclass(init=False)
 class BetaFloatHyperparameter(FloatHyperparameter):
     """A beta distributed float hyperparameter. The 'lower' and 'upper'
     parameters move the distribution from the `[0, 1]`-range and scale
