@@ -37,6 +37,7 @@ def save_init_params(cls):
         @wraps(original_init)
         def wrapped_init(self, *args, **kwargs):
             # Ensure only the outermost call to __init__ sets the _init_args and _init_kwargs attributes.
+            # This avoids saving init parameters every time a subclass calls super().__init__() in its own __init__ method.
             outermost = not self.__dict__.get("_initialising", False)
             if outermost:
                 self._initialising = True
@@ -167,6 +168,12 @@ class Hyperparameter(ABC, Generic[ValueT, DType]):
 
     @property
     def init_params(self):
+        """Get the initialization parameters for the hyperparameter. 
+        
+        Matches the saved init parameters to the constructor signature. 
+        This is to delegate the expensive `inspect.signature` call to the property 
+        access rather than the initialization of the hyperparameter.
+        """
         sig = inspect.signature(type(self).__init__)
         bound = sig.bind(self, *self._init_args, **self._init_kwargs)
         bound.apply_defaults()
