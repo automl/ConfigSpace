@@ -175,4 +175,6 @@ nav:
     - Serialization: "reference/serialization.md"
     - Util: "reference/util.md"
   - API: "api/"
-  - Contributing: "contributing.md"
+  - Contributing:
+    - Contributing guidelines: "contributing.md"
+    - Design principles: "design_principles.md"
