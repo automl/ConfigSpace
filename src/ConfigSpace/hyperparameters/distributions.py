@@ -57,7 +57,19 @@ def _compare_rv(a: Any, b: Any) -> bool:
     bdict = b.__dict__
     for key in adict:
         if key == "dist":
-            if adict[key]._ctor_param != bdict[key]._ctor_param:
+            a_params = adict[key]._ctor_param
+            b_params = bdict[key]._ctor_param
+            if a_params == b_params:
+                continue
+
+            # Pickle can reconstruct SciPy's NaN badvalue as a distinct object.
+            badvalues = (a_params.get("badvalue"), b_params.get("badvalue"))
+            if not all(
+                isinstance(badvalue, (float, np.floating)) and np.isnan(badvalue)
+                for badvalue in badvalues
+            ):
+                return False
+            if dict(a_params, badvalue=None) != dict(b_params, badvalue=None):
                 return False
 
         elif adict[key] != bdict[key]:

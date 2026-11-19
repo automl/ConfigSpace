@@ -28,6 +28,7 @@
 from __future__ import annotations
 
 import json
+import pickle
 from collections import OrderedDict
 from itertools import product
 
@@ -1452,6 +1453,19 @@ def test_meta_field():
     assert parent["sub:chp"].meta == {"chp": True}
     assert parent["sub:ohp"].meta == {"ohp": True}
     assert parent["sub:const"].meta == {"const": True}
+
+
+@pytest.mark.parametrize("log", [False, True])
+def test_configuration_pickle_roundtrip_preserves_equality(log: bool) -> None:
+    cs = ConfigurationSpace(seed=42)
+    cs.add(UniformIntegerHyperparameter("n_neurons", 16, 128, log=log))
+    config = cs.sample_configuration()
+
+    restored = pickle.loads(pickle.dumps(config))  # noqa: S301
+
+    assert dict(restored) == dict(config)
+    assert restored.config_space == cs
+    assert restored == config
 
 
 def test_repr_roundtrip():
