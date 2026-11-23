@@ -458,15 +458,14 @@ class Conjunction:
         return self.parents
 
     def equivalent_condition_on_parent(self, other: ConditionLike) -> bool:
-        # Not entirely true but it's a good enough approximation
-        if not isinstance(other, Conjunction):
+        """Compare parent predicates for conjunctions of the same type."""
+        if not isinstance(other, Conjunction) or type(other) is not type(self):
             return False
 
         if len(self.components) != len(other.components):
             return False
 
-        # Each condition must match at one of the other conditions, which is of the same
-        # conjunction type and has equal amount of components
+        # Compare parent conditions in any component order.
         return all(
             any(c.equivalent_condition_on_parent(o) for o in other.components)
             for c in self.components

@@ -43,6 +43,7 @@ from ConfigSpace import (
     EqualsCondition,
     ForbiddenAndConjunction,
     ForbiddenEqualsClause,
+    GreaterThanCondition,
     InCondition,
     NotEqualsCondition,
     OrConjunction,
@@ -70,6 +71,7 @@ from ConfigSpace.hyperparameters import (
     OrdinalHyperparameter,
     UniformFloatHyperparameter,
 )
+from ConfigSpace.util import deactivate_inactive_hyperparameters
 
 
 def byteify(input):
@@ -559,6 +561,48 @@ def test_get_hyperparameter():
 
     with pytest.raises(KeyError):
         cs["grandfather"]
+
+
+@pytest.mark.parametrize(
+    ("family", "depth", "active_children"),
+    [
+        ("svm", 3, ()),
+        ("svm", 8, ("a_shrink",)),
+        ("gbm", 3, ("a_shrink",)),
+        ("gbm", 8, ("a_shrink", "b_penalty")),
+    ],
+)
+def test_conjunctions_with_same_parents_and_different_operators(
+    family: str,
+    depth: int,
+    active_children: tuple[str, ...],
+) -> None:
+    cs = ConfigurationSpace(
+        space={
+            "family": ["gbm", "svm"],
+            "depth": Integer("depth", (1, 8), default=6),
+            "a_shrink": ["on", "off"],
+            "b_penalty": ["on", "off"],
+        },
+    )
+    for operator, child in (
+        (OrConjunction, cs["a_shrink"]),
+        (AndConjunction, cs["b_penalty"]),
+    ):
+        cs.add(
+            operator(
+                EqualsCondition(child, cs["family"], "gbm"),
+                GreaterThanCondition(child, cs["depth"], 4),
+            ),
+        )
+
+    parents = {"family": family, "depth": depth}
+    expected = {**parents, **dict.fromkeys(active_children, "on")}
+    assert dict(Configuration(cs, values=expected)) == expected
+
+    all_values = {**parents, "a_shrink": "on", "b_penalty": "on"}
+    deactivated = deactivate_inactive_hyperparameters(all_values, cs)
+    assert dict(deactivated) == expected
 
 
 def test_get_conditions():
