@@ -13,6 +13,7 @@ from ConfigSpace.hyperparameters.distributions import (
     UniformIntegerNormalizedDistribution,
 )
 from ConfigSpace.hyperparameters.hp_components import ATOL, UnitScaler
+from ConfigSpace.hyperparameters.hyperparameter import save_init_params
 from ConfigSpace.hyperparameters.integer_hyperparameter import IntegerHyperparameter
 from ConfigSpace.types import Number, f64, i64
 
@@ -20,6 +21,7 @@ if TYPE_CHECKING:
     from ConfigSpace.hyperparameters.uniform_float import UniformFloatHyperparameter
 
 
+@save_init_params
 @dataclass(init=False)
 class UniformIntegerHyperparameter(IntegerHyperparameter):
     """A uniformly distributed integer hyperparameter.

@@ -12,13 +12,17 @@ from ConfigSpace.hyperparameters.distributions import (
     DiscretizedContinuousScipyDistribution,
 )
 from ConfigSpace.hyperparameters.hp_components import ATOL, UnitScaler
-from ConfigSpace.hyperparameters.hyperparameter import IntegerHyperparameter
+from ConfigSpace.hyperparameters.hyperparameter import (
+    IntegerHyperparameter,
+    save_init_params,
+)
 from ConfigSpace.types import Number, f64, i64
 
 if TYPE_CHECKING:
     from ConfigSpace.hyperparameters.normal_float import NormalFloatHyperparameter
 
 
+@save_init_params
 @dataclass(init=False)
 class NormalIntegerHyperparameter(IntegerHyperparameter):
     """A normally distributed integer hyperparameter.

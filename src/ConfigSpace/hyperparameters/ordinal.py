@@ -13,10 +13,14 @@ from ConfigSpace.hyperparameters.hp_components import (
     TransformerSeq,
     ordinal_neighborhood,
 )
-from ConfigSpace.hyperparameters.hyperparameter import Hyperparameter
+from ConfigSpace.hyperparameters.hyperparameter import (
+    Hyperparameter,
+    save_init_params,
+)
 from ConfigSpace.types import Array, Mask, NotSet, _NotSet, f64, i64
 
 
+@save_init_params
 @dataclass(init=False)
 class OrdinalHyperparameter(Hyperparameter[Any, Any]):
     """Representing an ordinal hyperparameter in the configuration space.

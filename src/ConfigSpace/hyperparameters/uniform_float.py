@@ -9,7 +9,10 @@ import numpy as np
 
 from ConfigSpace.hyperparameters.distributions import UnitUniformContinuousDistribution
 from ConfigSpace.hyperparameters.hp_components import ROUND_PLACES, UnitScaler
-from ConfigSpace.hyperparameters.hyperparameter import FloatHyperparameter
+from ConfigSpace.hyperparameters.hyperparameter import (
+    FloatHyperparameter,
+    save_init_params,
+)
 from ConfigSpace.types import f64
 
 if TYPE_CHECKING:
@@ -17,6 +20,7 @@ if TYPE_CHECKING:
     from ConfigSpace.types import Number
 
 
+@save_init_params
 @dataclass(init=False)
 class UniformFloatHyperparameter(FloatHyperparameter):
     """A uniformly distributed float hyperparameter.

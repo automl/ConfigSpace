@@ -12,6 +12,7 @@ from ConfigSpace.hyperparameters.distributions import (
     DiscretizedContinuousScipyDistribution,
 )
 from ConfigSpace.hyperparameters.hp_components import ATOL, UnitScaler
+from ConfigSpace.hyperparameters.hyperparameter import save_init_params
 from ConfigSpace.hyperparameters.integer_hyperparameter import IntegerHyperparameter
 from ConfigSpace.types import f64, i64
 
@@ -20,6 +21,7 @@ if TYPE_CHECKING:
     from ConfigSpace.types import Number
 
 
+@save_init_params
 @dataclass(init=False)
 class BetaIntegerHyperparameter(IntegerHyperparameter):
     r"""A beta distributed integer hyperparameter. The 'lower' and 'upper'

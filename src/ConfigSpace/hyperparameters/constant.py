@@ -9,7 +9,10 @@ import numpy as np
 
 from ConfigSpace.hyperparameters.distributions import ConstantVectorDistribution
 from ConfigSpace.hyperparameters.hp_components import TransformerConstant
-from ConfigSpace.hyperparameters.hyperparameter import Hyperparameter
+from ConfigSpace.hyperparameters.hyperparameter import (
+    Hyperparameter,
+    save_init_params,
+)
 from ConfigSpace.types import Array, Mask, f64
 
 CONSTANT_VECTOR_VALUE_YES = f64(1)
@@ -23,6 +26,7 @@ def _empty_neighborhood(*_: Any, **__: Any) -> Array[f64]:
     return np.ndarray([], dtype=f64)
 
 
+@save_init_params
 @dataclass(init=False)
 class Constant(Hyperparameter[Any, Any]):
     """Representing a constant hyperparameter in the configuration space.
