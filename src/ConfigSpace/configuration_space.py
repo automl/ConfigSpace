@@ -966,14 +966,14 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
                 _rollback()
                 raise ValueError(f"Setting '{attribute}' of Hyperparameter '{object.name}' to '{value}' invalidates the following forbidden: {forbidden}.")
     
-        # 3. Refresh derived state and verify the default configuration
+        # 3. Verify the default configuration
         try:
-            with self._dag.update():
+            with self._dag.update(): # Refresh DAG state based on recent changes
                 pass
             self.get_default_configuration()
         except Exception as error:
             _rollback()
-            with self._dag.update():
+            with self._dag.update(): # Refresh DAG state based on recent changes
                 pass
             raise ForbiddenValueError(
                 f"Setting '{attribute}' of '{object}' to '{value}' invalidates the default configuration."
