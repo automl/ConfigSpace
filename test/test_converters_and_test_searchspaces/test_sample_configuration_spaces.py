@@ -47,9 +47,10 @@ configuration_space_path = (
     (this_directory.parent / "test_searchspaces").absolute().resolve()
 )
 pcs_files = list(Path(configuration_space_path).glob("*.pcs"))
+pcs_file_ids = [path.name for path in pcs_files]
 
 
-@pytest.mark.parametrize("pcs_file", pcs_files)
+@pytest.mark.parametrize("pcs_file", pcs_files, ids=pcs_file_ids)
 def test_autosklearn_space(pcs_file: Path):
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")

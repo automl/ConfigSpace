@@ -15,18 +15,18 @@ from ConfigSpace.conditions import (
 )
 from ConfigSpace.forbidden import (
     ForbiddenAndConjunction,
-    ForbiddenOrConjunction,
     ForbiddenEqualsClause,
     ForbiddenEqualsRelation,
-    ForbiddenGreaterThanRelation,
-    ForbiddenGreaterThanEqualsRelation,
     ForbiddenGreaterThanClause,
     ForbiddenGreaterThanEqualsClause,
+    ForbiddenGreaterThanEqualsRelation,
+    ForbiddenGreaterThanRelation,
     ForbiddenInClause,
-    ForbiddenLessThanRelation,
-    ForbiddenLessThanEqualsRelation,
     ForbiddenLessThanClause,
     ForbiddenLessThanEqualsClause,
+    ForbiddenLessThanEqualsRelation,
+    ForbiddenLessThanRelation,
+    ForbiddenOrConjunction,
     ForbiddenRelation,
 )
 from ConfigSpace.hyperparameters import (
@@ -302,7 +302,7 @@ def _decode_forbidden_less_than_equals_clause(
     decode: _Decoder,  # noqa: ARG001
 ) -> ForbiddenLessThanEqualsClause:
     return ForbiddenLessThanEqualsClause(
-        hyperparameter=cs[item["name"]], value=item["value"]
+        hyperparameter=cs[item["name"]], value=item["value"],
     )
 
 
@@ -312,7 +312,7 @@ def _decode_forbidden_greater_than_clause(
     decode: _Decoder,  # noqa: ARG001
 ) -> ForbiddenGreaterThanClause:
     return ForbiddenGreaterThanClause(
-        hyperparameter=cs[item["name"]], value=item["value"]
+        hyperparameter=cs[item["name"]], value=item["value"],
     )
 
 
@@ -322,7 +322,7 @@ def _decode_forbidden_greater_than_equals_clause(
     decode: _Decoder,  # noqa: ARG001
 ) -> ForbiddenGreaterThanEqualsClause:
     return ForbiddenGreaterThanEqualsClause(
-        hyperparameter=cs[item["name"]], value=item["value"]
+        hyperparameter=cs[item["name"]], value=item["value"],
     )
 
 
@@ -332,7 +332,7 @@ def _decode_forbidden_less_than_equals_relation(
     decode: _Decoder,  # noqa: ARG001
 ) -> ForbiddenLessThanEqualsRelation:
     return ForbiddenLessThanEqualsRelation(
-        left=cs[item["left"]], right=cs[item["right"]]
+        left=cs[item["left"]], right=cs[item["right"]],
     )
 
 
@@ -358,7 +358,7 @@ def _decode_forbidden_less_than_equals_relation(
     decode: _Decoder,  # noqa: ARG001
 ) -> ForbiddenLessThanEqualsRelation:
     return ForbiddenLessThanEqualsRelation(
-        left=cs[item["left"]], right=cs[item["right"]]
+        left=cs[item["left"]], right=cs[item["right"]],
     )
 
 
@@ -368,7 +368,7 @@ def _decode_forbidden_greater_than_equals_relation(
     decode: _Decoder,  # noqa: ARG001
 ) -> ForbiddenGreaterThanEqualsRelation:
     return ForbiddenGreaterThanEqualsRelation(
-        left=cs[item["left"]], right=cs[item["right"]]
+        left=cs[item["left"]], right=cs[item["right"]],
     )
 
 
@@ -378,7 +378,7 @@ def _decode_forbidden_greater_than_equals_clause(
     decode: _Decoder,  # noqa: ARG001
 ) -> ForbiddenGreaterThanEqualsClause:
     return ForbiddenGreaterThanEqualsClause(
-        hyperparameter=cs[item["name"]], value=item["value"]
+        hyperparameter=cs[item["name"]], value=item["value"],
     )
 
 
@@ -388,7 +388,7 @@ def _decode_forbidden_less_than_equals_clause(
     decode: _Decoder,  # noqa: ARG001
 ) -> ForbiddenLessThanEqualsClause:
     return ForbiddenLessThanEqualsClause(
-        hyperparameter=cs[item["name"]], value=item["value"]
+        hyperparameter=cs[item["name"]], value=item["value"],
     )
 
 

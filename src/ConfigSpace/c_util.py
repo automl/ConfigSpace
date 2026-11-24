@@ -22,4 +22,4 @@ def check_forbidden(
 
 
 # Backwards compatibility
-__all__ = ["check_configuration", "change_hp_value"]
+__all__ = ["change_hp_value", "check_configuration"]

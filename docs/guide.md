@@ -300,7 +300,7 @@ print(cs)
 ```
 
 To check that your prior makes sense for each hyperparameter,
-you can easily do so with the [`pdf_values()`][ConfigSpace.hyperparameters.Hyperparameter.pdf_values] method.
+you can easily do so with the [`pdf_values()`][ConfigSpace.hyperparameters.hyperparameter.Hyperparameter.pdf_values] method.
 There, you will see that the probability of the optimal learning rate peaks at
 10^-3, and decays as we go further away from it:
 

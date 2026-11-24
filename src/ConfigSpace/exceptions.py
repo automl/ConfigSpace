@@ -10,8 +10,9 @@ if TYPE_CHECKING:
 class ForbiddenValueError(ValueError):
     """Raised when a combination of values is forbidden for a Configuration."""
 
-
 class IllegalValueError(ValueError):
+    """Raised when a value is illegal for a Hyperparameter."""
+
     def __init__(self, hyperparameter: Hyperparameter, value: Any):
         super().__init__()
         self.hyperparameter = hyperparameter
@@ -26,6 +27,8 @@ class IllegalValueError(ValueError):
 
 
 class IllegalVectorizedValueError(ValueError):
+    """Raised when a vectorized value is illegal for a Hyperparameter."""
+
     def __init__(self, hyperparameter: Hyperparameter, vector: Any):
         super().__init__()
         self.hyperparameter = hyperparameter
@@ -40,6 +43,8 @@ class IllegalVectorizedValueError(ValueError):
 
 
 class ActiveHyperparameterNotSetError(ValueError):
+    """Raised when a Hyperparameter is active but has no value set."""
+
     def __init__(self, hyperparameter: Hyperparameter) -> None:
         super().__init__(hyperparameter)
         self.hyperparameter = hyperparameter
@@ -49,6 +54,8 @@ class ActiveHyperparameterNotSetError(ValueError):
 
 
 class InactiveHyperparameterSetError(ValueError):
+    """Raised when a Hyperparameter is inactive but has a value set."""
+
     def __init__(self, hyperparameter: Hyperparameter, value: Any) -> None:
         super().__init__(hyperparameter)
         self.hyperparameter = hyperparameter

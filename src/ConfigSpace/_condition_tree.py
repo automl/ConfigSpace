@@ -41,7 +41,7 @@ from typing_extensions import Self
 import numpy as np
 from more_itertools import unique_everseen
 
-from ConfigSpace.conditions import Condition, Conjunction
+from ConfigSpace.conditions import Condition, ConditionLike, Conjunction
 from ConfigSpace.exceptions import (
     AmbiguousConditionError,
     ChildNotFoundError,
@@ -62,7 +62,6 @@ from ConfigSpace.forbidden import (
 from ConfigSpace.types import f64
 
 if TYPE_CHECKING:
-    from ConfigSpace.conditions import ConditionLike
     from ConfigSpace.hyperparameters import Hyperparameter
     from ConfigSpace.types import Array
 
@@ -782,8 +781,7 @@ class DAG:
         # i.e. two hyperparameters both rely on algorithm == "A"
         base_conditions: dict[int, ConditionNode] = {}
         for node in self.nodes.values():
-            # This node has no parent as is a root
-            if node.parent_condition is None:
+            if node.parent_condition is None:  # This node has no parent as it is a root node
                 assert node.name in self.roots
                 continue
 
