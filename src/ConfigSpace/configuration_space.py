@@ -902,10 +902,23 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
             meta=self.meta.copy() if self.meta is not None else None,
             space={hp.name: copy.copy(hp) for hp in self.values()},
         )
-        for condition in self.conditions:
-            cs_copy.add(copy.copy(condition))
+        conditions = [copy.copy(condition) for condition in self.conditions]
+        forbiddens = []
         for forbidden in self.forbidden_clauses:
-            cs_copy.add(copy.copy(forbidden))
+            new_forbidden = copy.copy(forbidden)
+            clauses = (
+                new_forbidden.dlcs
+                if isinstance(new_forbidden, ForbiddenConjunction)
+                else [new_forbidden]
+            )
+            for clause in clauses:
+                if isinstance(clause, ForbiddenRelation):
+                    clause.left = cs_copy[clause.left.name]
+                    clause.right = cs_copy[clause.right.name]
+                else:
+                    clause.hyperparameter = cs_copy[clause.hyperparameter.name]
+            forbiddens.append(new_forbidden)
+        cs_copy.add(conditions, forbiddens)
         return cs_copy
 
     def __eq__(self, other: Any) -> bool:
