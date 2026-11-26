@@ -40,7 +40,6 @@ from ConfigSpace import Configuration
 from ConfigSpace.exceptions import (
     ActiveHyperparameterNotSetError,
     ForbiddenValueError,
-    IllegalValueError,
     IllegalVectorizedValueError,
     InactiveHyperparameterSetError,
     NoPossibleNeighborsError,
@@ -682,22 +681,21 @@ def grid_generator(
             if log:
                 lower_source, upper_source = lower, upper
                 lower, upper = math.log(lower), math.log(upper)
-            x = lower  # Starting point
-            step_size = float((upper - lower) / (numsteps-1))
-            if not log:  # Determine precision
-                precision = len(str(step_size).split(".", maxsplit=1)[1])  # This is so ugly...
-            while x <= upper:
-                if log:  # Capping for float rounding errors
-                    # NOTE: What if the capping is now letting through a final value that was originally waaaaaay out of bounds? Should it not be rejected?
+            span = upper - lower
+            previous = None
+            for i in range(numsteps):
+                # Computed per index (not by summing steps) so float error can't drop the last point
+                x = upper if i == numsteps - 1 else lower + span * i / (numsteps - 1)
+                if log:  # Capping for float rounding errors in exp
                     value = min(max(math.exp(x), lower_source), upper_source)
                     if as_int:
                         value = round(value)
                 else:
                     value = round(x) if as_int else x
+                if as_int and value == previous:  # More steps than integers in the range rounds several steps onto the same value
+                    continue
+                previous = value
                 yield value
-                x += step_size
-                if not log:  # Linear, thus we can make the precision to be the same as the step_size for accuracy purposes
-                    x = round(x, precision)
 
         if isinstance(hp, (CategoricalHyperparameter)):
             return cast(tuple, hp.choices)
@@ -721,12 +719,12 @@ def grid_generator(
             return itertools.product([])
         return itertools.product(*hp_ranges)
 
-    hyperparameter_names = list(configuration_space.keys())
     regular_hyperparameters = [
         hp
         for hp in configuration_space.values()
         if hp.name not in configuration_space.conditional_hyperparameters
     ]
+    regular_hyperparameter_names = [hp.name for hp in regular_hyperparameters]
 
     def generate_with_conditionals(regular_configuration: dict[str, Any], active_conditionals: list[Hyperparameter]) -> Generator[Configuration, None, None]:
         """Recursively adds all conditional hyperparameters to some configuration of regular HPs."""
@@ -745,13 +743,9 @@ def grid_generator(
                     yield configuration_with_conditionals
             except ForbiddenValueError as ex:  # The grid generator generates all possible combinations, including those violating the Forbidden rules
                 continue
-            except InactiveHyperparameterSetError as ex:  # This should not happen?
-                raise ex
-            except IllegalValueError as ex:  # Should not occur: The grid should only generate legal values for each HP.
-                raise ex
 
     for configuration in _cartesian_product_generator(regular_hyperparameters):
-        configuration_dict = {key: value for key, value in zip(hyperparameter_names, configuration)}
+        configuration_dict = {key: value for key, value in zip(regular_hyperparameter_names, configuration)}
         try:
             # NOTE: Build vector instead and call check_configuration here directly?
             grid_point = Configuration(
@@ -765,7 +759,3 @@ def grid_generator(
                 yield configuration_with_conditionals
         except ForbiddenValueError as ex:  # The grid generator generates all possible combinations, including those violating the Forbidden rules
             continue
-        except InactiveHyperparameterSetError as ex:  # This should not occur due to how conditionals are handled
-            raise ex
-        except IllegalValueError as ex:  # Should not occur: The grid should only generate legal values for each HP.
-            raise ex

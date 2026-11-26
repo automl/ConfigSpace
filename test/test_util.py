@@ -595,24 +595,15 @@ def test_grid_generator():
     # RR: I manually generated the grid and verified the values were correct.
     # Check 1st and last generated configurations completely:
     first_expected_dict = {"float1": -1.0, "int1": 0}
-    last_expected_dict = {
-        "float1": -1.0,
-        "int1": 1000,
-        "int2_cond": 100,
-        "float2_cond": 100.0,
-    }
+    # The grid is generated depth-first, so the deepest conditional configurations
+    # (int2_cond/float2_cond) come right after their parent, not at the end
+    last_expected_dict = {"float1": 1.0, "int1": 1000}
 
     assert dict(generated_grid[0]) == first_expected_dict
 
-    # This was having slight numerical instability (99.99999999999994 vs 100.0) and so
-    # we manually do a pass over each value
-    last_config = generated_grid[-1]
-    for expected_value in last_config.values():
-        generated_value = expected_value
-        if isinstance(generated_value, float):
-            assert generated_value == approx(expected_value)
-        else:
-            assert generated_value == expected_value
+    # approx guards against float noise (e.g. 99.99999999999994 vs 100.0) and also
+    # requires the exact same set of keys
+    assert dict(generated_grid[-1]) == approx(last_expected_dict)
     # Here, we test that a few randomly chosen values in the generated grid
     # correspond to the ones I checked.
     # NOTE: Should we not check the full configuration instead?
@@ -637,7 +628,8 @@ def test_grid_generator():
         generated_grid = list(grid_generator(cs))
     assert (
         str(e.value)
-        == "No number of steps provided for float1 i.e. the number of points to divide float1 into."
+        == "No valid number of steps provided for float1 i.e. the number of points"
+        " to divide float1 into (num_steps == None)."
     )
 
     generated_grid = list(grid_generator(cs, num_steps_dict))
@@ -669,3 +661,21 @@ def test_grid_generator():
     assert dict(generated_grid[5]) == {"cat1": "T", "ord1": "3", "int1": 1000}
     assert dict(generated_grid[6]) == {"cat1": "F", "ord1": "1"}
     assert dict(generated_grid[7]) == {"cat1": "F", "ord1": "2"}
+
+
+def test_grid_generator_includes_upper_bound():
+    # 12 steps over (-1, 1) gives a step of 2/11; summing steps used to overshoot
+    # the upper bound through float error and silently drop the last grid point
+    cs = ConfigurationSpace({"float": (-1.0, 1.0)})
+    values = [config["float"] for config in grid_generator(cs, {"float": 12})]
+    assert len(values) == 12
+    assert values[0] == -1.0
+    assert values[-1] == 1.0
+
+
+def test_grid_generator_no_duplicate_integers():
+    # More steps than integers in the range: rounding maps several steps onto the
+    # same integer, which must not produce duplicate configurations
+    cs = ConfigurationSpace({"int": (1, 3)})
+    values = [config["int"] for config in grid_generator(cs, {"int": 5})]
+    assert values == [1, 2, 3]
