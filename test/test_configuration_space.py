@@ -1019,7 +1019,8 @@ def test_remove_hyperparameter_priors():
     cat = CategoricalHyperparameter("cat", [0, 1, 2], weights=[1, 2, 3])
     beta = BetaFloatHyperparameter("beta", alpha=8, beta=2, lower=-1, upper=11)
     norm = NormalIntegerHyperparameter("norm", mu=5, sigma=4, lower=1, upper=15)
-    cs.add([integer, cat, beta, norm])
+    ordinal = OrdinalHyperparameter("ordinal", ["a", "b", "c"], weights=[1, 3, 0])
+    cs.add([integer, cat, beta, norm, ordinal])
 
     cat_default = cat.default_value
     norm_default = norm.default_value
@@ -1059,7 +1060,8 @@ def test_remove_hyperparameter_priors():
         upper=15,
         default_value=norm_default,
     )
-    expected_cs.add([unif_integer, unif_cat, unif_beta, unif_norm])
+    unif_ordinal = OrdinalHyperparameter("ordinal", ["a", "b", "c"])
+    expected_cs.add([unif_integer, unif_cat, unif_beta, unif_norm, unif_ordinal])
 
     # add some conditions, to test that remove_parameter_priors keeps the forbiddens
     cond_2 = OrConjunction(

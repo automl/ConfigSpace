@@ -66,6 +66,7 @@ from ConfigSpace.hyperparameters import (
     CategoricalHyperparameter,
     Constant,
     Hyperparameter,
+    OrdinalHyperparameter,
     UniformFloatHyperparameter,
     UniformIntegerHyperparameter,
 )
@@ -726,7 +727,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         """Produces a new ConfigurationSpace where all priors on parameters are removed.
 
         Non-uniform hyperpararmeters are replaced with uniform ones, and
-        CategoricalHyperparameters with weights have their weights removed.
+        Categorical- and OrdinalHyperparameters with weights have their weights removed.
 
         Returns:
             The resulting configuration space, without priors on the hyperparameters
@@ -734,7 +735,14 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         uniform_config_space = ConfigurationSpace(
             {
                 name: p.to_uniform()
-                if isinstance(p, (NumericalHyperparameter, CategoricalHyperparameter))
+                if isinstance(
+                    p,
+                    (
+                        NumericalHyperparameter,
+                        CategoricalHyperparameter,
+                        OrdinalHyperparameter,
+                    ),
+                )
                 else copy.copy(p)
                 for name, p in self.items()
             },
