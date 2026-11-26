@@ -800,7 +800,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         for condition in conditions:
             if isinstance(condition, Conjunction):
                 conjunction_type = type(condition)
-                children = condition.dlcs
+                children = condition.components
                 substituted_children = (
                     ConfigurationSpace.substitute_hyperparameters_in_conditions(
                         children,
@@ -902,22 +902,16 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
             meta=self.meta.copy() if self.meta is not None else None,
             space={hp.name: copy.copy(hp) for hp in self.values()},
         )
-        conditions = [copy.copy(condition) for condition in self.conditions]
-        forbiddens = []
-        for forbidden in self.forbidden_clauses:
-            new_forbidden = copy.copy(forbidden)
-            clauses = (
-                new_forbidden.dlcs
-                if isinstance(new_forbidden, ForbiddenConjunction)
-                else [new_forbidden]
-            )
-            for clause in clauses:
-                if isinstance(clause, ForbiddenRelation):
-                    clause.left = cs_copy[clause.left.name]
-                    clause.right = cs_copy[clause.right.name]
-                else:
-                    clause.hyperparameter = cs_copy[clause.hyperparameter.name]
-            forbiddens.append(new_forbidden)
+        # Rebuild conditions/forbiddens so they reference cs_copy's hyperparameters
+        conditions = self.substitute_hyperparameters_in_conditions(
+            self.conditions,
+            cs_copy,
+        )
+        forbiddens = self.substitute_hyperparameters_in_forbiddens(
+            self.forbidden_clauses,
+            cs_copy,
+        )
+        # Add all conditions and forbiddens in one shot to avoid rebuilding the DAG more than once
         cs_copy.add(conditions, forbiddens)
         return cs_copy
 

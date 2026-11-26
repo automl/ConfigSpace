@@ -1509,3 +1509,53 @@ def test_copy() -> None:
     # Re adding the hyperparameter will not bring forbidden back
     cs_copy.add(cs["a"])
     assert cs != cs_copy
+
+
+def test_copy_links_conditions_and_forbiddens_to_copied_hyperparameters() -> None:
+    # Test made by Claude Code including these comments (T.S. 26-11-26):
+    # Conditions and forbiddens hold direct references to hyperparameter objects.
+    # After copying a space, they must reference the copy's hyperparameters, not the
+    # original space's.
+    import copy
+
+    cs = ConfigurationSpace(
+        {"a": [1, 2], "b": [1, 2], "d": [1, 2], "c": (0.0, 1.0), "e": (0, 5)},
+    )
+    # Cover each kind of reference: condition child/parent (nested in a conjunction),
+    # forbidden clause hyperparameter (in a conjunction) and forbidden relation left/right
+    cs.add(
+        AndConjunction(
+            OrConjunction(
+                EqualsCondition(cs["c"], cs["a"], 1),
+                EqualsCondition(cs["c"], cs["b"], 1),
+            ),
+            EqualsCondition(cs["c"], cs["d"], 1),
+        ),
+        ForbiddenAndConjunction(
+            ForbiddenEqualsClause(cs["a"], 2),
+            ForbiddenEqualsClause(cs["b"], 2),
+        ),
+        ForbiddenLessThanRelation(cs["e"], cs["b"]),
+    )
+
+    cs_copy = copy.copy(cs)
+    assert cs_copy == cs
+    # Nested conjunctions keep their structure (an Or must not be flattened into the And)
+    assert cs_copy.conditions[0] == cs.conditions[0]
+
+    # The reference must be the exact object stored in the copy (identity, not
+    # equality: the original's hyperparameters compare equal too)
+    def linked_to_copy(hp) -> bool:
+        return hp is cs_copy[hp.name] and hp is not cs[hp.name]
+
+    # dlcs gives the leaf conditions inside the (nested) conjunction
+    for cond in cs_copy.conditions[0].dlcs:
+        assert linked_to_copy(cond.child)
+        assert linked_to_copy(cond.parent)
+
+    # Forbidden clauses inside the conjunction, then both sides of the relation
+    conjunction, relation = cs_copy.forbidden_clauses
+    for clause in conjunction.dlcs:
+        assert linked_to_copy(clause.hyperparameter)
+    assert linked_to_copy(relation.left)
+    assert linked_to_copy(relation.right)
