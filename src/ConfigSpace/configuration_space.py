@@ -800,7 +800,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         for condition in conditions:
             if isinstance(condition, Conjunction):
                 conjunction_type = type(condition)
-                children = condition.dlcs
+                children = condition.components
                 substituted_children = (
                     ConfigurationSpace.substitute_hyperparameters_in_conditions(
                         children,
@@ -894,6 +894,28 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
                 raise TypeError(f"Did not expect type {type(forbidden)}.")
 
         return new_forbiddens
+
+    def __copy__(self) -> ConfigurationSpace:
+        """Creates a copy of the ConfigurationSpace."""
+        cs_copy = ConfigurationSpace(
+            name=self.name,
+            meta=self.meta.copy() if self.meta is not None else None,
+            space={hp.name: copy.copy(hp) for hp in self.values()},
+        )
+        # Rebuild conditions/forbiddens so they reference cs_copy's hyperparameters
+        conditions = self.substitute_hyperparameters_in_conditions(
+            self.conditions,
+            cs_copy,
+        )
+        forbiddens = self.substitute_hyperparameters_in_forbiddens(
+            self.forbidden_clauses,
+            cs_copy,
+        )
+        # Add all conditions and forbiddens in one shot to avoid rebuilding the DAG more than once
+        cs_copy.add(conditions, forbiddens)
+        # Same RNG state, but an independent generator: sampling one won't advance the other
+        cs_copy.random.set_state(self.random.get_state())
+        return cs_copy
 
     def __eq__(self, other: Any) -> bool:
         """Override the default Equals behavior."""
