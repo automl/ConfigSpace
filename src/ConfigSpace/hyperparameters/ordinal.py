@@ -242,7 +242,7 @@ class OrdinalHyperparameter(Hyperparameter[Any, Any]):
             not isinstance(other, self.__class__)
             or self.name != other.name
             or self.default_value != other.default_value
-            or len(self.sequence) != len(other.sequence)
+            or self.sequence != other.sequence
         ):
             return False
 
