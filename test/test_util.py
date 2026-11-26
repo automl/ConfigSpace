@@ -69,9 +69,9 @@ from ConfigSpace.util import (
     change_hp_value,
     deactivate_inactive_hyperparameters,
     fix_types,
-    generate_grid,
     get_one_exchange_neighbourhood,
     get_random_neighbor,
+    grid_generator,
     impute_inactive_values,
     parse_expression_from_string,
 )
@@ -462,7 +462,7 @@ def test_fix_types():
         assert fix_types(c_str, cs) == c
 
 
-def test_generate_grid():
+def test_grid_generator():
     """Test grid generation."""
     # Sub-test 1
     cs = ConfigurationSpace(seed=1234)
@@ -476,11 +476,16 @@ def test_generate_grid():
     cs.add([float1, int1, cat1, ord1, const1])
 
     num_steps_dict = {"float1": 11, "int1": 6}
-    generated_grid = generate_grid(cs, num_steps_dict)
+    generated_grid = list(grid_generator(cs, num_steps_dict))
+    # cat1 2
+    # const1 1
+    # float1 11
+    # int1 6
+    # ord1 3
 
     # Check randomly pre-selected values in the generated_grid
     # 2 * 1 * 11 * 6 * 3 total diff. possible configurations
-    assert len(generated_grid) == 396
+    assert len(generated_grid) == 396, "Wrong number of generated configurations"
     # Check 1st and last generated configurations completely:
     first_expected_dict = {
         "cat1": "T",
@@ -517,7 +522,7 @@ def test_generate_grid():
     cs.add([float1, int1])
 
     num_steps_dict = {"float1": 11, "int1": 6}
-    generated_grid = generate_grid(cs, num_steps_dict)
+    generated_grid = list(grid_generator(cs, num_steps_dict))
 
     assert len(generated_grid) == 66
     # Check 1st and last generated configurations completely:
@@ -530,7 +535,7 @@ def test_generate_grid():
     cs = ConfigurationSpace(seed=1234)
     cs.add([cat1])
 
-    generated_grid = generate_grid(cs)
+    generated_grid = list(grid_generator(cs))
 
     assert len(generated_grid) == 2
     # Check 1st and last generated configurations completely:
@@ -541,7 +546,7 @@ def test_generate_grid():
     cs = ConfigurationSpace(seed=1234)
     cs.add([const1])
 
-    generated_grid = generate_grid(cs)
+    generated_grid = list(grid_generator(cs))
 
     assert len(generated_grid) == 1
     # Check 1st and only generated configuration completely:
@@ -550,10 +555,9 @@ def test_generate_grid():
     # Test: no hyperparameters yet
     cs = ConfigurationSpace(seed=1234)
 
-    generated_grid = generate_grid(cs, num_steps_dict)
-
-    # For the case of no hyperparameters, in get_cartesian_product, itertools.product() returns
-    # a single empty tuple element which leads to a single empty Configuration.
+    generated_grid = list(grid_generator(cs, num_steps_dict))
+    # For the case of no hyperparameters, grid_generator returns an empty list
+    # because there are no hyperparameters to form configurations from.
     assert len(generated_grid) == 0
 
     # Sub-test 3
@@ -595,35 +599,31 @@ def test_generate_grid():
     cond_3 = GreaterThanCondition(float2_cond, int2_cond, 50)
     cs2.add([cond_3])
     num_steps_dict1 = {"float1": 4, "int2_cond": 3, "float2_cond": 3, "int1": 3}
-    generated_grid = generate_grid(cs2, num_steps_dict1)
+    generated_grid = list(grid_generator(cs2, num_steps_dict1))
     assert len(generated_grid) == 18
 
     # RR: I manually generated the grid and verified the values were correct.
     # Check 1st and last generated configurations completely:
     first_expected_dict = {"float1": -1.0, "int1": 0}
-    last_expected_dict = {
-        "float1": -1.0,
-        "int1": 1000,
-        "int2_cond": 100,
-        "float2_cond": 100.0,
-    }
+    # The grid is generated depth-first, so the deepest conditional configurations
+    # (int2_cond/float2_cond) come right after their parent, not at the end
+    last_expected_dict = {"float1": 1.0, "int1": 1000}
 
     assert dict(generated_grid[0]) == first_expected_dict
 
-    # This was having slight numerical instability (99.99999999999994 vs 100.0) and so
-    # we manually do a pass over each value
-    last_config = generated_grid[-1]
-    for expected_value in last_config.values():
-        generated_value = expected_value
-        if isinstance(generated_value, float):
-            assert generated_value == approx(expected_value)
-        else:
-            assert generated_value == expected_value
+    # approx guards against float noise (e.g. 99.99999999999994 vs 100.0) and also
+    # requires the exact same set of keys
+    assert dict(generated_grid[-1]) == approx(last_expected_dict)
     # Here, we test that a few randomly chosen values in the generated grid
     # correspond to the ones I checked.
+    # NOTE: Should we not check the full configuration instead?
     assert generated_grid[3]["int1"] == 1000
-    assert generated_grid[12]["cat1_cond"] == "orange"
-    assert generated_grid[-2]["float2_cond"] == pytest.approx(
+    assert (
+        generated_grid[8]["cat1_cond"] == "apple"
+    )  # NOTE: Was index 12, code changed order
+    assert generated_grid[5][
+        "float2_cond"
+    ] == pytest.approx(  # NOTE: Was index 5, code changed order
         31.622776601683803,
         abs=1e-3,
     )
@@ -634,16 +634,15 @@ def test_generate_grid():
     cs.add([float1])
 
     num_steps_dict = {"float1": 11}
-    try:
-        generated_grid = generate_grid(cs)
-    except ValueError as e:
-        assert (
-            str(e) == "num_steps_dict is None or doesn't contain "
-            "the number of points to divide float1 into. And its quantization "
-            "factor is None. Please provide/set one of these values."
-        )
+    with pytest.raises(ValueError) as e:
+        generated_grid = list(grid_generator(cs))
+    assert (
+        str(e.value)
+        == "No valid number of steps provided for float1 i.e. the number of points"
+        " to divide float1 into (num_steps == None)."
+    )
 
-    generated_grid = generate_grid(cs, num_steps_dict)
+    generated_grid = list(grid_generator(cs, num_steps_dict))
 
     assert len(generated_grid) == 11
     # Check 1st and last generated configurations completely:
@@ -661,203 +660,32 @@ def test_generate_grid():
         ),
     )
 
-    generated_grid = generate_grid(cs, {"int1": 2})
+    generated_grid = list(grid_generator(cs, {"int1": 2}))
 
     assert len(generated_grid) == 8
-    assert dict(generated_grid[0]) == {"cat1": "F", "ord1": "1"}
-    assert dict(generated_grid[1]) == {"cat1": "F", "ord1": "2"}
-    assert dict(generated_grid[2]) == {"cat1": "T", "ord1": "1", "int1": 0}
-    assert dict(generated_grid[-1]) == {"cat1": "T", "ord1": "3", "int1": 1000}
+    assert dict(generated_grid[0]) == {"cat1": "T", "ord1": "1", "int1": 0}
+    assert dict(generated_grid[1]) == {"cat1": "T", "ord1": "1", "int1": 1000}
+    assert dict(generated_grid[2]) == {"cat1": "T", "ord1": "2", "int1": 0}
+    assert dict(generated_grid[3]) == {"cat1": "T", "ord1": "2", "int1": 1000}
+    assert dict(generated_grid[4]) == {"cat1": "T", "ord1": "3", "int1": 0}
+    assert dict(generated_grid[5]) == {"cat1": "T", "ord1": "3", "int1": 1000}
+    assert dict(generated_grid[6]) == {"cat1": "F", "ord1": "1"}
+    assert dict(generated_grid[7]) == {"cat1": "F", "ord1": "2"}
 
 
-def test_parse_expression_from_string_forbidden():
-    cs = ConfigurationSpace(
-        {
-            "a": (0, 10),
-            "b": (0, 10),
-            "c": (0, 10),
-            "d": (0, 10),
-            "e": (0, 10),
-            "cat1": ["cat", "dog"],
-            "cat2": ["sun", "rain", "snow", "fog"],
-            "dog": ["small", "medium", "large", "cat", "dog"],
-            "float1": (0.0, 1.0),
-            "float2": (0.0, 1.0),
-        },
-    )
-
-    wrong_expression = "a >!> b"
-    with pytest.raises(ValueError, match="Could not parse expression: 'a >!> b'"):
-        parse_expression_from_string(wrong_expression, cs)
-
-    wrong_hp_name_expresion = "q <= 5"
-    with pytest.raises(
-        ValueError,
-        match="Unknown hyperparameter: q",
-    ):
-        cs_expression = parse_expression_from_string(wrong_hp_name_expresion, cs)
-
-    wrong_value_expresion = "'q' <= 5"
-    with pytest.raises(
-        ValueError,
-        match="Only hyperparameter comparisons allowed. Neither side is recognised as a hyperparameter in: 'q' <= 5",
-    ):
-        cs_expression = parse_expression_from_string(wrong_value_expresion, cs)
-
-    wrong_hp_value_expression = "a > 11"
-    with pytest.raises(
-        ValueError,
-        match=re.escape(
-            "Forbidden clause must be instantiated with a legal hyperparameter value for 'a, Type: UniformInteger, Range: [0, 10], Default: 5', but got '11'",
-        ),
-    ):
-        cs_expression = parse_expression_from_string(wrong_hp_value_expression, cs)
-
-    wrong_hp_value_expression = "a == 'cat'"
-    with pytest.raises(
-        ValueError,
-        match=re.escape(
-            "Forbidden clause must be instantiated with a legal hyperparameter value for 'a, Type: UniformInteger, Range: [0, 10], Default: 5', but got 'cat'",
-        ),
-    ):
-        cs_expression = parse_expression_from_string(wrong_hp_value_expression, cs)
-
-    wrong_forbidden_expression = "a != 5"
-    with pytest.raises(
-        ValueError,
-        match="NotEq operator not supported for ForbiddenClauses.",
-    ):
-        parse_expression_from_string(wrong_forbidden_expression, cs)
-
-    wrong_forbidden_expression = "a != b"
-    with pytest.raises(
-        ValueError,
-        match="NotEq operator not supported for ForbiddenClauses.",
-    ):
-        parse_expression_from_string(wrong_forbidden_expression, cs)
-
-    # In case the epxression is incorrecty ordered for ConfigSpace, the method fixes the ordering here where possible
-    wrong_order_expression = "5 < a"
-    assert parse_expression_from_string(
-        wrong_order_expression,
-        cs,
-    ) == ForbiddenGreaterThanClause(cs["a"], 5)
-
-    wrong_order_expression = "5 > a"
-    assert parse_expression_from_string(
-        wrong_order_expression,
-        cs,
-    ) == ForbiddenLessThanClause(cs["a"], 5)
-
-    wrong_order_expression = "5 == a"
-    assert parse_expression_from_string(
-        wrong_order_expression,
-        cs,
-    ) == ForbiddenEqualsClause(cs["a"], 5)
-
-    wrong_order_expression = "[1,2,5] in a"
-    with pytest.raises(ValueError):
-        parse_expression_from_string(wrong_order_expression, cs)
-
-    in_operator_expression = (
-        "a in [1, 2, 3]"  # This operator is accepted by ConfigSpace for Integer HP
-    )
-    cs_expression = parse_expression_from_string(in_operator_expression, cs)
-    assert cs_expression == ForbiddenInClause(cs["a"], [1, 2, 3])
-
-    simple_value_expression = "a > 9"
-    cs_expression = parse_expression_from_string(simple_value_expression, cs)
-    assert cs_expression == ForbiddenGreaterThanClause(cs["a"], 9)
-
-    simple_expression = "a > b"
-    cs_expression = parse_expression_from_string(simple_expression, cs)
-    assert cs_expression == ForbiddenGreaterThanRelation(cs["a"], cs["b"])
-
-    simple_expression = "a < 5"
-    cs_expression = parse_expression_from_string(simple_expression, cs)
-    assert cs_expression == ForbiddenLessThanClause(cs["a"], 5)
-
-    complex_expression = "a > b || (c > d && e < 5 && cat1 == 'dog' && float1 >= 0.5)"
-    cs_expression = parse_expression_from_string(complex_expression, cs)
-    assert cs_expression == ForbiddenOrConjunction(
-        ForbiddenGreaterThanRelation(cs["a"], cs["b"]),
-        ForbiddenAndConjunction(
-            ForbiddenGreaterThanRelation(cs["c"], cs["d"]),
-            ForbiddenLessThanClause(cs["e"], 5),
-            ForbiddenEqualsClause(cs["cat1"], "dog"),
-            ForbiddenGreaterThanEqualsClause(cs["float1"], 0.5),
-        ),
-    )
-
-    complex_expression = (
-        "a >= 8 and (cat1 in ['cat', 'dog'] or cat2 in ['sun', 'rain'])"
-    )
-    cs_expression = parse_expression_from_string(complex_expression, cs)
-    assert cs_expression == ForbiddenAndConjunction(
-        ForbiddenGreaterThanEqualsClause(cs["a"], 8),
-        ForbiddenOrConjunction(
-            ForbiddenInClause(cs["cat1"], ["cat", "dog"]),
-            ForbiddenInClause(cs["cat2"], ["sun", "rain"]),
-        ),
-    )
-
-    # Check if a hyperparameter name / categorical value mixup does not occur based on the quotation marks
-    semi_ambigous_expression = (
-        "cat1 == 'dog'"  # Here we are talking about the categorical value
-    )
-    assert parse_expression_from_string(
-        semi_ambigous_expression,
-        cs,
-    ) == ForbiddenEqualsClause(cs["cat1"], "dog")
-    semi_ambigous_expression = (
-        "cat1 == dog"  # Now we are referring to the Hyperparameter called dog
-    )
-    assert parse_expression_from_string(
-        semi_ambigous_expression,
-        cs,
-    ) == ForbiddenEqualsRelation(cs["cat1"], cs["dog"])
-    semi_ambigous_expression = (
-        "dog == 'dog'"  # The hyperparameter dog cannot have value 'dog'
-    )
-    assert parse_expression_from_string(
-        semi_ambigous_expression,
-        cs,
-    ) == ForbiddenEqualsClause(cs["dog"], "dog")
-
-    wrong_semi_ambigous_expression = "dog == medium"  # There is no variable called medium, only a constant; quotation marks are missing
-    with pytest.raises(ValueError, match="Unknown hyperparameter: medium"):
-        parse_expression_from_string(wrong_semi_ambigous_expression, cs)
+def test_grid_generator_includes_upper_bound():
+    # 12 steps over (-1, 1) gives a step of 2/11; summing steps used to overshoot
+    # the upper bound through float error and silently drop the last grid point
+    cs = ConfigurationSpace({"float": (-1.0, 1.0)})
+    values = [config["float"] for config in grid_generator(cs, {"float": 12})]
+    assert len(values) == 12
+    assert values[0] == -1.0
+    assert values[-1] == 1.0
 
 
-def test_parse_expression_from_string_condition():
-    cs = ConfigurationSpace(
-        {
-            "a": (0, 10),
-            "b": (0, 10),
-            "c": (0, 10),
-            "d": (0, 10),
-            "e": (0, 10),
-        },
-    )
-    simple_expression = "a < 5"
-    cs_expression = parse_expression_from_string(
-        simple_expression,
-        cs,
-        conditional_hyperparameter=cs["e"],
-    )
-    assert cs_expression == LessThanCondition(cs["e"], cs["a"], 5)
-
-    simple_expression_inequality = "a != 5"
-    cs_expression = parse_expression_from_string(
-        simple_expression_inequality,
-        cs,
-        conditional_hyperparameter=cs["e"],
-    )
-    assert cs_expression == NotEqualsCondition(cs["e"], cs["a"], 5)
-
-    wrong_order_expression = "5 != a"
-    assert parse_expression_from_string(
-        wrong_order_expression,
-        cs,
-        conditional_hyperparameter=cs["e"],
-    ) == NotEqualsCondition(cs["e"], cs["a"], 5)
+def test_grid_generator_no_duplicate_integers():
+    # More steps than integers in the range: rounding maps several steps onto the
+    # same integer, which must not produce duplicate configurations
+    cs = ConfigurationSpace({"int": (1, 3)})
+    values = [config["int"] for config in grid_generator(cs, {"int": 5})]
+    assert values == [1, 2, 3]

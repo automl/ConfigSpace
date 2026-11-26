@@ -116,7 +116,7 @@ class Configuration(Mapping[str, Any]):
                 if not hp.legal_value(value):
                     raise IllegalValueError(hp, value)
 
-                # Truncate the float to be of constant lengt
+                # Truncate the float to be of constant length
                 if isinstance(hp, FloatHyperparameter):
                     value = float(np.round(value, ROUND_PLACES))  # type: ignore
 
