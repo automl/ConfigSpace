@@ -546,8 +546,8 @@ def test_grid_generator():
     cs = ConfigurationSpace(seed=1234)
 
     generated_grid = list(grid_generator(cs, num_steps_dict))
-    # For the case of no hyperparameters, in get_cartesian_product, itertools.product() returns
-    # a single empty tuple element which leads to a single empty Configuration.
+    # For the case of no hyperparameters, grid_generator returns an empty list
+    # because there are no hyperparameters to form configurations from.
     assert len(generated_grid) == 0
 
     # Sub-test 3
