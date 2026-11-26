@@ -333,7 +333,7 @@ def test_check_neighbouring_config_diamond():
 
     new_array = change_hp_value(
         diamond,
-        config.get_array(),
+        config.__array__(),
         hp_name,
         neighbor_value,
         index,
@@ -367,7 +367,7 @@ def test_check_neighbouring_config_diamond_or_conjunction():
 
     new_array = change_hp_value(
         diamond,
-        config.get_array(),
+        config.__array__(),
         hp_name,
         neighbor_value,
         index,
@@ -403,7 +403,7 @@ def test_check_neighbouring_config_diamond_str():
 
     new_array = change_hp_value(
         diamond,
-        config.get_array(),
+        config.__array__(),
         hp_name,
         neighbor_value,
         index,

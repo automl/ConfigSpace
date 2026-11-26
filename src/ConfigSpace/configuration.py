@@ -174,13 +174,13 @@ class Configuration(Mapping[str, Any]):
         Conditional hyperparameters that are not active are represented with nan.
 
         Args:
-            dtype: Ignored, required by numpy (dtype enforced by configuration)
-            copy: Ignored, required by numpy (is always a copy)
+            dtype: Passed on, required by numpy (dtype enforced by configuration)
+            copy: Passed on, required by numpy (is always a copy)
 
         Returns:
             The vector representation of the configuration
         """
-        return self._vector
+        return np.array(self._vector, dtype=dtype, copy=copy)
 
     def __contains__(self, key: object) -> bool:
         if not isinstance(key, str):
@@ -207,7 +207,7 @@ class Configuration(Mapping[str, Any]):
 
         new_array = change_hp_value(
             self.config_space,
-            self.get_array().copy(),
+            self.__array__().copy(),
             param.name,
             vector_value,
             idx,

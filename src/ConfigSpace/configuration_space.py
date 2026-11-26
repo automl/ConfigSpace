@@ -571,7 +571,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         Args:
             configuration: Configuration to check
         """
-        ConfigSpace.util.check_configuration(self, configuration.get_array())
+        ConfigSpace.util.check_configuration(self, configuration.__array__())
 
     def check_configuration_vector_representation(self, vector: Array[f64]) -> None:
         """Raise error if configuration in vector representation is not legal.
@@ -594,7 +594,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
             The set of names of all active hyperparameter
         """
         vector = (
-            configuration.get_array()
+            configuration.__array__()
             if isinstance(configuration, Configuration)
             else configuration
         )
@@ -997,7 +997,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         configuration: Configuration,
         allow_inactive_with_values: bool = False,
     ) -> None:
-        vector = configuration.get_array()
+        vector = configuration.__array__()
         active_hyperparameters = self.get_active_hyperparameters(configuration)
 
         for hp_name, node in self._dag.nodes.items():

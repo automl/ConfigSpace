@@ -770,7 +770,7 @@ def test_check_forbidden_with_sampled_vector_configuration():
     configuration = Configuration(cs, vector=np.ones(1, dtype=float))
 
     with pytest.raises(ValueError, match="violates forbidden clause"):
-        cs._check_forbidden(configuration.get_array())
+        cs._check_forbidden(configuration.__array__())
 
 
 def test_eq():
@@ -910,7 +910,7 @@ def test_sample_configuration_with_or_conjunction():
     # hp7 (last index) only active if either hp8 (first) or hp5 (second) is 1
 
     configs = cs.sample_configuration(6)
-    sampled_arrays = np.asarray([config.get_array() for config in configs])
+    sampled_arrays = np.asarray([config.__array__() for config in configs])
     expected_arrays = np.asarray(
         [
             [1, np.nan, 0],
