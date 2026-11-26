@@ -913,6 +913,8 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         )
         # Add all conditions and forbiddens in one shot to avoid rebuilding the DAG more than once
         cs_copy.add(conditions, forbiddens)
+        # Same RNG state, but an independent generator: sampling one won't advance the other
+        cs_copy.random.set_state(self.random.get_state())
         return cs_copy
 
     def __eq__(self, other: Any) -> bool:

@@ -1502,6 +1502,10 @@ def test_copy() -> None:
     cs_copy = copy.copy(cs)
     assert cs == cs_copy
 
+    # The copy continues from the source's RNG state, with its own generator
+    assert cs_copy.random is not cs.random
+    assert cs_copy.sample_configuration() == cs.sample_configuration()
+
     # Verify that removing components from the copy
     cs_copy.remove(cs["a"])
     assert cs != cs_copy
