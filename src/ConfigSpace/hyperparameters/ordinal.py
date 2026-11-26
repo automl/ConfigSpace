@@ -67,7 +67,7 @@ class OrdinalHyperparameter(Hyperparameter[Any, Any]):
         sequence: Sequence[Any],
         default_value: Any | _NotSet = NotSet,
         meta: Mapping[Hashable, Any] | None = None,
-        weights: Sequence[float] | Array[np.number] | None = None,
+        weights: Sequence[float] | None = None,
     ) -> None:
         """Initialize an ordinal hyperparameter.
 
