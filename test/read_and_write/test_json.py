@@ -15,6 +15,7 @@ from ConfigSpace import (
     ForbiddenInClause,
     Integer,
     Normal,
+    OrdinalHyperparameter,
     Uniform,
 )
 from ConfigSpace.forbidden import ForbiddenLessThanRelation
@@ -44,6 +45,17 @@ def test_configspace_with_probabilities(tmp_path: Path) -> None:
     cs.to_json(path)
     new_cs = ConfigurationSpace.from_json(path)
     np.testing.assert_equal(new_cs["a"].probabilities, (0.2, 0.2, 0.6))  # type: ignore
+
+
+def test_ordinal_with_weights_round_trip(tmp_path: Path) -> None:
+    # A zero weight must survive the round trip, otherwise "c" becomes sampleable again
+    cs = ConfigurationSpace()
+    cs.add(OrdinalHyperparameter("a", ["a", "b", "c"], weights=[1, 3, 0]))
+    path = tmp_path / "cs.json"
+    cs.to_json(path)
+    new_cs = ConfigurationSpace.from_json(path)
+    assert new_cs == cs
+    np.testing.assert_equal(new_cs["a"].weights, (1, 3, 0))  # type: ignore
 
 
 this_file = os.path.abspath(__file__)

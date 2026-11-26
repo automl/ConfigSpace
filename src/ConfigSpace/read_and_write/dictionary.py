@@ -551,6 +551,7 @@ def _encode_ordinal(
     return {
         "name": hp.name,
         "sequence": list(hp.sequence),
+        "weights": list(hp.weights) if hp.weights else None,
         "default_value": hp.default_value,
         "meta": hp.meta,
     }

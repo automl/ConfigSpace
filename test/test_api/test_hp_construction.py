@@ -235,3 +235,24 @@ def test_ordinal() -> None:
 
     assert a == expected
     assert a.meta == expected.meta
+
+    # Test with weights
+    expected = OrdinalHyperparameter(
+        "hp",
+        sequence=["a", "b", "c"],
+        weights=[1, 2, 3],
+        default_value="a",
+        meta={"hello": "world"},
+    )
+
+    b = Categorical(
+        "hp",
+        items=["a", "b", "c"],
+        weights=[1, 2, 3],
+        default="a",
+        ordered=True,
+        meta={"hello": "world"},
+    )
+
+    assert b == expected
+    assert b.meta == expected.meta
