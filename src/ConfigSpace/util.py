@@ -32,7 +32,7 @@ import itertools
 import math
 from collections import deque
 from collections.abc import Iterator, Sequence
-from typing import TYPE_CHECKING, Any, cast, Generator, Iterable
+from typing import TYPE_CHECKING, Any, Generator, Iterable
 
 import numpy as np
 
@@ -651,24 +651,22 @@ def grid_generator(
     num_steps_dict: dict[str, int] | None = None,
 ) -> Generator[Configuration, None, None]:
     """Creates a Generator for a grid of Configurations for a given ConfigurationSpace.
-    Can be used, for example, for grid search. 
+    Can be used, for example, for grid search.
 
     Args:
-    configuration_space:
-        The Configuration space over which to create a grid of HyperParameter
-        Configuration values. It knows the types for all parameter values.
+        configuration_space:
+            The Configuration space over which to create a grid of HyperParameter
+            Configuration values. It knows the types for all parameter values.
+        num_steps_dict:
+            A dict containing the number of points to divide the grid side formed by
+            Hyperparameters which are either of type UniformFloatHyperparameter or
+            type UniformIntegerHyperparameter. The keys in the dict should be the names
+            of the corresponding Hyperparameters and the values should be the number of
+            points to divide the grid side formed by the corresponding Hyperparameter in to.
 
-    num_steps_dict:
-        A dict containing the number of points to divide the grid side formed by
-        Hyperparameters which are either of type UniformFloatHyperparameter or
-        type UniformIntegerHyperparameter. The keys in the dict should be the names
-        of the corresponding Hyperparameters and the values should be the number of
-        points to divide the grid side formed by the corresponding Hyperparameter in to.
-
-    Returns:
-        A generator producing Configurations for a given ConfigurationSpace as a cartesian product of tuples of HyperParameter values.
-        It is a cartesian product of tuples, where each tuple lists the possible values taken by the corresponding HyperParameter.
-        Within the cartesian product, in each element, the ordering of HyperParameters is the same for the OrderedDict within the ConfigurationSpace.
+    Yields:
+        A generator producing Configurations for a given ConfigurationSpace as a cartesian product of HyperParameter ranges.
+        It is a cartesian product of each non conditional hyperparameter range, after which the conditional hyperparameter ranges are added recursively.
     """
 
     def _hyperparameter_range(hp: Hyperparameter, num_steps: int | None) -> Iterable[Any]:
@@ -676,8 +674,6 @@ def grid_generator(
         
         def frange(lower: float, upper: float, numsteps: int, log: bool=False, as_int: bool=False) -> Generator[float, None, None]:
             """Range function for floats. For some reason this does not exist by default in Python, and Numpy returns arrays instead of generators."""
-            if numsteps <= 1:
-                raise ValueError(f"Parameter numsteps must be a positive integer > 1, got {numsteps}")
             if log:
                 lower_source, upper_source = lower, upper
                 lower, upper = math.log(lower), math.log(upper)
@@ -698,9 +694,9 @@ def grid_generator(
                 yield value
 
         if isinstance(hp, (CategoricalHyperparameter)):
-            return cast(tuple, hp.choices)
+            return hp.choices
         elif isinstance(hp, (OrdinalHyperparameter)):
-            return cast(tuple, hp.sequence)
+            return hp.sequence
         elif isinstance(hp, Constant):
             return (hp.value,)
         elif num_steps is None or num_steps <= 1:  # The latter two hyperparameter require a number of steps, do a quick check if to see if we can proceed
@@ -726,36 +722,41 @@ def grid_generator(
     ]
     regular_hyperparameter_names = [hp.name for hp in regular_hyperparameters]
 
+    def _missing_active_conditionals(values: dict[str, Any]) -> list[Hyperparameter]:
+        """All conditional hyperparameters that are active given values, but not set yet."""
+        all_values = {name: values.get(name, NotSet) for name in configuration_space}
+        return [
+            configuration_space[name]
+            for name in configuration_space.conditional_hyperparameters
+            if name not in values
+            and all(condition.satisfied_by_value(all_values) for condition in configuration_space.parent_conditions_of[name])
+        ]
+
+    def _is_forbidden(values: dict[str, Any]) -> bool:
+        """Forbiddens treat unset hyperparameters as not matching, so partial values are fine."""
+        return any(forbidden.is_forbidden_value(values) for forbidden in configuration_space.forbidden_clauses)
+
     def generate_with_conditionals(regular_configuration: dict[str, Any], active_conditionals: list[Hyperparameter]) -> Generator[Configuration, None, None]:
         """Recursively adds all conditional hyperparameters to some configuration of regular HPs."""
         for conditional_configuration in _cartesian_product_generator(active_conditionals):
-            new_configuration = regular_configuration.copy()# + conditional_configuration
+            new_configuration = regular_configuration.copy()
             for hp, value in zip(active_conditionals, conditional_configuration):  # Combine the existing configuration with new conditional values
                 new_configuration[hp.name] = value
-            try:
-                grid_point = Configuration(
-                    configuration_space,
-                    values=new_configuration,
-                )
-                yield grid_point
-            except ActiveHyperparameterNotSetError as ex:
-                for configuration_with_conditionals in generate_with_conditionals(new_configuration, [ex.hyperparameter]):
-                    yield configuration_with_conditionals
-            except ForbiddenValueError as ex:  # The grid generator generates all possible combinations, including those violating the Forbidden rules
+            if _is_forbidden(new_configuration):  # The grid generator generates all possible combinations, including those violating the Forbidden rules
                 continue
+            missing = _missing_active_conditionals(new_configuration)
+            if missing:
+                yield from generate_with_conditionals(new_configuration, missing)
+            else:
+                yield Configuration(configuration_space, values=new_configuration)
 
     for configuration in _cartesian_product_generator(regular_hyperparameters):
         configuration_dict = {key: value for key, value in zip(regular_hyperparameter_names, configuration)}
-        try:
-            # NOTE: Build vector instead and call check_configuration here directly?
-            grid_point = Configuration(
-                configuration_space,
-                values=configuration_dict,
-            )
-            yield grid_point
-        except ActiveHyperparameterNotSetError as ex:
-            # NOTE: We are not getting all possible known ActiveHyperparameterNotSetErrors at once here; its thrown for the first 'mistake' only.
-            for configuration_with_conditionals in generate_with_conditionals(configuration_dict, [ex.hyperparameter]):
-                yield configuration_with_conditionals
-        except ForbiddenValueError as ex:  # The grid generator generates all possible combinations, including those violating the Forbidden rules
+        if _is_forbidden(configuration_dict):  # The grid generator generates all possible combinations, including those violating the Forbidden rules
             continue
+        missing = _missing_active_conditionals(configuration_dict)
+        if missing:
+            yield from generate_with_conditionals(configuration_dict, missing)
+        else:
+            # NOTE: Build vector instead and call check_configuration here directly?
+            yield Configuration(configuration_space, values=configuration_dict)
