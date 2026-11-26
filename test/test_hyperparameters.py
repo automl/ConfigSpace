@@ -134,17 +134,17 @@ def test_constant_pdf():
     # it must be one-dimensional
     with pytest.raises(
         ValueError,
-        match="Method pdf expects a one-dimensional numpy array",
+        match=r"Method pdf expects a one-dimensional numpy array",
     ):
         c1.pdf_values(wrong_shape_1)
     with pytest.raises(
         ValueError,
-        match="Method pdf expects a one-dimensional numpy array",
+        match=r"Method pdf expects a one-dimensional numpy array",
     ):
         c1.pdf_values(wrong_shape_2)
     with pytest.raises(
         ValueError,
-        match="Method pdf expects a one-dimensional numpy array",
+        match=r"Method pdf expects a one-dimensional numpy array",
     ):
         c1.pdf_values(wrong_shape_3)
 
@@ -286,7 +286,7 @@ def test_uniformfloat_to_integer():
 def test_uniformfloat_illegal_bounds():
     with pytest.raises(
         ValueError,
-        match="Hyperparameter 'param' has illegal settings",
+        match=r"Hyperparameter 'param' has illegal settings",
     ) as e:
         _ = UniformFloatHyperparameter("param", 0, 10, log=True)
 
@@ -298,7 +298,7 @@ def test_uniformfloat_illegal_bounds():
 
     with pytest.raises(
         ValueError,
-        match="Hyperparameter 'param' has illegal settings",
+        match=r"Hyperparameter 'param' has illegal settings",
     ) as e:
         _ = UniformFloatHyperparameter("param", 1, 0)
 
@@ -361,7 +361,7 @@ def test_uniformfloat_pdf():
     assert c2.pdf_values(point_outside_range_log)[0] == 0.0
 
     # this, however, is a negative value on a log param, which cannot be pulled into range
-    with pytest.warns(RuntimeWarning, match="invalid value encountered in log"):
+    with pytest.warns(RuntimeWarning, match=r"invalid value encountered in log"):
         assert c2.pdf_values(point_outside_range)[0] == 0.0
 
     array_results = c1.pdf_values(array_1)
@@ -383,17 +383,17 @@ def test_uniformfloat_pdf():
 
     with pytest.raises(
         ValueError,
-        match="Method pdf expects a one-dimensional numpy array",
+        match=r"Method pdf expects a one-dimensional numpy array",
     ):
         c1.pdf_values(wrong_shape_1)
     with pytest.raises(
         ValueError,
-        match="Method pdf expects a one-dimensional numpy array",
+        match=r"Method pdf expects a one-dimensional numpy array",
     ):
         c1.pdf_values(wrong_shape_2)
     with pytest.raises(
         ValueError,
-        match="Method pdf expects a one-dimensional numpy array",
+        match=r"Method pdf expects a one-dimensional numpy array",
     ):
         c1.pdf_values(wrong_shape_3)
 
@@ -705,17 +705,17 @@ def test_normalfloat_pdf():
 
     with pytest.raises(
         ValueError,
-        match="Method pdf expects a one-dimensional numpy array",
+        match=r"Method pdf expects a one-dimensional numpy array",
     ):
         c1.pdf_values(wrong_shape_1)
     with pytest.raises(
         ValueError,
-        match="Method pdf expects a one-dimensional numpy array",
+        match=r"Method pdf expects a one-dimensional numpy array",
     ):
         c1.pdf_values(wrong_shape_2)
     with pytest.raises(
         ValueError,
-        match="Method pdf expects a one-dimensional numpy array",
+        match=r"Method pdf expects a one-dimensional numpy array",
     ):
         c1.pdf_values(wrong_shape_3)
 
@@ -974,7 +974,7 @@ def test_betafloat_default_value():
     assert f_legal_log.default_value == pytest.approx(1)
 
     # These are necessary, as we bypass the same check in the UniformFloatHP by design
-    with pytest.raises(ValueError, match="Illegal default value 0"):
+    with pytest.raises(ValueError, match=r"Illegal default value 0"):
         BetaFloatHyperparameter(
             "param",
             lower=1,
@@ -984,7 +984,7 @@ def test_betafloat_default_value():
             default_value=0,
             log=False,
         )
-    with pytest.raises(ValueError, match="Illegal default value 0"):
+    with pytest.raises(ValueError, match=r"Illegal default value 0"):
         BetaFloatHyperparameter(
             "param",
             lower=1,
@@ -1093,17 +1093,17 @@ def test_betafloat_pdf():
 
     with pytest.raises(
         ValueError,
-        match="Method pdf expects a one-dimensional numpy array",
+        match=r"Method pdf expects a one-dimensional numpy array",
     ):
         c1.pdf_values(wrong_shape_1)
     with pytest.raises(
         ValueError,
-        match="Method pdf expects a one-dimensional numpy array",
+        match=r"Method pdf expects a one-dimensional numpy array",
     ):
         c1.pdf_values(wrong_shape_2)
     with pytest.raises(
         ValueError,
-        match="Method pdf expects a one-dimensional numpy array",
+        match=r"Method pdf expects a one-dimensional numpy array",
     ):
         c1.pdf_values(wrong_shape_3)
 
@@ -1245,7 +1245,7 @@ def test_uniformint_legal_float_values():
 def test_uniformint_illegal_bounds():
     with pytest.raises(
         ValueError,
-        match="Hyperparameter 'param' has illegal settings",
+        match=r"Hyperparameter 'param' has illegal settings",
     ) as e:
         UniformIntegerHyperparameter("param", 0, 10, log=True)
 
@@ -1257,7 +1257,7 @@ def test_uniformint_illegal_bounds():
 
     with pytest.raises(
         ValueError,
-        match="Hyperparameter 'param' has illegal settings",
+        match=r"Hyperparameter 'param' has illegal settings",
     ) as e:
         _ = UniformIntegerHyperparameter("param", 1, 0)
 
@@ -1297,7 +1297,7 @@ def test_uniformint_pdf():
     assert c3.pdf_values(point_1)[0] == pytest.approx(0.07142857142857142, abs=1e-5)
 
     # this, however, is a negative value on a log param, which cannot be pulled into range
-    with pytest.warns(RuntimeWarning, match="invalid value encountered in log"):
+    with pytest.warns(RuntimeWarning, match=r"invalid value encountered in log"):
         assert c2.pdf_values(point_outside_range)[0] == 0.0
 
     array_results = c1.pdf_values(array_1)
@@ -1317,17 +1317,17 @@ def test_uniformint_pdf():
 
     with pytest.raises(
         ValueError,
-        match="Method pdf expects a one-dimensional numpy array",
+        match=r"Method pdf expects a one-dimensional numpy array",
     ):
         c1.pdf_values(wrong_shape_1)
     with pytest.raises(
         ValueError,
-        match="Method pdf expects a one-dimensional numpy array",
+        match=r"Method pdf expects a one-dimensional numpy array",
     ):
         c1.pdf_values(wrong_shape_2)
     with pytest.raises(
         ValueError,
-        match="Method pdf expects a one-dimensional numpy array",
+        match=r"Method pdf expects a one-dimensional numpy array",
     ):
         c1.pdf_values(wrong_shape_3)
 
@@ -1598,7 +1598,7 @@ def test_normalint_pdf():
     # but does not have an actual impact of now
     assert c1.pdf_values(point_outside_range_1)[0] == 0.0
     assert c1.pdf_values(point_outside_range_2)[0] == 0.0
-    with pytest.warns(RuntimeWarning, match="divide by zero encountered in log"):
+    with pytest.warns(RuntimeWarning, match=r"divide by zero encountered in log"):
         assert c2.pdf_values(point_outside_range_1_log)[0] == 0.0
     assert c2.pdf_values(point_outside_range_2_log)[0] == 0.0
 
@@ -1618,17 +1618,17 @@ def test_normalint_pdf():
 
     with pytest.raises(
         ValueError,
-        match="Method pdf expects a one-dimensional numpy array",
+        match=r"Method pdf expects a one-dimensional numpy array",
     ):
         c1.pdf_values(wrong_shape_1)
     with pytest.raises(
         ValueError,
-        match="Method pdf expects a one-dimensional numpy array",
+        match=r"Method pdf expects a one-dimensional numpy array",
     ):
         c1.pdf_values(wrong_shape_2)
     with pytest.raises(
         ValueError,
-        match="Method pdf expects a one-dimensional numpy array",
+        match=r"Method pdf expects a one-dimensional numpy array",
     ):
         c1.pdf_values(wrong_shape_3)
 
@@ -1872,7 +1872,7 @@ def test_betaint_default_value():
     assert f_legal_log.default_value == pytest.approx(1)
 
     # These are necessary, as we bypass the same check in the UniformFloatHP by design
-    with pytest.raises(ValueError, match="Illegal default value 0"):
+    with pytest.raises(ValueError, match=r"Illegal default value 0"):
         BetaFloatHyperparameter(
             "param",
             lower=1,
@@ -1882,7 +1882,7 @@ def test_betaint_default_value():
             default_value=0,
             log=False,
         )
-    with pytest.raises(ValueError, match="Illegal default value 0"):
+    with pytest.raises(ValueError, match=r"Illegal default value 0"):
         BetaFloatHyperparameter(
             "param",
             lower=1,
@@ -1923,7 +1923,7 @@ def test_betaint_legal_float_values():
     assert isinstance(f1.default_value, np.integer)
     with pytest.raises(
         TypeError,
-        match="`default_value` for hyperparameter 'param' must be an integer",
+        match=r"`default_value` for hyperparameter 'param' must be an integer",
     ):
         _ = BetaIntegerHyperparameter(
             "param",
@@ -1985,7 +1985,7 @@ def test_betaint_pdf():
 
     assert c1.pdf_values(point_outside_range_1)[0] == 0.0
     assert c1.pdf_values(point_outside_range_2)[0] == 0.0
-    with pytest.warns(RuntimeWarning, match="divide by zero encountered in log"):
+    with pytest.warns(RuntimeWarning, match=r"divide by zero encountered in log"):
         assert c2.pdf_values(point_outside_range_1_log)[0] == 0.0
     assert c2.pdf_values(point_outside_range_2_log)[0] == 0.0
 
@@ -2009,17 +2009,17 @@ def test_betaint_pdf():
 
     with pytest.raises(
         ValueError,
-        match="Method pdf expects a one-dimensional numpy array",
+        match=r"Method pdf expects a one-dimensional numpy array",
     ):
         c1.pdf_values(wrong_shape_1)
     with pytest.raises(
         ValueError,
-        match="Method pdf expects a one-dimensional numpy array",
+        match=r"Method pdf expects a one-dimensional numpy array",
     ):
         c1.pdf_values(wrong_shape_2)
     with pytest.raises(
         ValueError,
-        match="Method pdf expects a one-dimensional numpy array",
+        match=r"Method pdf expects a one-dimensional numpy array",
     ):
         c1.pdf_values(wrong_shape_3)
 
@@ -2259,7 +2259,7 @@ def test_categorical_is_legal():
 def test_categorical_choices():
     with pytest.raises(
         ValueError,
-        match="Choices for categorical hyperparameters param contain choice `a` 2 times, "
+        match=r"Choices for categorical hyperparameters param contain choice `a` 2 times, "
         "while only a single occurence is allowed.",
     ):
         CategoricalHyperparameter("param", ["a", "a"])
@@ -2364,17 +2364,17 @@ def test_categorical_pdf():
 
     with pytest.raises(
         ValueError,
-        match="Method pdf expects a one-dimensional numpy array",
+        match=r"Method pdf expects a one-dimensional numpy array",
     ):
         c1.pdf_values(wrong_shape_1)
     with pytest.raises(
         ValueError,
-        match="Method pdf expects a one-dimensional numpy array",
+        match=r"Method pdf expects a one-dimensional numpy array",
     ):
         c1.pdf_values(wrong_shape_2)
     with pytest.raises(
         ValueError,
-        match="Method pdf expects a one-dimensional numpy array",
+        match=r"Method pdf expects a one-dimensional numpy array",
     ):
         c1.pdf_values(wrong_shape_3)
 
@@ -2680,7 +2680,7 @@ def test_categorical_with_all_zero_weights():
 def test_categorical_with_wrong_length_weights():
     with pytest.raises(
         ValueError,
-        match="The list of weights and the list of choices are required to be of same length.",
+        match=r"The list of weights and the list of choices are required to be of same length.",
     ):
         CategoricalHyperparameter(
             name="param",
@@ -2691,7 +2691,7 @@ def test_categorical_with_wrong_length_weights():
 
     with pytest.raises(
         ValueError,
-        match="The list of weights and the list of choices are required to be of same length.",
+        match=r"The list of weights and the list of choices are required to be of same length.",
     ):
         CategoricalHyperparameter(
             name="param",
@@ -2702,7 +2702,7 @@ def test_categorical_with_wrong_length_weights():
 
 
 def test_categorical_with_negative_weights():
-    with pytest.raises(ValueError, match="Negative weights are not allowed."):
+    with pytest.raises(ValueError, match=r"Negative weights are not allowed."):
         CategoricalHyperparameter(
             name="param",
             choices=["A", "B", "C"],
@@ -2712,14 +2712,14 @@ def test_categorical_with_negative_weights():
 
 
 def test_categorical_with_set():
-    with pytest.raises(TypeError, match="Using a set of choices is prohibited."):
+    with pytest.raises(TypeError, match=r"Using a set of choices is prohibited."):
         CategoricalHyperparameter(
             name="param",
             choices={"A", "B", "C"},  # type: ignore
             default_value="A",
         )
 
-    with pytest.raises(TypeError, match="Using a set of weights is prohibited."):
+    with pytest.raises(TypeError, match=r"Using a set of weights is prohibited."):
         CategoricalHyperparameter(
             name="param",
             choices=["A", "B", "C"],
@@ -2853,17 +2853,17 @@ def test_ordinal_pdf():
 
     with pytest.raises(
         ValueError,
-        match="Method pdf expects a one-dimensional numpy array",
+        match=r"Method pdf expects a one-dimensional numpy array",
     ):
         c1.pdf_values(wrong_shape_1)
     with pytest.raises(
         ValueError,
-        match="Method pdf expects a one-dimensional numpy array",
+        match=r"Method pdf expects a one-dimensional numpy array",
     ):
         c1.pdf_values(wrong_shape_2)
     with pytest.raises(
         ValueError,
-        match="Method pdf expects a one-dimensional numpy array",
+        match=r"Method pdf expects a one-dimensional numpy array",
     ):
         c1.pdf_values(wrong_shape_3)
 

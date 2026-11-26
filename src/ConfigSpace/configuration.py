@@ -163,15 +163,24 @@ class Configuration(Mapping[str, Any]):
             allow_inactive_with_values=self.allow_inactive_with_values,
         )
 
-    def get_array(self) -> Array[f64]:
+    def __array__(
+        self,
+        dtype: np.dtype[Any] | None = None,
+        copy: bool = False,
+    ) -> Array[f64]:
         """The internal vector representation of this config.
 
         All continuous values are scaled between zero and one.
+        Conditional hyperparameters that are not active are represented with nan.
+
+        Args:
+            dtype: Passed on, required by numpy (dtype enforced by configuration)
+            copy: Passed on, required by numpy (is always a copy)
 
         Returns:
             The vector representation of the configuration
         """
-        return self._vector
+        return np.array(self._vector, dtype=dtype, copy=copy)
 
     def __contains__(self, key: object) -> bool:
         if not isinstance(key, str):
@@ -198,7 +207,7 @@ class Configuration(Mapping[str, Any]):
 
         new_array = change_hp_value(
             self.config_space,
-            self.get_array().copy(),
+            self.__array__().copy(),
             param.name,
             vector_value,
             idx,
@@ -288,5 +297,18 @@ class Configuration(Mapping[str, Any]):
             Configuration as dictionary
         """
         return dict(self)
+
+    @deprecated(
+        "Please use `np.array(config)` instead of `config.get_array()`.",
+    )
+    def get_array(self) -> Array[f64]:
+        """The internal vector representation of this config.
+
+        All continuous values are scaled between zero and one.
+
+        Returns:
+            The vector representation of the configuration
+        """
+        return self._vector
 
     # ---------------------------------------------------

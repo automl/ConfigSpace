@@ -22,7 +22,7 @@ print(configuration["a"])
 Underneath the hood, there is some **vectorized** representation of the configuration,
 which in this case may look like `np.array([0.32, 1])` which stands for `{"a": 3.2, "b": "dog"}`.
 This vectorized representation can be useful for optimizer numerical optimization algorithms.
-You can access it with [`configuration.get_array()`][ConfigSpace.configuration.Configuration].
+You can access it with [`configuration.__array__()`][ConfigSpace.configuration.Configuration].
 
 !!! tip
 

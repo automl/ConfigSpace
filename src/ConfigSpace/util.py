@@ -267,7 +267,7 @@ def get_one_exchange_neighbourhood(
 
     random = np.random.RandomState(seed) if isinstance(seed, int) else seed
 
-    arr = config.get_array()
+    arr = config.__array__()
 
     assert not any(n_to_gen == 0 for _, _, n_to_gen, _ in neighbors_to_generate)
 
@@ -426,7 +426,7 @@ def get_random_neighbor(configuration: Configuration, seed: int) -> Configuratio
                 random.randint(0, len(configuration)) if len(configuration) > 1 else 0
             )
 
-            value = configuration.get_array()[rand_idx]
+            value = configuration.__array__()[rand_idx]
             if np.isfinite(value):
                 active = True
 
@@ -509,7 +509,7 @@ def deactivate_inactive_hyperparameters(
         hp = hps.pop()
         for child in space.children_of[hp.name]:
             for condition in space.parent_conditions_of[child.name]:
-                if not condition.satisfied_by_vector(config.get_array()):
+                if not condition.satisfied_by_vector(config.__array__()):
                     dic = dict(config)
                     try:
                         del dic[child.name]
@@ -704,10 +704,10 @@ def generate_grid(
     def _get_value_set(num_steps_dict: dict[str, int] | None, hp_name: str) -> tuple:
         param = configuration_space[hp_name]
         if isinstance(param, (CategoricalHyperparameter)):
-            return cast(tuple, param.choices)
+            return cast("tuple", param.choices)
 
         if isinstance(param, (OrdinalHyperparameter)):
-            return cast(tuple, param.sequence)
+            return cast("tuple", param.sequence)
 
         if isinstance(param, Constant):
             return (param.value,)
