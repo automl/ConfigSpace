@@ -28,6 +28,7 @@
 from __future__ import annotations
 
 import os
+import re
 
 import numpy as np
 import pytest
@@ -43,8 +44,16 @@ from ConfigSpace import (
     EqualsCondition,
     ForbiddenAndConjunction,
     ForbiddenEqualsClause,
+    ForbiddenEqualsRelation,
+    ForbiddenGreaterThanClause,
+    ForbiddenGreaterThanEqualsClause,
+    ForbiddenGreaterThanRelation,
+    ForbiddenInClause,
+    ForbiddenLessThanClause,
+    ForbiddenOrConjunction,
     GreaterThanCondition,
     LessThanCondition,
+    NotEqualsCondition,
     OrConjunction,
     OrdinalHyperparameter,
     UniformFloatHyperparameter,
@@ -64,6 +73,7 @@ from ConfigSpace.util import (
     get_random_neighbor,
     grid_generator,
     impute_inactive_values,
+    parse_expression_from_string,
 )
 
 
