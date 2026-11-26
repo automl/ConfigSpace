@@ -899,7 +899,7 @@ class ConfigurationSpace(Mapping[str, Hyperparameter]):
         """Creates a copy of the ConfigurationSpace."""
         cs_copy = ConfigurationSpace(
             name=self.name,
-            meta=self.meta.copy(),            
+            meta=self.meta.copy() if self.meta is not None else None,
             space={hp.name: copy.copy(hp) for hp in self.values()},
         )
         for condition in self.conditions:
