@@ -470,7 +470,7 @@ def test_grid_generator():
     # cat1 2
     # const1 1
     # float1 11
-    # int1 7
+    # int1 6
     # ord1 3
 
     # Check randomly pre-selected values in the generated_grid
